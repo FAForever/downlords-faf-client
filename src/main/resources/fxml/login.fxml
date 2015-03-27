@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<BorderPane fx:id="loginRoot" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.faforever.client.login.LoginController">
+  <center>
+    <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity">
+      <children>
+        <ImageView fitHeight="256.0" fitWidth="256.0" pickOnBounds="true" preserveRatio="true">
+          <image>
+            <Image url="@../images/login_watermark.png"/>
+          </image>
+        </ImageView>
+        <GridPane layoutX="256.0" minWidth="260.0" AnchorPane.leftAnchor="266.0" AnchorPane.rightAnchor="10.0"
+                  AnchorPane.topAnchor="10.0">
+          <columnConstraints>
+            <ColumnConstraints fillWidth="false" minWidth="10.0" prefWidth="100.0"/>
+            <ColumnConstraints hgrow="ALWAYS" maxWidth="Infinity" minWidth="10.0" prefWidth="100.0"/>
+          </columnConstraints>
+          <rowConstraints>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+          </rowConstraints>
+          <children>
+            <TextField fx:id="usernameInput" minWidth="100.0" prefHeight="25.0" prefWidth="100.0"
+                       GridPane.columnIndex="1"/>
+            <Label text="%login.name"/>
+            <Label text="%login.password" GridPane.rowIndex="1"/>
+            <PasswordField fx:id="passwordInput" minWidth="100.0" prefHeight="25.0" GridPane.columnIndex="1"
+                           GridPane.rowIndex="1"/>
+            <CheckBox fx:id="autoLoginCheckBox" mnemonicParsing="false" text="%login.auto"
+                      GridPane.columnSpan="2147483647" GridPane.rowIndex="2"/>
+            <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%login.create"
+                    GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4"/>
+            <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%login.rename"
+                    GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5"/>
+            <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%login.forgot"
+                    GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="6"/>
+          </children>
+        </GridPane>
+      </children>
+    </AnchorPane>
+  </center>
+  <bottom>
+    <HBox alignment="CENTER_RIGHT" spacing="10.0" BorderPane.alignment="CENTER">
+      <children>
+        <Button fx:id="loginButton" defaultButton="true" mnemonicParsing="false" onAction="#login" prefWidth="80.0"
+                text="%login.button.login"/>
+        <Button fx:id="quitButton" cancelButton="true" mnemonicParsing="false" onAction="#cancel" prefWidth="80.0"
+                text="%login.button.quit"/>
+      </children>
+      <padding>
+        <Insets bottom="10.0" right="10.0" top="10.0"/>
+      </padding>
+    </HBox>
+  </bottom>
+  <top>
+    <AnchorPane maxHeight="-Infinity" prefHeight="60.0" BorderPane.alignment="CENTER">
+      <children>
+        <Label layoutX="14.0" layoutY="14.0" text="Welcome back, commander" AnchorPane.leftAnchor="14.0"
+               AnchorPane.topAnchor="14.0"/>
+      </children>
+    </AnchorPane>
+  </top>
+</BorderPane>

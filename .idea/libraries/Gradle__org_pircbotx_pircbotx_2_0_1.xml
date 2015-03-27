@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.pircbotx:pircbotx:2.0.1">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.pircbotx/pircbotx/2.0.1/84abe09038c6fed5c4f2858cd2af9e9c40333311/pircbotx-2.0.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.pircbotx/pircbotx/2.0.1/4e2f1fc6f9e1bd7b0bce9cf94a44c5b5c2f97433/pircbotx-2.0.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,35 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'application'
+
+idea {
+    project {
+        jdkName = '1.8'
+        languageLevel = '1.7'
+    }
+    module {
+        downloadJavadoc = false
+        downloadSources = true
+    }
+}
+
+mainClassName = "org.gradle.sample.Main"
+applicationDefaultJvmArgs = ["-splash:/images/splash.png"]
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile 'com.google.code.gson:gson:2.3.1'
+    compile 'org.springframework:spring-beans:4.0.5.RELEASE'
+    compile 'org.springframework:spring-context:4.0.5.RELEASE'
+    compile 'org.springframework:spring-core:4.0.5.RELEASE'
+    compile 'org.pircbotx:pircbotx:2.0.1'
+    compile 'ch.qos.logback:logback-classic:1.0.13'
+    compile 'ch.qos.logback:logback-core:1.0.13'
+    compile 'org.slf4j:slf4j-api:1.7.2'
+    compile 'commons-configuration:commons-configuration:1.10'
+}
