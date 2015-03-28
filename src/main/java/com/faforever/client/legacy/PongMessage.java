@@ -1,5 +1,7 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.legacy.message.Serializable;
+
 import java.io.IOException;
 
 public enum PongMessage implements Serializable {

@@ -2,12 +2,12 @@ package com.faforever.client.config;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.i18n.I18nImpl;
+import com.faforever.client.irc.IrcService;
+import com.faforever.client.irc.PircBotXIrcService;
 import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
@@ -52,15 +52,17 @@ public class BaseConfig {
   }
 
   @Bean
-  Gson gson() {
-    return new GsonBuilder()
-        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-        .create();
-  }
-
-  @Bean
   ServerAccessor serverAccessor() {
     return new ServerAccessor();
   }
 
+  @Bean
+  IrcService ircService() {
+    return new PircBotXIrcService();
+  }
+
+  @Bean
+  PreferencesService preferencesService() {
+    return new PreferencesService();
+  }
 }

@@ -1,9 +1,10 @@
 package com.faforever.client.config;
 
+import com.faforever.client.chat.ChatController;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.fxml.FxmlLoaderImpl;
-import com.faforever.client.irc.IrcClient;
-import com.faforever.client.irc.PircBotXIrcClient;
+import com.faforever.client.irc.IrcService;
+import com.faforever.client.irc.PircBotXIrcService;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
 import com.faforever.client.whatsnew.WhatsNewController;
@@ -34,12 +35,17 @@ public class UiConfig {
 
   @Bean
   WhatsNewController whatsNewController() {
-    return loadController("/fxml/whats_new.fxml");
+    return mainController().getWhatsNewController();
   }
 
   @Bean
-  IrcClient ircClient() {
-    return new PircBotXIrcClient();
+  ChatController chatController() {
+    return mainController().getChatController();
+  }
+
+  @Bean
+  IrcService ircClient() {
+    return new PircBotXIrcService();
   }
 
   @Bean
@@ -48,6 +54,6 @@ public class UiConfig {
   }
 
   private <T> T loadController(String fxml) {
-    return fxmlLoader().load(fxml);
+    return fxmlLoader().loadAndGetController(fxml);
   }
 }

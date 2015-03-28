@@ -2,8 +2,11 @@ package com.faforever.client.login;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.MainController;
+import com.faforever.client.preferences.LoginPrefs;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
+import com.faforever.client.util.JavaFxUtil;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -12,46 +15,66 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 public class LoginController {
 
   @FXML
-  private CheckBox rememberLoginCheckBox;
+  Pane loginFormPane;
 
   @FXML
-  private CheckBox autoLoginCheckBox;
+  Pane loginProgressPane;
 
   @FXML
-  private TextField usernameInput;
+  CheckBox autoLoginCheckBox;
 
   @FXML
-  private TextField passwordInput;
+  TextField usernameInput;
 
   @FXML
-  private Button loginButton;
+  TextField passwordInput;
 
   @FXML
-  private Button quitButton;
+  Button loginButton;
 
   @FXML
-  private Parent loginRoot;
+  Button cancelButton;
+
+  @FXML
+  Parent loginRoot;
 
   @Autowired
   MainController mainController;
 
   @Autowired
-  private I18n i18n;
+  I18n i18n;
 
   @Autowired
-  private Environment environment;
+  Environment environment;
 
   @Autowired
-  private UserService userService;
+  UserService userService;
+
+  @Autowired
+  PreferencesService preferencesService;
 
   private Stage stage;
+
+  /**
+   * If used typed something into the password field, this will be set to true.
+   */
+  private boolean isPlainTextPassword;
+
+  @FXML
+  private void initialize() {
+    passwordInput.setOnKeyPressed(event -> isPlainTextPassword = true);
+    loginProgressPane.setVisible(false);
+  }
 
   public void display(Stage stage) {
     this.stage = stage;
@@ -62,33 +85,81 @@ public class LoginController {
     stage.setScene(scene);
     stage.setTitle(i18n.get("login.title"));
     stage.setResizable(false);
+
+    fillForm();
+    if (autoLoginCheckBox.isSelected()) {
+      login(usernameInput.getText(), passwordInput.getText(), true);
+    }
+
     stage.show();
+    JavaFxUtil.centerOnScreen(stage);
+  }
+
+  private void fillForm() {
+    LoginPrefs loginPrefs = preferencesService.getUserPreferences().getLoginPrefs();
+    String username = loginPrefs.getUsername();
+    String password = loginPrefs.getPassword();
+
+    boolean autoLogin = StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password);
+    autoLoginCheckBox.setSelected(autoLogin);
+
+    usernameInput.setText(StringUtils.defaultString(username));
+    passwordInput.setText(StringUtils.defaultString(password));
   }
 
   @FXML
-  private void login(ActionEvent actionEvent) {
-    String username = usernameInput.getCharacters().toString();
-    String password = passwordInput.getCharacters().toString();
+  private void loginButtonClicked(ActionEvent actionEvent) {
+    String username = usernameInput.getText();
+    String password = passwordInput.getText();
+
+    if (isPlainTextPassword) {
+      password = DigestUtils.sha256Hex(password);
+    }
+
     boolean autoLogin = autoLoginCheckBox.isSelected();
+
+    login(username, password, autoLogin);
+  }
+
+  private void login(String username, String password, boolean autoLogin) {
+    onLoginProgress();
 
     userService.login(username, password, autoLogin, new Callback<Void>() {
       @Override
       public void success(Void result) {
-        mainController.display(stage);
+        onLoginSucceeded();
       }
 
       @Override
       public void error(Throwable e) {
-        Dialog<Void> loginFailedDialog = new Dialog<>();
-        loginFailedDialog.setTitle(i18n.get("login.failed.title"));
-        loginFailedDialog.setContentText(i18n.get("login.failed.message"));
-        loginFailedDialog.show();
+        onLoginFailed(e);
       }
     });
   }
 
+  private void onLoginSucceeded() {
+    mainController.display(stage);
+  }
+
+  private void onLoginFailed(Throwable e) {
+    Dialog<Void> loginFailedDialog = new Dialog<>();
+    loginFailedDialog.setTitle(i18n.get("login.failed.title"));
+    loginFailedDialog.setContentText(i18n.get("login.failed.message"));
+    loginFailedDialog.show();
+
+    loginFormPane.setVisible(true);
+    loginProgressPane.setVisible(false);
+    loginButton.setVisible(true);
+  }
+
+  private void onLoginProgress() {
+    loginFormPane.setVisible(false);
+    loginProgressPane.setVisible(true);
+    loginButton.setVisible(false);
+  }
+
   @FXML
-  private void cancel(ActionEvent actionEvent) {
+  private void cancelButtonClicked(ActionEvent actionEvent) {
     stage.close();
   }
 }

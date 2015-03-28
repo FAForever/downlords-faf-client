@@ -1,10 +1,16 @@
 package com.faforever.client.fxml;
 
+import javafx.scene.Node;
 import org.springframework.core.io.Resource;
+
 
 public interface FxmlLoader {
 
-  public <T> T load(Resource resource);
+  <T> T loadAndGetController(Resource resource);
 
-  public <T> T load(String file);
+  <T> T loadAndGetController(String file);
+
+  <T extends Node> T loadAndGetRoot(String file);
+
+  <T extends Node> T loadAndGetRoot(Resource resource);
 }

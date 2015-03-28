@@ -4,4 +4,5 @@
 <?import javafx.scene.web.WebView?>
 <WebView prefHeight="200.0" prefWidth="200.0" xmlns="http://javafx.com/javafx/8.0.40"
          xmlns:fx="http://javafx.com/fxml/1"
-         fx:id="whatsNewRoot"/>
+         fx:id="whatsNewRoot"
+         fx:controller="com.faforever.client.whatsnew.WhatsNewController"/>

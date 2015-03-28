@@ -1,61 +1,106 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.irc.IrcClient;
-import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import org.pircbotx.Configuration;
-import org.pircbotx.PircBotX;
-import org.pircbotx.hooks.events.MessageEvent;
+import com.faforever.client.irc.IrcService;
+import com.faforever.client.irc.IrcUser;
+import com.faforever.client.irc.OnChannelJoinedListener;
+import com.faforever.client.irc.OnConnectedListener;
+import com.faforever.client.irc.OnDisconnectedListener;
+import com.faforever.client.irc.OnMessageListener;
+import com.faforever.client.irc.OnPrivateMessageListener;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.Pane;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
-import java.io.IOException;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class ChatController {
+public class ChatController implements OnMessageListener, OnConnectedListener, OnDisconnectedListener, OnPrivateMessageListener, OnChannelJoinedListener {
 
   @Autowired
   Environment environment;
 
   @Autowired
-  IrcClient ircClient;
+  IrcService ircService;
 
-  private ListView<Label> chatListView;
-  private Node chat;
+  @FXML
+  private TextField messageTextField;
 
-  public ChatController(Node chat) {
-    this.chat = chat;
+  @FXML
+  private TabPane chatsTabPane;
+
+  @FXML
+  private Pane chatContentPane;
+
+  @FXML
+  private Pane connectingProgressPane;
+
+  private final Map<String, ChannelTab> nameToChatTab;
+
+  public ChatController() {
+    nameToChatTab = new HashMap<>();
   }
 
-  public void connectIrc() {
-    Configuration<PircBotX> configuration = new Configuration.Builder()
-        .setName(environment.getProperty("user.name"))
-        .setLogin(environment.getProperty("user.password"))
-        .setServerHostname(environment.getProperty("irc.host"))
-        .setServerPort(environment.getProperty("irc.port", Integer.class))
-        .addAutoJoinChannel(environment.getProperty("irc.defaultChannel"))
-        .addListener(ircClient)
-        .buildConfiguration();
+  public void load() {
+    ircService.addOnMessageListener(this);
+    ircService.addOnConnectedListener(this);
+    ircService.addOnDisconnectedListener(this);
+    ircService.addOnPrivateMessageListener(this);
+    ircService.addOnChannelJoinedListener(this);
 
-    PircBotX pircBotX = new PircBotX(configuration);
+    ircService.connect();
+  }
 
-    try {
-      ircClient.addEventListener(MessageEvent.class, new IrcClient.IrcEventListener<MessageEvent>() {
-        @Override
-        public void onEvent(MessageEvent event) {
-          onMessage(event.getMessage());
-        }
-      });
+  @FXML
+  private void initialize() {
+    onDisconnected();
+  }
 
+  @Override
+  public void onMessage(String channelName, Instant instant, String sender, String message) {
+    addAndGetChannel(channelName).onMessage(instant, sender, message);
+  }
 
-      ircClient.connect(pircBotX);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+  private ChannelTab addAndGetChannel(String channelName) {
+    if (!nameToChatTab.containsKey(channelName)) {
+      ChannelTab channelTab = new ChannelTab(this, channelName);
+      nameToChatTab.put(channelName, channelTab);
+      chatsTabPane.getTabs().add(channelTab);
     }
+    return nameToChatTab.get(channelName);
   }
 
-  private void onMessage(String message) {
-    chatListView.getItems().add(new Label(message));
+  @Override
+  public void onConnected() {
   }
 
+  @Override
+  public void onDisconnected() {
+    connectingProgressPane.setVisible(true);
+    chatContentPane.setVisible(false);
+  }
+
+  @Override
+  public void onChannelJoined(String channelName, List<IrcUser> users) {
+    connectingProgressPane.setVisible(false);
+    chatContentPane.setVisible(true);
+
+    addAndGetChannel(channelName);
+  }
+
+  @Override
+  public void onPrivateMessage(String sender, Instant instant, String message) {
+    addAndGetChannel(sender).onMessage(instant, sender, message);
+  }
+
+  public void onSendMessage(ActionEvent actionEvent) {
+    String target = chatsTabPane.getSelectionModel().getSelectedItem().getId();
+    ircService.sendMessage(target, messageTextField.getText());
+    messageTextField.clear();
+  }
 }

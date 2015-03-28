@@ -1,5 +1,7 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.legacy.message.PlayerInfo;
+import com.faforever.client.legacy.message.ServerMessage;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
@@ -8,29 +10,23 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 
 public class ServerReader extends Thread {
 
-  private static final Logger logger = LoggerFactory.getLogger(ServerReader.class);
-
-  interface OnServerMessageListener {
-
-    void onServerMessage(ServerMessage serverMessage);
-
-    void onServerPing();
-  }
-
-  public static final int NUMBER_OF_USELESS_BYTES = 27;
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final Gson gson;
-  private final OnServerMessageListener listener;
   private final Socket socket;
+  private OnSessionInitiatedListener onSessionInitiatedListener;
+  private OnGameInfoListener onGameInfoListener;
+  private OnPlayerInfoListener onPlayerInfoListener;
+  private OnServerPingListener onServerPingListener;
   private boolean stopped;
 
-  public ServerReader(Gson gson, Socket socket, OnServerMessageListener listener) {
+  public ServerReader(Gson gson, Socket socket) {
     this.gson = gson;
-    this.listener = listener;
     this.socket = socket;
 
     setDaemon(true);
@@ -38,33 +34,33 @@ public class ServerReader extends Thread {
 
   @Override
   public void run() {
-    try {
-      QDataInputStream socketIn = new QDataInputStream(new DataInputStream(new BufferedInputStream(socket.getInputStream())));
+    while (!socket.isInputShutdown()) {
+      try {
+        QDataInputStream socketIn = new QDataInputStream(new DataInputStream(new BufferedInputStream(socket.getInputStream())));
 
-      while (!stopped && !socket.isInputShutdown()) {
-        socketIn.skipBlockSize();
-        String message = socketIn.readQString();
+        while (!stopped && !socket.isInputShutdown()) {
+          socketIn.skipBlockSize();
+          String message = socketIn.readQString();
 
-        MessageType messageType = MessageType.fromString(message);
-        if (messageType != null) {
-          dispatchServerCommand(socketIn, messageType);
-        } else {
-          parseServerMessage(message);
+          MessageType messageType = MessageType.fromString(message);
+          if (messageType != null) {
+            dispatchServerCommand(socketIn, messageType);
+          } else {
+            parseServerMessage(message);
+          }
         }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
 
-    if (socket.isInputShutdown()) {
-      logger.warn("Connection has been closed by remote host ({})", socket.getRemoteSocketAddress());
-    }
+    logger.warn("Connection has been closed by remote host ({})", socket.getRemoteSocketAddress());
   }
 
   private void dispatchServerCommand(QDataInputStream socketIn, MessageType messageType) throws IOException {
     switch (messageType) {
       case PING:
-        listener.onServerPing();
+        onServerPingListener.onServerPing();
         logger.debug("Server PINGed");
         break;
 
@@ -94,11 +90,39 @@ public class ServerReader extends Thread {
 
   private void parseServerMessage(String message) {
     try {
-      logger.warn("Object from server: {}", message);
+      logger.debug("Object from server: {}", message);
       ServerMessage serverMessage = gson.fromJson(message, ServerMessage.class);
-      listener.onServerMessage(serverMessage);
+
+      if ("welcome".equals(serverMessage.command)) {
+        SessionInitiatedMessage sessionInitiatedMessage = gson.fromJson(message, SessionInitiatedMessage.class);
+        onSessionInitiatedListener.onSessionInitiated(sessionInitiatedMessage);
+      } else if ("game_info".equals(serverMessage.command)) {
+        GameInfo gameInfo = gson.fromJson(message, GameInfo.class);
+        onGameInfoListener.onGameInfo(gameInfo);
+      } else if ("player_info".equals(serverMessage.command)) {
+        PlayerInfo playerInfo = gson.fromJson(message, PlayerInfo.class);
+        onPlayerInfoListener.onPlayerInfo(playerInfo);
+      } else {
+        logger.warn("Unhandled server message: " + message);
+      }
     } catch (JsonSyntaxException e) {
       logger.warn("Unhandled server message: " + message);
     }
+  }
+
+  public void setOnSessionInitiatedListener(OnSessionInitiatedListener onSessionInitiatedListener) {
+    this.onSessionInitiatedListener = onSessionInitiatedListener;
+  }
+
+  public void setOnGameInfoListener(OnGameInfoListener onGameInfoListener) {
+    this.onGameInfoListener = onGameInfoListener;
+  }
+
+  public void setOnPlayerInfoListener(OnPlayerInfoListener onPlayerInfoListener) {
+    this.onPlayerInfoListener = onPlayerInfoListener;
+  }
+
+  public void setOnServerPingListener(OnServerPingListener onServerPingListener) {
+    this.onServerPingListener = onServerPingListener;
   }
 }

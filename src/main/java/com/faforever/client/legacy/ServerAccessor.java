@@ -1,11 +1,13 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.legacy.message.ClientMessage;
+import com.faforever.client.legacy.message.PlayerInfo;
+import com.faforever.client.legacy.message.Serializable;
 import com.faforever.client.util.Callback;
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
-import javafx.concurrent.Service;
+import com.google.gson.GsonBuilder;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +21,9 @@ import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-public class ServerAccessor implements ServerReader.OnServerMessageListener {
+import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
+
+public class ServerAccessor implements OnGameInfoListener, OnPlayerInfoListener, OnSessionInitiatedListener, OnServerPingListener {
 
   private static final int VERSION = 122;
 
@@ -28,8 +32,6 @@ public class ServerAccessor implements ServerReader.OnServerMessageListener {
   @Autowired
   Environment environment;
 
-  @Autowired
-  private Gson gson;
 
   private final Object writeMonitor = new Object();
 
@@ -39,6 +41,14 @@ public class ServerAccessor implements ServerReader.OnServerMessageListener {
   private Callback<Void> loginCallback;
   private Socket socket;
   private QStreamWriter socketOut;
+  private Gson gson;
+
+  public ServerAccessor() {
+    gson = new GsonBuilder()
+        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+//        .registerTypeAdapter(FeaturedModVersions, new FeatureModVersionsTypeAdapter())
+        .create();
+  }
 
   public void connect() throws IOException {
     socket = new Socket(
@@ -55,14 +65,27 @@ public class ServerAccessor implements ServerReader.OnServerMessageListener {
   }
 
   private void startServerReader(Socket socket) {
-    new ServerReader(gson, socket, this).start();
+    ServerReader serverReader = new ServerReader(gson, socket);
+    serverReader.setOnSessionInitiatedListener(this);
+    serverReader.setOnGameInfoListener(this);
+    serverReader.setOnPlayerInfoListener(this);
+    serverReader.setOnServerPingListener(this);
+    serverReader.start();
   }
 
   @Override
-  public void onServerMessage(ServerMessage serverMessage) {
-    if (serverMessage != null && serverMessage.session != null) {
-      this.session = serverMessage.session;
-    }
+  public void onSessionInitiated(SessionInitiatedMessage message) {
+    this.session = message.session;
+  }
+
+  @Override
+  public void onGameInfo(GameInfo gameInfo) {
+
+  }
+
+  @Override
+  public void onPlayerInfo(PlayerInfo playerInfo) {
+
   }
 
   @Override
@@ -81,44 +104,13 @@ public class ServerAccessor implements ServerReader.OnServerMessageListener {
         writeToServer(ClientMessage.login(username, password, session));
         return null;
       }
-    }, null);
+    }, callback);
   }
 
   private void ensureConnected() throws IOException {
     if (socket == null || socket.isClosed()) {
       connect();
     }
-  }
-
-  private <T> void executeInBackground(final Task<T> task, final Callback<T> callback) {
-    task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-      @Override
-      public void handle(WorkerStateEvent event) {
-        if (callback == null) {
-          return;
-        }
-
-        Throwable exception = event.getSource().getException();
-        if (exception != null) {
-          callback.error(exception);
-        } else {
-          callback.success((T) event.getSource().getValue());
-        }
-      }
-    });
-    task.setOnFailed(new EventHandler<WorkerStateEvent>() {
-      @Override
-      public void handle(WorkerStateEvent event) {
-        logger.warn("Task failed", event.getSource().getException());
-      }
-    });
-
-    new Service<T>() {
-      @Override
-      protected Task<T> createTask() {
-        return task;
-      }
-    }.start();
   }
 
   private void writeToServer(Serializable serializable) {

@@ -5,7 +5,7 @@ apply plugin: 'application'
 idea {
     project {
         jdkName = '1.8'
-        languageLevel = '1.7'
+        languageLevel = '1.8'
     }
     module {
         downloadJavadoc = false
@@ -31,5 +31,4 @@ dependencies {
     compile 'ch.qos.logback:logback-classic:1.0.13'
     compile 'ch.qos.logback:logback-core:1.0.13'
     compile 'org.slf4j:slf4j-api:1.7.2'
-    compile 'commons-configuration:commons-configuration:1.10'
 }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<fx:root type="HBox" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
+  <Label fx:id="timeLabel"/>
+  <ImageView fx:id="avatarImageView" fitHeight="16.0" fitWidth="26.0" pickOnBounds="true" preserveRatio="true"/>
+  <Label fx:id="senderLabel">
+    <padding>
+      <Insets right="10.0"/>
+    </padding>
+  </Label>
+  <Label fx:id="messageLabel" HBox.hgrow="ALWAYS"/>
+</fx:root>
