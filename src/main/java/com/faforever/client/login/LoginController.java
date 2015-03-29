@@ -1,5 +1,6 @@
 package com.faforever.client.login;
 
+import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.LoginPrefs;
@@ -63,6 +64,9 @@ public class LoginController {
   @Autowired
   PreferencesService preferencesService;
 
+  @Autowired
+  SceneFactory sceneFactory;
+
   private Stage stage;
 
   /**
@@ -79,8 +83,7 @@ public class LoginController {
   public void display(Stage stage) {
     this.stage = stage;
 
-    Scene scene = new Scene(loginRoot);
-    scene.getStylesheets().add(environment.getProperty("style"));
+    Scene scene = sceneFactory.createScene(loginRoot);
 
     stage.setScene(scene);
     stage.setTitle(i18n.get("login.title"));
@@ -96,7 +99,7 @@ public class LoginController {
   }
 
   private void fillForm() {
-    LoginPrefs loginPrefs = preferencesService.getUserPreferences().getLoginPrefs();
+    LoginPrefs loginPrefs = preferencesService.getPreferences().getLoginPrefs();
     String username = loginPrefs.getUsername();
     String password = loginPrefs.getPassword();
 

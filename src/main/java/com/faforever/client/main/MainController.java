@@ -1,6 +1,7 @@
 package com.faforever.client.main;
 
 import com.faforever.client.chat.ChatController;
+import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.whatsnew.WhatsNewController;
@@ -36,15 +37,17 @@ public class MainController {
   @Autowired
   PreferencesService preferencesService;
 
+  @Autowired
+  SceneFactory sceneFactory;
+
   public Node getChat() {
     return chat;
   }
 
   public void display(Stage stage) {
-    final WindowPrefs mainWindowPrefs = preferencesService.getUserPreferences().getMainWindow();
+    final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
 
-    Scene scene = new Scene(mainRoot);
-    scene.getStylesheets().add(environment.getProperty("style"));
+    Scene scene = sceneFactory.createScene(mainRoot);
 
     stage.setScene(scene);
     stage.setTitle("FA Forever");

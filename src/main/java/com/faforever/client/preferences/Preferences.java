@@ -1,13 +1,15 @@
 package com.faforever.client.preferences;
 
-public class UserPreferences {
+public class Preferences {
 
   private WindowPrefs mainWindow;
   private LoginPrefs login;
+  private String theme;
 
-  public UserPreferences() {
+  public Preferences() {
     login = new LoginPrefs();
     mainWindow = new WindowPrefs(800, 600);
+    theme = "default";
   }
 
   public LoginPrefs getLoginPrefs() {
@@ -16,5 +18,9 @@ public class UserPreferences {
 
   public WindowPrefs getMainWindow() {
     return mainWindow;
+  }
+
+  public String getTheme() {
+    return theme;
   }
 }

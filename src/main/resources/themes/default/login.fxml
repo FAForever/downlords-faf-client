@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
@@ -13,7 +14,6 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <BorderPane fx:id="loginRoot" prefWidth="536.0" xmlns="http://javafx.com/javafx/8.0.40"
@@ -23,7 +23,7 @@
       <children>
         <ImageView fitHeight="256.0" fitWidth="256.0" pickOnBounds="true" preserveRatio="true">
           <image>
-            <Image url="@../images/login_watermark.png"/>
+            <Image url="@../../images/login_watermark.png"/>
           </image>
         </ImageView>
         <VBox fx:id="loginProgressPane" alignment="CENTER" prefHeight="200.0" prefWidth="100.0"
@@ -79,17 +79,17 @@
     </AnchorPane>
   </center>
   <bottom>
-    <HBox alignment="CENTER_RIGHT" spacing="10.0" BorderPane.alignment="CENTER">
-      <children>
+    <ButtonBar buttonMinWidth="80.0">
+      <buttons>
         <Button fx:id="loginButton" defaultButton="true" mnemonicParsing="false" onAction="#loginButtonClicked"
-                prefWidth="80.0" text="%login.button.login"/>
+                text="%login.button.login"/>
         <Button fx:id="cancelButton" cancelButton="true" mnemonicParsing="false" onAction="#cancelButtonClicked"
-                prefWidth="80.0" text="%login.button.cancel"/>
-      </children>
+                text="%login.button.cancel"/>
+      </buttons>
       <padding>
         <Insets bottom="10.0" right="10.0" top="10.0"/>
       </padding>
-    </HBox>
+    </ButtonBar>
   </bottom>
   <top>
     <AnchorPane maxHeight="-Infinity" prefHeight="60.0" BorderPane.alignment="CENTER">

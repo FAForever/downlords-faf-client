@@ -1,0 +1,31 @@
+
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+.message {
+  font-family: System;
+  font-size: 12px;
+}
+
+.message .time {
+  padding: 0 2px;
+}
+
+.message .avatar {
+  width: 28px;
+  padding: 0 2px;
+}
+
+.message .text {
+  padding: 0 2px;
+}
+
+.message .username {
+  display: inline-block;
+  width: 100px;
+  background-color: #ccc;
+  text-align: right;
+}

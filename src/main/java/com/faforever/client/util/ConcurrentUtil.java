@@ -2,8 +2,6 @@ package com.faforever.client.util;
 
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,28 +20,26 @@ public final class ConcurrentUtil {
   }
 
   public static <T> void executeInBackground(final Task<T> task, final Callback<T> callback) {
-    task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-      @Override
-      public void handle(WorkerStateEvent event) {
-        if (callback == null) {
-          return;
-        }
+    task.setOnSucceeded(event -> {
+      if (callback == null) {
+        return;
+      }
 
-        Throwable exception = event.getSource().getException();
-        if (exception != null) {
-          callback.error(exception);
-        } else {
-          callback.success((T) event.getSource().getValue());
-        }
+      Throwable exception = event.getSource().getException();
+      if (exception != null) {
+        callback.error(exception);
+      } else {
+        callback.success((T) event.getSource().getValue());
       }
     });
-    task.setOnFailed(new EventHandler<WorkerStateEvent>() {
-      @Override
-      public void handle(WorkerStateEvent event) {
-        Throwable exception = event.getSource().getException();
-        logger.warn("Task failed", exception);
-        callback.error(exception);
+    task.setOnFailed(event -> {
+      if (callback == null) {
+        return;
       }
+
+      Throwable exception = event.getSource().getException();
+      logger.warn("Task failed", exception);
+      callback.error(exception);
     });
 
     new Service<T>() {

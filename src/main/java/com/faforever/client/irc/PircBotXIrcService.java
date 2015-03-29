@@ -10,7 +10,6 @@ import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.UtilSSLSocketFactory;
-import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.Listener;
 import org.pircbotx.hooks.events.ConnectEvent;
@@ -23,9 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.util.ReflectionUtils;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ import java.util.Map;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
-public class PircBotXIrcService implements IrcService, Listener, OnConnectedListener {
+public class PircBotXIrcService implements IrcService, Listener, OnConnectedListener, OnDisconnectedListener {
 
   interface IrcEventListener<T> {
 
@@ -55,9 +55,30 @@ public class PircBotXIrcService implements IrcService, Listener, OnConnectedList
   private Map<Class<? extends Event>, ArrayList<IrcEventListener>> eventListeners;
   private Configuration configuration;
   private PircBotX pircBotX;
+  private boolean initialized;
 
   public PircBotXIrcService() {
     eventListeners = new HashMap<>();
+  }
+
+  void init() {
+    String username = userService.getUsername();
+
+    configuration = new Configuration.Builder()
+        .setName(username)
+        .setLogin(username)
+        .setServer(environment.getProperty("irc.host"), environment.getProperty("irc.port", Integer.class))
+        .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+        .setAutoSplitMessage(true)
+        .setEncoding(StandardCharsets.UTF_8)
+        .addListener(this)
+        .buildConfiguration();
+
+    addOnConnectedListener(this);
+    addOnDisconnectedListener(this);
+
+    pircBotX = new PircBotX(configuration);
+    initialized = true;
   }
 
   @Override
@@ -75,17 +96,28 @@ public class PircBotXIrcService implements IrcService, Listener, OnConnectedList
   @Override
   public void addOnDisconnectedListener(final OnDisconnectedListener listener) {
     addEventListener(DisconnectEvent.class,
-        event -> listener.onDisconnected());
+        event -> listener.onDisconnected(extractDisconnectException(event)));
+  }
+
+  private Exception extractDisconnectException(DisconnectEvent event) {
+    Field disconnectExceptionField = ReflectionUtils.findField(DisconnectEvent.class, "disconnectException");
+    ReflectionUtils.makeAccessible(disconnectExceptionField);
+    try {
+      return (Exception) disconnectExceptionField.get(event);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public void addOnMessageListener(final OnMessageListener listener) {
     addEventListener(MessageEvent.class, event -> {
-      listener.onMessage(
-          event.getChannel().getName(),
-          Instant.ofEpochMilli(event.getTimestamp()),
-          event.getUser().getNick(),
-          event.getMessage()
+      listener.onMessage(event.getChannel().getName(),
+          new IrcMessage(
+              Instant.ofEpochMilli(event.getTimestamp()),
+              event.getUser().getNick(),
+              event.getMessage()
+          )
       );
     });
   }
@@ -95,9 +127,13 @@ public class PircBotXIrcService implements IrcService, Listener, OnConnectedList
     addEventListener(PrivateMessageEvent.class,
         event -> listener.onPrivateMessage(
             event.getUser().getNick(),
-            Instant.ofEpochMilli(event.getTimestamp()),
-            event.getMessage()
-        ));
+            new IrcMessage(
+                Instant.ofEpochMilli(event.getTimestamp()),
+                event.getUser().getNick(),
+                event.getMessage()
+            )
+        )
+    );
   }
 
   @Override
@@ -109,43 +145,16 @@ public class PircBotXIrcService implements IrcService, Listener, OnConnectedList
         ));
   }
 
-  private List<IrcUser> users(Channel channel) {
-    ImmutableSortedSet<User> users = channel.getUsers();
-    List<IrcUser> ircUsers = new ArrayList<>(users.size());
-    for (User user : users) {
-      IrcUser ircUser = new IrcUser(user);
-      ircUsers.add(ircUser);
-    }
-    return ircUsers;
-  }
-
   @Override
   public void connect() {
-    String username = userService.getUsername();
-
-    configuration = new Configuration.Builder()
-        .setName(username)
-        .setLogin(username)
-        .setServer(environment.getProperty("irc.host"), environment.getProperty("irc.port", Integer.class))
-        .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-        .setAutoReconnect(true)
-        .setAutoSplitMessage(true)
-        .setEncoding(StandardCharsets.UTF_8)
-        .addListener(this)
-        .buildConfiguration();
-
-    addOnConnectedListener(this);
-
-    pircBotX = new PircBotX(configuration);
+    if (!initialized) {
+      init();
+    }
 
     executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        try {
-          pircBotX.startBot();
-        } catch (IOException | IrcException e) {
-          throw new RuntimeException(e);
-        }
+        pircBotX.startBot();
         return null;
       }
     });
@@ -184,5 +193,22 @@ public class PircBotXIrcService implements IrcService, Listener, OnConnectedList
         return null;
       }
     });
+  }
+
+  @Override
+  public void onDisconnected(Exception e) {
+    if (e != null) {
+      connect();
+    }
+  }
+
+  private List<IrcUser> users(Channel channel) {
+    ImmutableSortedSet<User> users = channel.getUsers();
+    List<IrcUser> ircUsers = new ArrayList<>(users.size());
+    for (User user : users) {
+      IrcUser ircUser = new IrcUser(user);
+      ircUsers.add(ircUser);
+    }
+    return ircUsers;
   }
 }

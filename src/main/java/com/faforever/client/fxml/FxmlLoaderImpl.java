@@ -1,49 +1,52 @@
 package com.faforever.client.fxml;
 
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Locale;
 
 public class FxmlLoaderImpl implements FxmlLoader {
 
   private MessageSource messageSource;
   private Locale locale;
+  private String theme;
 
   public FxmlLoaderImpl(MessageSource messageSource, Locale locale) {
     this.messageSource = messageSource;
     this.locale = locale;
   }
 
+
   @Override
-  public <T> T loadAndGetController(Resource resource) {
-    return load(resource).getController();
+  public void setTheme(String theme) {
+    this.theme = theme;
   }
 
   @Override
   public <T> T loadAndGetController(String file) {
-    return load(new ClassPathResource(file)).getController();
+    return load(file, null, null).getController();
   }
 
   @Override
-  public <T extends Node> T loadAndGetRoot(String file) {
-    return load(new ClassPathResource(file)).getRoot();
+  public void loadCustomControl(String file, Object control) {
+    load(file, control, control);
   }
 
-  @Override
-  public <T extends Node> T loadAndGetRoot(Resource resource) {
-    return load(resource).getRoot();
+  private URL buildResourceUrl(String file) throws IOException {
+    String path = String.format("/themes/%s/%s", theme, file);
+    return new ClassPathResource(path).getURL();
   }
 
-  private FXMLLoader load(Resource resource) {
+  private FXMLLoader load(String file, Object controller, Object root) {
     try {
       FXMLLoader loader = new FXMLLoader();
-      loader.setLocation(resource.getURL());
+      loader.setController(controller);
+      loader.setRoot(root);
+      loader.setLocation(buildResourceUrl(file));
       loader.setResources(new MessageSourceResourceBundle(messageSource, locale));
       loader.load();
       return loader;

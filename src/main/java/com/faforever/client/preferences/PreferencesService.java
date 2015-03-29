@@ -31,7 +31,7 @@ public class PreferencesService {
 
   private final Path preferencesFilePath;
   private final Gson gson;
-  private UserPreferences userPreferences;
+  private Preferences preferences;
   private final Timer timer;
   private TimerTask storeInBackgroundTask;
 
@@ -68,20 +68,20 @@ public class PreferencesService {
 
   private void initDefaultPreferences() {
     logger.debug("Initializing default user preferences");
-    userPreferences = new UserPreferences();
+    preferences = new Preferences();
   }
 
   private void readExistingFile(Path path) {
     try (Reader reader = Files.newBufferedReader(path, CHARSET)) {
       logger.debug("Reading preferences file {}", preferencesFilePath.toAbsolutePath());
-      userPreferences = gson.fromJson(reader, UserPreferences.class);
+      preferences = gson.fromJson(reader, Preferences.class);
     } catch (IOException e) {
       logger.warn("Preferences file " + path.toAbsolutePath() + " could not be read", e);
     }
   }
 
-  public UserPreferences getUserPreferences() {
-    return userPreferences;
+  public Preferences getPreferences() {
+    return preferences;
   }
 
   public void store() {
@@ -97,7 +97,7 @@ public class PreferencesService {
 
     try (Writer writer = Files.newBufferedWriter(preferencesFilePath, CHARSET)) {
       logger.debug("Writing preferences file {}", preferencesFilePath.toAbsolutePath());
-      gson.toJson(userPreferences, writer);
+      gson.toJson(preferences, writer);
     } catch (IOException e) {
       logger.warn("Preferences file " + preferencesFilePath.toAbsolutePath() + " could not be written", e);
     }

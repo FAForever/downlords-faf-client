@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
       @Override
       public void success(Void result) {
         if (autoLogin) {
-          preferencesService.getUserPreferences().getLoginPrefs()
+          preferencesService.getPreferences().getLoginPrefs()
               .setUsername(username)
               .setPassword(password);
           preferencesService.store();
