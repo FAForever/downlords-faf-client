@@ -1,31 +1,45 @@
-
-
 html, body {
   margin: 0;
   padding: 0;
 }
 
-.message {
+#chat-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.chat-message {
   font-family: System;
   font-size: 12px;
 }
 
-.message .time {
-  padding: 0 2px;
+.chat-message:nth-of-type(odd) {
+  background-color: #eee;
 }
 
-.message .avatar {
+.chat-message * {
+  padding: 0 2px;
+  word-wrap:break-word;
+}
+
+.chat-message td {
+  vertical-align: top;
+}
+
+.chat-message .time {
+}
+
+.chat-message .avatar {
   width: 28px;
   padding: 0 2px;
 }
 
-.message .text {
-  padding: 0 2px;
+.chat-message .text {
+  width: 100%;
 }
 
-.message .username {
-  display: inline-block;
-  width: 100px;
-  background-color: #ccc;
+.chat-message .username {
+  padding-right: 10px;
+  max-width: 100;
   text-align: right;
 }

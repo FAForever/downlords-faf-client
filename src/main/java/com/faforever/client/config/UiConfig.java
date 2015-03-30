@@ -1,13 +1,14 @@
 package com.faforever.client.config;
 
 import com.faforever.client.chat.ChannelTabFactory;
+import com.faforever.client.chat.ChannelTabFactoryImpl;
 import com.faforever.client.chat.ChatController;
+import com.faforever.client.chat.ChatUserControlFactory;
+import com.faforever.client.chat.ChatUserControlFactoryImpl;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.fxml.FxmlLoaderImpl;
-import com.faforever.client.irc.IrcService;
-import com.faforever.client.irc.PircBotXIrcService;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
 import com.faforever.client.whatsnew.WhatsNewController;
@@ -58,13 +59,13 @@ public class UiConfig {
   }
 
   @Bean
-  IrcService ircClient() {
-    return new PircBotXIrcService();
+  ChannelTabFactory chatTabFactory() {
+    return new ChannelTabFactoryImpl();
   }
 
   @Bean
-  ChannelTabFactory chatTabFactory() {
-    return new ChannelTabFactoryImpl();
+  ChatUserControlFactory userEntryFactory() {
+    return new ChatUserControlFactoryImpl();
   }
 
   @Bean

@@ -1,32 +1,30 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.irc.IrcMessage;
-import com.faforever.client.irc.IrcService;
-import com.faforever.client.irc.IrcUser;
-import com.faforever.client.irc.OnChannelJoinedListener;
-import com.faforever.client.irc.OnDisconnectedListener;
-import com.faforever.client.irc.OnMessageListener;
-import com.faforever.client.irc.OnPrivateMessageListener;
+import com.faforever.client.user.UserService;
 import javafx.fxml.FXML;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.Pane;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-public class ChatController implements OnMessageListener, OnDisconnectedListener, OnPrivateMessageListener, OnChannelJoinedListener {
+public class ChatController implements
+    OnMessageListener,
+    OnDisconnectedListener,
+    OnPrivateMessageListener,
+    OnUserJoinedListener,
+    OnUserListListener {
 
   @Autowired
-  Environment environment;
-
-  @Autowired
-  IrcService ircService;
+  ChatService chatService;
 
   @Autowired
   ChannelTabFactory channelTabFactory;
+
+  @Autowired
+  UserService userService;
 
   @FXML
   private TabPane chatsTabPane;
@@ -41,12 +39,13 @@ public class ChatController implements OnMessageListener, OnDisconnectedListener
   }
 
   public void load() {
-    ircService.addOnMessageListener(this);
-    ircService.addOnDisconnectedListener(this);
-    ircService.addOnPrivateMessageListener(this);
-    ircService.addOnChannelJoinedListener(this);
+    chatService.addOnMessageListener(this);
+    chatService.addOnDisconnectedListener(this);
+    chatService.addOnPrivateMessageListener(this);
+    chatService.addOnUserJoinedListener(this);
+    chatService.addOnUserListListener(this);
 
-    ircService.connect();
+    chatService.connect();
   }
 
   @FXML
@@ -55,8 +54,8 @@ public class ChatController implements OnMessageListener, OnDisconnectedListener
   }
 
   @Override
-  public void onMessage(String channelName, IrcMessage ircMessage) {
-    addAndGetChannel(channelName).onMessage(ircMessage);
+  public void onMessage(String channelName, ChatMessage chatMessage) {
+    addAndGetChannel(channelName).onMessage(chatMessage);
   }
 
   private ChannelTab addAndGetChannel(String channelName) {
@@ -75,15 +74,28 @@ public class ChatController implements OnMessageListener, OnDisconnectedListener
   }
 
   @Override
-  public void onChannelJoined(String channelName, List<IrcUser> users) {
-    connectingProgressPane.setVisible(false);
-    chatsTabPane.setVisible(true);
+  public void onChannelJoined(String channelName, ChatUser chatUser) {
+    ChannelTab channelTab = addAndGetChannel(channelName);
 
-    addAndGetChannel(channelName);
+    if (isCurrentUser(chatUser)) {
+      connectingProgressPane.setVisible(false);
+      chatsTabPane.setVisible(true);
+    } else {
+      channelTab.onUserJoined(chatUser);
+    }
+  }
+
+  private boolean isCurrentUser(ChatUser chatUser) {
+    return chatUser.getNick().equals(userService.getUsername());
   }
 
   @Override
-  public void onPrivateMessage(String sender, IrcMessage ircMessage) {
-    addAndGetChannel(sender).onMessage(ircMessage);
+  public void onPrivateMessage(String sender, ChatMessage chatMessage) {
+    addAndGetChannel(sender).onMessage(chatMessage);
+  }
+
+  @Override
+  public void onUserList(String channelName, Set<ChatUser> users) {
+    addAndGetChannel(channelName).setUsers(users);
   }
 }

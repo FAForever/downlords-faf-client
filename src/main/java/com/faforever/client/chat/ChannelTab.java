@@ -1,16 +1,13 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.fxml.FxmlLoader;
-import com.faforever.client.irc.IrcMessage;
-import com.faforever.client.irc.IrcService;
 import com.faforever.client.user.UserService;
 import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
-import javafx.scene.input.ScrollEvent;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -28,14 +25,21 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
 public class ChannelTab extends Tab {
 
-  private static final Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/message_list_item.html");
+  private static final ClassPathResource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
+  private static final Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
   private static final DateTimeFormatter SHORT_TIME_FORMAT = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT);
-  public static final ClassPathResource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/message_list.html");
+  private static final double ZOOM_STEP = 0.2d;
+  private static final String MESSAGE_CONTAINER_ID = "chat-container";
+  private static final String MESSAGE_ITEM_CLASS = "chat-message";
+  private static final int MAX_MESSAGES_DISPLAYED = 256;
 
   @FXML
   private WebView messagesWebView;
@@ -50,11 +54,13 @@ public class ChannelTab extends Tab {
   UserService userService;
 
   @Autowired
-  IrcService ircService;
+  ChatService chatService;
 
   @Autowired
   FxmlLoader fxmlLoader;
 
+  @Autowired
+  ChatUserControlFactory chatUserControlFactory;
 
   private final String channelName;
 
@@ -64,11 +70,13 @@ public class ChannelTab extends Tab {
    */
   private boolean isChatReady;
   private WebEngine engine;
-  private List<IrcMessage> waitingMessages;
+  private List<ChatMessage> waitingMessages;
+  private Map<String, ChatUser> nickToChatUser;
 
   public ChannelTab(String channelName) {
     this.channelName = channelName;
     waitingMessages = new ArrayList<>();
+    nickToChatUser = new HashMap<>();
 
     setClosable(true);
     setId(channelName);
@@ -83,10 +91,18 @@ public class ChannelTab extends Tab {
 
   private WebEngine initChatView() {
     messagesWebView.setContextMenuEnabled(false);
-    messagesWebView.setOnScroll(new EventHandler<ScrollEvent>() {
-      @Override
-      public void handle(ScrollEvent event) {
-
+    messagesWebView.setOnScroll(event -> {
+      if (event.isControlDown()) {
+        if (event.getDeltaY() > 0) {
+          messagesWebView.setZoom(messagesWebView.getZoom() + ZOOM_STEP);
+        } else {
+          messagesWebView.setZoom(messagesWebView.getZoom() - ZOOM_STEP);
+        }
+      }
+    });
+    messagesWebView.setOnKeyPressed(event -> {
+      if (event.isControlDown() && (event.getCode() == KeyCode.DIGIT0 || event.getCode() == KeyCode.NUMPAD0)) {
+        messagesWebView.setZoom(1);
       }
     });
 
@@ -110,31 +126,44 @@ public class ChannelTab extends Tab {
   @FXML
   private void onSendMessage(ActionEvent actionEvent) {
     String text = messageTextField.getText();
-    ircService.sendMessage(channelName, text);
+    chatService.sendMessage(channelName, text);
     messageTextField.clear();
-    onMessage(new IrcMessage(Instant.now(), userService.getUsername(), text));
+    onMessage(new ChatMessage(Instant.now(), userService.getUsername(), text));
   }
 
-  public void onMessage(IrcMessage ircMessage) {
+  public void onMessage(ChatMessage chatMessage) {
     if (!isChatReady) {
-      waitingMessages.add(ircMessage);
+      waitingMessages.add(chatMessage);
     } else {
-      appendMessage(ircMessage);
+      appendMessage(chatMessage);
+      removeTopmostMessage();
+      scrollToBottomIfDesired();
     }
   }
 
-  private void appendMessage(IrcMessage ircMessage) {
+  private void scrollToBottomIfDesired() {
+    engine.executeScript("window.scrollTo(0, document.body.scrollHeight);");
+  }
+
+  private void removeTopmostMessage() {
+    int numberOfMessages = (int) engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "').length");
+    if (numberOfMessages > MAX_MESSAGES_DISPLAYED) {
+      engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "')[0].remove()");
+    }
+  }
+
+  private void appendMessage(ChatMessage chatMessage) {
     String timeString = SHORT_TIME_FORMAT.format(
-        ZonedDateTime.ofInstant(ircMessage.getTime(), TimeZone.getDefault().toZoneId())
+        ZonedDateTime.ofInstant(chatMessage.getTime(), TimeZone.getDefault().toZoneId())
     );
 
     try (InputStream inputStream = MESSAGE_ITEM_HTML_RESOURCE.getInputStream()) {
       String html = IOUtils.toString(inputStream);
-      String avatar = getAvatarForUser(ircMessage.getNick());
-      html = String.format(html, timeString, avatar, ircMessage.getNick(), ircMessage.getMessage());
+      String avatar = getAvatarForUser(chatMessage.getNick());
+      html = String.format(html, timeString, avatar, chatMessage.getNick(), chatMessage.getMessage());
 
-      JSObject htmlTag = (JSObject) engine.executeScript("document.querySelector('body')");
-      htmlTag.call("insertAdjacentHTML", "beforeend", html);
+      JSObject targetNode = (JSObject) engine.executeScript("document.getElementById('" + MESSAGE_CONTAINER_ID + "')");
+      targetNode.call("insertAdjacentHTML", "beforeend", html);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -144,4 +173,19 @@ public class ChannelTab extends Tab {
     return "";
   }
 
+  public void onUserJoined(ChatUser chatUser) {
+    addUser(chatUser);
+  }
+
+  private void addUser(ChatUser chatUser) {
+    nickToChatUser.put(chatUser.getNick(), chatUser);
+    usersVBox.getChildren().add(
+        chatUserControlFactory.newUserEntry(chatUser)
+    );
+  }
+
+  public void setUsers(Set<ChatUser> chatUsers) {
+    usersVBox.getChildren().clear();
+    chatUsers.forEach(this::addUser);
+  }
 }
