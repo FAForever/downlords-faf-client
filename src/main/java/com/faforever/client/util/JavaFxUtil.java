@@ -1,5 +1,7 @@
 package com.faforever.client.util;
 
+import javafx.geometry.Rectangle2D;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 public class JavaFxUtil {
@@ -14,7 +16,11 @@ public class JavaFxUtil {
    * @param stage
    */
   public static void centerOnScreen(Stage stage) {
-    stage.centerOnScreen();
-    stage.setY(stage.getY() * 3f / 2f);
+    double width = stage.getWidth();
+    double height = stage.getHeight();
+
+    Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+    stage.setX((screenBounds.getWidth() - width) / 2);
+    stage.setY((screenBounds.getHeight() - height) / 2);
   }
 }

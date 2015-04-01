@@ -2,7 +2,6 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
@@ -11,92 +10,77 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<BorderPane fx:id="loginRoot" prefWidth="536.0" xmlns="http://javafx.com/javafx/8.0.40"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.login.LoginController">
-  <center>
-    <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity">
+<VBox fx:id="loginRoot" prefWidth="400.0" styleClass="login" stylesheets="@style.css"
+      xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.faforever.client.login.LoginController">
+  <children>
+    <HBox alignment="TOP_RIGHT">
       <children>
-        <ImageView fitHeight="256.0" fitWidth="256.0" pickOnBounds="true" preserveRatio="true">
-          <image>
-            <Image url="@../../images/login_watermark.png"/>
-          </image>
-        </ImageView>
-        <VBox fx:id="loginProgressPane" alignment="CENTER" prefHeight="200.0" prefWidth="100.0"
-              AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="266.0" AnchorPane.rightAnchor="10.0"
-              AnchorPane.topAnchor="10.0">
+        <Button mnemonicParsing="false" onAction="#onCloseButtonClicked" prefWidth="25.0"/>
+      </children>
+    </HBox>
+    <AnchorPane>
+      <children>
+        <VBox fx:id="loginProgressPane" alignment="CENTER" layoutY="104.0" AnchorPane.bottomAnchor="0.0"
+              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
           <children>
-            <ProgressIndicator prefHeight="80.0" prefWidth="536.0">
+            <ProgressIndicator VBox.vgrow="ALWAYS">
               <VBox.margin>
-                <Insets/>
+                <Insets bottom="40.0" left="80.0" right="80.0" top="80.0"/>
               </VBox.margin>
             </ProgressIndicator>
             <Label text="%login.progress.message">
               <VBox.margin>
-                <Insets bottom="28.0" top="14.0"/>
+                <Insets/>
               </VBox.margin>
             </Label>
+            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%login.button.cancel">
+              <VBox.margin>
+                <Insets top="100.0"/>
+              </VBox.margin>
+            </Button>
           </children>
         </VBox>
-        <GridPane fx:id="loginFormPane" layoutX="256.0" minWidth="260.0" AnchorPane.bottomAnchor="0.0"
-                  AnchorPane.leftAnchor="266.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
-          <columnConstraints>
-            <ColumnConstraints fillWidth="false" minWidth="10.0" prefWidth="100.0"/>
-            <ColumnConstraints hgrow="ALWAYS" maxWidth="Infinity" minWidth="10.0" prefWidth="100.0"/>
-          </columnConstraints>
-          <rowConstraints>
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS"/>
-          </rowConstraints>
+        <VBox fx:id="loginFormPane" alignment="TOP_CENTER" layoutY="40.0" spacing="5.0" AnchorPane.bottomAnchor="0.0"
+              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
           <children>
-            <TextField fx:id="usernameInput" minWidth="100.0" prefHeight="25.0" prefWidth="100.0"
-                       GridPane.columnIndex="1"/>
-            <Label text="%login.name"/>
-            <Label text="%login.password" GridPane.rowIndex="1"/>
-            <PasswordField fx:id="passwordInput" minWidth="100.0" prefHeight="25.0" GridPane.columnIndex="1"
-                           GridPane.rowIndex="1"/>
-            <CheckBox fx:id="autoLoginCheckBox" mnemonicParsing="false" text="%login.auto"
-                      GridPane.columnSpan="2147483647" GridPane.rowIndex="2"/>
-            <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%login.create"
-                    GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4"/>
-            <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%login.rename"
-                    GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5"/>
-            <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%login.forgot"
-                    GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="6"/>
+            <ImageView fitHeight="160.0" fitWidth="160.0" pickOnBounds="true" preserveRatio="true">
+              <image>
+                <Image url="@../../images/logo_transparent.png"/>
+              </image>
+              <VBox.margin>
+                <Insets bottom="20.0" top="10.0"/>
+              </VBox.margin>
+            </ImageView>
+            <TextField fx:id="usernameInput" minWidth="100.0" promptText="%login.name"/>
+            <PasswordField fx:id="passwordInput" minWidth="100.0" promptText="%login.password"/>
+            <CheckBox fx:id="autoLoginCheckBox" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308"
+                      mnemonicParsing="false" text="%login.auto">
+              <VBox.margin>
+                <Insets bottom="10.0" top="10.0"/>
+              </VBox.margin>
+            </CheckBox>
+            <Button fx:id="loginButton" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                    onAction="#loginButtonClicked" text="%login.button.login"/>
+            <HBox alignment="CENTER" spacing="10.0">
+              <children>
+                <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                        text="%login.forgot" HBox.hgrow="ALWAYS"/>
+                <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                        text="%login.create" HBox.hgrow="ALWAYS"/>
+              </children>
+              <VBox.margin>
+                <Insets top="20.0"/>
+              </VBox.margin>
+            </HBox>
           </children>
-        </GridPane>
+        </VBox>
       </children>
+      <VBox.margin>
+        <Insets bottom="40.0" left="40.0" right="40.0" top="20.0"/>
+      </VBox.margin>
     </AnchorPane>
-  </center>
-  <bottom>
-    <ButtonBar buttonMinWidth="80.0">
-      <buttons>
-        <Button fx:id="loginButton" defaultButton="true" mnemonicParsing="false" onAction="#loginButtonClicked"
-                text="%login.button.login"/>
-        <Button fx:id="cancelButton" cancelButton="true" mnemonicParsing="false" onAction="#cancelButtonClicked"
-                text="%login.button.cancel"/>
-      </buttons>
-      <padding>
-        <Insets bottom="10.0" right="10.0" top="10.0"/>
-      </padding>
-    </ButtonBar>
-  </bottom>
-  <top>
-    <AnchorPane maxHeight="-Infinity" prefHeight="60.0" BorderPane.alignment="CENTER">
-      <children>
-        <Label layoutX="14.0" layoutY="14.0" text="Welcome back, commander" AnchorPane.leftAnchor="14.0"
-               AnchorPane.topAnchor="14.0"/>
-      </children>
-    </AnchorPane>
-  </top>
-</BorderPane>
+  </children>
+</VBox>

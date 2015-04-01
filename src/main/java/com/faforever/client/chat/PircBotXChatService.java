@@ -97,7 +97,7 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   @Override
   public void addOnUserListListener(final OnUserListListener listener) {
     addEventListener(UserListEvent.class,
-        event -> listener.onUserList(event.getChannel().getName(), users(event.getUsers())));
+        event -> listener.onChatUserList(event.getChannel().getName(), users(event.getUsers())));
   }
 
   @Override

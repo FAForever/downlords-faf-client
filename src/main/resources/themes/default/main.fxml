@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
@@ -11,12 +12,16 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
-<BorderPane fx:id="mainRoot" prefHeight="628.0" prefWidth="827.0" xmlns="http://javafx.com/javafx/8.0.40"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
+<?import javafx.scene.layout.VBox?>
+<BorderPane fx:id="mainRoot" prefHeight="628.0" prefWidth="827.0" stylesheets="@style.css"
+            xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.faforever.client.main.MainController">
   <bottom>
     <HBox prefHeight="16.0" prefWidth="600.0" BorderPane.alignment="CENTER">
       <children>
@@ -113,25 +118,45 @@
     </TabPane>
   </center>
   <top>
-    <MenuBar BorderPane.alignment="CENTER">
-      <menus>
-        <Menu mnemonicParsing="false" text="Application">
-          <items>
-            <MenuItem mnemonicParsing="false" text="%menu.application.login"/>
-            <MenuItem mnemonicParsing="false" text="Close"/>
-          </items>
-        </Menu>
-        <Menu mnemonicParsing="false" text="Options">
-          <items>
-            <MenuItem mnemonicParsing="false" text="Delete"/>
-          </items>
-        </Menu>
-        <Menu mnemonicParsing="false" text="Help">
-          <items>
-            <MenuItem mnemonicParsing="false" text="About"/>
-          </items>
-        </Menu>
-      </menus>
-    </MenuBar>
+    <VBox BorderPane.alignment="CENTER">
+      <children>
+        <HBox>
+          <children>
+            <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
+              <image>
+                <Image url="@../../images/tray_icon.png"/>
+              </image>
+              <HBox.margin>
+                <Insets bottom="6.0" left="6.0" right="6.0" top="6.0"/>
+              </HBox.margin>
+            </ImageView>
+            <Pane HBox.hgrow="ALWAYS"/>
+            <Button mnemonicParsing="false" text="Button"/>
+            <Button mnemonicParsing="false" text="Button"/>
+            <Button mnemonicParsing="false" onAction="#onCloseButtonClicked" text="Button"/>
+          </children>
+        </HBox>
+        <MenuBar>
+          <menus>
+            <Menu mnemonicParsing="false" text="Application">
+              <items>
+                <MenuItem mnemonicParsing="false" text="%menu.application.login"/>
+                <MenuItem mnemonicParsing="false" text="Close"/>
+              </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Options">
+              <items>
+                <MenuItem mnemonicParsing="false" text="Delete"/>
+              </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Help">
+              <items>
+                <MenuItem mnemonicParsing="false" text="About"/>
+              </items>
+            </Menu>
+          </menus>
+        </MenuBar>
+      </children>
+    </VBox>
   </top>
 </BorderPane>

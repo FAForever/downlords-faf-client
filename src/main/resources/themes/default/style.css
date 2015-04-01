@@ -1,6 +1,139 @@
+.root {
+  /* Primary color is mainly used as background color. */
+  -primary-color: #424242;
+
+  /* Secondary color is mainly used as a slight contrast to primary color, e.g. odd/even in chat window */
+  -secondary-color: #616161;
+
+  /* Accent color is mainly used to emphazise actions, like buttons, links, checkboxes etc. It should be a very different
+  color (e.g. complementary) to the primary color. */
+  -accent-color: #8BC34A;
+
+  /* Inverse of primary color. */
+  -primary-color-inverse: #E0E0E0;
+
+  /* Inverse of secondary color. */
+  -secondary-color-inverse: #BDBDBD;
+
+  /* Text color primary is used for normal text with primary color as background. */
+  -primary-text-color: #F5F5F5;
+
+  /* Text color secondary is used as a slight contrast to primary text color */
+  -secondary-text-color: #E0E0E0;
+
+  /* Inverse of text color primary*/
+  -primary-text-color-inverse: #212121;
+
+  /***************** End of color scheme *********************/
+
+  -fx-font-size: 14px;
+  -fx-text-fill: -primary-text-color;
+  -fx-background: -primary-color;
+  -fx-focus-color: -accent-color;
+}
+
+.menu-bar {
+  -fx-font-size: 12px;
+  -fx-background-color: -primary-color;
+  -fx-text-fill: -primary-text-color;
+}
+
+.login {
+  -fx-font-size: 16px;
+}
+
+.text {
+  -fx-text-fill: -primary-text-color;
+}
+
+/* LABEL */
+
+.label {
+    -fx-text-fill: -primary-text-color;
+}
+
+.label:show-mnemonics > .mnemonic-underline {
+    -fx-stroke: -primary-text-color;
+}
+
+/* BUTTON */
+
+.button {
+  -fx-background-color: -secondary-color;
+  -fx-text-fill: -primary-text-color;
+  -fx-background-radius: 2.0;
+}
+
+.button:default {
+  -fx-background-color: -accent-color;
+  -fx-text-fill: -primary-text-color-inverse;
+}
+
+
+.toggle-button:focused, .button:focused, .button:default:focused {
+  -fx-border-color: -accent-color;
+}
+
+.toggle-button:focused:selected {
+}
+
+.toggle-button:armed, .toggle-button:selected, .button:armed, .button:default:armed {
+}
+
+
+/* TEXT FIELD & TEXT AREA */
+
+.text-area, .text-field {
+  -fx-background: -secondary-color;
+  -fx-prompt-text-fill: -primary-text-color;
+  -fx-highlight-fill: -accent-color;
+}
+
+
+.tab-header-background {
+  -fx-background: -secondary-color;
+}
+
+.tab:selected {
+  -fx-background-color: -primary-color;
+  -fx-focus-color: transparent;
+}
+
+.tab {
+  -fx-background-color: -primary-text-color-inverse;
+}
+
+.tab .tab-label {
+  -fx-alignment: center;
+  -fx-font-size: 14px;
+  -fx-font-weight: bold;
+}
+
+.tab:selected .tab-label {
+  -fx-text-fill: -accent-color;
+  -fx-background-color: -primary-color;
+}
+
+.progress-indicator:indeterminate *.segment {
+  -fx-background-color: -accent-color;
+}
+
+/* CHAT */
+
+
+
+/* CHAT CONTAINER */
+
 html, body {
   margin: 0;
   padding: 0;
+  background-color: #424242;
+  color: #BDBDBD;
+}
+
+a {
+  color: #8BC34A;
+  text-decoration: none;
 }
 
 #chat-table {
@@ -14,12 +147,12 @@ html, body {
 }
 
 .chat-message:nth-of-type(odd) {
-  background-color: #eee;
+  background-color: #616161;
 }
 
 .chat-message * {
   padding: 0 2px;
-  word-wrap:break-word;
+  word-wrap: break-word;
 }
 
 .chat-message td {
@@ -40,6 +173,7 @@ html, body {
 
 .chat-message .username {
   padding-right: 10px;
-  max-width: 100;
+  max-width: 50%;
   text-align: right;
+  white-space: nowrap;
 }

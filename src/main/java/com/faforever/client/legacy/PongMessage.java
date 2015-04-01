@@ -1,16 +1,16 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.legacy.message.Serializable;
+import com.faforever.client.legacy.message.ServerWritable;
+import com.google.gson.Gson;
 
 import java.io.IOException;
+import java.io.Writer;
 
-public enum PongMessage implements Serializable {
+public enum PongMessage implements ServerWritable {
   INSTANCE;
 
   @Override
-  public void serialize(QStreamWriter writer, String username, String session) throws IOException {
+  public void write(Gson gson, Writer writer) throws IOException {
     writer.append("PONG");
-    writer.append(username);
-    writer.append(session);
   }
 }

@@ -94,8 +94,12 @@ public class ServerReader extends Thread {
       ServerMessage serverMessage = gson.fromJson(message, ServerMessage.class);
 
       if ("welcome".equals(serverMessage.command)) {
-        SessionInitiatedMessage sessionInitiatedMessage = gson.fromJson(message, SessionInitiatedMessage.class);
-        onSessionInitiatedListener.onSessionInitiated(sessionInitiatedMessage);
+        WelcomeMessage welcomeMessage = gson.fromJson(message, WelcomeMessage.class);
+        if (welcomeMessage.session != null) {
+          onSessionInitiatedListener.onSessionInitiated(welcomeMessage);
+        } else if (welcomeMessage.email != null) {
+          // Logged in
+        }
       } else if ("game_info".equals(serverMessage.command)) {
         GameInfo gameInfo = gson.fromJson(message, GameInfo.class);
         onGameInfoListener.onGameInfo(gameInfo);
@@ -103,7 +107,7 @@ public class ServerReader extends Thread {
         PlayerInfo playerInfo = gson.fromJson(message, PlayerInfo.class);
         onPlayerInfoListener.onPlayerInfo(playerInfo);
       } else {
-        logger.warn("Unhandled server message: " + message);
+        logger.warn("Unknown server message: " + message);
       }
     } catch (JsonSyntaxException e) {
       logger.warn("Unhandled server message: " + message);

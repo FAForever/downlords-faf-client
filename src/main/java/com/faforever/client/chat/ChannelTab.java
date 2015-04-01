@@ -1,7 +1,13 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.legacy.message.PlayerInfo;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.ConcurrentUtil;
+import javafx.application.Platform;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
+import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -13,6 +19,9 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -20,11 +29,13 @@ import org.springframework.core.io.Resource;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +43,8 @@ import java.util.Set;
 import java.util.TimeZone;
 
 public class ChannelTab extends Tab {
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final ClassPathResource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
   private static final Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
@@ -63,6 +76,7 @@ public class ChannelTab extends Tab {
   ChatUserControlFactory chatUserControlFactory;
 
   private final String channelName;
+  private ObservableMap<String, PlayerInfo> playerInfoMap;
 
   /**
    * Set to true as soon as the chat is loaded. chatReadyLatch would be sufficient, however this takes off some
@@ -71,12 +85,13 @@ public class ChannelTab extends Tab {
   private boolean isChatReady;
   private WebEngine engine;
   private List<ChatMessage> waitingMessages;
-  private Map<String, ChatUser> nickToChatUser;
+  private Map<String, ChatUserControl> nickToUserControl;
 
-  public ChannelTab(String channelName) {
+  public ChannelTab(String channelName, ObservableMap<String, PlayerInfo> playerInfoMap) {
     this.channelName = channelName;
+    this.playerInfoMap = playerInfoMap;
     waitingMessages = new ArrayList<>();
-    nickToChatUser = new HashMap<>();
+    nickToUserControl = new HashMap<>();
 
     setClosable(true);
     setId(channelName);
@@ -85,6 +100,9 @@ public class ChannelTab extends Tab {
 
   @PostConstruct
   void init() {
+    playerInfoMap.addListener((MapChangeListener<String, PlayerInfo>) change -> {
+      onPlayerInfoUpdated(change.getValueAdded());
+    });
     fxmlLoader.loadCustomControl("channel_tab.fxml", this);
     initChatView();
   }
@@ -160,7 +178,10 @@ public class ChannelTab extends Tab {
     try (InputStream inputStream = MESSAGE_ITEM_HTML_RESOURCE.getInputStream()) {
       String html = IOUtils.toString(inputStream);
       String avatar = getAvatarForUser(chatMessage.getNick());
-      html = String.format(html, timeString, avatar, chatMessage.getNick(), chatMessage.getMessage());
+
+      String text = StringEscapeUtils.escapeHtml4(chatMessage.getMessage());
+      text = (String) engine.executeScript("Autolinker.link('" + text.replace("'", "\\'") + "', {'newWindow': true})");
+      html = String.format(html, timeString, avatar, chatMessage.getNick(), text);
 
       JSObject targetNode = (JSObject) engine.executeScript("document.getElementById('" + MESSAGE_CONTAINER_ID + "')");
       targetNode.call("insertAdjacentHTML", "beforeend", html);
@@ -177,15 +198,69 @@ public class ChannelTab extends Tab {
     addUser(chatUser);
   }
 
+  /**
+   * For adding single users, this method may be called. For adding a whole list, use the asynchronous {@link
+   * #setUsersAsync(Set)} instead.
+   */
   private void addUser(ChatUser chatUser) {
-    nickToChatUser.put(chatUser.getNick(), chatUser);
-    usersVBox.getChildren().add(
-        chatUserControlFactory.newUserEntry(chatUser)
+    addChatUserControl(
+        chatUserControlFactory.newChatUserControl(chatUser)
     );
   }
 
-  public void setUsers(Set<ChatUser> chatUsers) {
+  public void setUsersAsync(Set<ChatUser> chatUsers) {
     usersVBox.getChildren().clear();
-    chatUsers.forEach(this::addUser);
+
+    ConcurrentUtil.executeInBackground(
+        new Task<Void>() {
+          @Override
+          protected Void call() throws Exception {
+            ArrayList<ChatUser> sortedList = new ArrayList<>(chatUsers);
+            Collections.sort(sortedList, ChatUser.SORT_BY_NAME_COMPARATOR);
+
+            for (ChatUser chatUser : sortedList) {
+              if (isCancelled()) {
+                break;
+              }
+
+              ChatUserControl chatUserControl = chatUserControlFactory.newChatUserControl(chatUser);
+              Platform.runLater(() -> addChatUserControl(chatUserControl));
+            }
+
+            return null;
+          }
+        }
+    );
+  }
+
+  private void addChatUserControl(ChatUserControl chatUserControl) {
+    String nick = chatUserControl.getChatUser().getNick();
+
+    usersVBox.getChildren().add(chatUserControl);
+    nickToUserControl.put(nick, chatUserControl);
+
+    PlayerInfo playerInfo = playerInfoMap.get(nick);
+    if (playerInfo != null) {
+      enrichChatUser(playerInfo, chatUserControl);
+    }
+  }
+
+  public void onPlayerInfoUpdated(PlayerInfo playerInfo) {
+    ChatUserControl chatUserControl = nickToUserControl.get(playerInfo.login);
+    if (chatUserControl == null) {
+      logger.warn("Got player info for unknown user: " + playerInfo.login);
+      return;
+    }
+
+    enrichChatUser(playerInfo, chatUserControl);
+  }
+
+  /**
+   * Passes information from the FAF server to the chat user object.
+   */
+  private void enrichChatUser(PlayerInfo playerInfo, ChatUserControl chatUserControl) {
+    chatUserControl.setAvatar(playerInfo.avatar);
+    chatUserControl.setClan(playerInfo.clan);
+    chatUserControl.setCountry(playerInfo.country);
   }
 }

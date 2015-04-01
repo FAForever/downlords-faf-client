@@ -6,7 +6,7 @@ public class PlayerInfo extends ServerMessage {
 
   public String clan;
   public String login;
-  public String avatar;
+  public Avatar avatar;
   public String country;
   public String ratingMean;
   public Integer numberOfGames;

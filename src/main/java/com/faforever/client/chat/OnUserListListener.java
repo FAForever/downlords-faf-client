@@ -4,5 +4,5 @@ import java.util.Set;
 
 public interface OnUserListListener {
 
-  void onUserList(String channelName, Set<ChatUser> users);
+  void onChatUserList(String channelName, Set<ChatUser> users);
 }

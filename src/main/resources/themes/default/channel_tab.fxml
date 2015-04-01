@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
@@ -28,7 +29,11 @@
           </SplitPane>
         </center>
         <bottom>
-          <TextField fx:id="messageTextField" onAction="#onSendMessage"/>
+          <TextField fx:id="messageTextField" onAction="#onSendMessage">
+            <BorderPane.margin>
+              <Insets bottom="2.0" left="2.0" right="2.0" top="2.0"/>
+            </BorderPane.margin>
+          </TextField>
         </bottom>
       </BorderPane>
     </children>

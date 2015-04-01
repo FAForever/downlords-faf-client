@@ -8,6 +8,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -42,9 +43,6 @@ public class LoginController {
 
   @FXML
   Button loginButton;
-
-  @FXML
-  Button cancelButton;
 
   @FXML
   Parent loginRoot;
@@ -96,6 +94,8 @@ public class LoginController {
 
     stage.show();
     JavaFxUtil.centerOnScreen(stage);
+
+    usernameInput.requestFocus();
   }
 
   private void fillForm() {
@@ -152,17 +152,21 @@ public class LoginController {
 
     loginFormPane.setVisible(true);
     loginProgressPane.setVisible(false);
-    loginButton.setVisible(true);
+    loginButton.setDisable(false);
   }
 
   private void onLoginProgress() {
     loginFormPane.setVisible(false);
     loginProgressPane.setVisible(true);
-    loginButton.setVisible(false);
+    loginButton.setDisable(true);
   }
 
   @FXML
   private void cancelButtonClicked(ActionEvent actionEvent) {
     stage.close();
+  }
+
+  public void onCloseButtonClicked(ActionEvent actionEvent) {
+    Platform.exit();
   }
 }

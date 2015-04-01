@@ -1,8 +1,7 @@
 package com.faforever.client.legacy;
 
 import com.faforever.client.legacy.message.ClientMessage;
-import com.faforever.client.legacy.message.PlayerInfo;
-import com.faforever.client.legacy.message.Serializable;
+import com.faforever.client.legacy.message.ServerWritable;
 import com.faforever.client.util.Callback;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -17,36 +16,41 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CountDownLatch;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
-public class ServerAccessor implements OnGameInfoListener, OnPlayerInfoListener, OnSessionInitiatedListener, OnServerPingListener {
+public class ServerAccessor implements OnGameInfoListener, OnSessionInitiatedListener, OnServerPingListener {
 
-  private static final int VERSION = 122;
+  private static final int VERSION = 123;
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  private static final CountDownLatch WAIT_FOR_WELCOME_LATCH = new CountDownLatch(1);
+
   @Autowired
   Environment environment;
-
 
   private final Object writeMonitor = new Object();
 
   private String localIp;
   private String session;
   private String username;
-  private Callback<Void> loginCallback;
   private Socket socket;
   private QStreamWriter socketOut;
   private Gson gson;
+  private ServerReader serverReader;
+  private String uniqueId;
+  private OnPlayerInfoListener onPlayerInfoListener;
 
   public ServerAccessor() {
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-//        .registerTypeAdapter(FeaturedModVersions, new FeatureModVersionsTypeAdapter())
         .create();
   }
 
@@ -65,26 +69,24 @@ public class ServerAccessor implements OnGameInfoListener, OnPlayerInfoListener,
   }
 
   private void startServerReader(Socket socket) {
-    ServerReader serverReader = new ServerReader(gson, socket);
+    serverReader = new ServerReader(gson, socket);
     serverReader.setOnSessionInitiatedListener(this);
     serverReader.setOnGameInfoListener(this);
-    serverReader.setOnPlayerInfoListener(this);
     serverReader.setOnServerPingListener(this);
+    serverReader.setOnPlayerInfoListener(onPlayerInfoListener);
     serverReader.start();
   }
 
   @Override
-  public void onSessionInitiated(SessionInitiatedMessage message) {
+  public void onSessionInitiated(WelcomeMessage message) {
     this.session = message.session;
+    this.uniqueId = com.faforever.client.util.UID.generate(session);
+
+    WAIT_FOR_WELCOME_LATCH.countDown();
   }
 
   @Override
   public void onGameInfo(GameInfo gameInfo) {
-
-  }
-
-  @Override
-  public void onPlayerInfo(PlayerInfo playerInfo) {
 
   }
 
@@ -95,16 +97,38 @@ public class ServerAccessor implements OnGameInfoListener, OnPlayerInfoListener,
 
   public void login(final String username, final String password, Callback<Void> callback) {
     this.username = username;
-    this.loginCallback = callback;
 
     executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
         ensureConnected();
-        writeToServer(ClientMessage.login(username, password, session));
+        waitForWelcome();
+
+        if (session == null || uniqueId == null) {
+          throw new IllegalStateException("session or uniqueId has not been set");
+        }
+        writeToServer(ClientMessage.login(username, password, session, uniqueId, localIp, VERSION));
         return null;
       }
-    }, callback);
+    }, new Callback<Void>() {
+      @Override
+      public void success(Void result) {
+        callback.success(result);
+      }
+
+      @Override
+      public void error(Throwable e) {
+        callback.error(e);
+      }
+    });
+  }
+
+  private void waitForWelcome() {
+    try {
+      WAIT_FOR_WELCOME_LATCH.await();
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private void ensureConnected() throws IOException {
@@ -113,11 +137,18 @@ public class ServerAccessor implements OnGameInfoListener, OnPlayerInfoListener,
     }
   }
 
-  private void writeToServer(Serializable serializable) {
+  private void writeToServer(ServerWritable serverWritable) {
     synchronized (writeMonitor) {
       try {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        serializable.serialize(new QStreamWriter(byteArrayOutputStream), username, session);
+
+        Writer stringWriter = new StringWriter();
+        serverWritable.write(gson, stringWriter);
+
+        QStreamWriter qStreamWriter = new QStreamWriter(byteArrayOutputStream);
+        qStreamWriter.appendQString(stringWriter.toString());
+        qStreamWriter.appendQString(username);
+        qStreamWriter.appendQString(session);
 
         byte[] byteArray = byteArrayOutputStream.toByteArray();
 
@@ -129,5 +160,9 @@ public class ServerAccessor implements OnGameInfoListener, OnPlayerInfoListener,
         throw new RuntimeException(e);
       }
     }
+  }
+
+  public void setOnPlayerInfoListener(OnPlayerInfoListener listener) {
+    this.onPlayerInfoListener = listener;
   }
 }
