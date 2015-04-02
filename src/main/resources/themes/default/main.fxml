@@ -28,7 +28,7 @@
     <HBox prefHeight="16.0" prefWidth="600.0" BorderPane.alignment="CENTER">
       <children>
         <Label text="Left status"/>
-        <Pane prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS"/>
+        <Pane id="titlePane" prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS"/>
         <Label text="Right status"/>
       </children>
     </HBox>
@@ -47,7 +47,11 @@
           </content>
         </Tab>
         <Tab text="%main.coopMissions"/>
-        <Tab text="Find Games"/>
+        <Tab text="%main.games">
+          <content>
+            <fx:include fx:id="games" source="games.fxml"/>
+          </content>
+        </Tab>
         <Tab text="Tutorials"/>
         <Tab text="Leaderboards"/>
         <Tab text="Tournaments"/>

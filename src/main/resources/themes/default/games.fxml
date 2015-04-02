@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <GridPane>
+         <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" />
+            <ColumnConstraints hgrow="SOMETIMES" />
+            <ColumnConstraints hgrow="SOMETIMES" />
+            <ColumnConstraints hgrow="SOMETIMES" />
+            <ColumnConstraints hgrow="SOMETIMES" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+         </rowConstraints>
+         <children>
+            <ProgressBar prefWidth="200.0" progress="0.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <RadioButton fx:id="ladderButtonRandom" mnemonicParsing="false" styleClass="ladder-button" GridPane.columnIndex="4">
+               <toggleGroup>
+                  <ToggleGroup fx:id="ladderButtons" />
+               </toggleGroup></RadioButton>
+            <RadioButton fx:id="ladderButtonAeon" mnemonicParsing="false" styleClass="ladder-button" toggleGroup="$ladderButtons" />
+            <RadioButton fx:id="ladderButtonUef" mnemonicParsing="false" styleClass="ladder-button" toggleGroup="$ladderButtons" GridPane.columnIndex="1" />
+            <RadioButton fx:id="ladderButtonCybran" mnemonicParsing="false" styleClass="ladder-button" toggleGroup="$ladderButtons" GridPane.columnIndex="2" />
+            <RadioButton fx:id="ladderButtonSeraphim" mnemonicParsing="false" styleClass="ladder-button" toggleGroup="$ladderButtons" GridPane.columnIndex="3" />
+            <Label text="%games.ladder.description" GridPane.rowIndex="1" />
+         </children>
+      </GridPane>
+   </children>
+</VBox>

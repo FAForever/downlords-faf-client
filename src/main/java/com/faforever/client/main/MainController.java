@@ -2,6 +2,7 @@ package com.faforever.client.main;
 
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.fx.SceneFactory;
+import com.faforever.client.games.GamesController;
 import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
@@ -12,6 +13,7 @@ import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
@@ -19,6 +21,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TabPane;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,9 +44,6 @@ public class MainController {
   TabPane mainTabPane;
 
   @FXML
-  Node chat;
-
-  @FXML
   Parent mainRoot;
 
   @FXML
@@ -51,6 +51,12 @@ public class MainController {
 
   @FXML
   ChatController chatController;
+
+  @FXML
+  GamesController gamesController;
+
+  @FXML
+  private Node titlePane;
 
   @Autowired
   PreferencesService preferencesService;
@@ -61,9 +67,8 @@ public class MainController {
   @Autowired
   ServerAccessor serverAccessor;
 
-  public Node getChat() {
-    return chat;
-  }
+  private double xOffset;
+  private double yOffset;
 
   public void display(Stage stage) {
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
@@ -75,6 +80,7 @@ public class MainController {
     stage.setResizable(true);
     restoreState(mainWindowPrefs, stage);
     configureWindowButtons(stage);
+    configureWindowDragable(stage);
     stage.show();
     JavaFxUtil.centerOnScreen(stage);
 
@@ -91,6 +97,23 @@ public class MainController {
           serverAccessor.connect();
         }
         return null;
+      }
+    });
+  }
+
+  private void configureWindowDragable(Stage stage) {
+    titlePane.setOnMousePressed(new EventHandler<MouseEvent>() {
+      @Override
+      public void handle(MouseEvent event) {
+        xOffset = stage.getX() - event.getScreenX();
+        yOffset = stage.getY() - event.getScreenY();
+      }
+    });
+    titlePane.setOnMouseDragged(new EventHandler<MouseEvent>() {
+      @Override
+      public void handle(MouseEvent event) {
+        stage.setX(event.getScreenX() + xOffset);
+        stage.setY(event.getScreenY() + yOffset);
       }
     });
   }
@@ -173,7 +196,7 @@ public class MainController {
     return chatController;
   }
 
-  public void onCloseButtonClicked(ActionEvent actionEvent) {
-    Platform.exit();
+  public GamesController getGamesController() {
+    return gamesController;
   }
 }

@@ -13,6 +13,7 @@ import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.fxml.FxmlLoaderImpl;
+import com.faforever.client.games.GamesController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
 import com.faforever.client.whatsnew.WhatsNewController;
@@ -56,6 +57,11 @@ public class UiConfig {
   @Bean
   WhatsNewController whatsNewController() {
     return mainController().getWhatsNewController();
+  }
+
+  @Bean
+  GamesController gamesController() {
+    return mainController().getGamesController();
   }
 
   @Bean

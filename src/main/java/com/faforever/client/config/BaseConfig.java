@@ -4,6 +4,7 @@ import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.PircBotXChatService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.i18n.I18nImpl;
+import com.faforever.client.ladder.GameService;
 import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
@@ -59,6 +60,11 @@ public class BaseConfig {
   @Bean
   ChatService chatService() {
     return new PircBotXChatService();
+  }
+
+  @Bean
+  GameService ladderService() {
+    return new GameServiceImpl();
   }
 
   @Bean
