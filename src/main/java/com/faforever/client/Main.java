@@ -12,7 +12,7 @@ import javafx.stage.StageStyle;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-public class FafClientApplication extends Application {
+public class Main extends Application {
 
   public static final Integer VERSION = 123;
 
@@ -25,7 +25,7 @@ public class FafClientApplication extends Application {
     AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(BaseConfig.class, UiConfig.class);
 
     stage.getIcons().add(new Image("/images/tray_icon.png"));
-    stage.initStyle(StageStyle.TRANSPARENT);
+    stage.initStyle(StageStyle.UNDECORATED);
 
     UserService userService = context.getBean(UserService.class);
 

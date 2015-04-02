@@ -9,17 +9,33 @@ import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.whatsnew.WhatsNewController;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.TabPane;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class MainController {
+
+  @FXML
+  Button minimizeButton;
+
+  @FXML
+  Button maximizeButton;
+
+  @FXML
+  Button restoreButton;
+
+  @FXML
+  Button closeButton;
 
   @FXML
   TabPane mainTabPane;
@@ -58,6 +74,7 @@ public class MainController {
     stage.setTitle("FA Forever");
     stage.setResizable(true);
     restoreState(mainWindowPrefs, stage);
+    configureWindowButtons(stage);
     stage.show();
     JavaFxUtil.centerOnScreen(stage);
 
@@ -76,6 +93,38 @@ public class MainController {
         return null;
       }
     });
+  }
+
+  private void configureWindowButtons(Stage stage) {
+    maximizeButton.managedProperty().bind(maximizeButton.visibleProperty());
+    restoreButton.managedProperty().bind(restoreButton.visibleProperty());
+
+    maximizeButton.setOnAction(event -> {
+      stage.setMaximized(true);
+      stage.setX(0);
+      stage.setY(0);
+      stage.setWidth(getVisualBounds(stage).getWidth());
+      stage.setHeight(getVisualBounds(stage).getHeight());
+      maximizeButton.setVisible(false);
+      restoreButton.setVisible(true);
+    });
+    minimizeButton.setOnAction(event -> stage.setIconified(true));
+    restoreButton.setOnAction(event -> {
+      stage.setMaximized(false);
+      maximizeButton.setVisible(true);
+      restoreButton.setVisible(false);
+    });
+    closeButton.setOnAction(event -> stage.close());
+
+    maximizeButton.setVisible(!stage.isMaximized());
+    restoreButton.setVisible(stage.isMaximized());
+  }
+
+  public Rectangle2D getVisualBounds(Stage stage) {
+    ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(
+        stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight()
+    );
+    return screensForRectangle.get(0).getVisualBounds();
   }
 
   private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {

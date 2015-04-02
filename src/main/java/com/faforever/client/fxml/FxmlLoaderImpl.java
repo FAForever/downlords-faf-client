@@ -1,5 +1,6 @@
 package com.faforever.client.fxml;
 
+import com.faforever.client.util.ThemeUtil;
 import javafx.fxml.FXMLLoader;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceResourceBundle;
@@ -37,8 +38,7 @@ public class FxmlLoaderImpl implements FxmlLoader {
   }
 
   private URL buildResourceUrl(String file) throws IOException {
-    String path = String.format("/themes/%s/%s", theme, file);
-    return new ClassPathResource(path).getURL();
+    return new ClassPathResource(ThemeUtil.themeFile(theme, file)).getURL();
   }
 
   private FXMLLoader load(String file, Object controller, Object root) {

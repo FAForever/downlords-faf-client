@@ -1,6 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'idea'
-apply plugin: 'application'
+
+version = '1.0'
 
 idea {
   project {
@@ -13,14 +14,9 @@ idea {
   }
 }
 
-mainClassName = "com.faforever.client.FafClientApplication"
-applicationDefaultJvmArgs = ["-splash:/images/splash.png"]
-version = '1.0'
-
 repositories {
   mavenCentral()
 }
-
 
 dependencies {
   testCompile group: 'junit', name: 'junit', version: '4.11'

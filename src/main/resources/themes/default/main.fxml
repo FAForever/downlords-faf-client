@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?scenebuilder-classpath-element ../../../../../build/classes/main?>
+
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -131,9 +133,12 @@
               </HBox.margin>
             </ImageView>
             <Pane HBox.hgrow="ALWAYS"/>
-            <Button mnemonicParsing="false" text="Button"/>
-            <Button mnemonicParsing="false" text="Button"/>
-            <Button mnemonicParsing="false" onAction="#onCloseButtonClicked" text="Button"/>
+
+            <Button fx:id="minimizeButton" styleClass="window-button"/>
+            <Button fx:id="maximizeButton" styleClass="window-button"/>
+            <Button fx:id="restoreButton" styleClass="window-button"/>
+            <Button fx:id="closeButton" styleClass="window-button"/>
+
           </children>
         </HBox>
         <MenuBar>
