@@ -20,6 +20,7 @@ import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -144,6 +145,10 @@ public class ChannelTab extends Tab {
   @FXML
   private void onSendMessage(ActionEvent actionEvent) {
     String text = messageTextField.getText();
+    if (StringUtils.isEmpty(text)) {
+      return;
+    }
+
     chatService.sendMessage(channelName, text);
     messageTextField.clear();
     onMessage(new ChatMessage(Instant.now(), userService.getUsername(), text));
@@ -248,11 +253,11 @@ public class ChannelTab extends Tab {
   public void onPlayerInfoUpdated(PlayerInfo playerInfo) {
     ChatUserControl chatUserControl = nickToUserControl.get(playerInfo.login);
     if (chatUserControl == null) {
-      logger.warn("Got player info for unknown user: " + playerInfo.login);
+      // Player info received before chat control is available (FAF login is faster than IRC login)
       return;
     }
 
-    enrichChatUser(playerInfo, chatUserControl);
+    Platform.runLater(() -> enrichChatUser(playerInfo, chatUserControl));
   }
 
   /**

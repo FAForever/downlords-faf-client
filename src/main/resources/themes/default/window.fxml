@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<AnchorPane fx:id="windowRoot" onMouseDragged="#onWindowDrag" onMousePressed="#onDragStarted"
+            xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.faforever.client.fx.WindowDecorator">
+  <children>
+    <Pane fx:id="resizePane" onMouseDragged="#onWindowResize" onMouseMoved="#updateResizeCursor"
+          onMousePressed="#onStartWindowResize" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+    <AnchorPane fx:id="contentPane" layoutY="25.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0"
+                AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0"/>
+
+    <HBox alignment="TOP_RIGHT" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="1.0">
+      <children>
+
+        <Button fx:id="minimizeButton" onAction="#onMinimizeButtonClicked" styleClass="window-button"/>
+        <Button fx:id="maximizeButton" onAction="#onMaximizeButtonClicked" styleClass="window-button"/>
+        <Button fx:id="restoreButton" onAction="#onRestoreButtonClicked" styleClass="window-button"/>
+        <Button fx:id="closeButton" onAction="#onCloseButtonClicked" styleClass="window-button"/>
+
+      </children>
+    </HBox>
+  </children>
+</AnchorPane>

@@ -9,36 +9,20 @@ import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.whatsnew.WhatsNewController;
-import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.TabPane;
-import javafx.scene.input.MouseEvent;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static com.faforever.client.fx.SceneFactoryImpl.WindowButtonType.CLOSE;
+import static com.faforever.client.fx.SceneFactoryImpl.WindowButtonType.MAXIMIZE_RESTORE;
+import static com.faforever.client.fx.SceneFactoryImpl.WindowButtonType.MINIMIZE;
+
 public class MainController {
-
-  @FXML
-  Button minimizeButton;
-
-  @FXML
-  Button maximizeButton;
-
-  @FXML
-  Button restoreButton;
-
-  @FXML
-  Button closeButton;
 
   @FXML
   TabPane mainTabPane;
@@ -56,7 +40,7 @@ public class MainController {
   GamesController gamesController;
 
   @FXML
-  private Node titlePane;
+  Node titlePane;
 
   @Autowired
   PreferencesService preferencesService;
@@ -69,18 +53,18 @@ public class MainController {
 
   private double xOffset;
   private double yOffset;
+  private Stage stage;
 
   public void display(Stage stage) {
+    this.stage = stage;
+
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
 
-    Scene scene = sceneFactory.createScene(mainRoot);
+    Scene scene = sceneFactory.createScene(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
 
     stage.setScene(scene);
     stage.setTitle("FA Forever");
-    stage.setResizable(true);
     restoreState(mainWindowPrefs, stage);
-    configureWindowButtons(stage);
-    configureWindowDragable(stage);
     stage.show();
     JavaFxUtil.centerOnScreen(stage);
 
@@ -99,55 +83,6 @@ public class MainController {
         return null;
       }
     });
-  }
-
-  private void configureWindowDragable(Stage stage) {
-    titlePane.setOnMousePressed(new EventHandler<MouseEvent>() {
-      @Override
-      public void handle(MouseEvent event) {
-        xOffset = stage.getX() - event.getScreenX();
-        yOffset = stage.getY() - event.getScreenY();
-      }
-    });
-    titlePane.setOnMouseDragged(new EventHandler<MouseEvent>() {
-      @Override
-      public void handle(MouseEvent event) {
-        stage.setX(event.getScreenX() + xOffset);
-        stage.setY(event.getScreenY() + yOffset);
-      }
-    });
-  }
-
-  private void configureWindowButtons(Stage stage) {
-    maximizeButton.managedProperty().bind(maximizeButton.visibleProperty());
-    restoreButton.managedProperty().bind(restoreButton.visibleProperty());
-
-    maximizeButton.setOnAction(event -> {
-      stage.setMaximized(true);
-      stage.setX(0);
-      stage.setY(0);
-      stage.setWidth(getVisualBounds(stage).getWidth());
-      stage.setHeight(getVisualBounds(stage).getHeight());
-      maximizeButton.setVisible(false);
-      restoreButton.setVisible(true);
-    });
-    minimizeButton.setOnAction(event -> stage.setIconified(true));
-    restoreButton.setOnAction(event -> {
-      stage.setMaximized(false);
-      maximizeButton.setVisible(true);
-      restoreButton.setVisible(false);
-    });
-    closeButton.setOnAction(event -> stage.close());
-
-    maximizeButton.setVisible(!stage.isMaximized());
-    restoreButton.setVisible(stage.isMaximized());
-  }
-
-  public Rectangle2D getVisualBounds(Stage stage) {
-    ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(
-        stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight()
-    );
-    return screensForRectangle.get(0).getVisualBounds();
   }
 
   private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {

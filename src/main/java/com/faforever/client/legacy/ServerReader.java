@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 
-public class ServerReader extends Thread {
+class ServerReader extends Thread {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

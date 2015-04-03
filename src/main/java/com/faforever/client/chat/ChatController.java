@@ -2,8 +2,8 @@ package com.faforever.client.chat;
 
 import com.faforever.client.legacy.OnFafLoginListener;
 import com.faforever.client.legacy.OnPlayerInfoListener;
-import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.legacy.message.PlayerInfo;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.user.UserService;
 import com.sun.javafx.collections.ObservableMapWrapper;
 import javafx.collections.ObservableMap;
@@ -36,7 +36,7 @@ public class ChatController implements
   UserService userService;
 
   @Autowired
-  ServerAccessor serverAccessor;
+  PlayerService playerService;
 
   @FXML
   private TabPane chatsTabPane;
@@ -60,7 +60,7 @@ public class ChatController implements
     chatService.addOnUserJoinedListener(this);
     chatService.addOnUserListListener(this);
 
-    serverAccessor.setOnPlayerInfoListener(this);
+    playerService.addOnPlayerInfoListener(this);
   }
 
   public void load() {

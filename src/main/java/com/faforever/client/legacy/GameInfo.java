@@ -15,12 +15,14 @@ public class GameInfo extends ServerMessage {
   public Integer uid;
   public String title;
   public Map<String, String> simMods;
-  public Integer gameType;
+  public GameType gameType;
   public String host;
   public Map<String, List<String>> teams;
   public String access;
-  public String state;
+  public GameState state;
   public String featuredMod;
   public Integer maxPlayers;
   public Boolean[] options;
+  public Integer minRanking;
+  public Integer maxRanking;
 }

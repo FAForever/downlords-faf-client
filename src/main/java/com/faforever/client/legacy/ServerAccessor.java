@@ -1,6 +1,9 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.legacy.gson.GameStateTypeAdapter;
+import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
 import com.faforever.client.legacy.message.ClientMessage;
+import com.faforever.client.legacy.message.PlayerInfo;
 import com.faforever.client.legacy.message.ServerWritable;
 import com.faforever.client.util.Callback;
 import com.google.gson.FieldNamingPolicy;
@@ -21,11 +24,13 @@ import java.io.Writer;
 import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
-public class ServerAccessor implements OnGameInfoListener, OnSessionInitiatedListener, OnServerPingListener {
+public class ServerAccessor implements OnSessionInitiatedListener, OnServerPingListener, OnPlayerInfoListener, OnGameInfoListener {
 
   private static final int VERSION = 123;
 
@@ -44,14 +49,18 @@ public class ServerAccessor implements OnGameInfoListener, OnSessionInitiatedLis
   private Socket socket;
   private QStreamWriter socketOut;
   private Gson gson;
-  private ServerReader serverReader;
   private String uniqueId;
-  private OnPlayerInfoListener onPlayerInfoListener;
+  private Collection<OnPlayerInfoListener> onPlayerInfoListeners;
+  private Collection<OnGameInfoListener> onGameInfoListeners;
 
   public ServerAccessor() {
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+        .registerTypeAdapter(GameType.class, new GameTypeTypeAdapter())
+        .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
         .create();
+    onPlayerInfoListeners = new ArrayList<>();
+    onGameInfoListeners = new ArrayList<>();
   }
 
   public void connect() throws IOException {
@@ -69,11 +78,11 @@ public class ServerAccessor implements OnGameInfoListener, OnSessionInitiatedLis
   }
 
   private void startServerReader(Socket socket) {
-    serverReader = new ServerReader(gson, socket);
+    ServerReader serverReader = new ServerReader(gson, socket);
     serverReader.setOnSessionInitiatedListener(this);
     serverReader.setOnGameInfoListener(this);
     serverReader.setOnServerPingListener(this);
-    serverReader.setOnPlayerInfoListener(onPlayerInfoListener);
+    serverReader.setOnPlayerInfoListener(this);
     serverReader.start();
   }
 
@@ -83,11 +92,6 @@ public class ServerAccessor implements OnGameInfoListener, OnSessionInitiatedLis
     this.uniqueId = com.faforever.client.util.UID.generate(session);
 
     WAIT_FOR_WELCOME_LATCH.countDown();
-  }
-
-  @Override
-  public void onGameInfo(GameInfo gameInfo) {
-
   }
 
   @Override
@@ -162,7 +166,25 @@ public class ServerAccessor implements OnGameInfoListener, OnSessionInitiatedLis
     }
   }
 
-  public void setOnPlayerInfoListener(OnPlayerInfoListener listener) {
-    this.onPlayerInfoListener = listener;
+  @Override
+  public void onPlayerInfo(PlayerInfo playerInfo) {
+    for (OnPlayerInfoListener listener : onPlayerInfoListeners) {
+      listener.onPlayerInfo(playerInfo);
+    }
+  }
+
+  @Override
+  public void onGameInfo(GameInfo gameInfo) {
+    for (OnGameInfoListener listener : onGameInfoListeners) {
+      listener.onGameInfo(gameInfo);
+    }
+  }
+
+  public void addOnGameInfoListener(OnGameInfoListener listener) {
+    onGameInfoListeners.add(listener);
+  }
+
+  public void addOnPlayerInfoListener(OnPlayerInfoListener listener) {
+    onPlayerInfoListeners.add(listener);
   }
 }

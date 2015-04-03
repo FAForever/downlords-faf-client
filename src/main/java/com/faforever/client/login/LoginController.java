@@ -8,7 +8,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -23,6 +22,9 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+
+import static com.faforever.client.fx.SceneFactoryImpl.WindowButtonType.CLOSE;
+import static com.faforever.client.fx.SceneFactoryImpl.WindowButtonType.MINIMIZE;
 
 public class LoginController {
 
@@ -71,6 +73,8 @@ public class LoginController {
    * If used typed something into the password field, this will be set to true.
    */
   private boolean isPlainTextPassword;
+  private double xOffset;
+  private double yOffset;
 
   @FXML
   private void initialize() {
@@ -81,7 +85,7 @@ public class LoginController {
   public void display(Stage stage) {
     this.stage = stage;
 
-    Scene scene = sceneFactory.createScene(loginRoot);
+    Scene scene = sceneFactory.createScene(stage, loginRoot, false, MINIMIZE, CLOSE);
 
     stage.setScene(scene);
     stage.setTitle(i18n.get("login.title"));
@@ -92,10 +96,22 @@ public class LoginController {
       login(usernameInput.getText(), passwordInput.getText(), true);
     }
 
+    configureWindowDragable(stage);
     stage.show();
     JavaFxUtil.centerOnScreen(stage);
 
     usernameInput.requestFocus();
+  }
+
+  private void configureWindowDragable(final Stage stage) {
+    loginRoot.setOnMousePressed(event -> {
+      xOffset = stage.getX() - event.getScreenX();
+      yOffset = stage.getY() - event.getScreenY();
+    });
+    loginRoot.setOnMouseDragged(event -> {
+      stage.setX(event.getScreenX() + xOffset);
+      stage.setY(event.getScreenY() + yOffset);
+    });
   }
 
   private void fillForm() {
@@ -162,11 +178,17 @@ public class LoginController {
   }
 
   @FXML
-  private void cancelButtonClicked(ActionEvent actionEvent) {
+  void cancelButtonClicked(ActionEvent actionEvent) {
+    // TODO cancel login
+  }
+
+  @FXML
+  void onCloseButtonClicked(ActionEvent actionEvent) {
     stage.close();
   }
 
-  public void onCloseButtonClicked(ActionEvent actionEvent) {
-    Platform.exit();
+  @FXML
+  void onMinimizeButtonClicked(ActionEvent actionEvent) {
+    stage.setIconified(true);
   }
 }

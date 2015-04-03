@@ -1,4 +1,10 @@
-.root {
+/*******************************************************************************
+ *                                                                             *
+ * FAF Java Lobby Default theme                                                *
+ *                                                                             *
+ *******************************************************************************/
+
+ .root {
   /* Primary color is mainly used as background color. */
   -primary-color: #424242;
   /* Secondary color is mainly used as a slight contrast to primary color, e.g. odd/even in chat window */
@@ -7,159 +13,38 @@
   color (e.g. complementary) to the primary color. */
   -accent-color: #8BC34A;
   /* Inverse of primary color. */
-  -primary-color-inverse: #E0E0E0;
+  -primary-color-inverse: #EEEEEE;
   /* Inverse of secondary color. */
-  -secondary-color-inverse: #BDBDBD;
-  /* Text color primary is used for normal text with primary color as background. */
+  -secondary-color-inverse: #E0E0E0;
+  /* Primary text color primary is used for normal text with primary color as background. */
   -primary-text-color: #F5F5F5;
-  /* Text color secondary is used as a slight contrast to primary text color */
+  /* Secondary text color secondary is used as a slight contrast to primary text color */
   -secondary-text-color: #E0E0E0;
+  /* Tertiary text color is mainly used as slight contrast to primary color, e.g. odd/even in chat window */
+  -tertiary-text-color: #9E9E9E;
   /* Inverse of text color primary*/
-  -primary-text-color-inverse: #212121;
+  -primary-text-color-inverse: #424242;
+  /* Inverse of text color primary*/
+  -secondary-text-color-inverse: #212121;
 
-  /***************** End of color scheme *********************/
+  /***************** End of color scheme *****************/
 
   -fx-font-size: 14px;
   -fx-text-fill: -primary-text-color;
   -fx-background: -primary-color;
   -fx-focus-color: -accent-color;
+
 }
 
-.menu-bar {
-  -fx-font-size: 12px;
-  -fx-background-color: -primary-color;
-  -fx-text-fill: -primary-text-color;
-}
-
-.ladder-button {
-  -fx-min-width: 100px;
-  -fx-max-width: 100px;
-  -fx-min-height: 100px;
-  -fx-max-height: 100px;
-}
-
-.ladder-button>*.radio {
-  -fx-min-width: 50px;
-  -fx-max-width: 50px;
-  -fx-min-height: 50px;
-  -fx-max-height: 50px;
-  -fx-background-color: transparent;
-  -fx-background-repeat: no-repeat;
-}
-
-#ladderButtonAeon>*.radio {
-  -fx-background-image: url('images/aeon.png');
-}
-#ladderButtonUef>*.radio {
-  -fx-background-image: url('images/uef.png');
-}
-#ladderButtonCybran>*.radio {
-  -fx-background-image: url('images/cybran.png');
-}
-#ladderButtonSeraphim>*.radio {
-  -fx-background-image: url('images/seraphim.png');
-}
-#ladderButtonRandom>*.radio {
-  -fx-background-image: url('images/random.png');
-}
-
-.login {
-  -fx-font-size: 16px;
-}
-
-.text {
-  -fx-text-fill: -primary-text-color;
-}
-
-/* LABEL */
-
-.label {
-    -fx-text-fill: -primary-text-color;
-}
-
-.label:show-mnemonics > .mnemonic-underline {
-    -fx-stroke: -primary-text-color;
-}
-
-/* BUTTON */
-
-.button {
-  -fx-background-color: -secondary-color;
-  -fx-text-fill: -primary-text-color;
-  -fx-background-radius: 2.0;
-}
-
-.button:default {
-  -fx-background-color: -accent-color;
-  -fx-text-fill: -primary-text-color-inverse;
-}
-
-
-.toggle-button:focused, .button:focused, .button:default:focused {
-  -fx-border-color: -accent-color;
-}
-
-.toggle-button:focused:selected {
-}
-
-.toggle-button:armed, .toggle-button:selected, .button:armed, .button:default:armed {
-}
-
-
-/* TEXT FIELD & TEXT AREA */
-
-.text-area, .text-field {
-  -fx-background-color: -secondary-color;
-  -fx-prompt-text-fill: -primary-text-color;
-  -fx-highlight-fill: -accent-color;
-}
-
-
-.tab-header-background {
-  -fx-background-color: -secondary-color;
-}
-
-.tab:selected {
-  -fx-background-color: -primary-color;
-  -fx-focus-color: transparent;
-}
-
-.tab {
-  -fx-background-color: -secondary-color;
-}
-
-.tab:selected {
-  -fx-background-color: -primary-color;
-}
-
-.tab .tab-label {
-  -fx-alignment: center;
-  -fx-font-size: 14px;
-  -fx-text-fill: -secondary-text-color;
-  -fx-background-color: -secondary-color;
-}
-
-.tab:selected .tab-label {
-  -fx-text-fill: -accent-color;
-  -fx-background-color: -primary-color;
-  -fx-font-weight: bold;
-}
-
-.progress-indicator:indeterminate *.segment {
-  -fx-background-color: -accent-color;
-}
-
-/* CHAT */
-
+/***************** Window decoration *****************/
 .window-button {
   -fx-min-height: 20px;
   -fx-max-height: 20px;
   -fx-margin: 0;
   -fx-padding: 0;
 }
-
 .window-button:focus {
-  -fx-border: none;
+  -fx-border-color: transparent;
 }
 
 #minimizeButton {
@@ -210,7 +95,159 @@
   -fx-background-image: url('images/close_pressed.png');
 }
 
+/***************** Menu *****************/
 
+.menu-bar {
+  -fx-background-color: -primary-color;
+}
+.menu-bar:hover {
+  -fx-background-color: -accent-color;
+}
+#menuButton {
+  -fx-background-image: url('images/menu.png');
+  -fx-background-position: center;
+  -fx-background-repeat: no-repeat;
+  -fx-min-width: 28px;
+  -fx-max-width: 28px;
+  -fx-min-height: 28px;
+  -fx-max-height: 28px;
+}
+.context-menu {
+  -fx-background-color: -secondary-color;
+  -fx-text-fill: -secondary-text-color;
+}
+
+/***************** Table *****************/
+
+.table-view {
+  -fx-background-color: transparent;
+}
+
+.column-header,
+.column-header-background .filler {
+  -fx-background-color: -secondary-color;
+}
+
+/***************** Check box*****************/
+
+.check-box {
+    -fx-text-fill: -primary-text-color;
+}
+
+/***************** Ladder buttons *****************/
+
+.ladder-button {
+}
+
+.ladder-button>*.radio {
+  /* Hell knows why, but setting width/height has to be done by setting padding */
+  -fx-padding: 20px;
+  -fx-background-color: transparent;
+  -fx-background-repeat: no-repeat;
+  -fx-background-position: center;
+}
+
+#ladderButtonAeon>*.radio {
+  -fx-background-image: url('images/aeon.png');
+}
+#ladderButtonUef>*.radio {
+  -fx-background-image: url('images/uef.png');
+}
+#ladderButtonCybran>*.radio {
+  -fx-background-image: url('images/cybran.png');
+}
+#ladderButtonSeraphim>*.radio {
+  -fx-background-image: url('images/seraphim.png');
+}
+#ladderButtonRandom>*.radio {
+  -fx-background-image: url('images/random.png');
+}
+
+.login {
+  -fx-font-size: 16px;
+}
+
+.login .check-box {
+  -fx-font-size: 12px;
+}
+
+
+.text {
+  -fx-text-fill: -primary-text-color;
+}
+
+/* LABEL */
+
+.label {
+    -fx-text-fill: -primary-text-color;
+}
+
+.label:show-mnemonics > .mnemonic-underline {
+    -fx-stroke: -primary-text-color;
+}
+
+/* BUTTON */
+
+.button {
+  -fx-background-color: -secondary-color;
+  -fx-text-fill: -primary-text-color;
+  -fx-background-radius: 2.0;
+}
+
+.button:default {
+  -fx-background-color: -accent-color;
+  -fx-text-fill: -primary-text-color-inverse;
+}
+
+.toggle-button:focused, .button:focused, .button:default:focused {
+  -fx-border-color: -accent-color;
+}
+
+
+/* TEXT FIELD & TEXT AREA */
+
+.text-area, .text-field {
+  -fx-background-color: -secondary-color;
+  -fx-text-fill: -primary-text-color;
+  -fx-prompt-text-fill: -tertiary-text-color;
+  -fx-highlight-fill: -accent-color;
+}
+
+
+.tab-header-background {
+  -fx-background-color: transparent;
+}
+
+.tab:selected {
+  -fx-background-color: -primary-color;
+  -fx-focus-color: transparent;
+}
+
+.tab {
+  -fx-background-color: -secondary-color;
+}
+
+.tab:selected {
+  -fx-background-color: -primary-color;
+}
+
+.tab-label {
+  -fx-alignment: center;
+  -fx-font-size: 14px;
+  -fx-text-fill: -secondary-text-color;
+}
+
+.tab:selected>*.tab-label {
+  -fx-text-fill: -accent-color;
+  -fx-font-weight: bold;
+  -fx-focus-color: transparent;
+}
+
+.progress-indicator:indeterminate *.segment {
+  -fx-background-color: -accent-color;
+}
+
+/* CHAT */
 /* CHAT CONTAINER */
 
 html, body {

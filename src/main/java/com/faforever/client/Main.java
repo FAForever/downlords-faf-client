@@ -25,7 +25,7 @@ public class Main extends Application {
     AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(BaseConfig.class, UiConfig.class);
 
     stage.getIcons().add(new Image("/images/tray_icon.png"));
-    stage.initStyle(StageStyle.UNDECORATED);
+    stage.initStyle(StageStyle.TRANSPARENT);
 
     UserService userService = context.getBean(UserService.class);
 

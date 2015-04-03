@@ -1,40 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?scenebuilder-classpath-element ../../../../../build/classes/main?>
-
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Pagination?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
-<BorderPane fx:id="mainRoot" prefHeight="628.0" prefWidth="827.0" stylesheets="@style.css"
-            xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.faforever.client.main.MainController">
-  <bottom>
-    <HBox prefHeight="16.0" prefWidth="600.0" BorderPane.alignment="CENTER">
-      <children>
-        <Label text="Left status"/>
-        <Pane id="titlePane" prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS"/>
-        <Label text="Right status"/>
-      </children>
-    </HBox>
-  </bottom>
-  <center>
-    <TabPane fx:id="mainTabPane" side="BOTTOM" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+<VBox fx:id="mainRoot" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.faforever.client.main.MainController">
+  <children>
+    <TabPane fx:id="mainTabPane" side="BOTTOM" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
       <tabs>
         <Tab fx:id="whatsNewTab" text="%main.whatsNew">
           <content>
@@ -122,50 +105,15 @@
         </Tab>
       </tabs>
     </TabPane>
-  </center>
-  <top>
-    <VBox BorderPane.alignment="CENTER">
+    <HBox prefHeight="16.0" prefWidth="600.0" VBox.vgrow="NEVER">
       <children>
-        <HBox>
-          <children>
-            <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
-              <image>
-                <Image url="@../../images/tray_icon.png"/>
-              </image>
-              <HBox.margin>
-                <Insets bottom="6.0" left="6.0" right="6.0" top="6.0"/>
-              </HBox.margin>
-            </ImageView>
-            <Pane HBox.hgrow="ALWAYS"/>
-
-            <Button fx:id="minimizeButton" styleClass="window-button"/>
-            <Button fx:id="maximizeButton" styleClass="window-button"/>
-            <Button fx:id="restoreButton" styleClass="window-button"/>
-            <Button fx:id="closeButton" styleClass="window-button"/>
-
-          </children>
-        </HBox>
-        <MenuBar>
-          <menus>
-            <Menu mnemonicParsing="false" text="Application">
-              <items>
-                <MenuItem mnemonicParsing="false" text="%menu.application.login"/>
-                <MenuItem mnemonicParsing="false" text="Close"/>
-              </items>
-            </Menu>
-            <Menu mnemonicParsing="false" text="Options">
-              <items>
-                <MenuItem mnemonicParsing="false" text="Delete"/>
-              </items>
-            </Menu>
-            <Menu mnemonicParsing="false" text="Help">
-              <items>
-                <MenuItem mnemonicParsing="false" text="About"/>
-              </items>
-            </Menu>
-          </menus>
-        </MenuBar>
+        <Label text="Left status"/>
+        <Pane id="titlePane" prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS"/>
+        <Label text="Right status"/>
       </children>
-    </VBox>
-  </top>
-</BorderPane>
+    </HBox>
+  </children>
+  <padding>
+    <Insets top="25.0"/>
+  </padding>
+</VBox>

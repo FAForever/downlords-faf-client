@@ -2,10 +2,13 @@ package com.faforever.client.config;
 
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.PircBotXChatService;
+import com.faforever.client.games.GameService;
+import com.faforever.client.games.GameServiceImpl;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.i18n.I18nImpl;
-import com.faforever.client.ladder.GameService;
 import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.player.PlayerService;
+import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
@@ -63,8 +66,13 @@ public class BaseConfig {
   }
 
   @Bean
-  GameService ladderService() {
+  GameService gameService() {
     return new GameServiceImpl();
+  }
+
+  @Bean
+  PlayerService playerService() {
+    return new PlayerServiceImpl();
   }
 
   @Bean

@@ -22,7 +22,7 @@
                        AnchorPane.topAnchor="0.0"/>
               <ScrollPane>
                 <content>
-                  <VBox fx:id="usersVBox"/>
+                  <VBox fx:id="usersVBox" SplitPane.resizableWithParent="false"/>
                 </content>
               </ScrollPane>
             </items>
