@@ -4,6 +4,7 @@ import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.legacy.message.PlayerInfo;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
+import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -11,6 +12,7 @@ import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -76,6 +78,9 @@ public class ChannelTab extends Tab {
   @Autowired
   ChatUserControlFactory chatUserControlFactory;
 
+  @Autowired
+  HostServices hostServices;
+
   private final String channelName;
   private ObservableMap<String, PlayerInfo> playerInfoMap;
 
@@ -97,6 +102,11 @@ public class ChannelTab extends Tab {
     setClosable(true);
     setId(channelName);
     setText(channelName);
+  }
+
+  @FXML
+  void initialize() {
+    SplitPane.setResizableWithParent(usersVBox, false);
   }
 
   @PostConstruct
@@ -125,13 +135,17 @@ public class ChannelTab extends Tab {
       }
     });
 
+
     engine = messagesWebView.getEngine();
+    ((JSObject) engine.executeScript("window")).setMember("channelTab", this);
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
       if (Worker.State.SUCCEEDED.equals(newValue)) {
         waitingMessages.forEach(this::appendMessage);
+        waitingMessages.clear();
         isChatReady = true;
       }
     });
+
 
     try {
       this.engine.load(CHAT_HTML_RESOURCE.getURL().toExternalForm());
@@ -140,6 +154,10 @@ public class ChannelTab extends Tab {
     }
 
     return engine;
+  }
+
+  public void openUrl(String url) {
+    hostServices.showDocument(url);
   }
 
   @FXML
@@ -185,8 +203,10 @@ public class ChannelTab extends Tab {
       String avatar = getAvatarForUser(chatMessage.getNick());
 
       String text = StringEscapeUtils.escapeHtml4(chatMessage.getMessage());
-      text = (String) engine.executeScript("Autolinker.link('" + text.replace("'", "\\'") + "', {'newWindow': true})");
+      text = (String) engine.executeScript("link('" + text.replace("'", "\\'") + "')");
       html = String.format(html, timeString, avatar, chatMessage.getNick(), text);
+
+      System.out.println(html);
 
       JSObject targetNode = (JSObject) engine.executeScript("document.getElementById('" + MESSAGE_CONTAINER_ID + "')");
       targetNode.call("insertAdjacentHTML", "beforeend", html);

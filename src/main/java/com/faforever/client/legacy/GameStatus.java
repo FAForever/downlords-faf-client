@@ -7,7 +7,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum GameState {
+public enum GameStatus {
 
   UNKNOWN(null),
   PLAYING("playing"),
@@ -18,25 +18,25 @@ public enum GameState {
 
   private String string;
 
-  private static final Map<String, GameState> fromString;
+  private static final Map<String, GameStatus> fromString;
 
-  public static GameState fromString(String string) {
-    GameState gameState = fromString.get(string);
-    if (gameState == null) {
+  public static GameStatus fromString(String string) {
+    GameStatus gameStatus = fromString.get(string);
+    if (gameStatus == null) {
       logger.warn("Unknown game state: {}", string);
       return UNKNOWN;
     }
-    return gameState;
+    return gameStatus;
   }
 
   static {
     fromString = new HashMap<>();
-    for (GameState gamestate : values()) {
+    for (GameStatus gamestate : values()) {
       fromString.put(gamestate.string, gamestate);
     }
   }
 
-  GameState(String string) {
+  GameStatus(String string) {
     this.string = string;
   }
 

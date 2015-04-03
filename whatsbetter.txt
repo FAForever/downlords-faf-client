@@ -1,0 +1,7 @@
+* Reconnects after connection failure
+* Downloads map previews for unknown maps
+* Fast startup
+* Responsive
+* Better looking
+* Improved usability
+*

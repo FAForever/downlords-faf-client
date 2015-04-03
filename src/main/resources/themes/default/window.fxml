@@ -4,8 +4,8 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
-<AnchorPane fx:id="windowRoot" onMouseDragged="#onWindowDrag" onMousePressed="#onDragStarted"
-            xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+<AnchorPane fx:id="windowRoot" onMouseClicked="#onMouseClicked" onMouseDragged="#onWindowDrag"
+            onMousePressed="#onDragStarted" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.faforever.client.fx.WindowDecorator">
   <children>
     <Pane fx:id="resizePane" onMouseDragged="#onWindowResize" onMouseMoved="#updateResizeCursor"

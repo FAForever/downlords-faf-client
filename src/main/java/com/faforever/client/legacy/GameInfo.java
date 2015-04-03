@@ -8,21 +8,23 @@ import java.util.Map;
 
 public class GameInfo extends ServerMessage {
 
-  public Map<String, Integer> featuredModVersions;
-  public String mapname;
-  public Integer numPlayers;
-  public BigDecimal gameTime;
+  public String host;
   public Integer uid;
   public String title;
-  public Map<String, String> simMods;
-  public GameType gameType;
-  public String host;
-  public Map<String, List<String>> teams;
   public String access;
-  public GameState state;
+  public String mapname;
+  public GameStatus state;
+  public Boolean[] options;
+  public GameType gameType;
   public String featuredMod;
   public Integer maxPlayers;
-  public Boolean[] options;
   public Integer minRanking;
   public Integer maxRanking;
+  public Integer numPlayers;
+  public BigDecimal gameTime;
+  public Map<String, String> simMods;
+  public Map<String, List<String>> teams;
+  public Map<String, Integer> featuredModVersions;
+
+
 }

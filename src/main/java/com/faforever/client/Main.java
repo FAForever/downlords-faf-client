@@ -24,6 +24,8 @@ public class Main extends Application {
   public void start(Stage stage) throws Exception {
     AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(BaseConfig.class, UiConfig.class);
 
+    context.getBeanFactory().registerSingleton("hostServices", getHostServices());
+
     stage.getIcons().add(new Image("/images/tray_icon.png"));
     stage.initStyle(StageStyle.TRANSPARENT);
 

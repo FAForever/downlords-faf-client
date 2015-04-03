@@ -50,14 +50,15 @@
          <Insets bottom="10.0" top="10.0"/>
        </padding>
      </HBox>
-     <TableView fx:id="gamesList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+     <TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                 VBox.vgrow="ALWAYS">
        <columns>
-         <TableColumn prefWidth="75.0"/>
+         <TableColumn prefWidth="75.0" fx:id="mapPreviewColumn"/>
          <TableColumn prefWidth="75.0" text="%game.title" fx:id="gameTitleColumn"/>
          <TableColumn prefWidth="75.0" text="%game.players" fx:id="playersColumn"/>
          <TableColumn prefWidth="75.0" text="%game.map" fx:id="mapNameColumn"/>
          <TableColumn prefWidth="75.0" text="%game.ranking" fx:id="rankingColumn"/>
+         <TableColumn prefWidth="75.0" text="game.status" fx:id="gameStatusColumn"/>
        </columns>
        <columnResizePolicy>
          <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>

@@ -16,6 +16,8 @@ import com.faforever.client.fxml.FxmlLoaderImpl;
 import com.faforever.client.games.GamesController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
+import com.faforever.client.maps.MapPreviewService;
+import com.faforever.client.maps.MapPreviewServiceImpl;
 import com.faforever.client.whatsnew.WhatsNewController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -90,6 +92,11 @@ public class UiConfig {
   }
 
   @Bean
+  MapPreviewService mapPreviewService() {
+    return new MapPreviewServiceImpl();
+  }
+
+  @Bean
   FxmlLoader fxmlLoader() {
     FxmlLoaderImpl fxmlLoader = new FxmlLoaderImpl(baseConfig.messageSource(), baseConfig.locale());
     fxmlLoader.setTheme(baseConfig.preferencesService().getPreferences().getTheme());
@@ -101,7 +108,8 @@ public class UiConfig {
     SimpleCacheManager cacheManager = new SimpleCacheManager();
     cacheManager.setCaches(Arrays.asList(
         new ConcurrentMapCache("avatars"),
-        new ConcurrentMapCache("countryFlags")
+        new ConcurrentMapCache("countryFlags"),
+        new ConcurrentMapCache("mapPreview")
     ));
     return cacheManager;
   }

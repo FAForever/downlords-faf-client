@@ -57,7 +57,7 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnServerPingL
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .registerTypeAdapter(GameType.class, new GameTypeTypeAdapter())
-        .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
+        .registerTypeAdapter(GameStatus.class, new GameStateTypeAdapter())
         .create();
     onPlayerInfoListeners = new ArrayList<>();
     onGameInfoListeners = new ArrayList<>();

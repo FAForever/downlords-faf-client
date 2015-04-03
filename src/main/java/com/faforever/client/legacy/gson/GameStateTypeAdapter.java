@@ -1,16 +1,16 @@
 package com.faforever.client.legacy.gson;
 
-import com.faforever.client.legacy.GameState;
+import com.faforever.client.legacy.GameStatus;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 
-public class GameStateTypeAdapter extends TypeAdapter<GameState> {
+public class GameStateTypeAdapter extends TypeAdapter<GameStatus> {
 
   @Override
-  public void write(JsonWriter out, GameState value) throws IOException {
+  public void write(JsonWriter out, GameStatus value) throws IOException {
     if (value == null) {
       out.value("unknown");
     } else {
@@ -19,11 +19,11 @@ public class GameStateTypeAdapter extends TypeAdapter<GameState> {
   }
 
   @Override
-  public GameState read(JsonReader in) throws IOException {
+  public GameStatus read(JsonReader in) throws IOException {
     String gameState = in.nextString();
     if ("unknown".equals(gameState)) {
-      return GameState.UNKNOWN;
+      return GameStatus.UNKNOWN;
     }
-    return GameState.fromString(gameState);
+    return GameStatus.fromString(gameState);
   }
 }

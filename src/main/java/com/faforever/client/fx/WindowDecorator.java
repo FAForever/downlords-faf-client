@@ -9,6 +9,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -224,6 +225,12 @@ public class WindowDecorator {
     }
     dragOffset = new Point2D(event.getScreenX() - stage.getX(), event.getScreenY() - stage.getY());
     event.consume();
+  }
+
+  public void onMouseClicked(MouseEvent event) {
+    if (event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
+      stage.setMaximized(!stage.isMaximized());
+    }
   }
 }
 
