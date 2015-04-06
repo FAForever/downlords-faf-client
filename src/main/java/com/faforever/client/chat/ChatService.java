@@ -16,6 +16,8 @@ public interface ChatService {
 
   void addOnUserJoinedListener(OnUserJoinedListener listener);
 
+  void addOnUserLeftListener(OnUserLeftListener listener);
+
   void connect();
 
   void sendMessage(String target, String message);

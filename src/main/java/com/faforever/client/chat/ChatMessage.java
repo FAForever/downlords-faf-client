@@ -5,12 +5,12 @@ import java.time.Instant;
 public class ChatMessage {
 
   private final Instant time;
-  private final String nick;
+  private final String login;
   private final String message;
 
-  public ChatMessage(Instant time, String nick, String message) {
+  public ChatMessage(Instant time, String login, String message) {
     this.time = time;
-    this.nick = nick;
+    this.login = login;
     this.message = message;
   }
 
@@ -18,8 +18,8 @@ public class ChatMessage {
     return time;
   }
 
-  public String getNick() {
-    return nick;
+  public String getLogin() {
+    return login;
   }
 
   public String getMessage() {

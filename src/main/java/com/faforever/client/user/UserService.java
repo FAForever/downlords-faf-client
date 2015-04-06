@@ -11,4 +11,12 @@ public interface UserService {
   String getUsername();
 
   String getPassword();
+
+  String getClan();
+
+  String getCountry();
+
+  Float getDeviation();
+
+  Float getMean();
 }

@@ -1,4 +1,4 @@
-package com.faforever.client.legacy;
+package com.faforever.client.legacy.message;
 
 public interface OnSessionInitiatedListener {
 

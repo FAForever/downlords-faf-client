@@ -20,7 +20,7 @@ public class WhatsNewController {
   @FXML
   private WebView whatsNewRoot;
 
-  public void load() {
+  public void configure() {
     WebEngine engine = whatsNewRoot.getEngine();
     engine.setUserDataDirectory(preferencesService.getPreferencesDirectory().toFile());
 

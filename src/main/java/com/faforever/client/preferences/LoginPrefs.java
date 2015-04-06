@@ -4,6 +4,7 @@ public class LoginPrefs {
 
   private String username;
   private String password;
+  private boolean autoLogin;
 
   public LoginPrefs() {
   }
@@ -18,11 +19,20 @@ public class LoginPrefs {
     return this;
   }
 
+  public LoginPrefs setAutoLogin(boolean autoLogin) {
+    this.autoLogin = autoLogin;
+    return this;
+  }
+
   public String getUsername() {
     return username;
   }
 
   public String getPassword() {
     return password;
+  }
+
+  public boolean isAutoLogin() {
+    return autoLogin;
   }
 }

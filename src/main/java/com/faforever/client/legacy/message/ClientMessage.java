@@ -6,9 +6,9 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Field;
+import java.util.Map;
 
 public class ClientMessage implements ServerWritable {
-
 
   public static ClientMessage selectAvatar(String avatar) {
     ClientMessage clientMessage = new ClientMessage();
@@ -38,6 +38,18 @@ public class ClientMessage implements ServerWritable {
     return clientMessage;
   }
 
+  public static ClientMessage hostGame(GameAccess gameAccess, String mapname, String title, int port, Map<String, Boolean> options, String mod) {
+    ClientMessage clientMessage = new ClientMessage();
+    clientMessage.command = "game_host";
+    clientMessage.access = gameAccess.getString();
+    clientMessage.mapname = mapname;
+    clientMessage.title = title;
+    clientMessage.gameport = port;
+    clientMessage.options = options;
+    clientMessage.mod = mod;
+    return clientMessage;
+  }
+
   public static ClientMessage askSession(String username) {
     ClientMessage clientMessage = new ClientMessage();
     clientMessage.command = "ask_session";
@@ -53,9 +65,20 @@ public class ClientMessage implements ServerWritable {
   private String uniqueId;
   private String localIp;
   private String session;
+  private String access;
+  private String mapname;
+  private String title;
+  private Integer gameport;
+  private Map<String, Boolean> options;
+  private String mod;
 
   public void write(Gson gson, Writer writer) throws IOException {
     gson.toJson(this, ClientMessage.class, fixedJsonWriter(writer));
+  }
+
+  @Override
+  public boolean isConfidential() {
+    return password != null;
   }
 
   private JsonWriter fixedJsonWriter(Writer writer) {

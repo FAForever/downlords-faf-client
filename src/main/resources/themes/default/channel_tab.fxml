@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
@@ -9,29 +14,27 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
+
 <fx:root type="Tab" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
   <AnchorPane>
     <children>
-      <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                  AnchorPane.topAnchor="0.0">
+      <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <center>
           <SplitPane dividerPositions="0.8">
             <items>
-              <WebView fx:id="messagesWebView" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0"
-                       AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                       AnchorPane.topAnchor="0.0"/>
-              <ScrollPane>
+              <WebView fx:id="messagesWebView" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+              <ScrollPane SplitPane.resizableWithParent="false">
                 <content>
-                  <VBox fx:id="usersVBox" SplitPane.resizableWithParent="false"/>
+                  <VBox fx:id="usersVBox" />
                 </content>
               </ScrollPane>
             </items>
           </SplitPane>
         </center>
         <bottom>
-          <TextField fx:id="messageTextField" onAction="#onSendMessage">
+          <TextField fx:id="messageTextField" onAction="#onSendMessage" promptText="%chat.messagePrompt">
             <BorderPane.margin>
-              <Insets bottom="2.0" left="2.0" right="2.0" top="2.0"/>
+              <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
             </BorderPane.margin>
           </TextField>
         </bottom>

@@ -1,4 +1,4 @@
-package com.faforever.client.legacy;
+package com.faforever.client.legacy.message;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +8,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum GameType {
-  FOO(0), UNKNOWN(null);
+  DEMORALIZATION(0),
+  DOMINATION(1),
+  ERADICATION(2),
+  SANDBOX(3),
+  UNKNOWN(null);
+
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private Integer number;

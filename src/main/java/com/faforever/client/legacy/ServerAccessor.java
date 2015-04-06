@@ -1,19 +1,40 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.games.NewGameInfo;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
 import com.faforever.client.legacy.message.ClientMessage;
-import com.faforever.client.legacy.message.PlayerInfo;
+import com.faforever.client.legacy.message.GameAccess;
+import com.faforever.client.legacy.message.GameInfoMessage;
+import com.faforever.client.legacy.message.GameLaunchMessage;
+import com.faforever.client.legacy.message.GameStatus;
+import com.faforever.client.legacy.message.GameType;
+import com.faforever.client.legacy.message.OnFafLoginSucceededListener;
+import com.faforever.client.legacy.message.OnGameInfoMessageListener;
+import com.faforever.client.legacy.message.OnGameLaunchMessageListener;
+import com.faforever.client.legacy.message.OnPingMessageListener;
+import com.faforever.client.legacy.message.OnPlayerInfoMessageListener;
+import com.faforever.client.legacy.message.OnSessionInitiatedListener;
+import com.faforever.client.legacy.message.PlayerInfoMessage;
+import com.faforever.client.legacy.message.PongMessage;
 import com.faforever.client.legacy.message.ServerWritable;
+import com.faforever.client.legacy.message.WelcomeMessage;
+import com.faforever.client.preferences.LoginPrefs;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
+import com.faforever.client.util.JavaFxUtil;
+import com.faforever.client.util.UID;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.TaskScheduler;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -26,32 +47,39 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.CountDownLatch;
+import java.util.HashMap;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
-public class ServerAccessor implements OnSessionInitiatedListener, OnServerPingListener, OnPlayerInfoListener, OnGameInfoListener {
+public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessageListener, OnPlayerInfoMessageListener, OnGameInfoMessageListener, OnFafLoginSucceededListener, OnModInfoMessageListener, OnGameLaunchMessageListener {
 
   private static final int VERSION = 123;
+  private static final long RECONNECT_DELAY = 3000;
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  private static final CountDownLatch WAIT_FOR_WELCOME_LATCH = new CountDownLatch(1);
 
   @Autowired
   Environment environment;
 
-  private final Object writeMonitor = new Object();
+  @Autowired
+  PreferencesService preferencesService;
 
-  private String localIp;
+  @Autowired
+  TaskScheduler taskScheduler;
+
+  private String uniqueId;
   private String session;
   private String username;
+  private String password;
+  private String localIp;
   private Socket socket;
-  private QStreamWriter socketOut;
   private Gson gson;
-  private String uniqueId;
-  private Collection<OnPlayerInfoListener> onPlayerInfoListeners;
-  private Collection<OnGameInfoListener> onGameInfoListeners;
+  private QStreamWriter socketOut;
+  private Callback<Void> loginCallback;
+  private Callback<GameLaunchMessage> gameLaunchCallback;
+  private Collection<OnPlayerInfoMessageListener> onPlayerInfoMessageListeners;
+  private Collection<OnGameInfoMessageListener> onGameInfoMessageListeners;
+  private Collection<OnModInfoMessageListener> onModInfoMessageListeners;
 
   public ServerAccessor() {
     gson = new GsonBuilder()
@@ -59,39 +87,86 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnServerPingL
         .registerTypeAdapter(GameType.class, new GameTypeTypeAdapter())
         .registerTypeAdapter(GameStatus.class, new GameStateTypeAdapter())
         .create();
-    onPlayerInfoListeners = new ArrayList<>();
-    onGameInfoListeners = new ArrayList<>();
+    onPlayerInfoMessageListeners = new ArrayList<>();
+    onGameInfoMessageListeners = new ArrayList<>();
+    onModInfoMessageListeners = new ArrayList<>();
   }
 
-  public void connect() throws IOException {
-    socket = new Socket(
-        environment.getProperty("lobby.host"),
-        environment.getProperty("lobby.port", int.class)
-    );
-    socket.setKeepAlive(true);
+  /**
+   * Connects to the FAF server and logs in using the credentials from {@link PreferencesService}. This method runs in
+   * background, the callback however is called on the FX application thread.
+   */
+  public void connectAndLogInInBackground(Callback<Void> callback) {
+    loginCallback = callback;
 
-    localIp = socket.getLocalAddress().getHostAddress();
-    socketOut = new QStreamWriter(new DataOutputStream(new BufferedOutputStream(socket.getOutputStream())));
+    LoginPrefs login = preferencesService.getPreferences().getLogin();
+    username = login.getUsername();
+    password = login.getPassword();
 
-    writeToServer(ClientMessage.askSession(username));
-    startServerReader(socket);
+    if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
+      throw new IllegalStateException("Username or password has not been set");
+    }
+
+    executeInBackground(new Task<Void>() {
+      @Override
+      protected Void call() throws Exception {
+        while (!isCancelled()) {
+          String lobbyHost = environment.getProperty("lobby.host");
+          Integer lobbyPort = environment.getProperty("lobby.port", int.class);
+
+          logger.info("Trying to connect to FAF server at {}:{}", lobbyHost, lobbyPort);
+
+          try {
+            socket = new Socket(lobbyHost, lobbyPort);
+            socket.setKeepAlive(true);
+
+            logger.info("FAF server connection established");
+
+            localIp = socket.getLocalAddress().getHostAddress();
+            socketOut = new QStreamWriter(new DataOutputStream(new BufferedOutputStream(socket.getOutputStream())));
+
+            writeToServer(ClientMessage.askSession(username));
+
+            blockingReadServer(socket);
+          } catch (IOException e) {
+            logger.warn("Lost connection to FAF server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
+            Thread.sleep(RECONNECT_DELAY);
+          }
+        }
+        return null;
+      }
+    });
   }
 
-  private void startServerReader(Socket socket) {
+  private void blockingReadServer(Socket socket) throws IOException {
+    JavaFxUtil.assertNotApplicationThread();
+
     ServerReader serverReader = new ServerReader(gson, socket);
     serverReader.setOnSessionInitiatedListener(this);
-    serverReader.setOnGameInfoListener(this);
-    serverReader.setOnServerPingListener(this);
-    serverReader.setOnPlayerInfoListener(this);
-    serverReader.start();
+    serverReader.setOnGameInfoMessageListener(this);
+    serverReader.setOnPingMessageListener(this);
+    serverReader.setOnPlayerInfoMessageListener(this);
+    serverReader.setOnFafLoginSucceededListener(this);
+    serverReader.setOnModInfoMessageListener(this);
+    serverReader.setOnGameLaunchMessageListenerListener(this);
+    serverReader.blockingRead();
   }
 
   @Override
   public void onSessionInitiated(WelcomeMessage message) {
     this.session = message.session;
-    this.uniqueId = com.faforever.client.util.UID.generate(session);
+    this.uniqueId = UID.generate(session);
 
-    WAIT_FOR_WELCOME_LATCH.countDown();
+    logger.info("FAF session initiated, session ID: {}", session);
+
+    executeInBackground(new Task<Void>() {
+      @Override
+      protected Void call() throws Exception {
+        logger.info("Sending login information to FAF server");
+        writeToServer(ClientMessage.login(username, password, session, uniqueId, localIp, VERSION));
+        return null;
+      }
+    });
   }
 
   @Override
@@ -99,92 +174,101 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnServerPingL
     writeToServer(PongMessage.INSTANCE);
   }
 
-  public void login(final String username, final String password, Callback<Void> callback) {
-    this.username = username;
-
-    executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        ensureConnected();
-        waitForWelcome();
-
-        if (session == null || uniqueId == null) {
-          throw new IllegalStateException("session or uniqueId has not been set");
-        }
-        writeToServer(ClientMessage.login(username, password, session, uniqueId, localIp, VERSION));
-        return null;
-      }
-    }, new Callback<Void>() {
-      @Override
-      public void success(Void result) {
-        callback.success(result);
-      }
-
-      @Override
-      public void error(Throwable e) {
-        callback.error(e);
-      }
-    });
-  }
-
-  private void waitForWelcome() {
+  private void writeToServer(ServerWritable serverWritable) {
     try {
-      WAIT_FOR_WELCOME_LATCH.await();
-    } catch (InterruptedException e) {
+      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+      Writer stringWriter = new StringWriter();
+      serverWritable.write(gson, stringWriter);
+
+      QStreamWriter qStreamWriter = new QStreamWriter(byteArrayOutputStream);
+      qStreamWriter.appendQString(stringWriter.toString());
+      qStreamWriter.appendQString(username);
+      qStreamWriter.appendQString(session);
+
+      byte[] byteArray = byteArrayOutputStream.toByteArray();
+
+      if (serverWritable.isConfidential()) {
+        logger.debug("Writing confidential information to server");
+      } else {
+        logger.debug("Writing to server: {}", new String(byteArray, StandardCharsets.UTF_16BE));
+      }
+
+      socketOut.append(byteArray);
+      socketOut.flush();
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private void ensureConnected() throws IOException {
-    if (socket == null || socket.isClosed()) {
-      connect();
-    }
-  }
+  @Override
+  public void onFafLoginSucceeded() {
+    logger.info("FAF login succeeded");
 
-  private void writeToServer(ServerWritable serverWritable) {
-    synchronized (writeMonitor) {
-      try {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-        Writer stringWriter = new StringWriter();
-        serverWritable.write(gson, stringWriter);
-
-        QStreamWriter qStreamWriter = new QStreamWriter(byteArrayOutputStream);
-        qStreamWriter.appendQString(stringWriter.toString());
-        qStreamWriter.appendQString(username);
-        qStreamWriter.appendQString(session);
-
-        byte[] byteArray = byteArrayOutputStream.toByteArray();
-
-        logger.debug("Writing to server: {}", new String(byteArray, StandardCharsets.UTF_16BE));
-
-        socketOut.append(byteArray);
-        socketOut.flush();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
+    Platform.runLater(() -> {
+      if (loginCallback != null) {
+        loginCallback.success(null);
+        loginCallback = null;
       }
+    });
+  }
+
+  public void addOnModInfoMessageListener(OnModInfoMessageListener listener) {
+    onModInfoMessageListeners.add(listener);
+  }
+
+  @Override
+  public void onModInfoMessage(ModInfoMessage modInfoMessage) {
+    for (OnModInfoMessageListener listener : onModInfoMessageListeners) {
+      listener.onModInfoMessage(modInfoMessage);
     }
   }
 
   @Override
-  public void onPlayerInfo(PlayerInfo playerInfo) {
-    for (OnPlayerInfoListener listener : onPlayerInfoListeners) {
-      listener.onPlayerInfo(playerInfo);
+  public void onPlayerInfoMessage(PlayerInfoMessage playerInfoMessage) {
+    for (OnPlayerInfoMessageListener listener : onPlayerInfoMessageListeners) {
+      listener.onPlayerInfoMessage(playerInfoMessage);
     }
   }
 
   @Override
-  public void onGameInfo(GameInfo gameInfo) {
-    for (OnGameInfoListener listener : onGameInfoListeners) {
-      listener.onGameInfo(gameInfo);
+  public void onGameInfoMessage(GameInfoMessage gameInfoMessage) {
+    for (OnGameInfoMessageListener listener : onGameInfoMessageListeners) {
+      listener.onGameInfoMessage(gameInfoMessage);
     }
   }
 
-  public void addOnGameInfoListener(OnGameInfoListener listener) {
-    onGameInfoListeners.add(listener);
+  public void addOnGameInfoMessageListener(OnGameInfoMessageListener listener) {
+    onGameInfoMessageListeners.add(listener);
   }
 
-  public void addOnPlayerInfoListener(OnPlayerInfoListener listener) {
-    onPlayerInfoListeners.add(listener);
+  public void addOnPlayerInfoMessageListener(OnPlayerInfoMessageListener listener) {
+    onPlayerInfoMessageListeners.add(listener);
+  }
+
+
+  public void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchMessage> callback) {
+    ClientMessage clientMessage = ClientMessage.hostGame(
+        StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PRIVATE,
+        newGameInfo.getMap(),
+        newGameInfo.getTitle(),
+        preferencesService.getPreferences().getSupCom().getPort(),
+        new HashMap<>(),
+        newGameInfo.getMod()
+    );
+
+    gameLaunchCallback = callback;
+    executeInBackground(new Task<Void>() {
+      @Override
+      protected Void call() throws Exception {
+        writeToServer(clientMessage);
+        return null;
+      }
+    });
+  }
+
+  @Override
+  public void onGameLaunchMessage(GameLaunchMessage gameLaunchMessage) {
+    gameLaunchCallback.success(gameLaunchMessage);
   }
 }

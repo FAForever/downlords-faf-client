@@ -1,10 +1,10 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.legacy.message.PlayerInfo;
+import com.faforever.client.legacy.message.PlayerInfoMessage;
 import javafx.collections.ObservableMap;
 
 public interface ChannelTabFactory {
 
-  ChannelTab createChannelTab(String channelName, ObservableMap<String, PlayerInfo> playerInfos);
+  ChannelTab createChannelTab(String channelName, ObservableMap<String, PlayerInfoMessage> playerInfos);
 
 }

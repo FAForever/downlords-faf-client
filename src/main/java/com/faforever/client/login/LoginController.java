@@ -11,7 +11,6 @@ import com.faforever.client.util.JavaFxUtil;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
@@ -23,8 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
-import static com.faforever.client.fx.SceneFactoryImpl.WindowButtonType.CLOSE;
-import static com.faforever.client.fx.SceneFactoryImpl.WindowButtonType.MINIMIZE;
+import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
+import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 public class LoginController {
 
@@ -69,71 +70,46 @@ public class LoginController {
 
   private Stage stage;
 
-  /**
-   * If used typed something into the password field, this will be set to true.
-   */
-  private boolean isPlainTextPassword;
-  private double xOffset;
-  private double yOffset;
-
   @FXML
   private void initialize() {
-    passwordInput.setOnKeyPressed(event -> isPlainTextPassword = true);
     loginProgressPane.setVisible(false);
   }
 
   public void display(Stage stage) {
     this.stage = stage;
 
-    Scene scene = sceneFactory.createScene(stage, loginRoot, false, MINIMIZE, CLOSE);
+    sceneFactory.createScene(stage, loginRoot, false, MINIMIZE, CLOSE);
 
-    stage.setScene(scene);
     stage.setTitle(i18n.get("login.title"));
     stage.setResizable(false);
 
-    fillForm();
-    if (autoLoginCheckBox.isSelected()) {
-      login(usernameInput.getText(), passwordInput.getText(), true);
-    }
-
-    configureWindowDragable(stage);
-    stage.show();
-    JavaFxUtil.centerOnScreen(stage);
-
-    usernameInput.requestFocus();
-  }
-
-  private void configureWindowDragable(final Stage stage) {
-    loginRoot.setOnMousePressed(event -> {
-      xOffset = stage.getX() - event.getScreenX();
-      yOffset = stage.getY() - event.getScreenY();
-    });
-    loginRoot.setOnMouseDragged(event -> {
-      stage.setX(event.getScreenX() + xOffset);
-      stage.setY(event.getScreenY() + yOffset);
-    });
-  }
-
-  private void fillForm() {
-    LoginPrefs loginPrefs = preferencesService.getPreferences().getLoginPrefs();
+    LoginPrefs loginPrefs = preferencesService.getPreferences().getLogin();
     String username = loginPrefs.getUsername();
     String password = loginPrefs.getPassword();
+    boolean isAutoLogin = loginPrefs.isAutoLogin();
 
-    boolean autoLogin = StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password);
-    autoLoginCheckBox.setSelected(autoLogin);
-
+    // Fill the form even if autoLogin is true, since user may cancel the login
     usernameInput.setText(StringUtils.defaultString(username));
-    passwordInput.setText(StringUtils.defaultString(password));
+    autoLoginCheckBox.setSelected(isAutoLogin);
+
+    if (loginPrefs.isAutoLogin() && isNotEmpty(username) && isNotEmpty(password)) {
+      login(username, password, true);
+    } else if (isEmpty(username)) {
+      usernameInput.requestFocus();
+    } else {
+      passwordInput.requestFocus();
+    }
+
+    stage.show();
+    JavaFxUtil.centerOnScreen(stage);
   }
 
   @FXML
-  private void loginButtonClicked(ActionEvent actionEvent) {
+  void loginButtonClicked(ActionEvent actionEvent) {
     String username = usernameInput.getText();
     String password = passwordInput.getText();
 
-    if (isPlainTextPassword) {
-      password = DigestUtils.sha256Hex(password);
-    }
+    password = DigestUtils.sha256Hex(password);
 
     boolean autoLogin = autoLoginCheckBox.isSelected();
 

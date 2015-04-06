@@ -3,6 +3,8 @@ package com.faforever.client.preferences;
 import com.faforever.client.util.OperatingSystem;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sun.jna.platform.win32.Shell32Util;
+import com.sun.jna.platform.win32.ShlObj;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,12 +60,25 @@ public class PreferencesService {
         return Paths.get(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER);
 
       default:
-        return Paths.get(System.getProperty("user.home")).resolve(APP_DATA_SUB_FOLDER);
+        return Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
     }
+  }
+
+  public Path getFafDataDirectory() {
+    return Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
+  }
+
+
+  public Path getFafBinDirectory() {
+    return getFafDataDirectory().resolve("bin");
   }
 
   private Path getPreferencesFilePath() {
     return getPreferencesDirectory().resolve(PREFS_FILE_NAME);
+  }
+
+  public Path getMapsDirectory() {
+    return Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance", "Maps");
   }
 
   private void initDefaultPreferences() {

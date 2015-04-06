@@ -1,12 +1,10 @@
-package com.faforever.client.legacy;
-
-import com.faforever.client.legacy.message.ServerMessage;
+package com.faforever.client.legacy.message;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-public class GameInfo extends ServerMessage {
+public class GameInfoMessage extends ServerMessage {
 
   public String host;
   public Integer uid;
@@ -25,6 +23,4 @@ public class GameInfo extends ServerMessage {
   public Map<String, String> simMods;
   public Map<String, List<String>> teams;
   public Map<String, Integer> featuredModVersions;
-
-
 }

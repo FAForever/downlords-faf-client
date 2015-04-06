@@ -1,13 +1,11 @@
 package com.faforever.client.games;
 
-import com.faforever.client.legacy.GameInfo;
-import com.faforever.client.legacy.GameStatus;
-import com.faforever.client.legacy.GameType;
-import javafx.beans.property.IntegerProperty;
+import com.faforever.client.legacy.message.GameInfoMessage;
+import com.faforever.client.legacy.message.GameStatus;
+import com.faforever.client.legacy.message.GameType;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -16,18 +14,19 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 public class GameInfoBean {
 
-  private IntegerProperty uid;
   private StringProperty host;
   private StringProperty title;
   private StringProperty access;
   private StringProperty mapName;
   private StringProperty featuredMod;
+  private ObjectProperty<Integer> uid;
   private ObjectProperty<Integer> minRanking;
   private ObjectProperty<Integer> maxRanking;
   private ObjectProperty<Integer> numPlayers;
@@ -40,30 +39,49 @@ public class GameInfoBean {
   private MapProperty<String, List<String>> teams;
   private MapProperty<String, Integer> featuredModVersions;
 
-  public GameInfoBean(GameInfo gameInfo) {
-    uid = new ReadOnlyIntegerWrapper(gameInfo.uid);
-    host = new SimpleStringProperty(gameInfo.host);
-    title = new SimpleStringProperty(gameInfo.title);
-    access = new SimpleStringProperty(gameInfo.access);
-    mapName = new SimpleStringProperty(gameInfo.mapname);
-    featuredMod = new SimpleStringProperty(gameInfo.featuredMod);
-    minRanking = new SimpleObjectProperty<Integer>(gameInfo.minRanking);
-    maxRanking = new SimpleObjectProperty<Integer>(gameInfo.maxRanking);
-    numPlayers = new SimpleObjectProperty<Integer>(gameInfo.numPlayers);
-    maxPlayers = new SimpleObjectProperty<Integer>(gameInfo.maxPlayers);
-    gameType = new SimpleObjectProperty<GameType>(gameInfo.gameType);
-    gameTime = new SimpleObjectProperty<BigDecimal>(gameInfo.gameTime);
-    options = new SimpleListProperty<>(FXCollections.observableArrayList(gameInfo.options));
-    simMods = new SimpleMapProperty<>(FXCollections.observableMap(gameInfo.simMods));
-    teams = new SimpleMapProperty<>(FXCollections.observableMap(gameInfo.teams));
-    featuredModVersions = new SimpleMapProperty<>(FXCollections.observableMap(gameInfo.featuredModVersions));
+  public GameInfoBean(GameInfoMessage gameInfoMessage) {
+    uid = new SimpleObjectProperty<>(gameInfoMessage.uid);
+    host = new SimpleStringProperty(gameInfoMessage.host);
+    title = new SimpleStringProperty(StringEscapeUtils.unescapeHtml4(gameInfoMessage.title));
+    access = new SimpleStringProperty(gameInfoMessage.access);
+    mapName = new SimpleStringProperty(gameInfoMessage.mapname);
+    featuredMod = new SimpleStringProperty(gameInfoMessage.featuredMod);
+    minRanking = new SimpleObjectProperty<>(gameInfoMessage.minRanking);
+    maxRanking = new SimpleObjectProperty<>(gameInfoMessage.maxRanking);
+    numPlayers = new SimpleObjectProperty<>(gameInfoMessage.numPlayers);
+    maxPlayers = new SimpleObjectProperty<>(gameInfoMessage.maxPlayers);
+    gameType = new SimpleObjectProperty<>(gameInfoMessage.gameType);
+    gameTime = new SimpleObjectProperty<>(gameInfoMessage.gameTime);
+    options = new SimpleListProperty<>(FXCollections.observableArrayList(gameInfoMessage.options));
+    simMods = new SimpleMapProperty<>(FXCollections.observableMap(gameInfoMessage.simMods));
+    teams = new SimpleMapProperty<>(FXCollections.observableMap(gameInfoMessage.teams));
+    featuredModVersions = new SimpleMapProperty<>(FXCollections.observableMap(gameInfoMessage.featuredModVersions));
+  }
+
+  public void updateFromGameInfo(GameInfoMessage gameInfoMessage) {
+    uid.set(gameInfoMessage.uid);
+    host.set(gameInfoMessage.host);
+    title.set(StringEscapeUtils.unescapeHtml4(gameInfoMessage.title));
+    access.set(gameInfoMessage.access);
+    mapName.set(gameInfoMessage.mapname);
+    featuredMod.set(gameInfoMessage.featuredMod);
+    minRanking.set(gameInfoMessage.minRanking);
+    maxRanking.set(gameInfoMessage.maxRanking);
+    numPlayers.set(gameInfoMessage.numPlayers);
+    maxPlayers.set(gameInfoMessage.maxPlayers);
+    gameType.set(gameInfoMessage.gameType);
+    gameTime.set(gameInfoMessage.gameTime);
+    options.setAll(gameInfoMessage.options);
+    simMods.putAll(gameInfoMessage.simMods);
+    teams.putAll(gameInfoMessage.teams);
+    featuredModVersions.putAll(gameInfoMessage.featuredModVersions);
   }
 
   public int getUid() {
     return uid.get();
   }
 
-  public IntegerProperty uidProperty() {
+  public ObjectProperty<Integer> uidProperty() {
     return uid;
   }
 

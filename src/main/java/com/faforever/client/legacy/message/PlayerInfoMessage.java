@@ -2,13 +2,13 @@ package com.faforever.client.legacy.message;
 
 import java.util.Map;
 
-public class PlayerInfo extends ServerMessage {
+public class PlayerInfoMessage extends ServerMessage {
 
   public String clan;
   public String login;
   public Avatar avatar;
   public String country;
-  public String ratingMean;
+  public Float ratingMean;
   public Integer numberOfGames;
   public Float ratingDeviation;
   public Double ladderRatingMean;

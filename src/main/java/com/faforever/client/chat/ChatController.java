@@ -1,8 +1,7 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.legacy.OnFafLoginListener;
-import com.faforever.client.legacy.OnPlayerInfoListener;
-import com.faforever.client.legacy.message.PlayerInfo;
+import com.faforever.client.legacy.message.OnPlayerInfoMessageListener;
+import com.faforever.client.legacy.message.PlayerInfoMessage;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.user.UserService;
 import com.sun.javafx.collections.ObservableMapWrapper;
@@ -23,8 +22,7 @@ public class ChatController implements
     OnPrivateMessageListener,
     OnUserJoinedListener,
     OnUserListListener,
-    OnPlayerInfoListener,
-    OnFafLoginListener {
+    OnPlayerInfoMessageListener, OnUserLeftListener {
 
   @Autowired
   ChatService chatService;
@@ -45,7 +43,7 @@ public class ChatController implements
   private Pane connectingProgressPane;
 
   private final Map<String, ChannelTab> nameToChatTab;
-  private ObservableMap<String, PlayerInfo> playerInfos;
+  private ObservableMap<String, PlayerInfoMessage> playerInfos;
 
   public ChatController() {
     nameToChatTab = new HashMap<>();
@@ -59,11 +57,12 @@ public class ChatController implements
     chatService.addOnPrivateMessageListener(this);
     chatService.addOnUserJoinedListener(this);
     chatService.addOnUserListListener(this);
+    chatService.addOnUserLeftListener(this);
 
     playerService.addOnPlayerInfoListener(this);
   }
 
-  public void load() {
+  public void configure() {
     chatService.connect();
   }
 
@@ -105,7 +104,7 @@ public class ChatController implements
   }
 
   private boolean isCurrentUser(ChatUser chatUser) {
-    return chatUser.getNick().equals(userService.getUsername());
+    return chatUser.getLogin().equals(userService.getUsername());
   }
 
   @Override
@@ -119,11 +118,14 @@ public class ChatController implements
   }
 
   @Override
-  public void onPlayerInfo(PlayerInfo playerInfo) {
-    playerInfos.put(playerInfo.login, playerInfo);
+  public void onPlayerInfoMessage(PlayerInfoMessage playerInfoMessage) {
+    playerInfos.put(playerInfoMessage.login, playerInfoMessage);
   }
 
   @Override
-  public void onFafLogin() {
+  public void onUserLeft(String login) {
+    for (ChannelTab channelTab : nameToChatTab.values()) {
+      channelTab.onUserLeft(login);
+    }
   }
 }

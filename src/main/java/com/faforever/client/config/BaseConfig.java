@@ -10,6 +10,8 @@ import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.supcom.SupComService;
+import com.faforever.client.supcom.SupComServiceImpl;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
 import java.util.Locale;
 
@@ -78,5 +82,15 @@ public class BaseConfig {
   @Bean
   PreferencesService preferencesService() {
     return new PreferencesService();
+  }
+
+  @Bean
+  SupComService processService() {
+    return new SupComServiceImpl();
+  }
+
+  @Bean
+  TaskScheduler taskScheduler() {
+    return new ConcurrentTaskScheduler();
   }
 }

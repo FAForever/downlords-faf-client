@@ -4,4 +4,4 @@
 * Responsive
 * Better looking
 * Improved usability
-*
+* Different sounds for different notifications

@@ -9,7 +9,7 @@ public class ChatUser {
   public static final Comparator<ChatUser> SORT_BY_NAME_COMPARATOR = new Comparator<ChatUser>() {
     @Override
     public int compare(ChatUser o1, ChatUser o2) {
-      return o1.getNick().compareTo(o2.getNick());
+      return o1.getLogin().compareTo(o2.getLogin());
     }
   };
 
@@ -29,7 +29,7 @@ public class ChatUser {
     return user.hashCode();
   }
 
-  public String getNick() {
-    return user.getNick();
+  public String getLogin() {
+    return user.getLogin();
   }
 }

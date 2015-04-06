@@ -6,5 +6,5 @@ import javafx.stage.Stage;
 
 public interface SceneFactory {
 
-  Scene createScene(Stage stage, Parent mainRoot, boolean b, SceneFactoryImpl.WindowButtonType... buttons);
+  Scene createScene(Stage stage, Parent mainRoot, boolean resizable, WindowDecorator.WindowButtonType... buttons);
 }

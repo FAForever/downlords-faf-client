@@ -51,7 +51,7 @@
             <TextField fx:id="usernameInput" minWidth="100.0" promptText="%login.name"/>
             <PasswordField fx:id="passwordInput" minWidth="100.0" promptText="%login.password"/>
             <CheckBox fx:id="autoLoginCheckBox" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308"
-                      mnemonicParsing="false" text="%login.auto">
+                      mnemonicParsing="false" text="%login.autoLogin">
               <VBox.margin>
                 <Insets bottom="10.0" top="10.0"/>
               </VBox.margin>

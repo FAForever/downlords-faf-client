@@ -1,7 +1,17 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.legacy.message.PlayerInfo;
+import com.faforever.client.legacy.message.GameInfoMessage;
+import com.faforever.client.legacy.message.GameLaunchMessage;
+import com.faforever.client.legacy.message.OnFafLoginSucceededListener;
+import com.faforever.client.legacy.message.OnGameInfoMessageListener;
+import com.faforever.client.legacy.message.OnGameLaunchMessageListener;
+import com.faforever.client.legacy.message.OnPlayerInfoMessageListener;
+import com.faforever.client.legacy.message.OnPingMessageListener;
+import com.faforever.client.legacy.message.OnSessionInitiatedListener;
+import com.faforever.client.legacy.message.PlayerInfoMessage;
+import com.faforever.client.legacy.message.ServerCommand;
 import com.faforever.client.legacy.message.ServerMessage;
+import com.faforever.client.legacy.message.WelcomeMessage;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
@@ -13,54 +23,48 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 
-class ServerReader extends Thread {
+class ServerReader {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final Gson gson;
   private final Socket socket;
   private OnSessionInitiatedListener onSessionInitiatedListener;
-  private OnGameInfoListener onGameInfoListener;
-  private OnPlayerInfoListener onPlayerInfoListener;
-  private OnServerPingListener onServerPingListener;
+  private OnGameInfoMessageListener onGameInfoMessageListener;
+  private OnPlayerInfoMessageListener onPlayerInfoMessageListener;
+  private OnPingMessageListener onPingMessageListener;
   private boolean stopped;
+  private OnGameLaunchMessageListener onGameLaunchMessageListenerListener;
+  private OnFafLoginSucceededListener onFafLoginSucceededListener;
+  private OnModInfoMessageListener onModInfoMessageListener;
 
   public ServerReader(Gson gson, Socket socket) {
     this.gson = gson;
     this.socket = socket;
-
-    setDaemon(true);
   }
 
-  @Override
-  public void run() {
-    while (!socket.isInputShutdown()) {
-      try {
-        QDataInputStream socketIn = new QDataInputStream(new DataInputStream(new BufferedInputStream(socket.getInputStream())));
+  public void blockingRead() throws IOException {
+    QDataInputStream socketIn = new QDataInputStream(new DataInputStream(new BufferedInputStream(socket.getInputStream())));
 
-        while (!stopped && !socket.isInputShutdown()) {
-          socketIn.skipBlockSize();
-          String message = socketIn.readQString();
+    while (!stopped && !socket.isInputShutdown()) {
+      socketIn.skipBlockSize();
+      String message = socketIn.readQString();
 
-          MessageType messageType = MessageType.fromString(message);
-          if (messageType != null) {
-            dispatchServerCommand(socketIn, messageType);
-          } else {
-            parseServerMessage(message);
-          }
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
+      ServerCommand serverCommand = ServerCommand.fromString(message);
+      if (serverCommand != null) {
+        dispatchServerCommand(socketIn, serverCommand);
+      } else {
+        parseServerMessage(message);
       }
     }
 
-    logger.warn("Connection has been closed by remote host ({})", socket.getRemoteSocketAddress());
+    logger.info("Connection to server {} has been closed", socket.getRemoteSocketAddress());
   }
 
-  private void dispatchServerCommand(QDataInputStream socketIn, MessageType messageType) throws IOException {
-    switch (messageType) {
+  private void dispatchServerCommand(QDataInputStream socketIn, ServerCommand serverCommand) throws IOException {
+    switch (serverCommand) {
       case PING:
-        onServerPingListener.onServerPing();
+        onPingMessageListener.onServerPing();
         logger.debug("Server PINGed");
         break;
 
@@ -84,7 +88,7 @@ class ServerReader extends Thread {
         break;
 
       default:
-        logger.warn("Unknown server response: {}", messageType);
+        logger.warn("Unknown server response: {}", serverCommand);
     }
   }
 
@@ -98,14 +102,20 @@ class ServerReader extends Thread {
         if (welcomeMessage.session != null) {
           onSessionInitiatedListener.onSessionInitiated(welcomeMessage);
         } else if (welcomeMessage.email != null) {
-          // Logged in
+          onFafLoginSucceededListener.onFafLoginSucceeded();
         }
       } else if ("game_info".equals(serverMessage.command)) {
-        GameInfo gameInfo = gson.fromJson(message, GameInfo.class);
-        onGameInfoListener.onGameInfo(gameInfo);
+        GameInfoMessage gameInfoMessage = gson.fromJson(message, GameInfoMessage.class);
+        onGameInfoMessageListener.onGameInfoMessage(gameInfoMessage);
       } else if ("player_info".equals(serverMessage.command)) {
-        PlayerInfo playerInfo = gson.fromJson(message, PlayerInfo.class);
-        onPlayerInfoListener.onPlayerInfo(playerInfo);
+        PlayerInfoMessage playerInfoMessage = gson.fromJson(message, PlayerInfoMessage.class);
+        onPlayerInfoMessageListener.onPlayerInfoMessage(playerInfoMessage);
+      } else if ("game_launch".equals(serverMessage.command)) {
+        GameLaunchMessage gameLaunchMessage = gson.fromJson(message, GameLaunchMessage.class);
+        onGameLaunchMessageListenerListener.onGameLaunchMessage(gameLaunchMessage);
+      } else if("mod_info".equals(serverMessage.command)) {
+        ModInfoMessage modInfoMessage = gson.fromJson(message, ModInfoMessage.class);
+        onModInfoMessageListener.onModInfoMessage(modInfoMessage);
       } else {
         logger.warn("Unknown server message: " + message);
       }
@@ -118,15 +128,27 @@ class ServerReader extends Thread {
     this.onSessionInitiatedListener = onSessionInitiatedListener;
   }
 
-  public void setOnGameInfoListener(OnGameInfoListener onGameInfoListener) {
-    this.onGameInfoListener = onGameInfoListener;
+  public void setOnGameInfoMessageListener(OnGameInfoMessageListener onGameInfoMessageListener) {
+    this.onGameInfoMessageListener = onGameInfoMessageListener;
   }
 
-  public void setOnPlayerInfoListener(OnPlayerInfoListener onPlayerInfoListener) {
-    this.onPlayerInfoListener = onPlayerInfoListener;
+  public void setOnPlayerInfoMessageListener(OnPlayerInfoMessageListener onPlayerInfoMessageListener) {
+    this.onPlayerInfoMessageListener = onPlayerInfoMessageListener;
   }
 
-  public void setOnServerPingListener(OnServerPingListener onServerPingListener) {
-    this.onServerPingListener = onServerPingListener;
+  public void setOnPingMessageListener(OnPingMessageListener onPingMessageListener) {
+    this.onPingMessageListener = onPingMessageListener;
+  }
+
+  public void setOnFafLoginSucceededListener(OnFafLoginSucceededListener onFafLoginSucceededListener) {
+    this.onFafLoginSucceededListener = onFafLoginSucceededListener;
+  }
+
+  public void setOnGameLaunchMessageListenerListener(OnGameLaunchMessageListener onGameLaunchMessageListenerListener) {
+    this.onGameLaunchMessageListenerListener = onGameLaunchMessageListenerListener;
+  }
+
+  public void setOnModInfoMessageListener(OnModInfoMessageListener onModInfoMessageListener) {
+    this.onModInfoMessageListener = onModInfoMessageListener;
   }
 }

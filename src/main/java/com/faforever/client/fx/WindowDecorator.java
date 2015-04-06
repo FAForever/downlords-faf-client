@@ -16,9 +16,19 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.List;
+
+import static com.faforever.client.fx.WindowDecorator.WindowButtonType.*;
 
 public class WindowDecorator {
+
+  public enum WindowButtonType {
+    MINIMIZE,
+    MAXIMIZE_RESTORE,
+    CLOSE;
+  }
 
   private enum ResizeDirection {
     NORTH,
@@ -58,7 +68,6 @@ public class WindowDecorator {
   private Point2D dragOffset;
   private EnumSet<ResizeDirection> resizeDirections;
 
-
   @FXML
   void onMinimizeButtonClicked(ActionEvent actionEvent) {
     stage.setIconified(true);
@@ -71,36 +80,56 @@ public class WindowDecorator {
 
   @FXML
   void onRestoreButtonClicked(ActionEvent actionEvent) {
-    stage.setMaximized(false);
-    maximizeButton.setVisible(true);
-    restoreButton.setVisible(false);
+    restore();
   }
 
   @FXML
   void onMaximizeButtonClicked(ActionEvent actionEvent) {
-    stage.setMaximized(true);
-    stage.setX(0);
-    stage.setY(0);
-    stage.setWidth(getVisualBounds(stage).getWidth());
-    stage.setHeight(getVisualBounds(stage).getHeight());
-    maximizeButton.setVisible(false);
-    restoreButton.setVisible(true);
+    maximize();
   }
 
-  public Rectangle2D getVisualBounds(Stage stage) {
-    ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(
-        stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight()
-    );
-    return screensForRectangle.get(0).getVisualBounds();
+  @FXML
+  void initialize() {
+    minimizeButton.managedProperty().bind(minimizeButton.visibleProperty());
+    maximizeButton.managedProperty().bind(maximizeButton.visibleProperty());
+    restoreButton.managedProperty().bind(restoreButton.visibleProperty());
+    closeButton.managedProperty().bind(closeButton.visibleProperty());
+  }
+
+  private void restore() {
+    maximizeButton.setVisible(true);
+    restoreButton.setVisible(false);
+    stage.setMaximized(false);
+  }
+
+  public void maximize() {
+    Rectangle2D visualBounds = getVisualBounds(stage);
+
+    stage.setWidth(visualBounds.getWidth());
+    stage.setHeight(visualBounds.getHeight());
+    stage.setX(visualBounds.getMinX());
+    stage.setY(visualBounds.getMinY());
+    maximizeButton.setVisible(false);
+    restoreButton.setVisible(true);
+    stage.setMaximized(true);
   }
 
   public Parent getWindowRoot() {
     return windowRoot;
   }
 
-  public void configure(Stage stage, Parent content, boolean resizable, SceneFactoryImpl.WindowButtonType[] buttons) {
+  public void configure(Stage stage, Parent content, boolean resizable, WindowButtonType... buttons) {
     this.stage = stage;
     this.resizable = resizable;
+
+    stage.getProperties().put("windowDecorator", this);
+
+    List<WindowButtonType> buttonList = Arrays.asList(buttons);
+
+    minimizeButton.setVisible(buttonList.contains(MINIMIZE));
+    maximizeButton.setVisible(buttonList.contains(MAXIMIZE_RESTORE));
+    restoreButton.setVisible(buttonList.contains(MAXIMIZE_RESTORE));
+    closeButton.setVisible(buttonList.contains(CLOSE));
 
     configureResizability(stage);
 
@@ -134,6 +163,10 @@ public class WindowDecorator {
       throw new IllegalStateException("Resize event must only be fired by element with ID resizePane");
     }
     if (!resizable) {
+      return;
+    }
+    if (stage.isMaximized()) {
+      resizePane.setCursor(Cursor.DEFAULT);
       return;
     }
 
@@ -178,8 +211,11 @@ public class WindowDecorator {
     if (stage.isMaximized()) {
       return;
     }
-    stage.setY(event.getScreenY() - dragOffset.getY());
-    stage.setX(event.getScreenX() - dragOffset.getX());
+    double newY = event.getScreenY() - dragOffset.getY();
+    double newX = event.getScreenX() - dragOffset.getX();
+
+    stage.setY(newY);
+    stage.setX(newX);
 
     event.consume();
   }
@@ -228,9 +264,26 @@ public class WindowDecorator {
   }
 
   public void onMouseClicked(MouseEvent event) {
-    if (event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
-      stage.setMaximized(!stage.isMaximized());
+    if (event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2 && resizable) {
+      if (stage.isMaximized()) {
+        restore();
+      } else {
+        maximize();
+      }
     }
+  }
+
+  public static Rectangle2D getVisualBounds(Stage stage) {
+    double x1 = stage.getX() + (stage.getWidth() / 2);
+    double y1 = stage.getY() + (stage.getHeight() / 2);
+
+    Rectangle2D windowCenter = new Rectangle2D(x1, y1, x1, y1);
+    ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(windowCenter);
+    return screensForRectangle.get(0).getVisualBounds();
+  }
+
+  public static void maximize(Stage stage) {
+    ((WindowDecorator) stage.getProperties().get("windowDecorator")).maximize();
   }
 }
 

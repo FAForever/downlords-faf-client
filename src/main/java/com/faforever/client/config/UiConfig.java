@@ -13,11 +13,13 @@ import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.fxml.FxmlLoaderImpl;
+import com.faforever.client.games.CreateGameDialogFactory;
+import com.faforever.client.games.CreateGameDialogFactoryImpl;
 import com.faforever.client.games.GamesController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
-import com.faforever.client.maps.MapPreviewService;
-import com.faforever.client.maps.MapPreviewServiceImpl;
+import com.faforever.client.maps.MapService;
+import com.faforever.client.maps.MapServiceImpl;
 import com.faforever.client.whatsnew.WhatsNewController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -92,9 +94,12 @@ public class UiConfig {
   }
 
   @Bean
-  MapPreviewService mapPreviewService() {
-    return new MapPreviewServiceImpl();
+  MapService mapPreviewService() {
+    return new MapServiceImpl();
   }
+
+  @Bean
+  CreateGameDialogFactory createGameDialogFactory() { return new CreateGameDialogFactoryImpl(); }
 
   @Bean
   FxmlLoader fxmlLoader() {

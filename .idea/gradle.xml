@@ -6,10 +6,11 @@
         <option name="createEmptyContentRootDirectories" value="true" />
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleHome" value="C:/gradle-2.1" />
+        <option name="gradleJvm" value="#JAVA_HOME" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/jfx-components" />
           </set>
         </option>
         <option name="useAutoImport" value="true" />

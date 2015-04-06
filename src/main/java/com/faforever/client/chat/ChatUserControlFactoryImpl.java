@@ -12,7 +12,7 @@ public class ChatUserControlFactoryImpl implements ChatUserControlFactory {
   public ChatUserControl newChatUserControl(ChatUser chatUser) {
     ChatUserControl chatUserControl = new ChatUserControl(chatUser);
     applicationContext.autowireBean(chatUserControl);
-    applicationContext.initializeBean(chatUserControl, chatUser.getNick() + "Control");
+    applicationContext.initializeBean(chatUserControl, chatUser.getLogin() + "Control");
     return chatUserControl;
   }
 }

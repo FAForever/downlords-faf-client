@@ -1,6 +1,5 @@
-package com.faforever.client.legacy;
+package com.faforever.client.legacy.message;
 
-import com.faforever.client.legacy.message.ServerWritable;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -12,5 +11,10 @@ public enum PongMessage implements ServerWritable {
   @Override
   public void write(Gson gson, Writer writer) throws IOException {
     writer.append("PONG");
+  }
+
+  @Override
+  public boolean isConfidential() {
+    return false;
   }
 }

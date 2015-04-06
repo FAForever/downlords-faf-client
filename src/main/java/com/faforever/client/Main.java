@@ -14,8 +14,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 public class Main extends Application {
 
-  public static final Integer VERSION = 123;
-
   public static void main(String[] args) {
     launch(args);
   }

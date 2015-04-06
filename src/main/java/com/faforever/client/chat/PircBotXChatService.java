@@ -16,6 +16,7 @@ import org.pircbotx.hooks.events.DisconnectEvent;
 import org.pircbotx.hooks.events.JoinEvent;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
+import org.pircbotx.hooks.events.QuitEvent;
 import org.pircbotx.hooks.events.ServerResponseEvent;
 import org.pircbotx.hooks.events.UserListEvent;
 import org.slf4j.Logger;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.util.ReflectionUtils;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -36,7 +38,7 @@ import java.util.Set;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
-public class PircBotXChatService implements ChatService, Listener, OnConnectedListener, OnDisconnectedListener {
+public class PircBotXChatService implements ChatService, Listener, OnConnectedListener {
 
   interface ChatEventListener<T> {
 
@@ -45,7 +47,7 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private static final int RECONNECT_DELAY = 6000;
+  private static final int RECONNECT_DELAY = 3000;
 
   @Autowired
   private Environment environment;
@@ -72,11 +74,11 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
         .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
         .setAutoSplitMessage(true)
         .setEncoding(StandardCharsets.UTF_8)
+        .setAutoReconnect(false)
         .addListener(this)
         .buildConfiguration();
 
     addOnConnectedListener(this);
-    addOnDisconnectedListener(this);
 
     pircBotX = new PircBotX(configuration);
     initialized = true;
@@ -136,7 +138,7 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
             event.getUser().getNick(),
             new ChatMessage(
                 Instant.ofEpochMilli(event.getTimestamp()),
-                event.getUser().getNick(),
+                event.getUser().getLogin(),
                 event.getMessage()
             )
         )
@@ -153,6 +155,14 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   }
 
   @Override
+  public void addOnUserLeftListener(final OnUserLeftListener listener) {
+    addEventListener(QuitEvent.class,
+        event -> listener.onUserLeft(
+            event.getUser().getLogin()
+        ));
+  }
+
+  @Override
   public void connect() {
     if (!initialized) {
       init();
@@ -161,7 +171,16 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
     executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        pircBotX.startBot();
+        while (!isCancelled()) {
+          try {
+            logger.info("Trying to connect to IRC at {}:{}", configuration.getServerHostname(), configuration.getServerPort());
+            pircBotX.startBot();
+            logger.info("IRC connection established");
+          } catch (IOException e) {
+            logger.warn("Lost connection to IRC server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
+            Thread.sleep(RECONNECT_DELAY);
+          }
+        }
         return null;
       }
     });
@@ -200,13 +219,6 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
         return null;
       }
     });
-  }
-
-  @Override
-  public void onDisconnected(Exception e) {
-    if (e != null) {
-      connect();
-    }
   }
 
   private Set<ChatUser> users(ImmutableSortedSet<User> users) {

@@ -53,7 +53,7 @@ public class ChatUserControl extends HBox {
   @PostConstruct
   void init() {
     fxmlLoader.loadCustomControl("chat_user_control.fxml", this);
-    usernameLabel.setText(chatUser.getNick());
+    usernameLabel.setText(chatUser.getLogin());
   }
 
   public ChatUser getChatUser() {

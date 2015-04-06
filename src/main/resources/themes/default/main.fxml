@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Pagination?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TableColumn?>
@@ -13,32 +18,27 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
+
 <VBox fx:id="mainRoot" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.faforever.client.main.MainController">
   <children>
     <TabPane fx:id="mainTabPane" side="BOTTOM" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
       <tabs>
         <Tab fx:id="whatsNewTab" text="%main.whatsNew">
-          <content>
-            <fx:include fx:id="whatsNew" source="whats_new.fxml"/>
-          </content>
+          <fx:include fx:id="whatsNew" source="whats_new.fxml"/>
         </Tab>
         <Tab fx:id="chatTab" text="%main.chatLobby">
-          <content>
-            <fx:include fx:id="chat" source="chat.fxml"/>
-          </content>
+          <fx:include fx:id="chat" source="chat.fxml"/>
         </Tab>
         <Tab text="%main.coopMissions"/>
-        <Tab text="%main.games">
-          <content>
-            <fx:include fx:id="games" source="games.fxml"/>
-          </content>
+        <Tab fx:id="gamesTab" text="%main.games">
+          <fx:include fx:id="games" source="games.fxml"/>
         </Tab>
-        <Tab text="Tutorials"/>
-        <Tab text="Leaderboards"/>
-        <Tab text="Tournaments"/>
-        <Tab text="Livestreams"/>
-        <Tab text="Replays">
+        <Tab fx:id="tutorialsTab" text="Tutorials"/>
+        <Tab fx:id="leaderbortTab" text="Leaderboards"/>
+        <Tab fx:id="tournamentsTab" text="Tournaments"/>
+        <Tab fx:id="liveSreamsTab" text="Live streams"/>
+        <Tab fx:id="replaysTab" text="Replays">
           <content>
             <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE">
               <tabs>
@@ -61,7 +61,7 @@
             </TabPane>
           </content>
         </Tab>
-        <Tab text="Vaults">
+        <Tab fx:id="vaultsTab" text="Vaults">
           <content>
             <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE">
               <tabs>

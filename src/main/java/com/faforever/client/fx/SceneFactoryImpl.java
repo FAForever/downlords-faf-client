@@ -9,12 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class SceneFactoryImpl implements SceneFactory {
 
-  public enum WindowButtonType {
-    MINIMIZE,
-    MAXIMIZE_RESTORE,
-    CLOSE;
-  }
-
   @Autowired
   PreferencesService preferencesService;
 
@@ -22,7 +16,7 @@ public class SceneFactoryImpl implements SceneFactory {
   FxmlLoader fxmlLoader;
 
   @Override
-  public Scene createScene(Stage stage, Parent root, boolean resizable, WindowButtonType... buttons) {
+  public Scene createScene(Stage stage, Parent root, boolean resizable, WindowDecorator.WindowButtonType... buttons) {
     String theme = preferencesService.getPreferences().getTheme();
     String themeCss = String.format("/themes/%s/style.css", theme);
     stage.setResizable(resizable);
@@ -32,6 +26,8 @@ public class SceneFactoryImpl implements SceneFactory {
 
     Scene scene = new Scene(windowDecorator.getWindowRoot());
     scene.getStylesheets().add(themeCss);
+
+    stage.setScene(scene);
 
     return scene;
   }

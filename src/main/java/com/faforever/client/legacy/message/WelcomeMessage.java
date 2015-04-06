@@ -1,6 +1,4 @@
-package com.faforever.client.legacy;
-
-import com.faforever.client.legacy.message.ServerMessage;
+package com.faforever.client.legacy.message;
 
 public class WelcomeMessage extends ServerMessage {
 

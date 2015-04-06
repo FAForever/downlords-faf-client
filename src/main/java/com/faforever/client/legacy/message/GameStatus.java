@@ -1,4 +1,4 @@
-package com.faforever.client.legacy;
+package com.faforever.client.legacy.message;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

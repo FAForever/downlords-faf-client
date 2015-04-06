@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.gson;
 
-import com.faforever.client.legacy.GameType;
+import com.faforever.client.legacy.message.GameType;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;

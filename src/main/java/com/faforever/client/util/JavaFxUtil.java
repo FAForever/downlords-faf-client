@@ -1,5 +1,6 @@
 package com.faforever.client.util;
 
+import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -22,5 +23,17 @@ public class JavaFxUtil {
     Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
     stage.setX((screenBounds.getWidth() - width) / 2);
     stage.setY((screenBounds.getHeight() - height) / 2);
+  }
+
+  public static void assertApplicationThread() {
+    if (!Platform.isFxApplicationThread()) {
+      throw new IllegalStateException("Must run in FX Application thread");
+    }
+  }
+
+  public static void assertNotApplicationThread() {
+    if (Platform.isFxApplicationThread()) {
+      throw new IllegalStateException("Must not run in FX Application thread");
+    }
   }
 }

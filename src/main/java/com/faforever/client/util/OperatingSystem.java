@@ -7,7 +7,7 @@ public enum OperatingSystem {
 
   public static OperatingSystem current() {
     String osName = System.getProperty("os.name");
-    if (osName.contains("windows")) {
+    if (osName.toLowerCase().contains("windows")) {
       return WINDOWS;
     }
     if (osName.contains("mac")) {
