@@ -2,8 +2,6 @@
 
   <logger name="org.pircbotx" level="warn"/>
   <logger name="com.faforever.client.legacy" level="warn"/>
-  <logger name="com.faforever.client.legacy.ServerWriter" level="debug"/>
-  <logger name="com.faforever.client.legacy.relay" level="debug"/>
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>

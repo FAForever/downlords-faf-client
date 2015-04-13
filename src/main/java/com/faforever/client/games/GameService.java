@@ -9,5 +9,5 @@ public interface GameService {
 
   void addOnGameInfoListener(OnGameInfoMessageListener listener);
 
-  void createGame(NewGameInfo name, Callback<Void> callback);
+  void hostGame(NewGameInfo name, Callback<Void> callback);
 }

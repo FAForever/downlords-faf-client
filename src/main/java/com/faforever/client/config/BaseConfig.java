@@ -12,8 +12,8 @@ import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.legacy.relay.LocalRelayServer;
 import com.faforever.client.legacy.relay.LocalRelayServerImpl;
-import com.faforever.client.supcom.SupComService;
-import com.faforever.client.supcom.SupComServiceImpl;
+import com.faforever.client.supcom.ForgedAllianceService;
+import com.faforever.client.supcom.ForgedAllianceServiceImpl;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,8 +87,8 @@ public class BaseConfig {
   }
 
   @Bean
-  SupComService processService() {
-    return new SupComServiceImpl();
+  ForgedAllianceService processService() {
+    return new ForgedAllianceServiceImpl();
   }
 
   @Bean

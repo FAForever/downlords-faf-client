@@ -10,6 +10,13 @@ import java.util.Map;
 
 public class ClientMessage implements ServerWritable {
 
+  public static ClientMessage gameTerminated() {
+    ClientMessage clientMessage = new ClientMessage();
+    clientMessage.command = "fa_state";
+    clientMessage.state = "off";
+    return clientMessage;
+  }
+
   public static ClientMessage gameStarted() {
     ClientMessage clientMessage = new ClientMessage();
     clientMessage.command = "fa_state";

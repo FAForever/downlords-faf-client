@@ -12,7 +12,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.List;
 
-public class SupComServiceImpl implements SupComService {
+public class ForgedAllianceServiceImpl implements ForgedAllianceService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -25,10 +25,10 @@ public class SupComServiceImpl implements SupComService {
   @Autowired
   LocalRelayServer localRelayServer;
 
-  private Process process;
-
   @Override
   public Process startGame(int uid, String mod, List<String> additionalArgs) throws IOException {
+    localRelayServer.startInBackground();
+
     Path executable = preferencesService.getFafBinDirectory().resolve("ForgedAlliance.exe");
 
     List<String> launchCommand = LaunchCommandBuilder.create()
@@ -40,7 +40,7 @@ public class SupComServiceImpl implements SupComService {
         .mean(userService.getMean())
         .username(userService.getUsername())
         .additionalArgs(additionalArgs)
-            // FXIME fix the path
+            // FIXME fix the path
         .logFile(preferencesService.getFafDataDirectory().resolve("faf.log"))
         .localGpgPort(localRelayServer.getPort())
         .build();
@@ -50,7 +50,7 @@ public class SupComServiceImpl implements SupComService {
     processBuilder.directory(executable.getParent().toAbsolutePath().toFile());
     processBuilder.command(launchCommand);
 
-    logger.info("Starting SupCom with command: " + processBuilder.command());
+    logger.info("Starting Forged Alliance with command: " + processBuilder.command());
 
     return processBuilder.start();
   }

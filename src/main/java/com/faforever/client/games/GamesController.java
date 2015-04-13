@@ -127,6 +127,8 @@ public class GamesController implements OnGameInfoMessageListener, OnModInfoMess
 
   private Stage stage;
 
+  private Stage createGameDialogStage;
+
   public GamesController() {
     gameInfoBeans = FXCollections.observableHashMap();
     modInfoBeans = new HashMap<>();
@@ -190,32 +192,44 @@ public class GamesController implements OnGameInfoMessageListener, OnModInfoMess
   }
 
   public void onCreateGameButtonClicked(ActionEvent actionEvent) {
+    if (createGameDialogStage != null) {
+      return;
+    }
+
     CreateGameDialogController controller = createGameDialogFactory.create();
     controller.setOnGameCreateListener(this);
     controller.setMods(modInfoBeans.values());
     controller.setMaps(mapService.getLocalMaps());
 
-    Stage stage = new Stage(StageStyle.TRANSPARENT);
-    stage.initModality(Modality.NONE);
-    stage.initOwner(this.stage);
+    createGameDialogStage = new Stage(StageStyle.TRANSPARENT);
+    createGameDialogStage.initModality(Modality.NONE);
+    createGameDialogStage.initOwner(this.stage);
 
-    sceneFactory.createScene(stage, controller.getRoot(), false, CLOSE);
-    stage.show();
+    sceneFactory.createScene(createGameDialogStage, controller.getRoot(), false, CLOSE);
+
+    createGameDialogStage.setOnShowing(event -> {
+      createGameButton.setDisable(true);
+    });
+    createGameDialogStage.setOnHiding(event -> {
+      createGameDialogStage = null;
+      createGameButton.setDisable(false);
+    });
+
+    createGameDialogStage.show();
   }
 
   @Override
   public void onCreateGame(NewGameInfo newGameInfo) {
-    gameService.createGame(newGameInfo, new Callback<Void>() {
+    gameService.hostGame(newGameInfo, new Callback<Void>() {
       @Override
       public void success(Void result) {
-        // FIXME implement
-        logger.info("Game has successfully been started");
+        createGameDialogStage.close();
       }
 
       @Override
       public void error(Throwable e) {
         // FIXME implement
-        logger.warn("Game could not be started", e);
+        logger.warn("Game could not be hosted", e);
       }
     });
   }

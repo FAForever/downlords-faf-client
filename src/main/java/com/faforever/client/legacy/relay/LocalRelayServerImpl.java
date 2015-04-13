@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
-import javax.annotation.PostConstruct;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -29,8 +29,12 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   private boolean p2pProxyEnabled;
   private int port;
 
-  @PostConstruct
-  void init() {
+  /**
+   * Starts a local, GPG-like server in background that FA can connect to. Received data is forwarded to the FAF
+   * server and vice-versa.
+   */
+  @Override
+  public void startInBackground() throws IOException {
     executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
@@ -40,12 +44,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     });
   }
 
-  /**
-   * Starts a local, GPG-like server in background that SupCom can connect to. Received data is forwarded to the FAF
-   * server.
-   */
-  @Override
-  public void start() throws IOException {
+  private void start() throws IOException {
     try (ServerSocket serverSocket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
 
       port = serverSocket.getLocalPort();
@@ -54,7 +53,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
       while (!isCancelled()) {
         try (Socket supComSocket = serverSocket.accept()) {
-          logger.debug("SupCom connected to relay server from {}:{}", supComSocket.getInetAddress(), supComSocket.getPort());
+          logger.debug("Forged Alliance connected to relay server from {}:{}", supComSocket.getInetAddress(), supComSocket.getPort());
 
           try (Socket fafSocket = new Socket(environment.getProperty("relay.host"), environment.getProperty("relay.port", int.class));
                FaDataInputStream supComInput = createFaInputStream(supComSocket.getInputStream());
@@ -86,7 +85,11 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        redirectFaToFaf(faInputStream, serverWriter);
+        try {
+          redirectFaToFaf(faInputStream, serverWriter);
+        } catch (EOFException e) {
+          logger.info("Forged Alliance disconnected from local relay server (EOF)");
+        }
         return null;
       }
     });

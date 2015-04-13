@@ -10,5 +10,5 @@ public interface LocalRelayServer {
 
   int getPort();
 
-  void start() throws IOException;
+  void startInBackground() throws IOException;
 }

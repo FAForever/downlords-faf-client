@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
@@ -48,6 +49,8 @@ class ServerReader implements Closeable {
 
         dispatchServerCommand(relayServerMessage.key, relayServerMessage.commands);
       }
+    } catch (EOFException e) {
+      logger.info("Disconnected from FAF relay server (EOF)");
     }
   }
 

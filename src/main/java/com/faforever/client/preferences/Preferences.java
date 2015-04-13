@@ -3,14 +3,14 @@ package com.faforever.client.preferences;
 public class Preferences {
 
   private WindowPrefs mainWindow;
-  private SupComPrefs supCom;
+  private ForgedAlliancePrefs supCom;
   private LoginPrefs login;
   private String theme;
   private String lastGameMod;
 
   public Preferences() {
     login = new LoginPrefs();
-    supCom = new SupComPrefs();
+    supCom = new ForgedAlliancePrefs();
     mainWindow = new WindowPrefs(800, 600);
     theme = "default";
   }
@@ -27,7 +27,7 @@ public class Preferences {
     return theme;
   }
 
-  public SupComPrefs getSupCom() {
+  public ForgedAlliancePrefs getSupCom() {
     return supCom;
   }
 

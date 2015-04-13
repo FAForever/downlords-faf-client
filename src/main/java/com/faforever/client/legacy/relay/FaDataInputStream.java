@@ -39,7 +39,6 @@ public class FaDataInputStream extends InputStream {
   public String readString() throws IOException {
     int size = readInt();
 
-    // FIXME out of memory
     byte[] buffer = new byte[size];
     inputStream.readFully(buffer);
     return new String(buffer, charset);

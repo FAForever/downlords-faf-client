@@ -3,10 +3,11 @@ package com.faforever.client.games;
 import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.legacy.message.GameLaunchMessage;
 import com.faforever.client.legacy.message.OnGameInfoMessageListener;
-import com.faforever.client.supcom.SupComService;
+import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,7 @@ public class GameServiceImpl implements GameService {
   UserService userService;
 
   @Autowired
-  SupComService supComService;
+  ForgedAllianceService forgedAllianceService;
 
   @Override
   public void publishPotentialPlayer() {
@@ -42,18 +43,19 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public void createGame(NewGameInfo newGameInfo, Callback<Void> callback) {
+  public void hostGame(NewGameInfo newGameInfo, Callback<Void> callback) {
     serverAccessor.requestNewGame(newGameInfo, new Callback<GameLaunchMessage>() {
       @Override
       public void success(GameLaunchMessage gameLaunchMessage) {
         List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
         try {
-          Process process = supComService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), args);
+          Process process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), args);
           serverAccessor.notifyGameStarted();
           waitForProcessTerminationInBackground(process);
-          callback.success(null);
+
+          Platform.runLater(() -> callback.success(null));
         } catch (Exception e) {
-          callback.error(e);
+          Platform.runLater(() -> callback.error(e));
         }
       }
 
@@ -70,7 +72,8 @@ public class GameServiceImpl implements GameService {
       @Override
       protected Void call() throws Exception {
         int exitCode = process.waitFor();
-        logger.info("SupCom terminated with exit code {}", exitCode);
+        logger.info("Forged Alliance terminated with exit code {}", exitCode);
+        serverAccessor.notifyGameTerminated();
         return null;
       }
     });

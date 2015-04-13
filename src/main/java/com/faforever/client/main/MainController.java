@@ -12,7 +12,6 @@ import com.faforever.client.whatsnew.WhatsNewController;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +58,7 @@ public class MainController {
 
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
 
-    Scene scene = sceneFactory.createScene(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
+    sceneFactory.createScene(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
 
     stage.setTitle("FA Forever");
     restoreState(mainWindowPrefs, stage);

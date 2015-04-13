@@ -4,7 +4,6 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
@@ -39,9 +38,6 @@ public class CreateGameDialogController {
 
   @FXML
   public TextField maxRankingTextField;
-
-  @FXML
-  private Button createGameButton;
 
   @FXML
   private Parent createGameRoot;
@@ -122,6 +118,7 @@ public class CreateGameDialogController {
             mapComboBox.getValue().getName()
         )
     );
+
   }
 
   public void setOnGameCreateListener(OnCreateGameListener listener) {

@@ -1,11 +1,11 @@
 package com.faforever.client.preferences;
 
-public class SupComPrefs {
+public class ForgedAlliancePrefs {
 
   private String path;
   private int port;
 
-  public SupComPrefs() {
+  public ForgedAlliancePrefs() {
     this.path = "C:\\Games\\Supreme Commander - Forged Alliance";
     this.port = 6112;
   }

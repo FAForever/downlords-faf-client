@@ -239,4 +239,8 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
   public void notifyGameStarted() {
     writeToServer(ClientMessage.gameStarted());
   }
+
+  public void notifyGameTerminated() {
+    writeToServer(ClientMessage.gameTerminated());
+  }
 }
