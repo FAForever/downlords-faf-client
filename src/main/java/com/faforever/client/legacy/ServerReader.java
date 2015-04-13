@@ -13,7 +13,7 @@ import com.faforever.client.legacy.message.OnPingMessageListener;
 import com.faforever.client.legacy.message.OnPlayerInfoMessageListener;
 import com.faforever.client.legacy.message.OnSessionInitiatedListener;
 import com.faforever.client.legacy.message.PlayerInfoMessage;
-import com.faforever.client.legacy.message.ServerCommand;
+import com.faforever.client.legacy.message.ServerMessageType;
 import com.faforever.client.legacy.message.ServerMessage;
 import com.faforever.client.legacy.message.WelcomeMessage;
 import com.google.gson.FieldNamingPolicy;
@@ -35,11 +35,11 @@ class ServerReader {
 
   private final Socket socket;
   private final Gson gson;
+  private boolean stopped;
   private OnSessionInitiatedListener onSessionInitiatedListener;
   private OnGameInfoMessageListener onGameInfoMessageListener;
   private OnPlayerInfoMessageListener onPlayerInfoMessageListener;
   private OnPingMessageListener onPingMessageListener;
-  private boolean stopped;
   private OnGameLaunchMessageListener onGameLaunchMessageListenerListener;
   private OnFafLoginSucceededListener onFafLoginSucceededListener;
   private OnModInfoMessageListener onModInfoMessageListener;
@@ -60,9 +60,9 @@ class ServerReader {
         dataInput.skipBlockSize();
         String message = dataInput.readQString();
 
-        ServerCommand serverCommand = ServerCommand.fromString(message);
-        if (serverCommand != null) {
-          dispatchServerCommand(dataInput, serverCommand);
+        ServerMessageType serverMessageType = ServerMessageType.fromString(message);
+        if (serverMessageType != null) {
+          dispatchServerMessage(dataInput, serverMessageType);
         } else {
           parseServerMessage(message);
         }
@@ -72,8 +72,8 @@ class ServerReader {
     logger.info("Connection to server {} has been closed", socket.getRemoteSocketAddress());
   }
 
-  private void dispatchServerCommand(QDataInputStream socketIn, ServerCommand serverCommand) throws IOException {
-    switch (serverCommand) {
+  private void dispatchServerMessage(QDataInputStream socketIn, ServerMessageType serverMessageType) throws IOException {
+    switch (serverMessageType) {
       case PING:
         onPingMessageListener.onServerPing();
         logger.debug("Server PINGed");
@@ -99,7 +99,7 @@ class ServerReader {
         break;
 
       default:
-        logger.warn("Unknown server response: {}", serverCommand);
+        logger.warn("Unknown server response: {}", serverMessageType);
     }
   }
 
@@ -108,30 +108,54 @@ class ServerReader {
       logger.debug("Object from server: {}", message);
       ServerMessage serverMessage = gson.fromJson(message, ServerMessage.class);
 
-      if ("welcome".equals(serverMessage.command)) {
-        WelcomeMessage welcomeMessage = gson.fromJson(message, WelcomeMessage.class);
-        if (welcomeMessage.session != null) {
-          onSessionInitiatedListener.onSessionInitiated(welcomeMessage);
-        } else if (welcomeMessage.email != null) {
-          onFafLoginSucceededListener.onFafLoginSucceeded();
-        }
-      } else if ("game_info".equals(serverMessage.command)) {
-        GameInfoMessage gameInfoMessage = gson.fromJson(message, GameInfoMessage.class);
-        onGameInfoMessageListener.onGameInfoMessage(gameInfoMessage);
-      } else if ("player_info".equals(serverMessage.command)) {
-        PlayerInfoMessage playerInfoMessage = gson.fromJson(message, PlayerInfoMessage.class);
-        onPlayerInfoMessageListener.onPlayerInfoMessage(playerInfoMessage);
-      } else if ("game_launch".equals(serverMessage.command)) {
-        GameLaunchMessage gameLaunchMessage = gson.fromJson(message, GameLaunchMessage.class);
-        onGameLaunchMessageListenerListener.onGameLaunchMessage(gameLaunchMessage);
-      } else if ("mod_info".equals(serverMessage.command)) {
-        ModInfoMessage modInfoMessage = gson.fromJson(message, ModInfoMessage.class);
-        onModInfoMessageListener.onModInfoMessage(modInfoMessage);
-      } else {
-        logger.warn("Unknown server message: " + message);
+      ServerCommand serverCommand = ServerCommand.fromString(serverMessage.command);
+
+      if (serverCommand == null) {
+        logger.warn("Unknown server message: " + serverMessage);
+        return;
+      }
+
+      switch (serverCommand) {
+        case WELCOME:
+          WelcomeMessage welcomeMessage = gson.fromJson(message, WelcomeMessage.class);
+          if (welcomeMessage.session != null) {
+            onSessionInitiatedListener.onSessionInitiated(welcomeMessage);
+          } else if (welcomeMessage.email != null) {
+            onFafLoginSucceededListener.onFafLoginSucceeded();
+          }
+          break;
+
+        case GAME_INFO:
+          GameInfoMessage gameInfoMessage = gson.fromJson(message, GameInfoMessage.class);
+          onGameInfoMessageListener.onGameInfoMessage(gameInfoMessage);
+          break;
+
+        case PLAYER_INFO:
+          PlayerInfoMessage playerInfoMessage = gson.fromJson(message, PlayerInfoMessage.class);
+          onPlayerInfoMessageListener.onPlayerInfoMessage(playerInfoMessage);
+          break;
+
+        case GAME_LAUNCH:
+          GameLaunchMessage gameLaunchMessage = gson.fromJson(message, GameLaunchMessage.class);
+          onGameLaunchMessageListenerListener.onGameLaunchMessage(gameLaunchMessage);
+          break;
+
+        case MOD_INFO:
+          ModInfoMessage modInfoMessage = gson.fromJson(message, ModInfoMessage.class);
+          onModInfoMessageListener.onModInfoMessage(modInfoMessage);
+          break;
+
+        case TUTORIALS_INFO:
+          break;
+
+        case MATCHMAKER_INFO:
+          break;
+
+        default:
+          logger.warn("Missing case for server command:: " + serverCommand);
       }
     } catch (JsonSyntaxException e) {
-      logger.warn("Unhandled server message: " + message);
+      logger.warn("Could not deserialize message: " + message);
     }
   }
 

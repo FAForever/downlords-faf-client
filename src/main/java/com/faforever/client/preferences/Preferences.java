@@ -7,12 +7,14 @@ public class Preferences {
   private LoginPrefs login;
   private String theme;
   private String lastGameMod;
+  private ChatPrefs chat;
 
   public Preferences() {
     login = new LoginPrefs();
     supCom = new ForgedAlliancePrefs();
     mainWindow = new WindowPrefs(800, 600);
     theme = "default";
+    chat = new ChatPrefs();
   }
 
   public LoginPrefs getLogin() {
@@ -33,5 +35,9 @@ public class Preferences {
 
   public String getLastGameMod() {
     return lastGameMod;
+  }
+
+  public ChatPrefs getChat() {
+    return chat;
   }
 }

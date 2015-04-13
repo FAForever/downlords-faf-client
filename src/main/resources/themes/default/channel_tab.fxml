@@ -23,16 +23,44 @@
           <SplitPane dividerPositions="0.8">
             <items>
               <WebView fx:id="messagesWebView" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                     <VBox SplitPane.resizableWithParent="false">
+              <VBox SplitPane.resizableWithParent="false">
+                <children>
+                  <TextField promptText="%chat.searchPrompt" />
+                  <ScrollPane fitToWidth="true">
+                    <content>
+                      <VBox fx:id="usersVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                         <children>
-                           <TextField promptText="%chat.searchPrompt" />
-                    <ScrollPane>
-                      <content>
-                        <VBox fx:id="usersVBox" />
-                      </content>
-                    </ScrollPane>
+                          <TitledPane maxWidth="1.7976931348623157E308" text="%chat.category.moderators">
+                            <content>
+                              <VBox fx:id="moderatorsPane" />
+                            </content>
+                          </TitledPane>
+                          <TitledPane maxWidth="1.7976931348623157E308" text="%chat.category.friends">
+                            <content>
+                              <VBox fx:id="friendsPane" />
+                            </content>
+                          </TitledPane>
+                          <TitledPane maxWidth="1.7976931348623157E308" text="%chat.category.others">
+                            <content>
+                              <VBox fx:id="othersPane" />
+                            </content>
+                          </TitledPane>
+                          <TitledPane maxWidth="1.7976931348623157E308" text="%chat.category.irc">
+                            <content>
+                              <VBox />
+                            </content>
+                          </TitledPane>
+                          <TitledPane maxWidth="1.7976931348623157E308" text="%chat.category.foes">
+                            <content>
+                              <VBox fx:id="foesPane" />
+                            </content>
+                          </TitledPane>
                         </children>
-                     </VBox>
+                      </VBox>
+                    </content>
+                  </ScrollPane>
+                </children>
+              </VBox>
             </items>
           </SplitPane>
         </center>

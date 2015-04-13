@@ -52,14 +52,13 @@ public class ChannelTab extends Tab {
   private static final double ZOOM_STEP = 0.2d;
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
-  private static final int MAX_MESSAGES_DISPLAYED = 256;
   private static final String CSS_STYLE_SELF = "self";
 
   @FXML
   WebView messagesWebView;
 
   @FXML
-  VBox usersVBox;
+  VBox othersPane;
 
   @FXML
   TextField messageTextField;
@@ -80,7 +79,7 @@ public class ChannelTab extends Tab {
   HostServices hostServices;
 
   @Autowired
-  private PreferencesService preferencesService;
+  PreferencesService preferencesService;
 
   private final String channelName;
 
@@ -118,9 +117,9 @@ public class ChannelTab extends Tab {
   void initialize() {
     loginToUserControl.addListener((MapChangeListener<String, ChatUserControl>) change -> {
       if (change.wasAdded()) {
-        usersVBox.getChildren().add(change.getValueAdded());
+        othersPane.getChildren().add(change.getValueAdded());
       } else {
-        usersVBox.getChildren().remove(change.getValueAdded());
+        othersPane.getChildren().remove(change.getValueAdded());
       }
     });
   }
@@ -141,6 +140,14 @@ public class ChannelTab extends Tab {
         messagesWebView.setZoom(1);
       }
     });
+    messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
+      preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
+      preferencesService.storeInBackground();
+    });
+    Double zoom = preferencesService.getPreferences().getChat().getZoom();
+    if (zoom != null) {
+      messagesWebView.setZoom(zoom);
+    }
 
 
     engine = messagesWebView.getEngine();
@@ -188,7 +195,7 @@ public class ChannelTab extends Tab {
       waitingMessages.add(chatMessage);
     } else {
       appendMessage(chatMessage);
-      removeTopmostMessage();
+      removeTopmostMessages();
       scrollToBottomIfDesired();
     }
   }
@@ -198,10 +205,13 @@ public class ChannelTab extends Tab {
     engine.executeScript("window.scrollTo(0, document.body.scrollHeight);");
   }
 
-  private void removeTopmostMessage() {
+  private void removeTopmostMessages() {
+    int maxMessageItems = preferencesService.getPreferences().getChat().getMaxItems();
+
     int numberOfMessages = (int) engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "').length");
-    if (numberOfMessages > MAX_MESSAGES_DISPLAYED) {
+    while (numberOfMessages > maxMessageItems) {
       engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "')[0].remove()");
+      numberOfMessages--;
     }
   }
 
@@ -252,7 +262,7 @@ public class ChannelTab extends Tab {
   }
 
   public void setPlayerInfoAsync(Set<PlayerInfoBean> playerInfoBeans) {
-    usersVBox.getChildren().clear();
+    othersPane.getChildren().clear();
 
     ConcurrentUtil.executeInBackground(
         new Task<Void>() {
