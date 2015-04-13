@@ -1,18 +1,24 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.legacy.gson.GameStateTypeAdapter;
+import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
 import com.faforever.client.legacy.message.GameInfoMessage;
 import com.faforever.client.legacy.message.GameLaunchMessage;
+import com.faforever.client.legacy.message.GameStatus;
+import com.faforever.client.legacy.message.GameType;
 import com.faforever.client.legacy.message.OnFafLoginSucceededListener;
 import com.faforever.client.legacy.message.OnGameInfoMessageListener;
 import com.faforever.client.legacy.message.OnGameLaunchMessageListener;
-import com.faforever.client.legacy.message.OnPlayerInfoMessageListener;
 import com.faforever.client.legacy.message.OnPingMessageListener;
+import com.faforever.client.legacy.message.OnPlayerInfoMessageListener;
 import com.faforever.client.legacy.message.OnSessionInitiatedListener;
 import com.faforever.client.legacy.message.PlayerInfoMessage;
 import com.faforever.client.legacy.message.ServerCommand;
 import com.faforever.client.legacy.message.ServerMessage;
 import com.faforever.client.legacy.message.WelcomeMessage;
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,8 +33,8 @@ class ServerReader {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private final Gson gson;
   private final Socket socket;
+  private final Gson gson;
   private OnSessionInitiatedListener onSessionInitiatedListener;
   private OnGameInfoMessageListener onGameInfoMessageListener;
   private OnPlayerInfoMessageListener onPlayerInfoMessageListener;
@@ -38,23 +44,28 @@ class ServerReader {
   private OnFafLoginSucceededListener onFafLoginSucceededListener;
   private OnModInfoMessageListener onModInfoMessageListener;
 
-  public ServerReader(Gson gson, Socket socket) {
-    this.gson = gson;
+  public ServerReader(Socket socket) {
     this.socket = socket;
+    gson = new GsonBuilder()
+        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+        .registerTypeAdapter(GameType.class, new GameTypeTypeAdapter())
+        .registerTypeAdapter(GameStatus.class, new GameStateTypeAdapter())
+        .create();
   }
 
   public void blockingRead() throws IOException {
-    QDataInputStream socketIn = new QDataInputStream(new DataInputStream(new BufferedInputStream(socket.getInputStream())));
+    try (QDataInputStream dataInput = new QDataInputStream(new DataInputStream(new BufferedInputStream(socket.getInputStream())))) {
 
-    while (!stopped && !socket.isInputShutdown()) {
-      socketIn.skipBlockSize();
-      String message = socketIn.readQString();
+      while (!stopped && !socket.isInputShutdown()) {
+        dataInput.skipBlockSize();
+        String message = dataInput.readQString();
 
-      ServerCommand serverCommand = ServerCommand.fromString(message);
-      if (serverCommand != null) {
-        dispatchServerCommand(socketIn, serverCommand);
-      } else {
-        parseServerMessage(message);
+        ServerCommand serverCommand = ServerCommand.fromString(message);
+        if (serverCommand != null) {
+          dispatchServerCommand(dataInput, serverCommand);
+        } else {
+          parseServerMessage(message);
+        }
       }
     }
 
@@ -113,7 +124,7 @@ class ServerReader {
       } else if ("game_launch".equals(serverMessage.command)) {
         GameLaunchMessage gameLaunchMessage = gson.fromJson(message, GameLaunchMessage.class);
         onGameLaunchMessageListenerListener.onGameLaunchMessage(gameLaunchMessage);
-      } else if("mod_info".equals(serverMessage.command)) {
+      } else if ("mod_info".equals(serverMessage.command)) {
         ModInfoMessage modInfoMessage = gson.fromJson(message, ModInfoMessage.class);
         onModInfoMessageListener.onModInfoMessage(modInfoMessage);
       } else {

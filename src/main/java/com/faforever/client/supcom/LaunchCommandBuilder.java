@@ -63,7 +63,7 @@ public class LaunchCommandBuilder {
   }
 
 
-  public LaunchCommandBuilder username(Path logFile) {
+  public LaunchCommandBuilder logFile(Path logFile) {
     this.logFile = logFile;
     return this;
   }
@@ -106,7 +106,7 @@ public class LaunchCommandBuilder {
         "/country", country,
         "/init", "init_faf.lua",
         "/savereplay", "gpgnet://localhost/" + uid + "/" + username + ".SCFAreplay",
-        "/gpgnet 127.0.0.1:" + localGpgPort,
+        "/gpgnet", "127.0.0.1:" + localGpgPort,
         "/log", logFile.toAbsolutePath().toString(),
         "/nobugreport"
     ));

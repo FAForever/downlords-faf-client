@@ -16,7 +16,7 @@
    <children>
     <HBox alignment="BASELINE_RIGHT" maxWidth="-Infinity" spacing="10.0">
          <children>
-            <CheckBox mnemonicParsing="false" selected="true" text="%games.showPrivateGames" />
+            <CheckBox mnemonicParsing="false" selected="true" text="%games.showPrivateGames" onAction="#onShowPrivateGames" />
             <Button fx:id="createGameButton" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" text="%games.create" />
          </children>
          <padding>

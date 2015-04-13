@@ -10,6 +10,8 @@ import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.legacy.relay.LocalRelayServer;
+import com.faforever.client.legacy.relay.LocalRelayServerImpl;
 import com.faforever.client.supcom.SupComService;
 import com.faforever.client.supcom.SupComServiceImpl;
 import com.faforever.client.user.UserService;
@@ -92,5 +94,10 @@ public class BaseConfig {
   @Bean
   TaskScheduler taskScheduler() {
     return new ConcurrentTaskScheduler();
+  }
+
+  @Bean
+  LocalRelayServer relayServer() {
+    return new LocalRelayServerImpl();
   }
 }

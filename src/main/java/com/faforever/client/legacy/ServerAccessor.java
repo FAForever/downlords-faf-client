@@ -1,14 +1,10 @@
 package com.faforever.client.legacy;
 
 import com.faforever.client.games.NewGameInfo;
-import com.faforever.client.legacy.gson.GameStateTypeAdapter;
-import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
 import com.faforever.client.legacy.message.ClientMessage;
 import com.faforever.client.legacy.message.GameAccess;
 import com.faforever.client.legacy.message.GameInfoMessage;
 import com.faforever.client.legacy.message.GameLaunchMessage;
-import com.faforever.client.legacy.message.GameStatus;
-import com.faforever.client.legacy.message.GameType;
 import com.faforever.client.legacy.message.OnFafLoginSucceededListener;
 import com.faforever.client.legacy.message.OnGameInfoMessageListener;
 import com.faforever.client.legacy.message.OnGameLaunchMessageListener;
@@ -24,9 +20,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.util.UID;
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import org.apache.commons.lang3.StringUtils;
@@ -36,15 +29,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.TaskScheduler;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -68,25 +56,17 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
   TaskScheduler taskScheduler;
 
   private String uniqueId;
-  private String session;
   private String username;
   private String password;
   private String localIp;
-  private Socket socket;
-  private Gson gson;
-  private QStreamWriter socketOut;
   private Callback<Void> loginCallback;
   private Callback<GameLaunchMessage> gameLaunchCallback;
   private Collection<OnPlayerInfoMessageListener> onPlayerInfoMessageListeners;
   private Collection<OnGameInfoMessageListener> onGameInfoMessageListeners;
   private Collection<OnModInfoMessageListener> onModInfoMessageListeners;
+  private ServerWriter serverWriter;
 
   public ServerAccessor() {
-    gson = new GsonBuilder()
-        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-        .registerTypeAdapter(GameType.class, new GameTypeTypeAdapter())
-        .registerTypeAdapter(GameStatus.class, new GameStateTypeAdapter())
-        .create();
     onPlayerInfoMessageListeners = new ArrayList<>();
     onGameInfoMessageListeners = new ArrayList<>();
     onModInfoMessageListeners = new ArrayList<>();
@@ -116,22 +96,27 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
 
           logger.info("Trying to connect to FAF server at {}:{}", lobbyHost, lobbyPort);
 
-          try {
-            socket = new Socket(lobbyHost, lobbyPort);
-            socket.setKeepAlive(true);
+          try (Socket fafServerSocket = new Socket(lobbyHost, lobbyPort);
+               OutputStream outputStream = fafServerSocket.getOutputStream()) {
+
+            fafServerSocket.setKeepAlive(true);
 
             logger.info("FAF server connection established");
 
-            localIp = socket.getLocalAddress().getHostAddress();
-            socketOut = new QStreamWriter(new DataOutputStream(new BufferedOutputStream(socket.getOutputStream())));
+            localIp = fafServerSocket.getLocalAddress().getHostAddress();
+
+            serverWriter = new ServerWriter(outputStream);
+            serverWriter.setAppendSession(true);
+            serverWriter.setAppendUsername(true);
 
             writeToServer(ClientMessage.askSession(username));
 
-            blockingReadServer(socket);
+            blockingReadServer(fafServerSocket);
           } catch (IOException e) {
             logger.warn("Lost connection to FAF server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
             Thread.sleep(RECONNECT_DELAY);
           }
+
         }
         return null;
       }
@@ -141,7 +126,7 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
   private void blockingReadServer(Socket socket) throws IOException {
     JavaFxUtil.assertNotApplicationThread();
 
-    ServerReader serverReader = new ServerReader(gson, socket);
+    ServerReader serverReader = new ServerReader(socket);
     serverReader.setOnSessionInitiatedListener(this);
     serverReader.setOnGameInfoMessageListener(this);
     serverReader.setOnPingMessageListener(this);
@@ -154,8 +139,10 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
 
   @Override
   public void onSessionInitiated(WelcomeMessage message) {
-    this.session = message.session;
+    String session = message.session;
     this.uniqueId = UID.generate(session);
+
+    serverWriter.setSession(session);
 
     logger.info("FAF session initiated, session ID: {}", session);
 
@@ -175,30 +162,7 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
   }
 
   private void writeToServer(ServerWritable serverWritable) {
-    try {
-      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-      Writer stringWriter = new StringWriter();
-      serverWritable.write(gson, stringWriter);
-
-      QStreamWriter qStreamWriter = new QStreamWriter(byteArrayOutputStream);
-      qStreamWriter.appendQString(stringWriter.toString());
-      qStreamWriter.appendQString(username);
-      qStreamWriter.appendQString(session);
-
-      byte[] byteArray = byteArrayOutputStream.toByteArray();
-
-      if (serverWritable.isConfidential()) {
-        logger.debug("Writing confidential information to server");
-      } else {
-        logger.debug("Writing to server: {}", new String(byteArray, StandardCharsets.UTF_16BE));
-      }
-
-      socketOut.append(byteArray);
-      socketOut.flush();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    serverWriter.write(serverWritable);
   }
 
   @Override
@@ -270,5 +234,9 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
   @Override
   public void onGameLaunchMessage(GameLaunchMessage gameLaunchMessage) {
     gameLaunchCallback.success(gameLaunchMessage);
+  }
+
+  public void notifyGameStarted() {
+    writeToServer(ClientMessage.gameStarted());
   }
 }

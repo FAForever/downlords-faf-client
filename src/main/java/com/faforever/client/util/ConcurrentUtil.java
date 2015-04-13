@@ -25,20 +25,15 @@ public final class ConcurrentUtil {
         return;
       }
 
-      Throwable exception = event.getSource().getException();
-      if (exception != null) {
-        callback.error(exception);
-      } else {
-        callback.success((T) event.getSource().getValue());
-      }
+      callback.success((T) event.getSource().getValue());
     });
     task.setOnFailed(event -> {
+      Throwable exception = event.getSource().getException();
+      logger.warn("Task failed", exception);
+
       if (callback == null) {
         return;
       }
-
-      Throwable exception = event.getSource().getException();
-      logger.warn("Task failed", exception);
       callback.error(exception);
     });
 

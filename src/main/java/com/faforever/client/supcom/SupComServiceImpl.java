@@ -1,10 +1,8 @@
 package com.faforever.client.supcom;
 
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.legacy.relay.LocalRelayServer;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
-import com.faforever.client.util.ConcurrentUtil;
-import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +22,13 @@ public class SupComServiceImpl implements SupComService {
   @Autowired
   UserService userService;
 
+  @Autowired
+  LocalRelayServer localRelayServer;
+
   private Process process;
 
   @Override
-  public void startGame(int uid, String mod, List<String> additionalArgs, Callback<Void> callback) {
+  public Process startGame(int uid, String mod, List<String> additionalArgs) throws IOException {
     Path executable = preferencesService.getFafBinDirectory().resolve("ForgedAlliance.exe");
 
     List<String> launchCommand = LaunchCommandBuilder.create()
@@ -39,8 +40,9 @@ public class SupComServiceImpl implements SupComService {
         .mean(userService.getMean())
         .username(userService.getUsername())
         .additionalArgs(additionalArgs)
-//        .log(logFilePath)
-//        .localGpgPort(localGpgPort)
+            // FXIME fix the path
+        .logFile(preferencesService.getFafDataDirectory().resolve("faf.log"))
+        .localGpgPort(localRelayServer.getPort())
         .build();
 
     ProcessBuilder processBuilder = new ProcessBuilder();
@@ -50,19 +52,7 @@ public class SupComServiceImpl implements SupComService {
 
     logger.info("Starting SupCom with command: " + processBuilder.command());
 
-    try {
-      process = processBuilder.start();
-
-      ConcurrentUtil.executeInBackground(new Task<Void>() {
-        @Override
-        protected Void call() throws Exception {
-          process.waitFor();
-          return null;
-        }
-      });
-
-    } catch (IOException e) {
-      callback.error(e);
-    }
+    return processBuilder.start();
   }
+
 }

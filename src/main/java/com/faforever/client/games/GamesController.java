@@ -182,9 +182,11 @@ public class GamesController implements OnGameInfoMessageListener, OnModInfoMess
   private void displayGameDetail(GameInfoBean gameInfoBean) {
     mapImageView.setImage(mapService.loadPreview(gameInfoBean.getMapName()));
     gameTitleLabel.setText(gameInfoBean.getTitle());
-    numberOfPlayersLabel.setText(String.format(i18n.get("game.players.format"), gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
+    numberOfPlayersLabel.setText(String.format(i18n.get("game.detail.players.format"), gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     hosterLabel.setText(gameInfoBean.getHost());
     gameModeLabel.setText(gameInfoBean.getFeaturedMod());
+
+
   }
 
   public void onCreateGameButtonClicked(ActionEvent actionEvent) {
@@ -216,6 +218,10 @@ public class GamesController implements OnGameInfoMessageListener, OnModInfoMess
         logger.warn("Game could not be started", e);
       }
     });
+  }
+
+  public void onShowPrivateGames(ActionEvent actionEvent) {
+
   }
 
   private static String extractRating(String title) {

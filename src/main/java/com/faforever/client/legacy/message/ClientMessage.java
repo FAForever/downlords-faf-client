@@ -10,6 +10,13 @@ import java.util.Map;
 
 public class ClientMessage implements ServerWritable {
 
+  public static ClientMessage gameStarted() {
+    ClientMessage clientMessage = new ClientMessage();
+    clientMessage.command="fa_state";
+    clientMessage.state="on";
+    return clientMessage;
+  }
+
   public static ClientMessage selectAvatar(String avatar) {
     ClientMessage clientMessage = new ClientMessage();
     clientMessage.action = "select";
@@ -68,6 +75,7 @@ public class ClientMessage implements ServerWritable {
   private String access;
   private String mapname;
   private String title;
+  private String state;
   private Integer gameport;
   private Map<String, Boolean> options;
   private String mod;
