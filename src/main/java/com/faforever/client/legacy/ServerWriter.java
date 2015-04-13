@@ -22,6 +22,9 @@ import java.io.Writer;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 
+/**
+ *
+ */
 public class ServerWriter implements Closeable {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -83,8 +86,10 @@ public class ServerWriter implements Closeable {
         logger.debug("Writing to server: {}", new String(byteArray, StandardCharsets.UTF_16BE));
       }
 
-      writer.append(byteArray);
-      writer.flush();
+      synchronized (writer) {
+        writer.append(byteArray);
+        writer.flush();
+      }
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

@@ -7,6 +7,7 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -14,6 +15,10 @@ import java.util.List;
  * that is readable by the server.
  */
 public class RelayClientMessage implements ServerWritable {
+
+  public static RelayClientMessage pong() {
+    return create("pong", Collections.emptyList());
+  }
 
   public static RelayClientMessage create(String action, List<Object> chunks) {
     RelayClientMessage relayClientMessage = new RelayClientMessage();

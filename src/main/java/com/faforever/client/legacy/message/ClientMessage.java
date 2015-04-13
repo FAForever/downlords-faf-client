@@ -12,8 +12,8 @@ public class ClientMessage implements ServerWritable {
 
   public static ClientMessage gameStarted() {
     ClientMessage clientMessage = new ClientMessage();
-    clientMessage.command="fa_state";
-    clientMessage.state="on";
+    clientMessage.command = "fa_state";
+    clientMessage.state = "on";
     return clientMessage;
   }
 

@@ -1,6 +1,7 @@
 package com.faforever.client.legacy.relay;
 
 import com.faforever.client.legacy.QDataInputStream;
+import com.faforever.client.legacy.ServerWriter;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -23,9 +24,13 @@ class ServerReader implements Closeable {
   private final Gson gson;
   private boolean stopped;
   private FaDataOutputStream faOutputStream;
+  private ServerWriter serverWriter;
 
-  public ServerReader(InputStream inputStream) {
+  public ServerReader(InputStream inputStream, FaDataOutputStream faOutputStream, ServerWriter serverWriter) {
     this.inputStream = inputStream;
+    this.faOutputStream = faOutputStream;
+    this.serverWriter = serverWriter;
+
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .create();
@@ -110,7 +115,7 @@ class ServerReader implements Closeable {
   }
 
   private void handlePing() {
-
+    serverWriter.write(RelayClientMessage.pong());
   }
 
   private void handleCreateLobby(String command, List<Object> args) throws IOException {
@@ -141,9 +146,5 @@ class ServerReader implements Closeable {
   @Override
   public void close() throws IOException {
     inputStream.close();
-  }
-
-  public void setFaOutputStream(FaDataOutputStream faOutputStream) {
-    this.faOutputStream = faOutputStream;
   }
 }

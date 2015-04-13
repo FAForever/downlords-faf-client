@@ -173,9 +173,8 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
       protected Void call() throws Exception {
         while (!isCancelled()) {
           try {
-            logger.info("Trying to connect to IRC at {}:{}", configuration.getServerHostname(), configuration.getServerPort());
+            logger.info("Connecting to IRC at {}:{}", configuration.getServerHostname(), configuration.getServerPort());
             pircBotX.startBot();
-            logger.info("IRC connection established");
           } catch (IOException e) {
             logger.warn("Lost connection to IRC server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
             Thread.sleep(RECONNECT_DELAY);

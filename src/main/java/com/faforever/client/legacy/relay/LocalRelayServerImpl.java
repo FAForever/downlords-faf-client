@@ -58,12 +58,13 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
           try (Socket fafSocket = new Socket(environment.getProperty("relay.host"), environment.getProperty("relay.port", int.class));
                FaDataInputStream supComInput = createFaInputStream(supComSocket.getInputStream());
-               FaDataOutputStream supComOutput = createFaOutputStream(supComSocket.getOutputStream());
+               FaDataOutputStream faOutputStream = createFaOutputStream(supComSocket.getOutputStream());
                ServerWriter serverWriter = new ServerWriter(fafSocket.getOutputStream());
-               ServerReader serverReader = new ServerReader(fafSocket.getInputStream())) {
+               ServerReader serverReader = new ServerReader(fafSocket.getInputStream(), faOutputStream, serverWriter)) {
 
             startFaReader(supComInput, serverWriter);
-            startServerReader(serverReader, supComOutput);
+
+            serverReader.blockingRead();
           }
         }
       }
@@ -89,14 +90,6 @@ public class LocalRelayServerImpl implements LocalRelayServer {
         return null;
       }
     });
-  }
-
-  /**
-   * Connects to the FAF relay server and forwards any data received to the given output stream.
-   */
-  private void startServerReader(ServerReader serverReader, FaDataOutputStream supComOutput) throws IOException {
-    serverReader.setFaOutputStream(supComOutput);
-    serverReader.blockingRead();
   }
 
   private void redirectFaToFaf(FaDataInputStream faInputStream, ServerWriter serverWriter) throws IOException {
