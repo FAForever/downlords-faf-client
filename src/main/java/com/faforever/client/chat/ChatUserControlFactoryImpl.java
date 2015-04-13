@@ -9,10 +9,10 @@ public class ChatUserControlFactoryImpl implements ChatUserControlFactory {
   AutowireCapableBeanFactory applicationContext;
 
   @Override
-  public ChatUserControl newChatUserControl(ChatUser chatUser) {
-    ChatUserControl chatUserControl = new ChatUserControl(chatUser);
+  public ChatUserControl newChatUserControl(PlayerInfoBean playerInfoBean) {
+    ChatUserControl chatUserControl = new ChatUserControl(playerInfoBean);
     applicationContext.autowireBean(chatUserControl);
-    applicationContext.initializeBean(chatUserControl, chatUser.getLogin() + "Control");
+    applicationContext.initializeBean(chatUserControl, playerInfoBean.getUsername() + "Control");
     return chatUserControl;
   }
 }

@@ -266,6 +266,10 @@ game-detail-title {
   -fx-background-color: -accent-color;
 }
 
+.status-bar-label {
+  -fx-font-size: 11px;
+}
+
 /***************** Chat (WebView, therefore default CSS). Variables Can't be used *****************/
 
 html, body {
@@ -288,6 +292,8 @@ a {
 .chat-message {
   font-family: System;
   font-size: 12px;
+  /* Same height as avatar */
+  line-height: 20px;
 }
 
 .chat-message:nth-of-type(odd) {
@@ -306,9 +312,14 @@ a {
 .chat-message .time {
 }
 
-.chat-message .avatar {
-  width: 28px;
+.chat-message>.avatar {
+  width: 40;
+  height: 20px;
   padding: 0 2px;
+}
+
+.avatar>img {
+  display: block;
 }
 
 .chat-message .text {
@@ -320,4 +331,8 @@ a {
   max-width: 50%;
   text-align: right;
   white-space: nowrap;
+}
+
+.chat-message.self {
+  color: orange;
 }

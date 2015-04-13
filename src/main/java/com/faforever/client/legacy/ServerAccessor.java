@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.scheduling.TaskScheduler;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -41,6 +40,21 @@ import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
 public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessageListener, OnPlayerInfoMessageListener, OnGameInfoMessageListener, OnFafLoginSucceededListener, OnModInfoMessageListener, OnGameLaunchMessageListener {
 
+  public interface OnFaConnectingListener {
+
+    void onFaConnecting();
+  }
+
+  public interface OnFaDisconnectedListener {
+
+    void onFaDisconnected();
+  }
+
+  public interface OnFaConnectedListener {
+
+    void onFaConnected();
+  }
+
   private static final int VERSION = 123;
   private static final long RECONNECT_DELAY = 3000;
 
@@ -52,9 +66,6 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
   @Autowired
   PreferencesService preferencesService;
 
-  @Autowired
-  TaskScheduler taskScheduler;
-
   private String uniqueId;
   private String username;
   private String password;
@@ -65,6 +76,9 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
   private Collection<OnGameInfoMessageListener> onGameInfoMessageListeners;
   private Collection<OnModInfoMessageListener> onModInfoMessageListeners;
   private ServerWriter serverWriter;
+  private OnFaConnectingListener onFaConnectingListener;
+  private OnFaDisconnectedListener onFaDisconnectedListener;
+  private OnFaConnectedListener onFaConnectedListener;
 
   public ServerAccessor() {
     onPlayerInfoMessageListeners = new ArrayList<>();
@@ -95,6 +109,9 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
           Integer lobbyPort = environment.getProperty("lobby.port", int.class);
 
           logger.info("Trying to connect to FAF server at {}:{}", lobbyHost, lobbyPort);
+          if (onFaConnectingListener != null) {
+            Platform.runLater(onFaConnectingListener::onFaConnecting);
+          }
 
           try (Socket fafServerSocket = new Socket(lobbyHost, lobbyPort);
                OutputStream outputStream = fafServerSocket.getOutputStream()) {
@@ -102,6 +119,9 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
             fafServerSocket.setKeepAlive(true);
 
             logger.info("FAF server connection established");
+            if (onFaConnectedListener != null) {
+              Platform.runLater(onFaConnectedListener::onFaConnected);
+            }
 
             localIp = fafServerSocket.getLocalAddress().getHostAddress();
 
@@ -114,6 +134,9 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
             logger.warn("Lost connection to FAF server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
+            if (onFaDisconnectedListener != null) {
+              Platform.runLater(onFaDisconnectedListener::onFaDisconnected);
+            }
             Thread.sleep(RECONNECT_DELAY);
           }
 
@@ -184,21 +207,21 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
   @Override
   public void onModInfoMessage(ModInfoMessage modInfoMessage) {
     for (OnModInfoMessageListener listener : onModInfoMessageListeners) {
-      listener.onModInfoMessage(modInfoMessage);
+      Platform.runLater(() -> listener.onModInfoMessage(modInfoMessage));
     }
   }
 
   @Override
   public void onPlayerInfoMessage(PlayerInfoMessage playerInfoMessage) {
     for (OnPlayerInfoMessageListener listener : onPlayerInfoMessageListeners) {
-      listener.onPlayerInfoMessage(playerInfoMessage);
+      Platform.runLater(() -> listener.onPlayerInfoMessage(playerInfoMessage));
     }
   }
 
   @Override
   public void onGameInfoMessage(GameInfoMessage gameInfoMessage) {
     for (OnGameInfoMessageListener listener : onGameInfoMessageListeners) {
-      listener.onGameInfoMessage(gameInfoMessage);
+      Platform.runLater(() -> listener.onGameInfoMessage(gameInfoMessage));
     }
   }
 
@@ -242,5 +265,17 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
 
   public void notifyGameTerminated() {
     writeToServer(ClientMessage.gameTerminated());
+  }
+
+  public void setOnFaConnectingListener(OnFaConnectingListener onFaConnectingListener) {
+    this.onFaConnectingListener = onFaConnectingListener;
+  }
+
+  public void setOnFaDisconnectedListener(OnFaDisconnectedListener onFaDisconnectedListener) {
+    this.onFaDisconnectedListener = onFaDisconnectedListener;
+  }
+
+  public void setOnFaConnectedListener(OnFaConnectedListener onFaConnectedListener) {
+    this.onFaConnectedListener = onFaConnectedListener;
   }
 }

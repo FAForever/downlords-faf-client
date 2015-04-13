@@ -4,7 +4,8 @@ import com.faforever.client.legacy.message.OnPlayerInfoMessageListener;
 import com.faforever.client.legacy.message.PlayerInfoMessage;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.user.UserService;
-import com.sun.javafx.collections.ObservableMapWrapper;
+import com.faforever.client.util.BeanUpdatePolicy;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.scene.control.TabPane;
@@ -22,7 +23,8 @@ public class ChatController implements
     OnPrivateMessageListener,
     OnUserJoinedListener,
     OnUserListListener,
-    OnPlayerInfoMessageListener, OnUserLeftListener {
+    OnPlayerInfoMessageListener,
+    OnUserLeftListener {
 
   @Autowired
   ChatService chatService;
@@ -43,11 +45,11 @@ public class ChatController implements
   private Pane connectingProgressPane;
 
   private final Map<String, ChannelTab> nameToChatTab;
-  private ObservableMap<String, PlayerInfoMessage> playerInfos;
+  private ObservableMap<String, PlayerInfoBean> playerInfoMap;
 
   public ChatController() {
     nameToChatTab = new HashMap<>();
-    playerInfos = new ObservableMapWrapper<>(new HashMap<>());
+    playerInfoMap = FXCollections.observableMap(new HashMap<>());
   }
 
   @PostConstruct
@@ -78,7 +80,7 @@ public class ChatController implements
 
   private ChannelTab addAndGetChannel(String channelName) {
     if (!nameToChatTab.containsKey(channelName)) {
-      ChannelTab channelTab = channelTabFactory.createChannelTab(channelName, playerInfos);
+      ChannelTab channelTab = channelTabFactory.createChannelTab(channelName, playerInfoMap);
       nameToChatTab.put(channelName, channelTab);
       chatsTabPane.getTabs().add(channelTab);
     }
@@ -92,19 +94,17 @@ public class ChatController implements
   }
 
   @Override
-  public void onChannelJoined(String channelName, ChatUser chatUser) {
-    ChannelTab channelTab = addAndGetChannel(channelName);
-
-    if (isCurrentUser(chatUser)) {
+  public void onChannelJoined(String channelName, PlayerInfoBean playerInfoBean) {
+    if (isCurrentUser(playerInfoBean)) {
       connectingProgressPane.setVisible(false);
       chatsTabPane.setVisible(true);
     } else {
-      channelTab.onUserJoined(chatUser);
+      addOrUpdatePlayerInfo(playerInfoBean);
     }
   }
 
-  private boolean isCurrentUser(ChatUser chatUser) {
-    return chatUser.getLogin().equals(userService.getUsername());
+  private boolean isCurrentUser(PlayerInfoBean playerInfoBean) {
+    return playerInfoBean.getUsername().equals(userService.getUsername());
   }
 
   @Override
@@ -113,13 +113,23 @@ public class ChatController implements
   }
 
   @Override
-  public void onChatUserList(String channelName, Set<ChatUser> users) {
-    addAndGetChannel(channelName).setUsersAsync(users);
+  public void onChatUserList(String channelName, Set<PlayerInfoBean> users) {
+    addAndGetChannel(channelName).setPlayerInfoAsync(users);
   }
 
   @Override
   public void onPlayerInfoMessage(PlayerInfoMessage playerInfoMessage) {
-    playerInfos.put(playerInfoMessage.login, playerInfoMessage);
+    addOrUpdatePlayerInfo(new PlayerInfoBean(playerInfoMessage));
+  }
+
+  private void addOrUpdatePlayerInfo(PlayerInfoBean playerInfoBean) {
+    String username = playerInfoBean.getUsername();
+
+    if (!playerInfoMap.containsKey(username)) {
+      playerInfoMap.put(username, playerInfoBean);
+    } else {
+      playerInfoMap.get(username).update(playerInfoBean, BeanUpdatePolicy.OVERRIDE);
+    }
   }
 
   @Override

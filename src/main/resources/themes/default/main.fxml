@@ -19,42 +19,41 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="mainRoot" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.faforever.client.main.MainController">
+<VBox fx:id="mainRoot" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
   <children>
     <TabPane fx:id="mainTabPane" side="BOTTOM" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
       <tabs>
         <Tab fx:id="whatsNewTab" text="%main.whatsNew">
-          <fx:include fx:id="whatsNew" source="whats_new.fxml"/>
+          <fx:include fx:id="whatsNew" source="whats_new.fxml" />
         </Tab>
         <Tab fx:id="chatTab" text="%main.chatLobby">
-          <fx:include fx:id="chat" source="chat.fxml"/>
+          <fx:include fx:id="chat" source="chat.fxml" />
         </Tab>
-        <Tab text="%main.coopMissions"/>
+        <Tab text="%main.coopMissions" />
         <Tab fx:id="gamesTab" text="%main.games">
-          <fx:include fx:id="games" source="games.fxml"/>
+          <fx:include fx:id="games" source="games.fxml" />
         </Tab>
-        <Tab fx:id="tutorialsTab" text="Tutorials"/>
-        <Tab fx:id="leaderbortTab" text="Leaderboards"/>
-        <Tab fx:id="tournamentsTab" text="Tournaments"/>
-        <Tab fx:id="liveSreamsTab" text="Live streams"/>
+        <Tab fx:id="tutorialsTab" text="Tutorials" />
+        <Tab fx:id="leaderboardTab" text="Leaderboards" />
+        <Tab fx:id="tournamentsTab" text="Tournaments" />
+        <Tab fx:id="liveSreamsTab" text="Live streams" />
         <Tab fx:id="replaysTab" text="Replays">
           <content>
             <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE">
               <tabs>
                 <Tab text="Live Games">
                   <content>
-                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
                   </content>
                 </Tab>
                 <Tab text="Local archive">
                   <content>
-                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
                   </content>
                 </Tab>
                 <Tab text="Online vault">
                   <content>
-                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
                   </content>
                 </Tab>
               </tabs>
@@ -71,41 +70,53 @@
                       <center>
                         <TableView prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                           <columns>
-                            <TableColumn editable="false" prefWidth="75.0" text="Name"/>
-                            <TableColumn editable="false" prefWidth="75.0" text="Size"/>
-                            <TableColumn editable="false" prefWidth="75.0" text="Players"/>
-                            <TableColumn editable="false" prefWidth="75.0" text="Version"/>
-                            <TableColumn editable="false" prefWidth="75.0" text="Comments"/>
-                            <TableColumn editable="false" prefWidth="75.0" text="Downloads"/>
-                            <TableColumn editable="false" prefWidth="75.0" text="Ratings"/>
-                            <TableColumn editable="false" prefWidth="75.0" text="Plays"/>
+                            <TableColumn editable="false" prefWidth="75.0" text="Name" />
+                            <TableColumn editable="false" prefWidth="75.0" text="Size" />
+                            <TableColumn editable="false" prefWidth="75.0" text="Players" />
+                            <TableColumn editable="false" prefWidth="75.0" text="Version" />
+                            <TableColumn editable="false" prefWidth="75.0" text="Comments" />
+                            <TableColumn editable="false" prefWidth="75.0" text="Downloads" />
+                            <TableColumn editable="false" prefWidth="75.0" text="Ratings" />
+                            <TableColumn editable="false" prefWidth="75.0" text="Plays" />
                           </columns>
                         </TableView>
                       </center>
                       <top>
                         <HBox prefHeight="0.0" prefWidth="827.0" BorderPane.alignment="CENTER">
                           <children>
-                            <Pane prefHeight="0.0" prefWidth="678.0" HBox.hgrow="ALWAYS"/>
-                            <TextField/>
-                            <Button mnemonicParsing="false" text="Search"/>
+                            <Pane prefHeight="0.0" prefWidth="678.0" HBox.hgrow="ALWAYS" />
+                            <TextField />
+                            <Button mnemonicParsing="false" text="Search" />
                           </children>
                         </HBox>
                       </top>
                       <bottom>
-                        <Pagination prefHeight="0.0" BorderPane.alignment="TOP_CENTER"/>
+                        <Pagination prefHeight="0.0" BorderPane.alignment="TOP_CENTER" />
                       </bottom>
                     </BorderPane>
                   </content>
                 </Tab>
-                <Tab text="Mods"/>
+                <Tab text="Mods" />
               </tabs>
             </TabPane>
           </content>
         </Tab>
       </tabs>
     </TabPane>
+      <HBox styleClass="status-bar">
+         <children>
+            <Label styleClass="status-bar-label" text="%statusbar.nat" />
+            <Pane HBox.hgrow="ALWAYS" />
+            <Label styleClass="status-bar-label" text="&lt;Ladder Game Available&gt;" />
+            <Pane HBox.hgrow="ALWAYS" />
+            <Label fx:id="statusLabel" styleClass="status-bar-label" text="%statusbar.connected" />
+         </children>
+         <VBox.margin>
+            <Insets left="2.0" right="2.0" />
+         </VBox.margin>
+      </HBox>
   </children>
   <padding>
-    <Insets top="25.0"/>
+    <Insets top="25.0" />
   </padding>
 </VBox>

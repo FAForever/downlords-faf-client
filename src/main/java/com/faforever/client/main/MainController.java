@@ -4,6 +4,7 @@ import com.faforever.client.chat.ChatController;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.games.GamesController;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
@@ -12,6 +13,7 @@ import com.faforever.client.whatsnew.WhatsNewController;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Label;
 import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +22,7 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
-public class MainController {
+public class MainController implements ServerAccessor.OnFaConnectedListener, ServerAccessor.OnFaConnectingListener, ServerAccessor.OnFaDisconnectedListener {
 
   @FXML
   TabPane mainTabPane;
@@ -40,6 +42,9 @@ public class MainController {
   @FXML
   Node titlePane;
 
+  @FXML
+  Label statusLabel;
+
   @Autowired
   PreferencesService preferencesService;
 
@@ -49,12 +54,13 @@ public class MainController {
   @Autowired
   ServerAccessor serverAccessor;
 
-  private double xOffset;
-  private double yOffset;
-  private Stage stage;
+  @Autowired
+  private I18n i18n;
 
   public void display(Stage stage) {
-    this.stage = stage;
+    serverAccessor.setOnFaConnectedListener(this);
+    serverAccessor.setOnFaConnectingListener(this);
+    serverAccessor.setOnFaDisconnectedListener(this);
 
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
 
@@ -117,5 +123,20 @@ public class MainController {
 
   public GamesController getGamesController() {
     return gamesController;
+  }
+
+  @Override
+  public void onFaConnected() {
+    statusLabel.setText(i18n.get("statusbar.connected"));
+  }
+
+  @Override
+  public void onFaConnecting() {
+    statusLabel.setText(i18n.get("statusbar.connecting"));
+  }
+
+  @Override
+  public void onFaDisconnected() {
+    statusLabel.setText(i18n.get("statusbar.disconnected"));
   }
 }

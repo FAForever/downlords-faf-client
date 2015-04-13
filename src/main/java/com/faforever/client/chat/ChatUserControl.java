@@ -1,16 +1,17 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.fxml.FxmlLoader;
-import com.faforever.client.legacy.message.Avatar;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.stage.PopupWindow;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
@@ -44,45 +45,103 @@ public class ChatUserControl extends HBox {
   @FXML
   Label clanLabel;
 
-  private ChatUser chatUser;
+  private final PlayerInfoBean playerInfoBean;
+  private Tooltip avatarTooltip;
+  private Tooltip countryTooltip;
 
-  public ChatUserControl(ChatUser chatUser) {
-    this.chatUser = chatUser;
+  public ChatUserControl(PlayerInfoBean playerInfoBean) {
+    this.playerInfoBean = playerInfoBean;
+  }
+
+  @FXML
+  void initialize() {
+    configureCountryImageView();
+    configureAvatarImageView();
+    configureClanLabel();
+  }
+
+  private void configureClanLabel() {
+    playerInfoBean.clanProperty().addListener((observable, oldValue, newValue) -> {
+      if (StringUtils.isEmpty(newValue)) {
+        clanLabel.setVisible(false);
+      } else {
+        clanLabel.setText(String.format(CLAN_TAG_FORMAT, newValue));
+        clanLabel.setVisible(true);
+      }
+    });
+  }
+
+  private void configureAvatarImageView() {
+    setAvatarUrl(playerInfoBean.getAvatarUrl());
+
+    avatarImageView.setOnMouseMoved(event -> {
+      if (avatarTooltip != null) {
+        return;
+      }
+      avatarTooltip = new Tooltip();
+      avatarTooltip.textProperty().bind(playerInfoBean.avatarTooltipProperty());
+      avatarTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_RIGHT);
+      avatarTooltip.show(((Node) event.getTarget()).getScene().getWindow(), event.getScreenX(), event.getScreenY());
+      event.consume();
+    });
+    avatarImageView.setOnMouseExited(event -> {
+      avatarTooltip.hide();
+      avatarTooltip = null;
+      event.consume();
+    });
+    playerInfoBean.avatarUrlProperty().addListener((observable, oldValue, newValue) -> {
+      setAvatarUrl(newValue);
+    });
+  }
+
+  private void configureCountryImageView() {
+    setCountry(playerInfoBean.getCountry());
+
+    countryImageView.setOnMouseEntered(event -> {
+      if (countryTooltip != null) {
+        return;
+      }
+      countryTooltip = new Tooltip();
+      countryTooltip.textProperty().bind(playerInfoBean.countryProperty());
+      countryTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_RIGHT);
+      countryTooltip.show(((Node) event.getTarget()).getScene().getWindow(), event.getScreenX(), event.getScreenY());
+      event.consume();
+    });
+    countryImageView.setOnMouseExited(event -> {
+      countryTooltip.hide();
+      countryTooltip = null;
+      event.consume();
+    });
+    playerInfoBean.countryProperty().addListener((observable, oldValue, newValue) -> {
+      setCountry(newValue);
+    });
+  }
+
+  private void setCountry(String country) {
+    if (StringUtils.isEmpty(country)) {
+      countryImageView.setVisible(false);
+    } else {
+      countryImageView.setImage(countryFlagService.loadCountryFlag(country));
+      countryImageView.setVisible(true);
+    }
+  }
+
+  private void setAvatarUrl(String avatarUrl) {
+    if (StringUtils.isEmpty(avatarUrl)) {
+      avatarImageView.setVisible(false);
+    } else {
+      avatarImageView.setImage(avatarService.loadAvatar(avatarUrl));
+      avatarImageView.setVisible(true);
+    }
   }
 
   @PostConstruct
   void init() {
     fxmlLoader.loadCustomControl("chat_user_control.fxml", this);
-    usernameLabel.setText(chatUser.getLogin());
+    usernameLabel.setText(playerInfoBean.getUsername());
   }
 
-  public ChatUser getChatUser() {
-    return chatUser;
-  }
-
-  public void setAvatar(Avatar avatar) {
-    if (avatar == null) {
-      return;
-    }
-
-    Image image = avatarService.loadAvatar(avatar);
-    avatarImageView.setImage(image);
-  }
-
-  public void setClan(String clan) {
-    if (StringUtils.isEmpty(clan)) {
-      clanLabel.setText("");
-      return;
-    }
-
-    clanLabel.setText(String.format(CLAN_TAG_FORMAT, clan));
-  }
-
-  public void setCountry(String country) {
-    if (StringUtils.isEmpty(country)) {
-      return;
-    }
-
-    countryImageView.setImage(countryFlagService.loadCountryFlag(country));
+  public PlayerInfoBean getPlayerInfoBean() {
+    return playerInfoBean;
   }
 }

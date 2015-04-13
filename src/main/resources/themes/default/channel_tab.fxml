@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
@@ -9,6 +14,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
+
 <fx:root type="Tab" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
   <AnchorPane>
     <children>
@@ -17,11 +23,16 @@
           <SplitPane dividerPositions="0.8">
             <items>
               <WebView fx:id="messagesWebView" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-              <ScrollPane SplitPane.resizableWithParent="false">
-                <content>
-                  <VBox fx:id="usersVBox" />
-                </content>
-              </ScrollPane>
+                     <VBox SplitPane.resizableWithParent="false">
+                        <children>
+                           <TextField promptText="%chat.searchPrompt" />
+                    <ScrollPane>
+                      <content>
+                        <VBox fx:id="usersVBox" />
+                      </content>
+                    </ScrollPane>
+                        </children>
+                     </VBox>
             </items>
           </SplitPane>
         </center>

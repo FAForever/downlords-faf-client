@@ -150,7 +150,7 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
     addEventListener(JoinEvent.class,
         event -> listener.onChannelJoined(
             event.getChannel().getName(),
-            new ChatUser(event.getUser())
+            new PlayerInfoBean(event.getUser())
         ));
   }
 
@@ -220,12 +220,12 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
     });
   }
 
-  private Set<ChatUser> users(ImmutableSortedSet<User> users) {
-    Set<ChatUser> chatUsers = new HashSet<>(users.size(), 1);
+  private Set<PlayerInfoBean> users(ImmutableSortedSet<User> users) {
+    Set<PlayerInfoBean> playerInfoBeans = new HashSet<>(users.size(), 1);
     for (User user : users) {
-      ChatUser chatUser = new ChatUser(user);
-      chatUsers.add(chatUser);
+      PlayerInfoBean playerInfoBean = new PlayerInfoBean(user);
+      playerInfoBeans.add(playerInfoBean);
     }
-    return chatUsers;
+    return playerInfoBeans;
   }
 }
