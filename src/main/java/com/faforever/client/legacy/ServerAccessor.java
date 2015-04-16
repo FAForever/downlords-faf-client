@@ -239,7 +239,7 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
         StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PRIVATE,
         newGameInfo.getMap(),
         newGameInfo.getTitle(),
-        preferencesService.getPreferences().getSupCom().getPort(),
+        preferencesService.getPreferences().getForgedAlliance().getPort(),
         new HashMap<>(),
         newGameInfo.getMod()
     );

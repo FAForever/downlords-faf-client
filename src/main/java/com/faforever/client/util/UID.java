@@ -7,7 +7,8 @@ public class UID {
 
   static {
     try {
-      System.load("C:\\Program Files (x86)\\Forged Alliance Forever\\uid.dll");
+      // FIXME bundle and reference properly
+      System.loadLibrary("uid");
     } catch (UnsatisfiedLinkError e) {
       throw new RuntimeException(e);
     }

@@ -3,7 +3,7 @@ package com.faforever.client.preferences;
 public class Preferences {
 
   private WindowPrefs mainWindow;
-  private ForgedAlliancePrefs supCom;
+  private ForgedAlliancePrefs forgedAlliance;
   private LoginPrefs login;
   private String theme;
   private String lastGameMod;
@@ -11,7 +11,7 @@ public class Preferences {
 
   public Preferences() {
     login = new LoginPrefs();
-    supCom = new ForgedAlliancePrefs();
+    forgedAlliance = new ForgedAlliancePrefs();
     mainWindow = new WindowPrefs(800, 600);
     theme = "default";
     chat = new ChatPrefs();
@@ -29,8 +29,8 @@ public class Preferences {
     return theme;
   }
 
-  public ForgedAlliancePrefs getSupCom() {
-    return supCom;
+  public ForgedAlliancePrefs getForgedAlliance() {
+    return forgedAlliance;
   }
 
   public String getLastGameMod() {

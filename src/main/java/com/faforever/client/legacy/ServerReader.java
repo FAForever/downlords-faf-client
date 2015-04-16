@@ -111,7 +111,7 @@ class ServerReader {
       ServerCommand serverCommand = ServerCommand.fromString(serverMessage.command);
 
       if (serverCommand == null) {
-        logger.warn("Unknown server message: " + serverMessage);
+        logger.warn("Unknown server message: " + message);
         return;
       }
 

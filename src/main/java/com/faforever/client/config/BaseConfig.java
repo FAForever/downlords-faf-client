@@ -7,6 +7,8 @@ import com.faforever.client.games.GameServiceImpl;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.i18n.I18nImpl;
 import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.network.PortCheckService;
+import com.faforever.client.network.PortCheckServiceImpl;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
@@ -99,5 +101,10 @@ public class BaseConfig {
   @Bean
   LocalRelayServer relayServer() {
     return new LocalRelayServerImpl();
+  }
+
+  @Bean
+  PortCheckService portCheckService() {
+    return new PortCheckServiceImpl();
   }
 }

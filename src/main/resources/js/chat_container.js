@@ -8,7 +8,7 @@ function link(input) {
         return new Autolinker.HtmlTag( {
           tagName: "a",
           attrs: {
-            "href": "#",
+            "href": "javascript:void(0);",
             "onclick": "channelTab.openUrl('"+match.getUrl()+"')"
           },
           innerHtml: match.getAnchorText()

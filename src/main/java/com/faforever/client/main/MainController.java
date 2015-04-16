@@ -6,12 +6,13 @@ import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.games.GamesController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.network.PortCheckService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
+import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.whatsnew.WhatsNewController;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.TabPane;
@@ -40,10 +41,10 @@ public class MainController implements ServerAccessor.OnFaConnectedListener, Ser
   GamesController gamesController;
 
   @FXML
-  Node titlePane;
+  Label statusLabel;
 
   @FXML
-  Label statusLabel;
+  Label natStatusLabel;
 
   @Autowired
   PreferencesService preferencesService;
@@ -53,6 +54,9 @@ public class MainController implements ServerAccessor.OnFaConnectedListener, Ser
 
   @Autowired
   ServerAccessor serverAccessor;
+
+  @Autowired
+  PortCheckService portCheckService;
 
   @Autowired
   private I18n i18n;
@@ -77,6 +81,24 @@ public class MainController implements ServerAccessor.OnFaConnectedListener, Ser
     whatsNewController.configure();
     chatController.configure();
     gamesController.configure(stage);
+
+    // FIXME i18n
+    natStatusLabel.setText("Checking NAT");
+    portCheckService.checkUdpPortInBackground(preferencesService.getPreferences().getForgedAlliance().getPort(), new Callback<Boolean>() {
+      @Override
+      public void success(Boolean result) {
+        // FIXME add iamge
+        if(result)
+        natStatusLabel.setText("NAT: OK"); else
+          natStatusLabel.setText("NAT: Closed");
+      }
+
+      @Override
+      public void error(Throwable e) {
+        // FIXME add iamge
+        natStatusLabel.setText("NAT: Error");
+      }
+    });
   }
 
   private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {
