@@ -1,13 +1,22 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.games.CreateGameDialogController;
+import com.faforever.client.i18n.I18n;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.stage.Modality;
 import javafx.stage.PopupWindow;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
+
+import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 
 public class ChatUserControl extends HBox {
 
@@ -29,6 +40,12 @@ public class ChatUserControl extends HBox {
 
   @Autowired
   CountryFlagService countryFlagService;
+
+  @Autowired
+  I18n i18n;
+
+  @Autowired
+  UserInfoWindowFactory userInfoWindowFactory;
 
   @FXML
   ImageView countryImageView;
@@ -48,6 +65,7 @@ public class ChatUserControl extends HBox {
   private final PlayerInfoBean playerInfoBean;
   private Tooltip avatarTooltip;
   private Tooltip countryTooltip;
+  private Stage userInfoWindow;
 
   public ChatUserControl(PlayerInfoBean playerInfoBean) {
     this.playerInfoBean = playerInfoBean;
@@ -58,6 +76,47 @@ public class ChatUserControl extends HBox {
     configureCountryImageView();
     configureAvatarImageView();
     configureClanLabel();
+    configureContextMenu();
+  }
+
+  @FXML
+  void onContextMenuRequested() {
+    ContextMenu contextMenu = new ContextMenu();
+
+    MenuItem userInfoItem = new MenuItem(i18n.get("chat.userContext.info"));
+    userInfoItem.setOnAction(event -> onUserInfo());
+
+    contextMenu.getItems().add(userInfoItem);
+    contextMenu.getItems().add(new MenuItem(i18n.get("chat.userContext.privateMessage")));
+    contextMenu.getItems().add(new MenuItem(i18n.get("chat.userContext.addFriend")));
+    contextMenu.getItems().add(new MenuItem(i18n.get("chat.userContext.addFoe")));
+    contextMenu.getItems().add(new MenuItem(i18n.get("chat.userContext.invite")));
+    contextMenu.getItems().add(new MenuItem(i18n.get("chat.userContext.kick")));
+    contextMenu.getItems().add(new MenuItem(i18n.get("chat.userContext.ban")).);
+  }
+
+  private void onUserInfo() {
+    if (userInfoWindow != null) {
+      return;
+    }
+
+    UserInfoWindow controller = userInfoWindowFactory.create(userInfo);
+
+    userInfoWindow = new Stage(StageStyle.TRANSPARENT);
+    userInfoWindow.initModality(Modality.NONE);
+    userInfoWindow.initOwner(this.stage);
+
+    sceneFactory.createScene(userInfoWindow, controller.getRoot(), false, CLOSE);
+
+    userInfoWindow.setOnHiding(event -> {
+      userInfoWindow = null;
+    });
+
+    userInfoWindow.show();
+  }
+
+  private void configureContextMenu() {
+
   }
 
   private void configureClanLabel() {
