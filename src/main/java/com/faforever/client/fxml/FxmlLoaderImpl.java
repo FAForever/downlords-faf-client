@@ -37,6 +37,11 @@ public class FxmlLoaderImpl implements FxmlLoader {
     load(file, control, control);
   }
 
+  @Override
+  public <T> T loadAndGetRoot(String file, Object controller) {
+    return load(file, controller, null).getRoot();
+  }
+
   private URL buildResourceUrl(String file) throws IOException {
     return new ClassPathResource(ThemeUtil.themeFile(theme, file)).getURL();
   }

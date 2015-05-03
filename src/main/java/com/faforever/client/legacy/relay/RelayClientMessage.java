@@ -10,30 +10,25 @@ import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
 
+import static com.faforever.client.legacy.relay.RelayServerAction.PONG;
+
 /**
  * Represents a message that can be sent to the FAF relay server. The message is serialized to JSON in a strict format
  * that is readable by the server.
  */
 public class RelayClientMessage implements ServerWritable {
 
-  public static RelayClientMessage pong() {
-    return create("pong", Collections.emptyList());
-  }
-
-  public static RelayClientMessage create(String action, List<Object> chunks) {
-    RelayClientMessage relayClientMessage = new RelayClientMessage();
-    relayClientMessage.action = action;
-    relayClientMessage.chuncks = chunks;
-    return relayClientMessage;
-  }
-
-  private String action;
-
-  // Because typos in protocols are cool
+  private RelayServerAction action;
+  // Because typos in protocols are cool (this class is JSON serialized).
   private List<Object> chuncks;
 
-  private RelayClientMessage() {
-    // Private
+  public RelayClientMessage(RelayServerAction action, List<Object> chunks) {
+    this.action = action;
+    this.chuncks = chunks;
+  }
+
+  public List<Object> getChunks() {
+    return chuncks;
   }
 
   public void write(Gson gson, Writer writer) throws IOException {
@@ -41,8 +36,8 @@ public class RelayClientMessage implements ServerWritable {
   }
 
   @Override
-  public boolean isConfidential() {
-    return false;
+  public List<String> getStringsToMask() {
+    return Collections.emptyList();
   }
 
   private JsonWriter fixedJsonWriter(Writer writer) {
@@ -59,6 +54,14 @@ public class RelayClientMessage implements ServerWritable {
     } catch (NoSuchFieldException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public RelayServerAction getAction() {
+    return action;
+  }
+
+  public static RelayClientMessage pong() {
+    return new RelayClientMessage(PONG, Collections.emptyList());
   }
 
 }

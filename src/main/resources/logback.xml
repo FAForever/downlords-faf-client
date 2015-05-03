@@ -1,7 +1,10 @@
 <configuration>
 
   <logger name="org.pircbotx" level="warn"/>
-  <logger name="com.faforever.client.legacy" level="warn"/>
+  <logger name="com.faforever.client.preferences" level="warn"/>
+  <logger name="com.faforever.client.maps" level="warn"/>
+  <logger name="com.faforever.client.legacy.ServerReader" level="warn"/>
+  <logger name="com.faforever.client.legacy.proxy" level="debug"/>
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
@@ -9,7 +12,7 @@
     </encoder>
   </appender>
 
-  <root level="info">
+  <root level="debug">
     <appender-ref ref="STDOUT"/>
   </root>
 </configuration>

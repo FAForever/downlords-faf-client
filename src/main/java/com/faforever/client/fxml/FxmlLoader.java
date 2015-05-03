@@ -17,4 +17,6 @@ public interface FxmlLoader {
    * @param file the FXML file name, relative to its theme directory. E.g. "main.fxml" for "/themes/default/main.fxml"
    */
   void loadCustomControl(String file, Object control);
+
+  <T> T loadAndGetRoot(String file, Object controller);
 }

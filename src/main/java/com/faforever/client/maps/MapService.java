@@ -6,7 +6,9 @@ import javafx.scene.image.Image;
 
 public interface MapService {
 
-  Image loadPreview(String mapname);
+  Image loadSmallPreview(String mapName);
+
+  Image loadLargePreview(String mapName);
 
   ObservableList<MapInfoBean> getLocalMaps();
 }

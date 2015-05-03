@@ -2,6 +2,9 @@ package com.faforever.client.legacy.relay;
 
 import com.faforever.client.legacy.QDataInputStream;
 import com.faforever.client.legacy.ServerWriter;
+import com.faforever.client.legacy.proxy.Proxy;
+import com.faforever.client.legacy.proxy.ProxyUtils;
+import com.faforever.client.util.SocketAddressUtil;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -15,20 +18,30 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
+import java.net.InetSocketAddress;
+import java.net.SocketException;
+import java.util.Arrays;
 import java.util.List;
+
+import static com.faforever.client.legacy.relay.RelayServerCommand.CONNECT_TO_PEER;
+import static com.faforever.client.legacy.relay.RelayServerCommand.JOIN_GAME;
 
 class ServerReader implements Closeable {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final InputStream inputStream;
+  private final Proxy proxyServer;
+  private final FaDataOutputStream faOutputStream;
+  private final ServerWriter serverWriter;
   private final Gson gson;
-  private boolean stopped;
-  private FaDataOutputStream faOutputStream;
-  private ServerWriter serverWriter;
 
-  public ServerReader(InputStream inputStream, FaDataOutputStream faOutputStream, ServerWriter serverWriter) {
+  private boolean stopped;
+  private boolean p2pProxyEnabled;
+
+  public ServerReader(InputStream inputStream, Proxy proxyServer, FaDataOutputStream faOutputStream, ServerWriter serverWriter) {
     this.inputStream = inputStream;
+    this.proxyServer = proxyServer;
     this.faOutputStream = faOutputStream;
     this.serverWriter = serverWriter;
 
@@ -58,6 +71,9 @@ class ServerReader implements Closeable {
     RelayServerCommand relayServerCommand = RelayServerCommand.fromString(command);
 
     if (relayServerCommand == null) {
+      logger.debug("Command '{}' is unknown, putting it straight trough", command, args);
+
+      // No special server command, put it straight through
       write(command, args);
       return;
     }
@@ -73,77 +89,136 @@ class ServerReader implements Closeable {
         handleP2pReconnect();
         break;
       case JOIN_GAME:
-        handleJoinGame();
+        handleJoinGame(command, args);
         break;
       case CONNECT_TO_PEER:
-        handleConnectToPeer();
+        handleConnectToPeer(command, args);
         break;
       case CREATE_LOBBY:
         handleCreateLobby(command, args);
         break;
       case CONNECT_TO_PROXY:
-        handleConnectToProxy();
+        handleConnectToProxy(command, args);
         break;
       case JOIN_PROXY:
-        handleJoinProxy();
+        handleJoinProxy(command, args);
         break;
       default:
-        throw new IllegalStateException("Command has been defined as enum but is unhandled: " + relayServerCommand);
+        throw new IllegalStateException("Command is know but unhandled: " + relayServerCommand);
     }
   }
 
-  private void handleJoinProxy() {
-
-  }
-
-  private void handleConnectToProxy() {
-
-  }
-
-  private void handleConnectToPeer() {
-
-  }
-
-  private void handleJoinGame() {
-
-  }
-
-  private void handleP2pReconnect() {
-
-  }
-
-  private void handleSendNatPacket(String command, List<Object> args) throws IOException {
-    writeUdp(command, args);
-    faOutputStream.flush();
-  }
-
   private void handlePing() {
+    logger.debug("Received ping from server, answering pong");
     serverWriter.write(RelayClientMessage.pong());
   }
 
-  private void handleCreateLobby(String command, List<Object> args) throws IOException {
-    // JSON doesn't know integers, but double
-    int uid = ((Double) args.get(3)).intValue();
+  private void handleSendNatPacket(String command, List<Object> args) throws IOException {
+    if (p2pProxyEnabled) {
+      String publicAddress = (String) args.get(0);
+
+      proxyServer.registerPeerIfNecessary(publicAddress);
+
+      args.set(0, proxyServer.translateToLocal(publicAddress));
+    }
+
+    writeUdp(command, args);
+  }
+
+  private void handleP2pReconnect() throws SocketException {
+    proxyServer.initialize();
+    p2pProxyEnabled = true;
+  }
+
+  private void handleJoinGame(String command, List<Object> args) throws IOException {
+    if (p2pProxyEnabled) {
+      String peerAddress = (String) args.get(0);
+      int peerUid = extractInt(args.get(2));
+
+      proxyServer.registerPeerIfNecessary(peerAddress);
+
+      args.set(0, proxyServer.translateToLocal(peerAddress));
+      proxyServer.setUidForPeer(peerAddress, peerUid);
+    }
 
     write(command, args);
   }
 
-  private void write(String command, List<Object> args) throws IOException {
-    int headerSize = command.length();
-    String headerField = command.replace("\t", "/t").replace("\n", "/n");
-
-    faOutputStream.writeInt(headerSize);
-    faOutputStream.writeString(headerField);
-    faOutputStream.writeChunks(args);
+  private static int extractInt(Object object) {
+    // JSON doesn't know integers, but double
+    return ((Double) object).intValue();
   }
 
-  private void writeUdp(String command, List<Object> args) throws IOException {
+  private void handleConnectToPeer(String command, List<Object> args) throws IOException {
+    handleJoinGame(command, args);
+  }
+
+  private void handleCreateLobby(String command, List<Object> args) throws IOException {
+    int peerUid = extractInt(args.get(3));
+    proxyServer.setUid(peerUid);
+
+    if (p2pProxyEnabled) {
+      args.set(1, ProxyUtils.translateToProxyPort(proxyServer.getPort()));
+    }
+
+    write(command, args);
+  }
+
+  private void handleConnectToProxy(String command, List<Object> args) throws IOException {
+    int port = extractInt(args.get(0));
+    String login = (String) args.get(2);
+    int uid = extractInt(args.get(3));
+
+    InetSocketAddress socketAddress = proxyServer.bindSocket(port, uid);
+
+    List<Object> newArgs = Arrays.asList(
+        SocketAddressUtil.toString(socketAddress),
+        login,
+        uid
+    );
+
+    write(CONNECT_TO_PEER.getString(), newArgs);
+  }
+
+  private void handleJoinProxy(String command, List<Object> args) throws IOException {
+    int port = extractInt(args.get(0));
+    String login = (String) args.get(2);
+    int uid = extractInt(args.get(3));
+
+    InetSocketAddress socketAddress = proxyServer.bindSocket(port, uid);
+
+    List<Object> newArgs = Arrays.asList(
+        SocketAddressUtil.toString(socketAddress),
+        login,
+        uid
+    );
+
+    write(JOIN_GAME.getString(), newArgs);
+
+  }
+
+  private void writeUdp(String command, List<Object> chunks) throws IOException {
     int headerSize = command.length();
     String headerField = command.replace("\t", "/t").replace("\n", "/n");
 
+    logger.debug("Writing data to FA, command: {}, chunks: {}", command, chunks);
+
     faOutputStream.writeInt(headerSize);
     faOutputStream.writeString(headerField);
-    faOutputStream.writeUdpChunks(args);
+    faOutputStream.writeUdpChunks(chunks);
+    faOutputStream.flush();
+  }
+
+  private void write(String command, List<Object> chunks) throws IOException {
+    int headerSize = command.length();
+    String headerField = command.replace("\t", "/t").replace("\n", "/n");
+
+    logger.debug("Writing data to FA, command: {}, chunks: {}", command, chunks);
+
+    faOutputStream.writeInt(headerSize);
+    faOutputStream.writeString(headerField);
+    faOutputStream.writeChunks(chunks);
+    faOutputStream.flush();
   }
 
   @Override

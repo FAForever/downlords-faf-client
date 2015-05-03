@@ -11,7 +11,7 @@ public class GameInfoMessage extends ServerMessage {
   public String title;
   public String access;
   public String mapname;
-  public GameStatus state;
+  public GameState state;
   public Boolean[] options;
   public GameType gameType;
   public String featuredMod;

@@ -7,6 +7,8 @@ import com.faforever.client.games.GameServiceImpl;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.i18n.I18nImpl;
 import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.legacy.proxy.Proxy;
+import com.faforever.client.legacy.proxy.ProxyImpl;
 import com.faforever.client.network.PortCheckService;
 import com.faforever.client.network.PortCheckServiceImpl;
 import com.faforever.client.player.PlayerService;
@@ -106,5 +108,10 @@ public class BaseConfig {
   @Bean
   PortCheckService portCheckService() {
     return new PortCheckServiceImpl();
+  }
+
+  @Bean
+  Proxy proxy() {
+    return new ProxyImpl();
   }
 }

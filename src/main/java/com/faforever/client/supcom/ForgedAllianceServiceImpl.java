@@ -1,7 +1,7 @@
 package com.faforever.client.supcom;
 
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.legacy.relay.LocalRelayServer;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,8 +27,6 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
 
   @Override
   public Process startGame(int uid, String mod, List<String> additionalArgs) throws IOException {
-    localRelayServer.startInBackground();
-
     Path executable = preferencesService.getFafBinDirectory().resolve("ForgedAlliance.exe");
 
     List<String> launchCommand = LaunchCommandBuilder.create()

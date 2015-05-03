@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+
+<ContextMenu xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
+  <items>
+    <MenuItem mnemonicParsing="false" text="%chat.userContext.userInfo" onAction="#onUserInfo"/>
+    <MenuItem mnemonicParsing="false" text="%chat.userContext.privateMessage"/>
+    <SeparatorMenuItem mnemonicParsing="false"/>
+    <MenuItem mnemonicParsing="false" text="%chat.userContext.addFriend"/>
+    <MenuItem mnemonicParsing="false" text="%chat.userContext.removeFriend"/>
+    <MenuItem mnemonicParsing="false" text="%chat.userContext.addFoe"/>
+    <MenuItem mnemonicParsing="false" text="%chat.userContext.removeFoe"/>
+    <SeparatorMenuItem mnemonicParsing="false"/>
+    <MenuItem mnemonicParsing="false" text="%chat.userContext.viewLiveReplay"/>
+    <MenuItem mnemonicParsing="false" text="%chat.userContext.viewReplays"/>
+    <MenuItem mnemonicParsing="false" text="%chat.userContext.inviteToGame"/>
+    <SeparatorMenuItem mnemonicParsing="false"/>
+    <MenuItem mnemonicParsing="false" text="%chat.userContext.kick"/>
+    <MenuItem mnemonicParsing="false" text="%chat.userContext.ban"/>
+  </items>
+</ContextMenu>

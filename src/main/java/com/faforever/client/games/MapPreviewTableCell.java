@@ -1,5 +1,6 @@
 package com.faforever.client.games;
 
+import com.faforever.client.fxml.FxmlLoader;
 import javafx.scene.control.TableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -8,8 +9,8 @@ public class MapPreviewTableCell extends TableCell<GameInfoBean, Image> {
 
   private ImageView imageVew;
 
-  public MapPreviewTableCell() {
-    this.imageVew = new ImageView();
+  public MapPreviewTableCell(FxmlLoader fxmlLoader) {
+    imageVew = fxmlLoader.loadAndGetRoot("map_preview_table_cell.fxml", this);
     setGraphic(imageVew);
   }
 

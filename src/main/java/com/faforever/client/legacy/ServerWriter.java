@@ -2,9 +2,11 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
-import com.faforever.client.legacy.message.GameStatus;
+import com.faforever.client.legacy.gson.RelayServerActionTypeAdapter;
+import com.faforever.client.legacy.message.GameState;
 import com.faforever.client.legacy.message.GameType;
 import com.faforever.client.legacy.message.ServerWritable;
+import com.faforever.client.legacy.relay.RelayServerAction;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -22,12 +24,10 @@ import java.io.Writer;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 
-/**
- *
- */
 public class ServerWriter implements Closeable {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  public static final String CONFIDENTIAL_INFORMATION_MASK = "********";
 
   private final QStreamWriter writer;
   private final Gson gson;
@@ -41,7 +41,8 @@ public class ServerWriter implements Closeable {
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .registerTypeAdapter(GameType.class, new GameTypeTypeAdapter())
-        .registerTypeAdapter(GameStatus.class, new GameStateTypeAdapter())
+        .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
+        .registerTypeAdapter(RelayServerAction.class, new RelayServerActionTypeAdapter())
         .create();
   }
 
@@ -80,10 +81,14 @@ public class ServerWriter implements Closeable {
 
       byte[] byteArray = byteArrayOutputStream.toByteArray();
 
-      if (serverWritable.isConfidential()) {
-        logger.debug("Writing confidential information to server");
-      } else {
-        logger.debug("Writing to server: {}", new String(byteArray, StandardCharsets.UTF_16BE));
+      if (logger.isDebugEnabled()) {
+        String data = new String(byteArray, StandardCharsets.UTF_16BE);
+
+        for (String stringToMask : serverWritable.getStringsToMask()) {
+          data = data.replace("\"" + stringToMask + "\"", "\""+CONFIDENTIAL_INFORMATION_MASK+"\"");
+        }
+
+        logger.debug("Writing to server: {}", data);
       }
 
       synchronized (writer) {

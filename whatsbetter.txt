@@ -5,3 +5,6 @@
 * Better looking
 * Improved usability
 * Different sounds for different notifications
+* IPv6 compatible
+* Higher code quality with focus on maintainability; more readable, better documented, less duplications, better structured, less confusion
+* Improved logging (log rotation, decent log levels)

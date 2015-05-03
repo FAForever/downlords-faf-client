@@ -1,7 +1,7 @@
 package com.faforever.client.games;
 
 import com.faforever.client.legacy.message.GameInfoMessage;
-import com.faforever.client.legacy.message.GameStatus;
+import com.faforever.client.legacy.message.GameState;
 import com.faforever.client.legacy.message.GameType;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
@@ -31,7 +31,7 @@ public class GameInfoBean {
   private ObjectProperty<Integer> maxRanking;
   private ObjectProperty<Integer> numPlayers;
   private ObjectProperty<Integer> maxPlayers;
-  private ObjectProperty<GameStatus> status;
+  private ObjectProperty<GameState> status;
   private ObjectProperty<GameType> gameType;
   private ObjectProperty<BigDecimal> gameTime;
   private ListProperty<Boolean> options;
@@ -157,11 +157,11 @@ public class GameInfoBean {
     return maxPlayers;
   }
 
-  public GameStatus getStatus() {
+  public GameState getStatus() {
     return status.get();
   }
 
-  public ObjectProperty<GameStatus> statusProperty() {
+  public ObjectProperty<GameState> statusProperty() {
     return status;
   }
 

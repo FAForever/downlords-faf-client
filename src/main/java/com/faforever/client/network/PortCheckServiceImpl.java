@@ -23,7 +23,7 @@ public class PortCheckServiceImpl implements PortCheckService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int REQUEST_DELAY = 1000;
-  private static final int TIMEOUT = 50000;
+  private static final int TIMEOUT = 5000;
   private static final String EXPECTED_ANSWER = "OK";
 
   @Autowired

@@ -34,7 +34,6 @@ import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
@@ -236,12 +235,13 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
 
   public void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchMessage> callback) {
     ClientMessage clientMessage = ClientMessage.hostGame(
-        StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PRIVATE,
+        StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
         newGameInfo.getMap(),
         newGameInfo.getTitle(),
         preferencesService.getPreferences().getForgedAlliance().getPort(),
-        new HashMap<>(),
-        newGameInfo.getMod()
+        new boolean[0],
+        newGameInfo.getMod(),
+        newGameInfo.getPassword()
     );
 
     gameLaunchCallback = callback;

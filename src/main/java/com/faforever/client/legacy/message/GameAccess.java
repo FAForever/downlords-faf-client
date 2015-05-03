@@ -2,7 +2,7 @@ package com.faforever.client.legacy.message;
 
 public enum GameAccess {
   PUBLIC("public"),
-  PRIVATE("private");
+  PASSWORD("password");
 
   private String string;
 

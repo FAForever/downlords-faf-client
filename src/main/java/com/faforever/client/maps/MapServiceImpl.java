@@ -29,13 +29,21 @@ public class MapServiceImpl implements MapService {
   PreferencesService preferencesService;
 
   @Override
-  @Cacheable("mapPreview")
-  public Image loadPreview(String mapname) {
+  @Cacheable("smallMapPreview")
+  public Image loadSmallPreview(String mapName) {
+    String url = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.small"));
 
-    String baseUrl = environment.getProperty("vault.mapPreviewUrl.small");
-    String url = StringEscapeUtils.escapeHtml4(String.format(baseUrl, mapname));
+    logger.debug("Fetching small preview for map {} from {}", mapName, url);
 
-    logger.debug("Fetching preview for map {} from {}", mapname, url);
+    return new Image(url, true);
+  }
+
+  @Override
+  @Cacheable("largeMapPreview")
+  public Image loadLargePreview(String mapName) {
+    String url = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.large"));
+
+    logger.debug("Fetching large preview for map {} from {}", mapName, url);
 
     return new Image(url, true);
   }
@@ -54,5 +62,9 @@ public class MapServiceImpl implements MapService {
     }
 
     return maps;
+  }
+
+  private static String getMapUrl(String mapName, String baseUrl) {
+    return StringEscapeUtils.escapeHtml4(String.format(baseUrl, mapName));
   }
 }

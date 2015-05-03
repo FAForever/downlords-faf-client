@@ -4,7 +4,7 @@ import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
 import com.faforever.client.legacy.message.GameInfoMessage;
 import com.faforever.client.legacy.message.GameLaunchMessage;
-import com.faforever.client.legacy.message.GameStatus;
+import com.faforever.client.legacy.message.GameState;
 import com.faforever.client.legacy.message.GameType;
 import com.faforever.client.legacy.message.OnFafLoginSucceededListener;
 import com.faforever.client.legacy.message.OnGameInfoMessageListener;
@@ -49,7 +49,7 @@ class ServerReader {
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .registerTypeAdapter(GameType.class, new GameTypeTypeAdapter())
-        .registerTypeAdapter(GameStatus.class, new GameStateTypeAdapter())
+        .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
         .create();
   }
 

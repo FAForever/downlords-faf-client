@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collections;
+import java.util.List;
 
 public enum PongMessage implements ServerWritable {
   INSTANCE;
@@ -14,7 +16,7 @@ public enum PongMessage implements ServerWritable {
   }
 
   @Override
-  public boolean isConfidential() {
-    return false;
+  public List<String> getStringsToMask() {
+    return Collections.emptyList();
   }
 }

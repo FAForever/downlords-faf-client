@@ -9,7 +9,10 @@ public class UserInfoWindowFactoryImpl implements UserInfoWindowFactory {
   FxmlLoader fxmlLoader;
 
   @Override
-  public UserInfoWindow create() {
-    return fxmlLoader.loadAndGetController("user_info_window.fxml");
+  public UserInfoWindowController create(PlayerInfoBean playerInfoBean) {
+    UserInfoWindowController controller = fxmlLoader.loadAndGetController("user_info_window.fxml");
+    controller.setPlayerInfoBean(playerInfoBean);
+    return controller;
   }
 }
+

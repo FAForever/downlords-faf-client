@@ -6,7 +6,8 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Field;
-import java.util.Map;
+import java.util.Collections;
+import java.util.List;
 
 public class ClientMessage implements ServerWritable {
 
@@ -52,15 +53,17 @@ public class ClientMessage implements ServerWritable {
     return clientMessage;
   }
 
-  public static ClientMessage hostGame(GameAccess gameAccess, String mapname, String title, int port, Map<String, Boolean> options, String mod) {
+  public static ClientMessage hostGame(GameAccess gameAccess, String mapName, String title, int port, boolean[] options, String mod, String password) {
     ClientMessage clientMessage = new ClientMessage();
     clientMessage.command = "game_host";
     clientMessage.access = gameAccess.getString();
-    clientMessage.mapname = mapname;
+    clientMessage.mapname = mapName;
     clientMessage.title = title;
     clientMessage.gameport = port;
-    clientMessage.options = options;
     clientMessage.mod = mod;
+    clientMessage.password = password;
+    clientMessage.options = options;
+
     return clientMessage;
   }
 
@@ -84,7 +87,7 @@ public class ClientMessage implements ServerWritable {
   private String title;
   private String state;
   private Integer gameport;
-  private Map<String, Boolean> options;
+  private boolean[] options;
   private String mod;
 
   public void write(Gson gson, Writer writer) throws IOException {
@@ -92,8 +95,12 @@ public class ClientMessage implements ServerWritable {
   }
 
   @Override
-  public boolean isConfidential() {
-    return password != null;
+  public List<String> getStringsToMask() {
+    if (password == null) {
+      return Collections.emptyList();
+    }
+
+    return Collections.singletonList(password);
   }
 
   private JsonWriter fixedJsonWriter(Writer writer) {

@@ -7,10 +7,9 @@ import com.faforever.client.legacy.ModInfoMessage;
 import com.faforever.client.legacy.OnModInfoMessageListener;
 import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.legacy.message.GameInfoMessage;
-import com.faforever.client.legacy.message.GameStatus;
+import com.faforever.client.legacy.message.GameState;
 import com.faforever.client.legacy.message.OnGameInfoMessageListener;
 import com.faforever.client.maps.MapService;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
 import javafx.application.Platform;
 import javafx.beans.binding.ObjectBinding;
@@ -22,7 +21,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
@@ -68,9 +66,6 @@ public class GamesController implements OnGameInfoMessageListener, OnModInfoMess
   Label gameModeLabel;
 
   @FXML
-  ListView modsListView;
-
-  @FXML
   Button joinGameButton;
 
   @FXML
@@ -86,13 +81,13 @@ public class GamesController implements OnGameInfoMessageListener, OnModInfoMess
   TableColumn<GameInfoBean, String> playersColumn;
 
   @FXML
-  TableColumn<GameInfoBean, String> mapNameColumn;
+  TableColumn<GameInfoBean, Label> mapNameColumn;
 
   @FXML
   TableColumn<GameInfoBean, String> rankingColumn;
 
   @FXML
-  TableColumn<GameInfoBean, GameStatus> gameStatusColumn;
+  TableColumn<GameInfoBean, GameState> gameStatusColumn;
 
   @FXML
   Button createGameButton;
@@ -104,13 +99,7 @@ public class GamesController implements OnGameInfoMessageListener, OnModInfoMess
   ServerAccessor serverAccessor;
 
   @Autowired
-  PreferencesService preferencesService;
-
-  @Autowired
   I18n i18n;
-
-  @Autowired
-  FxmlLoader fxmlLoader;
 
   @Autowired
   SceneFactory sceneFactory;
@@ -120,6 +109,9 @@ public class GamesController implements OnGameInfoMessageListener, OnModInfoMess
 
   @Autowired
   MapService mapService;
+
+  @Autowired
+  FxmlLoader fxmlLoader;
 
   private ObservableMap<Integer, GameInfoBean> gameInfoBeans;
 
@@ -156,17 +148,16 @@ public class GamesController implements OnGameInfoMessageListener, OnModInfoMess
       }
     });
 
-    mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell());
+    mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(fxmlLoader));
     mapPreviewColumn.setCellValueFactory(param -> new ObjectBinding<Image>() {
       @Override
       protected Image computeValue() {
-        return mapService.loadPreview(param.getValue().getMapName());
+        return mapService.loadSmallPreview(param.getValue().getMapName());
       }
     });
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
     playersColumn.setCellValueFactory(param -> new NumberOfPlayersBinding(i18n, param.getValue().numPlayersProperty(), param.getValue().maxPlayersProperty()));
-    mapNameColumn.setCellValueFactory(param -> param.getValue().mapNameProperty());
     rankingColumn.setCellValueFactory(param -> new StringBinding() {
       @Override
       protected String computeValue() {
@@ -182,13 +173,11 @@ public class GamesController implements OnGameInfoMessageListener, OnModInfoMess
   }
 
   private void displayGameDetail(GameInfoBean gameInfoBean) {
-    mapImageView.setImage(mapService.loadPreview(gameInfoBean.getMapName()));
+    mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapName()));
     gameTitleLabel.setText(gameInfoBean.getTitle());
     numberOfPlayersLabel.setText(String.format(i18n.get("game.detail.players.format"), gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     hosterLabel.setText(gameInfoBean.getHost());
     gameModeLabel.setText(gameInfoBean.getFeaturedMod());
-
-
   }
 
   public void onCreateGameButtonClicked(ActionEvent actionEvent) {
@@ -249,7 +238,7 @@ public class GamesController implements OnGameInfoMessageListener, OnModInfoMess
   @Override
   public void onGameInfoMessage(GameInfoMessage gameInfoMessage) {
     Platform.runLater(() -> {
-      if (!GameStatus.OPEN.equals(gameInfoMessage.state)) {
+      if (!GameState.OPEN.equals(gameInfoMessage.state)) {
         gameInfoBeans.remove(gameInfoMessage.uid);
         return;
       }

@@ -22,10 +22,6 @@ public class QDataOutputStream extends Writer {
     this.charset = charset;
   }
 
-  public void writeQString(String value) throws IOException {
-    dataOutput.writeChars(value);
-  }
-
   @Override
   public void write(char[] cbuf, int off, int len) throws IOException {
     dataOutput.write(new String(cbuf).getBytes(charset), off, len);
@@ -43,7 +39,7 @@ public class QDataOutputStream extends Writer {
     }
   }
 
-  public void writeQInt(int value) throws IOException {
+  public void writeInt(int value) throws IOException {
     dataOutput.writeInt(value);
   }
 
@@ -53,5 +49,9 @@ public class QDataOutputStream extends Writer {
 
   public void writeBoolean(boolean value) throws IOException {
     dataOutput.writeBoolean(value);
+  }
+
+  public void writeShort(int uid) throws IOException {
+    dataOutput.writeShort(uid);
   }
 }

@@ -17,17 +17,22 @@ public enum RelayServerCommand {
   JOIN_PROXY("JoinProxy");
 
   private static final Map<String, RelayServerCommand> fromString;
-  private String string;
-
-  RelayServerCommand(String string) {
-    this.string = string;
-  }
 
   static {
     fromString = new HashMap<>(values().length, 1);
     for (RelayServerCommand relayServerCommand : values()) {
       fromString.put(relayServerCommand.string, relayServerCommand);
     }
+  }
+
+  private String string;
+
+  RelayServerCommand(String string) {
+    this.string = string;
+  }
+
+  public String getString() {
+    return string;
   }
 
   public static RelayServerCommand fromString(String string) {

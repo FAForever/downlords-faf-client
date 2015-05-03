@@ -9,6 +9,8 @@ import com.faforever.client.chat.ChatUserControlFactory;
 import com.faforever.client.chat.ChatUserControlFactoryImpl;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.CountryFlagServiceImpl;
+import com.faforever.client.chat.UserInfoWindowFactory;
+import com.faforever.client.chat.UserInfoWindowFactoryImpl;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
 import com.faforever.client.fxml.FxmlLoader;
@@ -102,6 +104,11 @@ public class UiConfig {
   CreateGameDialogFactory createGameDialogFactory() { return new CreateGameDialogFactoryImpl(); }
 
   @Bean
+  UserInfoWindowFactory userInfoWindowFactory() {
+    return new UserInfoWindowFactoryImpl();
+  }
+
+  @Bean
   FxmlLoader fxmlLoader() {
     FxmlLoaderImpl fxmlLoader = new FxmlLoaderImpl(baseConfig.messageSource(), baseConfig.locale());
     fxmlLoader.setTheme(baseConfig.preferencesService().getPreferences().getTheme());
@@ -114,7 +121,8 @@ public class UiConfig {
     cacheManager.setCaches(Arrays.asList(
         new ConcurrentMapCache("avatars"),
         new ConcurrentMapCache("countryFlags"),
-        new ConcurrentMapCache("mapPreview")
+        new ConcurrentMapCache("smallMapPreview"),
+        new ConcurrentMapCache("largeMapPreview")
     ));
     return cacheManager;
   }

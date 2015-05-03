@@ -27,9 +27,9 @@
          <items>
           <TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
             <columns>
-              <TableColumn fx:id="mapPreviewColumn" prefWidth="75.0" visible="false" />
               <TableColumn fx:id="gameTitleColumn" prefWidth="75.0" text="%game.title" />
               <TableColumn fx:id="playersColumn" prefWidth="75.0" text="%game.players" />
+              <TableColumn fx:id="mapPreviewColumn" prefWidth="75.0" />
               <TableColumn fx:id="mapNameColumn" prefWidth="75.0" text="%game.map" />
               <TableColumn fx:id="rankingColumn" prefWidth="75.0" text="%game.ranking" />
               <TableColumn fx:id="gameStatusColumn" prefWidth="75.0" text="game.status" />
@@ -42,7 +42,7 @@
                <children>
                   <HBox alignment="CENTER">
                      <children>
-                        <ImageView fx:id="mapImageView" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fx:id="mapImageView" fitHeight="256.0" fitWidth="256.0" pickOnBounds="true" preserveRatio="true">
                            <HBox.margin>
                               <Insets bottom="10.0" />
                            </HBox.margin>
