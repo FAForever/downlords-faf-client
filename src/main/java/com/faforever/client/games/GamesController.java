@@ -227,6 +227,23 @@ public class GamesController implements OnGameInfoMessageListener, OnModInfoMess
 
   }
 
+  @FXML
+  void onJoinGameButtonClicked(ActionEvent event) {
+    GameInfoBean gameInfoBean = gamesTable.getSelectionModel().getSelectedItem();
+    gameService.joinGame(gameInfoBean, new Callback<Void>() {
+      @Override
+      public void success(Void result) {
+        // cool.
+      }
+
+      @Override
+      public void error(Throwable e) {
+        // FIXME implement
+        logger.warn("Game could not be hosted", e);
+      }
+    });
+  }
+
   private static String extractRating(String title) {
     Matcher matcher = RATING_PATTERN.matcher(title);
     if (matcher.find()) {

@@ -10,4 +10,6 @@ public interface GameService {
   void addOnGameInfoListener(OnGameInfoMessageListener listener);
 
   void hostGame(NewGameInfo name, Callback<Void> callback);
+
+  void joinGame(GameInfoBean gameInfoBean, Callback<Void> callback);
 }

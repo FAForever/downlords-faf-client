@@ -67,6 +67,16 @@ public class ClientMessage implements ServerWritable {
     return clientMessage;
   }
 
+  public static ClientMessage joinGame(int uid, int port, String password) {
+    ClientMessage clientMessage = new ClientMessage();
+    clientMessage.command = "game_join";
+    clientMessage.uid = uid;
+    clientMessage.password = password;
+    clientMessage.gameport = port;
+
+    return clientMessage;
+  }
+
   public static ClientMessage askSession(String username) {
     ClientMessage clientMessage = new ClientMessage();
     clientMessage.command = "ask_session";
@@ -89,6 +99,7 @@ public class ClientMessage implements ServerWritable {
   private Integer gameport;
   private boolean[] options;
   private String mod;
+  private int uid;
 
   public void write(Gson gson, Writer writer) throws IOException {
     gson.toJson(this, ClientMessage.class, fixedJsonWriter(writer));

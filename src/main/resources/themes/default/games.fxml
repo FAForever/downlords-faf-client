@@ -16,7 +16,7 @@
    <children>
     <HBox alignment="BASELINE_RIGHT" maxWidth="-Infinity" spacing="10.0">
          <children>
-            <CheckBox mnemonicParsing="false" selected="true" text="%games.showPrivateGames" onAction="#onShowPrivateGames" />
+            <CheckBox mnemonicParsing="false" onAction="#onShowPrivateGames" selected="true" text="%games.showPrivateGames" />
             <Button fx:id="createGameButton" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" text="%games.create" />
          </children>
          <padding>
@@ -61,7 +61,7 @@
                         <Insets top="10.0" />
                      </VBox.margin>
                   </Label>
-                  <Button fx:id="joinGameButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%game.join">
+                  <Button fx:id="joinGameButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onJoinGameButtonClicked" text="%game.join">
                      <VBox.margin>
                         <Insets top="10.0" />
                      </VBox.margin></Button>

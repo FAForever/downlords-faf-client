@@ -1,5 +1,6 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.games.GameInfoBean;
 import com.faforever.client.games.NewGameInfo;
 import com.faforever.client.legacy.message.ClientMessage;
 import com.faforever.client.legacy.message.GameAccess;
@@ -245,6 +246,25 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
     );
 
     gameLaunchCallback = callback;
+    writeToServerInBackground(clientMessage);
+  }
+
+  public void requestJoinGame(GameInfoBean gameInfoBean, String password, Callback<GameLaunchMessage> callback) {
+    ClientMessage clientMessage = ClientMessage.joinGame(
+        gameInfoBean.getUid(),
+        preferencesService.getPreferences().getForgedAlliance().getPort(),
+        password);
+
+    gameLaunchCallback = callback;
+    writeToServerInBackground(clientMessage);
+  }
+
+  @Override
+  public void onGameLaunchMessage(GameLaunchMessage gameLaunchMessage) {
+    gameLaunchCallback.success(gameLaunchMessage);
+  }
+
+  private void writeToServerInBackground(final ClientMessage clientMessage) {
     executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
@@ -252,11 +272,6 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
         return null;
       }
     });
-  }
-
-  @Override
-  public void onGameLaunchMessage(GameLaunchMessage gameLaunchMessage) {
-    gameLaunchCallback.success(gameLaunchMessage);
   }
 
   public void notifyGameStarted() {

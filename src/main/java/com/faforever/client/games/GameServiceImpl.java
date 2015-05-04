@@ -44,7 +44,18 @@ public class GameServiceImpl implements GameService {
 
   @Override
   public void hostGame(NewGameInfo newGameInfo, Callback<Void> callback) {
-    serverAccessor.requestNewGame(newGameInfo, new Callback<GameLaunchMessage>() {
+    serverAccessor.requestNewGame(newGameInfo, gameLaunchCallback(callback));
+  }
+
+  @Override
+  public void joinGame(GameInfoBean gameInfoBean, Callback<Void> callback) {
+    // FIXME implement
+    String password = "test";
+    serverAccessor.requestJoinGame(gameInfoBean, password, gameLaunchCallback(callback));
+  }
+
+  private Callback<GameLaunchMessage> gameLaunchCallback(final Callback<Void> callback) {
+    return new Callback<GameLaunchMessage>() {
       @Override
       public void success(GameLaunchMessage gameLaunchMessage) {
         List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
@@ -64,7 +75,7 @@ public class GameServiceImpl implements GameService {
         // FIXME implement
         logger.warn("Could not create game", e);
       }
-    });
+    };
   }
 
   private void waitForProcessTerminationInBackground(Process process) {
