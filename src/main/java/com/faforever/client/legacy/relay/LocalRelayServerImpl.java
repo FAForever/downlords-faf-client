@@ -167,15 +167,9 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
       case BOTTLENECK_CLEARED:
         proxyServer.setBottleneck(false);
         break;
-      case PONG:
-        logger.warn("Server sent PONG which is unhandled");
-        break;
-      case UNKNOWN:
-        logger.warn("Ignoring unknown ");
-        break;
 
       default:
-        throw new IllegalStateException("Known but unhandled relay server action: " + action);
+        // Do nothing
     }
   }
 

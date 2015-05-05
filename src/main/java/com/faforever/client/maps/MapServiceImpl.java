@@ -17,6 +17,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 public class MapServiceImpl implements MapService {
 
@@ -46,6 +47,22 @@ public class MapServiceImpl implements MapService {
     logger.debug("Fetching large preview for map {} from {}", mapName, url);
 
     return new Image(url, true);
+  }
+
+  @Override
+  public List<MapInfoBean> getMapsFromVault(int page) {
+    List<MapInfoBean> maps = FXCollections.observableArrayList();
+
+//    try {
+//      String mapQueryUrl = environment.getProperty("vault.mapQueryUrl");
+//
+//      List<? extends NameValuePair> parameters = new ArrayList<>();
+//
+//      URLEncodedUtils.format(parameters, StandardCharsets.UTF_8);
+//    } catch (MalformedURLException e) {
+//      throw new RuntimeException(e);
+//    }
+    return maps;
   }
 
   @Override

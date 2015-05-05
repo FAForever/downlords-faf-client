@@ -23,6 +23,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class ServerWriter implements Closeable {
 
@@ -82,7 +83,8 @@ public class ServerWriter implements Closeable {
       byte[] byteArray = byteArrayOutputStream.toByteArray();
 
       if (logger.isDebugEnabled()) {
-        String data = new String(byteArray, StandardCharsets.UTF_16BE);
+        // Remove the first 4 bytes which contain the length of the following data
+        String data = new String(Arrays.copyOfRange(byteArray, 4, byteArray.length), StandardCharsets.UTF_16BE);
 
         for (String stringToMask : serverWritable.getStringsToMask()) {
           data = data.replace("\"" + stringToMask + "\"", "\""+CONFIDENTIAL_INFORMATION_MASK+"\"");

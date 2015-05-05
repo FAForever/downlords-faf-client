@@ -54,7 +54,7 @@ public class GameServiceImpl implements GameService {
     serverAccessor.requestJoinGame(gameInfoBean, password, gameLaunchCallback(callback));
   }
 
-  private Callback<GameLaunchMessage> gameLaunchCallback(final Callback<Void> callback) {
+    private Callback<GameLaunchMessage> gameLaunchCallback(final Callback<Void> callback) {
     return new Callback<GameLaunchMessage>() {
       @Override
       public void success(GameLaunchMessage gameLaunchMessage) {

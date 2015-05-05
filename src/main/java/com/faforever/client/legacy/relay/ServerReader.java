@@ -104,12 +104,11 @@ class ServerReader implements Closeable {
         handleJoinProxy(command, args);
         break;
       default:
-        throw new IllegalStateException("Command is know but unhandled: " + relayServerCommand);
+        throw new IllegalStateException("Command is known but unhandled: " + relayServerCommand);
     }
   }
 
   private void handlePing() {
-    logger.debug("Received ping from server, answering pong");
     serverWriter.write(RelayClientMessage.pong());
   }
 

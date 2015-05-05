@@ -1,5 +1,7 @@
 package com.faforever.client.supcom;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -111,7 +113,7 @@ public class LaunchCommandBuilder {
         "/nobugreport"
     ));
 
-    if (clan != null) {
+    if (StringUtils.isNotEmpty(clan)) {
       command.add("/clan");
       command.add(clan);
     }

@@ -8,3 +8,5 @@
 * IPv6 compatible
 * Higher code quality with focus on maintainability; more readable, better documented, less duplications, better structured, less confusion
 * Improved logging (log rotation, decent log levels)
+* When creating a game, any map from the vault can be selected (not just installed ones)
+* Map vault is MUCH more user friendly

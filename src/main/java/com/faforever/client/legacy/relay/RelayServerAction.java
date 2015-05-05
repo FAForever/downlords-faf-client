@@ -17,8 +17,10 @@ public enum RelayServerAction {
   GAME_OPTION("GameOption"),
   GAME_MODS("GameMods"),
   PLAYER_OPTION("PlayerOption"),
-  PONG("pong"),
-  UNKNOWN(null);
+  DISCONNECT_FROM_PEER("DisconnectFromPeer"),
+  CONNECTED_TO_HOST("connectedToHost"),
+  CHAT("Chat"),
+  PONG("pong");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -33,8 +35,7 @@ public enum RelayServerAction {
   public static RelayServerAction fromString(String string) {
     RelayServerAction action = fromString.get(string);
     if (action == null) {
-      logger.warn("Unknown relay server action: {}", string);
-      return UNKNOWN;
+      throw new IllegalArgumentException("Unknown relay server action: " + action);
     }
     return action;
   }
