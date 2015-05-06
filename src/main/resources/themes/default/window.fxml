@@ -12,7 +12,7 @@
   <children>
     <AnchorPane fx:id="contentPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 
-    <HBox fx:id="windowButtons" alignment="TOP_RIGHT" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="1.0">
+    <HBox fx:id="windowButtons" alignment="TOP_RIGHT">
       <children>
 
         <Button fx:id="minimizeButton" onAction="#onMinimizeButtonClicked" styleClass="window-button" />

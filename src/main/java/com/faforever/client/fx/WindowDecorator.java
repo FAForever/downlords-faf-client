@@ -131,10 +131,7 @@ public class WindowDecorator {
     AnchorPane.setBottomAnchor(contentPane, RESIZE_BORDER_WIDTH);
     AnchorPane.setLeftAnchor(contentPane, RESIZE_BORDER_WIDTH);
 
-    AnchorPane.setTopAnchor(windowButtons, 1d);
     AnchorPane.setRightAnchor(windowButtons, RESIZE_BORDER_WIDTH);
-    AnchorPane.setBottomAnchor(windowButtons, RESIZE_BORDER_WIDTH);
-    AnchorPane.setLeftAnchor(windowButtons, RESIZE_BORDER_WIDTH);
   }
 
   public void maximize() {
@@ -155,11 +152,7 @@ public class WindowDecorator {
     AnchorPane.setBottomAnchor(contentPane, 0d);
     AnchorPane.setLeftAnchor(contentPane, 0d);
 
-    AnchorPane.setTopAnchor(windowButtons, 0d);
     AnchorPane.setRightAnchor(windowButtons, 0d);
-    AnchorPane.setBottomAnchor(windowButtons, 0d);
-    AnchorPane.setLeftAnchor(windowButtons, 0d);
-
   }
 
   public Parent getWindowRoot() {
@@ -186,7 +179,6 @@ public class WindowDecorator {
   }
 
   public void onMouseMoved(MouseEvent event) {
-    System.out.println("Mouse moved on " + event.getTarget());
     if (!resizable) {
       return;
     }

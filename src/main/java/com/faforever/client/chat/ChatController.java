@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.legacy.OnFriendListListener;
+import com.faforever.client.legacy.OnFriendAndFoeListListener;
 import com.faforever.client.legacy.OnPlayerInfoListener;
 import com.faforever.client.legacy.domain.FriendAndFoeLists;
 import com.faforever.client.legacy.domain.PlayerInfo;
@@ -27,7 +27,7 @@ public class ChatController implements
     OnUserListListener,
     OnPlayerInfoListener,
     OnUserLeftListener,
-    OnFriendListListener{
+    OnFriendAndFoeListListener {
 
   @Autowired
   ChatService chatService;
@@ -144,7 +144,10 @@ public class ChatController implements
 
   @Override
   public void onFriendAndFoeList(FriendAndFoeLists friendAndFoeLists) {
-//    for (Object friend : friendList.friends) {
+//    for (Object friend : friendAndFoeLists.friends) {
+//
+//    }
+//    for (Object friend : friendAndFoeLists.foes) {
 //
 //    }
   }

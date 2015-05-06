@@ -45,7 +45,7 @@ class ServerReader {
   private OnGameLaunchInfoListener onGameLaunchInfoListenerListener;
   private OnFafLoginSucceededListener onFafLoginSucceededListener;
   private OnModInfoListener onModInfoListener;
-  private OnFriendListListener onFriendListListener;
+  private OnFriendAndFoeListListener onFriendAndFoeListListener;
 
   public ServerReader(Socket socket) {
     this.socket = socket;
@@ -164,7 +164,7 @@ class ServerReader {
 
         case SOCIAL:
           FriendAndFoeLists friendAndFoeLists = gson.fromJson(jsonString, FriendAndFoeLists.class);
-          onFriendListListener.onFriendAndFoeList(friendAndFoeLists);
+          onFriendAndFoeListListener.onFriendAndFoeList(friendAndFoeLists);
           logger.warn("Social command still unhandled: " + jsonString);
           break;
 
@@ -204,7 +204,7 @@ class ServerReader {
     this.onModInfoListener = onModInfoListener;
   }
 
-  public void setOnFriendListListener(OnFriendListListener onFriendListListener) {
-    this.onFriendListListener = onFriendListListener;
+  public void setOnFriendAndFoeListListener(OnFriendAndFoeListListener onFriendAndFoeListListener) {
+    this.onFriendAndFoeListListener = onFriendAndFoeListListener;
   }
 }

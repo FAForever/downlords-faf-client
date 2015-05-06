@@ -54,7 +54,7 @@
 /***************** Window *****************/
 
 .decorated-window {
-  border: 1px solid -secondary-color;
+  -fx-border-color: -secondary-color;
 }
 
 /***************** Menu *****************/

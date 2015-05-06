@@ -1,4 +1,4 @@
-* Reconnects after connection failure
+* Reconnects after connection failure for both, IRC and FAF server
 * Downloads map previews for unknown maps
 * Fast startup
 * Responsive
@@ -10,3 +10,4 @@
 * Improved logging (log rotation, decent log levels)
 * When creating a game, any map from the vault can be selected (not just installed ones)
 * Map vault is MUCH more user friendly
+* Users in chat are grouped into categories instead of magically sorted

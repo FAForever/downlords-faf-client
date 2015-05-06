@@ -38,7 +38,7 @@ import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 /**
  * Entry class for all communication with the FAF lobby server, be it reading or writing.
  */
-public class ServerAccessor implements OnSessionInfoListener, OnPingListener, OnPlayerInfoListener, OnGameInfoListener, OnFafLoginSucceededListener, OnModInfoListener, OnGameLaunchInfoListener, OnFriendListListener {
+public class ServerAccessor implements OnSessionInfoListener, OnPingListener, OnPlayerInfoListener, OnGameInfoListener, OnFafLoginSucceededListener, OnModInfoListener, OnGameLaunchInfoListener, OnFriendAndFoeListListener {
 
   public interface OnLobbyConnectingListener {
 
@@ -76,7 +76,7 @@ public class ServerAccessor implements OnSessionInfoListener, OnPingListener, On
   private Collection<OnPlayerInfoListener> onPlayerInfoListeners;
   private Collection<OnGameInfoListener> onGameInfoListeners;
   private Collection<OnModInfoListener> onModInfoListeners;
-  private Collection<OnFriendListListener> onFriendListListeners;
+  private Collection<OnFriendAndFoeListListener> onFriendAndFoeListListeners;
 
   // Yes I know, those aren't lists. They will become if it's necessary
   private OnLobbyConnectingListener onLobbyConnectingListener;
@@ -87,7 +87,7 @@ public class ServerAccessor implements OnSessionInfoListener, OnPingListener, On
     onPlayerInfoListeners = new ArrayList<>();
     onGameInfoListeners = new ArrayList<>();
     onModInfoListeners = new ArrayList<>();
-    onFriendListListeners = new ArrayList<>();
+    onFriendAndFoeListListeners = new ArrayList<>();
   }
 
   /**
@@ -165,7 +165,7 @@ public class ServerAccessor implements OnSessionInfoListener, OnPingListener, On
     serverReader.setOnFafLoginSucceededListener(this);
     serverReader.setOnModInfoListener(this);
     serverReader.setOnGameLaunchInfoListenerListener(this);
-    serverReader.setOnFriendListListener(this);
+    serverReader.setOnFriendAndFoeListListener(this);
     serverReader.blockingRead();
   }
 
@@ -232,7 +232,7 @@ public class ServerAccessor implements OnSessionInfoListener, OnPingListener, On
 
   @Override
   public void onFriendAndFoeList(FriendAndFoeLists friendAndFoeLists) {
-    for (OnFriendListListener listener : onFriendListListeners) {
+    for (OnFriendAndFoeListListener listener : onFriendAndFoeListListeners) {
       Platform.runLater(() -> listener.onFriendAndFoeList(friendAndFoeLists));
     }
   }
@@ -241,8 +241,8 @@ public class ServerAccessor implements OnSessionInfoListener, OnPingListener, On
     onGameInfoListeners.add(listener);
   }
 
-  public void addOnFriendListListener(OnFriendListListener listener) {
-    onFriendListListeners.add(listener);
+  public void addOnFriendAndFoeListListener(OnFriendAndFoeListListener listener) {
+    onFriendAndFoeListListeners.add(listener);
   }
 
   public void addOnPlayerInfoMessageListener(OnPlayerInfoListener listener) {
