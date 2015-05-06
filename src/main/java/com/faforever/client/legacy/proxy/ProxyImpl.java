@@ -1,6 +1,5 @@
 package com.faforever.client.legacy.proxy;
 
-import com.faforever.client.legacy.Peer;
 import com.faforever.client.legacy.QDataOutputStream;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ConcurrentUtil;
@@ -64,17 +63,17 @@ public class ProxyImpl implements Proxy {
   private static final char MESSAGE_REQUEST_TAG_CONFIRMATION = 0x0B;
 
   /**
-   * This byte marks a "decline" message.
+   * This byte marks a "decline" domain.
    */
   private static final byte MESSAGE_DECLINE = 0x03;
 
   /**
-   * This byte marks a "ack" message.
+   * This byte marks a "ack" domain.
    */
   private static final byte MESSAGE_ACKNOWLEDGE = 0x02;
 
   /**
-   * This yte marks a "connect by intermediary" message. (Description copied from python code) This is needed for "UDP
+   * This yte marks a "connect by intermediary" domain. (Description copied from python code) This is needed for "UDP
    * hole punching". In a situation where the disconnected peer attempts to reconnect to a peer whose NAT requires UDP
    * hole punching the reconnect would fail, because no hole has been punched for the new IP address. But in this case
    * the disconnected peer does not require hole punching, because otherwise p2p udp channel would not have been
@@ -83,20 +82,20 @@ public class ProxyImpl implements Proxy {
    * old and good connections. the peer that needs to initiate the udp hole punch gets the new IP:port via this third
    * peer. this does not work in a 1v1 where the peer that does not require hole punching gets disconnected though (that
    * special case requires another third party: the server and an additional mechanism). the same failure happens in a
-   * XvX where the disconnected peer is the only one that did not require hole punching the format of this message is
-   * the same as for the reconnect message and the tag is the same as it would be in the reconnect message. on the
-   * second leg, when the third party forwards this reconnect-by-intermediary message it includes the originator IP:port
-   * of this message in its reconnect-by-intermediary-2 message
+   * XvX where the disconnected peer is the only one that did not require hole punching the format of this domain is
+   * the same as for the reconnect domain and the tag is the same as it would be in the reconnect domain. on the
+   * second leg, when the third party forwards this reconnect-by-intermediary domain it includes the originator IP:port
+   * of this domain in its reconnect-by-intermediary-2 domain
    */
   private static final byte MESSAGE_RECONNECT_BY_INTERMEDIARY = 0x11;
 
   /**
-   * This byte marks a reconnect message that has been forwarded by an intermediary peer.
+   * This byte marks a reconnect domain that has been forwarded by an intermediary peer.
    */
   private static final byte MESSAGE_RECONNECT_BY_INTERMEDIARY_2 = 0x012;
 
   /**
-   * This byte marks a "reconnect request" message. Such a message doesn't contain any additional information.
+   * This byte marks a "reconnect request" domain. Such a domain doesn't contain any additional information.
    */
   private static final byte MESSAGE_RECONNECT_REQUEST = 0x017;
   private static final int IPV4_BEGIN_INDEX = 24;
@@ -168,7 +167,7 @@ public class ProxyImpl implements Proxy {
       @Override
       protected Void call() throws Exception {
         if (p2pProxyEnabled && lastProxyDataTimestamp + PROXY_UPDATE_INTERVAL < System.currentTimeMillis()) {
-          // TODO improve log message
+          // TODO improve log domain
           logger.info("Reconnecting to proxy due to no data");
 
           proxySocket.close();
@@ -186,7 +185,7 @@ public class ProxyImpl implements Proxy {
           int port = peerProxySocket.getPort();
           if (testedLoopbackPorts.contains(port)) {
             testedLoopbackPorts.add(port);
-            // TODO useful logging message is useful?
+            // TODO useful logging domain is useful?
             logger.debug("Forwarding packet to proxy");
           }
 

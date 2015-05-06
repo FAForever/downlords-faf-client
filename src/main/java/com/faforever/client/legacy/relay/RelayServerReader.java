@@ -26,7 +26,7 @@ import java.util.List;
 import static com.faforever.client.legacy.relay.RelayServerCommand.CONNECT_TO_PEER;
 import static com.faforever.client.legacy.relay.RelayServerCommand.JOIN_GAME;
 
-class ServerReader implements Closeable {
+class RelayServerReader implements Closeable {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -39,7 +39,7 @@ class ServerReader implements Closeable {
   private boolean stopped;
   private boolean p2pProxyEnabled;
 
-  public ServerReader(InputStream inputStream, Proxy proxyServer, FaDataOutputStream faOutputStream, ServerWriter serverWriter) {
+  public RelayServerReader(InputStream inputStream, Proxy proxyServer, FaDataOutputStream faOutputStream, ServerWriter serverWriter) {
     this.inputStream = inputStream;
     this.proxyServer = proxyServer;
     this.faOutputStream = faOutputStream;
@@ -47,6 +47,7 @@ class ServerReader implements Closeable {
 
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+        .registerTypeAdapter(RelayServerCommand.class, new RelayServerCommandTypeAdapter())
         .create();
   }
 
@@ -67,18 +68,8 @@ class ServerReader implements Closeable {
     }
   }
 
-  private void dispatchServerCommand(String command, List<Object> args) throws IOException {
-    RelayServerCommand relayServerCommand = RelayServerCommand.fromString(command);
-
-    if (relayServerCommand == null) {
-      logger.debug("Command '{}' is unknown, putting it straight trough", command, args);
-
-      // No special server command, put it straight through
-      write(command, args);
-      return;
-    }
-
-    switch (relayServerCommand) {
+  private void dispatchServerCommand(RelayServerCommand command, List<Object> args) throws IOException {
+    switch (command) {
       case PING:
         handlePing();
         break;
@@ -103,8 +94,9 @@ class ServerReader implements Closeable {
       case JOIN_PROXY:
         handleJoinProxy(command, args);
         break;
+
       default:
-        throw new IllegalStateException("Command is known but unhandled: " + relayServerCommand);
+        throw new IllegalStateException("Unhandled relay server command: " + command);
     }
   }
 
@@ -112,7 +104,7 @@ class ServerReader implements Closeable {
     serverWriter.write(RelayClientMessage.pong());
   }
 
-  private void handleSendNatPacket(String command, List<Object> args) throws IOException {
+  private void handleSendNatPacket(RelayServerCommand command, List<Object> args) throws IOException {
     if (p2pProxyEnabled) {
       String publicAddress = (String) args.get(0);
 
@@ -129,7 +121,7 @@ class ServerReader implements Closeable {
     p2pProxyEnabled = true;
   }
 
-  private void handleJoinGame(String command, List<Object> args) throws IOException {
+  private void handleJoinGame(RelayServerCommand command, List<Object> args) throws IOException {
     if (p2pProxyEnabled) {
       String peerAddress = (String) args.get(0);
       int peerUid = extractInt(args.get(2));
@@ -148,11 +140,11 @@ class ServerReader implements Closeable {
     return ((Double) object).intValue();
   }
 
-  private void handleConnectToPeer(String command, List<Object> args) throws IOException {
+  private void handleConnectToPeer(RelayServerCommand command, List<Object> args) throws IOException {
     handleJoinGame(command, args);
   }
 
-  private void handleCreateLobby(String command, List<Object> args) throws IOException {
+  private void handleCreateLobby(RelayServerCommand command, List<Object> args) throws IOException {
     int peerUid = extractInt(args.get(3));
     proxyServer.setUid(peerUid);
 
@@ -163,7 +155,7 @@ class ServerReader implements Closeable {
     write(command, args);
   }
 
-  private void handleConnectToProxy(String command, List<Object> args) throws IOException {
+  private void handleConnectToProxy(RelayServerCommand command, List<Object> args) throws IOException {
     int port = extractInt(args.get(0));
     String login = (String) args.get(2);
     int uid = extractInt(args.get(3));
@@ -176,10 +168,10 @@ class ServerReader implements Closeable {
         uid
     );
 
-    write(CONNECT_TO_PEER.getString(), newArgs);
+    write(CONNECT_TO_PEER, newArgs);
   }
 
-  private void handleJoinProxy(String command, List<Object> args) throws IOException {
+  private void handleJoinProxy(RelayServerCommand command, List<Object> args) throws IOException {
     int port = extractInt(args.get(0));
     String login = (String) args.get(2);
     int uid = extractInt(args.get(3));
@@ -192,13 +184,14 @@ class ServerReader implements Closeable {
         uid
     );
 
-    write(JOIN_GAME.getString(), newArgs);
-
+    write(JOIN_GAME, newArgs);
   }
 
-  private void writeUdp(String command, List<Object> chunks) throws IOException {
-    int headerSize = command.length();
-    String headerField = command.replace("\t", "/t").replace("\n", "/n");
+  private void writeUdp(RelayServerCommand command, List<Object> chunks) throws IOException {
+    String commandString = command.getString();
+
+    int headerSize = commandString.length();
+    String headerField = commandString.replace("\t", "/t").replace("\n", "/n");
 
     logger.debug("Writing data to FA, command: {}, chunks: {}", command, chunks);
 
@@ -208,9 +201,11 @@ class ServerReader implements Closeable {
     faOutputStream.flush();
   }
 
-  private void write(String command, List<Object> chunks) throws IOException {
-    int headerSize = command.length();
-    String headerField = command.replace("\t", "/t").replace("\n", "/n");
+  private void write(RelayServerCommand command, List<Object> chunks) throws IOException {
+    String commandString = command.getString();
+
+    int headerSize = commandString.length();
+    String headerField = commandString.replace("\t", "/t").replace("\n", "/n");
 
     logger.debug("Writing data to FA, command: {}, chunks: {}", command, chunks);
 

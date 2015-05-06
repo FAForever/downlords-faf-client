@@ -1,8 +1,8 @@
 package com.faforever.client.user;
 
-import com.faforever.client.legacy.message.OnPlayerInfoMessageListener;
+import com.faforever.client.legacy.OnPlayerInfoListener;
 import com.faforever.client.legacy.ServerAccessor;
-import com.faforever.client.legacy.message.PlayerInfoMessage;
+import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 
-public class UserServiceImpl implements UserService, OnPlayerInfoMessageListener {
+public class UserServiceImpl implements UserService, OnPlayerInfoListener {
 
   @Autowired
   ServerAccessor serverAccessor;
@@ -84,12 +84,12 @@ public class UserServiceImpl implements UserService, OnPlayerInfoMessageListener
   }
 
   @Override
-  public void onPlayerInfoMessage(PlayerInfoMessage playerInfoMessage) {
-    if (username.equals(playerInfoMessage.login)) {
-      this.clan = playerInfoMessage.clan;
-      this.country = playerInfoMessage.country;
-      this.deviation = playerInfoMessage.ratingDeviation;
-      this.mean = playerInfoMessage.ratingMean;
+  public void onPlayerInfo(PlayerInfo playerInfo) {
+    if (username.equals(playerInfo.login)) {
+      this.clan = playerInfo.clan;
+      this.country = playerInfo.country;
+      this.deviation = playerInfo.ratingDeviation;
+      this.mean = playerInfo.ratingMean;
     }
   }
 }

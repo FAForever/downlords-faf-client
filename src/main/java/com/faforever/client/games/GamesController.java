@@ -3,12 +3,12 @@ package com.faforever.client.games;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.ModInfoMessage;
-import com.faforever.client.legacy.OnModInfoMessageListener;
+import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.legacy.OnModInfoListener;
 import com.faforever.client.legacy.ServerAccessor;
-import com.faforever.client.legacy.message.GameInfoMessage;
-import com.faforever.client.legacy.message.GameState;
-import com.faforever.client.legacy.message.OnGameInfoMessageListener;
+import com.faforever.client.legacy.domain.GameInfo;
+import com.faforever.client.legacy.domain.GameState;
+import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.maps.MapService;
 import com.faforever.client.util.Callback;
 import javafx.application.Platform;
@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 
-public class GamesController implements OnGameInfoMessageListener, OnModInfoMessageListener, CreateGameDialogController.OnCreateGameListener {
+public class GamesController implements OnGameInfoListener, OnModInfoListener, CreateGameDialogController.OnCreateGameListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -253,28 +253,28 @@ public class GamesController implements OnGameInfoMessageListener, OnModInfoMess
   }
 
   @Override
-  public void onGameInfoMessage(GameInfoMessage gameInfoMessage) {
+  public void onGameInfo(GameInfo gameInfo) {
     Platform.runLater(() -> {
-      if (!GameState.OPEN.equals(gameInfoMessage.state)) {
-        gameInfoBeans.remove(gameInfoMessage.uid);
+      if (!GameState.OPEN.equals(gameInfo.state)) {
+        gameInfoBeans.remove(gameInfo.uid);
         return;
       }
 
-      if (!gameInfoBeans.containsKey(gameInfoMessage.uid)) {
-        gameInfoBeans.put(gameInfoMessage.uid, new GameInfoBean(gameInfoMessage));
+      if (!gameInfoBeans.containsKey(gameInfo.uid)) {
+        gameInfoBeans.put(gameInfo.uid, new GameInfoBean(gameInfo));
       } else {
-        gameInfoBeans.get(gameInfoMessage.uid).updateFromGameInfo(gameInfoMessage);
+        gameInfoBeans.get(gameInfo.uid).updateFromGameInfo(gameInfo);
       }
     });
   }
 
   @Override
-  public void onModInfoMessage(ModInfoMessage modInfoMessage) {
-    if (!modInfoMessage.host || !modInfoMessage.live || modInfoBeans.containsKey(modInfoMessage.name)) {
+  public void onModInfo(ModInfo modInfo) {
+    if (!modInfo.host || !modInfo.live || modInfoBeans.containsKey(modInfo.name)) {
       return;
     }
 
-    modInfoBeans.put(modInfoMessage.name, new ModInfoBean(modInfoMessage));
+    modInfoBeans.put(modInfo.name, new ModInfoBean(modInfo));
   }
 
   public void configure(Stage stage) {

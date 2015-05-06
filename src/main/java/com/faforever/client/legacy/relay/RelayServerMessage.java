@@ -3,13 +3,17 @@ package com.faforever.client.legacy.relay;
 import java.util.List;
 
 /**
- * Represents a message received from the relay server.
+ * Represents a message received from the relay server (deserialized from JSON).
  */
 public class RelayServerMessage {
 
-  // This is the actual "command"
-  public String key;
+  /**
+   * Contains the command to execute, but the server sends it as "key".
+   */
+  public RelayServerCommand key;
 
-  // Actually, this is a list of arguments, but having non-sense names makes everything easier
+  /**
+   * Contains the arguments, but the server thinks it's cool to confuse us by calling it "commands".
+   */
   public List<Object> commands;
 }

@@ -20,7 +20,7 @@ public class QStreamWriter extends Writer {
     out.write(new String(cbuf).substring(off, len).getBytes(CHARSET));
   }
 
-  public QStreamWriter appendQString(CharSequence csq) throws IOException {
+  public QStreamWriter appendString(CharSequence csq) throws IOException {
     if (csq == null) {
       append(new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,});
       return this;
@@ -41,15 +41,15 @@ public class QStreamWriter extends Writer {
   }
 
   public QStreamWriter append(byte[] bytes) throws IOException {
-    writeInt(bytes.length);
+    writeInt32(bytes.length);
     out.write(bytes);
     return this;
   }
 
-  public final void writeInt(int v) throws IOException {
+  public final void writeInt32(int v) throws IOException {
     out.write((v >>> 24) & 0xFF);
     out.write((v >>> 16) & 0xFF);
     out.write((v >>> 8) & 0xFF);
-    out.write((v >>> 0) & 0xFF);
+    out.write(v & 0xFF);
   }
 }

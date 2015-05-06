@@ -1,4 +1,4 @@
-package com.faforever.client.legacy.message;
+package com.faforever.client.legacy.domain;
 
 public enum GameAccess {
   PUBLIC("public"),

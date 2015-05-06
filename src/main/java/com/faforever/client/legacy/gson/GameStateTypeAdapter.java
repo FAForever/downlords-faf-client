@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.gson;
 
-import com.faforever.client.legacy.message.GameState;
+import com.faforever.client.legacy.domain.GameState;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -20,10 +20,6 @@ public class GameStateTypeAdapter extends TypeAdapter<GameState> {
 
   @Override
   public GameState read(JsonReader in) throws IOException {
-    String gameState = in.nextString();
-    if ("unknown".equals(gameState)) {
-      return GameState.UNKNOWN;
-    }
-    return GameState.fromString(gameState);
+    return GameState.fromString(in.nextString());
   }
 }

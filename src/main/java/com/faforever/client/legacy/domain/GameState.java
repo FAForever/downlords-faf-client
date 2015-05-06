@@ -1,4 +1,4 @@
-package com.faforever.client.legacy.message;
+package com.faforever.client.legacy.domain;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +9,7 @@ import java.util.Map;
 
 public enum GameState {
 
-  UNKNOWN(null),
+  UNKNOWN("unknown"),
   PLAYING("playing"),
   OPEN("open"),
   CLOSED("closed"), ;

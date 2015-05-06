@@ -1,10 +1,10 @@
-package com.faforever.client.legacy.message;
+package com.faforever.client.legacy.domain;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-public class GameInfoMessage extends ServerMessage {
+public class GameInfo extends ServerObject {
 
   public String host;
   public Integer uid;

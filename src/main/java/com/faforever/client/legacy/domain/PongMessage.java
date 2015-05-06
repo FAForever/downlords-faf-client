@@ -1,4 +1,4 @@
-package com.faforever.client.legacy.message;
+package com.faforever.client.legacy.domain;
 
 import com.google.gson.Gson;
 

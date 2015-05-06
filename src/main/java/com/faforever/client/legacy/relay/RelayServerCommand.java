@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Enumeration of known server commands (the "command" part of a server message).
+ * Enumeration of known server commands (the "command" part of a server domain).
  */
 public enum RelayServerCommand {
   PING("ping"),
@@ -36,7 +36,14 @@ public enum RelayServerCommand {
   }
 
   public static RelayServerCommand fromString(String string) {
-    return fromString.get(string);
+    RelayServerCommand relayServerCommand = fromString.get(string);
+    if (relayServerCommand == null) {
+      /*
+       * If an unknown command is received, ignoring it would probably cause the application to enter an unknown state.
+       * So it's better to crash right now so there's no doubt that something went wrong.
+       */
+      throw new IllegalArgumentException("Unknown relay server command: " + string);
+    }
+    return relayServerCommand;
   }
-
 }

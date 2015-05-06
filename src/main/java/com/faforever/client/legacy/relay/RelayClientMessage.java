@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.relay;
 
-import com.faforever.client.legacy.message.ServerWritable;
+import com.faforever.client.legacy.domain.ServerWritable;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonWriter;
 
@@ -13,7 +13,7 @@ import java.util.List;
 import static com.faforever.client.legacy.relay.RelayServerAction.PONG;
 
 /**
- * Represents a message that can be sent to the FAF relay server. The message is serialized to JSON in a strict format
+ * Represents a domain that can be sent to the FAF relay server. The domain is serialized to JSON in a strict format
  * that is readable by the server.
  */
 public class RelayClientMessage implements ServerWritable {

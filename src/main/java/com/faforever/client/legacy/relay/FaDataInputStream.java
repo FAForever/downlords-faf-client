@@ -10,6 +10,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Reads data from Forged Alliance (the game, not the lobby).
+ */
 public class FaDataInputStream extends InputStream {
 
   private static final int MAX_CHUNK_SIZE = 100;

@@ -1,8 +1,8 @@
 package com.faforever.client.player;
 
-import com.faforever.client.legacy.message.OnPlayerInfoMessageListener;
+import com.faforever.client.legacy.OnPlayerInfoListener;
 
 public interface PlayerService {
 
-  void addOnPlayerInfoListener(OnPlayerInfoMessageListener listener);
+  void addOnPlayerInfoListener(OnPlayerInfoListener listener);
 }

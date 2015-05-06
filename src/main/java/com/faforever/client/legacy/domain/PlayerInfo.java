@@ -1,8 +1,8 @@
-package com.faforever.client.legacy.message;
+package com.faforever.client.legacy.domain;
 
 import java.util.Map;
 
-public class PlayerInfoMessage extends ServerMessage {
+public class PlayerInfo extends ServerObject {
 
   public String clan;
   public String login;

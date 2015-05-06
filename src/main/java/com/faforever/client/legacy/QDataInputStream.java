@@ -40,7 +40,7 @@ public class QDataInputStream extends Reader {
     }
   }
 
-  public int readQInt() throws IOException {
+  public int readInt32() throws IOException {
     return dataInput.readInt();
   }
 

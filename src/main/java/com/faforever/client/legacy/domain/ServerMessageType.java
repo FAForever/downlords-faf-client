@@ -1,4 +1,4 @@
-package com.faforever.client.legacy.message;
+package com.faforever.client.legacy.domain;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -2,13 +2,13 @@ package com.faforever.client.fx;
 
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
-import javafx.scene.control.Menu;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -20,7 +20,9 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 
-import static com.faforever.client.fx.WindowDecorator.WindowButtonType.*;
+import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
+import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
+import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
 public class WindowDecorator {
 
@@ -37,16 +39,11 @@ public class WindowDecorator {
     WEST,
   }
 
-  public static final int RESIZE_BORDER_WIDTH = 5;
-
-  @FXML
-  Pane resizePane;
+  public static final double RESIZE_BORDER_WIDTH = 7d;
+  public static final String PROPERTY_WINDOW_DECORATOR = "windowDecorator";
 
   @FXML
   AnchorPane contentPane;
-
-  @FXML
-  Menu menuButton;
 
   @FXML
   Button minimizeButton;
@@ -63,10 +60,14 @@ public class WindowDecorator {
   @FXML
   AnchorPane windowRoot;
 
+  @FXML
+  Pane windowButtons;
+
   private Stage stage;
   private boolean resizable;
   private Point2D dragOffset;
   private EnumSet<ResizeDirection> resizeDirections;
+  private boolean isResizing;
 
   @FXML
   void onMinimizeButtonClicked(ActionEvent actionEvent) {
@@ -96,33 +97,11 @@ public class WindowDecorator {
     closeButton.managedProperty().bind(closeButton.visibleProperty());
   }
 
-  private void restore() {
-    maximizeButton.setVisible(true);
-    restoreButton.setVisible(false);
-    stage.setMaximized(false);
-  }
-
-  public void maximize() {
-    Rectangle2D visualBounds = getVisualBounds(stage);
-
-    stage.setWidth(visualBounds.getWidth());
-    stage.setHeight(visualBounds.getHeight());
-    stage.setX(visualBounds.getMinX());
-    stage.setY(visualBounds.getMinY());
-    maximizeButton.setVisible(false);
-    restoreButton.setVisible(true);
-    stage.setMaximized(true);
-  }
-
-  public Parent getWindowRoot() {
-    return windowRoot;
-  }
-
   public void configure(Stage stage, Parent content, boolean resizable, WindowButtonType... buttons) {
     this.stage = stage;
     this.resizable = resizable;
 
-    stage.getProperties().put("windowDecorator", this);
+    stage.getProperties().put(PROPERTY_WINDOW_DECORATOR, this);
 
     List<WindowButtonType> buttonList = Arrays.asList(buttons);
 
@@ -142,6 +121,51 @@ public class WindowDecorator {
     windowRoot.requestLayout();
   }
 
+  private void restore() {
+    maximizeButton.setVisible(true);
+    restoreButton.setVisible(false);
+
+    stage.setMaximized(false);
+    AnchorPane.setTopAnchor(contentPane, RESIZE_BORDER_WIDTH);
+    AnchorPane.setRightAnchor(contentPane, RESIZE_BORDER_WIDTH);
+    AnchorPane.setBottomAnchor(contentPane, RESIZE_BORDER_WIDTH);
+    AnchorPane.setLeftAnchor(contentPane, RESIZE_BORDER_WIDTH);
+
+    AnchorPane.setTopAnchor(windowButtons, 1d);
+    AnchorPane.setRightAnchor(windowButtons, RESIZE_BORDER_WIDTH);
+    AnchorPane.setBottomAnchor(windowButtons, RESIZE_BORDER_WIDTH);
+    AnchorPane.setLeftAnchor(windowButtons, RESIZE_BORDER_WIDTH);
+  }
+
+  public void maximize() {
+    Rectangle2D visualBounds = getVisualBounds(stage);
+
+    stage.setWidth(visualBounds.getWidth());
+    stage.setHeight(visualBounds.getHeight());
+    stage.setX(visualBounds.getMinX());
+    stage.setY(visualBounds.getMinY());
+
+    maximizeButton.setVisible(false);
+    restoreButton.setVisible(true);
+
+    stage.setMaximized(true);
+
+    AnchorPane.setTopAnchor(contentPane, 0d);
+    AnchorPane.setRightAnchor(contentPane, 0d);
+    AnchorPane.setBottomAnchor(contentPane, 0d);
+    AnchorPane.setLeftAnchor(contentPane, 0d);
+
+    AnchorPane.setTopAnchor(windowButtons, 0d);
+    AnchorPane.setRightAnchor(windowButtons, 0d);
+    AnchorPane.setBottomAnchor(windowButtons, 0d);
+    AnchorPane.setLeftAnchor(windowButtons, 0d);
+
+  }
+
+  public Parent getWindowRoot() {
+    return windowRoot;
+  }
+
   private void configureResizability(Stage stage) {
     resizeDirections = EnumSet.noneOf(ResizeDirection.class);
 
@@ -154,19 +178,20 @@ public class WindowDecorator {
       return;
     }
 
-    maximizeButton.setVisible(!stage.isMaximized());
-    restoreButton.setVisible(stage.isMaximized());
+    if (stage.isMaximized()) {
+      maximize();
+    } else {
+      restore();
+    }
   }
 
-  public void updateResizeCursor(MouseEvent event) {
-    if (event.getSource() != resizePane) {
-      throw new IllegalStateException("Resize event must only be fired by element with ID resizePane");
-    }
+  public void onMouseMoved(MouseEvent event) {
+    System.out.println("Mouse moved on " + event.getTarget());
     if (!resizable) {
       return;
     }
     if (stage.isMaximized()) {
-      resizePane.setCursor(Cursor.DEFAULT);
+      windowRoot.setCursor(Cursor.DEFAULT);
       return;
     }
 
@@ -195,17 +220,40 @@ public class WindowDecorator {
       resizeDirections.add(ResizeDirection.WEST);
       cursorName.append('W');
     }
+    if (cursorName.length() == 0) {
+      windowRoot.setCursor(Cursor.DEFAULT);
+      return;
+    }
 
-    resizePane.setCursor(Cursor.cursor(cursorName.append("_RESIZE").toString()));
+    windowRoot.setCursor(Cursor.cursor(cursorName.append("_RESIZE").toString()));
   }
 
-  public void onDragStarted(MouseEvent event) {
+  public void onMousePressed(MouseEvent event) {
+    if (isOnResizeBorder(event)) {
+      isResizing = true;
+    }
+
     dragOffset = new Point2D(event.getScreenX() - stage.getX(), event.getScreenY() - stage.getY());
     event.consume();
   }
 
-  public void onWindowDrag(MouseEvent event) {
-    if (event.getTarget() == resizePane) {
+  private boolean isOnResizeBorder(MouseEvent event) {
+    return event.getY() > stage.getHeight() - RESIZE_BORDER_WIDTH
+        || event.getY() < RESIZE_BORDER_WIDTH
+        || event.getX() > stage.getWidth() - RESIZE_BORDER_WIDTH
+        || event.getX() < RESIZE_BORDER_WIDTH;
+  }
+
+  public void onMouseDragged(MouseEvent event) {
+    if (isResizing) {
+      onWindowResize(event);
+    } else {
+      onWindowMove(event);
+    }
+  }
+
+  private void onWindowMove(MouseEvent event) {
+    if (event.getTarget() == windowRoot) {
       return;
     }
     if (stage.isMaximized()) {
@@ -220,14 +268,7 @@ public class WindowDecorator {
     event.consume();
   }
 
-  public void onWindowResize(MouseEvent event) {
-    if (event.getTarget() != resizePane) {
-      return;
-    }
-    if (!resizable) {
-      return;
-    }
-
+  private void onWindowResize(MouseEvent event) {
     final double oldX = stage.getX();
     final double oldY = stage.getY();
     double newHeight = stage.getHeight();
@@ -255,14 +296,6 @@ public class WindowDecorator {
     event.consume();
   }
 
-  public void onStartWindowResize(MouseEvent event) {
-    if (event.getTarget() != resizePane) {
-      return;
-    }
-    dragOffset = new Point2D(event.getScreenX() - stage.getX(), event.getScreenY() - stage.getY());
-    event.consume();
-  }
-
   public void onMouseClicked(MouseEvent event) {
     if (event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2 && resizable) {
       if (stage.isMaximized()) {
@@ -271,6 +304,10 @@ public class WindowDecorator {
         maximize();
       }
     }
+  }
+
+  public void onMouseReleased(Event event) {
+    isResizing = false;
   }
 
   public static Rectangle2D getVisualBounds(Stage stage) {

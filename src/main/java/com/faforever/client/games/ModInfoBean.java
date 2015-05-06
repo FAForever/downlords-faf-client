@@ -1,6 +1,6 @@
 package com.faforever.client.games;
 
-import com.faforever.client.legacy.ModInfoMessage;
+import com.faforever.client.legacy.domain.ModInfo;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -10,10 +10,10 @@ public class ModInfoBean {
   private StringProperty fullName;
   private StringProperty description;
 
-  public ModInfoBean(ModInfoMessage modInfoMessage) {
-    name = new SimpleStringProperty(modInfoMessage.name);
-    fullName = new SimpleStringProperty(modInfoMessage.fullname);
-    description = new SimpleStringProperty(modInfoMessage.desc);
+  public ModInfoBean(ModInfo modInfo) {
+    name = new SimpleStringProperty(modInfo.name);
+    fullName = new SimpleStringProperty(modInfo.fullname);
+    description = new SimpleStringProperty(modInfo.desc);
   }
 
   public String getName() {

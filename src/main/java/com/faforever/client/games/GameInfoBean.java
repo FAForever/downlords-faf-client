@@ -1,8 +1,8 @@
 package com.faforever.client.games;
 
-import com.faforever.client.legacy.message.GameInfoMessage;
-import com.faforever.client.legacy.message.GameState;
-import com.faforever.client.legacy.message.GameType;
+import com.faforever.client.legacy.domain.GameInfo;
+import com.faforever.client.legacy.domain.GameState;
+import com.faforever.client.legacy.domain.GameType;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
@@ -39,42 +39,42 @@ public class GameInfoBean {
   private MapProperty<String, List<String>> teams;
   private MapProperty<String, Integer> featuredModVersions;
 
-  public GameInfoBean(GameInfoMessage gameInfoMessage) {
-    uid = new SimpleObjectProperty<>(gameInfoMessage.uid);
-    host = new SimpleStringProperty(gameInfoMessage.host);
-    title = new SimpleStringProperty(StringEscapeUtils.unescapeHtml4(gameInfoMessage.title));
-    access = new SimpleStringProperty(gameInfoMessage.access);
-    mapName = new SimpleStringProperty(gameInfoMessage.mapname);
-    featuredMod = new SimpleStringProperty(gameInfoMessage.featuredMod);
-    minRanking = new SimpleObjectProperty<>(gameInfoMessage.minRanking);
-    maxRanking = new SimpleObjectProperty<>(gameInfoMessage.maxRanking);
-    numPlayers = new SimpleObjectProperty<>(gameInfoMessage.numPlayers);
-    maxPlayers = new SimpleObjectProperty<>(gameInfoMessage.maxPlayers);
-    gameType = new SimpleObjectProperty<>(gameInfoMessage.gameType);
-    gameTime = new SimpleObjectProperty<>(gameInfoMessage.gameTime);
-    options = new SimpleListProperty<>(FXCollections.observableArrayList(gameInfoMessage.options));
-    simMods = new SimpleMapProperty<>(FXCollections.observableMap(gameInfoMessage.simMods));
-    teams = new SimpleMapProperty<>(FXCollections.observableMap(gameInfoMessage.teams));
-    featuredModVersions = new SimpleMapProperty<>(FXCollections.observableMap(gameInfoMessage.featuredModVersions));
+  public GameInfoBean(GameInfo gameInfo) {
+    uid = new SimpleObjectProperty<>(gameInfo.uid);
+    host = new SimpleStringProperty(gameInfo.host);
+    title = new SimpleStringProperty(StringEscapeUtils.unescapeHtml4(gameInfo.title));
+    access = new SimpleStringProperty(gameInfo.access);
+    mapName = new SimpleStringProperty(gameInfo.mapname);
+    featuredMod = new SimpleStringProperty(gameInfo.featuredMod);
+    minRanking = new SimpleObjectProperty<>(gameInfo.minRanking);
+    maxRanking = new SimpleObjectProperty<>(gameInfo.maxRanking);
+    numPlayers = new SimpleObjectProperty<>(gameInfo.numPlayers);
+    maxPlayers = new SimpleObjectProperty<>(gameInfo.maxPlayers);
+    gameType = new SimpleObjectProperty<>(gameInfo.gameType);
+    gameTime = new SimpleObjectProperty<>(gameInfo.gameTime);
+    options = new SimpleListProperty<>(FXCollections.observableArrayList(gameInfo.options));
+    simMods = new SimpleMapProperty<>(FXCollections.observableMap(gameInfo.simMods));
+    teams = new SimpleMapProperty<>(FXCollections.observableMap(gameInfo.teams));
+    featuredModVersions = new SimpleMapProperty<>(FXCollections.observableMap(gameInfo.featuredModVersions));
   }
 
-  public void updateFromGameInfo(GameInfoMessage gameInfoMessage) {
-    uid.set(gameInfoMessage.uid);
-    host.set(gameInfoMessage.host);
-    title.set(StringEscapeUtils.unescapeHtml4(gameInfoMessage.title));
-    access.set(gameInfoMessage.access);
-    mapName.set(gameInfoMessage.mapname);
-    featuredMod.set(gameInfoMessage.featuredMod);
-    minRanking.set(gameInfoMessage.minRanking);
-    maxRanking.set(gameInfoMessage.maxRanking);
-    numPlayers.set(gameInfoMessage.numPlayers);
-    maxPlayers.set(gameInfoMessage.maxPlayers);
-    gameType.set(gameInfoMessage.gameType);
-    gameTime.set(gameInfoMessage.gameTime);
-    options.setAll(gameInfoMessage.options);
-    simMods.putAll(gameInfoMessage.simMods);
-    teams.putAll(gameInfoMessage.teams);
-    featuredModVersions.putAll(gameInfoMessage.featuredModVersions);
+  public void updateFromGameInfo(GameInfo gameInfo) {
+    uid.set(gameInfo.uid);
+    host.set(gameInfo.host);
+    title.set(StringEscapeUtils.unescapeHtml4(gameInfo.title));
+    access.set(gameInfo.access);
+    mapName.set(gameInfo.mapname);
+    featuredMod.set(gameInfo.featuredMod);
+    minRanking.set(gameInfo.minRanking);
+    maxRanking.set(gameInfo.maxRanking);
+    numPlayers.set(gameInfo.numPlayers);
+    maxPlayers.set(gameInfo.maxPlayers);
+    gameType.set(gameInfo.gameType);
+    gameTime.set(gameInfo.gameTime);
+    options.setAll(gameInfo.options);
+    simMods.putAll(gameInfo.simMods);
+    teams.putAll(gameInfo.teams);
+    featuredModVersions.putAll(gameInfo.featuredModVersions);
   }
 
   public int getUid() {

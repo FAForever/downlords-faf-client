@@ -12,12 +12,12 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="TOP_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.games.GamesController">
+<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.games.GamesController">
    <children>
-    <HBox alignment="BASELINE_RIGHT" maxWidth="-Infinity" spacing="10.0">
+    <HBox alignment="BASELINE_LEFT" maxWidth="-Infinity" spacing="10.0">
          <children>
-            <CheckBox mnemonicParsing="false" onAction="#onShowPrivateGames" selected="true" text="%games.showPrivateGames" />
             <Button fx:id="createGameButton" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" text="%games.create" />
+            <CheckBox mnemonicParsing="false" onAction="#onShowPrivateGames" selected="true" text="%games.showPrivateGames" />
          </children>
          <padding>
             <Insets bottom="10.0" />

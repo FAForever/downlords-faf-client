@@ -51,6 +51,12 @@
 
 }
 
+/***************** Window *****************/
+
+.decorated-window {
+  border: 1px solid -secondary-color;
+}
+
 /***************** Menu *****************/
 
 .menu-bar {
@@ -59,7 +65,7 @@
 .menu-bar:hover {
   -fx-background-color: -accent-color;
 }
-#menuButton {
+.menu-button {
   -fx-background-image: url('images/menu.png');
   -fx-background-position: center;
   -fx-background-repeat: no-repeat;

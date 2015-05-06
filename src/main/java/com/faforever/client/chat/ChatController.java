@@ -1,7 +1,9 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.legacy.message.OnPlayerInfoMessageListener;
-import com.faforever.client.legacy.message.PlayerInfoMessage;
+import com.faforever.client.legacy.OnFriendListListener;
+import com.faforever.client.legacy.OnPlayerInfoListener;
+import com.faforever.client.legacy.domain.FriendAndFoeLists;
+import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.BeanUpdatePolicy;
@@ -23,8 +25,9 @@ public class ChatController implements
     OnPrivateMessageListener,
     OnUserJoinedListener,
     OnUserListListener,
-    OnPlayerInfoMessageListener,
-    OnUserLeftListener {
+    OnPlayerInfoListener,
+    OnUserLeftListener,
+    OnFriendListListener{
 
   @Autowired
   ChatService chatService;
@@ -118,8 +121,8 @@ public class ChatController implements
   }
 
   @Override
-  public void onPlayerInfoMessage(PlayerInfoMessage playerInfoMessage) {
-    addOrUpdatePlayerInfo(new PlayerInfoBean(playerInfoMessage));
+  public void onPlayerInfo(PlayerInfo playerInfo) {
+    addOrUpdatePlayerInfo(new PlayerInfoBean(playerInfo));
   }
 
   private void addOrUpdatePlayerInfo(PlayerInfoBean playerInfoBean) {
@@ -137,5 +140,12 @@ public class ChatController implements
     for (ChannelTab channelTab : nameToChatTab.values()) {
       channelTab.onUserLeft(login);
     }
+  }
+
+  @Override
+  public void onFriendAndFoeList(FriendAndFoeLists friendAndFoeLists) {
+//    for (Object friend : friendList.friends) {
+//
+//    }
   }
 }

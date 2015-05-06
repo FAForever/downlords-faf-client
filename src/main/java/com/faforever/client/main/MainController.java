@@ -23,7 +23,7 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
-public class MainController implements ServerAccessor.OnFaConnectedListener, ServerAccessor.OnFaConnectingListener, ServerAccessor.OnFaDisconnectedListener {
+public class MainController implements ServerAccessor.OnLobbyConnectedListener, ServerAccessor.OnLobbyConnectingListener, ServerAccessor.OnLobbyDisconnectedListener {
 
   @FXML
   TabPane mainTabPane;
@@ -62,9 +62,9 @@ public class MainController implements ServerAccessor.OnFaConnectedListener, Ser
   private I18n i18n;
 
   public void display(Stage stage) {
-    serverAccessor.setOnFaConnectedListener(this);
-    serverAccessor.setOnFaConnectingListener(this);
-    serverAccessor.setOnFaDisconnectedListener(this);
+    serverAccessor.setOnFafConnectedListener(this);
+    serverAccessor.setOnLobbyConnectingListener(this);
+    serverAccessor.setOnLobbyDisconnectedListener(this);
 
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
 

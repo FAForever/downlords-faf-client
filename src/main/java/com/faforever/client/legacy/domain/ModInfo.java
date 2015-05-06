@@ -1,8 +1,8 @@
-package com.faforever.client.legacy;
+package com.faforever.client.legacy.domain;
 
-import com.faforever.client.legacy.message.ServerMessage;
+import com.faforever.client.legacy.domain.ServerObject;
 
-public class ModInfoMessage  extends ServerMessage{
+public class ModInfo extends ServerObject {
 
   public boolean join;
   public String name;

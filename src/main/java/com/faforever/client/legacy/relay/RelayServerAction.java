@@ -18,8 +18,9 @@ public enum RelayServerAction {
   GAME_MODS("GameMods"),
   PLAYER_OPTION("PlayerOption"),
   DISCONNECT_FROM_PEER("DisconnectFromPeer"),
-  CONNECTED_TO_HOST("connectedToHost"),
   CHAT("Chat"),
+  // Yes, these are lower-cased. Because fuck you.
+  CONNECTED_TO_HOST("connectedToHost"),
   PONG("pong");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());

@@ -1,8 +1,8 @@
 package com.faforever.client.games;
 
 import com.faforever.client.legacy.ServerAccessor;
-import com.faforever.client.legacy.message.GameLaunchMessage;
-import com.faforever.client.legacy.message.OnGameInfoMessageListener;
+import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
@@ -38,7 +38,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public void addOnGameInfoListener(OnGameInfoMessageListener listener) {
+  public void addOnGameInfoListener(OnGameInfoListener listener) {
     serverAccessor.addOnGameInfoMessageListener(listener);
   }
 
@@ -54,13 +54,13 @@ public class GameServiceImpl implements GameService {
     serverAccessor.requestJoinGame(gameInfoBean, password, gameLaunchCallback(callback));
   }
 
-    private Callback<GameLaunchMessage> gameLaunchCallback(final Callback<Void> callback) {
-    return new Callback<GameLaunchMessage>() {
+    private Callback<GameLaunchInfo> gameLaunchCallback(final Callback<Void> callback) {
+    return new Callback<GameLaunchInfo>() {
       @Override
-      public void success(GameLaunchMessage gameLaunchMessage) {
-        List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
+      public void success(GameLaunchInfo gameLaunchInfo) {
+        List<String> args = fixMalformedArgs(gameLaunchInfo.getArgs());
         try {
-          Process process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), args);
+          Process process = forgedAllianceService.startGame(gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), args);
           serverAccessor.notifyGameStarted();
           waitForProcessTerminationInBackground(process);
 

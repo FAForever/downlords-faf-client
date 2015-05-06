@@ -2,20 +2,17 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.games.GameInfoBean;
 import com.faforever.client.games.NewGameInfo;
-import com.faforever.client.legacy.message.ClientMessage;
-import com.faforever.client.legacy.message.GameAccess;
-import com.faforever.client.legacy.message.GameInfoMessage;
-import com.faforever.client.legacy.message.GameLaunchMessage;
-import com.faforever.client.legacy.message.OnFafLoginSucceededListener;
-import com.faforever.client.legacy.message.OnGameInfoMessageListener;
-import com.faforever.client.legacy.message.OnGameLaunchMessageListener;
-import com.faforever.client.legacy.message.OnPingMessageListener;
-import com.faforever.client.legacy.message.OnPlayerInfoMessageListener;
-import com.faforever.client.legacy.message.OnSessionInitiatedListener;
-import com.faforever.client.legacy.message.PlayerInfoMessage;
-import com.faforever.client.legacy.message.PongMessage;
-import com.faforever.client.legacy.message.ServerWritable;
-import com.faforever.client.legacy.message.WelcomeMessage;
+import com.faforever.client.legacy.domain.ClientMessage;
+import com.faforever.client.legacy.domain.FriendAndFoeLists;
+import com.faforever.client.legacy.domain.GameAccess;
+import com.faforever.client.legacy.domain.GameInfo;
+import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.legacy.domain.OnFafLoginSucceededListener;
+import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.legacy.domain.PongMessage;
+import com.faforever.client.legacy.domain.ServerWritable;
+import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
@@ -38,27 +35,30 @@ import java.util.Collection;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
-public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessageListener, OnPlayerInfoMessageListener, OnGameInfoMessageListener, OnFafLoginSucceededListener, OnModInfoMessageListener, OnGameLaunchMessageListener {
+/**
+ * Entry class for all communication with the FAF lobby server, be it reading or writing.
+ */
+public class ServerAccessor implements OnSessionInfoListener, OnPingListener, OnPlayerInfoListener, OnGameInfoListener, OnFafLoginSucceededListener, OnModInfoListener, OnGameLaunchInfoListener, OnFriendListListener {
 
-  public interface OnFaConnectingListener {
+  public interface OnLobbyConnectingListener {
 
     void onFaConnecting();
   }
 
-  public interface OnFaDisconnectedListener {
+  public interface OnLobbyDisconnectedListener {
 
     void onFaDisconnected();
   }
 
-  public interface OnFaConnectedListener {
+  public interface OnLobbyConnectedListener {
 
     void onFaConnected();
   }
 
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   private static final int VERSION = 123;
   private static final long RECONNECT_DELAY = 3000;
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Autowired
   Environment environment;
@@ -70,20 +70,24 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
   private String username;
   private String password;
   private String localIp;
-  private Callback<Void> loginCallback;
-  private Callback<GameLaunchMessage> gameLaunchCallback;
-  private Collection<OnPlayerInfoMessageListener> onPlayerInfoMessageListeners;
-  private Collection<OnGameInfoMessageListener> onGameInfoMessageListeners;
-  private Collection<OnModInfoMessageListener> onModInfoMessageListeners;
   private ServerWriter serverWriter;
-  private OnFaConnectingListener onFaConnectingListener;
-  private OnFaDisconnectedListener onFaDisconnectedListener;
-  private OnFaConnectedListener onFaConnectedListener;
+  private Callback<Void> loginCallback;
+  private Callback<GameLaunchInfo> gameLaunchCallback;
+  private Collection<OnPlayerInfoListener> onPlayerInfoListeners;
+  private Collection<OnGameInfoListener> onGameInfoListeners;
+  private Collection<OnModInfoListener> onModInfoListeners;
+  private Collection<OnFriendListListener> onFriendListListeners;
+
+  // Yes I know, those aren't lists. They will become if it's necessary
+  private OnLobbyConnectingListener onLobbyConnectingListener;
+  private OnLobbyDisconnectedListener onLobbyDisconnectedListener;
+  private OnLobbyConnectedListener onFafConnectedListener;
 
   public ServerAccessor() {
-    onPlayerInfoMessageListeners = new ArrayList<>();
-    onGameInfoMessageListeners = new ArrayList<>();
-    onModInfoMessageListeners = new ArrayList<>();
+    onPlayerInfoListeners = new ArrayList<>();
+    onGameInfoListeners = new ArrayList<>();
+    onModInfoListeners = new ArrayList<>();
+    onFriendListListeners = new ArrayList<>();
   }
 
   /**
@@ -109,8 +113,8 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
           Integer lobbyPort = environment.getProperty("lobby.port", int.class);
 
           logger.info("Trying to connect to FAF server at {}:{}", lobbyHost, lobbyPort);
-          if (onFaConnectingListener != null) {
-            Platform.runLater(onFaConnectingListener::onFaConnecting);
+          if (onLobbyConnectingListener != null) {
+            Platform.runLater(onLobbyConnectingListener::onFaConnecting);
           }
 
           try (Socket fafServerSocket = new Socket(lobbyHost, lobbyPort);
@@ -119,8 +123,8 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
             fafServerSocket.setKeepAlive(true);
 
             logger.info("FAF server connection established");
-            if (onFaConnectedListener != null) {
-              Platform.runLater(onFaConnectedListener::onFaConnected);
+            if (onFafConnectedListener != null) {
+              Platform.runLater(onFafConnectedListener::onFaConnected);
             }
 
             localIp = fafServerSocket.getLocalAddress().getHostAddress();
@@ -134,8 +138,8 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
             logger.warn("Lost connection to FAF server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
-            if (onFaDisconnectedListener != null) {
-              Platform.runLater(onFaDisconnectedListener::onFaDisconnected);
+            if (onLobbyDisconnectedListener != null) {
+              Platform.runLater(onLobbyDisconnectedListener::onFaDisconnected);
             }
             Thread.sleep(RECONNECT_DELAY);
           }
@@ -146,22 +150,27 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
     });
   }
 
+  private void writeToServer(ServerWritable serverWritable) {
+    serverWriter.write(serverWritable);
+  }
+
   private void blockingReadServer(Socket socket) throws IOException {
     JavaFxUtil.assertNotApplicationThread();
 
     ServerReader serverReader = new ServerReader(socket);
-    serverReader.setOnSessionInitiatedListener(this);
-    serverReader.setOnGameInfoMessageListener(this);
-    serverReader.setOnPingMessageListener(this);
-    serverReader.setOnPlayerInfoMessageListener(this);
+    serverReader.setOnSessionInfoListener(this);
+    serverReader.setOnGameInfoListener(this);
+    serverReader.setOnPingListener(this);
+    serverReader.setOnPlayerInfoListener(this);
     serverReader.setOnFafLoginSucceededListener(this);
-    serverReader.setOnModInfoMessageListener(this);
-    serverReader.setOnGameLaunchMessageListenerListener(this);
+    serverReader.setOnModInfoListener(this);
+    serverReader.setOnGameLaunchInfoListenerListener(this);
+    serverReader.setOnFriendListListener(this);
     serverReader.blockingRead();
   }
 
   @Override
-  public void onSessionInitiated(WelcomeMessage message) {
+  public void onSessionInitiated(SessionInfo message) {
     String session = message.session;
     this.uniqueId = UID.generate(session);
 
@@ -184,10 +193,6 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
     writeToServer(PongMessage.INSTANCE);
   }
 
-  private void writeToServer(ServerWritable serverWritable) {
-    serverWriter.write(serverWritable);
-  }
-
   @Override
   public void onFafLoginSucceeded() {
     logger.info("FAF login succeeded");
@@ -200,41 +205,52 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
     });
   }
 
-  public void addOnModInfoMessageListener(OnModInfoMessageListener listener) {
-    onModInfoMessageListeners.add(listener);
+  public void addOnModInfoMessageListener(OnModInfoListener listener) {
+    onModInfoListeners.add(listener);
   }
 
   @Override
-  public void onModInfoMessage(ModInfoMessage modInfoMessage) {
-    for (OnModInfoMessageListener listener : onModInfoMessageListeners) {
-      Platform.runLater(() -> listener.onModInfoMessage(modInfoMessage));
+  public void onModInfo(ModInfo modInfo) {
+    for (OnModInfoListener listener : onModInfoListeners) {
+      Platform.runLater(() -> listener.onModInfo(modInfo));
     }
   }
 
   @Override
-  public void onPlayerInfoMessage(PlayerInfoMessage playerInfoMessage) {
-    for (OnPlayerInfoMessageListener listener : onPlayerInfoMessageListeners) {
-      Platform.runLater(() -> listener.onPlayerInfoMessage(playerInfoMessage));
+  public void onPlayerInfo(PlayerInfo playerInfo) {
+    for (OnPlayerInfoListener listener : onPlayerInfoListeners) {
+      Platform.runLater(() -> listener.onPlayerInfo(playerInfo));
     }
   }
 
   @Override
-  public void onGameInfoMessage(GameInfoMessage gameInfoMessage) {
-    for (OnGameInfoMessageListener listener : onGameInfoMessageListeners) {
-      Platform.runLater(() -> listener.onGameInfoMessage(gameInfoMessage));
+  public void onGameInfo(GameInfo gameInfo) {
+    for (OnGameInfoListener listener : onGameInfoListeners) {
+      Platform.runLater(() -> listener.onGameInfo(gameInfo));
     }
   }
 
-  public void addOnGameInfoMessageListener(OnGameInfoMessageListener listener) {
-    onGameInfoMessageListeners.add(listener);
+  @Override
+  public void onFriendAndFoeList(FriendAndFoeLists friendAndFoeLists) {
+    for (OnFriendListListener listener : onFriendListListeners) {
+      Platform.runLater(() -> listener.onFriendAndFoeList(friendAndFoeLists));
+    }
   }
 
-  public void addOnPlayerInfoMessageListener(OnPlayerInfoMessageListener listener) {
-    onPlayerInfoMessageListeners.add(listener);
+  public void addOnGameInfoMessageListener(OnGameInfoListener listener) {
+    onGameInfoListeners.add(listener);
+  }
+
+  public void addOnFriendListListener(OnFriendListListener listener) {
+    onFriendListListeners.add(listener);
+  }
+
+  public void addOnPlayerInfoMessageListener(OnPlayerInfoListener listener) {
+    onPlayerInfoListeners.add(listener);
   }
 
 
-  public void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchMessage> callback) {
+  public void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchInfo> callback) {
     ClientMessage clientMessage = ClientMessage.hostGame(
         StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
         newGameInfo.getMap(),
@@ -249,21 +265,6 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
     writeToServerInBackground(clientMessage);
   }
 
-  public void requestJoinGame(GameInfoBean gameInfoBean, String password, Callback<GameLaunchMessage> callback) {
-    ClientMessage clientMessage = ClientMessage.joinGame(
-        gameInfoBean.getUid(),
-        preferencesService.getPreferences().getForgedAlliance().getPort(),
-        password);
-
-    gameLaunchCallback = callback;
-    writeToServerInBackground(clientMessage);
-  }
-
-  @Override
-  public void onGameLaunchMessage(GameLaunchMessage gameLaunchMessage) {
-    gameLaunchCallback.success(gameLaunchMessage);
-  }
-
   private void writeToServerInBackground(final ClientMessage clientMessage) {
     executeInBackground(new Task<Void>() {
       @Override
@@ -274,6 +275,21 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
     });
   }
 
+  public void requestJoinGame(GameInfoBean gameInfoBean, String password, Callback<GameLaunchInfo> callback) {
+    ClientMessage clientMessage = ClientMessage.joinGame(
+        gameInfoBean.getUid(),
+        preferencesService.getPreferences().getForgedAlliance().getPort(),
+        password);
+
+    gameLaunchCallback = callback;
+    writeToServerInBackground(clientMessage);
+  }
+
+  @Override
+  public void onGameLaunchInfo(GameLaunchInfo gameLaunchInfo) {
+    gameLaunchCallback.success(gameLaunchInfo);
+  }
+
   public void notifyGameStarted() {
     writeToServer(ClientMessage.gameStarted());
   }
@@ -282,15 +298,15 @@ public class ServerAccessor implements OnSessionInitiatedListener, OnPingMessage
     writeToServer(ClientMessage.gameTerminated());
   }
 
-  public void setOnFaConnectingListener(OnFaConnectingListener onFaConnectingListener) {
-    this.onFaConnectingListener = onFaConnectingListener;
+  public void setOnLobbyConnectingListener(OnLobbyConnectingListener onLobbyConnectingListener) {
+    this.onLobbyConnectingListener = onLobbyConnectingListener;
   }
 
-  public void setOnFaDisconnectedListener(OnFaDisconnectedListener onFaDisconnectedListener) {
-    this.onFaDisconnectedListener = onFaDisconnectedListener;
+  public void setOnLobbyDisconnectedListener(OnLobbyDisconnectedListener onLobbyDisconnectedListener) {
+    this.onLobbyDisconnectedListener = onLobbyDisconnectedListener;
   }
 
-  public void setOnFaConnectedListener(OnFaConnectedListener onFaConnectedListener) {
-    this.onFaConnectedListener = onFaConnectedListener;
+  public void setOnFafConnectedListener(OnLobbyConnectedListener onFafConnectedListener) {
+    this.onFafConnectedListener = onFafConnectedListener;
   }
 }

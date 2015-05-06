@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.legacy.message.PlayerInfoMessage;
+import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.util.BeanUpdatePolicy;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -31,16 +31,16 @@ public class PlayerInfoBean {
     avatarTooltip = new SimpleStringProperty();
   }
 
-  public PlayerInfoBean(PlayerInfoMessage playerInfoMessage) {
+  public PlayerInfoBean(PlayerInfo playerInfo) {
     this();
 
-    username.set(playerInfoMessage.login);
-    clan.set(playerInfoMessage.clan);
-    country.set(playerInfoMessage.country);
+    username.set(playerInfo.login);
+    clan.set(playerInfo.clan);
+    country.set(playerInfo.country);
 
-    if (playerInfoMessage.avatar != null) {
-      avatarTooltip.set(playerInfoMessage.avatar.tooltip);
-      avatarUrl.set(playerInfoMessage.avatar.url);
+    if (playerInfo.avatar != null) {
+      avatarTooltip.set(playerInfo.avatar.tooltip);
+      avatarUrl.set(playerInfo.avatar.url);
     }
   }
 

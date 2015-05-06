@@ -1,4 +1,4 @@
-package com.faforever.client.legacy;
+package com.faforever.client.legacy.proxy;
 
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;

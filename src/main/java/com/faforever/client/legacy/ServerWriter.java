@@ -3,9 +3,9 @@ package com.faforever.client.legacy;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
 import com.faforever.client.legacy.gson.RelayServerActionTypeAdapter;
-import com.faforever.client.legacy.message.GameState;
-import com.faforever.client.legacy.message.GameType;
-import com.faforever.client.legacy.message.ServerWritable;
+import com.faforever.client.legacy.domain.GameState;
+import com.faforever.client.legacy.domain.GameType;
+import com.faforever.client.legacy.domain.ServerWritable;
 import com.faforever.client.legacy.relay.RelayServerAction;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -25,6 +25,9 @@ import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+/**
+ * Sends data to the server. Classes should not use the server writer directly, but the {@link ServerAccessor} instead.
+ */
 public class ServerWriter implements Closeable {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -71,13 +74,13 @@ public class ServerWriter implements Closeable {
       serverWritable.write(gson, stringWriter);
 
       QStreamWriter qStreamWriter = new QStreamWriter(byteArrayOutputStream);
-      qStreamWriter.appendQString(stringWriter.toString());
+      qStreamWriter.appendString(stringWriter.toString());
 
       if (appendUsername) {
-        qStreamWriter.appendQString(username);
+        qStreamWriter.appendString(username);
       }
       if (appendSession) {
-        qStreamWriter.appendQString(session);
+        qStreamWriter.appendString(session);
       }
 
       byte[] byteArray = byteArrayOutputStream.toByteArray();
@@ -87,7 +90,7 @@ public class ServerWriter implements Closeable {
         String data = new String(Arrays.copyOfRange(byteArray, 4, byteArray.length), StandardCharsets.UTF_16BE);
 
         for (String stringToMask : serverWritable.getStringsToMask()) {
-          data = data.replace("\"" + stringToMask + "\"", "\""+CONFIDENTIAL_INFORMATION_MASK+"\"");
+          data = data.replace("\"" + stringToMask + "\"", "\"" + CONFIDENTIAL_INFORMATION_MASK + "\"");
         }
 
         logger.debug("Writing to server: {}", data);

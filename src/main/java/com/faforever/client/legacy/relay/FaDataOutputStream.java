@@ -9,6 +9,9 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+/**
+ * Writes data to Forged Alliance (the game, not the lobby).
+ */
 public class FaDataOutputStream extends OutputStream {
 
   public static final int FIELD_TYPE_INT = 0;

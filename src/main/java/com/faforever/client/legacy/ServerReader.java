@@ -1,21 +1,19 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.legacy.domain.FriendAndFoeLists;
+import com.faforever.client.legacy.domain.GameInfo;
+import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.GameState;
+import com.faforever.client.legacy.domain.GameType;
+import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.legacy.domain.OnFafLoginSucceededListener;
+import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.legacy.domain.ServerMessageType;
+import com.faforever.client.legacy.domain.ServerObject;
+import com.faforever.client.legacy.domain.ServerObjectType;
+import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
-import com.faforever.client.legacy.message.GameInfoMessage;
-import com.faforever.client.legacy.message.GameLaunchMessage;
-import com.faforever.client.legacy.message.GameState;
-import com.faforever.client.legacy.message.GameType;
-import com.faforever.client.legacy.message.OnFafLoginSucceededListener;
-import com.faforever.client.legacy.message.OnGameInfoMessageListener;
-import com.faforever.client.legacy.message.OnGameLaunchMessageListener;
-import com.faforever.client.legacy.message.OnPingMessageListener;
-import com.faforever.client.legacy.message.OnPlayerInfoMessageListener;
-import com.faforever.client.legacy.message.OnSessionInitiatedListener;
-import com.faforever.client.legacy.message.PlayerInfoMessage;
-import com.faforever.client.legacy.message.ServerMessageType;
-import com.faforever.client.legacy.message.ServerMessage;
-import com.faforever.client.legacy.message.WelcomeMessage;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,6 +27,10 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 
+/**
+ * Reads data from the FAF lobby server, like player information, open games, friends, foes and so on. Classes should
+ * not use the server reader directly, but the {@link ServerAccessor} instead.
+ */
 class ServerReader {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -36,13 +38,14 @@ class ServerReader {
   private final Socket socket;
   private final Gson gson;
   private boolean stopped;
-  private OnSessionInitiatedListener onSessionInitiatedListener;
-  private OnGameInfoMessageListener onGameInfoMessageListener;
-  private OnPlayerInfoMessageListener onPlayerInfoMessageListener;
-  private OnPingMessageListener onPingMessageListener;
-  private OnGameLaunchMessageListener onGameLaunchMessageListenerListener;
+  private OnSessionInfoListener onSessionInfoListener;
+  private OnGameInfoListener onGameInfoListener;
+  private OnPlayerInfoListener onPlayerInfoListener;
+  private OnPingListener onPingListener;
+  private OnGameLaunchInfoListener onGameLaunchInfoListenerListener;
   private OnFafLoginSucceededListener onFafLoginSucceededListener;
-  private OnModInfoMessageListener onModInfoMessageListener;
+  private OnModInfoListener onModInfoListener;
+  private OnFriendListListener onFriendListListener;
 
   public ServerReader(Socket socket) {
     this.socket = socket;
@@ -53,6 +56,12 @@ class ServerReader {
         .create();
   }
 
+  /**
+   * Reads data received from the server and dispatches it. So far, there are two types of data sent by the server: <ol>
+   * <li><strong>Server messages</strong> are simple words like ACK or PING, followed by some bytes..</li>
+   * <li><strong>Objects</strong> are JSON-encoded objects like game or player information. Those are converted into a
+   * {@link ServerObject}</li> </ol> I'm not yet happy with those terms, so any suggestions are welcome.
+   */
   public void blockingRead() throws IOException {
     try (QDataInputStream dataInput = new QDataInputStream(new DataInputStream(new BufferedInputStream(socket.getInputStream())))) {
 
@@ -64,7 +73,7 @@ class ServerReader {
         if (serverMessageType != null) {
           dispatchServerMessage(dataInput, serverMessageType);
         } else {
-          parseServerMessage(message);
+          parseServerObject(message);
         }
       }
     }
@@ -75,7 +84,7 @@ class ServerReader {
   private void dispatchServerMessage(QDataInputStream socketIn, ServerMessageType serverMessageType) throws IOException {
     switch (serverMessageType) {
       case PING:
-        onPingMessageListener.onServerPing();
+        onPingListener.onServerPing();
         logger.debug("Server PINGed");
         break;
 
@@ -91,11 +100,11 @@ class ServerReader {
         break;
 
       case ERROR:
-        logger.warn("Error from server: {}", socketIn.readQString());
+        logger.warn("Unhandled error from server: {}", socketIn.readQString());
         break;
 
       case MESSAGE:
-        logger.warn("Message from server: {}", socketIn.readQString());
+        logger.warn("Unhandled message from server: {}", socketIn.readQString());
         break;
 
       default:
@@ -103,87 +112,99 @@ class ServerReader {
     }
   }
 
-  private void parseServerMessage(String message) {
+  private void parseServerObject(String jsonString) {
     try {
-      logger.debug("Object from server: {}", message);
-      ServerMessage serverMessage = gson.fromJson(message, ServerMessage.class);
+      logger.debug("Object from server: {}", jsonString);
+      ServerObject serverObject = gson.fromJson(jsonString, ServerObject.class);
 
-      ServerCommand serverCommand = ServerCommand.fromString(serverMessage.command);
+      ServerObjectType serverObjectType = ServerObjectType.fromString(serverObject.command);
 
-      if (serverCommand == null) {
-        logger.warn("Unknown server message: " + message);
+      if (serverObjectType == null) {
+        logger.warn("Unknown server object: " + jsonString);
         return;
       }
 
-      switch (serverCommand) {
+      switch (serverObjectType) {
         case WELCOME:
-          WelcomeMessage welcomeMessage = gson.fromJson(message, WelcomeMessage.class);
-          if (welcomeMessage.session != null) {
-            onSessionInitiatedListener.onSessionInitiated(welcomeMessage);
-          } else if (welcomeMessage.email != null) {
+          SessionInfo sessionInfo = gson.fromJson(jsonString, SessionInfo.class);
+          if (sessionInfo.session != null) {
+            onSessionInfoListener.onSessionInitiated(sessionInfo);
+          } else if (sessionInfo.email != null) {
             onFafLoginSucceededListener.onFafLoginSucceeded();
           }
           break;
 
         case GAME_INFO:
-          GameInfoMessage gameInfoMessage = gson.fromJson(message, GameInfoMessage.class);
-          onGameInfoMessageListener.onGameInfoMessage(gameInfoMessage);
+          GameInfo gameInfo = gson.fromJson(jsonString, GameInfo.class);
+          onGameInfoListener.onGameInfo(gameInfo);
           break;
 
         case PLAYER_INFO:
-          PlayerInfoMessage playerInfoMessage = gson.fromJson(message, PlayerInfoMessage.class);
-          onPlayerInfoMessageListener.onPlayerInfoMessage(playerInfoMessage);
+          PlayerInfo playerInfo = gson.fromJson(jsonString, PlayerInfo.class);
+          onPlayerInfoListener.onPlayerInfo(playerInfo);
           break;
 
         case GAME_LAUNCH:
-          GameLaunchMessage gameLaunchMessage = gson.fromJson(message, GameLaunchMessage.class);
-          onGameLaunchMessageListenerListener.onGameLaunchMessage(gameLaunchMessage);
+          GameLaunchInfo gameLaunchInfo = gson.fromJson(jsonString, GameLaunchInfo.class);
+          onGameLaunchInfoListenerListener.onGameLaunchInfo(gameLaunchInfo);
           break;
 
         case MOD_INFO:
-          ModInfoMessage modInfoMessage = gson.fromJson(message, ModInfoMessage.class);
-          onModInfoMessageListener.onModInfoMessage(modInfoMessage);
+          ModInfo modInfo = gson.fromJson(jsonString, ModInfo.class);
+          onModInfoListener.onModInfo(modInfo);
           break;
 
         case TUTORIALS_INFO:
+          logger.warn("Tutorials info still unhandled: " + jsonString);
           break;
 
         case MATCHMAKER_INFO:
+          logger.warn("Matchmaker info still unhandled: " + jsonString);
+          break;
+
+        case SOCIAL:
+          FriendAndFoeLists friendAndFoeLists = gson.fromJson(jsonString, FriendAndFoeLists.class);
+          onFriendListListener.onFriendAndFoeList(friendAndFoeLists);
+          logger.warn("Social command still unhandled: " + jsonString);
           break;
 
         default:
-          logger.warn("Missing case for server command:: " + serverCommand);
+          logger.warn("Missing case for server object type:: " + serverObjectType);
       }
     } catch (JsonSyntaxException e) {
-      logger.warn("Could not deserialize message: " + message);
+      logger.warn("Could not deserialize message: " + jsonString);
     }
   }
 
-  public void setOnSessionInitiatedListener(OnSessionInitiatedListener onSessionInitiatedListener) {
-    this.onSessionInitiatedListener = onSessionInitiatedListener;
+  public void setOnSessionInfoListener(OnSessionInfoListener onSessionInfoListener) {
+    this.onSessionInfoListener = onSessionInfoListener;
   }
 
-  public void setOnGameInfoMessageListener(OnGameInfoMessageListener onGameInfoMessageListener) {
-    this.onGameInfoMessageListener = onGameInfoMessageListener;
+  public void setOnGameInfoListener(OnGameInfoListener onGameInfoListener) {
+    this.onGameInfoListener = onGameInfoListener;
   }
 
-  public void setOnPlayerInfoMessageListener(OnPlayerInfoMessageListener onPlayerInfoMessageListener) {
-    this.onPlayerInfoMessageListener = onPlayerInfoMessageListener;
+  public void setOnPlayerInfoListener(OnPlayerInfoListener onPlayerInfoListener) {
+    this.onPlayerInfoListener = onPlayerInfoListener;
   }
 
-  public void setOnPingMessageListener(OnPingMessageListener onPingMessageListener) {
-    this.onPingMessageListener = onPingMessageListener;
+  public void setOnPingListener(OnPingListener onPingListener) {
+    this.onPingListener = onPingListener;
   }
 
   public void setOnFafLoginSucceededListener(OnFafLoginSucceededListener onFafLoginSucceededListener) {
     this.onFafLoginSucceededListener = onFafLoginSucceededListener;
   }
 
-  public void setOnGameLaunchMessageListenerListener(OnGameLaunchMessageListener onGameLaunchMessageListenerListener) {
-    this.onGameLaunchMessageListenerListener = onGameLaunchMessageListenerListener;
+  public void setOnGameLaunchInfoListenerListener(OnGameLaunchInfoListener onGameLaunchInfoListenerListener) {
+    this.onGameLaunchInfoListenerListener = onGameLaunchInfoListenerListener;
   }
 
-  public void setOnModInfoMessageListener(OnModInfoMessageListener onModInfoMessageListener) {
-    this.onModInfoMessageListener = onModInfoMessageListener;
+  public void setOnModInfoListener(OnModInfoListener onModInfoListener) {
+    this.onModInfoListener = onModInfoListener;
+  }
+
+  public void setOnFriendListListener(OnFriendListListener onFriendListListener) {
+    this.onFriendListListener = onFriendListListener;
   }
 }
