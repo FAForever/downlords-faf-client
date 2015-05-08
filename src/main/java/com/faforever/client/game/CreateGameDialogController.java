@@ -1,4 +1,4 @@
-package com.faforever.client.games;
+package com.faforever.client.game;
 
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;

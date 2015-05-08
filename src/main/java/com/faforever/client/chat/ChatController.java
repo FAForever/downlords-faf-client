@@ -1,12 +1,7 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.legacy.OnFriendAndFoeListListener;
-import com.faforever.client.legacy.OnPlayerInfoListener;
-import com.faforever.client.legacy.domain.FriendAndFoeLists;
-import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.BeanUpdatePolicy;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
@@ -17,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class ChatController implements
     OnMessageListener,
@@ -25,9 +19,7 @@ public class ChatController implements
     OnPrivateMessageListener,
     OnUserJoinedListener,
     OnUserListListener,
-    OnPlayerInfoListener,
-    OnUserLeftListener,
-    OnFriendAndFoeListListener {
+    OnUserLeftListener {
 
   @Autowired
   ChatService chatService;
@@ -52,7 +44,7 @@ public class ChatController implements
 
   public ChatController() {
     nameToChatTab = new HashMap<>();
-    playerInfoMap = FXCollections.observableMap(new HashMap<>());
+    playerInfoMap = FXCollections.observableHashMap();
   }
 
   @PostConstruct
@@ -63,8 +55,6 @@ public class ChatController implements
     chatService.addOnUserJoinedListener(this);
     chatService.addOnUserListListener(this);
     chatService.addOnUserLeftListener(this);
-
-    playerService.addOnPlayerInfoListener(this);
   }
 
   public void configure() {
@@ -116,13 +106,9 @@ public class ChatController implements
   }
 
   @Override
-  public void onChatUserList(String channelName, Set<PlayerInfoBean> users) {
-    addAndGetChannel(channelName).setPlayerInfoAsync(users);
-  }
-
-  @Override
-  public void onPlayerInfo(PlayerInfo playerInfo) {
-    addOrUpdatePlayerInfo(new PlayerInfoBean(playerInfo));
+  public void onChatUserList(String channelName, Map<String, PlayerInfoBean> playerInfoBeans) {
+    playerService.getKnownPlayers().putAll(playerInfoBeans);
+    addAndGetChannel(channelName).setPlayerInfoAsync(playerInfoBeans);
   }
 
   private void addOrUpdatePlayerInfo(PlayerInfoBean playerInfoBean) {
@@ -131,7 +117,7 @@ public class ChatController implements
     if (!playerInfoMap.containsKey(username)) {
       playerInfoMap.put(username, playerInfoBean);
     } else {
-      playerInfoMap.get(username).update(playerInfoBean, BeanUpdatePolicy.OVERRIDE);
+      playerInfoMap.get(username).updateFromIrc(playerInfoBean);
     }
   }
 
@@ -140,15 +126,5 @@ public class ChatController implements
     for (ChannelTab channelTab : nameToChatTab.values()) {
       channelTab.onUserLeft(login);
     }
-  }
-
-  @Override
-  public void onFriendAndFoeList(FriendAndFoeLists friendAndFoeLists) {
-//    for (Object friend : friendAndFoeLists.friends) {
-//
-//    }
-//    for (Object friend : friendAndFoeLists.foes) {
-//
-//    }
   }
 }

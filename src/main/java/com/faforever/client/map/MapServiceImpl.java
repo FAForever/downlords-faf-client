@@ -1,6 +1,6 @@
-package com.faforever.client.maps;
+package com.faforever.client.map;
 
-import com.faforever.client.games.MapInfoBean;
+import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.preferences.PreferencesService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

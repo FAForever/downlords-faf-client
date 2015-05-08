@@ -3,9 +3,12 @@ package com.faforever.client.main;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
-import com.faforever.client.games.GamesController;
+import com.faforever.client.game.GamesController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.legacy.OnLobbyConnectedListener;
+import com.faforever.client.legacy.OnLobbyConnectingListener;
+import com.faforever.client.legacy.OnLobbyDisconnectedListener;
+import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.network.PortCheckService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
@@ -23,7 +26,7 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
-public class MainController implements ServerAccessor.OnLobbyConnectedListener, ServerAccessor.OnLobbyConnectingListener, ServerAccessor.OnLobbyDisconnectedListener {
+public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnLobbyDisconnectedListener {
 
   @FXML
   TabPane mainTabPane;
@@ -53,7 +56,7 @@ public class MainController implements ServerAccessor.OnLobbyConnectedListener, 
   SceneFactory sceneFactory;
 
   @Autowired
-  ServerAccessor serverAccessor;
+  LobbyService lobbyService;
 
   @Autowired
   PortCheckService portCheckService;
@@ -62,9 +65,9 @@ public class MainController implements ServerAccessor.OnLobbyConnectedListener, 
   private I18n i18n;
 
   public void display(Stage stage) {
-    serverAccessor.setOnFafConnectedListener(this);
-    serverAccessor.setOnLobbyConnectingListener(this);
-    serverAccessor.setOnLobbyDisconnectedListener(this);
+    lobbyService.setOnFafConnectedListener(this);
+    lobbyService.setOnLobbyConnectingListener(this);
+    lobbyService.setOnLobbyDisconnectedListener(this);
 
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
 

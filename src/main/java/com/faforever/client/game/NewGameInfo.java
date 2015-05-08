@@ -1,4 +1,4 @@
-package com.faforever.client.games;
+package com.faforever.client.game;
 
 public class NewGameInfo {
 

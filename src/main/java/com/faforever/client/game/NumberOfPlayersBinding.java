@@ -1,4 +1,4 @@
-package com.faforever.client.games;
+package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
 import javafx.beans.binding.StringBinding;

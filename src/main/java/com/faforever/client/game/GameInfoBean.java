@@ -1,4 +1,4 @@
-package com.faforever.client.games;
+package com.faforever.client.game;
 
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameState;

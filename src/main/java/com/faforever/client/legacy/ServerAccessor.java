@@ -1,9 +1,8 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.games.GameInfoBean;
-import com.faforever.client.games.NewGameInfo;
+import com.faforever.client.game.GameInfoBean;
+import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.legacy.domain.ClientMessage;
-import com.faforever.client.legacy.domain.FriendAndFoeLists;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
@@ -32,28 +31,23 @@ import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
 /**
- * Entry class for all communication with the FAF lobby server, be it reading or writing.
+ * Entry class for all communication with the FAF lobby server, be it reading or writing. This class should only be
+ * called within services. always be services.
  */
-public class ServerAccessor implements OnSessionInfoListener, OnPingListener, OnPlayerInfoListener, OnGameInfoListener, OnFafLoginSucceededListener, OnModInfoListener, OnGameLaunchInfoListener, OnFriendAndFoeListListener {
-
-  public interface OnLobbyConnectingListener {
-
-    void onFaConnecting();
-  }
-
-  public interface OnLobbyDisconnectedListener {
-
-    void onFaDisconnected();
-  }
-
-  public interface OnLobbyConnectedListener {
-
-    void onFaConnected();
-  }
+public class ServerAccessor implements OnSessionInfoListener,
+    OnPingListener,
+    OnPlayerInfoListener,
+    OnGameInfoListener,
+    OnFafLoginSucceededListener,
+    OnModInfoListener,
+    OnGameLaunchInfoListener,
+    OnFriendListListener,
+    OnFoeListListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -73,21 +67,21 @@ public class ServerAccessor implements OnSessionInfoListener, OnPingListener, On
   private ServerWriter serverWriter;
   private Callback<Void> loginCallback;
   private Callback<GameLaunchInfo> gameLaunchCallback;
-  private Collection<OnPlayerInfoListener> onPlayerInfoListeners;
   private Collection<OnGameInfoListener> onGameInfoListeners;
   private Collection<OnModInfoListener> onModInfoListeners;
-  private Collection<OnFriendAndFoeListListener> onFriendAndFoeListListeners;
+  private Collection<OnFoeListListener> onFoeListListeners;
 
   // Yes I know, those aren't lists. They will become if it's necessary
   private OnLobbyConnectingListener onLobbyConnectingListener;
   private OnLobbyDisconnectedListener onLobbyDisconnectedListener;
   private OnLobbyConnectedListener onFafConnectedListener;
+  private OnPlayerInfoListener onPlayerInfoListener;
+  private OnFoeListListener onFoeListListener;
+  private OnFriendListListener onFriendListListener;
 
   public ServerAccessor() {
-    onPlayerInfoListeners = new ArrayList<>();
     onGameInfoListeners = new ArrayList<>();
     onModInfoListeners = new ArrayList<>();
-    onFriendAndFoeListListeners = new ArrayList<>();
   }
 
   /**
@@ -165,7 +159,8 @@ public class ServerAccessor implements OnSessionInfoListener, OnPingListener, On
     serverReader.setOnFafLoginSucceededListener(this);
     serverReader.setOnModInfoListener(this);
     serverReader.setOnGameLaunchInfoListenerListener(this);
-    serverReader.setOnFriendAndFoeListListener(this);
+    serverReader.setOnFriendListListener(this);
+    serverReader.setOnFoeListListener(this);
     serverReader.blockingRead();
   }
 
@@ -218,8 +213,8 @@ public class ServerAccessor implements OnSessionInfoListener, OnPingListener, On
 
   @Override
   public void onPlayerInfo(PlayerInfo playerInfo) {
-    for (OnPlayerInfoListener listener : onPlayerInfoListeners) {
-      Platform.runLater(() -> listener.onPlayerInfo(playerInfo));
+    if (onPlayerInfoListener != null) {
+      onPlayerInfoListener.onPlayerInfo(playerInfo);
     }
   }
 
@@ -230,10 +225,18 @@ public class ServerAccessor implements OnSessionInfoListener, OnPingListener, On
     }
   }
 
+
   @Override
-  public void onFriendAndFoeList(FriendAndFoeLists friendAndFoeLists) {
-    for (OnFriendAndFoeListListener listener : onFriendAndFoeListListeners) {
-      Platform.runLater(() -> listener.onFriendAndFoeList(friendAndFoeLists));
+  public void onFriendList(List<String> friends) {
+    if (onFriendListListener != null) {
+      onFriendListListener.onFriendList(friends);
+    }
+  }
+
+  @Override
+  public void onFoeList(List<String> foes) {
+    if (onFoeListListener != null) {
+      onFoeListListener.onFoeList(foes);
     }
   }
 
@@ -241,12 +244,8 @@ public class ServerAccessor implements OnSessionInfoListener, OnPingListener, On
     onGameInfoListeners.add(listener);
   }
 
-  public void addOnFriendAndFoeListListener(OnFriendAndFoeListListener listener) {
-    onFriendAndFoeListListeners.add(listener);
-  }
-
-  public void addOnPlayerInfoMessageListener(OnPlayerInfoListener listener) {
-    onPlayerInfoListeners.add(listener);
+  public void setOnPlayerInfoMessageListener(OnPlayerInfoListener listener) {
+    onPlayerInfoListener = listener;
   }
 
 
@@ -308,5 +307,13 @@ public class ServerAccessor implements OnSessionInfoListener, OnPingListener, On
 
   public void setOnFafConnectedListener(OnLobbyConnectedListener onFafConnectedListener) {
     this.onFafConnectedListener = onFafConnectedListener;
+  }
+
+  public void setOnFriendListListener(OnFriendListListener onFriendListListener) {
+    this.onFriendListListener = onFriendListListener;
+  }
+
+  public void setOnFoeListListener(OnFoeListListener onFoeListListener) {
+    this.onFoeListListener = onFoeListListener;
   }
 }

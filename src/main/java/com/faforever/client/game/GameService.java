@@ -1,4 +1,4 @@
-package com.faforever.client.games;
+package com.faforever.client.game;
 
 import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.util.Callback;

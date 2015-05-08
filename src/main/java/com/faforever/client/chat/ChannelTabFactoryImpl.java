@@ -11,7 +11,7 @@ public class ChannelTabFactoryImpl implements ChannelTabFactory {
 
   @Override
   public ChannelTab createChannelTab(String channelName, ObservableMap<String, PlayerInfoBean> playerInfoMap) {
-    ChannelTab channelTab = new ChannelTab(channelName, playerInfoMap);
+    ChannelTab channelTab = new ChannelTab(channelName, false);
     applicationContext.autowireBean(channelTab);
     applicationContext.initializeBean(channelTab, channelName + "ChatTab");
     return channelTab;

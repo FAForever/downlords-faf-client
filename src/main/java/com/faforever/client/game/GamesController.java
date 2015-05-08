@@ -1,15 +1,15 @@
-package com.faforever.client.games;
+package com.faforever.client.game;
 
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.OnModInfoListener;
-import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.OnGameInfoListener;
-import com.faforever.client.maps.MapService;
+import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.map.MapService;
+import com.faforever.client.mod.ModService;
 import com.faforever.client.util.Callback;
 import javafx.application.Platform;
 import javafx.beans.binding.ObjectBinding;
@@ -96,7 +96,7 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
   GameService gameService;
 
   @Autowired
-  ServerAccessor serverAccessor;
+  ModService modService;
 
   @Autowired
   I18n i18n;
@@ -135,7 +135,7 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
   @PostConstruct
   void init() {
     gameService.addOnGameInfoListener(this);
-    serverAccessor.addOnModInfoMessageListener(this);
+    modService.addOnModInfoListener(this);
   }
 
   private void initializeGameTable() {

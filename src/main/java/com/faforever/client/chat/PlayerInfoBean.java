@@ -2,6 +2,8 @@ package com.faforever.client.chat;
 
 import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.util.BeanUpdatePolicy;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.pircbotx.User;
@@ -22,6 +24,9 @@ public class PlayerInfoBean {
   private StringProperty country;
   private StringProperty avatarUrl;
   private StringProperty avatarTooltip;
+  private BooleanProperty friend;
+  private BooleanProperty foe;
+  private BooleanProperty moderator;
 
   private PlayerInfoBean() {
     username = new SimpleStringProperty();
@@ -29,6 +34,9 @@ public class PlayerInfoBean {
     country = new SimpleStringProperty();
     avatarUrl = new SimpleStringProperty();
     avatarTooltip = new SimpleStringProperty();
+    friend = new SimpleBooleanProperty();
+    foe = new SimpleBooleanProperty();
+    moderator = new SimpleBooleanProperty();
   }
 
   public PlayerInfoBean(PlayerInfo playerInfo) {
@@ -135,5 +143,48 @@ public class PlayerInfoBean {
 
   public StringProperty avatarTooltipProperty() {
     return avatarTooltip;
+  }
+
+  public boolean isFriend() {
+    return friend.get();
+  }
+
+  public BooleanProperty friendProperty() {
+    return friend;
+  }
+
+  public void setFriend(boolean friend) {
+    this.friend.set(friend);
+  }
+
+  public boolean isFoe() {
+    return foe.get();
+  }
+
+  public BooleanProperty foeProperty() {
+    return foe;
+  }
+
+  public void setFoe(boolean foe) {
+    this.foe.set(foe);
+  }
+
+  public boolean isModerator() {
+    return moderator.get();
+  }
+
+  public BooleanProperty moderatorProperty() {
+    return moderator;
+  }
+
+  public void setModerator(boolean moderator) {
+    this.moderator.set(moderator);
+  }
+
+  /**
+   * Updates this instance with the username in the specified instance.
+   */
+  public void updateFromIrc(PlayerInfoBean playerInfoBean) {
+   username.set(playerInfoBean.getUsername());
   }
 }

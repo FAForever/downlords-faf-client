@@ -1,6 +1,6 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.legacy.domain.FriendAndFoeLists;
+import com.faforever.client.legacy.domain.SocialInfo;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
@@ -45,7 +45,8 @@ class ServerReader {
   private OnGameLaunchInfoListener onGameLaunchInfoListenerListener;
   private OnFafLoginSucceededListener onFafLoginSucceededListener;
   private OnModInfoListener onModInfoListener;
-  private OnFriendAndFoeListListener onFriendAndFoeListListener;
+  private OnFriendListListener onFriendListListener;
+  private OnFoeListListener onFoeListListener;
 
   public ServerReader(Socket socket) {
     this.socket = socket;
@@ -163,9 +164,8 @@ class ServerReader {
           break;
 
         case SOCIAL:
-          FriendAndFoeLists friendAndFoeLists = gson.fromJson(jsonString, FriendAndFoeLists.class);
-          onFriendAndFoeListListener.onFriendAndFoeList(friendAndFoeLists);
-          logger.warn("Social command still unhandled: " + jsonString);
+          SocialInfo socialInfo = gson.fromJson(jsonString, SocialInfo.class);
+          dispatchSocialInfo(socialInfo);
           break;
 
         default:
@@ -173,6 +173,14 @@ class ServerReader {
       }
     } catch (JsonSyntaxException e) {
       logger.warn("Could not deserialize message: " + jsonString);
+    }
+  }
+
+  private void dispatchSocialInfo(SocialInfo socialInfo) {
+    if (socialInfo.friends != null) {
+      onFriendListListener.onFriendList(socialInfo.friends);
+    } else if(socialInfo.foes != null) {
+      onFoeListListener.onFoeList(socialInfo.foes);
     }
   }
 
@@ -204,7 +212,11 @@ class ServerReader {
     this.onModInfoListener = onModInfoListener;
   }
 
-  public void setOnFriendAndFoeListListener(OnFriendAndFoeListListener onFriendAndFoeListListener) {
-    this.onFriendAndFoeListListener = onFriendAndFoeListListener;
+  public void setOnFriendListListener(OnFriendListListener onFriendListListener) {
+    this.onFriendListListener = onFriendListListener;
+  }
+
+  public void setOnFoeListListener(OnFoeListListener onFoeListListener) {
+    this.onFoeListListener = onFoeListListener;
   }
 }

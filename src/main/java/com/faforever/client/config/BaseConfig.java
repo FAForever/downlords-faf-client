@@ -2,20 +2,24 @@ package com.faforever.client.config;
 
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.PircBotXChatService;
-import com.faforever.client.games.GameService;
-import com.faforever.client.games.GameServiceImpl;
+import com.faforever.client.game.GameService;
+import com.faforever.client.game.GameServiceImpl;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.i18n.I18nImpl;
 import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.legacy.proxy.ProxyImpl;
+import com.faforever.client.legacy.relay.LocalRelayServer;
+import com.faforever.client.legacy.relay.LocalRelayServerImpl;
+import com.faforever.client.lobby.LobbyService;
+import com.faforever.client.lobby.LobbyServiceImpl;
+import com.faforever.client.mod.ModService;
+import com.faforever.client.mod.ModServiceImpl;
 import com.faforever.client.network.PortCheckService;
 import com.faforever.client.network.PortCheckServiceImpl;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.legacy.relay.LocalRelayServer;
-import com.faforever.client.legacy.relay.LocalRelayServerImpl;
 import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.supcom.ForgedAllianceServiceImpl;
 import com.faforever.client.user.UserService;
@@ -108,6 +112,16 @@ public class BaseConfig {
   @Bean
   PortCheckService portCheckService() {
     return new PortCheckServiceImpl();
+  }
+
+  @Bean
+  LobbyService lobbyService() {
+    return new LobbyServiceImpl();
+  }
+
+  @Bean
+  ModService modService() {
+    return new ModServiceImpl();
   }
 
   @Bean

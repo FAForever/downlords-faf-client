@@ -1,8 +1,8 @@
 package com.faforever.client.chat;
 
-import java.util.Set;
+import java.util.Map;
 
 public interface OnUserListListener {
 
-  void onChatUserList(String channelName, Set<PlayerInfoBean> users);
+  void onChatUserList(String channelName, Map<String, PlayerInfoBean> users);
 }

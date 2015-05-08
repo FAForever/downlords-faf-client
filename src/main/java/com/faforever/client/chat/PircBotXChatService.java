@@ -32,9 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
@@ -99,7 +97,7 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   @Override
   public void addOnUserListListener(final OnUserListListener listener) {
     addEventListener(UserListEvent.class,
-        event -> listener.onChatUserList(event.getChannel().getName(), users(event.getUsers())));
+        event -> listener.onChatUserList(event.getChannel().getName(), playerInfoBeans(event.getUsers())));
   }
 
   @Override
@@ -220,11 +218,11 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
     });
   }
 
-  private Set<PlayerInfoBean> users(ImmutableSortedSet<User> users) {
-    Set<PlayerInfoBean> playerInfoBeans = new HashSet<>(users.size(), 1);
+  private Map<String, PlayerInfoBean> playerInfoBeans(ImmutableSortedSet<User> users) {
+    Map<String, PlayerInfoBean> playerInfoBeans = new HashMap<>(users.size(), 1);
     for (User user : users) {
       PlayerInfoBean playerInfoBean = new PlayerInfoBean(user);
-      playerInfoBeans.add(playerInfoBean);
+      playerInfoBeans.put(playerInfoBean.getUsername(), playerInfoBean);
     }
     return playerInfoBeans;
   }

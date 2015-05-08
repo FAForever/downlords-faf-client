@@ -1,4 +1,4 @@
-package com.faforever.client.games;
+package com.faforever.client.game;
 
 import com.faforever.client.fxml.FxmlLoader;
 import javafx.scene.control.TableCell;
