@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.image.*?>
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -14,8 +19,14 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
+
 <VBox fx:id="mainRoot" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
   <children>
+      <HBox VBox.vgrow="NEVER">
+         <children>
+            <Button mnemonicParsing="false" styleClass="menu-button" />
+         </children>
+      </HBox>
     <TabPane fx:id="mainTabPane" side="BOTTOM" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
       <tabs>
         <Tab fx:id="whatsNewTab" text="%main.whatsNew">
@@ -111,7 +122,4 @@
          </VBox.margin>
       </HBox>
   </children>
-  <padding>
-    <Insets top="25.0" />
-  </padding>
 </VBox>
