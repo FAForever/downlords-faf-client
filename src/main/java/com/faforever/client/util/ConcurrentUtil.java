@@ -19,7 +19,7 @@ public final class ConcurrentUtil {
     executeInBackground(task, null);
   }
 
-  public static <T> void executeInBackground(final Task<T> task, final Callback<T> callback) {
+  public static <T> Service<T> executeInBackground(final Task<T> task, final Callback<T> callback) {
     task.setOnSucceeded(event -> {
       if (callback == null) {
         return;
@@ -37,11 +37,14 @@ public final class ConcurrentUtil {
       callback.error(exception);
     });
 
-    new Service<T>() {
+    Service<T> service = new Service<T>() {
       @Override
       protected Task<T> createTask() {
         return task;
       }
-    }.start();
+    };
+    service.start();
+
+    return service;
   }
 }

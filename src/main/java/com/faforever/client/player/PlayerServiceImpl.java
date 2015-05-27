@@ -1,12 +1,13 @@
 package com.faforever.client.player;
 
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.chat.*;
 import com.faforever.client.legacy.OnFoeListListener;
 import com.faforever.client.legacy.OnFriendListListener;
 import com.faforever.client.legacy.OnPlayerInfoListener;
 import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -19,12 +20,15 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   @Autowired
   ServerAccessor serverAccessor;
 
-  private ObservableMap<String, PlayerInfoBean> knownPlayers;
+  @Autowired
+  ChatService chatService;
+
+  private ObservableMap<String, PlayerInfoBean> players;
   private List<String> foeList;
   private List<String> friendList;
 
   public PlayerServiceImpl() {
-    knownPlayers = FXCollections.observableHashMap();
+    players = FXCollections.observableHashMap();
     friendList = new ArrayList<>();
     foeList = new ArrayList<>();
   }
@@ -37,23 +41,34 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   }
 
   @Override
-  public void addOnPlayerInfoListener(OnPlayerInfoListener listener) {
-
+  public PlayerInfoBean getPlayerForUsername(String username) {
+    return players.get(username);
   }
 
   @Override
-  public ObservableMap<String, PlayerInfoBean> getKnownPlayers() {
-    return knownPlayers;
+  public void addPlayerListener(MapChangeListener<String, PlayerInfoBean> listener) {
+    players.addListener(listener);
+  }
+
+  @Override
+  public PlayerInfoBean registerAndGetPlayerForUsername(String username) {
+    if (!players.containsKey(username)) {
+      players.put(username, new PlayerInfoBean(username));
+    }
+
+    return players.get(username);
   }
 
   @Override
   public void onPlayerInfo(PlayerInfo playerInfo) {
-    if (!knownPlayers.containsKey(playerInfo.login)) {
-      knownPlayers.put(playerInfo.login, new PlayerInfoBean(playerInfo));
+    if (!players.containsKey(playerInfo.login)) {
+      players.put(playerInfo.login, new PlayerInfoBean(playerInfo));
     }
 
-    knownPlayers.get(playerInfo.login).setFriend(friendList.contains(playerInfo.login));
-    knownPlayers.get(playerInfo.login).setFoe(foeList.contains(playerInfo.login));
+    PlayerInfoBean playerInfoBean = players.get(playerInfo.login);
+    playerInfoBean.setChatOnly(false);
+    playerInfoBean.setFriend(friendList.contains(playerInfo.login));
+    playerInfoBean.setFoe(foeList.contains(playerInfo.login));
   }
 
   @Override
@@ -61,7 +76,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     this.foeList = foes;
 
     for (String foe : foes) {
-      PlayerInfoBean playerInfoBean = knownPlayers.get(foe);
+      PlayerInfoBean playerInfoBean = players.get(foe);
       if (playerInfoBean != null) {
         playerInfoBean.setFoe(true);
       }
@@ -73,7 +88,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     this.friendList = friends;
 
     for (String friend : friendList) {
-      PlayerInfoBean playerInfoBean = knownPlayers.get(friend);
+      PlayerInfoBean playerInfoBean = players.get(friend);
       if (playerInfoBean != null) {
         playerInfoBean.setFriend(true);
       }

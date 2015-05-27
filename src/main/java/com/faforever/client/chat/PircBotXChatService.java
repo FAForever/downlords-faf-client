@@ -2,7 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.user.UserService;
 import com.google.common.collect.ImmutableSortedSet;
-import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.pircbotx.Configuration;
@@ -17,7 +17,6 @@ import org.pircbotx.hooks.events.JoinEvent;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
 import org.pircbotx.hooks.events.QuitEvent;
-import org.pircbotx.hooks.events.ServerResponseEvent;
 import org.pircbotx.hooks.events.UserListEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.util.ReflectionUtils;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
@@ -36,33 +36,48 @@ import java.util.Map;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
-public class PircBotXChatService implements ChatService, Listener, OnConnectedListener {
-
-  interface ChatEventListener<T> {
-
-    void onEvent(T event);
-  }
+public class PircBotXChatService implements ChatService, Listener, OnConnectedListener, OnUserListListener, OnChannelJoinedListener, OnUserLeftListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   private static final int RECONNECT_DELAY = 3000;
-
   @Autowired
   private Environment environment;
-
   @Autowired
   private UserService userService;
-
   private Map<Class<? extends Event>, ArrayList<ChatEventListener>> eventListeners;
   private Configuration configuration;
   private PircBotX pircBotX;
   private boolean initialized;
+  private Map<String, ChatUser> chatUserList;
 
   public PircBotXChatService() {
     eventListeners = new HashMap<>();
+    chatUserList = FXCollections.observableHashMap();
   }
 
-  void init() {
+  @Override
+  public void onChatUserList(String channelName, Map<String, ChatUser> users) {
+    this.chatUserList = users;
+  }
+
+  @Override
+  public void onUserJoinedChannel(String channelKey, ChatUser chatUser) {
+    chatUserList.put(chatUser.getUsername(), chatUser);
+  }
+
+  @Override
+  public void onUserLeft(String login) {
+    chatUserList.remove(login);
+  }
+
+  @PostConstruct
+  void postConstruct() {
+    addOnUserListListener(this);
+    addOnChannelJoinedListener(this);
+    addOnUserLeftListener(this);
+  }
+
+  private void init() {
     String username = userService.getUsername();
 
     configuration = new Configuration.Builder()
@@ -89,15 +104,9 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   }
 
   @Override
-  public void addOnServerResponseListener(final OnServerResponseListener listener) {
-    addEventListener(ServerResponseEvent.class,
-        event -> listener.onServerResponse());
-  }
-
-  @Override
   public void addOnUserListListener(final OnUserListListener listener) {
     addEventListener(UserListEvent.class,
-        event -> listener.onChatUserList(event.getChannel().getName(), playerInfoBeans(event.getUsers())));
+        event -> listener.onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers())));
   }
 
   @Override
@@ -144,11 +153,11 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   }
 
   @Override
-  public void addOnUserJoinedListener(final OnUserJoinedListener listener) {
+  public void addOnChannelJoinedListener(final OnChannelJoinedListener listener) {
     addEventListener(JoinEvent.class,
-        event -> listener.onChannelJoined(
+        event -> listener.onUserJoinedChannel(
             event.getChannel().getName(),
-            new PlayerInfoBean(event.getUser())
+            new ChatUser(event.getUser().getNick())
         ));
   }
 
@@ -188,6 +197,11 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
     pircBotX.sendIRC().message(target, message);
   }
 
+  @Override
+  public void getChatUsersForChannel(String channelName) {
+
+  }
+
   private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
     if (!eventListeners.containsKey(eventClass)) {
       eventListeners.put(eventClass, new ArrayList<>());
@@ -202,7 +216,7 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
     }
 
     for (ChatEventListener listener : eventListeners.get(event.getClass())) {
-      Platform.runLater(() -> listener.onEvent(event));
+      listener.onEvent(event);
     }
   }
 
@@ -218,12 +232,17 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
     });
   }
 
-  private Map<String, PlayerInfoBean> playerInfoBeans(ImmutableSortedSet<User> users) {
-    Map<String, PlayerInfoBean> playerInfoBeans = new HashMap<>(users.size(), 1);
+  private Map<String, ChatUser> chatUsers(ImmutableSortedSet<User> users) {
+    Map<String, ChatUser> chatUsers = new HashMap<>(users.size(), 1);
     for (User user : users) {
-      PlayerInfoBean playerInfoBean = new PlayerInfoBean(user);
-      playerInfoBeans.put(playerInfoBean.getUsername(), playerInfoBean);
+      ChatUser chatUser = new ChatUser(user.getNick());
+      chatUsers.put(chatUser.getUsername(), chatUser);
     }
-    return playerInfoBeans;
+    return chatUsers;
+  }
+
+  interface ChatEventListener<T> {
+
+    void onEvent(T event);
   }
 }

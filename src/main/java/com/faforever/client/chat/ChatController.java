@@ -1,9 +1,7 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.user.UserService;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.Pane;
@@ -17,9 +15,7 @@ public class ChatController implements
     OnMessageListener,
     OnDisconnectedListener,
     OnPrivateMessageListener,
-    OnUserJoinedListener,
-    OnUserListListener,
-    OnUserLeftListener {
+    OnChannelJoinedListener {
 
   @Autowired
   ChatService chatService;
@@ -30,9 +26,6 @@ public class ChatController implements
   @Autowired
   UserService userService;
 
-  @Autowired
-  PlayerService playerService;
-
   @FXML
   private TabPane chatsTabPane;
 
@@ -40,11 +33,9 @@ public class ChatController implements
   private Pane connectingProgressPane;
 
   private final Map<String, ChannelTab> nameToChatTab;
-  private ObservableMap<String, PlayerInfoBean> playerInfoMap;
 
   public ChatController() {
     nameToChatTab = new HashMap<>();
-    playerInfoMap = FXCollections.observableHashMap();
   }
 
   @PostConstruct
@@ -52,9 +43,7 @@ public class ChatController implements
     chatService.addOnMessageListener(this);
     chatService.addOnDisconnectedListener(this);
     chatService.addOnPrivateMessageListener(this);
-    chatService.addOnUserJoinedListener(this);
-    chatService.addOnUserListListener(this);
-    chatService.addOnUserLeftListener(this);
+    chatService.addOnChannelJoinedListener(this);
   }
 
   public void configure() {
@@ -68,12 +57,14 @@ public class ChatController implements
 
   @Override
   public void onMessage(String channelName, ChatMessage chatMessage) {
-    addAndGetChannel(channelName).onMessage(chatMessage);
+    Platform.runLater(() -> {
+      addAndGetChannel(channelName).onMessage(chatMessage);
+    });
   }
 
   private ChannelTab addAndGetChannel(String channelName) {
     if (!nameToChatTab.containsKey(channelName)) {
-      ChannelTab channelTab = channelTabFactory.createChannelTab(channelName, playerInfoMap);
+      ChannelTab channelTab = channelTabFactory.createChannelTab(channelName);
       nameToChatTab.put(channelName, channelTab);
       chatsTabPane.getTabs().add(channelTab);
     }
@@ -87,44 +78,23 @@ public class ChatController implements
   }
 
   @Override
-  public void onChannelJoined(String channelName, PlayerInfoBean playerInfoBean) {
-    if (isCurrentUser(playerInfoBean)) {
-      connectingProgressPane.setVisible(false);
-      chatsTabPane.setVisible(true);
-    } else {
-      addOrUpdatePlayerInfo(playerInfoBean);
-    }
+  public void onUserJoinedChannel(String channelName, ChatUser chatUser) {
+    Platform.runLater(() -> {
+      addAndGetChannel(channelName);
+
+      if (isCurrentUser(chatUser)) {
+        connectingProgressPane.setVisible(false);
+        chatsTabPane.setVisible(true);
+      }
+    });
   }
 
-  private boolean isCurrentUser(PlayerInfoBean playerInfoBean) {
-    return playerInfoBean.getUsername().equals(userService.getUsername());
+  private boolean isCurrentUser(ChatUser chatUser) {
+    return chatUser.getUsername().equals(userService.getUsername());
   }
 
   @Override
   public void onPrivateMessage(String sender, ChatMessage chatMessage) {
     addAndGetChannel(sender).onMessage(chatMessage);
-  }
-
-  @Override
-  public void onChatUserList(String channelName, Map<String, PlayerInfoBean> playerInfoBeans) {
-    playerService.getKnownPlayers().putAll(playerInfoBeans);
-    addAndGetChannel(channelName).setPlayerInfoAsync(playerInfoBeans);
-  }
-
-  private void addOrUpdatePlayerInfo(PlayerInfoBean playerInfoBean) {
-    String username = playerInfoBean.getUsername();
-
-    if (!playerInfoMap.containsKey(username)) {
-      playerInfoMap.put(username, playerInfoBean);
-    } else {
-      playerInfoMap.get(username).updateFromIrc(playerInfoBean);
-    }
-  }
-
-  @Override
-  public void onUserLeft(String login) {
-    for (ChannelTab channelTab : nameToChatTab.values()) {
-      channelTab.onUserLeft(login);
-    }
   }
 }

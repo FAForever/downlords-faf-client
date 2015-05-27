@@ -4,5 +4,5 @@ import java.util.Map;
 
 public interface OnUserListListener {
 
-  void onChatUserList(String channelName, Map<String, PlayerInfoBean> users);
+  void onChatUserList(String channelName, Map<String, ChatUser> users);
 }

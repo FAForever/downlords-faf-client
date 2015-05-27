@@ -1,15 +1,13 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.legacy.domain.PlayerInfo;
-import com.faforever.client.util.BeanUpdatePolicy;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import org.pircbotx.User;
+import javafx.beans.property.*;
 
 import java.util.Comparator;
 
+/**
+ * Represents a player with username, clan, country, friend/foe flag and so on. Can also be a chat-only user.
+ */
 public class PlayerInfoBean {
 
   public static final Comparator<PlayerInfoBean> SORT_BY_NAME_COMPARATOR = new Comparator<PlayerInfoBean>() {
@@ -27,6 +25,9 @@ public class PlayerInfoBean {
   private BooleanProperty friend;
   private BooleanProperty foe;
   private BooleanProperty moderator;
+  private BooleanProperty chatOnly;
+  private FloatProperty deviation;
+  private FloatProperty mean;
 
   private PlayerInfoBean() {
     username = new SimpleStringProperty();
@@ -37,6 +38,9 @@ public class PlayerInfoBean {
     friend = new SimpleBooleanProperty();
     foe = new SimpleBooleanProperty();
     moderator = new SimpleBooleanProperty();
+    chatOnly = new SimpleBooleanProperty(true);
+    deviation = new SimpleFloatProperty();
+    mean = new SimpleFloatProperty();
   }
 
   public PlayerInfoBean(PlayerInfo playerInfo) {
@@ -52,46 +56,10 @@ public class PlayerInfoBean {
     }
   }
 
-  public PlayerInfoBean(User user) {
+  public PlayerInfoBean(String username) {
     this();
 
-    username.set(user.getLogin());
-  }
-
-  public void update(PlayerInfoBean playerInfoBean, BeanUpdatePolicy policy) {
-    String username = playerInfoBean.getUsername();
-    String clan = playerInfoBean.getClan();
-    String country = playerInfoBean.getCountry();
-    String avatarUrl = playerInfoBean.getAvatarUrl();
-    String avatarTooltip = playerInfoBean.getAvatarTooltip();
-
-    switch (policy) {
-      case OVERRIDE:
-        this.username.set(username);
-        this.clan.set(clan);
-        this.country.set(country);
-        this.avatarUrl.set(avatarUrl);
-        this.avatarTooltip.set(avatarTooltip);
-        break;
-
-      case MERGE:
-        if (username != null) {
-          this.username.set(username);
-        }
-        if (clan != null) {
-          this.clan.set(clan);
-        }
-        if (country != null) {
-          this.country.set(country);
-        }
-        if (avatarUrl != null) {
-          this.avatarUrl.set(avatarUrl);
-        }
-        if (avatarTooltip != null) {
-          this.avatarTooltip.set(avatarTooltip);
-        }
-        break;
-    }
+    this.username.set(username);
   }
 
   @Override
@@ -181,10 +149,76 @@ public class PlayerInfoBean {
     this.moderator.set(moderator);
   }
 
-  /**
-   * Updates this instance with the username in the specified instance.
-   */
-  public void updateFromIrc(PlayerInfoBean playerInfoBean) {
-   username.set(playerInfoBean.getUsername());
+  public boolean isChatOnly() {
+    return chatOnly.get();
   }
+
+  public BooleanProperty chatOnlyProperty() {
+    return chatOnly;
+  }
+
+  public void setChatOnly(boolean chatOnly) {
+    this.chatOnly.set(chatOnly);
+  }
+
+  public void setUsername(String username) {
+    this.username.set(username);
+  }
+
+  public void setClan(String clan) {
+    this.clan.set(clan);
+  }
+
+  public void setCountry(String country) {
+    this.country.set(country);
+  }
+
+  public void setAvatarUrl(String avatarUrl) {
+    this.avatarUrl.set(avatarUrl);
+  }
+
+  public void setAvatarTooltip(String avatarTooltip) {
+    this.avatarTooltip.set(avatarTooltip);
+  }
+
+  public boolean getFriend() {
+    return friend.get();
+  }
+
+  public boolean getFoe() {
+    return foe.get();
+  }
+
+  public boolean getModerator() {
+    return moderator.get();
+  }
+
+  public boolean getIrcOnly() {
+    return chatOnly.get();
+  }
+
+  public float getDeviation() {
+    return deviation.get();
+  }
+
+  public FloatProperty deviationProperty() {
+    return deviation;
+  }
+
+  public void setDeviation(float deviation) {
+    this.deviation.set(deviation);
+  }
+
+  public float getMean() {
+    return mean.get();
+  }
+
+  public FloatProperty meanProperty() {
+    return mean;
+  }
+
+  public void setMean(float mean) {
+    this.mean.set(mean);
+  }
+
 }

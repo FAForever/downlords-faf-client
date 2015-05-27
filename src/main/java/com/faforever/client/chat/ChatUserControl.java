@@ -151,7 +151,7 @@ public class ChatUserControl extends HBox {
       countryTooltip = new Tooltip();
       countryTooltip.textProperty().bind(playerInfoBean.countryProperty());
       countryTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_RIGHT);
-      countryTooltip.show(((Node) event.getTarget()).getScene().getWindow(), event.getScreenX(), event.getScreenY());
+      countryTooltip.show(((Node) event.getTarget()).getScene().getWindow(), event.getScreenX() + 10, event.getScreenY() + 10);
       event.consume();
     });
     countryImageView.setOnMouseExited(event -> {

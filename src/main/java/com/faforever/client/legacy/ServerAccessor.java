@@ -2,16 +2,7 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
-import com.faforever.client.legacy.domain.ClientMessage;
-import com.faforever.client.legacy.domain.GameAccess;
-import com.faforever.client.legacy.domain.GameInfo;
-import com.faforever.client.legacy.domain.GameLaunchInfo;
-import com.faforever.client.legacy.domain.ModInfo;
-import com.faforever.client.legacy.domain.OnFafLoginSucceededListener;
-import com.faforever.client.legacy.domain.PlayerInfo;
-import com.faforever.client.legacy.domain.PongMessage;
-import com.faforever.client.legacy.domain.ServerWritable;
-import com.faforever.client.legacy.domain.SessionInfo;
+import com.faforever.client.legacy.domain.*;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
@@ -42,12 +33,12 @@ import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 public class ServerAccessor implements OnSessionInfoListener,
     OnPingListener,
     OnPlayerInfoListener,
-    OnGameInfoListener,
     OnFafLoginSucceededListener,
     OnModInfoListener,
     OnGameLaunchInfoListener,
     OnFriendListListener,
-    OnFoeListListener {
+    OnFoeListListener,
+    OnGameInfoListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -60,6 +51,7 @@ public class ServerAccessor implements OnSessionInfoListener,
   @Autowired
   PreferencesService preferencesService;
 
+  private Task<Void> fafConnectionTask;
   private String uniqueId;
   private String username;
   private String password;
@@ -74,7 +66,7 @@ public class ServerAccessor implements OnSessionInfoListener,
   // Yes I know, those aren't lists. They will become if it's necessary
   private OnLobbyConnectingListener onLobbyConnectingListener;
   private OnLobbyDisconnectedListener onLobbyDisconnectedListener;
-  private OnLobbyConnectedListener onFafConnectedListener;
+  private OnLobbyConnectedListener onLobbyConnectedListener;
   private OnPlayerInfoListener onPlayerInfoListener;
   private OnFoeListListener onFoeListListener;
   private OnFriendListListener onFriendListListener;
@@ -99,7 +91,9 @@ public class ServerAccessor implements OnSessionInfoListener,
       throw new IllegalStateException("Username or password has not been set");
     }
 
-    executeInBackground(new Task<Void>() {
+    fafConnectionTask = new Task<Void>() {
+      Socket fafServerSocket;
+
       @Override
       protected Void call() throws Exception {
         while (!isCancelled()) {
@@ -113,12 +107,13 @@ public class ServerAccessor implements OnSessionInfoListener,
 
           try (Socket fafServerSocket = new Socket(lobbyHost, lobbyPort);
                OutputStream outputStream = fafServerSocket.getOutputStream()) {
+            this.fafServerSocket = fafServerSocket;
 
             fafServerSocket.setKeepAlive(true);
 
             logger.info("FAF server connection established");
-            if (onFafConnectedListener != null) {
-              Platform.runLater(onFafConnectedListener::onFaConnected);
+            if (onLobbyConnectedListener != null) {
+              Platform.runLater(onLobbyConnectedListener::onFaConnected);
             }
 
             localIp = fafServerSocket.getLocalAddress().getHostAddress();
@@ -131,17 +126,34 @@ public class ServerAccessor implements OnSessionInfoListener,
 
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
-            logger.warn("Lost connection to FAF server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
-            if (onLobbyDisconnectedListener != null) {
-              Platform.runLater(onLobbyDisconnectedListener::onFaDisconnected);
+            if (isCancelled()) {
+              logger.debug("Login has been cancelled");
+            } else {
+              logger.warn("Lost connection to FAF server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
+              if (onLobbyDisconnectedListener != null) {
+                Platform.runLater(onLobbyDisconnectedListener::onFaDisconnected);
+              }
+              Thread.sleep(RECONNECT_DELAY);
             }
-            Thread.sleep(RECONNECT_DELAY);
           }
-
         }
         return null;
       }
-    });
+
+      @Override
+      protected void cancelled() {
+        try {
+          if (fafServerSocket != null) {
+            serverWriter.close();
+            fafServerSocket.close();
+          }
+          logger.debug("Closed connection to FAF lobby server");
+        } catch (IOException e) {
+          logger.warn("Could not close fafServerSocket", e);
+        }
+      }
+    };
+    executeInBackground(fafConnectionTask);
   }
 
   private void writeToServer(ServerWritable serverWritable) {
@@ -149,7 +161,7 @@ public class ServerAccessor implements OnSessionInfoListener,
   }
 
   private void blockingReadServer(Socket socket) throws IOException {
-    JavaFxUtil.assertNotApplicationThread();
+    JavaFxUtil.assertBackgroundThread();
 
     ServerReader serverReader = new ServerReader(socket);
     serverReader.setOnSessionInfoListener(this);
@@ -176,7 +188,6 @@ public class ServerAccessor implements OnSessionInfoListener,
     executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        logger.info("Sending login information to FAF server");
         writeToServer(ClientMessage.login(username, password, session, uniqueId, localIp, VERSION));
         return null;
       }
@@ -205,6 +216,13 @@ public class ServerAccessor implements OnSessionInfoListener,
   }
 
   @Override
+  public void onGameInfo(GameInfo gameInfo) {
+    for (OnGameInfoListener listener : onGameInfoListeners) {
+      Platform.runLater(() -> listener.onGameInfo(gameInfo));
+    }
+  }
+
+  @Override
   public void onModInfo(ModInfo modInfo) {
     for (OnModInfoListener listener : onModInfoListeners) {
       Platform.runLater(() -> listener.onModInfo(modInfo));
@@ -215,13 +233,6 @@ public class ServerAccessor implements OnSessionInfoListener,
   public void onPlayerInfo(PlayerInfo playerInfo) {
     if (onPlayerInfoListener != null) {
       onPlayerInfoListener.onPlayerInfo(playerInfo);
-    }
-  }
-
-  @Override
-  public void onGameInfo(GameInfo gameInfo) {
-    for (OnGameInfoListener listener : onGameInfoListeners) {
-      Platform.runLater(() -> listener.onGameInfo(gameInfo));
     }
   }
 
@@ -305,15 +316,19 @@ public class ServerAccessor implements OnSessionInfoListener,
     this.onLobbyDisconnectedListener = onLobbyDisconnectedListener;
   }
 
-  public void setOnFafConnectedListener(OnLobbyConnectedListener onFafConnectedListener) {
-    this.onFafConnectedListener = onFafConnectedListener;
-  }
-
   public void setOnFriendListListener(OnFriendListListener onFriendListListener) {
     this.onFriendListListener = onFriendListListener;
   }
 
   public void setOnFoeListListener(OnFoeListListener onFoeListListener) {
     this.onFoeListListener = onFoeListListener;
+  }
+
+  public void disconnect() {
+    fafConnectionTask.cancel();
+  }
+
+  public void setOnLobbyConnectedListener(OnLobbyConnectedListener onLobbyConnectedListener) {
+    this.onLobbyConnectedListener = onLobbyConnectedListener;
   }
 }

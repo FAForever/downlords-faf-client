@@ -27,15 +27,7 @@ public class Main extends Application {
     stage.getIcons().add(new Image("/images/tray_icon.png"));
     stage.initStyle(StageStyle.TRANSPARENT);
 
-    UserService userService = context.getBean(UserService.class);
-
-    if (!userService.isLoggedIn()) {
-      showLoginWindow(stage, context);
-    } else {
-      context.register(UiConfig.class);
-      context.refresh();
-      showMainWindow(stage, context);
-    }
+    showLoginWindow(stage, context);
   }
 
   private void showMainWindow(Stage stage, ApplicationContext context) {

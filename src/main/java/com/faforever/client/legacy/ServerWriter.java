@@ -39,10 +39,12 @@ public class ServerWriter implements Closeable {
   private boolean appendSession;
   private CharSequence username;
   private CharSequence session;
+  private boolean closedGracefully;
 
   public ServerWriter(OutputStream outputStream) throws IOException {
     writer = new QStreamWriter(new DataOutputStream(new BufferedOutputStream(outputStream)));
     gson = new GsonBuilder()
+        .disableHtmlEscaping()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .registerTypeAdapter(GameType.class, new GameTypeTypeAdapter())
         .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
@@ -101,12 +103,17 @@ public class ServerWriter implements Closeable {
         writer.flush();
       }
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      if (!closedGracefully) {
+        throw new RuntimeException(e);
+      } else {
+        logger.debug("Server writer has been closed");
+      }
     }
   }
 
   @Override
   public void close() throws IOException {
+    closedGracefully = true;
     writer.close();
   }
 }

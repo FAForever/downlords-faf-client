@@ -1,6 +1,8 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.legacy.domain.PlayerInfo;
+
 public interface ChatUserControlFactory {
 
-  ChatUserControl newChatUserControl(PlayerInfoBean playerInfoBean);
+  ChatUserControl createChatUserControl(PlayerInfoBean playerInfoBean);
 }

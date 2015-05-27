@@ -1,5 +1,6 @@
 package com.faforever.client.supcom;
 
+import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.legacy.relay.LocalRelayServer;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
@@ -29,14 +30,16 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   public Process startGame(int uid, String mod, List<String> additionalArgs) throws IOException {
     Path executable = preferencesService.getFafBinDirectory().resolve("ForgedAlliance.exe");
 
+    PlayerInfoBean currentPlayer = userService.getCurrentPlayer();
+
     List<String> launchCommand = LaunchCommandBuilder.create()
         .executable(executable)
         .uid(uid)
-        .clan(userService.getClan())
-        .country(userService.getCountry())
-        .deviation(userService.getDeviation())
-        .mean(userService.getMean())
-        .username(userService.getUsername())
+        .clan(currentPlayer.getClan())
+        .country(currentPlayer.getCountry())
+        .deviation(currentPlayer.getDeviation())
+        .mean(currentPlayer.getMean())
+        .username(currentPlayer.getUsername())
         .additionalArgs(additionalArgs)
             // FIXME fix the path
         .logFile(preferencesService.getFafDataDirectory().resolve("faf.log"))

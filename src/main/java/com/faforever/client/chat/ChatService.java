@@ -6,19 +6,19 @@ public interface ChatService {
 
   void addOnConnectedListener(OnConnectedListener listener);
 
-  void addOnServerResponseListener(OnServerResponseListener listener);
-
   void addOnUserListListener(OnUserListListener listener);
 
   void addOnDisconnectedListener(OnDisconnectedListener listener);
 
   void addOnPrivateMessageListener(OnPrivateMessageListener listener);
 
-  void addOnUserJoinedListener(OnUserJoinedListener listener);
+  void addOnChannelJoinedListener(OnChannelJoinedListener listener);
 
   void addOnUserLeftListener(OnUserLeftListener listener);
 
   void connect();
 
   void sendMessage(String target, String message);
+
+  void getChatUsersForChannel(String channelName);
 }

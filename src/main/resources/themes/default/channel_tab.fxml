@@ -47,7 +47,7 @@
                           </TitledPane>
                           <TitledPane maxWidth="1.7976931348623157E308" text="%chat.category.irc">
                             <content>
-                              <VBox />
+                              <VBox fx:id="chatOnlyPane" />
                             </content>
                           </TitledPane>
                           <TitledPane maxWidth="1.7976931348623157E308" text="%chat.category.foes">

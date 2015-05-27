@@ -148,14 +148,13 @@ public class LoginController {
   }
 
   private void onLoginProgress() {
-    loginFormPane.setVisible(false);
-    loginProgressPane.setVisible(true);
-    loginButton.setDisable(true);
+    setShowLoginProgress(true);
   }
 
-  @FXML
-  void cancelButtonClicked(ActionEvent actionEvent) {
-    // TODO cancel login
+  private void setShowLoginProgress(boolean b) {
+    loginFormPane.setVisible(!b);
+    loginProgressPane.setVisible(b);
+    loginButton.setDisable(b);
   }
 
   @FXML
@@ -166,5 +165,11 @@ public class LoginController {
   @FXML
   void onMinimizeButtonClicked(ActionEvent actionEvent) {
     stage.setIconified(true);
+  }
+
+  @FXML
+  public void onCancelLoginButtonClicked(ActionEvent actionEvent) {
+    userService.cancelLogin();
+    setShowLoginProgress(false);
   }
 }

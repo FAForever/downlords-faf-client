@@ -31,7 +31,7 @@ public class JavaFxUtil {
     }
   }
 
-  public static void assertNotApplicationThread() {
+  public static void assertBackgroundThread() {
     if (Platform.isFxApplicationThread()) {
       throw new IllegalStateException("Must not run in FX Application thread");
     }

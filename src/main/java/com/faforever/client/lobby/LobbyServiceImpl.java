@@ -13,7 +13,7 @@ public class LobbyServiceImpl implements LobbyService {
 
   @Override
   public void setOnFafConnectedListener(OnLobbyConnectedListener listener) {
-    serverAccessor.setOnFafConnectedListener(listener);
+    serverAccessor.setOnLobbyConnectedListener(listener);
   }
 
   @Override

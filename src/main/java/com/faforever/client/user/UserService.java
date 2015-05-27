@@ -1,10 +1,9 @@
 package com.faforever.client.user;
 
+import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.util.Callback;
 
 public interface UserService {
-
-  boolean isLoggedIn();
 
   void login(String username, String password, boolean autoLogin, Callback<Void> callback);
 
@@ -12,11 +11,7 @@ public interface UserService {
 
   String getPassword();
 
-  String getClan();
+  PlayerInfoBean getCurrentPlayer();
 
-  String getCountry();
-
-  Float getDeviation();
-
-  Float getMean();
+  void cancelLogin();
 }

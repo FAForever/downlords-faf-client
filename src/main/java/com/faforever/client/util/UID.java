@@ -18,7 +18,7 @@ public class UID {
 
     UidLibrary INSTANCE = (UidLibrary) Native.loadLibrary("uid", UidLibrary.class);
 
-    String uid(String salt);
+    String uid(String salt, String logFile);
   }
 
   private UID() {
@@ -26,7 +26,7 @@ public class UID {
   }
 
   public static String generate(String salt) {
-    return UidLibrary.INSTANCE.uid(salt);
+    return UidLibrary.INSTANCE.uid(salt, "uid.log");
   }
 
 }

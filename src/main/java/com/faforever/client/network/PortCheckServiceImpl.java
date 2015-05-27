@@ -12,10 +12,7 @@ import org.springframework.core.env.Environment;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
+import java.net.*;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -74,7 +71,9 @@ public class PortCheckServiceImpl implements PortCheckService {
                DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream())) {
             dataOutputStream.writeInt(port);
           }
-        } catch (IOException e) {
+        } catch (ConnectException e) {
+          logger.warn("Port check server is not reachable");
+        } catch(IOException e) {
           throw new RuntimeException(e);
         }
       }

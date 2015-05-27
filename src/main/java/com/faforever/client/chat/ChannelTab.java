@@ -4,13 +4,11 @@ import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.ConcurrentUtil;
+import com.faforever.client.util.JavaFxUtil;
 import javafx.application.HostServices;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableMap;
-import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -18,7 +16,6 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
@@ -36,15 +33,9 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
-public class ChannelTab extends Tab {
+public class ChannelTab extends Tab implements OnUserListListener, OnUserLeftListener, OnChannelJoinedListener {
 
   private static final String CLAN_TAG_FORMAT = "[%s] ";
   private static final ClassPathResource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
@@ -59,16 +50,19 @@ public class ChannelTab extends Tab {
   WebView messagesWebView;
 
   @FXML
-  VBox moderatorsPane;
+  Pane moderatorsPane;
 
   @FXML
-  VBox friendsPane;
+  Pane friendsPane;
 
   @FXML
-  VBox foesPane;
+  Pane foesPane;
 
   @FXML
-  VBox othersPane;
+  Pane othersPane;
+
+  @FXML
+  Pane chatOnlyPane;
 
   @FXML
   TextField messageTextField;
@@ -99,51 +93,53 @@ public class ChannelTab extends Tab {
   private boolean isChatReady;
   private WebEngine engine;
   private List<ChatMessage> waitingMessages;
-  private ObservableMap<String, ChatUserControl> loginToUserControl;
   private Map<String, String> userToCssStyle;
-  private Map<String, PlayerInfoBean> playerInfoBeans;
+
+  /**
+   * Keeps track of which ChatUserControl in which pane belongs to which user.
+   */
+  private Map<String, Map<Pane, ChatUserControl>> userToChatUserControls;
 
   public ChannelTab(String channelName, boolean isPrivate) {
     this.channelName = channelName;
 
     userToCssStyle = new HashMap<>();
     waitingMessages = new ArrayList<>();
-    loginToUserControl = FXCollections.observableHashMap();
+    userToChatUserControls = FXCollections.observableHashMap();
 
     setClosable(true);
     setId(channelName);
     setText(channelName);
   }
 
+  private ChangeListener<Boolean> propertyChangeListenerToDisplayPlayerInPane(PlayerInfoBean playerInfoBean, Pane pane) {
+    return (observable, oldValue, newValue) -> {
+      if (newValue) {
+        Platform.runLater(() -> pane.getChildren().add(chatUserControlFactory.createChatUserControl(playerInfoBean)));
+      } else {
+        Platform.runLater(() -> {
+          Map<Pane, ChatUserControl> paneChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
+          pane.getChildren().remove(paneChatUserControlMap.get(pane));
+        });
+      }
+    };
+  }
+
   @PostConstruct
   void init() {
-    playerService.getKnownPlayers().addListener((MapChangeListener<String, PlayerInfoBean>) change -> {
-      onPlayerInfoAdded(change.getValueAdded());
-    });
     fxmlLoader.loadCustomControl("channel_tab.fxml", this);
     initChatView();
     userToCssStyle.put(userService.getUsername(), CSS_STYLE_SELF);
-  }
 
-  @FXML
-  void initialize() {
-    loginToUserControl.addListener((MapChangeListener<String, ChatUserControl>) change -> {
-      Collection<Pane> targetPanes = getTargetPanesForUser(change.getValueAdded().getPlayerInfoBean());
+    chatService.addOnUserListListener(this);
+    chatService.addOnChannelJoinedListener(this);
+    chatService.addOnUserLeftListener(this);
 
-      if (change.wasAdded()) {
-        for (Pane targetPane : targetPanes) {
-          targetPane.getChildren().add(change.getValueAdded());
-        }
-      } else {
-        for (Pane targetPane : targetPanes) {
-          targetPane.getChildren().remove(change.getValueRemoved());
-        }
-      }
-    });
+    chatService.getChatUsersForChannel(channelName);
   }
 
   private Collection<Pane> getTargetPanesForUser(PlayerInfoBean playerInfoBean) {
-    ArrayList<Pane> panes = new ArrayList<>(2);
+    ArrayList<Pane> panes = new ArrayList<>(3);
 
     if (playerInfoBean.isFriend()) {
       panes.add(friendsPane);
@@ -153,6 +149,10 @@ public class ChannelTab extends Tab {
 
     if (playerInfoBean.isModerator()) {
       panes.add(moderatorsPane);
+    }
+
+    if(playerInfoBean.isChatOnly()) {
+      panes.add(chatOnlyPane);
     }
 
     if (panes.isEmpty()) {
@@ -259,7 +259,7 @@ public class ChannelTab extends Tab {
     );
 
     // Bots are not registered in playerInfoMap. TODO fix it?
-    PlayerInfoBean playerInfoBean = playerInfoBeans.get(chatMessage.getLogin());
+    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getLogin());
 
     try (InputStream inputStream = MESSAGE_ITEM_HTML_RESOURCE.getInputStream()) {
       String login = chatMessage.getLogin();
@@ -299,43 +299,56 @@ public class ChannelTab extends Tab {
         .call("insertAdjacentHTML", "beforeend", html);
   }
 
-  public void setPlayerInfoAsync(Map<String, PlayerInfoBean> playerInfoBeans) {
-    this.playerInfoBeans = playerInfoBeans;
-    loginToUserControl.clear();
+  @Override
+  public void onChatUserList(String channelName, Map<String, ChatUser> users) {
+    if (!Objects.equals(this.channelName, channelName)) {
+      return;
+    }
 
-    ConcurrentUtil.executeInBackground(
-        new Task<Void>() {
-          @Override
-          protected Void call() throws Exception {
-            ArrayList<PlayerInfoBean> playerList = new ArrayList<>(playerInfoBeans.values());
-            Collections.sort(playerList, PlayerInfoBean.SORT_BY_NAME_COMPARATOR);
-
-            for (PlayerInfoBean playerInfoBean : playerList) {
-              if (isCancelled()) {
-                break;
-              }
-
-              ChatUserControl chatUserControl = chatUserControlFactory.newChatUserControl(playerInfoBean);
-              Platform.runLater(() -> addChatUserControlIfNecessary(chatUserControl));
-            }
-
-            return null;
-          }
-        }
-    );
+    for (ChatUser user : users.values()) {
+      onUserJoinedChannel(channelName, user);
+    }
   }
 
-  private void addChatUserControlIfNecessary(ChatUserControl chatUserControl) {
-    String username = chatUserControl.getPlayerInfoBean().getUsername();
-
-    loginToUserControl.putIfAbsent(username, chatUserControl);
-  }
-
-  public void onPlayerInfoAdded(PlayerInfoBean playerInfoBean) {
-    addChatUserControlIfNecessary(chatUserControlFactory.newChatUserControl(playerInfoBean));
-  }
-
+  @Override
   public void onUserLeft(String login) {
-    loginToUserControl.remove(login);
+    JavaFxUtil.assertBackgroundThread();
+
+    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(login);
+    if (playerInfoBean == null) {
+      return;
+    }
+
+    Map<Pane, ChatUserControl> paneChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
+    if (paneChatUserControlMap == null) {
+      return;
+    }
+
+    for (Map.Entry<Pane, ChatUserControl> entry : paneChatUserControlMap.entrySet()) {
+      Platform.runLater(() -> entry.getKey().getChildren().remove(entry.getValue()));
+    }
+  }
+
+  @Override
+  public void onUserJoinedChannel(String channelKey, ChatUser chatUser) {
+    JavaFxUtil.assertBackgroundThread();
+
+    PlayerInfoBean playerInfoBean = playerService.registerAndGetPlayerForUsername(chatUser.getUsername());
+
+    playerInfoBean.friendProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, friendsPane));
+    playerInfoBean.foeProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, foesPane));
+    playerInfoBean.moderatorProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, moderatorsPane));
+    playerInfoBean.chatOnlyProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, moderatorsPane));
+
+    String username = chatUser.getUsername();
+
+    Collection<Pane> targetPanesForUser = getTargetPanesForUser(playerInfoBean);
+    userToChatUserControls.putIfAbsent(username, new HashMap<>(targetPanesForUser.size(), 1));
+
+    for (Pane pane : targetPanesForUser) {
+      ChatUserControl chatUserControl = chatUserControlFactory.createChatUserControl(playerInfoBean);
+      userToChatUserControls.get(username).put(pane, chatUserControl);
+      Platform.runLater(() -> pane.getChildren().add(chatUserControl));
+    }
   }
 }
