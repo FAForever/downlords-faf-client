@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-
-<?import javafx.scene.web.WebView?>
-<WebView fx:id="whatsNewRoot" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0"
-         xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
-         fx:controller="com.faforever.client.whatsnew.WhatsNewController"/>

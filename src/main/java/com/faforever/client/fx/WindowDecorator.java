@@ -182,10 +182,11 @@ public class WindowDecorator {
     if (!resizable) {
       return;
     }
-    if (stage.isMaximized()) {
+    if (stage.isMaximized() || event.getTarget() != windowRoot) {
       windowRoot.setCursor(Cursor.DEFAULT);
       return;
     }
+
 
     resizeDirections.clear();
 
@@ -300,6 +301,10 @@ public class WindowDecorator {
 
   public void onMouseReleased(Event event) {
     isResizing = false;
+  }
+
+  public void onMouseExited(Event event) {
+    windowRoot.setCursor(Cursor.DEFAULT);
   }
 
   public static Rectangle2D getVisualBounds(Stage stage) {

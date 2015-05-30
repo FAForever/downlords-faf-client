@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GamesController">
+<VBox fx:id="gamesRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GamesController">
    <children>
     <HBox alignment="BASELINE_LEFT" maxWidth="-Infinity" spacing="10.0">
          <children>
@@ -27,12 +27,10 @@
          <items>
           <TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
             <columns>
+              <TableColumn fx:id="mapPreviewColumn" prefWidth="75.0" text="%game.map" />
               <TableColumn fx:id="gameTitleColumn" prefWidth="75.0" text="%game.title" />
               <TableColumn fx:id="playersColumn" prefWidth="75.0" text="%game.players" />
-              <TableColumn fx:id="mapPreviewColumn" prefWidth="75.0" />
-              <TableColumn fx:id="mapNameColumn" prefWidth="75.0" text="%game.map" />
               <TableColumn fx:id="rankingColumn" prefWidth="75.0" text="%game.ranking" />
-              <TableColumn fx:id="gameStatusColumn" prefWidth="75.0" text="game.status" />
             </columns>
             <columnResizePolicy>
               <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

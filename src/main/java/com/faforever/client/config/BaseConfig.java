@@ -24,6 +24,7 @@ import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.supcom.ForgedAllianceServiceImpl;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
+import com.faforever.client.vault.VaultController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
@@ -87,6 +88,11 @@ public class BaseConfig {
   @Bean
   PlayerService playerService() {
     return new PlayerServiceImpl();
+  }
+
+  @Bean
+  VaultController vaultController() {
+    return new VaultController();
   }
 
   @Bean

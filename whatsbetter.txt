@@ -11,3 +11,6 @@
 * When creating a game, any map from the vault can be selected (not just installed ones)
 * Map vault is MUCH more user friendly
 * Users in chat are grouped into categories instead of magically sorted
+* Maps can be uninstalled
+* Intelligent search (search wiki and so on)
+* Paste images from clipboard

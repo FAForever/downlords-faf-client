@@ -8,17 +8,17 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 
-<AnchorPane fx:id="windowRoot" minHeight="50.0" minWidth="100.0" onMouseClicked="#onMouseClicked" onMouseDragged="#onMouseDragged" onMouseMoved="#onMouseMoved" onMousePressed="#onMousePressed" onMouseReleased="#onMouseReleased" styleClass="decorated-window" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.fx.WindowDecorator">
+<AnchorPane fx:id="windowRoot" minHeight="50.0" minWidth="100.0" onMouseClicked="#onMouseClicked" onMouseDragged="#onMouseDragged" onMouseMoved="#onMouseMoved" onMouseExited="#onMouseExited" onMousePressed="#onMousePressed" onMouseReleased="#onMouseReleased" styleClass="decorated-window" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.fx.WindowDecorator">
   <children>
     <AnchorPane fx:id="contentPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 
     <HBox fx:id="windowButtons" alignment="TOP_RIGHT" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <children>
 
-        <Button fx:id="minimizeButton" onAction="#onMinimizeButtonClicked" styleClass="window-button" />
-        <Button fx:id="maximizeButton" onAction="#onMaximizeButtonClicked" styleClass="window-button" />
-        <Button fx:id="restoreButton" onAction="#onRestoreButtonClicked" styleClass="window-button" />
-        <Button fx:id="closeButton" onAction="#onCloseButtonClicked" styleClass="window-button" />
+        <Button fx:id="minimizeButton" onAction="#onMinimizeButtonClicked" styleClass="window-button" focusTraversable="false" />
+        <Button fx:id="maximizeButton" onAction="#onMaximizeButtonClicked" styleClass="window-button" focusTraversable="false" />
+        <Button fx:id="restoreButton" onAction="#onRestoreButtonClicked" styleClass="window-button" focusTraversable="false" />
+        <Button fx:id="closeButton" onAction="#onCloseButtonClicked" styleClass="window-button" focusTraversable="false" />
 
       </children>
     </HBox>

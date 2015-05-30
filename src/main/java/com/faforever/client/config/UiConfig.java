@@ -2,8 +2,8 @@ package com.faforever.client.config;
 
 import com.faforever.client.chat.AvatarService;
 import com.faforever.client.chat.AvatarServiceImpl;
-import com.faforever.client.chat.ChannelTabFactory;
-import com.faforever.client.chat.ChannelTabFactoryImpl;
+import com.faforever.client.chat.ChatTabFactory;
+import com.faforever.client.chat.ChatTabFactoryImpl;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatUserControlFactory;
 import com.faforever.client.chat.ChatUserControlFactoryImpl;
@@ -22,7 +22,7 @@ import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl;
-import com.faforever.client.whatsnew.WhatsNewController;
+import com.faforever.client.news.NewsController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -61,23 +61,23 @@ public class UiConfig {
   }
 
   @Bean
-  WhatsNewController whatsNewController() {
-    return mainController().getWhatsNewController();
+  NewsController newsController() {
+    return loadController("news.fxml");
   }
 
   @Bean
   GamesController gamesController() {
-    return mainController().getGamesController();
+    return loadController("games.fxml");
   }
 
   @Bean
   ChatController chatController() {
-    return mainController().getChatController();
+    return loadController("chat.fxml");
   }
 
   @Bean
-  ChannelTabFactory chatTabFactory() {
-    return new ChannelTabFactoryImpl();
+  ChatTabFactory chatTabFactory() {
+    return new ChatTabFactoryImpl();
   }
 
   @Bean

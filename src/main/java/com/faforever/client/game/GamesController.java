@@ -19,6 +19,7 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -35,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -49,6 +51,9 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
   private static final String DEFAULT_MOD = "faf";
 
   private static final Pattern RATING_PATTERN = Pattern.compile("([<>+~](?:\\d\\.?\\d?k|\\d{3,4})|(?:\\d\\.?\\d?k|\\d{3,4})[<>+]|(?:\\d\\.?\\d?k|\\d{1,4})\\s?-\\s?(?:\\d\\.?\\d?k|\\d{3,4}))");
+
+  @FXML
+  Node gamesRoot;
 
   @FXML
   ImageView mapImageView;
@@ -81,13 +86,7 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
   TableColumn<GameInfoBean, String> playersColumn;
 
   @FXML
-  TableColumn<GameInfoBean, Label> mapNameColumn;
-
-  @FXML
   TableColumn<GameInfoBean, String> rankingColumn;
-
-  @FXML
-  TableColumn<GameInfoBean, GameState> gameStatusColumn;
 
   @FXML
   Button createGameButton;
@@ -165,7 +164,6 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
         return StringUtils.defaultString(extractRating(param.getValue().getTitle()));
       }
     });
-    gameStatusColumn.setCellValueFactory(param -> param.getValue().statusProperty());
 
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       displayGameDetail(newValue);
@@ -277,7 +275,11 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
     modInfoBeans.put(modInfo.name, new ModInfoBean(modInfo));
   }
 
-  public void configure(Stage stage) {
+  public void setUp(Stage stage) {
     this.stage = stage;
+  }
+
+  public Node getRoot() {
+    return gamesRoot;
   }
 }

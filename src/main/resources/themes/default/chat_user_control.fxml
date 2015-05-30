@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
@@ -8,6 +12,6 @@
   <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true" HBox.hgrow="NEVER" />
   <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true" />
   <Label fx:id="clanLabel" />
-  <Label fx:id="usernameLabel" HBox.hgrow="ALWAYS" />
+  <Label fx:id="usernameLabel" onMouseClicked="#onUsernameClicked" HBox.hgrow="ALWAYS" />
   <ImageView fx:id="statusImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true" HBox.hgrow="NEVER" />
 </fx:root>

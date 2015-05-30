@@ -5,13 +5,15 @@ import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
@@ -53,10 +55,7 @@ public class ChatUserControl extends HBox {
   ImageView countryImageView;
 
   @FXML
-  private ImageView avatarImageView;
-
-  @FXML
-  ImageView statusImageView;
+  ImageView avatarImageView;
 
   @FXML
   Label usernameLabel;
@@ -65,12 +64,12 @@ public class ChatUserControl extends HBox {
   Label clanLabel;
 
   private final PlayerInfoBean playerInfoBean;
-  private Tooltip avatarTooltip;
-  private Tooltip countryTooltip;
+  private final OnChatUserControlDoubleClickListener onChatUserControlDoubleClickListener;
   private Stage userInfoWindow;
 
-  public ChatUserControl(PlayerInfoBean playerInfoBean) {
+  public ChatUserControl(PlayerInfoBean playerInfoBean, OnChatUserControlDoubleClickListener onChatUserControlDoubleClickListener) {
     this.playerInfoBean = playerInfoBean;
+    this.onChatUserControlDoubleClickListener = onChatUserControlDoubleClickListener;
   }
 
   @FXML
@@ -84,6 +83,13 @@ public class ChatUserControl extends HBox {
   void onContextMenuRequested(ContextMenuEvent event) {
     ContextMenu contextMenu = fxmlLoader.loadAndGetRoot("chat_user_context_menu.fxml", this);
     contextMenu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
+  }
+
+  @FXML
+  void onUsernameClicked(MouseEvent mouseEvent) {
+    if (mouseEvent.getButton().equals(MouseButton.PRIMARY) && mouseEvent.getClickCount() == 2) {
+      onChatUserControlDoubleClickListener.onChatUserControlDoubleClicked(this);
+    }
   }
 
   @FXML
@@ -119,49 +125,28 @@ public class ChatUserControl extends HBox {
   }
 
   private void configureAvatarImageView() {
-    setAvatarUrl(playerInfoBean.getAvatarUrl());
-
-    avatarImageView.setOnMouseMoved(event -> {
-      if (avatarTooltip != null) {
-        return;
-      }
-      avatarTooltip = new Tooltip();
-      avatarTooltip.textProperty().bind(playerInfoBean.avatarTooltipProperty());
-      avatarTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_RIGHT);
-      avatarTooltip.show(((Node) event.getTarget()).getScene().getWindow(), event.getScreenX(), event.getScreenY());
-      event.consume();
-    });
-    avatarImageView.setOnMouseExited(event -> {
-      avatarTooltip.hide();
-      avatarTooltip = null;
-      event.consume();
-    });
     playerInfoBean.avatarUrlProperty().addListener((observable, oldValue, newValue) -> {
       setAvatarUrl(newValue);
     });
+    setAvatarUrl(playerInfoBean.getAvatarUrl());
+
+    Tooltip avatarTooltip = new Tooltip(playerInfoBean.getAvatarTooltip());
+    avatarTooltip.textProperty().bind(playerInfoBean.avatarTooltipProperty());
+    avatarTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
+
+    Tooltip.install(avatarImageView, avatarTooltip);
   }
 
   private void configureCountryImageView() {
-    setCountry(playerInfoBean.getCountry());
-
-    countryImageView.setOnMouseEntered(event -> {
-      if (countryTooltip != null) {
-        return;
-      }
-      countryTooltip = new Tooltip();
-      countryTooltip.textProperty().bind(playerInfoBean.countryProperty());
-      countryTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_RIGHT);
-      countryTooltip.show(((Node) event.getTarget()).getScene().getWindow(), event.getScreenX() + 10, event.getScreenY() + 10);
-      event.consume();
-    });
-    countryImageView.setOnMouseExited(event -> {
-      countryTooltip.hide();
-      countryTooltip = null;
-      event.consume();
-    });
     playerInfoBean.countryProperty().addListener((observable, oldValue, newValue) -> {
       setCountry(newValue);
     });
+    setCountry(playerInfoBean.getCountry());
+
+    Tooltip countryTooltip = new Tooltip(playerInfoBean.getCountry());
+    countryTooltip.textProperty().bind(playerInfoBean.countryProperty());
+
+    Tooltip.install(countryImageView, countryTooltip);
   }
 
   private void setCountry(String country) {

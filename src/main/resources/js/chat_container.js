@@ -9,7 +9,8 @@ function link(input) {
           tagName: "a",
           attrs: {
             "href": "javascript:void(0);",
-            "onclick": "channelTab.openUrl('"+match.getUrl()+"')"
+            "onClick": "chatTab.openUrl('"+match.getUrl()+"')",
+            "onMouseOver": "chatTab.previewUrl('"+match.getUrl()+"')",
           },
           innerHtml: match.getAnchorText()
         } );

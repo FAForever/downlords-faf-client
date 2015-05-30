@@ -1,8 +1,12 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.Pane;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +17,7 @@ import java.util.Map;
 
 public class ChatController implements
     OnMessageListener,
-    OnDisconnectedListener,
+    OnChatDisconnectedListener,
     OnPrivateMessageListener,
     OnChannelJoinedListener {
 
@@ -21,10 +25,13 @@ public class ChatController implements
   ChatService chatService;
 
   @Autowired
-  ChannelTabFactory channelTabFactory;
+  ChatTabFactory chatTabFactory;
 
   @Autowired
   UserService userService;
+
+  @FXML
+  private Node chatRoot;
 
   @FXML
   private TabPane chatsTabPane;
@@ -32,7 +39,7 @@ public class ChatController implements
   @FXML
   private Pane connectingProgressPane;
 
-  private final Map<String, ChannelTab> nameToChatTab;
+  private final Map<String, AbstractChatTab> nameToChatTab;
 
   public ChatController() {
     nameToChatTab = new HashMap<>();
@@ -46,7 +53,7 @@ public class ChatController implements
     chatService.addOnChannelJoinedListener(this);
   }
 
-  public void configure() {
+  public void setUp() {
     chatService.connect();
   }
 
@@ -62,13 +69,27 @@ public class ChatController implements
     });
   }
 
-  private ChannelTab addAndGetChannel(String channelName) {
+  private AbstractChatTab addAndGetChannel(String channelName) {
     if (!nameToChatTab.containsKey(channelName)) {
-      ChannelTab channelTab = channelTabFactory.createChannelTab(channelName);
-      nameToChatTab.put(channelName, channelTab);
-      chatsTabPane.getTabs().add(channelTab);
+      AbstractChatTab tab = chatTabFactory.createChannelTab(channelName);
+      nameToChatTab.put(channelName, tab);
+      chatsTabPane.getTabs().add(tab);
+      tab.setOnClosed(event -> nameToChatTab.remove(channelName));
     }
     return nameToChatTab.get(channelName);
+  }
+
+  private AbstractChatTab addAndSelectPrivateMessageTab(String username) {
+    if (!nameToChatTab.containsKey(username)) {
+      AbstractChatTab tab = chatTabFactory.createPrivateMessageTab(username);
+      nameToChatTab.put(username, tab);
+      chatsTabPane.getTabs().add(tab);
+      tab.setOnClosed(event -> nameToChatTab.remove(username));
+    }
+
+    AbstractChatTab tab = nameToChatTab.get(username);
+    chatsTabPane.getSelectionModel().select(tab);
+    return tab;
   }
 
   @Override
@@ -95,6 +116,15 @@ public class ChatController implements
 
   @Override
   public void onPrivateMessage(String sender, ChatMessage chatMessage) {
-    addAndGetChannel(sender).onMessage(chatMessage);
+    JavaFxUtil.assertBackgroundThread();
+    Platform.runLater(() -> addAndGetChannel(sender).onMessage(chatMessage));
+  }
+
+  public Node getRoot() {
+    return chatRoot;
+  }
+
+  public void openPrivateMessageTabForUser(String username) {
+    addAndSelectPrivateMessageTab(username);
   }
 }

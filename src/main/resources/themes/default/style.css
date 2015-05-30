@@ -39,7 +39,6 @@
   -fx-font-size: 14px;
   -fx-text-fill: -primary-text-color;
   -fx-background: -primary-color;
-  -fx-focus-color: -accent-color;
   -fx-base: #1f1f1f;
   -fx-accent: #3880c6;
   -fx-default-button: -fx-accent;
@@ -66,17 +65,39 @@
   -fx-background-color: -accent-color;
 }
 .menu-button {
-  -fx-background-image: url('images/menu.png');
   -fx-background-position: center;
   -fx-background-repeat: no-repeat;
+  -fx-background-color: transparent;
   -fx-min-width: 28px;
   -fx-max-width: 28px;
   -fx-min-height: 28px;
   -fx-max-height: 28px;
 }
+.menu-button:focused {
+  -fx-border-width: 0;
+}
+
 .context-menu {
   -fx-background-color: -secondary-color;
   -fx-text-fill: -secondary-text-color;
+}
+
+/***************** Navigation *****************/
+
+.main-navigation > .toggle-button {
+  -fx-font-size: 20px;
+  -fx-text-fill: -secondary-text-color;
+  -fx-background-color: transparent;
+  -fx-background-repeat: no-repeat;
+}
+
+.main-navigation > .toggle-button:focused {
+  -fx-border-width: 0;
+}
+
+.main-navigation > .toggle-button:selected {
+  -fx-text-fill: -primary-text-color;
+  -fx-font-weight: bold;
 }
 
 /***************** Table *****************/
@@ -185,6 +206,14 @@
 }
 
 /***************** Window decoration *****************/
+
+.map-card .game-title {
+  -fx-font-size: 18px;
+}
+
+
+/***************** Window decoration *****************/
+
 .window-button {
   -fx-min-height: 20px;
   -fx-max-height: 20px;
@@ -246,9 +275,13 @@ game-detail-title {
   -fx-highlight-fill: -accent-color;
 }
 
+.tab-header-area {
+}
+
 .tab-header-background {
   -fx-background-color: transparent;
 }
+
 .tab {
   -fx-background-color: -secondary-color;
 }
@@ -276,7 +309,7 @@ game-detail-title {
   -fx-font-size: 11px;
 }
 
-/***************** Chat (WebView, therefore default CSS). Variables Can't be used *****************/
+/***************** Chat (WebView, therefore default CSS). Java FX  variables can't be used *****************/
 
 html, body {
   margin: 0;
@@ -293,6 +326,10 @@ a {
 #chat-table {
   width: 100%;
   border-collapse: collapse;
+}
+
+.own-username {
+  color: orange;
 }
 
 .chat-message {
@@ -318,7 +355,7 @@ a {
 .chat-message .time {
 }
 
-.chat-message>.avatar {
+.chat-message > .avatar {
   width: 40;
   height: 20px;
   padding: 0 2px;

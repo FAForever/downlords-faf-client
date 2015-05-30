@@ -23,4 +23,15 @@ public class ChatUser {
   public void setUsername(String username) {
     this.username.set(username);
   }
+
+  @Override
+  public int hashCode() {
+    return username.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof ChatUser
+        && username.equals(obj);
+  }
 }

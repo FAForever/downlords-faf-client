@@ -2,7 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.user.UserService;
 import com.google.common.collect.ImmutableSortedSet;
-import javafx.collections.FXCollections;
+import javafx.collections.*;
 import javafx.concurrent.Task;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.pircbotx.Configuration;
@@ -30,51 +30,77 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
-public class PircBotXChatService implements ChatService, Listener, OnConnectedListener, OnUserListListener, OnChannelJoinedListener, OnUserLeftListener {
+public class PircBotXChatService implements ChatService, Listener, OnConnectedListener, OnChatUserListListener, OnChannelJoinedListener, OnChatUserLeftListener, OnChatDisconnectedListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int RECONNECT_DELAY = 3000;
+  private static final int SOCKET_TIMEOUT = 10000;
+
   @Autowired
   private Environment environment;
   @Autowired
   private UserService userService;
-  private Map<Class<? extends Event>, ArrayList<ChatEventListener>> eventListeners;
+
+  private final Map<Class<? extends Event>, ArrayList<ChatEventListener>> eventListeners;
+  private final ObservableMap<String, ObservableSet<ChatUser>> chatUserLists;
+
   private Configuration configuration;
   private PircBotX pircBotX;
   private boolean initialized;
-  private Map<String, ChatUser> chatUserList;
 
   public PircBotXChatService() {
-    eventListeners = new HashMap<>();
-    chatUserList = FXCollections.observableHashMap();
+    eventListeners = new ConcurrentHashMap<>();
+    chatUserLists = FXCollections.observableHashMap();
   }
 
   @Override
-  public void onChatUserList(String channelName, Map<String, ChatUser> users) {
-    this.chatUserList = users;
+  public void onChatUserList(String channelName, Collection<ChatUser> users) {
+    synchronized (chatUserLists) {
+      Set<ChatUser> chatUsers = getChatUsersForChannel(channelName);
+      synchronized (chatUsers) {
+        chatUsers.addAll(users);
+      }
+    }
   }
 
   @Override
-  public void onUserJoinedChannel(String channelKey, ChatUser chatUser) {
-    chatUserList.put(chatUser.getUsername(), chatUser);
+  public void onUserJoinedChannel(String channelName, ChatUser chatUser) {
+    synchronized (chatUserLists) {
+      Set<ChatUser> chatUsers = getChatUsersForChannel(channelName);
+      synchronized (chatUsers) {
+        chatUsers.add(chatUser);
+      }
+    }
   }
 
   @Override
-  public void onUserLeft(String login) {
-    chatUserList.remove(login);
+  public void onUserLeft(String username) {
+    synchronized (chatUserLists) {
+      for (ObservableSet<ChatUser> chatUsers : chatUserLists.values()) {
+        chatUsers.remove(username);
+      }
+    }
+  }
+
+  @Override
+  public ObservableSet<ChatUser> getChatUsersForChannel(String channelName) {
+    if (!chatUserLists.containsKey(channelName)) {
+      chatUserLists.put(channelName, FXCollections.observableSet(new HashSet<>()));
+    }
+    return chatUserLists.get(channelName);
   }
 
   @PostConstruct
   void postConstruct() {
     addOnUserListListener(this);
     addOnChannelJoinedListener(this);
-    addOnUserLeftListener(this);
+    addOnChatUserLeftListener(this);
+    addOnDisconnectedListener(this);
   }
 
   private void init() {
@@ -89,6 +115,7 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
         .setEncoding(StandardCharsets.UTF_8)
         .setAutoReconnect(false)
         .addListener(this)
+        .setSocketTimeout(SOCKET_TIMEOUT)
         .buildConfiguration();
 
     addOnConnectedListener(this);
@@ -104,13 +131,13 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   }
 
   @Override
-  public void addOnUserListListener(final OnUserListListener listener) {
+  public void addOnUserListListener(final OnChatUserListListener listener) {
     addEventListener(UserListEvent.class,
         event -> listener.onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers())));
   }
 
   @Override
-  public void addOnDisconnectedListener(final OnDisconnectedListener listener) {
+  public void addOnDisconnectedListener(final OnChatDisconnectedListener listener) {
     addEventListener(DisconnectEvent.class,
         event -> listener.onDisconnected(extractDisconnectException(event)));
   }
@@ -162,7 +189,7 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   }
 
   @Override
-  public void addOnUserLeftListener(final OnUserLeftListener listener) {
+  public void addOnChatUserLeftListener(final OnChatUserLeftListener listener) {
     addEventListener(QuitEvent.class,
         event -> listener.onUserLeft(
             event.getUser().getLogin()
@@ -198,8 +225,8 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   }
 
   @Override
-  public void getChatUsersForChannel(String channelName) {
-
+  public void addChannelUserListListener(String channelName, SetChangeListener<ChatUser> listener) {
+    getChatUsersForChannel(channelName).addListener(listener);
   }
 
   private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
@@ -232,13 +259,21 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
     });
   }
 
-  private Map<String, ChatUser> chatUsers(ImmutableSortedSet<User> users) {
-    Map<String, ChatUser> chatUsers = new HashMap<>(users.size(), 1);
+  private Collection<ChatUser> chatUsers(ImmutableSortedSet<User> users) {
+    Collection<ChatUser> chatUsers = new ArrayList<>();
     for (User user : users) {
       ChatUser chatUser = new ChatUser(user.getNick());
-      chatUsers.put(chatUser.getUsername(), chatUser);
+      chatUsers.add(chatUser);
     }
     return chatUsers;
+  }
+
+  @Override
+  public void onDisconnected(Exception e) {
+    synchronized (chatUserLists) {
+      chatUserLists.values().forEach(ObservableSet<ChatUser>::clear);
+      chatUserLists.clear();
+    }
   }
 
   interface ChatEventListener<T> {

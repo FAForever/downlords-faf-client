@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-public interface OnUserLeftListener {
+public interface OnChatUserLeftListener {
 
   void onUserLeft(String login);
 }

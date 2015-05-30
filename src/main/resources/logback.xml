@@ -3,8 +3,9 @@
   <logger name="org.pircbotx" level="info"/>
   <logger name="com.faforever.client.preferences" level="warn"/>
   <logger name="com.faforever.client.map" level="warn"/>
-  <logger name="com.faforever.client.legacy.ServerReader" level="warn"/>
+  <logger name="com.faforever.client.legacy" level="warn"/>
   <logger name="com.faforever.client.legacy.proxy" level="warn"/>
+  <logger name="com.faforever.client.chat" level="debug"/>
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>

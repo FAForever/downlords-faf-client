@@ -4,5 +4,5 @@ import com.faforever.client.legacy.domain.PlayerInfo;
 
 public interface ChatUserControlFactory {
 
-  ChatUserControl createChatUserControl(PlayerInfoBean playerInfoBean);
+  ChatUserControl createChatUserControl(PlayerInfoBean playerInfoBean, OnChatUserControlDoubleClickListener onChatUserControlDoubleClickListener);
 }

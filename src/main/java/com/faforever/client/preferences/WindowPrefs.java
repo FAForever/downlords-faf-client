@@ -5,7 +5,7 @@ public class WindowPrefs {
   private int width;
   private int height;
   private boolean maximized;
-  private String tab;
+  private String lastView;
 
   public WindowPrefs(int width, int height) {
     this.width = width;
@@ -36,11 +36,11 @@ public class WindowPrefs {
     this.width = width;
   }
 
-  public void setTab(String tab) {
-    this.tab = tab;
+  public void setLastView(String lastView) {
+    this.lastView = lastView;
   }
 
-  public String getTab() {
-    return tab;
+  public String getLastView() {
+    return lastView;
   }
 }
