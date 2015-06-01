@@ -1,0 +1,773 @@
+profile = {
+    current = 1,
+    profiles = {
+        {
+            console_size = 5,
+            LastColor = 5,
+            skin = 'uef',
+            console_fade_delay = 3,
+            LastScenario = '/maps/scmp_007/scmp_007_scenario.lua',
+            mini_ui_minimap = {
+                top = 0,
+                bottom = 210,
+                right = 1605,
+                left = 1378
+            },
+            Lobby_Gen_Civilians = 1,
+            console_font_color = 'FFbadbdb',
+            Lobby_Gen_Cap = 8,
+            range_RenderBuild = true,
+            Lobby_Gen_Timeouts = 2,
+            UserDebugKeyMap = {
+                ['Ctrl-Alt-F5'] = 'debug_scenario_method_ctrl_alt_f5',
+                ['Ctrl-Alt-B'] = 'debug_blingbling',
+                ['Shift-F4'] = 'debug_scenario_method_shift_f4',
+                ['Shift-F5'] = 'debug_scenario_method_shift_f5',
+                ['Ctrl-Shift-F5'] = 'debug_scenario_method_f5',
+                ['Ctrl-Slash'] = 'debug_pause_single_step',
+                ['Alt-T'] = 'debug_teleport',
+                ['Ctrl-Alt-Shift-F8'] = 'debug_campaign_instawin',
+                ['Alt-F9'] = 'debug_open_lua_debugger',
+                ['Ctrl-Alt-W'] = 'debug_render_wireframe',
+                ['Alt-W'] = 'debug_dump_focus_ui_control',
+                ['Ctrl-Shift-C'] = 'debug_copy_units',
+                ['Ctrl-Shift-Alt-C'] = 'debug_collision',
+                ['Ctrl-F3'] = 'debug_scenario_method_ctrl_f3',
+                ['Ctrl-Alt-Z'] = 'debug_sally_shears',
+                ['Alt-D'] = 'debug_dump_ui_controls',
+                ['Alt-Delete'] = 'debug_destroy_units',
+                ['Ctrl-Alt-Period'] = 'debug_graphics_fidelity_2',
+                ['Shift-F6'] = 'debug_create_entity',
+                ['Ctrl-Alt-Comma'] = 'debug_graphics_fidelity_0',
+                ['Ctrl-Shift-X'] = 'debug_redo_console_command',
+                ['Alt-B'] = 'debug_bones',
+                ['Shift-F7'] = 'debug_show_stats',
+                ['Ctrl-Alt-O'] = 'debug_grid',
+                ['Ctrl-Alt-P'] = 'debug_navpath',
+                ['Alt-F11'] = 'debug_show_frame_stats',
+                ['Ctrl-Alt-F4'] = 'debug_scenario_method_ctrl_alt_f3',
+                ['Alt-Q'] = 'debug_show_focus_ui_control',
+                ['Ctrl-Shift-W'] = 'debug_weapons',
+                ['Ctrl-Alt-E'] = 'debug_show_emmitter_window',
+                ['Alt-V'] = 'debug_skeletons',
+                ['Alt-N'] = 'debug_nodamage',
+                ['Alt-F2'] = 'debug_create_unit',
+                ['Shift-F8'] = 'debug_show_army_stats',
+                ['Ctrl-F10'] = 'debug_restart_session',
+                ['Ctrl-F5'] = 'debug_scenario_method_ctrl_f5',
+                ['Shift-F3'] = 'debug_scenario_method_shift_f3',
+                ['Ctrl-Shift-V'] = 'debug_paste_units',
+                ['Alt-F3'] = 'debug_scenario_method_f3',
+                ['Ctrl-Shift-F4'] = 'debug_scenario_method_f4',
+                ['Ctrl-Shift-F1'] = 'debug_toggle_pannels',
+                ['Ctrl-F4'] = 'debug_scenario_method_ctrl_f4',
+                ['Alt-A'] = 'debug_run_opponent_AI',
+                F9 = 'debug_toggle_log_window'
+            },
+            LobbyChangelog = 6,
+            stratview = true,
+            LoadingFaction = 1,
+            Lobby_Share = 2,
+            LobbyHideDefaultOptions = 'true',
+            range_RenderHighlighted = true,
+            MenuTutorialPrompt = true,
+            activeFilters = {
+                radar = true,
+                selection = true,
+                buildpreview = true,
+                rollover = true,
+                omni = true,
+                counterintel = true,
+                sonar = true
+            },
+            options = {
+                keyboard_rotate_speed = 10,
+                gui_render_custom_names = 0,
+                hotbuild_cycle_preview = 1,
+                master_volume = 79,
+                skin_change_on_start = 'yes',
+                tooltip_delay = 0,
+                mp_taunt_head_enabled = 'false',
+                gui_bigger_strat_build_icons = 2,
+                fidelity = 2,
+                vsync = 1,
+                gui_enhanced_unitrings = 1,
+                gui_template_rotator = 0,
+                gui_improved_unit_deselection = 0,
+                econ_warnings = true,
+                hotbuild_cycle_reset_time = 1100,
+                mainmenu_bgmovie = true,
+                gui_template_name_cutoff = 0,
+                gui_templates_factory = 1,
+                gui_scu_manager = 1,
+                lock_fullscreen_cursor_to_window = 0,
+                keyboard_pan_accelerate_multiplier = 4,
+                primary_adapter = 'windowed',
+                music_volume = 0,
+                fx_volume = 100,
+                em_nukeoverlay = 1,
+                accept_build_templates = 'yes',
+                em_autoshare = 1,
+                gui_zoom_pop_distance = 80,
+                gui_smart_economy_indicators = 1,
+                show_attached_unit_lifebars = true,
+                tooltips = true,
+                render_skydome = 1,
+                keyboard_pan_speed = 90,
+                gui_detailed_unitview = 1,
+                gui_enhanced_unitview = 1,
+                gui_render_enemy_lifebars = 1,
+                gui_all_race_templates = 1,
+                gui_seperate_idle_builders = 1,
+                fidelity_presets = 4,
+                gui_visible_template_names = 1,
+                gui_display_reclaim_totals = 1,
+                world_border = true,
+                secondary_adapter = 'disabled',
+                screen_edge_pans_main_view = 1,
+                antialiasing = 128,
+                subtitles = false,
+                em_mexoverlay = 1,
+                em_mexes = 0,
+                quick_exit = 'true',
+                wheel_sensitivity = 40,
+                texture_level = 1,
+                keyboard_rotate_accelerate_multiplier = 2,
+                uvd_format = 'full',
+                strat_icons_always_on = 1,
+                em_throttle = 0,
+                gui_idle_engineer_avatars = 0,
+                vo_volume = 100,
+                level_of_detail = 1,
+                shadow_quality = 2,
+                arrow_keys_pan_main_view = 1,
+                gui_draggable_queue = 1,
+                display_eta = true,
+                bloom_render = 1
+            },
+            UIMassFabManager_settings = {
+                OnTime = 30,
+                OffStorage = 0.25,
+                OffTime = 20,
+                Top = 6,
+                Left = 469,
+                OnStorage = 0.5
+            },
+            LastFaction = 1,
+            console_alpha = 1,
+            Lobby_Team_Spawn = 2,
+            Lobby_Gen_CheatsEnabled = 1,
+            Last_Op_Selected = {
+                id = 'X1CA_001'
+            },
+            layout = 'bottom',
+            Autoshare_settings = {
+                top = 8,
+                MASS = 1,
+                left = 425,
+                ENERGY = 1
+            },
+            massRateView = 2,
+            Lobby_Gen_Fog = 1,
+            ['campaign.difficulty'] = 3,
+            chat_window = {
+                top = 424,
+                bottom = 650,
+                right = 455,
+                left = 41
+            },
+            range_RenderSelected = true,
+            console_window = {
+                top = 5,
+                bottom = 482,
+                right = 300,
+                left = 5
+            },
+            build_templates = {
+                {
+                    templateData = {
+                        6,
+                        6,
+                        {
+                            'urb1106',
+                            3288,
+                            0,
+                            0
+                        },
+                        {
+                            'urb1106',
+                            3564,
+                            0,
+                            4
+                        },
+                        {
+                            'urb1106',
+                            3816,
+                            -2,
+                            2
+                        },
+                        {
+                            'urb1106',
+                            4068,
+                            2,
+                            2
+                        }
+                    },
+                    name = '<LOC urb1106_desc>Mass Storage',
+                    icon = 'urb1106'
+                },
+                {
+                    templateData = {
+                        10,
+                        12,
+                        {
+                            'uab1101',
+                            972,
+                            0,
+                            0
+                        },
+                        {
+                            'uab1101',
+                            1116,
+                            2,
+                            0
+                        },
+                        {
+                            'uab1101',
+                            1223,
+                            4,
+                            0
+                        },
+                        {
+                            'uab1101',
+                            1348,
+                            6,
+                            0
+                        },
+                        {
+                            'uab1101',
+                            1493,
+                            8,
+                            2
+                        },
+                        {
+                            'uab1101',
+                            1738,
+                            8,
+                            8
+                        },
+                        {
+                            'uab1101',
+                            1834,
+                            6,
+                            10
+                        },
+                        {
+                            'uab1101',
+                            2037,
+                            4,
+                            10
+                        },
+                        {
+                            'uab1101',
+                            2296,
+                            2,
+                            10
+                        },
+                        {
+                            'uab1101',
+                            2547,
+                            0,
+                            10
+                        }
+                    },
+                    name = '<LOC uab1101_desc>Power Generator',
+                    icon = 'uab1101'
+                },
+                {
+                    templateData = {
+                        3,
+                        3,
+                        {
+                            'urb2101',
+                            4141,
+                            0,
+                            0
+                        },
+                        {
+                            'urb5101',
+                            4724,
+                            -1,
+                            -1
+                        },
+                        {
+                            'urb5101',
+                            4745,
+                            0,
+                            -1
+                        },
+                        {
+                            'urb5101',
+                            4766,
+                            1,
+                            -1
+                        },
+                        {
+                            'urb5101',
+                            4788,
+                            1,
+                            0
+                        },
+                        {
+                            'urb5101',
+                            4812,
+                            1,
+                            1
+                        },
+                        {
+                            'urb5101',
+                            4834,
+                            0,
+                            1
+                        },
+                        {
+                            'urb5101',
+                            4855,
+                            -1,
+                            1
+                        },
+                        {
+                            'urb5101',
+                            4876,
+                            -1,
+                            0
+                        }
+                    },
+                    name = '<LOC urb2101_desc>Point Defense',
+                    icon = 'urb2101'
+                }
+            },
+            console_font = 'Zeroes Three',
+            Lobby_NoRushOption = 1,
+            UserKeyMap = {
+                ['Ctrl-Alt-F5'] = 'debug_scenario_method_ctrl_alt_f5',
+                ['Ctrl-Shift-4'] = 'fac_group4',
+                ['Ctrl-Alt-E'] = 'debug_show_emmitter_window',
+                ['Ctrl-0'] = 'set_group0',
+                ['Shift-8'] = 'append_group8',
+                End = 'split_screen_disable',
+                ['Alt-UpArrow'] = 'switch_layout_up',
+                ['Ctrl-2'] = 'set_group2',
+                F2 = 'toggle_score_screen',
+                ['Ctrl-9'] = 'set_group9',
+                ['Ctrl-Shift-Alt-D'] = 'select_all_stationdrones',
+                ['Shift-M'] = 'shift_move',
+                ['Ctrl-F3'] = 'debug_scenario_method_ctrl_f3',
+                ['Alt-D'] = 'debug_dump_ui_controls',
+                PageUp = 'chat_page_up',
+                ['Shift-3'] = 'append_group3',
+                ['Ctrl-Shift-X'] = 'debug_redo_console_command',
+                ['Ctrl-N'] = 'rename',
+                LeftBracket = 'mode',
+                ['Ctrl-5'] = 'set_group5',
+                F5 = 'ping_alert',
+                ['Ctrl-Z'] = 'select_all_units_of_same_type',
+                ['Shift-5'] = 'append_group5',
+                ['Ctrl-Shift-F1'] = 'debug_toggle_pannels',
+                ['Ctrl-Shift-7'] = 'fac_group7',
+                ['Ctrl-8'] = 'set_group8',
+                ['Alt-LeftArrow'] = 'switch_skin_down',
+                ['Shift-4'] = 'append_group4',
+                ['Ctrl-C'] = 'select_all_onscreen',
+                ['Alt-DownArrow'] = 'switch_layout_down',
+                ['Ctrl-W'] = 'tog_military',
+                ['Shift-W'] = 'zoom_out_fast',
+                ['Ctrl-Shift-L'] = 'select_nearest_land_factory',
+                ['0'] = 'group0',
+                ['3'] = 'group3',
+                ['2'] = 'group2',
+                ['5'] = 'group5',
+                ['4'] = 'group4',
+                ['7'] = 'group7',
+                ['6'] = 'group6',
+                ['9'] = 'group9',
+                ['Ctrl-H'] = 'select_all_factory_onscreen',
+                Pause = 'pause',
+                A = 'attack',
+                C = 'capture',
+                B = 'toggle_build_mode',
+                ['Ctrl-3'] = 'set_group3',
+                D = 'dive',
+                G = 'spreadattack',
+                ['Ctrl-Shift-9'] = 'fac_group9',
+                I = 'guard',
+                H = 'select_nearest_factory',
+                Home = 'split_screen_enable',
+                M = 'move',
+                ['Shift-T'] = 'create_build_template',
+                O = 'overcharge',
+                N = 'nuke',
+                Q = 'zoom_in',
+                P = 'patrol',
+                ['Ctrl-Shift-6'] = 'fac_group6',
+                R = 'repair',
+                U = 'transport',
+                ['Ctrl-4'] = 'set_group4',
+                F7 = 'ping_attack',
+                V = 'reset_camera',
+                ['Ctrl-S'] = 'select_naval',
+                ['Ctrl-1'] = 'set_group1',
+                ['Shift-G'] = 'shift_spreadattack',
+                Z = 'pause_unit',
+                ['Ctrl-Shift-2'] = 'fac_group2',
+                ['Shift-U'] = 'shift_transport',
+                ['Ctrl-B'] = 'select_engineers',
+                ['Ctrl-Alt-B'] = 'debug_blingbling',
+                ['Shift-Period'] = 'goto_engineer',
+                ['Shift-F5'] = 'debug_scenario_method_shift_f5',
+                ['Ctrl-L'] = 'select_land',
+                ['Ctrl-Shift-K'] = 'Kill_Selected_Units',
+                ['Shift-PageDown'] = 'chat_line_down',
+                ['Alt-T'] = 'debug_teleport',
+                ['Ctrl-F10'] = 'debug_restart_session',
+                ['Shift-R'] = 'shift_repair',
+                ['Ctrl-Shift-F4'] = 'debug_scenario_method_f4',
+                ['Ctrl-Shift-V'] = 'debug_paste_units',
+                ['Ctrl-Alt-W'] = 'debug_render_wireframe',
+                F6 = 'ping_move',
+                ['Alt-V'] = 'debug_skeletons',
+                ['Alt-Q'] = 'debug_show_focus_ui_control',
+                ['Shift-L'] = 'shift_launch_tactical',
+                F12 = 'show_objective_screen',
+                ['Ctrl-Alt-O'] = 'debug_grid',
+                ['Shift-I'] = 'shift_guard',
+                ['Ctrl-Shift-C'] = 'debug_copy_units',
+                E = 'reclaim',
+                ['Shift-Tab'] = 'add_cam_position',
+                ['Ctrl-X'] = 'select_all',
+                ['Ctrl-Shift-S'] = 'select_nearest_naval_factory',
+                ['Ctrl-A'] = 'select_air',
+                ['Ctrl-V'] = 'cam_free',
+                ['Shift-E'] = 'shift_reclaim',
+                NumSlash = 'show_fps',
+                ['Ctrl-Shift-W'] = 'debug_weapons',
+                ['Ctrl-Alt-Comma'] = 'debug_graphics_fidelity_0',
+                F10 = 'toggle_main_menu',
+                ['Ctrl-Alt-F4'] = 'debug_scenario_method_ctrl_alt_f3',
+                F11 = 'toggle_disconnect_screen',
+                ['Shift-2'] = 'append_group2',
+                ['Ctrl-Alt-T'] = 'track_unit_second_mon',
+                ['Ctrl-Shift-8'] = 'fac_group8',
+                ['Shift-F6'] = 'debug_create_entity',
+                S = 'stop',
+                F1 = 'toggle_key_bindings',
+                NumStar = 'reset_game_speed',
+                ['Ctrl-Shift-0'] = 'fac_group0',
+                L = 'launch_tactical',
+                ['Ctrl-Shift-1'] = 'fac_group1',
+                PageDown = 'chat_page_down',
+                ['Ctrl-Alt-Period'] = 'debug_graphics_fidelity_2',
+                ['Shift-F3'] = 'debug_scenario_method_shift_f3',
+                ['Alt-Delete'] = 'debug_destroy_units',
+                ['Shift-6'] = 'append_group6',
+                ['Ctrl-7'] = 'set_group7',
+                F = 'ferry',
+                ['Alt-B'] = 'debug_bones',
+                F4 = 'toggle_diplomacy_screen',
+                F9 = 'debug_toggle_log_window',
+                ['Alt-Comma'] = 'select_commander',
+                F8 = 'ping_marker',
+                Tab = 'next_cam_position',
+                ['Ctrl-E'] = 'tog_defense',
+                Comma = 'goto_commander',
+                ['Shift-F4'] = 'debug_scenario_method_shift_f4',
+                ['Shift-Q'] = 'zoom_in_fast',
+                ['Shift-F7'] = 'debug_show_stats',
+                ['Alt-Period'] = 'select_idle_engineer',
+                ['Shift-D'] = 'shift_dive',
+                NumPlus = 'increase_game_speed',
+                ['Ctrl-Shift-T'] = 'track_unit_minimap',
+                ['1'] = 'group1',
+                ['Shift-S'] = 'shift_stop',
+                Period = 'cycle_engineers',
+                ['Shift-N'] = 'shift_nuke',
+                ['Shift-0'] = 'append_group0',
+                ['Ctrl-6'] = 'set_group6',
+                T = 'track_unit',
+                ['Alt-L'] = 'toggle_lifebars',
+                ['Ctrl-Alt-Shift-F8'] = 'debug_campaign_instawin',
+                ['Ctrl-Slash'] = 'debug_pause_single_step',
+                ['Ctrl-Shift-Alt-C'] = 'debug_collision',
+                ['Ctrl-Shift-B'] = 'select_bombers',
+                F3 = 'quick_save',
+                ['Ctrl-Shift-F5'] = 'debug_scenario_method_f5',
+                ['Ctrl-R'] = 'tog_econ',
+                ['Alt-W'] = 'debug_dump_focus_ui_control',
+                ['8'] = 'group8',
+                ['Ctrl-F'] = 'cap_frame',
+                Esc = 'escape',
+                ['Ctrl-Period'] = 'select_all_eng_onscreen',
+                ['Shift-O'] = 'shift_overcharge',
+                ['Ctrl-Tab'] = 'rem_cam_position',
+                ['Shift-C'] = 'shift_capture',
+                W = 'zoom_out',
+                ['Ctrl-Alt-P'] = 'debug_navpath',
+                ['Ctrl-Shift-Alt-S'] = 'select_nearest_idle_airscout',
+                ['Shift-7'] = 'append_group7',
+                ['Shift-PageUp'] = 'chat_line_up',
+                ['Alt-F9'] = 'debug_open_lua_debugger',
+                ['Ctrl-Alt-Z'] = 'debug_sally_shears',
+                ['Ctrl-Shift-3'] = 'fac_group3',
+                ['Ctrl-Shift-5'] = 'fac_group5',
+                ['Ctrl-Shift-Alt-U'] = 'scu_upgrade_marker',
+                ['Ctrl-K'] = 'suicide',
+                ['Alt-RightArrow'] = 'switch_skin_up',
+                ['Shift-A'] = 'shift_attack',
+                ['Ctrl-Shift-A'] = 'select_nearest_air_factory',
+                ['Shift-1'] = 'append_group1',
+                ['Shift-9'] = 'append_group9',
+                NumMinus = 'decrease_game_speed',
+                ['Alt-F2'] = 'debug_create_unit',
+                ['Alt-N'] = 'debug_nodamage',
+                ['Shift-F'] = 'shift_ferry',
+                ['Ctrl-F5'] = 'debug_scenario_method_ctrl_f5',
+                ['Alt-F11'] = 'debug_show_frame_stats',
+                ['Shift-F8'] = 'debug_show_army_stats',
+                ['Alt-F3'] = 'debug_scenario_method_f3',
+                ['Ctrl-Shift-Alt-A'] = 'select_anti_air_fighters',
+                ['Ctrl-F4'] = 'debug_scenario_method_ctrl_f4',
+                ['Shift-P'] = 'shift_patrol',
+                ['Alt-A'] = 'debug_run_opponent_AI',
+                ['Ctrl-Shift-G'] = 'select_gunships'
+            },
+            Lobby_Auto_Teams = 3,
+            ViewedTimeline = true,
+            Lobby_Gen_GameSpeed = 1,
+            console_font_size = 12,
+            briefing_log = true,
+            Name = 'Downlord',
+            Lobby_Gen_Victory = 1,
+            scoreoverlay = true,
+            energyRateView = 2,
+            EM_Settings = {
+                as_players = { }
+            },
+            Lobby_Prebuilt_Units = 1
+        }
+    }
+}
+version = {
+    major = 1
+}
+Windows = {
+    Main = {
+        maximized = true,
+        x = -8,
+        height = 768,
+        y = -8,
+        width = 1024
+    }
+}
+options_overrides = {
+    shadow_quality = {
+        default = 1,
+        custom = {
+            states = {
+                {
+                    text = '<LOC _Off>',
+                    key = 0
+                },
+                {
+                    text = '<LOC _Low>',
+                    key = 1
+                },
+                {
+                    text = '<LOC _Medium>',
+                    key = 2
+                },
+                {
+                    text = '<LOC _High>',
+                    key = 3
+                }
+            }
+        }
+    },
+    secondary_adapter = {
+        default = 'disabled',
+        custom = {
+            states = {
+                {
+                    text = '<LOC _Disabled>',
+                    key = 'disabled'
+                }
+            }
+        }
+    },
+    fidelity_presets = {
+        default = 1,
+        custom = {
+            states = {
+                {
+                    text = '<LOC _Low>',
+                    key = 0
+                },
+                {
+                    text = '<LOC _Medium>',
+                    key = 1
+                },
+                {
+                    text = '<LOC _High>',
+                    key = 2
+                },
+                {
+                    text = '<LOC _Custom>',
+                    key = 4
+                }
+            }
+        }
+    },
+    antialiasing = {
+        default = 0,
+        custom = {
+            states = {
+                {
+                    text = '<LOC OPTIONS_0029>Off',
+                    key = 0
+                },
+                {
+                    text = '2',
+                    key = 64
+                },
+                {
+                    text = '4',
+                    key = 128
+                },
+                {
+                    text = '8',
+                    key = 130
+                },
+                {
+                    text = '8Q',
+                    key = 256
+                },
+                {
+                    text = '16',
+                    key = 132
+                },
+                {
+                    text = '16Q',
+                    key = 258
+                }
+            }
+        }
+    },
+    fidelity = {
+        default = 1,
+        custom = {
+            states = {
+                {
+                    text = '<LOC _Low>',
+                    key = 0
+                },
+                {
+                    text = '<LOC _Medium>',
+                    key = 1
+                },
+                {
+                    text = '<LOC _High>',
+                    key = 2
+                }
+            }
+        }
+    },
+    primary_adapter = {
+        default = '1024,768,60',
+        custom = {
+            states = {
+                {
+                    text = '<LOC OPTIONS_0070>Windowed',
+                    key = 'windowed'
+                },
+                {
+                    text = '1024x768(60)',
+                    key = '1024,768,60'
+                },
+                {
+                    text = '1152x864(60)',
+                    key = '1152,864,60'
+                },
+                {
+                    text = '1280x768(60)',
+                    key = '1280,768,60'
+                },
+                {
+                    text = '1280x800(60)',
+                    key = '1280,800,60'
+                },
+                {
+                    text = '1280x960(60)',
+                    key = '1280,960,60'
+                },
+                {
+                    text = '1280x1024(60)',
+                    key = '1280,1024,60'
+                },
+                {
+                    text = '1360x768(60)',
+                    key = '1360,768,60'
+                },
+                {
+                    text = '1366x768(60)',
+                    key = '1366,768,60'
+                },
+                {
+                    text = '1600x900(60)',
+                    key = '1600,900,60'
+                },
+                {
+                    text = '1600x1024(60)',
+                    key = '1600,1024,60'
+                },
+                {
+                    text = '1600x1200(60)',
+                    key = '1600,1200,60'
+                },
+                {
+                    text = '1680x1050(59)',
+                    key = '1680,1050,59'
+                },
+                {
+                    text = '1680x1050(60)',
+                    key = '1680,1050,60'
+                },
+                {
+                    text = '1920x1080(59)',
+                    key = '1920,1080,59'
+                },
+                {
+                    text = '1920x1080(60)',
+                    key = '1920,1080,60'
+                },
+                {
+                    text = '1920x1200(59)',
+                    key = '1920,1200,59'
+                },
+                {
+                    text = '1920x1200(60)',
+                    key = '1920,1200,60'
+                },
+                {
+                    text = '1440x900(60)',
+                    key = '1440,900,60'
+                }
+            }
+        }
+    }
+}
+active_mods = {
+    ['9cef4ff7-eccd-4d2d-bee7-cbc7bce0de38'] = true,
+    ['EF3ADDB4-9D34-437F-B1C8-440DAF896802'] = true,
+    ['3d098ad8-adb1-4c5d-8daa-a42418274de2'] = true,
+    ['b2cde810-15d0-4bfa-af66-ec2d6ecd561b'] = true,
+    ['a0714870-3f5e-4b60-970e-1b02341990ec'] = true
+}
