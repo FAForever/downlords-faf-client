@@ -21,8 +21,8 @@ The more people donate, the more I will be able to work on it (since I'm self-em
 ### Basic features
 
 <div style="height: 20px; background: #ebebeb; border-radius: 10px; margin-bottom: 20px;">
-  <span style="width: 0%;
-    min-width: 70px;
+  <div style="width: 0%;
+    min-width: 80px;
     line-height: 16px;
     position:relative;
     float: left;
@@ -37,10 +37,10 @@ The more people donate, the more I will be able to work on it (since I'm self-em
     background-image: -moz-linear-gradient(top, #b7dc8e, #99ce5f 70%, #85c440);
     background-image: -o-linear-gradient(top, #b7dc8e, #99ce5f 70%, #85c440);
     background-image: linear-gradient(to bottom, #b7dc8e, #99ce5f 70%, #85c440);">
-      <span style="padding: 0 8px; font-size: 11px; font-weight: bold; text-shadow: 0 1px rgba(255, 255, 255, 0.4);">
+      <div style="padding: 0 8px; font-size: 11px; font-weight: bold; text-shadow: 0 1px rgba(255, 255, 255, 0.4);">
         $0 / $1,000
-      </span>
-  </span>
+      </div>
+  </div>
 </div>
 
 Feature | Description |Complexity | Status
@@ -82,8 +82,8 @@ A mobile app (iOS and Android) that connects to your FAF client (through WLAN) a
 Free for donators, $1.- for others.
 
 <div style="height: 20px; background: #ebebeb; border-radius: 10px; margin-bottom: 20px;">
-  <span style="width: 0%;
-    min-width: 70px;
+  <div style="width: 0%;
+    min-width: 80px;
     line-height: 16px;
     position:relative;
     float: left;
@@ -98,10 +98,10 @@ Free for donators, $1.- for others.
     background-image: -moz-linear-gradient(top, #b7dc8e, #99ce5f 70%, #85c440);
     background-image: -o-linear-gradient(top, #b7dc8e, #99ce5f 70%, #85c440);
     background-image: linear-gradient(to bottom, #b7dc8e, #99ce5f 70%, #85c440);">
-      <span style="padding: 0 8px; font-size: 11px; font-weight: bold; text-shadow: 0 1px rgba(255, 255, 255, 0.4);">
+      <div style="padding: 0 8px; font-size: 11px; font-weight: bold; text-shadow: 0 1px rgba(255, 255, 255, 0.4);">
         $0 / $1,000
-      </span>
-  </span>
+      </div>
+  </div>
 </div>
 
 # Screenshots
