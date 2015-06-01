@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
+import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
-import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
@@ -58,9 +58,9 @@ public class GameServiceImpl implements GameService {
     return new Callback<GameLaunchInfo>() {
       @Override
       public void success(GameLaunchInfo gameLaunchInfo) {
-        List<String> args = fixMalformedArgs(gameLaunchInfo.getArgs());
+        List<String> args = fixMalformedArgs(gameLaunchInfo.args);
         try {
-          Process process = forgedAllianceService.startGame(gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), args);
+          Process process = forgedAllianceService.startGame(gameLaunchInfo.uid, gameLaunchInfo.mod, args);
           serverAccessor.notifyGameStarted();
           waitForProcessTerminationInBackground(process);
 
@@ -90,6 +90,10 @@ public class GameServiceImpl implements GameService {
     });
   }
 
+  /**
+   * A correct argument list looks like ["/ratingcolor", "d8d8d8d8", "/numgames", "236"]. However, the FAF server sends it
+   * as ["/ratingcolor d8d8d8d8", "/numgames 236"]. This method fixes this.
+   */
   private List<String> fixMalformedArgs(List<String> gameLaunchMessage) {
     ArrayList<String> fixedArgs = new ArrayList<>();
 

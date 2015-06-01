@@ -9,35 +9,34 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox fx:id="createGameRoot" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-      prefHeight="500.0" prefWidth="400.0" spacing="10.0" xmlns="http://javafx.com/javafx/8.0.40"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.CreateGameDialogController">
+<VBox fx:id="createGameRoot" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="400.0" spacing="10.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.CreateGameDialogController">
   <children>
-    <Label text="%games.create" />
-    <TextField fx:id="titleTextField" promptText="%game.title"/>
-    <TextField fx:id="passwordTextField" promptText="%game.passwordHint"/>
-    <Separator prefWidth="200.0"/>
-    <Label text="%game.ranking"/>
+    <Label styleClass="window-header" text="%games.create">
+         <padding>
+            <Insets bottom="30.0" />
+         </padding></Label>
+    <TextField fx:id="titleTextField" promptText="%game.title" />
+    <TextField fx:id="passwordTextField" promptText="%game.passwordHint" />
+    <Separator prefWidth="200.0" />
+    <Label text="%game.ranking" />
     <HBox prefHeight="100.0" prefWidth="200.0" spacing="10.0">
       <children>
-        <TextField fx:id="minRankingTextField" minWidth="30.0" prefWidth="50" HBox.hgrow="NEVER"/>
+        <TextField fx:id="minRankingTextField" minWidth="30.0" prefWidth="50" HBox.hgrow="NEVER" />
         <!-- Min/Max values and selected range are set in program code -->
-        <RangeSlider fx:id="rankingSlider" blockIncrement="100.0" majorTickUnit="500.0" minorTickCount="4"
-                     prefHeight="300.0" showTickLabels="true" showTickMarks="true" snapToTicks="true"
-                     HBox.hgrow="ALWAYS"/>
-        <TextField fx:id="maxRankingTextField" minWidth="30.0" prefWidth="50" HBox.hgrow="NEVER"/>
+        <RangeSlider fx:id="rankingSlider" blockIncrement="100.0" majorTickUnit="500.0" minorTickCount="4" prefHeight="300.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" HBox.hgrow="ALWAYS" />
+        <TextField fx:id="maxRankingTextField" minWidth="30.0" prefWidth="50" HBox.hgrow="NEVER" />
       </children>
     </HBox>
-    <Separator prefWidth="200.0"/>
-    <Label text="%game.create.map"/>
-    <ComboBox fx:id="mapComboBox" maxWidth="1.7976931348623157E308" visibleRowCount="3"/>
-    <Separator prefWidth="200.0"/>
-    <Label text="%game.mod"/>
-    <ComboBox fx:id="modComboBox" maxWidth="1.7976931348623157E308"/>
-    <CheckListView/>
-    <Button fx:id="createGameButton" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%games.create" onAction="#onCreateGameButtonClicked"/>
+    <Separator prefWidth="200.0" />
+    <Label text="%game.create.map" />
+    <ComboBox fx:id="mapComboBox" maxWidth="1.7976931348623157E308" visibleRowCount="3" />
+    <Separator prefWidth="200.0" />
+    <Label text="%game.mod" />
+    <ComboBox fx:id="modComboBox" maxWidth="1.7976931348623157E308" />
+    <CheckListView />
+    <Button fx:id="createGameButton" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" text="%games.create" />
   </children>
   <padding>
-    <Insets bottom="10.0" left="10.0" right="10.0" top="5.0"/>
+    <Insets bottom="10.0" left="10.0" right="10.0" top="5.0" />
   </padding>
 </VBox>

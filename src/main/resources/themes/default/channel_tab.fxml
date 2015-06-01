@@ -9,37 +9,37 @@
 <fx:root type="Tab" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
    <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
       <children>
-    <SplitPane dividerPositions="0.8" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+    <SplitPane dividerPositions="0.8" focusTraversable="false" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
       <items>
         <WebView fx:id="messagesWebView" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
         <VBox maxHeight="1.7976931348623157E308" SplitPane.resizableWithParent="false">
           <children>
             <TextField fx:id="userSearchTextField" promptText="%chat.searchPrompt" />
-            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+            <ScrollPane fitToWidth="true" focusTraversable="false" VBox.vgrow="ALWAYS">
               <content>
-                <VBox fx:id="usersVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                <VBox fx:id="usersVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefWidth="300.0">
                   <children>
-                    <TitledPane maxWidth="1.7976931348623157E308" text="%chat.category.moderators">
+                    <TitledPane focusTraversable="false" maxWidth="1.7976931348623157E308" text="%chat.category.moderators">
                       <content>
                         <VBox fx:id="moderatorsPane" />
                       </content>
                     </TitledPane>
-                    <TitledPane maxWidth="1.7976931348623157E308" text="%chat.category.friends">
+                    <TitledPane focusTraversable="false" maxWidth="1.7976931348623157E308" text="%chat.category.friends">
                       <content>
                         <VBox fx:id="friendsPane" />
                       </content>
                     </TitledPane>
-                    <TitledPane maxWidth="1.7976931348623157E308" text="%chat.category.others">
+                    <TitledPane focusTraversable="false" maxWidth="1.7976931348623157E308" text="%chat.category.others">
                       <content>
                         <VBox fx:id="othersPane" />
                       </content>
                     </TitledPane>
-                    <TitledPane maxWidth="1.7976931348623157E308" text="%chat.category.irc">
+                    <TitledPane focusTraversable="false" maxWidth="1.7976931348623157E308" text="%chat.category.irc">
                       <content>
                         <VBox fx:id="chatOnlyPane" />
                       </content>
                     </TitledPane>
-                    <TitledPane maxWidth="1.7976931348623157E308" text="%chat.category.foes">
+                    <TitledPane focusTraversable="false" maxWidth="1.7976931348623157E308" text="%chat.category.foes">
                       <content>
                         <VBox fx:id="foesPane" />
                       </content>

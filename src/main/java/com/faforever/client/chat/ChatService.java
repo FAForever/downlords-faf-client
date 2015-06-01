@@ -1,11 +1,8 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.util.Callback;
-import javafx.beans.InvalidationListener;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
-
-import java.util.Collection;
 
 public interface ChatService {
 
@@ -19,13 +16,13 @@ public interface ChatService {
 
   void addOnPrivateMessageListener(OnPrivateMessageListener listener);
 
-  void addOnChannelJoinedListener(OnChannelJoinedListener listener);
+  void addOnUserJoinedChannelListener(OnUserJoinedChannelListener listener);
 
   void addOnChatUserLeftListener(OnChatUserLeftListener listener);
 
   void connect();
 
-  void sendMessage(String target, String message);
+  void sendMessageInBackground(String target, String message, Callback<String> callback);
 
   /**
    * Gets the list of chat users for the given channel as soon as it is available.
@@ -36,4 +33,10 @@ public interface ChatService {
   ObservableSet<ChatUser> getChatUsersForChannel(String channelName);
 
   void addChannelUserListListener(String channelName, SetChangeListener<ChatUser> listener);
+
+  void leaveChannel(String channelName);
+
+  void sendAction(String target, String action, Callback<String> callback);
+
+  void joinChannel(String channelName);
 }

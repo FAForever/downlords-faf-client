@@ -112,10 +112,6 @@ public class ProxyImpl implements Proxy {
   private Map<Integer, Peer> peersByUid;
   private Map<String, Peer> peersByAddress;
 
-  /**
-   * TODO Find out what this is for and document it.
-   */
-  private boolean stateDumpingRequested;
   private boolean gameLaunched;
   private boolean bottleneck;
   private InetAddress localInetAddr;
@@ -241,7 +237,6 @@ public class ProxyImpl implements Proxy {
     if (!connected && peer.connected) {
       peersByUid.remove(uid);
       peer.connected = false;
-      stateDumpingRequested = true;
     }
   }
 
@@ -293,8 +288,6 @@ public class ProxyImpl implements Proxy {
 
       redirectLocalToRemote(peer);
 
-      stateDumpingRequested = true;
-
       peersByAddress.put(publicAddress, peer);
     } catch (SocketException e) {
       logger.warn("Could not create a local UDP socket", e);
@@ -322,7 +315,6 @@ public class ProxyImpl implements Proxy {
 
     peer.uid = peerUid;
     peersByUid.put(peerUid, peer);
-    stateDumpingRequested = true;
   }
 
   @Override
@@ -460,7 +452,6 @@ public class ProxyImpl implements Proxy {
           peer.ourConnectionTagAcknowledged = true;
           peer.numberOfTagOffers = 0;
           peer.currentlyReconnecting = false;
-          stateDumpingRequested = true;
         } else {
           logger.warn("Peer '{}' acknowledged a tag we didn't send: {}", peer, tag);
         }
@@ -521,7 +512,6 @@ public class ProxyImpl implements Proxy {
     }
 
     peersByAddress.put(newPeerAddress, peersByAddress.remove(oldPeerAddress));
-    stateDumpingRequested = true;
   }
 
   /**
@@ -563,7 +553,6 @@ public class ProxyImpl implements Proxy {
       logger.warn("Unknown peer: {}", senderInetSocketAddress);
     } else if (oldPeerAddress != null) {
       peersByAddress.put(newPeerAddress, peersByAddress.remove(oldPeerAddress));
-      stateDumpingRequested = true;
     }
   }
 

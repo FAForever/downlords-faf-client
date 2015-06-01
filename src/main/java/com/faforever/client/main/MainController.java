@@ -5,28 +5,35 @@ import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
 import com.faforever.client.legacy.OnLobbyDisconnectedListener;
 import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.network.PortCheckService;
+import com.faforever.client.news.NewsController;
+import com.faforever.client.patch.PatchService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
+import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
-import com.faforever.client.news.NewsController;
 import com.faforever.client.vault.VaultController;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.control.Button;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBase;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -40,16 +47,34 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   Pane contentPane;
 
   @FXML
+  ToggleGroup mainNavigationToggleGroup;
+
+  @FXML
   ButtonBase newsButton;
 
   @FXML
-  Parent mainRoot;
+  ButtonBase chatButton;
+
+  @FXML
+  ButtonBase gamesButton;
+
+  @FXML
+  ButtonBase vaultButton;
+
+  @FXML
+  ButtonBase leaderboardButton;
+
+  @FXML
+  Region mainRoot;
 
   @FXML
   Label statusLabel;
 
   @FXML
   Label natStatusLabel;
+
+  @FXML
+  MenuButton usernameButton;
 
   @Autowired
   NewsController newsController;
@@ -64,6 +89,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   VaultController vaultController;
 
   @Autowired
+  LeaderboardController leaderboardController;
+
+  @Autowired
   PreferencesService preferencesService;
 
   @Autowired
@@ -76,7 +104,13 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   PortCheckService portCheckService;
 
   @Autowired
-  private I18n i18n;
+  PatchService patchService;
+
+  @Autowired
+  I18n i18n;
+
+  @Autowired
+  UserService userService;
 
   public void display(Stage stage) {
     lobbyService.setOnFafConnectedListener(this);
@@ -98,6 +132,58 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     chatController.setUp();
     gamesController.setUp(stage);
 
+    usernameButton.setText(userService.getUsername());
+
+
+    checkUdpPort();
+    checkForFafUpdate();
+  }
+
+  private void checkForFafUpdate() {
+    patchService.needsPatching(new Callback<Boolean>() {
+      @Override
+      public void success(Boolean needsPatching) {
+        if (!needsPatching) {
+          return;
+        }
+
+        ButtonType updateNowButtonType = new ButtonType(i18n.get("patch.updateAvailable.updateNow"));
+        ButtonType updateLaterButtonType = new ButtonType(i18n.get("patch.updateAvailable.updateLater"));
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(i18n.get("patch.updateAvailable.title"));
+        alert.setHeaderText(i18n.get("patch.updateAvailable.header"));
+        alert.setContentText(i18n.get("patch.updateAvailable.content"));
+        alert.getButtonTypes().setAll(updateNowButtonType, updateLaterButtonType);
+
+        alert.resultProperty().addListener((observable, oldValue, newValue) -> {
+          if (newValue == updateNowButtonType) {
+            Service<Void> patchTask = patchService.patchInBackground(new Callback<Void>() {
+              @Override
+              public void success(Void result) {
+
+              }
+
+              @Override
+              public void error(Throwable e) {
+
+              }
+            });
+            // TODO show update progress somewhere
+          }
+        });
+
+        alert.show();
+      }
+
+      @Override
+      public void error(Throwable e) {
+
+      }
+    });
+  }
+
+  private void checkUdpPort() {
     // FIXME i18n/icons
     natStatusLabel.setText("Checking NAT");
     portCheckService.checkUdpPortInBackground(preferencesService.getPreferences().getForgedAlliance().getPort(), new Callback<Boolean>() {
@@ -122,17 +208,19 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {
     if (mainWindowPrefs.isMaximized()) {
       WindowDecorator.maximize(stage);
+    } else {
+      stage.setWidth(mainWindowPrefs.getWidth());
+      stage.setHeight(mainWindowPrefs.getHeight());
     }
+
 
     String lastView = mainWindowPrefs.getLastView();
     if (lastView != null) {
-      contentPane.getChildren().stream()
-          .filter(navigationItem -> navigationItem.getId() != null && navigationItem.getId().equals(lastView))
+      mainNavigationToggleGroup.getToggles().stream()
           .filter(button -> button instanceof ToggleButton)
+          .filter(navigationItem -> lastView.equals(((Node) navigationItem).getId()))
           .forEach(navigationItem -> {
-            ToggleButton item = (ToggleButton) navigationItem;
-            item.setSelected(true);
-            item.fire();
+            ((ToggleButton) navigationItem).fire();
           });
     } else {
       newsButton.fire();
@@ -140,23 +228,26 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   @FXML
-  void onNewsButton(ActionEvent event) {
-    setContent(newsController.getRoot());
-  }
+  void onNavigationButton(ActionEvent event) {
+    ToggleButton button = (ToggleButton) event.getSource();
+    preferencesService.getPreferences().getMainWindow().setLastView(button.getId());
 
-  @FXML
-  void onChatButton(ActionEvent event) {
-    setContent(chatController.getRoot());
-  }
+    if (!button.isSelected()) {
+      button.setSelected(true);
+      return;
+    }
 
-  @FXML
-  void onGamesButton(ActionEvent event) {
-    setContent(gamesController.getRoot());
-  }
-
-  @FXML
-  void onVaultButton(ActionEvent event) {
-    setContent(vaultController.getRoot());
+    if (button == newsButton) {
+      setContent(newsController.getRoot());
+    } else if (button == chatButton) {
+      setContent(chatController.getRoot());
+    } else if (button == gamesButton) {
+      setContent(gamesController.getRoot());
+    } else if (button == vaultButton) {
+      setContent(vaultController.getRoot());
+    } else if (button == leaderboardButton) {
+      setContent(leaderboardController.getRoot());
+    }
   }
 
   private void registerWindowPreferenceListeners(final Stage stage, final WindowPrefs mainWindowPrefs) {

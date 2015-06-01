@@ -1,0 +1,446 @@
+/*******************************************************************************
+ *                                                                             *
+ * FAF Java Lobby Default theme                                                *
+ *                                                                             *
+ *******************************************************************************/
+
+/*
+ * Note that the chat is a WebView which doesn't support the following variables. Their values have to be set manually
+ * in the Chat section at the bottom of this file.
+ */
+
+
+.root {
+  /* Primary color is mainly used as background color. */
+  -primary-color: #1f1f1f;
+  /* Secondary color is mainly used as a slight contrast to primary color, e.g. odd/even in chat window */
+  -secondary-color: #2f2f2f;
+  /* Secondary color is mainly used as a slight contrast to primary color, e.g. odd/even in chat window */
+  -tertiary-color: #757575;
+  /* Accent color is mainly used to emphazise actions, like buttons, links, checkboxes etc. It should be a very different
+  color (e.g. complementary) to the primary color. */
+  -accent-color: #528912;
+  /* Inverse of primary color. */
+  -primary-color-inverse: #f6f6f6;
+  /* Inverse of secondary color. */
+  -secondary-color-inverse: #E0E0E0;
+  /* Primary text color primary is used for normal text with primary color as background. */
+  -primary-text-color: #fff;
+  /* Secondary text color secondary is used as a slight contrast to primary text color */
+  -secondary-text-color: #E0E0E0;
+  /* Tertiary text color is mainly used as slight contrast to primary color, e.g. odd/even in chat window */
+  -tertiary-text-color: #9E9E9E;
+  /* Inverse of text color primary*/
+  -primary-text-color-inverse: #4444;
+  /* Inverse of text color primary */
+  -secondary-text-color-inverse: #212121;
+  /* Color for context menu background */
+  -context-menu-background: rgba(0,0,0,.7);
+
+  /***************** End of color scheme *****************/
+
+  -fx-font-size: 14px;
+  -fx-text-fill: -primary-text-color;
+  -fx-background: -primary-color;
+  -fx-base: #1f1f1f;
+  -fx-accent: #3880c6;
+  -fx-default-button: -fx-accent;
+  -fx-focus-color: -fx-accent;
+  -fx-faint-focus-color: #3880c622;
+  -fx-dark-text-color: -primary-text-color;
+  -fx-mid-text-color: -secondary-text-color;
+  -fx-light-text-color: -tertiary-text-color;
+
+}
+
+/***************** Window *****************/
+
+.decorated-window {
+  -fx-border-color: -secondary-color;
+}
+
+/***************** Menu *****************/
+
+.menu-bar {
+  -fx-background-color: -primary-color;
+  -fx-padding: 0;
+}
+
+.menu {
+  -fx-padding: 0 0.666em;
+}
+
+.menu:hover {
+  -fx-background-color: transparent;
+}
+
+.menu > .label {
+  -fx-font-size: 12px;
+  -fx-text-fill: -tertiary-text-color;
+}
+
+.menu:hover > .label {
+  -fx-text-fill: -primary-text-color;
+}
+
+.context-menu {
+  -fx-background-color: -context-menu-background;
+  -fx-text-fill: -secondary-text-color;
+}
+
+.username-button {
+  -fx-padding: 0;
+  -fx-focus-color: transparent;
+  -fx-background-color: transparent;
+}
+
+.username-button > .label {
+  -fx-font-size: 12px;
+  -fx-padding: 0;
+  -fx-text-fill: -tertiary-text-color;
+}
+
+.username-button:hover > *.label {
+  -fx-text-fill: -primary-text-color;
+}
+
+.username-button > .arrow-button {
+  -fx-padding: 0;
+}
+
+.username-button > .arrow-button > .arrow {
+  -fx-padding: 0;
+}
+
+/***************** Navigation *****************/
+
+.main-navigation > .toggle-button {
+  -fx-font-size: 20px;
+  -fx-text-fill: -secondary-text-color;
+  -fx-background-color: transparent;
+  -fx-background-repeat: no-repeat;
+}
+
+.main-navigation > .toggle-button:focused {
+  -fx-border-width: 0;
+}
+
+.main-navigation > .toggle-button:selected {
+  -fx-text-fill: -primary-text-color;
+  -fx-font-weight: bold;
+}
+
+/***************** Range slider *****************/
+
+.range-slider > .range-bar {
+  -fx-background-color: -accent-color;
+}
+
+/***************** Title pane *****************/
+
+.titled-pane {
+  -fx-box-border: transparent;
+}
+
+.titled-pane > .title {
+  -fx-background-color: transparent;
+}
+
+.titled-pane > .title > .text {
+  -fx-fill: -accent-color;
+}
+
+/***************** Scroll bar *****************/
+
+.scroll-bar:vertical .thumb {
+  -fx-background-color: -accent-color;
+}
+
+/***************** Split pane *****************/
+
+.split-pane {
+  -fx-box-border: transparent;
+}
+
+.split-pane:focused {
+  -fx-border: transparent;
+}
+
+/***************** Table *****************/
+
+.column-header,
+.column-header-background .filler {
+  -fx-background-color: -secondary-color;
+}
+
+.table-row-cell {
+  -fx-background-color: -primary-color;
+  -fx-text-fill: -primary-text-color;
+}
+
+.table-row-cell:selected {
+  -fx-background-color: -primary-color;
+}
+
+.table-row-cell:odd {
+  -fx-background-color: -secondary-color;
+}
+
+/***************** Check box*****************/
+
+.check-box {
+    -fx-text-fill: -primary-text-color;
+}
+
+/***************** Ladder buttons *****************/
+
+.ladder-button {
+}
+
+.ladder-button {
+  -fx-background-color: transparent;
+  -fx-background-repeat: no-repeat;
+  -fx-background-position: center;
+}
+
+#ladderButtonAeon {
+  -fx-background-image: url('images/aeon.png');
+}
+#ladderButtonUef {
+  -fx-background-image: url('images/uef.png');
+}
+#ladderButtonCybran {
+  -fx-background-image: url('images/cybran.png');
+}
+#ladderButtonSeraphim {
+  -fx-background-image: url('images/seraphim.png');
+}
+#ladderButtonRandom {
+  -fx-background-image: url('images/random.png');
+}
+
+.login {
+  -fx-font-size: 16px;
+}
+
+.login .check-box {
+  -fx-font-size: 12px;
+}
+
+
+.text {
+  -fx-text-fill: -primary-text-color;
+}
+
+/* LABEL */
+
+.label {
+    -fx-text-fill: -primary-text-color;
+}
+
+.label:show-mnemonics > .mnemonic-underline {
+    -fx-stroke: -primary-text-color;
+}
+
+/* BUTTON */
+
+.button {
+  -fx-background-color: -secondary-color;
+  -fx-text-fill: -primary-text-color;
+  -fx-background-radius: 2.0;
+}
+
+.button:hover {
+  -fx-background-color: -tertiary-color;
+}
+
+.button:default {
+  -fx-background-color: -accent-color;
+  -fx-text-fill: -primary-text-color;
+}
+
+.button:default:hover {
+  -fx-background-color: derive(-accent-color, +40%);
+}
+
+.button:default:pressed {
+  -fx-background-color: derive(-accent-color, -40%);
+}
+
+.toggle-button:focused, .button:focused, .button:default:focused {
+  -fx-border-color: -accent-color;
+}
+
+/***************** Map card *****************/
+
+.map-card .game-title {
+  -fx-font-size: 18px;
+}
+
+/***************** Window decoration *****************/
+
+.window-button {
+  -fx-min-height: 20px;
+  -fx-max-height: 20px;
+  -fx-margin: 0;
+  -fx-padding: 0;
+}
+.window-button:hover {
+  -fx-background-color: -accent-color;
+}
+.window-button:pressed {
+  -fx-background-color: -accent-color;
+  -fx-background-color: derive(-accent-color, -40%);
+}
+
+#minimizeButton {
+  -fx-background-image: url('images/minimize.png');
+  -fx-min-width: 28px;
+  -fx-max-width: 28px;
+}
+
+#maximizeButton {
+  -fx-background-image: url('images/maximize.png');
+  -fx-min-width: 27px;
+  -fx-max-width: 27px;
+}
+
+#restoreButton {
+  -fx-background-image: url('images/restore.png');
+  -fx-min-width: 27px;
+  -fx-max-width: 27px;
+}
+
+#closeButton {
+  -fx-background-image: url('images/close.png');
+  -fx-min-width: 48px;
+  -fx-max-width: 48px;
+}
+#closeButton:hover {
+  -fx-background-color: #D32F2F;
+}
+#closeButton:pressed {
+  -fx-background-color: derive(#D32F2F, -40%);
+}
+
+
+/***************** Game Detail *****************/
+
+game-detail-title {
+  -fx-font-weight: bold;
+}
+
+
+/* TEXT FIELD & TEXT AREA */
+
+.text-area, .text-field {
+  -fx-background-color: -secondary-color;
+  -fx-text-fill: -primary-text-color;
+  -fx-prompt-text-fill: -tertiary-text-color;
+  -fx-highlight-fill: -accent-color;
+}
+
+.tab-header-area {
+}
+
+.tab-header-background {
+  -fx-background-color: transparent;
+}
+
+.tab {
+  -fx-background-color: -secondary-color;
+}
+
+.tab:selected {
+  -fx-background-color: -tertiary-color;
+  -fx-focus-color: transparent;
+}
+
+.tab-label {
+  -fx-alignment: center;
+  -fx-font-size: 14px;
+  -fx-text-fill: -secondary-text-color;
+}
+
+.tab:selected .tab-label {
+  -fx-font-weight: bold;
+}
+
+.progress-indicator:indeterminate *.segment {
+  -fx-background-color: -accent-color;
+}
+
+.status-bar-label {
+  -fx-font-size: 11px;
+}
+
+/***************** Chat (WebView, therefore default CSS). Java FX  variables can't be used *****************/
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #1f1f1f;
+  color: #F5F5F5;
+}
+
+a {
+  color: #8BC34A;
+  text-decoration: none;
+}
+
+#chat-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.own-username {
+  color: orange;
+}
+
+.chat-message {
+  font-family: System;
+  font-size: 12px;
+  /* Same height as avatar */
+  line-height: 20px;
+}
+
+.chat-message:nth-of-type(odd) {
+  background-color: #2f2f2f;
+}
+
+.chat-message * {
+  padding: 0 2px;
+  word-wrap: break-word;
+}
+
+.chat-message td {
+  vertical-align: top;
+}
+
+.chat-message .time {
+}
+
+.chat-message > .avatar {
+  width: 40;
+  height: 20px;
+  padding: 0 2px;
+}
+
+.avatar>img {
+  display: block;
+}
+
+.chat-message .text {
+  width: 100%;
+}
+
+.chat-message .username {
+  padding-right: 10px;
+  max-width: 50%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.chat-message.self {
+  color: orange;
+}

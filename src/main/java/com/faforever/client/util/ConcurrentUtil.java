@@ -1,5 +1,6 @@
 package com.faforever.client.util;
 
+import javafx.application.Platform;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
@@ -15,17 +16,28 @@ public final class ConcurrentUtil {
     // Utility class
   }
 
-  public static <T> void executeInBackground(final Task<T> task) {
-    executeInBackground(task, null);
+  /**
+   * Executes the given task in background without a callback.
+   *
+   * @return the {@link Service} the specified task has been started in.
+   */
+  public static <T> Service<T> executeInBackground(final Task<T> task) {
+    return executeInBackground(task, null);
   }
 
+  /**
+   * Executes the given task in background and calls the specified callback when finished. The callback is always called
+   * on the FX application thread.
+   *
+   * @return the {@link Service} the specified task has been started in.
+   */
   public static <T> Service<T> executeInBackground(final Task<T> task, final Callback<T> callback) {
     task.setOnSucceeded(event -> {
       if (callback == null) {
         return;
       }
 
-      callback.success((T) event.getSource().getValue());
+      Platform.runLater(() -> callback.success((T) event.getSource().getValue()));
     });
     task.setOnFailed(event -> {
       Throwable exception = event.getSource().getException();
@@ -34,7 +46,7 @@ public final class ConcurrentUtil {
       if (callback == null) {
         return;
       }
-      callback.error(exception);
+      Platform.runLater(() -> callback.error(exception));
     });
 
     Service<T> service = new Service<T>() {

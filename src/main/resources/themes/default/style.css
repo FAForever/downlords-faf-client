@@ -1,94 +1,261 @@
-/*******************************************************************************
- *                                                                             *
- * FAF Java Lobby Default theme                                                *
- *                                                                             *
- *******************************************************************************/
-
-/*
- * Note that the chat is a WebView which doesn't support the following variables. Their values have to be set manually
- * in the Chat section at the bottom of this file.
- */
-
 .root {
-  /* Primary color is mainly used as background color. */
-  -primary-color: #1f1f1f;
-  /* Secondary color is mainly used as a slight contrast to primary color, e.g. odd/even in chat window */
-  -secondary-color: #2f2f2f;
-  /* Secondary color is mainly used as a slight contrast to primary color, e.g. odd/even in chat window */
-  -tertiary-color: #757575;
-  /* Accent color is mainly used to emphazise actions, like buttons, links, checkboxes etc. It should be a very different
-  color (e.g. complementary) to the primary color. */
-  -accent-color: #3880c6;
-  /* Inverse of primary color. */
-  -primary-color-inverse: #f6f6f6;
-  /* Inverse of secondary color. */
-  -secondary-color-inverse: #E0E0E0;
-  /* Primary text color primary is used for normal text with primary color as background. */
-  -primary-text-color: #fff;
-  /* Secondary text color secondary is used as a slight contrast to primary text color */
-  -secondary-text-color: #E0E0E0;
-  /* Tertiary text color is mainly used as slight contrast to primary color, e.g. odd/even in chat window */
-  -tertiary-text-color: #9E9E9E;
-  /* Inverse of text color primary*/
-  -primary-text-color-inverse: #4444;
-  /* Inverse of text color primary*/
-  -secondary-text-color-inverse: #212121;
+  -fx-font-size: 16px;
 
-  /***************** End of color scheme *****************/
+  /***************************************************************************
+   *                                                                         *
+   * The main color palette from which the rest of the colors are derived.   *
+   *                                                                         *
+   **************************************************************************/
 
-  -fx-font-size: 14px;
-  -fx-text-fill: -primary-text-color;
-  -fx-background: -primary-color;
+  /* A dark grey that is the base color for objects.  Instead of using
+   * -fx-base directly, the sections in this file will typically use -fx-color.
+   */
   -fx-base: #1f1f1f;
-  -fx-accent: #3880c6;
-  -fx-default-button: -fx-accent;
-  -fx-focus-color: -fx-accent;
-  -fx-faint-focus-color: #3880c622;
-  -fx-dark-text-color: -primary-text-color;
-  -fx-mid-text-color: -secondary-text-color;
-  -fx-light-text-color: -tertiary-text-color;
 
+  /* A very light grey used for the background of windows.  See also
+   * -fx-text-background-color, which should be used as the -fx-text-fill
+   * value for text painted on top of backgrounds colored with -fx-background.
+   */
+  -fx-background: derive(-fx-base,0%);
+
+  /* Used for the inside of text boxes, password boxes, lists, trees, and
+   * tables.  See also -fx-text-inner-color, which should be used as the
+   * -fx-text-fill value for text painted on top of backgrounds colored
+   * with -fx-control-inner-background.
+   */
+  -fx-control-inner-background: derive(-fx-base,10%);
+  /* Version of -fx-control-inner-background for alternative rows */
+  -fx-control-inner-background-alt: derive(-fx-control-inner-background,-2%);
+
+  /* One of these colors will be chosen based upon a ladder calculation
+   * that uses the brightness of a background color.  Instead of using these
+   * colors directly as -fx-text-fill values, the sections in this file should
+   * use a derived color to match the background in use.  See also:
+   *
+   * -fx-text-base-color for text on top of -fx-base, -fx-color, and -fx-body-color
+   * -fx-text-background-color for text on top of -fx-background
+   * -fx-text-inner-color for text on top of -fx-control-inner-color
+   * -fx-selection-bar-text for text on top of -fx-selection-bar
+   */
+  -fx-dark-text-color: #9E9E9E;
+  -fx-mid-text-color: #E0E0E0;
+  -fx-light-text-color: #F5F5F5;
+
+  /* A medium green for highlighting/accenting objects.  For example: selected
+   * text; selected items in menus, lists, trees, and tables; progress bars */
+  -fx-accent: #609e15;
+
+  /* Default buttons color, this is similar to accent but more subtle */
+  -fx-default-button: derive(-fx-accent, -20%);
+
+  /* A bright blue for the focus indicator of objects. Typically used as the
+   * first color in -fx-background-color for the "focused" pseudo-class. Also
+   * typically used with insets of -1.4 to provide a glowing effect.
+   */
+  -fx-focus-color: derive(-fx-color, 30%);
+  -fx-faint-focus-color: transparent;
+
+  /* The color that is used in styling controls. The default value is based
+   * on -fx-base, but is changed by pseudoclasses to change the base color.
+   * For example, the "hover" pseudoclass will typically set -fx-color to
+   * -fx-hover-base (see below) and the "armed" pseudoclass will typically
+   * set -fx-color to -fx-pressed-base.
+   */
+  -fx-color: -fx-base;
+
+  /* Chart Color Palette */
+  CHART_COLOR_1: #f3622d;
+  CHART_COLOR_2: #fba71b;
+  CHART_COLOR_3: #57b757;
+  CHART_COLOR_4: #41a9c9;
+  CHART_COLOR_5: #4258c9;
+  CHART_COLOR_6: #9a42c8;
+  CHART_COLOR_7: #c84164;
+  CHART_COLOR_8: #888888;
+  /* Chart Color Palette Semi-Transparent
+   * These are used by charts that need semi transparent versions of the above colors, such as BubbleChart. They
+   * are exactly the same colors as above just with alpha
+   *
+   * 20% opacity
+   */
+  CHART_COLOR_1_TRANS_20: #f3622d33;
+  CHART_COLOR_2_TRANS_20: #fba71b33;
+  CHART_COLOR_3_TRANS_20: #57b75733;
+  CHART_COLOR_4_TRANS_20: #41a9c933;
+  CHART_COLOR_5_TRANS_20: #4258c933;
+  CHART_COLOR_6_TRANS_20: #9a42c833;
+  CHART_COLOR_7_TRANS_20: #c8416433;
+  CHART_COLOR_8_TRANS_20: #88888833;
+  /* 70% opacity */
+  CHART_COLOR_1_TRANS_70: #f3622db3;
+  CHART_COLOR_2_TRANS_70: #fba71bb3;
+  CHART_COLOR_3_TRANS_70: #57b757b3;
+  CHART_COLOR_4_TRANS_70: #41a9c9b3;
+  CHART_COLOR_5_TRANS_70: #4258c9b3;
+  CHART_COLOR_6_TRANS_70: #9a42c8b3;
+  CHART_COLOR_7_TRANS_70: #c84164b3;
+  CHART_COLOR_8_TRANS_70: #888888b3;
+
+  /***************************************************************************
+   *                                                                         *
+   * Colors that are derived from the main color palette.                    *
+   *                                                                         *
+   **************************************************************************/
+
+  /* A gradient that goes from a little lighter than -fx-color at the top to
+   * a little darker than -fx-color at the bottom and is used to fill the
+   * body of many controls such as buttons.
+   */
+  -fx-body-color: derive(-fx-color,10%);
+
+  /* Darker than -fx-background and used to draw boxes around text boxes and
+   * password boxes.
+   */
+  -fx-text-box-border: transparent;
+
+  /* The color to use as -fx-text-fill when painting text on top of
+   * backgrounds filled with -fx-base, -fx-color, and -fx-body-color.
+   */
+  -fx-text-base-color: ladder(
+      -fx-color,
+      -fx-mid-text-color   30%,
+      -fx-light-text-color 40%
+  );
+}
+
+/***************** Text field *****************/
+
+.text-input {
+  -fx-prompt-text-fill: derive(-fx-control-inner-background, 40%);
+}
+
+/***************** Button-like things *****************/
+
+.button,
+.toggle-button,
+.radio-button > .radio,
+.check-box > .box,
+.menu-button,
+.choice-box,
+.color-picker.split-button > .color-picker-label,
+.combo-box-base,
+.combo-box-base:editable > .arrow-button {
+    -fx-background-color: -fx-body-color;
+    -fx-background-insets: 0;
+}
+.button:hover,
+.toggle-button:hover,
+.radio-button:hover > .radio,
+.check-box:hover > .box,
+.menu-button:hover,
+.split-menu-button > .label:hover,
+.split-menu-button > .arrow-button:hover,
+.slider .thumb:hover,
+.scroll-bar > .thumb:hover,
+.scroll-bar > .increment-button:hover,
+.scroll-bar > .decrement-button:hover,
+.choice-box:hover,
+.color-picker.split-button > .arrow-button:hover,
+.color-picker.split-button > .color-picker-label:hover,
+.combo-box-base:hover,
+.combo-box-base:editable > .arrow-button:hover,
+.spinner .increment-arrow-button:hover,
+.spinner .decrement-arrow-button:hover,
+.tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:hover {
+    -fx-color: -fx-hover-base;
+}
+.button:armed,
+.toggle-button:armed,
+.radio-button:armed > .radio,
+.check-box:armed .box,
+.menu-button:armed,
+.split-menu-button:armed > .label,
+.split-menu-button > .arrow-button:pressed,
+.split-menu-button:showing > .arrow-button,
+.slider .thumb:pressed,
+.scroll-bar > .thumb:pressed,
+.scroll-bar > .increment-button:pressed,
+.scroll-bar > .decrement-button:pressed,
+.choice-box:showing,
+.combo-box-base:showing,
+.combo-box-base:editable:showing > .arrow-button,
+.spinner .increment-arrow-button:pressed,
+.spinner .decrement-arrow-button:pressed,
+.tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:pressed {
+    -fx-color: -fx-pressed-base;
+}
+.button:focused,
+.toggle-button:focused,
+.radio-button:focused > .radio,
+.check-box:focused > .box,
+.menu-button:focused,
+.choice-box:focused,
+.color-picker.split-button:focused > .color-picker-label,
+.combo-box-base:focused,
+.slider:focused .thumb {
+    -fx-background-color: -fx-focus-color, -fx-inner-border, -fx-body-color, -fx-faint-focus-color, -fx-body-color;
+    -fx-background-insets: -0.2, 1, 2, -1.4, 2.6;
+    -fx-background-radius: 3, 2, 1, 4, 1;
 }
 
 /***************** Window *****************/
 
-.decorated-window {
-  -fx-border-color: -secondary-color;
-}
 
 /***************** Menu *****************/
 
 .menu-bar {
-  -fx-background-color: -primary-color;
-}
-.menu-bar:hover {
-  -fx-background-color: -accent-color;
-}
-.menu-button {
-  -fx-background-position: center;
-  -fx-background-repeat: no-repeat;
   -fx-background-color: transparent;
-  -fx-min-width: 28px;
-  -fx-max-width: 28px;
-  -fx-min-height: 28px;
-  -fx-max-height: 28px;
-}
-.menu-button:focused {
-  -fx-border-width: 0;
+  -fx-padding: 0;
 }
 
-.context-menu {
-  -fx-background-color: -secondary-color;
-  -fx-text-fill: -secondary-text-color;
+.menu {
+  -fx-padding: 0 0.666em;
+  -fx-background-color: transparent;
+}
+
+.menu:hover {
+  -fx-background-color: transparent;
+  -fx-text-fill: -fx-text-background-color;
+}
+
+.menu > .label {
+  -fx-font-size: 12px;
+  -fx-text-fill: -fx-dark-text-color;
+}
+
+.menu:hover > .label {
+  -fx-text-fill: -fx-light-text-color;
+}
+
+.username-button {
+  -fx-padding: 0;
+  -fx-focus-color: transparent;
+  -fx-background-color: transparent;
+}
+
+.username-button > .label {
+  -fx-padding: 0;
+  -fx-text-fill: -fx-dark-text-color;
+}
+
+.username-button:hover > *.label {
+  -fx-text-fill: -fx-light-text-color;
+}
+
+.username-button > .arrow-button {
+  -fx-padding: 0;
+}
+
+.username-button > .arrow-button > .arrow {
+  -fx-padding: 0;
 }
 
 /***************** Navigation *****************/
 
 .main-navigation > .toggle-button {
   -fx-font-size: 20px;
-  -fx-text-fill: -secondary-text-color;
+  -fx-text-fill: -fx-mid-text-color;
   -fx-background-color: transparent;
-  -fx-background-repeat: no-repeat;
 }
 
 .main-navigation > .toggle-button:focused {
@@ -96,136 +263,30 @@
 }
 
 .main-navigation > .toggle-button:selected {
-  -fx-text-fill: -primary-text-color;
-  -fx-font-weight: bold;
+  -fx-text-fill: -fx-light-text-color;
+  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.4), 5, 0.8, 0, 0);
 }
 
-/***************** Table *****************/
-
-.column-header,
-.column-header-background .filler {
-  -fx-background-color: -secondary-color;
-}
-
-.table-row-cell {
-  -fx-background-color: -primary-color;
-  -fx-text-fill: -primary-text-color;
-}
-
-.table-row-cell:selected {
-  -fx-background-color: -primary-color;
-}
-
-.table-row-cell:odd {
-  -fx-background-color: -secondary-color;
-}
-
-/***************** Check box*****************/
-
-.check-box {
-    -fx-text-fill: -primary-text-color;
-}
-
-/***************** Ladder buttons *****************/
-
-.ladder-button {
-}
-
-.ladder-button {
-  -fx-background-color: transparent;
-  -fx-background-repeat: no-repeat;
-  -fx-background-position: center;
-}
-
-#ladderButtonAeon {
-  -fx-background-image: url('images/aeon.png');
-}
-#ladderButtonUef {
-  -fx-background-image: url('images/uef.png');
-}
-#ladderButtonCybran {
-  -fx-background-image: url('images/cybran.png');
-}
-#ladderButtonSeraphim {
-  -fx-background-image: url('images/seraphim.png');
-}
-#ladderButtonRandom {
-  -fx-background-image: url('images/random.png');
-}
-
-.login {
-  -fx-font-size: 16px;
-}
-
-.login .check-box {
-  -fx-font-size: 12px;
-}
-
-
-.text {
-  -fx-text-fill: -primary-text-color;
-}
-
-/* LABEL */
-
-.label {
-    -fx-text-fill: -primary-text-color;
-}
-
-.label:show-mnemonics > .mnemonic-underline {
-    -fx-stroke: -primary-text-color;
-}
-
-/* BUTTON */
-
-.button {
-  -fx-background-color: -secondary-color;
-  -fx-text-fill: -primary-text-color;
-  -fx-background-radius: 2.0;
-}
-
-.button:hover {
-  -fx-background-color: -tertiary-color;
-}
-
-.button:default {
-  -fx-background-color: -accent-color;
-  -fx-text-fill: -primary-text-color;
-}
-
-.button:default:hover {
-  -fx-background-color: derive(-accent-color, +40%);
-}
-
-.button:default:pressed {
-  -fx-background-color: derive(-accent-color, -40%);
-}
-
-.toggle-button:focused, .button:focused, .button:default:focused {
-  -fx-border-color: -accent-color;
-}
-
-/***************** Window decoration *****************/
-
-.map-card .game-title {
-  -fx-font-size: 18px;
+.main-navigation > .toggle-button > .text {
 }
 
 
 /***************** Window decoration *****************/
 
 .window-button {
+  -fx-background-color: transparent;
   -fx-min-height: 20px;
   -fx-max-height: 20px;
   -fx-margin: 0;
   -fx-padding: 0;
 }
+
 .window-button:hover {
-  -fx-background-color: -accent-color;
+  -fx-background-color: -fx-body-color;
 }
+
 .window-button:pressed {
-  -fx-background-color: -accent-color;
-  -fx-background-color: derive(-accent-color, -40%);
+  -fx-background-color: derive(-fx-body-color, -10%);
 }
 
 #minimizeButton {
@@ -258,68 +319,28 @@
   -fx-background-color: derive(#D32F2F, -40%);
 }
 
+/***************** Login *****************/
 
-/***************** Game Detail *****************/
-
-game-detail-title {
-  -fx-font-weight: bold;
+.login {
+  -fx-font-size: 16px;
 }
 
 
-/* TEXT FIELD & TEXT AREA */
-
-.text-area, .text-field {
-  -fx-background-color: -secondary-color;
-  -fx-text-fill: -primary-text-color;
-  -fx-prompt-text-fill: -tertiary-text-color;
-  -fx-highlight-fill: -accent-color;
-}
-
-.tab-header-area {
-}
-
-.tab-header-background {
-  -fx-background-color: transparent;
-}
-
-.tab {
-  -fx-background-color: -secondary-color;
-}
-
-.tab:selected {
-  -fx-background-color: -tertiary-color;
-  -fx-focus-color: transparent;
-}
-
-.tab-label {
-  -fx-alignment: center;
-  -fx-font-size: 14px;
-  -fx-text-fill: -secondary-text-color;
-}
-
-.tab:selected .tab-label {
-  -fx-font-weight: bold;
-}
-
-.progress-indicator:indeterminate *.segment {
-  -fx-background-color: -accent-color;
-}
-
-.status-bar-label {
-  -fx-font-size: 11px;
-}
 
 /***************** Chat (WebView, therefore default CSS). Java FX  variables can't be used *****************/
 
 html, body {
   margin: 0;
   padding: 0;
+  /* Use same as -fx-base */
   background-color: #1f1f1f;
+  /* Use same as -fx-light-text-color */
   color: #F5F5F5;
 }
 
 a {
-  color: #8BC34A;
+  /* Use same as -fx-accent */
+  color: #609e15;
   text-decoration: none;
 }
 

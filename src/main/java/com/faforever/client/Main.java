@@ -4,7 +4,6 @@ import com.faforever.client.config.BaseConfig;
 import com.faforever.client.config.UiConfig;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
-import com.faforever.client.user.UserService;
 import javafx.application.Application;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;

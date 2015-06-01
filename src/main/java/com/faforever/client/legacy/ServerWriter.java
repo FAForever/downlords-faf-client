@@ -26,7 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
- * Sends data to the server. Classes should not use the server writer directly, but the {@link ServerAccessor} instead.
+ * Sends data to the server. Classes should not use the server writer directly, but {@link ServerAccessor} instead.
  */
 public class ServerWriter implements Closeable {
 

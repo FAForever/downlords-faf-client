@@ -1,5 +1,8 @@
 package com.faforever.client.preferences;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class ForgedAlliancePrefs {
 
   private String path;
@@ -10,8 +13,8 @@ public class ForgedAlliancePrefs {
     this.port = 6112;
   }
 
-  public String getPath() {
-    return path;
+  public Path getPath() {
+    return Paths.get(path);
   }
 
   public int getPort() {

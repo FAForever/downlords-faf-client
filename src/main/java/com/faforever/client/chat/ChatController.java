@@ -3,8 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.TabPane;
@@ -19,7 +17,7 @@ public class ChatController implements
     OnMessageListener,
     OnChatDisconnectedListener,
     OnPrivateMessageListener,
-    OnChannelJoinedListener {
+    OnUserJoinedChannelListener {
 
   @Autowired
   ChatService chatService;
@@ -50,7 +48,7 @@ public class ChatController implements
     chatService.addOnMessageListener(this);
     chatService.addOnDisconnectedListener(this);
     chatService.addOnPrivateMessageListener(this);
-    chatService.addOnChannelJoinedListener(this);
+    chatService.addOnUserJoinedChannelListener(this);
   }
 
   public void setUp() {
@@ -65,7 +63,7 @@ public class ChatController implements
   @Override
   public void onMessage(String channelName, ChatMessage chatMessage) {
     Platform.runLater(() -> {
-      addAndGetChannel(channelName).onMessage(chatMessage);
+      addAndGetChannel(channelName).onChatItem(chatMessage);
     });
   }
 
@@ -117,7 +115,7 @@ public class ChatController implements
   @Override
   public void onPrivateMessage(String sender, ChatMessage chatMessage) {
     JavaFxUtil.assertBackgroundThread();
-    Platform.runLater(() -> addAndGetChannel(sender).onMessage(chatMessage));
+    Platform.runLater(() -> addAndGetChannel(sender).onChatItem(chatMessage));
   }
 
   public Node getRoot() {

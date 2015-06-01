@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
+import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ public class PreferencesService {
   private Preferences preferences;
   private final Timer timer;
   private TimerTask storeInBackgroundTask;
+  private Repository fafRepoDirectory;
 
   public PreferencesService() {
     this.preferencesFilePath = getPreferencesFilePath();
@@ -68,9 +70,12 @@ public class PreferencesService {
     return Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
   }
 
-
   public Path getFafBinDirectory() {
     return getFafDataDirectory().resolve("bin");
+  }
+
+  public Path getFafReposDirectory() {
+    return getFafDataDirectory().resolve("repos");
   }
 
   private Path getPreferencesFilePath() {

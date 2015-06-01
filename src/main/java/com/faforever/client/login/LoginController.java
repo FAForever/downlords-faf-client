@@ -10,12 +10,12 @@ import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,7 +48,7 @@ public class LoginController {
   Button loginButton;
 
   @FXML
-  Parent loginRoot;
+  Region loginRoot;
 
   @Autowired
   MainController mainController;
@@ -92,6 +92,9 @@ public class LoginController {
     usernameInput.setText(StringUtils.defaultString(username));
     autoLoginCheckBox.setSelected(isAutoLogin);
 
+    stage.show();
+    JavaFxUtil.centerOnScreen(stage);
+
     if (loginPrefs.isAutoLogin() && isNotEmpty(username) && isNotEmpty(password)) {
       login(username, password, true);
     } else if (isEmpty(username)) {
@@ -99,9 +102,6 @@ public class LoginController {
     } else {
       passwordInput.requestFocus();
     }
-
-    stage.show();
-    JavaFxUtil.centerOnScreen(stage);
   }
 
   @FXML

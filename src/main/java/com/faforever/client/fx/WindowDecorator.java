@@ -13,6 +13,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
@@ -97,11 +98,21 @@ public class WindowDecorator {
     closeButton.managedProperty().bind(closeButton.visibleProperty());
   }
 
-  public void configure(Stage stage, Parent content, boolean resizable, WindowButtonType... buttons) {
+  public void configure(Stage stage, Region content, boolean resizable, WindowButtonType... buttons) {
     this.stage = stage;
     this.resizable = resizable;
 
-    stage.getProperties().put(PROPERTY_WINDOW_DECORATOR, this);
+    // Configure these only once per stage
+    if (!stage.getProperties().containsKey(PROPERTY_WINDOW_DECORATOR)) {
+      stage.getProperties().put(PROPERTY_WINDOW_DECORATOR, this);
+      stage.iconifiedProperty().addListener((observable, oldValue, newValue) -> {
+        System.out.println(String.format("iconified: %s, maximized: %s", newValue, stage.isMaximized()));
+        if (!newValue && stage.isMaximized()) {
+          System.out.println(newValue);
+          maximize();
+        }
+      });
+    }
 
     List<WindowButtonType> buttonList = Arrays.asList(buttons);
 
@@ -109,8 +120,21 @@ public class WindowDecorator {
     maximizeButton.setVisible(buttonList.contains(MAXIMIZE_RESTORE));
     restoreButton.setVisible(buttonList.contains(MAXIMIZE_RESTORE));
     closeButton.setVisible(buttonList.contains(CLOSE));
+    resizeDirections = EnumSet.noneOf(ResizeDirection.class);
 
-    configureResizability(stage);
+    maximizeButton.managedProperty().bind(maximizeButton.visibleProperty());
+    restoreButton.managedProperty().bind(restoreButton.visibleProperty());
+
+    if (!resizable) {
+      maximizeButton.setVisible(false);
+      restoreButton.setVisible(false);
+    }
+
+    if (stage.isMaximized()) {
+      maximize();
+    } else {
+      restore();
+    }
 
     contentPane.getChildren().setAll(content);
     AnchorPane.setTopAnchor(content, 0d);
@@ -118,11 +142,14 @@ public class WindowDecorator {
     AnchorPane.setBottomAnchor(content, 0d);
     AnchorPane.setLeftAnchor(content, 0d);
 
+    windowRoot.minWidthProperty().bind(content.minWidthProperty());
+    windowRoot.minHeightProperty().bind(content.minHeightProperty());
+
     windowRoot.requestLayout();
   }
 
   private void restore() {
-    maximizeButton.setVisible(true);
+    maximizeButton.setVisible(restoreButton.isVisible());
     restoreButton.setVisible(false);
 
     stage.setMaximized(false);
@@ -159,34 +186,10 @@ public class WindowDecorator {
     return windowRoot;
   }
 
-  private void configureResizability(Stage stage) {
-    resizeDirections = EnumSet.noneOf(ResizeDirection.class);
-
-    maximizeButton.managedProperty().bind(maximizeButton.visibleProperty());
-    restoreButton.managedProperty().bind(restoreButton.visibleProperty());
-
-    if (!resizable) {
-      maximizeButton.setVisible(false);
-      restoreButton.setVisible(false);
-      return;
-    }
-
-    if (stage.isMaximized()) {
-      maximize();
-    } else {
-      restore();
-    }
-  }
-
   public void onMouseMoved(MouseEvent event) {
-    if (!resizable) {
+    if (!resizable || stage.isMaximized()) {
       return;
     }
-    if (stage.isMaximized() || event.getTarget() != windowRoot) {
-      windowRoot.setCursor(Cursor.DEFAULT);
-      return;
-    }
-
 
     resizeDirections.clear();
 

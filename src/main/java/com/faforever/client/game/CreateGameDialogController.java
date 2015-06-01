@@ -1,13 +1,17 @@
 package com.faforever.client.game;
 
+import com.faforever.client.map.MapService;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Region;
 import org.controlsfx.control.RangeSlider;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
 
@@ -40,11 +44,14 @@ public class CreateGameDialogController {
   public TextField maxRankingTextField;
 
   @FXML
-  private Parent createGameRoot;
+  private Region createGameRoot;
+
+  @Autowired
+  MapService mapService;
 
   private OnCreateGameListener onGameCreateListener;
 
-  public Parent getRoot() {
+  public Region getRoot() {
     return createGameRoot;
   }
 
@@ -81,6 +88,8 @@ public class CreateGameDialogController {
           return;
         }
 
+        Image mapPreview = mapService.loadSmallPreview(item.getName());
+        setGraphic(new ImageView(mapPreview));
         setText(item.getName());
       }
     });

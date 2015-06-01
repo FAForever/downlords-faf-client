@@ -2,7 +2,6 @@ package com.faforever.client.network;
 
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +11,11 @@ import org.springframework.core.env.Environment;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.*;
+import java.net.ConnectException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -28,9 +31,9 @@ public class PortCheckServiceImpl implements PortCheckService {
 
   @Override
   public void checkUdpPortInBackground(int port, Callback<Boolean> callback) {
-    ConcurrentUtil.executeInBackground(new Task<Object>() {
+    ConcurrentUtil.executeInBackground(new Task<Boolean>() {
       @Override
-      protected Object call() throws Exception {
+      protected Boolean call() throws Exception {
         String remoteHost = environment.getProperty("portCheck.host");
         Integer remotePort = environment.getProperty("portCheck.port", Integer.class);
 
@@ -46,16 +49,13 @@ public class PortCheckServiceImpl implements PortCheckService {
 
           logger.info("UDP port {} is reachable", port);
 
-          Platform.runLater(() -> callback.success(true));
+          return true;
         } catch (SocketTimeoutException e) {
           logger.info("UDP port {} is unreachable", port);
-          Platform.runLater(() -> callback.success(false));
-        } catch (IOException e) {
-          Platform.runLater(() -> callback.error(e));
+          return false;
         }
-        return null;
       }
-    });
+    }, callback);
   }
 
   /**

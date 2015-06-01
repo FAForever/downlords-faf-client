@@ -29,7 +29,7 @@ import java.net.Socket;
 
 /**
  * Reads data from the FAF lobby server, like player information, open games, friends, foes and so on. Classes should
- * not use the server reader directly, but the {@link ServerAccessor} instead.
+ * not use the server reader directly, but {@link ServerAccessor} instead.
  */
 class ServerReader {
 

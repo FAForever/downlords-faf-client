@@ -1,12 +1,15 @@
 package com.faforever.client.config;
 
 import com.faforever.client.chat.ChatService;
+import com.faforever.client.chat.MockChatService;
 import com.faforever.client.chat.PircBotXChatService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameServiceImpl;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.i18n.I18nImpl;
+import com.faforever.client.legacy.MockServerAccessor;
 import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.legacy.ServerAccessorImpl;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.legacy.proxy.ProxyImpl;
 import com.faforever.client.legacy.relay.LocalRelayServer;
@@ -17,6 +20,8 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModServiceImpl;
 import com.faforever.client.network.PortCheckService;
 import com.faforever.client.network.PortCheckServiceImpl;
+import com.faforever.client.patch.GitRepositoryPatchService;
+import com.faforever.client.patch.PatchService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
@@ -72,12 +77,19 @@ public class BaseConfig {
 
   @Bean
   ServerAccessor serverAccessor() {
-    return new ServerAccessor();
+    if (environment.containsProperty("faf.testing")) {
+      return new MockServerAccessor();
+    } else {
+      return new ServerAccessorImpl();
+    }
   }
 
   @Bean
   ChatService chatService() {
-    return new PircBotXChatService();
+    if (environment.containsProperty("faf.testing")) {
+      return new MockChatService();
+    } else
+      return new PircBotXChatService();
   }
 
   @Bean
@@ -133,5 +145,10 @@ public class BaseConfig {
   @Bean
   Proxy proxy() {
     return new ProxyImpl();
+  }
+
+  @Bean
+  PatchService patchService() {
+    return new GitRepositoryPatchService();
   }
 }

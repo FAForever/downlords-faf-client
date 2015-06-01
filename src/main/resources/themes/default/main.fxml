@@ -1,30 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.text.*?>
 <?import java.lang.*?>
 <?import javafx.geometry.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox fx:id="mainRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
+<VBox fx:id="mainRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="200.0" minWidth="450.0" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
   <children>
-      <HBox alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="main-navigation" VBox.vgrow="NEVER">
+      <HBox>
          <children>
-            <MenuButton mnemonicParsing="false" text="MenuButton">
+            <MenuBar>
+              <menus>
+                <Menu mnemonicParsing="false" text="%menu.application" />
+                <Menu mnemonicParsing="false" text="%menu.settings" />
+                <Menu mnemonicParsing="false" text="%menu.help" />
+              </menus>
+            </MenuBar>
+            <Pane HBox.hgrow="ALWAYS" />
+            <MenuButton fx:id="usernameButton" focusTraversable="false" mnemonicParsing="false" styleClass="username-button" text="Username">
               <items>
                 <MenuItem mnemonicParsing="false" text="Action 1" />
                 <MenuItem mnemonicParsing="false" text="Action 2" />
               </items>
+               <HBox.margin>
+                  <Insets right="120.0" />
+               </HBox.margin>
             </MenuButton>
-            <ToggleButton fx:id="newsButton" mnemonicParsing="false" onAction="#onNewsButton" selected="true" text="%main.news">
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="main-navigation" VBox.vgrow="NEVER">
+         <children>
+            <ToggleButton fx:id="newsButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" selected="true" text="%main.news">
                <toggleGroup>
-                  <ToggleGroup fx:id="mainNavigation" />
+                  <ToggleGroup fx:id="mainNavigationToggleGroup" />
                </toggleGroup>
             </ToggleButton>
-            <ToggleButton fx:id="chatButton" mnemonicParsing="false" onAction="#onChatButton" text="%main.chat" toggleGroup="$mainNavigation" />
-            <ToggleButton fx:id="gamesButton" mnemonicParsing="false" onAction="#onGamesButton" text="%main.games" toggleGroup="$mainNavigation" />
-            <ToggleButton fx:id="vaultButton" mnemonicParsing="false" onAction="#onVaultButton" text="%main.vault" toggleGroup="$mainNavigation" />
-            <ToggleButton fx:id="leaderboardButton" mnemonicParsing="false" onAction="#onLeaderboardButton" text="%main.leaderboard"/>
+            <ToggleButton fx:id="chatButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.chat" toggleGroup="$mainNavigationToggleGroup" />
+            <ToggleButton fx:id="gamesButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.games" toggleGroup="$mainNavigationToggleGroup" />
+            <ToggleButton fx:id="vaultButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.vault" toggleGroup="$mainNavigationToggleGroup" />
+            <ToggleButton fx:id="leaderboardButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.leaderboard" toggleGroup="$mainNavigationToggleGroup" />
             <Pane HBox.hgrow="ALWAYS" />
          </children>
       </HBox>

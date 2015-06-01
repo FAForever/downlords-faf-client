@@ -1,8 +1,12 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.Callback;
 import com.google.common.collect.ImmutableSortedSet;
-import javafx.collections.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener;
 import javafx.concurrent.Task;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.pircbotx.Configuration;
@@ -30,24 +34,31 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
-public class PircBotXChatService implements ChatService, Listener, OnConnectedListener, OnChatUserListListener, OnChannelJoinedListener, OnChatUserLeftListener, OnChatDisconnectedListener {
+public class PircBotXChatService implements ChatService, Listener, OnConnectedListener, OnChatUserListListener, OnUserJoinedChannelListener, OnChatUserLeftListener, OnChatDisconnectedListener {
 
+  interface ChatEventListener<T> {
+
+    void onEvent(T event);
+  }
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int RECONNECT_DELAY = 3000;
   private static final int SOCKET_TIMEOUT = 10000;
+  private final Map<Class<? extends Event>, ArrayList<ChatEventListener>> eventListeners;
+  private final ObservableMap<String, ObservableSet<ChatUser>> chatUserLists;
 
   @Autowired
   private Environment environment;
   @Autowired
   private UserService userService;
-
-  private final Map<Class<? extends Event>, ArrayList<ChatEventListener>> eventListeners;
-  private final ObservableMap<String, ObservableSet<ChatUser>> chatUserLists;
 
   private Configuration configuration;
   private PircBotX pircBotX;
@@ -87,59 +98,28 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
     }
   }
 
-  @Override
-  public ObservableSet<ChatUser> getChatUsersForChannel(String channelName) {
-    if (!chatUserLists.containsKey(channelName)) {
-      chatUserLists.put(channelName, FXCollections.observableSet(new HashSet<>()));
-    }
-    return chatUserLists.get(channelName);
-  }
-
   @PostConstruct
   void postConstruct() {
     addOnUserListListener(this);
-    addOnChannelJoinedListener(this);
+    addOnUserJoinedChannelListener(this);
     addOnChatUserLeftListener(this);
     addOnDisconnectedListener(this);
   }
 
-  private void init() {
-    String username = userService.getUsername();
-
-    configuration = new Configuration.Builder()
-        .setName(username)
-        .setLogin(username)
-        .setServer(environment.getProperty("irc.host"), environment.getProperty("irc.port", Integer.class))
-        .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-        .setAutoSplitMessage(true)
-        .setEncoding(StandardCharsets.UTF_8)
-        .setAutoReconnect(false)
-        .addListener(this)
-        .setSocketTimeout(SOCKET_TIMEOUT)
-        .buildConfiguration();
-
-    addOnConnectedListener(this);
-
-    pircBotX = new PircBotX(configuration);
-    initialized = true;
+  private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
+    if (!eventListeners.containsKey(eventClass)) {
+      eventListeners.put(eventClass, new ArrayList<>());
+    }
+    eventListeners.get(eventClass).add(listener);
   }
 
-  @Override
-  public void addOnConnectedListener(final OnConnectedListener listener) {
-    addEventListener(ConnectEvent.class,
-        event -> listener.onConnected());
-  }
-
-  @Override
-  public void addOnUserListListener(final OnChatUserListListener listener) {
-    addEventListener(UserListEvent.class,
-        event -> listener.onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers())));
-  }
-
-  @Override
-  public void addOnDisconnectedListener(final OnChatDisconnectedListener listener) {
-    addEventListener(DisconnectEvent.class,
-        event -> listener.onDisconnected(extractDisconnectException(event)));
+  private Collection<ChatUser> chatUsers(ImmutableSortedSet<User> users) {
+    Collection<ChatUser> chatUsers = new ArrayList<>();
+    for (User user : users) {
+      ChatUser chatUser = new ChatUser(user.getNick(), user.isIrcop());
+      chatUsers.add(chatUser);
+    }
+    return chatUsers;
   }
 
   private Exception extractDisconnectException(DisconnectEvent event) {
@@ -166,6 +146,24 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   }
 
   @Override
+  public void addOnConnectedListener(final OnConnectedListener listener) {
+    addEventListener(ConnectEvent.class,
+        event -> listener.onConnected());
+  }
+
+  @Override
+  public void addOnUserListListener(final OnChatUserListListener listener) {
+    addEventListener(UserListEvent.class,
+        event -> listener.onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers())));
+  }
+
+  @Override
+  public void addOnDisconnectedListener(final OnChatDisconnectedListener listener) {
+    addEventListener(DisconnectEvent.class,
+        event -> listener.onDisconnected(extractDisconnectException(event)));
+  }
+
+  @Override
   public void addOnPrivateMessageListener(final OnPrivateMessageListener listener) {
     addEventListener(PrivateMessageEvent.class,
         event -> listener.onPrivateMessage(
@@ -180,7 +178,7 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   }
 
   @Override
-  public void addOnChannelJoinedListener(final OnChannelJoinedListener listener) {
+  public void addOnUserJoinedChannelListener(final OnUserJoinedChannelListener listener) {
     addEventListener(JoinEvent.class,
         event -> listener.onUserJoinedChannel(
             event.getChannel().getName(),
@@ -219,9 +217,44 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
     });
   }
 
+  private void init() {
+    String username = userService.getUsername();
+
+    configuration = new Configuration.Builder()
+        .setName(username)
+        .setLogin(username)
+        .setServer(environment.getProperty("irc.host"), environment.getProperty("irc.port", Integer.class))
+        .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+        .setAutoSplitMessage(true)
+        .setEncoding(StandardCharsets.UTF_8)
+        .setAutoReconnect(false)
+        .addListener(this)
+        .setSocketTimeout(SOCKET_TIMEOUT)
+        .buildConfiguration();
+
+    addOnConnectedListener(this);
+
+    pircBotX = new PircBotX(configuration);
+    initialized = true;
+  }
+
   @Override
-  public void sendMessage(String target, String message) {
-    pircBotX.sendIRC().message(target, message);
+  public void sendMessageInBackground(String target, String message, Callback<String> callback) {
+    executeInBackground(new Task<String>() {
+      @Override
+      protected String call() throws Exception {
+        pircBotX.sendIRC().message(target, message);
+        return message;
+      }
+    }, callback);
+  }
+
+  @Override
+  public ObservableSet<ChatUser> getChatUsersForChannel(String channelName) {
+    if (!chatUserLists.containsKey(channelName)) {
+      chatUserLists.put(channelName, FXCollections.observableSet(new HashSet<>()));
+    }
+    return chatUserLists.get(channelName);
   }
 
   @Override
@@ -229,11 +262,25 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
     getChatUsersForChannel(channelName).addListener(listener);
   }
 
-  private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
-    if (!eventListeners.containsKey(eventClass)) {
-      eventListeners.put(eventClass, new ArrayList<>());
-    }
-    eventListeners.get(eventClass).add(listener);
+  @Override
+  public void leaveChannel(String channelName) {
+    pircBotX.sendIRC().action(channelName, "/part");
+  }
+
+  @Override
+  public void sendAction(String target, String action, Callback<String> callback) {
+    executeInBackground(new Task<String>() {
+      @Override
+      protected String call() throws Exception {
+        pircBotX.sendIRC().action(target, action);
+        return action;
+      }
+    }, callback);
+  }
+
+  @Override
+  public void joinChannel(String channelName) {
+    pircBotX.sendIRC().joinChannel(channelName);
   }
 
   @Override
@@ -249,23 +296,17 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
 
   @Override
   public void onConnected() {
-    executeInBackground(new Task<Void>() {
+    sendMessageInBackground("NICKSERV", "IDENTIFY " + DigestUtils.md5Hex(userService.getPassword()), new Callback<String>() {
       @Override
-      protected Void call() throws Exception {
-        sendMessage("NICKSERV", "IDENTIFY " + DigestUtils.md5Hex(userService.getPassword()));
+      public void success(String message) {
         pircBotX.sendIRC().joinChannel(environment.getProperty("irc.defaultChannel"));
-        return null;
+      }
+
+      @Override
+      public void error(Throwable e) {
+        throw new RuntimeException(e);
       }
     });
-  }
-
-  private Collection<ChatUser> chatUsers(ImmutableSortedSet<User> users) {
-    Collection<ChatUser> chatUsers = new ArrayList<>();
-    for (User user : users) {
-      ChatUser chatUser = new ChatUser(user.getNick());
-      chatUsers.add(chatUser);
-    }
-    return chatUsers;
   }
 
   @Override
@@ -274,10 +315,5 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
       chatUserLists.values().forEach(ObservableSet<ChatUser>::clear);
       chatUserLists.clear();
     }
-  }
-
-  interface ChatEventListener<T> {
-
-    void onEvent(T event);
   }
 }

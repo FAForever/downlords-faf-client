@@ -1,15 +1,22 @@
 package com.faforever.client.chat;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import org.pircbotx.User;
 
 public class ChatUser {
 
   private StringProperty username;
+  private BooleanProperty isModerator;
 
   public ChatUser(String username) {
+    this(username, false);
+  }
+
+  public ChatUser(String username, boolean isModerator) {
     this.username = new SimpleStringProperty(username);
+    this.isModerator = new SimpleBooleanProperty(isModerator);
   }
 
   public String getUsername() {

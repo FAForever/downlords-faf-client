@@ -4,6 +4,7 @@ import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
 import com.faforever.client.legacy.OnLobbyDisconnectedListener;
 import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.legacy.ServerAccessorImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class LobbyServiceImpl implements LobbyService {

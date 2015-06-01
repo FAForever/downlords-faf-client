@@ -8,6 +8,7 @@ import java.util.Map;
  */
 public enum RelayServerCommand {
   PING("ping"),
+  HOST_GAME("HostGame"),
   SEND_NAT_PACKET("SendNatPacket"),
   P2P_RECONNECT("P2pReconnect"),
   JOIN_GAME("JoinGame"),

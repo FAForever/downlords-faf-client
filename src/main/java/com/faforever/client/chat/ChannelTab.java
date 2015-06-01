@@ -1,11 +1,12 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
@@ -16,7 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoubleClickListener {
@@ -76,7 +80,13 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
     });
 
     // Maybe there were already elements; fetch them
-    chatService.getChatUsersForChannel(channelName).forEach(this::onUserJoinedChannel);
+    ConcurrentUtil.executeInBackground(new Task<Void>() {
+      @Override
+      protected Void call() throws Exception {
+        chatService.getChatUsersForChannel(channelName).forEach(ChannelTab.this::onUserJoinedChannel);
+        return null;
+      }
+    });
   }
 
   @Override
@@ -94,17 +104,7 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
     userSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       filterChatUserControlsBySearchString();
     });
-  }
-
-  private void onChatUserList(String channelName, Collection<ChatUser> users) {
-    logger.debug("Received chat user list for channel: {}", channelName);
-    if (!Objects.equals(this.channelName, channelName)) {
-      return;
-    }
-
-    synchronized (users) {
-      users.forEach(this::onUserJoinedChannel);
-    }
+    onClosedProperty().addListener(observable -> chatService.leaveChannel(channelName));
   }
 
   private void onUserJoinedChannel(ChatUser chatUser) {
@@ -123,7 +123,8 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
     userToChatUserControls.putIfAbsent(username, new HashMap<>(targetPanesForUser.size(), 1));
 
     for (Pane pane : targetPanesForUser) {
-      createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
+      // Remove Plateform.runLater() as soon as RT-40417 is fixed
+      Platform.runLater(() -> createChatUserControlForPlayerIfNecessary(pane, playerInfoBean));
     }
   }
 
@@ -198,7 +199,8 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
   }
 
   /**
-   * Hides all chat user controls whose username does not contain the string entered in the {@link #userSearchTextField}.
+   * Hides all chat user controls whose username does not contain the string entered in the {@link
+   * #userSearchTextField}.
    */
   private void filterChatUserControlsBySearchString() {
     synchronized (userToChatUserControls) {

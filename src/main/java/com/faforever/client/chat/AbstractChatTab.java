@@ -4,21 +4,18 @@ import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.JavaFxUtil;
-import com.sun.webkit.network.URLs;
+import com.faforever.client.util.Callback;
 import javafx.application.HostServices;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
@@ -28,6 +25,8 @@ import netscape.javascript.JSObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -35,22 +34,28 @@ import org.springframework.core.io.Resource;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.regex.Pattern;
 
 /**
- * A chat tab displays messages in a {@link WebView}. The WebView is used since text on a
- * JavaFX canvas isn't selectable, but text within a WebView is. This comes with some ugly implications; some of the
- * logic has to be performed in interaction with JavaScript, like when the user clicks a link.
+ * A chat tab displays messages in a {@link WebView}. The WebView is used since text on a JavaFX canvas isn't
+ * selectable, but text within a WebView is. This comes with some ugly implications; some of the logic has to be
+ * performed in interaction with JavaScript, like when the user clicks a link.
  */
 public abstract class AbstractChatTab extends Tab {
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final String CLAN_TAG_FORMAT = "[%s] ";
   private static final ClassPathResource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
@@ -65,6 +70,8 @@ public abstract class AbstractChatTab extends Tab {
    * This is the member name within the JavaScript code that provides access to this chat tab instance.
    */
   private static final String CHAT_TAB_REFERENCE_IN_JAVASCRIPT = "chatTab";
+  private static final String ACTION_PREFIX = "/me ";
+  private static final String JOIN_PREFIX = "/join ";
 
   private EventHandler<MouseEvent> MOVE_HANDLER = (MouseEvent event) -> {
     lastMouseX = event.getScreenX();
@@ -204,7 +211,7 @@ public abstract class AbstractChatTab extends Tab {
       Popup popup = new Popup();
       popup.getContent().setAll(new Label(contentType));
       popup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
-     // popup.show(getTabPane(), lastMouseX, lastMouseY);
+      // popup.show(getTabPane(), lastMouseX, lastMouseY);
     } catch (IOException e) {
       // TODO log
     }
@@ -217,20 +224,54 @@ public abstract class AbstractChatTab extends Tab {
 
   public void onSendMessage(ActionEvent actionEvent) {
     TextInputControl messageTextField = getMessageTextField();
+    messageTextField.setDisable(true);
 
     String text = messageTextField.getText();
     if (StringUtils.isEmpty(text)) {
       return;
     }
 
-    chatService.sendMessage(receiver, text);
-    messageTextField.clear();
-    onMessage(new ChatMessage(Instant.now(), userService.getUsername(), text));
-  }
+    if (text.startsWith(ACTION_PREFIX)) {
+//      chatService.sendAction(receiver, text.replaceFirst(Pattern.quote(ACTION_PREFIX), ""), new Callback<String>() {
+//        @Override
+//        public void success(String message) {
+//          messageTextField.clear();
+//          messageTextField.setDisable(false);
+//          onAction(new ChatAction(Instant.now(), userService.getUsername(), message));
+//        }
+//
+//        @Override
+//        public void error(Throwable e) {
+//          // TODO display error to user somehow
+//          logger.warn("Message could not be sent: {}", text, e);
+//          messageTextField.setDisable(false);
+//        }
+//      });
+    } else if (text.startsWith(JOIN_PREFIX)) {
+      chatService.joinChannel(text.replaceFirst(Pattern.quote(JOIN_PREFIX), ""));
+    } else {
+      chatService.sendMessageInBackground(receiver, text, new Callback<String>() {
+        @Override
+        public void success(String message) {
+          messageTextField.clear();
+          messageTextField.setDisable(false);
+          messageTextField.requestFocus();
+          onChatItem(new ChatMessage(Instant.now(), userService.getUsername(), message));
+        }
 
+        @Override
+        public void error(Throwable e) {
+          // TODO display error to user somehow
+          logger.warn("Message could not be sent: {}", text, e);
+          messageTextField.setDisable(false);
+          messageTextField.requestFocus();
+        }
+      });
+    }
+  }
   protected abstract TextInputControl getMessageTextField();
 
-  public void onMessage(ChatMessage chatMessage) {
+  public void onChatItem(ChatMessage chatMessage) {
     if (!isChatReady) {
       waitingMessages.add(chatMessage);
     } else {

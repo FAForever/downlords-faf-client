@@ -5,7 +5,6 @@ import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
-import javafx.collections.MapChangeListener;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;

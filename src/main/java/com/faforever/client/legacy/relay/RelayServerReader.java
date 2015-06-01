@@ -73,6 +73,9 @@ class RelayServerReader implements Closeable {
       case PING:
         handlePing();
         break;
+      case HOST_GAME:
+        handleHostGame(command, args);
+        break;
       case SEND_NAT_PACKET:
         handleSendNatPacket(command, args);
         break;
@@ -98,6 +101,10 @@ class RelayServerReader implements Closeable {
       default:
         throw new IllegalStateException("Unhandled relay server command: " + command);
     }
+  }
+
+  private void handleHostGame(RelayServerCommand command, List<Object> args) throws IOException {
+    write(command, args);
   }
 
   private void handlePing() {
