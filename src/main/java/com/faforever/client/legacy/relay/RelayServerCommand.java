@@ -14,6 +14,7 @@ public enum RelayServerCommand {
   JOIN_GAME("JoinGame"),
   CONNECT_TO_PEER("ConnectToPeer"),
   CREATE_LOBBY("CreateLobby"),
+  DISCONNECT_FROM_PEER("DisconnectFromPeer"),
   CONNECT_TO_PROXY("ConnectToProxy"),
   JOIN_PROXY("JoinProxy");
 

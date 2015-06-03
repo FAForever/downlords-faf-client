@@ -91,6 +91,9 @@ class RelayServerReader implements Closeable {
       case CREATE_LOBBY:
         handleCreateLobby(command, args);
         break;
+      case DISCONNECT_FROM_PEER:
+        handleDisconnectFromPeer(command, args);
+        break;
       case CONNECT_TO_PROXY:
         handleConnectToProxy(command, args);
         break;
@@ -101,6 +104,10 @@ class RelayServerReader implements Closeable {
       default:
         throw new IllegalStateException("Unhandled relay server command: " + command);
     }
+  }
+
+  private void handleDisconnectFromPeer(RelayServerCommand command, List<Object> args) throws IOException {
+    write(command, args);
   }
 
   private void handleHostGame(RelayServerCommand command, List<Object> args) throws IOException {
