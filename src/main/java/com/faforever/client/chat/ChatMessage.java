@@ -5,24 +5,34 @@ import java.time.Instant;
 public class ChatMessage {
 
   private final Instant time;
-  private final String login;
+  private final String username;
   private final String message;
+  private boolean action;
 
-  public ChatMessage(Instant time, String login, String message) {
+  public ChatMessage(Instant time, String username, String message) {
+    this(time, username, message, false);
+  }
+
+  public ChatMessage(Instant time, String username, String message, boolean isAction) {
     this.time = time;
-    this.login = login;
+    this.username = username;
     this.message = message;
+    this.action = isAction;
   }
 
   public Instant getTime() {
     return time;
   }
 
-  public String getLogin() {
-    return login;
+  public String getUsername() {
+    return username;
   }
 
   public String getMessage() {
     return message;
+  }
+
+  public boolean isAction() {
+    return action;
   }
 }

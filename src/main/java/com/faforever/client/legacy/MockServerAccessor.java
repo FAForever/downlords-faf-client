@@ -4,9 +4,12 @@ import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
 import javafx.concurrent.Task;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,6 +18,10 @@ import java.util.Collection;
 public class MockServerAccessor implements ServerAccessor {
 
   private Collection<OnModInfoListener> onModInfoMessageListeners;
+  private OnPlayerInfoListener onPlayerInfoListener;
+
+  @Autowired
+  private UserService userService;
 
   public MockServerAccessor() {
     onModInfoMessageListeners = new ArrayList<>();
@@ -35,6 +42,14 @@ public class MockServerAccessor implements ServerAccessor {
           onModInfoMessageListener.onModInfo(modInfo);
         }
 
+        if (onPlayerInfoListener != null) {
+          PlayerInfo playerInfo = new PlayerInfo();
+          playerInfo.login = userService.getUsername();
+          playerInfo.clan = "ABC";
+          playerInfo.country = "CH";
+          onPlayerInfoListener.onPlayerInfo(playerInfo);
+        }
+
         return null;
       }
     }, callback);
@@ -52,7 +67,7 @@ public class MockServerAccessor implements ServerAccessor {
 
   @Override
   public void setOnPlayerInfoMessageListener(OnPlayerInfoListener listener) {
-
+    onPlayerInfoListener = listener;
   }
 
   @Override

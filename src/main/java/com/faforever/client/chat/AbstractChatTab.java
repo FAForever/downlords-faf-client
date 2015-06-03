@@ -5,6 +5,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
+import com.google.common.base.Joiner;
 import javafx.application.HostServices;
 import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
@@ -42,6 +43,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +74,12 @@ public abstract class AbstractChatTab extends Tab {
   private static final String CHAT_TAB_REFERENCE_IN_JAVASCRIPT = "chatTab";
   private static final String ACTION_PREFIX = "/me ";
   private static final String JOIN_PREFIX = "/join ";
+
+  /**
+   * Added if a message is what IRC calls an "action".
+   */
+  private static final String ACTION_CSS_CLASS = "action";
+  private static final String MESSAGE_CSS_CLASS = "message";
 
   private EventHandler<MouseEvent> MOVE_HANDLER = (MouseEvent event) -> {
     lastMouseX = event.getScreenX();
@@ -224,7 +232,6 @@ public abstract class AbstractChatTab extends Tab {
 
   public void onSendMessage(ActionEvent actionEvent) {
     TextInputControl messageTextField = getMessageTextField();
-    messageTextField.setDisable(true);
 
     String text = messageTextField.getText();
     if (StringUtils.isEmpty(text)) {
@@ -232,46 +239,60 @@ public abstract class AbstractChatTab extends Tab {
     }
 
     if (text.startsWith(ACTION_PREFIX)) {
-//      chatService.sendAction(receiver, text.replaceFirst(Pattern.quote(ACTION_PREFIX), ""), new Callback<String>() {
-//        @Override
-//        public void success(String message) {
-//          messageTextField.clear();
-//          messageTextField.setDisable(false);
-//          onAction(new ChatAction(Instant.now(), userService.getUsername(), message));
-//        }
-//
-//        @Override
-//        public void error(Throwable e) {
-//          // TODO display error to user somehow
-//          logger.warn("Message could not be sent: {}", text, e);
-//          messageTextField.setDisable(false);
-//        }
-//      });
+      sendAction(messageTextField, text);
     } else if (text.startsWith(JOIN_PREFIX)) {
       chatService.joinChannel(text.replaceFirst(Pattern.quote(JOIN_PREFIX), ""));
     } else {
-      chatService.sendMessageInBackground(receiver, text, new Callback<String>() {
-        @Override
-        public void success(String message) {
-          messageTextField.clear();
-          messageTextField.setDisable(false);
-          messageTextField.requestFocus();
-          onChatItem(new ChatMessage(Instant.now(), userService.getUsername(), message));
-        }
-
-        @Override
-        public void error(Throwable e) {
-          // TODO display error to user somehow
-          logger.warn("Message could not be sent: {}", text, e);
-          messageTextField.setDisable(false);
-          messageTextField.requestFocus();
-        }
-      });
+      sendMessage(messageTextField, text);
     }
   }
+
+  private void sendMessage(final TextInputControl messageTextField, final String text) {
+    messageTextField.setDisable(true);
+
+    chatService.sendMessageInBackground(receiver, text, new Callback<String>() {
+      @Override
+      public void success(String message) {
+        messageTextField.clear();
+        messageTextField.setDisable(false);
+        messageTextField.requestFocus();
+        onChatMessage(new ChatMessage(Instant.now(), userService.getUsername(), message));
+      }
+
+      @Override
+      public void error(Throwable e) {
+        // TODO display error to user somehow
+        logger.warn("Message could not be sent: {}", text, e);
+        messageTextField.setDisable(false);
+        messageTextField.requestFocus();
+      }
+    });
+  }
+
+  private void sendAction(final TextInputControl messageTextField, final String text) {
+    messageTextField.setDisable(true);
+
+    chatService.sendActionInBackground(receiver, text.replaceFirst(Pattern.quote(ACTION_PREFIX), ""), new Callback<String>() {
+      @Override
+      public void success(String message) {
+        messageTextField.clear();
+        messageTextField.setDisable(false);
+        messageTextField.requestFocus();
+        onChatMessage(new ChatMessage(Instant.now(), userService.getUsername(), message, true));
+      }
+
+      @Override
+      public void error(Throwable e) {
+        // TODO display error to user somehow
+        logger.warn("Message could not be sent: {}", text, e);
+        messageTextField.setDisable(false);
+      }
+    });
+  }
+
   protected abstract TextInputControl getMessageTextField();
 
-  public void onChatItem(ChatMessage chatMessage) {
+  public void onChatMessage(ChatMessage chatMessage) {
     if (!isChatReady) {
       waitingMessages.add(chatMessage);
     } else {
@@ -301,10 +322,10 @@ public abstract class AbstractChatTab extends Tab {
         ZonedDateTime.ofInstant(chatMessage.getTime(), TimeZone.getDefault().toZoneId())
     );
 
-    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getLogin());
+    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getUsername());
 
     try (InputStream inputStream = MESSAGE_ITEM_HTML_RESOURCE.getInputStream()) {
-      String login = chatMessage.getLogin();
+      String login = chatMessage.getUsername();
       String html = IOUtils.toString(inputStream);
 
       String avatar = "";
@@ -327,9 +348,19 @@ public abstract class AbstractChatTab extends Tab {
           .replace("{clan-tag}", clanTag)
           .replace("{text}", text);
 
+      Collection<String> cssClasses = new ArrayList<>();
+
       if (userToCssStyle.containsKey(login)) {
-        html = html.replace("{css-class}", userToCssStyle.get(login));
+        cssClasses.add(userToCssStyle.get(login));
       }
+
+      if (chatMessage.isAction()) {
+        cssClasses.add(ACTION_CSS_CLASS);
+      } else {
+        cssClasses.add(MESSAGE_CSS_CLASS);
+      }
+
+      html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
 
       addToMessageContainer(html);
     } catch (IOException e) {
@@ -338,8 +369,9 @@ public abstract class AbstractChatTab extends Tab {
   }
 
   private String highlightOwnUsername(String text) {
+    // TODO outsource in html file
     return text.replaceAll(
-        "(?:^|\\s])" + userService.getUsername() + "(?:\\s|$)",
+        "\\b" + Pattern.quote(userService.getUsername()) + "\\b",
         "<span class='own-username'>" + userService.getUsername() + "</span>"
     );
   }

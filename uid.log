@@ -1,12 +1,12 @@
-Operation 0 done : success
-Operation 1 done : success
-Operation 2 done : success
-Operation 3 done : success
-Operation 4 done : success
-Operation 5 done : success
-Operation 6 done : success
-Operation 7 done : success
-Operation 8 done : success
-Operation 9 done : success
+Operation 0 done : failed instanciation
+Operation 1 done : Couldn't connect to service
+Operation 2 done : Couldn't connect to service
+Operation 3 done : Couldn't connect to service
+Operation 4 done : Couldn't connect to service
+Operation 5 done : Couldn't connect to service
+Operation 6 done : Couldn't connect to service
+Operation 7 done : Couldn't connect to service
+Operation 8 done : Couldn't connect to service
+Operation 9 done : Couldn't connect to service
 encoding done
 encryption done

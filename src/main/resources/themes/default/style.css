@@ -1,5 +1,5 @@
 .root {
-  -fx-font-size: 16px;
+  -fx-font-size: 14px;
 
   /***************************************************************************
    *                                                                         *
@@ -121,12 +121,71 @@
       -fx-mid-text-color   30%,
       -fx-light-text-color 40%
   );
+
+  /* Background for items in list like things such as menus, lists, trees,
+   * and tables. */
+  -fx-selection-bar: derive(-fx-color, 10%);
+
+  -fx-focused-text-base-color : ladder(
+      -fx-selection-bar,
+      -fx-mid-text-color 30%,
+      -fx-dark-text-color 40%,
+      -fx-light-text-color 50%
+  );
+
+  /* A little brighter than -fx-color and used to draw boxes around objects such
+   * as progress bars, scroll bars, scroll panes, trees, tables, and lists.
+   */
+  -fx-box-border: ladder(
+      -fx-color,
+      derive(-fx-color,20%) 20%,
+      derive(-fx-color,40%) 30%,
+  );
+}
+
+.scroll-bar > .increment-button > .increment-arrow,
+.scroll-bar > .decrement-button > .decrement-arrow {
+    -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,45%);
+}
+.scroll-bar > .increment-button:hover > .increment-arrow,
+.scroll-bar > .decrement-button:hover > .decrement-arrow {
+    -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,50%);
+}
+.scroll-bar > .increment-button:pressed > .increment-arrow,
+.scroll-bar > .decrement-button:pressed > .decrement-arrow {
+    -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,55%);
 }
 
 /***************** Text field *****************/
 
 .text-input {
   -fx-prompt-text-fill: derive(-fx-control-inner-background, 40%);
+}
+
+/***************** Remove ugly borders introduced by modena *****************/
+
+.scroll-pane,
+.split-pane,
+.list-view,
+.tree-view,
+.table-view,
+.tree-table-view,
+.html-editor {
+  -fx-background-color: -fx-control-inner-background;
+  -fx-background-insets: 0;
+  -fx-padding: 0;
+}
+
+.scroll-pane,
+.split-pane {
+  -fx-background-color: -fx-background;
+}
+.scroll-pane:focused,
+.split-pane:focused {
+    -fx-background-color: -fx-background;
+}
+.titled-pane > *.content {
+    -fx-border-color: transparent;
 }
 
 /***************** Button-like things *****************/
@@ -200,31 +259,28 @@
 
 /***************** Window *****************/
 
+.decorated-window {
+  -fx-background-color: black;
+  -fx-background-image: url('images/background.jpg');
+  -fx-background-position: top;
+  -fx-background-repeat: no-repeat;
+}
+
 
 /***************** Menu *****************/
 
-.menu-bar {
+.main-menu-button {
   -fx-background-color: transparent;
-  -fx-padding: 0;
+  -fx-background-image: url('images/main_menu.png');
+  -fx-background-repeat: no-repeat;
+  -fx-min-width: 64px;
+  -fx-max-width: 64px;
+  -fx-min-height: 32px;
+  -fx-max-height: 32px;
 }
 
-.menu {
-  -fx-padding: 0 0.666em;
-  -fx-background-color: transparent;
-}
-
-.menu:hover {
-  -fx-background-color: transparent;
-  -fx-text-fill: -fx-text-background-color;
-}
-
-.menu > .label {
-  -fx-font-size: 12px;
-  -fx-text-fill: -fx-dark-text-color;
-}
-
-.menu:hover > .label {
-  -fx-text-fill: -fx-light-text-color;
+.main-menu-button:hover {
+  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.4), 5, 0.8, 0, 0);
 }
 
 .username-button {
@@ -234,7 +290,6 @@
 }
 
 .username-button > .label {
-  -fx-padding: 0;
   -fx-text-fill: -fx-dark-text-color;
 }
 
@@ -242,24 +297,25 @@
   -fx-text-fill: -fx-light-text-color;
 }
 
-.username-button > .arrow-button {
-  -fx-padding: 0;
+.context-menu {
+  -fx-background-color: rgba(0, 0, 0, .8);
+  -fx-text-fill: -secondary-text-color;
+  -fx-min-width: 120px;
+  -fx-border-color: -fx-box-border;
 }
 
-.username-button > .arrow-button > .arrow {
-  -fx-padding: 0;
-}
 
 /***************** Navigation *****************/
 
 .main-navigation > .toggle-button {
   -fx-font-size: 20px;
-  -fx-text-fill: -fx-mid-text-color;
+  -fx-text-fill: -fx-dark-text-color;
   -fx-background-color: transparent;
 }
 
-.main-navigation > .toggle-button:focused {
-  -fx-border-width: 0;
+.main-navigation > .toggle-button:hover {
+  -fx-text-fill: -fx-mid-text-color;
+  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.2), 5, 0.8, 0, 0);
 }
 
 .main-navigation > .toggle-button:selected {
@@ -270,6 +326,12 @@
 .main-navigation > .toggle-button > .text {
 }
 
+
+/***************** Tabs *****************/
+
+.tab-header-background {
+  -fx-background-color: transparent;
+}
 
 /***************** Window decoration *****************/
 
@@ -325,8 +387,6 @@
   -fx-font-size: 16px;
 }
 
-
-
 /***************** Chat (WebView, therefore default CSS). Java FX  variables can't be used *****************/
 
 html, body {
@@ -358,6 +418,14 @@ a {
   font-size: 12px;
   /* Same height as avatar */
   line-height: 20px;
+}
+
+.chat-message.message .username::after {
+  content: ':';
+}
+
+.chat-message.action {
+  font-style: italic;
 }
 
 .chat-message:nth-of-type(odd) {

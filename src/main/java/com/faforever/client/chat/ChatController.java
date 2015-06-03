@@ -63,7 +63,7 @@ public class ChatController implements
   @Override
   public void onMessage(String channelName, ChatMessage chatMessage) {
     Platform.runLater(() -> {
-      addAndGetChannel(channelName).onChatItem(chatMessage);
+      addAndGetChannel(channelName).onChatMessage(chatMessage);
     });
   }
 
@@ -115,7 +115,7 @@ public class ChatController implements
   @Override
   public void onPrivateMessage(String sender, ChatMessage chatMessage) {
     JavaFxUtil.assertBackgroundThread();
-    Platform.runLater(() -> addAndGetChannel(sender).onChatItem(chatMessage));
+    Platform.runLater(() -> addAndGetChannel(sender).onChatMessage(chatMessage));
   }
 
   public Node getRoot() {

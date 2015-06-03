@@ -9,15 +9,31 @@
 
 <VBox fx:id="mainRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="200.0" minWidth="450.0" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
   <children>
-      <HBox>
+      <HBox fx:id="mainNavigation" alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="main-navigation" VBox.vgrow="NEVER">
          <children>
-            <MenuBar>
-              <menus>
-                <Menu mnemonicParsing="false" text="%menu.application" />
-                <Menu mnemonicParsing="false" text="%menu.settings" />
-                <Menu mnemonicParsing="false" text="%menu.help" />
-              </menus>
-            </MenuBar>
+            <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
+              <items>
+                  <MenuItem mnemonicParsing="false" text="%menu.support" />
+                  <MenuItem mnemonicParsing="false" text="%menu.settings" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="%menu.feedback" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                <MenuItem mnemonicParsing="false" text="%menu.logOut" />
+                <MenuItem mnemonicParsing="false" text="%menu.exit" />
+              </items>
+               <HBox.margin>
+                  <Insets left="20.0" right="10.0" />
+               </HBox.margin>
+            </MenuButton>
+            <ToggleButton fx:id="newsButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" selected="true" text="%main.news">
+               <toggleGroup>
+                  <ToggleGroup fx:id="mainNavigationToggleGroup" />
+               </toggleGroup>
+            </ToggleButton>
+            <ToggleButton fx:id="chatButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.chat" toggleGroup="$mainNavigationToggleGroup" />
+            <ToggleButton fx:id="gamesButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.games" toggleGroup="$mainNavigationToggleGroup" />
+            <ToggleButton fx:id="vaultButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.vault" toggleGroup="$mainNavigationToggleGroup" />
+            <ToggleButton fx:id="leaderboardButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.leaderboard" toggleGroup="$mainNavigationToggleGroup" />
             <Pane HBox.hgrow="ALWAYS" />
             <MenuButton fx:id="usernameButton" focusTraversable="false" mnemonicParsing="false" styleClass="username-button" text="Username">
               <items>
@@ -29,20 +45,12 @@
                </HBox.margin>
             </MenuButton>
          </children>
-      </HBox>
-      <HBox alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="main-navigation" VBox.vgrow="NEVER">
-         <children>
-            <ToggleButton fx:id="newsButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" selected="true" text="%main.news">
-               <toggleGroup>
-                  <ToggleGroup fx:id="mainNavigationToggleGroup" />
-               </toggleGroup>
-            </ToggleButton>
-            <ToggleButton fx:id="chatButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.chat" toggleGroup="$mainNavigationToggleGroup" />
-            <ToggleButton fx:id="gamesButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.games" toggleGroup="$mainNavigationToggleGroup" />
-            <ToggleButton fx:id="vaultButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.vault" toggleGroup="$mainNavigationToggleGroup" />
-            <ToggleButton fx:id="leaderboardButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.leaderboard" toggleGroup="$mainNavigationToggleGroup" />
-            <Pane HBox.hgrow="ALWAYS" />
-         </children>
+         <VBox.margin>
+            <Insets />
+         </VBox.margin>
+         <padding>
+            <Insets bottom="12.0" top="12.0" />
+         </padding>
       </HBox>
       <AnchorPane fx:id="contentPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS" />
       <HBox styleClass="status-bar">

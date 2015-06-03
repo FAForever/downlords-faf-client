@@ -268,7 +268,7 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   }
 
   @Override
-  public void sendAction(String target, String action, Callback<String> callback) {
+  public void sendActionInBackground(String target, String action, Callback<String> callback) {
     executeInBackground(new Task<String>() {
       @Override
       protected String call() throws Exception {

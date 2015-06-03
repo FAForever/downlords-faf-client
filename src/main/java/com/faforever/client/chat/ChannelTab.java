@@ -56,7 +56,7 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
   /**
    * Keeps track of which ChatUserControl in which pane belongs to which user.
    */
-  private Map<String, Map<Pane, ChatUserControl>> userToChatUserControls;
+  private final Map<String, Map<Pane, ChatUserControl>> userToChatUserControls;
 
   public ChannelTab(String channelName) {
     super(channelName, "channel_tab.fxml");

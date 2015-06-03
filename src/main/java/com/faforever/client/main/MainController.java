@@ -44,6 +44,12 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnLobbyDisconnectedListener {
 
   @FXML
+  Pane mainNavigationBackground;
+
+  @FXML
+  Pane mainNavigation;
+
+  @FXML
   Pane contentPane;
 
   @FXML
@@ -133,7 +139,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     gamesController.setUp(stage);
 
     usernameButton.setText(userService.getUsername());
-
 
     checkUdpPort();
     checkForFafUpdate();

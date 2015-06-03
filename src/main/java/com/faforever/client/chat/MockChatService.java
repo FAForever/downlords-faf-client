@@ -20,7 +20,7 @@ import java.util.TimerTask;
 public class MockChatService implements ChatService {
 
   private static final long CONNECTION_DELAY = 5000;
-  public static final int CHAT_MESSAGE_INTERVAL = 5000;
+  public static final int CHAT_MESSAGE_INTERVAL = 3000;
   private final Timer timer;
 
   @Autowired
@@ -111,13 +111,13 @@ public class MockChatService implements ChatService {
 
   @Override
   public ObservableSet<ChatUser> getChatUsersForChannel(String channelName) {
-    return FXCollections.emptyObservableSet();
+    channelUserListListeners.putIfAbsent(channelName, FXCollections.observableSet());
+    return channelUserListListeners.get(channelName);
   }
 
   @Override
   public void addChannelUserListListener(String channelName, SetChangeListener<ChatUser> listener) {
-    channelUserListListeners.putIfAbsent(channelName, FXCollections.observableSet());
-    channelUserListListeners.get(channelName).addListener(listener);
+    getChatUsersForChannel(channelName).addListener(listener);
   }
 
   @Override
@@ -126,8 +126,8 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public void sendAction(String target, String action, Callback<String> callback) {
-
+  public void sendActionInBackground(String target, String action, Callback<String> callback) {
+    sendMessageInBackground(target, action, callback);
   }
 
   @Override
@@ -143,8 +143,10 @@ public class MockChatService implements ChatService {
           onChannelJoinedListener.onUserJoinedChannel(channelName, mockUser);
         }
 
-        channelUserListListeners.get(channelName).add(chatUser);
-        channelUserListListeners.get(channelName).add(mockUser);
+        ObservableSet<ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
+
+        chatUsersForChannel.add(chatUser);
+        chatUsersForChannel.add(mockUser);
 
         return null;
       }
@@ -154,7 +156,13 @@ public class MockChatService implements ChatService {
       @Override
       public void run() {
         for (OnMessageListener onMessageListener : onMessageListeners) {
-          ChatMessage chatMessage = new ChatMessage(Instant.now(), "Mock User", "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam");
+          ChatMessage chatMessage = new ChatMessage(Instant.now(), "Mock User",
+              String.format(
+                  "%1$s Lorem ipsum dolor sit amet, consetetur %1$s sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam %1$s",
+                  userService.getUsername()
+              )
+          );
+
           onMessageListener.onMessage(channelName, chatMessage);
         }
       }

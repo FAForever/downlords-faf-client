@@ -36,7 +36,7 @@ public interface ChatService {
 
   void leaveChannel(String channelName);
 
-  void sendAction(String target, String action, Callback<String> callback);
+  void sendActionInBackground(String target, String action, Callback<String> callback);
 
   void joinChannel(String channelName);
 }

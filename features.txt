@@ -1,0 +1,16 @@
+* Reconnecting after connection failure for both, IRC and FAF server
+* Downloading map previews for unknown maps
+* Fast startup
+* Responsiveness
+* Nice looking UI
+* Good usability
+* Different sounds for different notifications
+* IPv6 compatibility
+* Higher code quality with focus on maintainability; more readable, better documented, less duplications, better structured, less confusion
+* Decent logging (log rotation, decent log levels)
+* Map vault is MUCH more user friendly
+* Users in chat are grouped into categories instead of magically sorted
+* Uninstalling maps
+* Paste images from clipboard
+* Link previews
+* List running games with option to watch them (but hide them if desired)
