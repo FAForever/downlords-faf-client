@@ -1,24 +1,26 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.util.Callback;
-import javafx.collections.ObservableSet;
-import javafx.collections.SetChangeListener;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
 
 public interface ChatService {
 
-  void addOnMessageListener(OnMessageListener listener);
+  void addOnMessageListener(OnChatMessageListener listener);
 
-  void addOnConnectedListener(OnConnectedListener listener);
+  void addOnChatConnectedListener(OnChatConnectedListener listener);
 
   void addOnUserListListener(OnChatUserListListener listener);
 
-  void addOnDisconnectedListener(OnChatDisconnectedListener listener);
+  void addOnChatDisconnectedListener(OnChatDisconnectedListener listener);
 
-  void addOnPrivateMessageListener(OnPrivateMessageListener listener);
+  void addOnPrivateChatMessageListener(OnPrivateChatMessageListener listener);
 
-  void addOnUserJoinedChannelListener(OnUserJoinedChannelListener listener);
+  void addOnChatUserJoinedChannelListener(OnChatUserJoinedChannelListener listener);
 
-  void addOnChatUserLeftListener(OnChatUserLeftListener listener);
+  void addOnChatUserLeftChannelListener(OnChatUserLeftChannelListener listener);
+
+  void addOnChatUserQuitListener(OnChatUserQuitListener listener);
 
   void connect();
 
@@ -30,9 +32,9 @@ public interface ChatService {
    * <strong>IMPORTANT:</strong> All operations on the returned list must be synchronized, even iteration. Use the map as monitor.
    * </p>
    */
-  ObservableSet<ChatUser> getChatUsersForChannel(String channelName);
+  ObservableMap<String, ChatUser> getChatUsersForChannel(String channelName);
 
-  void addChannelUserListListener(String channelName, SetChangeListener<ChatUser> listener);
+  void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener);
 
   void leaveChannel(String channelName);
 

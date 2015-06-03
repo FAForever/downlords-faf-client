@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -228,7 +227,14 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
   @FXML
   void onJoinGameButtonClicked(ActionEvent event) {
     GameInfoBean gameInfoBean = gamesTable.getSelectionModel().getSelectedItem();
-    gameService.joinGame(gameInfoBean, new Callback<Void>() {
+    if (gameInfoBean == null) {
+      // TODO better to disable the button
+      return;
+    }
+
+    // FIXME implement
+    String password = null;
+    gameService.joinGame(gameInfoBean, password, new Callback<Void>() {
       @Override
       public void success(Void result) {
         // cool.

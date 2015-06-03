@@ -48,9 +48,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public void joinGame(GameInfoBean gameInfoBean, Callback<Void> callback) {
-    // FIXME implement
-    String password = "test";
+  public void joinGame(GameInfoBean gameInfoBean, String password, Callback<Void> callback) {
     serverAccessor.requestJoinGame(gameInfoBean, password, gameLaunchCallback(callback));
   }
 

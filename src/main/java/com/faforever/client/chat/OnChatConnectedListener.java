@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-public interface OnConnectedListener {
+public interface OnChatConnectedListener {
 
   void onConnected();
 }

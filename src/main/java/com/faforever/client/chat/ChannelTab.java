@@ -7,6 +7,8 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
@@ -73,9 +75,9 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
 
     chatService.addChannelUserListListener(channelName, change -> {
       if (change.wasAdded()) {
-        onUserJoinedChannel(change.getElementAdded());
+        onUserJoinedChannel(change.getValueAdded());
       } else if (change.wasRemoved()) {
-        onUserLeft(change.getElementRemoved().getUsername());
+        onUserLeft(change.getValueRemoved().getUsername());
       }
     });
 
@@ -83,7 +85,7 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
     ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        chatService.getChatUsersForChannel(channelName).forEach(ChannelTab.this::onUserJoinedChannel);
+        chatService.getChatUsersForChannel(channelName).values().forEach(ChannelTab.this::onUserJoinedChannel);
         return null;
       }
     });
@@ -104,7 +106,13 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
     userSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       filterChatUserControlsBySearchString();
     });
-    onClosedProperty().addListener(observable -> chatService.leaveChannel(channelName));
+
+    setOnCloseRequest(new EventHandler<Event>() {
+      @Override
+      public void handle(Event event) {
+        chatService.leaveChannel(channelName);
+      }
+    });
   }
 
   private void onUserJoinedChannel(ChatUser chatUser) {

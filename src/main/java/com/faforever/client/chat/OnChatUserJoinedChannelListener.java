@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-public interface OnUserJoinedChannelListener {
+public interface OnChatUserJoinedChannelListener {
 
   void onUserJoinedChannel(String channelKey, ChatUser chatUser);
 }

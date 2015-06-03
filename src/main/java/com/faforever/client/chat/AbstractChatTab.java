@@ -304,6 +304,9 @@ public abstract class AbstractChatTab extends Tab {
 
   private void scrollToBottomIfDesired() {
     // TODO add the "if desired" part
+    if(getMessagesWebView().getParent() == null) {
+      return;
+    }
     engine.executeScript("window.scrollTo(0, document.body.scrollHeight);");
   }
 
