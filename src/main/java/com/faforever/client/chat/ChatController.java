@@ -14,10 +14,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ChatController implements
-    OnMessageListener,
+    OnChatMessageListener,
     OnChatDisconnectedListener,
-    OnPrivateMessageListener,
-    OnUserJoinedChannelListener {
+    OnPrivateChatMessageListener,
+    OnChatUserJoinedChannelListener, OnChatUserLeftChannelListener {
 
   @Autowired
   ChatService chatService;
@@ -46,9 +46,10 @@ public class ChatController implements
   @PostConstruct
   void init() {
     chatService.addOnMessageListener(this);
-    chatService.addOnDisconnectedListener(this);
-    chatService.addOnPrivateMessageListener(this);
-    chatService.addOnUserJoinedChannelListener(this);
+    chatService.addOnChatDisconnectedListener(this);
+    chatService.addOnPrivateChatMessageListener(this);
+    chatService.addOnChatUserJoinedChannelListener(this);
+    chatService.addOnChatUserLeftChannelListener(this);
   }
 
   public void setUp() {
@@ -124,5 +125,12 @@ public class ChatController implements
 
   public void openPrivateMessageTabForUser(String username) {
     addAndSelectPrivateMessageTab(username);
+  }
+
+  @Override
+  public void onChatUserLeftChannel(String username, String channelName) {
+    if (userService.getUsername().equals(username)) {
+      chatsTabPane.getTabs().remove(nameToChatTab.get(channelName));
+    }
   }
 }

@@ -4,9 +4,8 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.google.common.collect.ImmutableSortedSet;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
-import javafx.collections.ObservableSet;
-import javafx.collections.SetChangeListener;
 import javafx.concurrent.Task;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.pircbotx.Configuration;
@@ -19,6 +18,7 @@ import org.pircbotx.hooks.events.ConnectEvent;
 import org.pircbotx.hooks.events.DisconnectEvent;
 import org.pircbotx.hooks.events.JoinEvent;
 import org.pircbotx.hooks.events.MessageEvent;
+import org.pircbotx.hooks.events.PartEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
 import org.pircbotx.hooks.events.QuitEvent;
 import org.pircbotx.hooks.events.UserListEvent;
@@ -35,25 +35,30 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
-public class PircBotXChatService implements ChatService, Listener, OnConnectedListener, OnChatUserListListener, OnUserJoinedChannelListener, OnChatUserLeftListener, OnChatDisconnectedListener {
+public class PircBotXChatService implements ChatService, Listener, OnChatConnectedListener,
+    OnChatUserListListener, OnChatUserJoinedChannelListener, OnChatUserQuitListener, OnChatDisconnectedListener,
+    OnChatUserLeftChannelListener {
 
   interface ChatEventListener<T> {
 
     void onEvent(T event);
   }
+
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int RECONNECT_DELAY = 3000;
   private static final int SOCKET_TIMEOUT = 10000;
   private final Map<Class<? extends Event>, ArrayList<ChatEventListener>> eventListeners;
-  private final ObservableMap<String, ObservableSet<ChatUser>> chatUserLists;
+
+  /**
+   * Map channel names to a map containing chat users, indexed by their login name.
+   */
+  private final ObservableMap<String, ObservableMap<String, ChatUser>> chatUserLists;
 
   @Autowired
   private Environment environment;
@@ -70,11 +75,11 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   }
 
   @Override
-  public void onChatUserList(String channelName, Collection<ChatUser> users) {
+  public void onChatUserList(String channelName, Map<String, ChatUser> users) {
     synchronized (chatUserLists) {
-      Set<ChatUser> chatUsers = getChatUsersForChannel(channelName);
+      ObservableMap<String, ChatUser> chatUsers = getChatUsersForChannel(channelName);
       synchronized (chatUsers) {
-        chatUsers.addAll(users);
+        chatUsers.putAll(users);
       }
     }
   }
@@ -82,17 +87,22 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   @Override
   public void onUserJoinedChannel(String channelName, ChatUser chatUser) {
     synchronized (chatUserLists) {
-      Set<ChatUser> chatUsers = getChatUsersForChannel(channelName);
+      ObservableMap<String, ChatUser> chatUsers = getChatUsersForChannel(channelName);
       synchronized (chatUsers) {
-        chatUsers.add(chatUser);
+        chatUsers.put(chatUser.getUsername(), chatUser);
       }
     }
   }
 
   @Override
-  public void onUserLeft(String username) {
+  public void onChatUserLeftChannel(String username, String channelName) {
+    getChatUsersForChannel(channelName).remove(username);
+  }
+
+  @Override
+  public void onChatUserQuit(String username) {
     synchronized (chatUserLists) {
-      for (ObservableSet<ChatUser> chatUsers : chatUserLists.values()) {
+      for (ObservableMap<String, ChatUser> chatUsers : chatUserLists.values()) {
         chatUsers.remove(username);
       }
     }
@@ -101,9 +111,9 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   @PostConstruct
   void postConstruct() {
     addOnUserListListener(this);
-    addOnUserJoinedChannelListener(this);
-    addOnChatUserLeftListener(this);
-    addOnDisconnectedListener(this);
+    addOnChatUserJoinedChannelListener(this);
+    addOnChatUserQuitListener(this);
+    addOnChatDisconnectedListener(this);
   }
 
   private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
@@ -113,11 +123,11 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
     eventListeners.get(eventClass).add(listener);
   }
 
-  private Collection<ChatUser> chatUsers(ImmutableSortedSet<User> users) {
-    Collection<ChatUser> chatUsers = new ArrayList<>();
+  private Map<String, ChatUser> chatUsers(ImmutableSortedSet<User> users) {
+    Map<String, ChatUser> chatUsers = new HashMap<>();
     for (User user : users) {
-      ChatUser chatUser = new ChatUser(user.getNick(), user.isIrcop());
-      chatUsers.add(chatUser);
+      ChatUser chatUser = new ChatUser(user.getLogin(), user.isIrcop());
+      chatUsers.put(chatUser.getUsername(), chatUser);
     }
     return chatUsers;
   }
@@ -133,12 +143,12 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   }
 
   @Override
-  public void addOnMessageListener(final OnMessageListener listener) {
+  public void addOnMessageListener(final OnChatMessageListener listener) {
     addEventListener(MessageEvent.class, event -> {
       listener.onMessage(event.getChannel().getName(),
           new ChatMessage(
               Instant.ofEpochMilli(event.getTimestamp()),
-              event.getUser().getNick(),
+              event.getUser().getLogin(),
               event.getMessage()
           )
       );
@@ -146,7 +156,7 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   }
 
   @Override
-  public void addOnConnectedListener(final OnConnectedListener listener) {
+  public void addOnChatConnectedListener(final OnChatConnectedListener listener) {
     addEventListener(ConnectEvent.class,
         event -> listener.onConnected());
   }
@@ -158,16 +168,16 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   }
 
   @Override
-  public void addOnDisconnectedListener(final OnChatDisconnectedListener listener) {
+  public void addOnChatDisconnectedListener(final OnChatDisconnectedListener listener) {
     addEventListener(DisconnectEvent.class,
         event -> listener.onDisconnected(extractDisconnectException(event)));
   }
 
   @Override
-  public void addOnPrivateMessageListener(final OnPrivateMessageListener listener) {
+  public void addOnPrivateChatMessageListener(final OnPrivateChatMessageListener listener) {
     addEventListener(PrivateMessageEvent.class,
         event -> listener.onPrivateMessage(
-            event.getUser().getNick(),
+            event.getUser().getLogin(),
             new ChatMessage(
                 Instant.ofEpochMilli(event.getTimestamp()),
                 event.getUser().getLogin(),
@@ -178,18 +188,26 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   }
 
   @Override
-  public void addOnUserJoinedChannelListener(final OnUserJoinedChannelListener listener) {
+  public void addOnChatUserJoinedChannelListener(final OnChatUserJoinedChannelListener listener) {
     addEventListener(JoinEvent.class,
         event -> listener.onUserJoinedChannel(
             event.getChannel().getName(),
-            new ChatUser(event.getUser().getNick())
+            new ChatUser(event.getUser().getLogin())
         ));
   }
 
   @Override
-  public void addOnChatUserLeftListener(final OnChatUserLeftListener listener) {
+  public void addOnChatUserLeftChannelListener(OnChatUserLeftChannelListener listener) {
+    addEventListener(PartEvent.class, event -> {
+      listener.onChatUserLeftChannel(event.getUser().getLogin(), event.getChannel().getName());
+    });
+  }
+
+
+  @Override
+  public void addOnChatUserQuitListener(final OnChatUserQuitListener listener) {
     addEventListener(QuitEvent.class,
-        event -> listener.onUserLeft(
+        event -> listener.onChatUserQuit(
             event.getUser().getLogin()
         ));
   }
@@ -232,7 +250,7 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
         .setSocketTimeout(SOCKET_TIMEOUT)
         .buildConfiguration();
 
-    addOnConnectedListener(this);
+    addOnChatConnectedListener(this);
 
     pircBotX = new PircBotX(configuration);
     initialized = true;
@@ -250,21 +268,23 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   }
 
   @Override
-  public ObservableSet<ChatUser> getChatUsersForChannel(String channelName) {
-    if (!chatUserLists.containsKey(channelName)) {
-      chatUserLists.put(channelName, FXCollections.observableSet(new HashSet<>()));
+  public ObservableMap<String, ChatUser> getChatUsersForChannel(String channelName) {
+    synchronized (chatUserLists) {
+      if (!chatUserLists.containsKey(channelName)) {
+        chatUserLists.put(channelName, FXCollections.observableHashMap());
+      }
+      return chatUserLists.get(channelName);
     }
-    return chatUserLists.get(channelName);
   }
 
   @Override
-  public void addChannelUserListListener(String channelName, SetChangeListener<ChatUser> listener) {
+  public void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener) {
     getChatUsersForChannel(channelName).addListener(listener);
   }
 
   @Override
   public void leaveChannel(String channelName) {
-    pircBotX.sendIRC().action(channelName, "/part");
+    pircBotX.getUserChannelDao().getChannel(channelName).send().part();
   }
 
   @Override
@@ -312,7 +332,7 @@ public class PircBotXChatService implements ChatService, Listener, OnConnectedLi
   @Override
   public void onDisconnected(Exception e) {
     synchronized (chatUserLists) {
-      chatUserLists.values().forEach(ObservableSet<ChatUser>::clear);
+      chatUserLists.values().forEach(ObservableMap::clear);
       chatUserLists.clear();
     }
   }

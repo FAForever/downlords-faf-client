@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-public interface OnPrivateMessageListener {
+public interface OnPrivateChatMessageListener {
 
   void onPrivateMessage(String sender, ChatMessage chatMessage);
 }

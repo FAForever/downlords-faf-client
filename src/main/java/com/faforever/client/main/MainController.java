@@ -236,10 +236,10 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   void onNavigationButton(ActionEvent event) {
     ToggleButton button = (ToggleButton) event.getSource();
     preferencesService.getPreferences().getMainWindow().setLastView(button.getId());
+    preferencesService.storeInBackground();
 
     if (!button.isSelected()) {
       button.setSelected(true);
-      return;
     }
 
     if (button == newsButton) {
