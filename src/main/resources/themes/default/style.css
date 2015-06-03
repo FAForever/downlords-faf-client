@@ -139,7 +139,7 @@
   -fx-box-border: ladder(
       -fx-color,
       derive(-fx-color,20%) 20%,
-      derive(-fx-color,40%) 30%,
+      derive(-fx-color,40%) 30%
   );
 }
 
