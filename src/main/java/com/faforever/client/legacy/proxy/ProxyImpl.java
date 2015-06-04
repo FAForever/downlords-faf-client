@@ -82,10 +82,10 @@ public class ProxyImpl implements Proxy {
    * old and good connections. the peer that needs to initiate the udp hole punch gets the new IP:port via this third
    * peer. this does not work in a 1v1 where the peer that does not require hole punching gets disconnected though (that
    * special case requires another third party: the server and an additional mechanism). the same failure happens in a
-   * XvX where the disconnected peer is the only one that did not require hole punching the format of this domain is
-   * the same as for the reconnect domain and the tag is the same as it would be in the reconnect domain. on the
-   * second leg, when the third party forwards this reconnect-by-intermediary domain it includes the originator IP:port
-   * of this domain in its reconnect-by-intermediary-2 domain
+   * XvX where the disconnected peer is the only one that did not require hole punching the format of this domain is the
+   * same as for the reconnect domain and the tag is the same as it would be in the reconnect domain. on the second leg,
+   * when the third party forwards this reconnect-by-intermediary domain it includes the originator IP:port of this
+   * domain in its reconnect-by-intermediary-2 domain
    */
   private static final byte MESSAGE_RECONNECT_BY_INTERMEDIARY = 0x11;
 
@@ -166,7 +166,9 @@ public class ProxyImpl implements Proxy {
           // TODO improve log domain
           logger.info("Reconnecting to proxy due to no data");
 
-          proxySocket.close();
+          if (proxySocket != null) {
+            proxySocket.close();
+          }
           connectToFafProxy();
 
           lastProxyDataTimestamp = System.currentTimeMillis();
@@ -334,7 +336,7 @@ public class ProxyImpl implements Proxy {
 
     logger.debug("Binding socket '{}' for uid '{}'", inetSocketAddress, uid);
 
-    if (!proxySocket.isConnected()) {
+    if (proxySocket == null || !proxySocket.isConnected()) {
       connectToFafProxy();
     }
 
