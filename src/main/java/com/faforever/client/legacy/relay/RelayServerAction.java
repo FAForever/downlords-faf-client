@@ -1,9 +1,5 @@
 package com.faforever.client.legacy.relay;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,8 +19,6 @@ public enum RelayServerAction {
   CONNECTED_TO_HOST("connectedToHost"),
   PONG("pong");
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   private static final Map<String, RelayServerAction> fromString;
   static {
     fromString = new HashMap<>();
@@ -36,7 +30,7 @@ public enum RelayServerAction {
   public static RelayServerAction fromString(String string) {
     RelayServerAction action = fromString.get(string);
     if (action == null) {
-      throw new IllegalArgumentException("Unknown relay server action: " + action);
+      throw new IllegalArgumentException("Unknown relay server action: " + string);
     }
     return action;
   }
