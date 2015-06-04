@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.map.MapService;
+import com.faforever.client.preferences.PreferencesService;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -14,8 +15,12 @@ import org.controlsfx.control.RangeSlider;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
+import java.util.Objects;
 
 public class CreateGameDialogController {
+
+  @Autowired
+  PreferencesService preferenceService;
 
   public interface OnCreateGameListener {
 
@@ -110,12 +115,28 @@ public class CreateGameDialogController {
   public void setMods(Collection<ModInfoBean> knownMods) {
     modComboBox.getItems().setAll(knownMods);
     modComboBox.setCellFactory(param -> new ModListCell());
+
+    String lastGameMod = preferenceService.getPreferences().getLastGameMod();
+    for (ModInfoBean mod : knownMods) {
+      if (Objects.equals(mod.getName(), lastGameMod)) {
+        modComboBox.getSelectionModel().select(mod);
+        break;
+      }
+    }
   }
 
 
   public void setMaps(ObservableList<MapInfoBean> maps) {
     mapComboBox.getItems().setAll(maps);
     mapComboBox.setCellFactory(param -> new MapListCell());
+
+    String lastMap = preferenceService.getPreferences().getLastMap();
+    for (MapInfoBean map : maps) {
+      if (Objects.equals(map.getName(), lastMap)) {
+        mapComboBox.getSelectionModel().select(map);
+        break;
+      }
+    }
   }
 
   public void onCreateGameButtonClicked(ActionEvent actionEvent) {
@@ -127,7 +148,6 @@ public class CreateGameDialogController {
             mapComboBox.getValue().getName()
         )
     );
-
   }
 
   public void setOnGameCreateListener(OnCreateGameListener listener) {

@@ -26,6 +26,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -226,6 +228,10 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
 
   @FXML
   void onJoinGameButtonClicked(ActionEvent event) {
+    joinSelectedGame();
+  }
+
+  private void joinSelectedGame() {
     GameInfoBean gameInfoBean = gamesTable.getSelectionModel().getSelectedItem();
     if (gameInfoBean == null) {
       // TODO better to disable the button
@@ -287,5 +293,11 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
 
   public Node getRoot() {
     return gamesRoot;
+  }
+
+  public void onTableClicked(MouseEvent event) {
+    if(event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+      joinSelectedGame();
+    }
   }
 }

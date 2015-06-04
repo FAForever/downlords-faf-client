@@ -8,6 +8,7 @@ public class Preferences {
   private String theme;
   private String lastGameMod;
   private ChatPrefs chat;
+  private String lastMap;
 
   public Preferences() {
     login = new LoginPrefs();
@@ -15,6 +16,7 @@ public class Preferences {
     mainWindow = new WindowPrefs(800, 600);
     theme = "default";
     chat = new ChatPrefs();
+    lastGameMod = "faf";
   }
 
   public LoginPrefs getLogin() {
@@ -39,5 +41,9 @@ public class Preferences {
 
   public ChatPrefs getChat() {
     return chat;
+  }
+
+  public String getLastMap() {
+    return lastMap;
   }
 }
