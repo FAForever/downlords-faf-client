@@ -247,7 +247,7 @@ public class ServerAccessorImpl implements ServerAccessor,
   }
 
   @Override
-  public void addOnGameInfoMessageListener(OnGameInfoListener listener) {
+  public void addOnGameInfoListener(OnGameInfoListener listener) {
     onGameInfoListeners.add(listener);
   }
 

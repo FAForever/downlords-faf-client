@@ -39,7 +39,7 @@ public class GameServiceImpl implements GameService {
 
   @Override
   public void addOnGameInfoListener(OnGameInfoListener listener) {
-    serverAccessor.addOnGameInfoMessageListener(listener);
+    serverAccessor.addOnGameInfoListener(listener);
   }
 
   @Override

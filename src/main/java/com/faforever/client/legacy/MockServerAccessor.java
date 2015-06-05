@@ -2,9 +2,7 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
-import com.faforever.client.legacy.domain.GameLaunchInfo;
-import com.faforever.client.legacy.domain.ModInfo;
-import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.legacy.domain.*;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
@@ -20,11 +18,14 @@ public class MockServerAccessor implements ServerAccessor {
   private Collection<OnModInfoListener> onModInfoMessageListeners;
   private OnPlayerInfoListener onPlayerInfoListener;
 
+  private Collection<OnGameInfoListener> onGameInfoListeners;
+
   @Autowired
   private UserService userService;
 
   public MockServerAccessor() {
     onModInfoMessageListeners = new ArrayList<>();
+    onGameInfoListeners = new ArrayList<>();
   }
 
   @Override
@@ -50,6 +51,16 @@ public class MockServerAccessor implements ServerAccessor {
           onPlayerInfoListener.onPlayerInfo(playerInfo);
         }
 
+        for (OnGameInfoListener onGameInfoListener : onGameInfoListeners) {
+          GameInfo gameInfo = new GameInfo();
+          gameInfo.access = "public";
+          gameInfo.featuredMod = "faf";
+          gameInfo.mapname = "foo";
+          gameInfo.maxPlayers = 6;
+          gameInfo.host = "Mock user";
+          gameInfo.state = GameState.OPEN;
+          onGameInfoListener.onGameInfo(gameInfo);
+        }
         return null;
       }
     }, callback);
@@ -61,8 +72,8 @@ public class MockServerAccessor implements ServerAccessor {
   }
 
   @Override
-  public void addOnGameInfoMessageListener(OnGameInfoListener listener) {
-
+  public void addOnGameInfoListener(OnGameInfoListener listener) {
+    onGameInfoListeners.add(listener);
   }
 
   @Override

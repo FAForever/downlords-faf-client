@@ -20,7 +20,7 @@ public interface ServerAccessor {
 
   void addOnModInfoMessageListener(OnModInfoListener listener);
 
-  void addOnGameInfoMessageListener(OnGameInfoListener listener);
+  void addOnGameInfoListener(OnGameInfoListener listener);
 
   void setOnPlayerInfoMessageListener(OnPlayerInfoListener listener);
 

@@ -19,7 +19,7 @@
 
 <VBox fx:id="gamesRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GamesController">
    <children>
-    <HBox alignment="BASELINE_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
+    <HBox alignment="BASELINE_LEFT" maxWidth="-Infinity" spacing="10.0">
          <children>
             <Button fx:id="createGameButton" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" text="%games.create" />
             <CheckBox mnemonicParsing="false" onAction="#onShowPrivateGames" selected="true" text="%games.showPrivateGames" />
@@ -30,7 +30,7 @@
     </HBox>
       <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
          <children>
-            <TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
+            <TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" onMouseClicked="#onTableClicked">
                <columns>
                   <TableColumn fx:id="mapPreviewColumn" maxWidth="42.0" minWidth="42.0" prefWidth="42.0" resizable="false" text="%game.map" />
                   <TableColumn fx:id="gameTitleColumn" maxWidth="1.7976931348623157E308" minWidth="150.0" prefWidth="250.0" text="%game.title" />

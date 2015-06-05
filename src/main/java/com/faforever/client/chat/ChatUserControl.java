@@ -87,7 +87,7 @@ public class ChatUserControl extends HBox {
 
   @FXML
   void onUsernameClicked(MouseEvent mouseEvent) {
-    if (mouseEvent.getButton().equals(MouseButton.PRIMARY) && mouseEvent.getClickCount() == 2) {
+    if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
       onChatUserControlDoubleClickListener.onChatUserControlDoubleClicked(this);
     }
   }
