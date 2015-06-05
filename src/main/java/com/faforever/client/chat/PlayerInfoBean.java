@@ -7,6 +7,7 @@ import java.util.Comparator;
 
 /**
  * Represents a player with username, clan, country, friend/foe flag and so on. Can also be a chat-only user.
+ * This represents the combination of a PlayerInfo (from the FAF server) and a ChatUser (from IRC).
  */
 public class PlayerInfoBean {
 

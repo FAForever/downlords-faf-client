@@ -80,7 +80,7 @@ public class CreateGameDialogController {
       rankingSlider.setHighValue(Double.parseDouble(newValue));
     });
 
-    rankingSlider.setMax(3000);
+    rankingSlider.setMax(2500);
     rankingSlider.setMin(0);
     rankingSlider.setHighValue(1300);
     rankingSlider.setLowValue(800);
