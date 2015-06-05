@@ -4,6 +4,7 @@ import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -169,10 +170,11 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
       if (newValue) {
         createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
       } else {
-        Platform.runLater(() -> {
+        // Re-add Plateform.runLater() as soon as RT-40417 is fixed
+//        Platform.runLater(() -> {
           Map<Pane, ChatUserControl> paneChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
           pane.getChildren().remove(paneChatUserControlMap.get(pane));
-        });
+//        });
       }
     };
   }

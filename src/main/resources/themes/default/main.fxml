@@ -41,7 +41,7 @@
                 <MenuItem mnemonicParsing="false" text="Action 2" />
               </items>
                <HBox.margin>
-                  <Insets right="120.0" />
+                  <Insets />
                </HBox.margin>
             </MenuButton>
          </children>
