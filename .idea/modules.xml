@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/downlords-faf-client.iml" filepath="$PROJECT_DIR$/downlords-faf-client.iml" />
       <module fileurl="file://$PROJECT_DIR$/faflobby.iml" filepath="$PROJECT_DIR$/faflobby.iml" />
     </modules>
   </component>

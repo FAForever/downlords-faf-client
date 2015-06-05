@@ -12,8 +12,8 @@ applicationDefaultJvmArgs = ["-Djava.library.path=../lib"]
 
 idea {
   project {
-    jdkName = '1.8'
-    languageLevel = '1.8'
+    jdkName = JavaVersion.VERSION_1_8
+    languageLevel = JavaVersion.VERSION_1_8
   }
   module {
     downloadJavadoc = false
