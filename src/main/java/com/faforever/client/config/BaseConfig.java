@@ -7,6 +7,9 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameServiceImpl;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.i18n.I18nImpl;
+import com.faforever.client.leaderboard.LeaderboardService;
+import com.faforever.client.leaderboard.LeaderboardServiceImpl;
+import com.faforever.client.leaderboard.MockLeaderboardService;
 import com.faforever.client.legacy.MockServerAccessor;
 import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.legacy.ServerAccessorImpl;
@@ -88,8 +91,9 @@ public class BaseConfig {
   ChatService chatService() {
     if (environment.containsProperty("faf.testing")) {
       return new MockChatService();
-    } else
+    } else {
       return new PircBotXChatService();
+    }
   }
 
   @Bean
@@ -140,6 +144,15 @@ public class BaseConfig {
   @Bean
   ModService modService() {
     return new ModServiceImpl();
+  }
+
+  @Bean
+  LeaderboardService leaderboardService() {
+    if (environment.containsProperty("faf.testing")) {
+      return new MockLeaderboardService();
+    } else {
+      return new LeaderboardServiceImpl();
+    }
   }
 
   @Bean

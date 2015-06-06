@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.*?>
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" />
+<HBox fx:id="leaderboardRoot" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <ToggleButton fx:id="byLadderRatingButton" focusTraversable="false" mnemonicParsing="false" onAction="#onLeaderboardButton" text="\%leaderboard.byLadderRating">
+         <toggleGroup>
+            <ToggleGroup fx:id="leaderboardNavigationToggleGroup" />
+         </toggleGroup></ToggleButton>
+      <ToggleButton fx:id="byMapButton" focusTraversable="false" mnemonicParsing="false" onAction="#onLeaderboardButton" text="\%leaderboard.byMap" toggleGroup="$leaderboardNavigationToggleGroup" />
+      <ToggleButton fx:id="byRankButton" focusTraversable="false" mnemonicParsing="false" onAction="#onLeaderboardButton" text="\%leaderboard.byRank" toggleGroup="$leaderboardNavigationToggleGroup" />
+   </children>
+</HBox>

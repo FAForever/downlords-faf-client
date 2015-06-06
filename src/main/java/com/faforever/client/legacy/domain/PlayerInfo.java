@@ -12,9 +12,9 @@ public class PlayerInfo extends ServerObject {
     public String login;
     public Avatar avatar;
     public String country;
-    public Float ratingMean;
+    public float ratingMean;
     public Integer numberOfGames;
-    public Float ratingDeviation;
+    public float ratingDeviation;
     public Double ladderRatingMean;
     public Map<String, String> league;
     public Double ladderRatingDeviation;
