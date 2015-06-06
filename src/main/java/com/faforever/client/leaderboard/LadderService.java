@@ -2,7 +2,7 @@ package com.faforever.client.leaderboard;
 
 import java.util.List;
 
-public interface LeaderboardService {
+public interface LadderService {
 
   List<LadderInfoBean> getLadderInfo();
 

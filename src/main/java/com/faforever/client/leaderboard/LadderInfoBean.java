@@ -109,4 +109,6 @@ public class LadderInfoBean {
   public void setDivision(String division) {
     this.division.set(division);
   }
+
+
 }

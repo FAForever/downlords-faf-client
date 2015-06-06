@@ -2,7 +2,7 @@ package com.faforever.client.leaderboard;
 
 import java.util.List;
 
-public class LeaderboardServiceImpl implements LeaderboardService {
+public class LadderServiceImpl implements LadderService {
 
 
   @Override

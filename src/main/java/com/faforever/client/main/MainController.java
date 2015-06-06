@@ -5,7 +5,7 @@ import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.LeaderboardController;
+import com.faforever.client.leaderboard.LadderController;
 import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
 import com.faforever.client.legacy.OnLobbyDisconnectedListener;
@@ -95,7 +95,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   VaultController vaultController;
 
   @Autowired
-  LeaderboardController leaderboardController;
+  LadderController ladderController;
 
   @Autowired
   PreferencesService preferencesService;
@@ -251,7 +251,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     } else if (button == vaultButton) {
       setContent(vaultController.getRoot());
     } else if (button == leaderboardButton) {
-      setContent(leaderboardController.getRoot());
+      setContent(ladderController.getRoot());
     }
   }
 

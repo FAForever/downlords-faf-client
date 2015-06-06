@@ -13,6 +13,7 @@ public class CreateGameDialogFactoryImpl implements CreateGameDialogFactory{
 
   @Autowired FxmlLoader fxmlLoader;
 
+
   @Override
   public CreateGameDialogController create() {
     CreateGameDialogController controller = fxmlLoader.loadAndGetController("create_game_dialog.fxml");

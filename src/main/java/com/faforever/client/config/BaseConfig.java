@@ -7,9 +7,9 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameServiceImpl;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.i18n.I18nImpl;
-import com.faforever.client.leaderboard.LeaderboardService;
-import com.faforever.client.leaderboard.LeaderboardServiceImpl;
-import com.faforever.client.leaderboard.MockLeaderboardService;
+import com.faforever.client.leaderboard.LadderService;
+import com.faforever.client.leaderboard.LadderServiceImpl;
+import com.faforever.client.leaderboard.MockLadderService;
 import com.faforever.client.legacy.MockServerAccessor;
 import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.legacy.ServerAccessorImpl;
@@ -147,11 +147,11 @@ public class BaseConfig {
   }
 
   @Bean
-  LeaderboardService leaderboardService() {
+  LadderService leaderboardService() {
     if (environment.containsProperty("faf.testing")) {
-      return new MockLeaderboardService();
+      return new MockLadderService();
     } else {
-      return new LeaderboardServiceImpl();
+      return new LadderServiceImpl();
     }
   }
 

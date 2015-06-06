@@ -18,7 +18,7 @@ import com.faforever.client.fxml.FxmlLoaderImpl;
 import com.faforever.client.game.CreateGameDialogFactory;
 import com.faforever.client.game.CreateGameDialogFactoryImpl;
 import com.faforever.client.game.GamesController;
-import com.faforever.client.leaderboard.LeaderboardController;
+import com.faforever.client.leaderboard.LadderController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
 import com.faforever.client.map.MapService;
@@ -77,8 +77,8 @@ public class UiConfig {
   }
 
   @Bean
-  LeaderboardController leaderboardController() {
-    return loadController("leaderboard.fxml");
+  LadderController leaderboardController() {
+    return loadController("ladder.fxml");
   }
 
   @Bean

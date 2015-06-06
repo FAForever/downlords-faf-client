@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<TabPane fx:id="ladderRoot" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.leaderboard.LadderController">
+  <tabs>
+    <Tab fx:id="ladderByRatingTab" text="By Ladder Rating">
+      <content>
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+               <children>
+                  <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+                     <columns>
+                        <TableColumn fx:id="rankColumn" prefWidth="75.0" text="Rank" />
+                        <TableColumn fx:id="nameColumn" prefWidth="75.0" text="Name" />
+                        <TableColumn fx:id="winLossColumn" prefWidth="75.0" text="Win/Loss Ratio" />
+                        <TableColumn fx:id="gamesPlayedColumn" prefWidth="75.0" text="Games Played" />
+                        <TableColumn fx:id="ratingColumn" prefWidth="75.0" text="Rating" />
+                     </columns>
+                     <VBox.margin>
+                        <Insets left="8.0" right="14.0" />
+                     </VBox.margin>
+                  </TableView>
+                  <Slider fx:id="ratingSlider" blockIncrement="1000.0" majorTickUnit="1000.0" max="10000.0" min="1.0" minorTickCount="0" showTickLabels="true" showTickMarks="true" VBox.vgrow="NEVER">
+                     <VBox.margin>
+                        <Insets top="5.0" />
+                     </VBox.margin>
+                     <padding>
+                        <Insets right="8.0" />
+                     </padding></Slider>
+               </children>
+            </VBox>
+      </content>
+    </Tab>
+    <Tab fx:id="ladderByMapTab" text="By Map">
+      <content>
+            <HBox prefHeight="100.0" prefWidth="200.0" />
+      </content>
+    </Tab>
+      <Tab fx:id="ladderByRankTab" text="By Rank">
+         <content>
+            <Label text="We're debating implementing this.">
+               <font>
+                  <Font size="25.0" />
+               </font>
+            </Label>
+         </content>
+      </Tab>
+  </tabs>
+   <padding>
+      <Insets left="8.0" right="8.0" />
+   </padding>
+</TabPane>
