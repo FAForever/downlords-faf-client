@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
-<VBox fx:id="loginRoot" alignment="TOP_CENTER" prefWidth="400.0" styleClass="login" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.login.LoginController">
+
+<VBox fx:id="loginRoot" alignment="TOP_CENTER" prefWidth="360.0" styleClass="login" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.login.LoginController">
   <children>
     <ImageView fitHeight="160.0" fitWidth="160.0" pickOnBounds="true" preserveRatio="true">
       <image>
         <Image url="@../../images/logo_transparent.png" />
       </image>
       <VBox.margin>
-        <Insets bottom="20.0" top="40.0" />
+        <Insets bottom="70.0" top="80.0" />
       </VBox.margin>
     </ImageView>
     <AnchorPane>
@@ -56,7 +59,7 @@
         </VBox>
       </children>
       <VBox.margin>
-        <Insets bottom="40.0" left="40.0" right="40.0" top="20.0" />
+        <Insets bottom="40.0" left="18.0" right="18.0" top="20.0" />
       </VBox.margin>
     </AnchorPane>
   </children>

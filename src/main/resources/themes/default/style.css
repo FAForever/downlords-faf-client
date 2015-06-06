@@ -25,7 +25,7 @@
    */
   -fx-control-inner-background: derive(-fx-base,10%);
   /* Version of -fx-control-inner-background for alternative rows */
-  -fx-control-inner-background-alt: derive(-fx-control-inner-background,-2%);
+  -fx-control-inner-background-alt: derive(-fx-control-inner-background,2%);
 
   /* One of these colors will be chosen based upon a ladder calculation
    * that uses the brightness of a background color.  Instead of using these
@@ -257,6 +257,58 @@
     -fx-background-radius: 3, 2, 1, 4, 1;
 }
 
+/***************** Slider *****************/
+
+
+/*
+.slider .thumb {
+    -fx-background-color:
+        linear-gradient(to bottom, derive(-fx-text-box-border, -20%), derive(-fx-text-box-border, -30%)),
+        -fx-inner-border,
+        -fx-body-color;
+    -fx-background-insets: 0, 0, 0;
+    *//*
+
+*/
+/*-fx-background-radius: 0.416667em, 0.333333em, 0.25em; *//*
+*/
+/*
+*//*
+
+*/
+/* 5, 4,3 *//*
+*/
+/*
+
+    -fx-background-radius: 0, 0, 0;
+    -fx-padding   dertmines the size of the whole element
+    -fx-padding-right: 10;  never loaded
+    -fx-padding-top: 50; never loaded
+    -fx-padding-bottom: 0; never loaded
+    -fx-effect: dropshadow(two-pass-box , rgba(0, 0, 0, 0.1), 5, 0.0 , 0, 2);
+    -fx-min-width: 100px;
+}
+.slider:focused .thumb {
+    -fx-background-insets: 0, 0, 0; border
+    *//*
+
+*/
+/*-fx-background-radius: 0.416667em, 0.333333em, 0.25em; *//*
+*/
+/*
+*//*
+
+*/
+/* 5, 4,3 *//*
+
+
+    -fx-background-radius: 0, 0, 0;
+}
+*/
+
+
+
+
 /***************** Window *****************/
 
 .decorated-window {
@@ -302,6 +354,16 @@
   -fx-text-fill: -secondary-text-color;
   -fx-min-width: 120px;
   -fx-border-color: -fx-box-border;
+}
+
+
+/***************** Transparent table *****************/
+
+.transparent-background-table {
+  -fx-base: transparent;
+  -fx-background-color: transparent;
+  -fx-background: transparent;
+  -fx-control-inner-background: transparent;
 }
 
 

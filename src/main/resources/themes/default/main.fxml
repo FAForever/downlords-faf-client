@@ -7,7 +7,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox fx:id="mainRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="200.0" minWidth="450.0" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
+<VBox fx:id="mainRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="500.0" minWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
   <children>
       <HBox fx:id="mainNavigation" alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="main-navigation" VBox.vgrow="NEVER">
          <children>
@@ -53,7 +53,7 @@
          </padding>
       </HBox>
       <AnchorPane fx:id="contentPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS" />
-      <HBox styleClass="status-bar">
+      <HBox minHeight="20.0" styleClass="status-bar">
          <children>
             <Label fx:id="natStatusLabel" styleClass="status-bar-label" text="%statusbar.nat" />
             <Pane HBox.hgrow="ALWAYS" />

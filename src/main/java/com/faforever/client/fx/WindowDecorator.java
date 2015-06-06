@@ -142,8 +142,13 @@ public class WindowDecorator {
     AnchorPane.setBottomAnchor(content, 0d);
     AnchorPane.setLeftAnchor(content, 0d);
 
-    windowRoot.minWidthProperty().bind(content.minWidthProperty());
-    windowRoot.minHeightProperty().bind(content.minHeightProperty());
+    if (content.getMinWidth() > 0) {
+      stage.minWidthProperty().bind(content.minWidthProperty());
+    }
+
+    if (content.getMinHeight() > 0) {
+      stage.minHeightProperty().bind(content.minHeightProperty());
+    }
 
     windowRoot.requestLayout();
   }
@@ -284,6 +289,13 @@ public class WindowDecorator {
       newWidth += oldX - newX;
     } else if (resizeDirections.contains(ResizeDirection.EAST)) {
       newWidth = event.getScreenX() - stage.getX();
+    }
+
+    if (newHeight < stage.getMinHeight()) {
+      newHeight = stage.getMinHeight();
+    }
+    if (newWidth < stage.getMinWidth()) {
+      newWidth = stage.getMinWidth();
     }
 
     stage.setHeight(newHeight);

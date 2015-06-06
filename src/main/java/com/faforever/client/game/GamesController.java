@@ -22,6 +22,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.SplitMenuButton;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
@@ -72,9 +73,6 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
   Label gameModeLabel;
 
   @FXML
-  Button joinGameButton;
-
-  @FXML
   TableView<GameInfoBean> gamesTable;
 
   @FXML
@@ -90,7 +88,7 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
   TableColumn<GameInfoBean, String> rankingColumn;
 
   @FXML
-  Button createGameButton;
+  SplitMenuButton createGameButton;
 
   @Autowired
   GameService gameService;

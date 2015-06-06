@@ -92,6 +92,9 @@ public class LadderController {
       @Override
       public String toString(Double value) {
         int thousands = (int) (value / 1000);
+        if (thousands == 0) {
+          return "1";
+        }
         return String.valueOf(thousands * 1000);
       }
 
@@ -107,7 +110,7 @@ public class LadderController {
    * @param minRanking starting at 1
    */
   private void displayPage(Number minRanking) {
-    ratingSlider.setMax(ladderInfo.size());
+    ratingSlider.setMax(Math.max(1, ladderInfo.size()));
 
     int fromIndex = minRanking.intValue() - 1;
     int toIndex = Math.min(fromIndex + ROWS_PER_PAGE, ladderInfo.size());
