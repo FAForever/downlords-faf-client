@@ -2,7 +2,11 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
-import com.faforever.client.legacy.domain.*;
+import com.faforever.client.legacy.domain.GameInfo;
+import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.GameState;
+import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
@@ -12,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 public class MockServerAccessor implements ServerAccessor {
 
@@ -53,12 +58,18 @@ public class MockServerAccessor implements ServerAccessor {
 
         for (OnGameInfoListener onGameInfoListener : onGameInfoListeners) {
           GameInfo gameInfo = new GameInfo();
+          gameInfo.title = "Mock game";
           gameInfo.access = "public";
           gameInfo.featuredMod = "faf";
-          gameInfo.mapname = "foo";
+          gameInfo.mapname = "scmp_015";
+          gameInfo.numPlayers = 3;
           gameInfo.maxPlayers = 6;
           gameInfo.host = "Mock user";
           gameInfo.state = GameState.OPEN;
+          gameInfo.options = new Boolean[0];
+          gameInfo.simMods = Collections.emptyMap();
+          gameInfo.teams = Collections.emptyMap();
+          gameInfo.featuredModVersions = Collections.emptyMap();
           onGameInfoListener.onGameInfo(gameInfo);
         }
         return null;
