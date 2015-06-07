@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.image.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.text.*?>
 <?import javafx.scene.control.*?>
@@ -40,7 +41,29 @@
     </Tab>
     <Tab fx:id="ladderByMapTab" text="By Map">
       <content>
-            <HBox />
+            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
+               <children>
+                  <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
+                     <children>
+                        <ImageView fx:id="mapImageView" fitHeight="256.0" fitWidth="256.0" pickOnBounds="true" preserveRatio="true" />
+                        <Label fx:id="MapStatsMapName" text="Map Name" />
+                        <Label fx:id="MapStatsGamesPlayed" text="Games Played on This Map" />
+                        <Label fx:id="MapStatsDrawPecrcent" text="Percentage of Games ended in a Draw" />
+                        <Label fx:id="MapStatsAVGduration" text="Average Duration" />
+                        <Label fx:id="MapStatsMAXduration" text="Maximum Duration" />
+                        <Label fx:id="MapStatsUEFOcceurrence" text="UEF %" />
+                        <Label fx:id="MapStatsCybranOcceurrence" text="Cybran %" />
+                        <Label fx:id="MapStatsAeonOcceurrence" text="Aeon %" />
+                        <Label fx:id="MapStatsSeraphimOcceurrence" text="Seraphim %" />
+                        <Label text="Win Ratio :" />
+                        <Label fx:id="MapStatsWRUEF" text="WR UEF % (games won/games played not counting mirror)" />
+                        <Label fx:id="MapStatsWRcybran" text="WR Cybran % (games won/games played not counting mirror)" />
+                        <Label fx:id="MapStatsWRAeon" text="WR Aeon % (games won/games played not counting mirror)" />
+                        <Label fx:id="MapStatsWRseraphim" text="WR seraphim % (games won/games played not counting mirror)" />
+                     </children>
+                  </VBox>
+                  <ListView fx:id="MapStatsMapList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" HBox.hgrow="ALWAYS" />
+               </children></HBox>
       </content>
     </Tab>
       <Tab fx:id="ladderByRankTab" text="By Rank">
