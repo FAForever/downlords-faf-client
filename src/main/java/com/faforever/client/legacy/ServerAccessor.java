@@ -2,9 +2,12 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
+import com.faforever.client.leaderboard.LadderEntryBean;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
+
+import java.util.List;
 
 /**
  * Entry class for all communication with the FAF lobby server, be it reading or writing. This class should only be
@@ -43,4 +46,6 @@ public interface ServerAccessor {
   void disconnect();
 
   void setOnLobbyConnectedListener(OnLobbyConnectedListener onLobbyConnectedListener);
+
+  void requestLadderInfoInBackground(Callback<List<LadderEntryBean>> callback);
 }

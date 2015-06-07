@@ -137,6 +137,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     newsController.setUp();
     chatController.setUp();
     gamesController.setUp(stage);
+    ladderController.setUp();
 
     usernameButton.setText(userService.getUsername());
 

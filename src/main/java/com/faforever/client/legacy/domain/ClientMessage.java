@@ -2,6 +2,35 @@ package com.faforever.client.legacy.domain;
 
 public class ClientMessage {
 
+  public String action;
+  public String avatar;
+  public Integer version;
+  public String command;
+  public String login;
+  public String password;
+  public String uniqueId;
+  public String localIp;
+  public String session;
+  public String access;
+  public String mapname;
+  public String title;
+  public String state;
+  public String league;
+  public String division;
+  public Integer gameport;
+  public boolean[] options;
+  public String mod;
+  public Integer uid;
+  private String type;
+
+  public static ClientMessage askLeagueTable(String league) {
+    ClientMessage clientMessage = new ClientMessage();
+    clientMessage.command = "stats";
+    clientMessage.type = "league_table";
+    clientMessage.league = league;
+    return clientMessage;
+  }
+
   public static ClientMessage gameTerminated() {
     ClientMessage clientMessage = new ClientMessage();
     clientMessage.command = "fa_state";
@@ -23,7 +52,6 @@ public class ClientMessage {
     clientMessage.avatar = avatar;
     return clientMessage;
   }
-
 
   public static ClientMessage listAvatar() {
     ClientMessage clientMessage = new ClientMessage();
@@ -73,22 +101,4 @@ public class ClientMessage {
     clientMessage.command = "ask_session";
     return clientMessage;
   }
-
-  public String action;
-  public String avatar;
-  public Integer version;
-  public String command;
-  public String login;
-  public String password;
-  public String uniqueId;
-  public String localIp;
-  public String session;
-  public String access;
-  public String mapname;
-  public String title;
-  public String state;
-  public Integer gameport;
-  public boolean[] options;
-  public String mod;
-  public int uid;
 }

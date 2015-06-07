@@ -2,6 +2,7 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
+import com.faforever.client.leaderboard.LadderEntryBean;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 public class MockServerAccessor implements ServerAccessor {
 
@@ -159,6 +161,11 @@ public class MockServerAccessor implements ServerAccessor {
 
   @Override
   public void setOnLobbyConnectedListener(OnLobbyConnectedListener onLobbyConnectedListener) {
+
+  }
+
+  @Override
+  public void requestLadderInfoInBackground(Callback<List<LadderEntryBean>> callback) {
 
   }
 }

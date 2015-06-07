@@ -7,7 +7,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class LadderInfoBean {
+public class LadderEntryBean {
   private StringProperty username;
   private IntegerProperty rank;
   private IntegerProperty rating;
@@ -16,7 +16,7 @@ public class LadderInfoBean {
   private FloatProperty winLossRatio;
   private StringProperty division;
 
-  public LadderInfoBean() {
+  public LadderEntryBean() {
     username = new SimpleStringProperty();
     rank = new SimpleIntegerProperty();
     rating = new SimpleIntegerProperty();

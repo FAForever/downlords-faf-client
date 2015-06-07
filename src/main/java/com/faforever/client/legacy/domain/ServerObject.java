@@ -10,7 +10,7 @@ package com.faforever.client.legacy.domain;
 public class ServerObject {
 
   /**
-   * The server "command" actually isn't a command but identifies what object type.
+   * The server "command" actually isn't a command but identifies the object type.
    */
   public String command;
 }

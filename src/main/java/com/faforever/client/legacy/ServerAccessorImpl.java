@@ -2,6 +2,7 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
+import com.faforever.client.leaderboard.LadderEntryBean;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
@@ -10,9 +11,11 @@ import com.faforever.client.legacy.domain.ModInfo;
 import com.faforever.client.legacy.domain.OnFafLoginSucceededListener;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.legacy.domain.SessionInfo;
+import com.faforever.client.legacy.ladder.LegacyLadderParser;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.util.UID;
@@ -52,12 +55,17 @@ public class ServerAccessorImpl implements ServerAccessor,
   private static final int VERSION = 123;
   private static final long RECONNECT_DELAY = 3000;
   private static final String PONG = "PONG";
+  private static final int MAX_LEADERBOARD_ENTRIES = 100_000;
+  private static final String LEADERBOARD_1V1 = "1v1";
 
   @Autowired
   Environment environment;
 
   @Autowired
   PreferencesService preferencesService;
+
+  @Autowired
+  UserService userService;
 
   private Task<Void> fafConnectionTask;
   private String uniqueId;
@@ -353,5 +361,15 @@ public class ServerAccessorImpl implements ServerAccessor,
   @Override
   public void setOnLobbyConnectedListener(OnLobbyConnectedListener onLobbyConnectedListener) {
     this.onLobbyConnectedListener = onLobbyConnectedListener;
+  }
+
+  @Override
+  public void requestLadderInfoInBackground(Callback<List<LadderEntryBean>> callback) {
+    executeInBackground(new Task<List<LadderEntryBean>>() {
+      @Override
+      protected List<LadderEntryBean> call() throws Exception {
+        return LegacyLadderParser.getLadder();
+      }
+    }, callback);
   }
 }

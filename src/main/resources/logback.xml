@@ -3,7 +3,8 @@
   <logger name="org.pircbotx" level="warn"/>
   <logger name="com.faforever.client.preferences" level="warn"/>
   <logger name="com.faforever.client.map" level="warn"/>
-  <logger name="com.faforever.client.legacy" level="warn"/>
+  <logger name="com.faforever.client.legacy" level="debug"/>
+  <logger name="com.faforever.client.legacy.relay" level="warn"/>
   <logger name="com.faforever.client.legacy.proxy" level="warn"/>
   <logger name="com.faforever.client.chat" level="warn"/>
 

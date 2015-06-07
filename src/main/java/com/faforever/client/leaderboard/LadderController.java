@@ -1,32 +1,17 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.fxml.FxmlLoader;
-import com.faforever.client.game.GameInfoBean;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import com.faforever.client.util.Callback;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBase;
-import javafx.scene.control.Label;
-import javafx.scene.control.Pagination;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
-import javafx.util.Callback;
 import javafx.util.StringConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 
 
@@ -47,35 +32,33 @@ public class LadderController {
   Tab ladderByRankTab;
 
   @FXML
-  TableColumn<LadderInfoBean, Number> rankColumn;
+  TableColumn<LadderEntryBean, Number> rankColumn;
 
   @FXML
-  TableColumn<LadderInfoBean, String> nameColumn;
+  TableColumn<LadderEntryBean, String> nameColumn;
 
   @FXML
-  TableColumn<LadderInfoBean, Number> winLossColumn;
+  TableColumn<LadderEntryBean, Number> winLossColumn;
 
   @FXML
-  TableColumn<LadderInfoBean, Number> gamesPlayedColumn;
+  TableColumn<LadderEntryBean, Number> gamesPlayedColumn;
 
   @FXML
-  TableColumn<LadderInfoBean, Number> ratingColumn;
+  TableColumn<LadderEntryBean, Number> ratingColumn;
 
   @FXML
   Slider ratingSlider;
 
   @FXML
-  TableView<LadderInfoBean> ratingTable;
+  TableView<LadderEntryBean> ratingTable;
 
   @Autowired
   LadderService ladderService;
 
-  private List<LadderInfoBean> ladderInfo;
+  private List<LadderEntryBean> ladderEntryBeans;
 
-  @PostConstruct
-  public void postConstruct() {
-    ladderInfo = ladderService.getLadderInfo();
-
+  @FXML
+  public void initialize() {
     rankColumn.setCellValueFactory(param -> param.getValue().rankProperty());
     nameColumn.setCellValueFactory(param -> param.getValue().usernameProperty());
     winLossColumn.setCellValueFactory(param -> param.getValue().winLossRatioProperty());
@@ -87,7 +70,6 @@ public class LadderController {
         displayPage(newValue.intValue());
       }
     });
-    displayPage(ratingSlider.getValue());
     ratingSlider.setLabelFormatter(new StringConverter<Double>() {
       @Override
       public String toString(Double value) {
@@ -103,18 +85,33 @@ public class LadderController {
         return null;
       }
     });
+  }
 
+  public void setUp() {
+    ladderService.getLadderInfo(new Callback<List<LadderEntryBean>>() {
+      @Override
+      public void success(List<LadderEntryBean> result) {
+        ladderEntryBeans = result;
+        // FIXME implement
+        displayPage(ratingSlider.getValue());
+      }
+
+      @Override
+      public void error(Throwable e) {
+        // FIXME implement
+      }
+    });
   }
 
   /**
    * @param minRanking starting at 1
    */
   private void displayPage(Number minRanking) {
-    ratingSlider.setMax(Math.max(1, ladderInfo.size()));
+    ratingSlider.setMax(Math.max(1, ladderEntryBeans.size()));
 
     int fromIndex = minRanking.intValue() - 1;
-    int toIndex = Math.min(fromIndex + ROWS_PER_PAGE, ladderInfo.size());
-    ratingTable.setItems(FXCollections.observableArrayList(ladderInfo.subList(fromIndex, toIndex)));
+    int toIndex = Math.min(fromIndex + ROWS_PER_PAGE, ladderEntryBeans.size());
+    ratingTable.setItems(FXCollections.observableArrayList(ladderEntryBeans.subList(fromIndex, toIndex)));
   }
 
 

@@ -12,8 +12,10 @@ import com.faforever.client.legacy.domain.ServerMessageType;
 import com.faforever.client.legacy.domain.ServerObject;
 import com.faforever.client.legacy.domain.ServerObjectType;
 import com.faforever.client.legacy.domain.SessionInfo;
+import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
+import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.legacy.writer.QDataInputStream;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -55,6 +57,7 @@ class ServerReader {
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .registerTypeAdapter(GameType.class, new GameTypeTypeAdapter())
         .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
+        .registerTypeAdapter(StatisticsType.class, new StatisticsTypeTypeAdapter())
         .create();
   }
 
