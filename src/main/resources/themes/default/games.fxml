@@ -52,6 +52,70 @@
             </TableView>
             <VBox maxHeight="1.7976931348623157E308" minWidth="256.0" HBox.hgrow="NEVER">
                <children>
+                  <Label text="Create Game" />
+                  <Separator maxWidth="1.7976931348623157E308">
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                     <padding>
+                        <Insets bottom="6.0" top="6.0" />
+                     </padding>
+                  </Separator>
+                  <TextField text="Title">
+                     <VBox.margin>
+                        <Insets bottom="6.0" />
+                     </VBox.margin>
+                  </TextField>
+                  <TextField text="Password" />
+                  <Separator maxWidth="1.7976931348623157E308">
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                     <padding>
+                        <Insets bottom="6.0" top="6.0" />
+                     </padding>
+                  </Separator>
+                  <Label text="Ranking" />
+                  <HBox maxWidth="1.7976931348623157E308" minHeight="-Infinity" prefHeight="30.0">
+                     <children>
+                        <TextField prefWidth="55.0" text="800" />
+                        <Slider blockIncrement="1.0" majorTickUnit="800.0" max="2600.0" maxWidth="1.7976931348623157E308" minorTickCount="0" showTickLabels="true" value="800.0" />
+                        <TextField prefWidth="55.0" text="1300" />
+                     </children>
+                  </HBox>
+                  <Separator maxWidth="1.7976931348623157E308">
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                     <padding>
+                        <Insets bottom="6.0" top="6.0" />
+                     </padding>
+                  </Separator>
+                  <Label text="Map (can be changed later)" />
+                  <ChoiceBox maxWidth="1.7976931348623157E308" />
+                  <Separator maxWidth="1.7976931348623157E308">
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                     <padding>
+                        <Insets bottom="6.0" top="6.0" />
+                     </padding>
+                  </Separator>
+                  <Label text="Mods" />
+                  <ChoiceBox maxWidth="1.7976931348623157E308">
+                     <VBox.margin>
+                        <Insets bottom="6.0" />
+                     </VBox.margin>
+                  </ChoiceBox>
+                  <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Create Game" />
+                  <Separator maxWidth="1.7976931348623157E308">
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                     <padding>
+                        <Insets bottom="6.0" top="6.0" />
+                     </padding>
+                  </Separator>
                   <HBox alignment="CENTER" maxHeight="1.7976931348623157E308" VBox.vgrow="NEVER">
                      <children>
                         <ImageView fx:id="mapImageView" fitHeight="256.0" fitWidth="256.0" pickOnBounds="true" preserveRatio="true" HBox.hgrow="NEVER">

@@ -449,6 +449,11 @@
   -fx-font-size: 16px;
 }
 
+
+.login > .login-Icon {
+  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.2), 15, 0.8, 0, 0);
+}
+
 /***************** Chat (WebView, therefore default CSS). Java FX  variables can't be used *****************/
 
 html, body {

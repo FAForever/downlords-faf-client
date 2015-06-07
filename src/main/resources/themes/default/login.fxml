@@ -10,7 +10,7 @@
 
 <VBox fx:id="loginRoot" alignment="TOP_CENTER" prefWidth="360.0" styleClass="login" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.login.LoginController">
   <children>
-    <ImageView fitHeight="160.0" fitWidth="160.0" pickOnBounds="true" preserveRatio="true">
+    <ImageView fitHeight="160.0" fitWidth="180.0" pickOnBounds="true" preserveRatio="true" styleClass="login-Icon">
       <image>
         <Image url="@../../images/logo_transparent.png" />
       </image>
