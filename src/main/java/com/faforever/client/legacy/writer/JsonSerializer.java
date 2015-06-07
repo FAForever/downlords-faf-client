@@ -38,7 +38,7 @@ public class JsonSerializer<T> implements Serializer<T> {
     getGson().toJson(object, object.getClass(), fixedJsonWriter(jsonStringWriter));
 
     QStreamWriter qStreamWriter = new QStreamWriter(byteArrayOutputStream);
-    qStreamWriter.appendWithSize(jsonStringWriter.toString());
+    qStreamWriter.append(jsonStringWriter.toString());
 
     appendMore(qStreamWriter);
 

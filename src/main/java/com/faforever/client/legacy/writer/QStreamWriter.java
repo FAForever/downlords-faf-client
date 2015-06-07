@@ -21,7 +21,7 @@ public class QStreamWriter extends Writer {
   }
 
   @Override
-  public Writer appendWithSize(CharSequence csq) throws IOException {
+  public Writer append(CharSequence csq) throws IOException {
     if (csq == null) {
       appendWithSize(new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,});
       return this;

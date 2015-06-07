@@ -23,7 +23,7 @@ public class ClientMessageSerializer extends JsonSerializer<ClientMessage> {
 
   @Override
   protected void appendMore(QStreamWriter qStreamWriter) throws IOException {
-    qStreamWriter.appendWithSize(username);
-    qStreamWriter.appendWithSize(sessionIdProperty.get());
+    qStreamWriter.append(username);
+    qStreamWriter.append(sessionIdProperty.get());
   }
 }
