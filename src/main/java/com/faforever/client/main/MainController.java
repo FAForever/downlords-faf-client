@@ -68,7 +68,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   ButtonBase vaultButton;
 
   @FXML
-  ButtonBase leaderboardButton;
+  ButtonBase ladderButton;
 
   @FXML
   Region mainRoot;
@@ -250,7 +250,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
       setContent(gamesController.getRoot());
     } else if (button == vaultButton) {
       setContent(vaultController.getRoot());
-    } else if (button == leaderboardButton) {
+    } else if (button == ladderButton) {
       setContent(ladderController.getRoot());
     }
   }
