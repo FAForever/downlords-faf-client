@@ -73,11 +73,10 @@ public class LadderController {
     ratingSlider.setLabelFormatter(new StringConverter<Double>() {
       @Override
       public String toString(Double value) {
-        int thousands = (int) (value / 1000);
-        if (thousands == 0) {
+        if(value == 0d){
           return "1";
         }
-        return String.valueOf(thousands * 1000);
+        return String.valueOf(value.intValue());
       }
 
       @Override
@@ -92,8 +91,7 @@ public class LadderController {
       @Override
       public void success(List<LadderEntryBean> result) {
         ladderEntryBeans = result;
-        // FIXME implement
-        displayPage(ratingSlider.getValue());
+        displayPage((int) ratingSlider.getValue());
       }
 
       @Override
@@ -104,12 +102,11 @@ public class LadderController {
   }
 
   /**
-   * @param minRanking starting at 1
+   * @param fromIndex starting at 0
    */
-  private void displayPage(Number minRanking) {
+  private void displayPage(int fromIndex) {
     ratingSlider.setMax(Math.max(1, ladderEntryBeans.size()));
 
-    int fromIndex = minRanking.intValue() - 1;
     int toIndex = Math.min(fromIndex + ROWS_PER_PAGE, ladderEntryBeans.size());
     ratingTable.setItems(FXCollections.observableArrayList(ladderEntryBeans.subList(fromIndex, toIndex)));
   }

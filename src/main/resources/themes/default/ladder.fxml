@@ -28,7 +28,7 @@
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                      </columnResizePolicy>
                   </TableView>
-                  <Slider fx:id="ratingSlider" blockIncrement="1000.0" majorTickUnit="1000.0" max="10000.0" min="1.0" minorTickCount="0" showTickLabels="true" showTickMarks="true" value="1.0" VBox.vgrow="NEVER">
+                  <Slider fx:id="ratingSlider" blockIncrement="1000.0" majorTickUnit="1000.0" max="10000.0" min="0.0" minorTickCount="0" showTickLabels="true" showTickMarks="true" value="0.0" VBox.vgrow="NEVER">
                      <VBox.margin>
                         <Insets top="5.0" />
                      </VBox.margin>
