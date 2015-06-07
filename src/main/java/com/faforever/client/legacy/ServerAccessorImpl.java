@@ -11,7 +11,7 @@ import com.faforever.client.legacy.domain.ModInfo;
 import com.faforever.client.legacy.domain.OnFafLoginSucceededListener;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.legacy.domain.SessionInfo;
-import com.faforever.client.legacy.ladder.LegacyLadderParser;
+import com.faforever.client.legacy.ladder.LadderParser;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -66,6 +66,9 @@ public class ServerAccessorImpl implements ServerAccessor,
 
   @Autowired
   UserService userService;
+
+  @Autowired
+  LadderParser ladderParser;
 
   private Task<Void> fafConnectionTask;
   private String uniqueId;
@@ -368,7 +371,7 @@ public class ServerAccessorImpl implements ServerAccessor,
     executeInBackground(new Task<List<LadderEntryBean>>() {
       @Override
       protected List<LadderEntryBean> call() throws Exception {
-        return LegacyLadderParser.getLadder();
+        return ladderParser.parseLadder();
       }
     }, callback);
   }

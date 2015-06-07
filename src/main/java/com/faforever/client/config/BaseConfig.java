@@ -13,6 +13,8 @@ import com.faforever.client.leaderboard.MockLadderService;
 import com.faforever.client.legacy.MockServerAccessor;
 import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.legacy.ServerAccessorImpl;
+import com.faforever.client.legacy.ladder.LadderParser;
+import com.faforever.client.legacy.ladder.LegacyLadderParser;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.legacy.proxy.ProxyImpl;
 import com.faforever.client.legacy.relay.LocalRelayServer;
@@ -144,6 +146,11 @@ public class BaseConfig {
   @Bean
   ModService modService() {
     return new ModServiceImpl();
+  }
+
+  @Bean
+  LadderParser ladderParser() {
+    return new LegacyLadderParser();
   }
 
   @Bean

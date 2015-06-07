@@ -28,11 +28,8 @@ public class LegacyLadderParser implements LadderParser {
   @Autowired
   Environment environment;
 
-  /**
-   * Accesses the leaderboard over its HTML/AJAX thingy and parses the result. Since this isn't an API it's in no way
-   * stable and this code breaks whenever the returned HTML changes.
-   */
-  public List<LadderEntryBean> getLadder() throws IOException {
+  @Override
+  public List<LadderEntryBean> parseLadder() throws IOException {
     JavaFxUtil.assertBackgroundThread();
 
     String urlParameters = environment.getProperty("ladder.params");
