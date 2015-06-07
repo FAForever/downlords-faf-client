@@ -13,6 +13,7 @@ import com.faforever.client.leaderboard.MockLadderService;
 import com.faforever.client.legacy.MockServerAccessor;
 import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.legacy.ServerAccessorImpl;
+import com.faforever.client.legacy.htmlparser.HtmlParser;
 import com.faforever.client.legacy.ladder.LadderParser;
 import com.faforever.client.legacy.ladder.LegacyLadderParser;
 import com.faforever.client.legacy.proxy.Proxy;
@@ -73,6 +74,11 @@ public class BaseConfig {
   @Bean
   I18n i18n() {
     return new I18nImpl(messageSource(), locale());
+  }
+
+  @Bean
+  HtmlParser htmlParser() {
+    return new HtmlParser();
   }
 
   @Bean

@@ -1,6 +1,7 @@
 package com.faforever.client.main;
 
 import com.faforever.client.chat.ChatController;
+import com.faforever.client.chat.ChatService;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.GamesController;
@@ -113,15 +114,24 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   PatchService patchService;
 
   @Autowired
+  ChatService chatService;
+
+  @Autowired
   I18n i18n;
 
   @Autowired
   UserService userService;
 
+  private Stage stage;
+
   public void display(Stage stage) {
+    this.stage = stage;
+
     lobbyService.setOnFafConnectedListener(this);
     lobbyService.setOnLobbyConnectingListener(this);
     lobbyService.setOnLobbyDisconnectedListener(this);
+
+    chatService.connect();
 
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
 
@@ -133,11 +143,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     JavaFxUtil.centerOnScreen(stage);
 
     registerWindowPreferenceListeners(stage, mainWindowPrefs);
-
-    newsController.setUp();
-    chatController.setUp();
-    gamesController.setUp(stage);
-    ladderController.setUp();
 
     usernameButton.setText(userService.getUsername());
 
@@ -243,15 +248,20 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
       button.setSelected(true);
     }
 
+    // TODO let the component initialize themselves instead of calling a setUp method
     if (button == newsButton) {
+      newsController.setUpIfNecessary();
       setContent(newsController.getRoot());
     } else if (button == chatButton) {
       setContent(chatController.getRoot());
     } else if (button == gamesButton) {
+      gamesController.setUpIfNecessary(stage);
       setContent(gamesController.getRoot());
     } else if (button == vaultButton) {
+      vaultController.setUpIfNecessary();
       setContent(vaultController.getRoot());
     } else if (button == ladderButton) {
+      ladderController.setUpIfNecessary();
       setContent(ladderController.getRoot());
     }
   }
@@ -300,9 +310,5 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     for (Node child : children) {
       child.setVisible(child == node);
     }
-  }
-
-  public void onLeaderboardButton(ActionEvent event) {
-
   }
 }

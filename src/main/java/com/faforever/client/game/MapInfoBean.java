@@ -5,6 +5,10 @@ import javafx.beans.property.StringProperty;
 
 public class MapInfoBean {
 
+  public MapInfoBean() {
+    this(null);
+  }
+
   public MapInfoBean(String name) {
     this.name = new SimpleStringProperty(name);
   }

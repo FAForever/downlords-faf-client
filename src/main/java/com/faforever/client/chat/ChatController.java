@@ -52,10 +52,6 @@ public class ChatController implements
     chatService.addOnChatUserLeftChannelListener(this);
   }
 
-  public void setUp() {
-    chatService.connect();
-  }
-
   @FXML
   private void initialize() {
     onDisconnected(null);

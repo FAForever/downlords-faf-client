@@ -22,7 +22,7 @@ import com.faforever.client.leaderboard.LadderController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
 import com.faforever.client.map.MapService;
-import com.faforever.client.map.MapServiceImpl;
+import com.faforever.client.map.LegacyMapService;
 import com.faforever.client.news.NewsController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -103,7 +103,7 @@ public class UiConfig {
 
   @Bean
   MapService mapPreviewService() {
-    return new MapServiceImpl();
+    return new LegacyMapService();
   }
 
   @Bean

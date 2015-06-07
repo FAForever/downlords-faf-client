@@ -20,7 +20,6 @@ import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitMenuButton;
 import javafx.scene.control.TableColumn;
@@ -125,7 +124,7 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
   }
 
   @FXML
-  void initialize() {
+  void setUpIfNecessary() {
     initializeGameTable();
   }
 
@@ -285,7 +284,7 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
     modInfoBeans.put(modInfo.name, new ModInfoBean(modInfo));
   }
 
-  public void setUp(Stage stage) {
+  public void setUpIfNecessary(Stage stage) {
     this.stage = stage;
   }
 

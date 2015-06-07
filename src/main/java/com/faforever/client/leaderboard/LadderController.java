@@ -86,7 +86,11 @@ public class LadderController {
     });
   }
 
-  public void setUp() {
+  public void setUpIfNecessary() {
+    if(ladderEntryBeans != null){
+      return;
+    }
+
     ladderService.getLadderInfo(new Callback<List<LadderEntryBean>>() {
       @Override
       public void success(List<LadderEntryBean> result) {

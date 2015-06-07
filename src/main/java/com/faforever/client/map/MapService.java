@@ -12,7 +12,7 @@ public interface MapService {
 
   Image loadLargePreview(String mapName);
 
-  List<MapInfoBean> getMapsFromVault(int page);
+  List<MapInfoBean> getMapsFromVault(int page, int maxEntries);
 
   ObservableList<MapInfoBean> getLocalMaps();
 }
