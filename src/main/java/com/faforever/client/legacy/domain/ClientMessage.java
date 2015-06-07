@@ -1,15 +1,6 @@
 package com.faforever.client.legacy.domain;
 
-import com.google.gson.Gson;
-import com.google.gson.stream.JsonWriter;
-
-import java.io.IOException;
-import java.io.Writer;
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.List;
-
-public class ClientMessage implements ServerWritable {
+public class ClientMessage {
 
   public static ClientMessage gameTerminated() {
     ClientMessage clientMessage = new ClientMessage();
@@ -83,50 +74,21 @@ public class ClientMessage implements ServerWritable {
     return clientMessage;
   }
 
-  private String action;
-  private String avatar;
-  private Integer version;
-  private String command;
-  private String login;
-  private String password;
-  private String uniqueId;
-  private String localIp;
-  private String session;
-  private String access;
-  private String mapname;
-  private String title;
-  private String state;
-  private Integer gameport;
-  private boolean[] options;
-  private String mod;
-  private int uid;
-
-  public void write(Gson gson, Writer writer) throws IOException {
-    gson.toJson(this, ClientMessage.class, fixedJsonWriter(writer));
-  }
-
-  @Override
-  public List<String> getStringsToMask() {
-    if (password == null) {
-      return Collections.emptyList();
-    }
-
-    return Collections.singletonList(password);
-  }
-
-  private JsonWriter fixedJsonWriter(Writer writer) {
-    // Does GSON suck because its separator can't be set, or python because it can't handle JSON without a space after colon?
-    try {
-      JsonWriter jsonWriter = new JsonWriter(writer);
-      jsonWriter.setSerializeNulls(false);
-
-      Field separatorField = JsonWriter.class.getDeclaredField("separator");
-      separatorField.setAccessible(true);
-      separatorField.set(jsonWriter, ": ");
-
-      return jsonWriter;
-    } catch (NoSuchFieldException | IllegalAccessException e) {
-      throw new RuntimeException(e);
-    }
-  }
+  public String action;
+  public String avatar;
+  public Integer version;
+  public String command;
+  public String login;
+  public String password;
+  public String uniqueId;
+  public String localIp;
+  public String session;
+  public String access;
+  public String mapname;
+  public String title;
+  public String state;
+  public Integer gameport;
+  public boolean[] options;
+  public String mod;
+  public int uid;
 }

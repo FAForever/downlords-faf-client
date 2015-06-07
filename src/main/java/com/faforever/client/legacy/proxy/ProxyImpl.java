@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.proxy;
 
-import com.faforever.client.legacy.QDataOutputStream;
+import com.faforever.client.legacy.writer.QDataOutputStream;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.SocketAddressUtil;

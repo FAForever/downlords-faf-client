@@ -78,6 +78,10 @@ public class PreferencesService {
     return getFafDataDirectory().resolve("repos");
   }
 
+  public Path getFafGameDataDirectory() {
+    return getFafDataDirectory().resolve("gamedata");
+  }
+
   private Path getPreferencesFilePath() {
     return getPreferencesDirectory().resolve(PREFS_FILE_NAME);
   }

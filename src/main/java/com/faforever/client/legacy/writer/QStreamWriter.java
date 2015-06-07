@@ -1,4 +1,4 @@
-package com.faforever.client.legacy;
+package com.faforever.client.legacy.writer;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -20,14 +20,15 @@ public class QStreamWriter extends Writer {
     out.write(new String(cbuf).substring(off, len).getBytes(CHARSET));
   }
 
-  public QStreamWriter appendString(CharSequence csq) throws IOException {
+  @Override
+  public Writer appendWithSize(CharSequence csq) throws IOException {
     if (csq == null) {
-      append(new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,});
+      appendWithSize(new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,});
       return this;
     }
 
     byte[] bytes = csq.toString().getBytes(CHARSET);
-    return append(bytes);
+    return appendWithSize(bytes);
   }
 
   @Override
@@ -40,7 +41,10 @@ public class QStreamWriter extends Writer {
     out.close();
   }
 
-  public QStreamWriter append(byte[] bytes) throws IOException {
+  /**
+   * Appends the size of the given byte array to the stream followed by the byte array itself.
+   */
+  public QStreamWriter appendWithSize(byte[] bytes) throws IOException {
     writeInt32(bytes.length);
     out.write(bytes);
     return this;

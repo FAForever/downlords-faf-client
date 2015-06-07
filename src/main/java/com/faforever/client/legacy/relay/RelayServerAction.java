@@ -15,7 +15,7 @@ public enum RelayServerAction {
   PLAYER_OPTION("PlayerOption"),
   DISCONNECT_FROM_PEER("DisconnectFromPeer"),
   CHAT("Chat"),
-  // Yes, these are lower-cased. Because fuck you.
+  // Yes, these are the only lower-cased in the protocol. Because fuck you.
   CONNECTED_TO_HOST("connectedToHost"),
   PONG("pong");
 

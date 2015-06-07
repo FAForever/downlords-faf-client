@@ -14,6 +14,7 @@ import com.faforever.client.legacy.domain.ServerObjectType;
 import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
+import com.faforever.client.legacy.writer.QDataInputStream;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

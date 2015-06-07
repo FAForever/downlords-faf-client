@@ -2,13 +2,23 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
-import com.faforever.client.legacy.domain.*;
+import com.faforever.client.legacy.domain.ClientMessage;
+import com.faforever.client.legacy.domain.GameAccess;
+import com.faforever.client.legacy.domain.GameInfo;
+import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.legacy.domain.OnFafLoginSucceededListener;
+import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.legacy.domain.SessionInfo;
+import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.util.UID;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.concurrent.Task;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -41,6 +51,7 @@ public class ServerAccessorImpl implements ServerAccessor,
 
   private static final int VERSION = 123;
   private static final long RECONNECT_DELAY = 3000;
+  private static final String PONG = "PONG";
 
   @Autowired
   Environment environment;
@@ -53,6 +64,7 @@ public class ServerAccessorImpl implements ServerAccessor,
   private String username;
   private String password;
   private String localIp;
+  private StringProperty sessionId;
   private ServerWriter serverWriter;
   private Callback<Void> loginCallback;
   private Callback<GameLaunchInfo> gameLaunchCallback;
@@ -71,6 +83,7 @@ public class ServerAccessorImpl implements ServerAccessor,
   public ServerAccessorImpl() {
     onGameInfoListeners = new ArrayList<>();
     onModInfoListeners = new ArrayList<>();
+    sessionId = new SimpleStringProperty();
   }
 
   @Override
@@ -112,9 +125,7 @@ public class ServerAccessorImpl implements ServerAccessor,
 
             localIp = fafServerSocket.getLocalAddress().getHostAddress();
 
-            serverWriter = new ServerWriter(outputStream);
-            serverWriter.setAppendSession(true);
-            serverWriter.setAppendUsername(true);
+            serverWriter = createServerWriter(outputStream);
 
             writeToServer(ClientMessage.askSession(username));
 
@@ -150,8 +161,15 @@ public class ServerAccessorImpl implements ServerAccessor,
     executeInBackground(fafConnectionTask);
   }
 
-  private void writeToServer(ServerWritable serverWritable) {
-    serverWriter.write(serverWritable);
+  private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
+    ServerWriter serverWriter = new ServerWriter(outputStream);
+    serverWriter.registerObjectWriter(new ClientMessageSerializer(username, sessionId), ClientMessage.class);
+    serverWriter.registerObjectWriter(new StringSerializer(), String.class);
+    return serverWriter;
+  }
+
+  private void writeToServer(Object object) {
+    serverWriter.write(object);
   }
 
   private void blockingReadServer(Socket socket) throws IOException {
@@ -172,17 +190,15 @@ public class ServerAccessorImpl implements ServerAccessor,
 
   @Override
   public void onSessionInitiated(SessionInfo message) {
-    String session = message.session;
-    this.uniqueId = UID.generate(session);
+    this.sessionId.set(message.session);
+    this.uniqueId = UID.generate(sessionId.get(), preferencesService.getFafDataDirectory().resolve("uid.log"));
 
-    serverWriter.setSession(session);
-
-    logger.info("FAF session initiated, session ID: {}", session);
+    logger.info("FAF session initiated, session ID: {}", sessionId);
 
     executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        writeToServer(ClientMessage.login(username, password, session, uniqueId, localIp, VERSION));
+        writeToServer(ClientMessage.login(username, password, sessionId.get(), uniqueId, localIp, VERSION));
         return null;
       }
     });
@@ -190,7 +206,7 @@ public class ServerAccessorImpl implements ServerAccessor,
 
   @Override
   public void onServerPing() {
-    writeToServer(PongMessage.INSTANCE);
+    writeToServer(PONG);
   }
 
   @Override

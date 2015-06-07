@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Enumeration of known server commands (the "command" part of a server domain).
  */
-public enum RelayServerCommand {
+enum RelayServerCommand {
   PING("ping"),
   HOST_GAME("HostGame"),
   SEND_NAT_PACKET("SendNatPacket"),

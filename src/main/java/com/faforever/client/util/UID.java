@@ -3,6 +3,8 @@ package com.faforever.client.util;
 import com.sun.jna.Native;
 import com.sun.jna.win32.StdCallLibrary;
 
+import java.nio.file.Path;
+
 public class UID {
 
   static {
@@ -25,8 +27,8 @@ public class UID {
     // Utility class
   }
 
-  public static String generate(String salt) {
-    return UidLibrary.INSTANCE.uid(salt, "uid.log");
+  public static String generate(String salt, Path logFile) {
+    return UidLibrary.INSTANCE.uid(salt, logFile.toAbsolutePath().toString());
   }
 
 }

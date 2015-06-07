@@ -1,4 +1,4 @@
-package com.faforever.client.legacy;
+package com.faforever.client.legacy.writer;
 
 import java.io.Closeable;
 import java.io.DataOutput;

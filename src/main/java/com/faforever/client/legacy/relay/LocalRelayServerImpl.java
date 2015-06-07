@@ -1,7 +1,7 @@
 package com.faforever.client.legacy.relay;
 
-import com.faforever.client.legacy.ServerWriter;
 import com.faforever.client.legacy.proxy.Proxy;
+import com.faforever.client.legacy.writer.ServerWriter;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +71,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
           try (Socket fafSocket = new Socket(environment.getProperty("relay.host"), environment.getProperty("relay.port", int.class));
                FaDataInputStream supComInput = createFaInputStream(supComSocket.getInputStream());
                FaDataOutputStream faOutputStream = createFaOutputStream(supComSocket.getOutputStream());
-               ServerWriter serverWriter = new ServerWriter(fafSocket.getOutputStream());
+               ServerWriter serverWriter = createServerWriter(fafSocket);
                RelayServerReader relayServerReader = new RelayServerReader(fafSocket.getInputStream(), proxyServer, faOutputStream, serverWriter)) {
 
             startFaReader(supComInput, serverWriter);
@@ -81,6 +81,12 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
         }
       }
     }
+  }
+
+  private ServerWriter createServerWriter(Socket fafSocket) throws IOException {
+    ServerWriter serverWriter = new ServerWriter(fafSocket.getOutputStream());
+    serverWriter.registerObjectWriter(new RelayClientMessageSerializer(), RelayClientMessage.class);
+    return serverWriter;
   }
 
   private boolean isCancelled() {

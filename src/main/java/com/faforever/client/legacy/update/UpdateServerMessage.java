@@ -1,16 +1,13 @@
-package com.faforever.client.legacy.relay;
+package com.faforever.client.legacy.update;
 
 import java.util.List;
 
-/**
- * Represents a message received from the relay server (deserialized from JSON).
- */
-class RelayServerMessage {
+public class UpdateServerMessage {
 
   /**
    * Contains the command to execute, but the server sends it as "key".
    */
-  public RelayServerCommand key;
+  public UpdateServerCommand key;
 
   /**
    * Contains the arguments, but the server thinks it's cool to confuse us by calling it "commands".
