@@ -36,6 +36,7 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
   @Override
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
     if (localName.equals("td") && "map".equals(atts.getValue("class"))) {
+      // Start of table cell is start of map
       currentBean = new MapInfoBean();
       return;
     }
@@ -63,8 +64,13 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    if ("tr".equals(localName)) {
-      result.add(currentBean);
+    if ("td".equals(localName)) {
+      if (currentBean != null) {
+        // End of cell means end of map
+        result.add(currentBean);
+        currentBean = null;
+      }
+      return;
     }
 
     if (currentProperty == null || currentValue == null || currentValue.trim().isEmpty()) {
