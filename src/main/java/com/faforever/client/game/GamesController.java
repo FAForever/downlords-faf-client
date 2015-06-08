@@ -88,7 +88,7 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
   TextField titleTextField;
 
   @FXML
-   TextField passwordTextField;
+  TextField passwordTextField;
 
   @FXML
   ComboBox<MapInfoBean> mapComboBox;
@@ -97,13 +97,13 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
   CheckComboBox<ModInfoBean> additionalModsCheckComboBox;
 
   @FXML
-   TextField minRankingTextField;
+  TextField minRankingTextField;
 
   @FXML
-   RangeSlider rankingSlider;
+  RangeSlider rankingSlider;
 
   @FXML
-   TextField maxRankingTextField;
+  TextField maxRankingTextField;
 
   @FXML
   TableView<GameInfoBean> gamesTable;

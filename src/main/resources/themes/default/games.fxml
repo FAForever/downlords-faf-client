@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.text.*?>
 <?import org.controlsfx.control.*?>
 <?import java.lang.*?>
 <?import javafx.geometry.*?>
@@ -28,7 +29,7 @@
                 <MenuItem mnemonicParsing="false" text="Action 2" />
               </items>
                <HBox.margin>
-                  <Insets />
+                  <Insets left="5.0" />
                </HBox.margin>
             </SplitMenuButton>
             <CheckBox mnemonicParsing="false" onAction="#onShowPrivateGames" selected="true" text="%games.showPrivateGames" />
@@ -39,7 +40,7 @@
     </HBox>
       <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
          <children>
-            <VBox fx:id="gamePreviewPanel" maxHeight="1.7976931348623157E308" minWidth="256.0" prefWidth="256.0">
+            <VBox fx:id="gamePreviewPanel" maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="-Infinity" prefWidth="263.0">
                <children>
                   <HBox alignment="CENTER" maxHeight="1.7976931348623157E308" VBox.vgrow="NEVER">
                      <children>
@@ -50,24 +51,33 @@
                         </ImageView>
                      </children>
                   </HBox>
-                  <Label fx:id="gameTitleLabel" maxHeight="1.7976931348623157E308" styleClass="game-detail-title" text="Game title" />
-                  <Label fx:id="numberOfPlayersLabel" maxHeight="1.7976931348623157E308" text="Number of players" />
+                  <Label fx:id="gameTitleLabel" maxHeight="1.7976931348623157E308" styleClass="game-detail-title" text="Game title">
+                     <padding>
+                        <Insets left="10.0" />
+                     </padding></Label>
+                  <Label fx:id="numberOfPlayersLabel" maxHeight="1.7976931348623157E308" text="Number of players">
+                     <padding>
+                        <Insets left="10.0" />
+                     </padding></Label>
                   <Label fx:id="hosterLabel" maxHeight="1.7976931348623157E308" text="Hoster">
                      <VBox.margin>
                         <Insets top="10.0" />
                      </VBox.margin>
+                     <padding>
+                        <Insets left="10.0" />
+                     </padding>
                   </Label>
                   <Label fx:id="gameModeLabel" maxHeight="1.7976931348623157E308" text="Game mode">
                      <VBox.margin>
                         <Insets top="10.0" />
                      </VBox.margin>
+                     <padding>
+                        <Insets left="10.0" />
+                     </padding>
                   </Label>
                </children>
-               <padding>
-                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-               </padding>
             </VBox>
-            <VBox fx:id="createGamePanel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" visible="false">
+            <VBox fx:id="createGamePanel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="-Infinity" prefWidth="213.0" visible="false">
                <children>
                   <Label text="%games.create" />
                   <Separator maxWidth="1.7976931348623157E308">
@@ -87,17 +97,46 @@
                      </padding>
                   </Separator>
                   <Label text="%game.ranking" />
-                  <HBox maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="40.0">
+                  <HBox>
+                     <children>
+                        <Pane prefWidth="20.0" />
+                        <Label text="Min">
+                           <font>
+                              <Font size="10.0" />
+                           </font>
+                        </Label>
+                        <Pane HBox.hgrow="ALWAYS" />
+                        <Label text="Max">
+                           <font>
+                              <Font size="10.0" />
+                           </font>
+                        </Label>
+                        <Pane prefWidth="20.0" />
+                     </children>
+                     <VBox.margin>
+                        <Insets />
+                     </VBox.margin>
+                  </HBox>
+                  <RangeSlider fx:id="rankingSlider" blockIncrement="100.0" majorTickUnit="500.0" minHeight="-Infinity" minorTickCount="4" prefHeight="40.0" showTickLabels="true" showTickMarks="true" snapToTicks="true">
+                     <VBox.margin>
+                        <Insets top="3.0" />
+                     </VBox.margin>
+                  </RangeSlider>
+                  <HBox fillHeight="false" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="40.0">
                      <children>
                         <TextField fx:id="minRankingTextField" prefWidth="55.0">
                            <HBox.margin>
-                              <Insets top="3.0" />
+                              <Insets />
                            </HBox.margin>
                         </TextField>
-                        <RangeSlider fx:id="rankingSlider" blockIncrement="100.0" majorTickUnit="500.0" minorTickCount="4" showTickLabels="true" showTickMarks="true" snapToTicks="true" HBox.hgrow="ALWAYS" />
+                        <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="-" HBox.hgrow="ALWAYS">
+                           <font>
+                              <Font name="Bell MT" size="23.0" />
+                           </font>
+                        </Label>
                         <TextField fx:id="maxRankingTextField" minWidth="-Infinity" prefWidth="55.0">
                            <HBox.margin>
-                              <Insets left="6.0" top="3.0" />
+                              <Insets left="6.0" />
                            </HBox.margin>
                         </TextField>
                      </children>
@@ -147,8 +186,14 @@
                      </padding>
                   </Separator>
                </children>
+               <HBox.margin>
+                  <Insets />
+               </HBox.margin>
+               <padding>
+                  <Insets left="4.0" right="9.0" />
+               </padding>
             </VBox>
-            <TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onMouseClicked="#onTableClicked" HBox.hgrow="ALWAYS">
+            <TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" onMouseClicked="#onTableClicked" HBox.hgrow="ALWAYS">
                <columns>
                   <TableColumn fx:id="mapPreviewColumn" maxWidth="42.0" minWidth="42.0" prefWidth="42.0" resizable="false" text="%game.map" />
                   <TableColumn fx:id="gameTitleColumn" maxWidth="1.7976931348623157E308" minWidth="150.0" prefWidth="250.0" text="%game.title" />
@@ -164,6 +209,6 @@
       </HBox>
    </children>
    <padding>
-      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+      <Insets bottom="10.0" right="10.0" top="10.0" />
    </padding>
 </VBox>
