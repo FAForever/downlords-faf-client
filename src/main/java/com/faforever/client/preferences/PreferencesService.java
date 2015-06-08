@@ -48,11 +48,21 @@ public class PreferencesService {
   }
 
   @PostConstruct
-  void init() {
+  void init() throws IOException {
     if (Files.exists(preferencesFilePath)) {
+      deleteFileIfEmpty();
       readExistingFile(preferencesFilePath);
     } else {
       initDefaultPreferences();
+    }
+  }
+
+  /**
+   * It may happen that the file is empty when the process is forcibly killed, so remove the file if that happened.
+   */
+  private void deleteFileIfEmpty() throws IOException {
+    if (Files.size(preferencesFilePath) == 0) {
+      Files.delete(preferencesFilePath);
     }
   }
 
