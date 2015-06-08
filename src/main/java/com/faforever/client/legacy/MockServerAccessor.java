@@ -72,6 +72,7 @@ public class MockServerAccessor implements ServerAccessor {
           gameInfo.simMods = Collections.emptyMap();
           gameInfo.teams = Collections.emptyMap();
           gameInfo.featuredModVersions = Collections.emptyMap();
+
           onGameInfoListener.onGameInfo(gameInfo);
         }
         return null;
