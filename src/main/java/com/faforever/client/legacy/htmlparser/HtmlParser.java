@@ -27,8 +27,8 @@ public class HtmlParser {
 
   /**
    * Parses the document at the given URL. The document is always put into &lt;root&gt;&lt;/root&gt; because the SAX
-   * parser would not be able to parse HTML without a single root element. The specified
-   * HtmlContentHandler should expect this.
+   * parser would not be able to parse HTML without a single root element. The specified HtmlContentHandler should
+   * expect this.
    */
   public <RESULT_TYPE> RESULT_TYPE parse(String urlString, String params, HtmlContentHandler<RESULT_TYPE> htmlContentHandler) throws IOException {
     JavaFxUtil.assertBackgroundThread();
@@ -46,31 +46,31 @@ public class HtmlParser {
     }
 
     try (InputStream inputStream = connection.getInputStream()) {
-      // Wrap the result inside a <root> element since every well-formed XML needs a such. Otherwise it can't be parsed.
-      SequenceInputStream sequenceInputStream = new SequenceInputStream(enumeration(asList(
-          new ByteArrayInputStream("<root>".getBytes(StandardCharsets.US_ASCII)),
-          new BufferedInputStream(inputStream),
-          new ByteArrayInputStream("</root>".getBytes(StandardCharsets.US_ASCII))
-      )));
-
-      return parseData(new BufferedInputStream(sequenceInputStream), htmlContentHandler);
+      return parseData(new BufferedInputStream(inputStream), htmlContentHandler);
     }
   }
 
   /**
-   * Parses the given HTML string. The HTML string is always put into &lt;root&gt;&lt;/root&gt; because the SAX
-   * parser would not be able to parse HTML without a single root element. The specified
-   * HtmlContentHandler should expect this.
+   * Parses the given HTML string. The HTML string is always put into &lt;root&gt;&lt;/root&gt; because the SAX parser
+   * would not be able to parse HTML without a single root element. The specified HtmlContentHandler should expect
+   * this.
    */
   public <RESULT_TYPE> RESULT_TYPE parse(String string, HtmlContentHandler<RESULT_TYPE> htmlContentHandler) throws IOException {
     return parseData(new ByteArrayInputStream(string.getBytes(StandardCharsets.US_ASCII)), htmlContentHandler);
   }
 
   private static <T> T parseData(InputStream inputStream, HtmlContentHandler<T> htmlContentHandler) throws IOException {
+    // Wrap the result inside a <root> element since every well-formed XML needs a such. Otherwise it can't be parsed.
+    SequenceInputStream sequenceInputStream = new SequenceInputStream(enumeration(asList(
+        new ByteArrayInputStream("<root>".getBytes(StandardCharsets.US_ASCII)),
+        new BufferedInputStream(inputStream),
+        new ByteArrayInputStream("</root>".getBytes(StandardCharsets.US_ASCII))
+    )));
+
     try {
       XMLReader xmlReader = XMLReaderFactory.createXMLReader();
       xmlReader.setContentHandler(htmlContentHandler);
-      xmlReader.parse(new InputSource(inputStream));
+      xmlReader.parse(new InputSource(sequenceInputStream));
 
       return htmlContentHandler.getResult();
     } catch (SAXException e) {

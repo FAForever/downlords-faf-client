@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Parses the FAF ladder web view and generates a list of LadderEntryBean.
  */
-public class LeaderboardContentHandler extends HtmlContentHandler<List<LadderEntryBean>> {
+public class LadderContentHandler extends HtmlContentHandler<List<LadderEntryBean>> {
 
   private String currentValue;
   private LadderEntryBean currentBean;

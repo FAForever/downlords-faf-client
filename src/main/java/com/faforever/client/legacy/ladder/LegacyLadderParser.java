@@ -60,12 +60,12 @@ public class LegacyLadderParser implements LadderParser {
   }
 
   private static List<LadderEntryBean> parseData(BufferedInputStream inputStream) throws IOException, SAXException {
-    LeaderboardContentHandler leaderboardContentHandler = new LeaderboardContentHandler();
+    LadderContentHandler ladderContentHandler = new LadderContentHandler();
 
     XMLReader xmlReader = XMLReaderFactory.createXMLReader();
-    xmlReader.setContentHandler(leaderboardContentHandler);
+    xmlReader.setContentHandler(ladderContentHandler);
     xmlReader.parse(new InputSource(inputStream));
 
-    return leaderboardContentHandler.getResult();
+    return ladderContentHandler.getResult();
   }
 }

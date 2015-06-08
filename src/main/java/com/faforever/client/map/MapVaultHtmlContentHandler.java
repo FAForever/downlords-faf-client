@@ -10,8 +10,18 @@ import java.util.List;
 
 public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoBean>> {
 
+  private enum MapProperty {
+    PLAYS,
+    DOWNLOADS,
+    NAME,
+    DESCRIPTION,
+    RATING
+  }
+
+  private MapProperty currentProperty;
   private List<MapInfoBean> result;
   private MapInfoBean currentBean;
+  private String currentValue;
 
   @Override
   protected List<MapInfoBean> getResult() {
@@ -30,11 +40,58 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
       return;
     }
 
-    // FIXME continue;
+    if (localName.equals("div") && "map_name".equals(atts.getValue("class"))) {
+      currentProperty = MapProperty.NAME;
+      return;
+    }
+
+    if (localName.equals("div") && "map_desc".equals(atts.getValue("class"))) {
+      currentProperty = MapProperty.DESCRIPTION;
+      return;
+    }
+
+    if (localName.equals("span") && "plays".equals(atts.getValue("class"))) {
+      currentProperty = MapProperty.PLAYS;
+      return;
+    }
+
+    if (localName.equals("span") && "downloads".equals(atts.getValue("class"))) {
+      currentProperty = MapProperty.DESCRIPTION;
+      return;
+    }
   }
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    super.endElement(uri, localName, qName);
+    if ("tr".equals(localName)) {
+      result.add(currentBean);
+    }
+
+    if (currentProperty == null || currentValue == null || currentValue.trim().isEmpty()) {
+      return;
+    }
+
+    switch (currentProperty) {
+      case PLAYS:
+        currentBean.setPlays(Integer.parseInt(currentValue));
+        return;
+      case DOWNLOADS:
+        currentBean.setDownloads(Integer.parseInt(currentValue));
+        return;
+      case NAME:
+        currentBean.setName(currentValue);
+        return;
+      case DESCRIPTION:
+        currentBean.setDescription(currentValue);
+        return;
+      case RATING:
+        currentBean.setRating(Float.parseFloat(currentValue));
+        return;
+    }
+  }
+
+  @Override
+  public void characters(char[] ch, int start, int length) throws SAXException {
+    currentValue = new String(ch, start, length);
   }
 }
