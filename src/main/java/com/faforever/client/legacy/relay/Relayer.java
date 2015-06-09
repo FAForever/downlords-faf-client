@@ -1,6 +1,5 @@
 package com.faforever.client.legacy.relay;
 
-import com.faforever.client.legacy.gson.IntegerAwareObjectDeserializer;
 import com.faforever.client.legacy.writer.QDataReader;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.legacy.proxy.Proxy;
@@ -46,7 +45,6 @@ class Relayer implements Closeable {
 
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-        .registerTypeAdapter(Object.class, new IntegerAwareObjectDeserializer())
         .registerTypeAdapter(RelayServerCommand.class, new RelayServerCommandTypeAdapter())
         .create();
   }
