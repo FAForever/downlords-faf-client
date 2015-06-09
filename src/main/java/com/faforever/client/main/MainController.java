@@ -34,6 +34,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -47,9 +48,6 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
 public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnLobbyDisconnectedListener {
-
-  @FXML
-  Pane mainNavigationBackground;
 
   @FXML
   Pane mainNavigation;
@@ -88,16 +86,13 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   MenuButton usernameButton;
 
   @FXML
-  MenuButton usernameButton1;
-
-  @FXML
   ImageView settingsButton;
 
   @FXML
-  VBox settingsPanel;
+  Label settingsLabel;
 
   @FXML
-  ImageView underMenuHat;
+  HBox mainMenuDisappear;
 
   @Autowired
   NewsController newsController;
@@ -142,24 +137,25 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   void initialize() {
-    settingsPanel.managedProperty().bind(settingsPanel.visibleProperty());
+
     contentPane.managedProperty().bind(contentPane.visibleProperty());
     mainNavigation.managedProperty().bind(mainNavigation.visibleProperty());
-    underMenuHat.managedProperty().bind(underMenuHat.visibleProperty());
+    settingsLabel.managedProperty().bind(settingsLabel.visibleProperty());
+    mainMenuDisappear.managedProperty().bind(mainMenuDisappear.visibleProperty());
   }
 
   public void openSettingsDialogue(){
-    settingsPanel.visibleProperty().setValue(true);
+
     contentPane.visibleProperty().setValue(false);
     mainNavigation.visibleProperty().setValue(false);
-    underMenuHat.visibleProperty().setValue(false);
+    settingsLabel.visibleProperty().setValue(false);
   }
 
   public void closeSettingsDialogue() {
-    settingsPanel.visibleProperty().setValue(false);
+
     contentPane.visibleProperty().setValue(true);
     mainNavigation.visibleProperty().setValue(true);
-    underMenuHat.visibleProperty().setValue(true);
+    settingsLabel.visibleProperty().setValue(true);
   }
 
   public void display(Stage stage) {
@@ -183,7 +179,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     registerWindowPreferenceListeners(stage, mainWindowPrefs);
 
     usernameButton.setText(userService.getUsername());
-    usernameButton1.setText(userService.getUsername());
 
     checkUdpPort();
     checkForFafUpdate();

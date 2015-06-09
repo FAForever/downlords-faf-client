@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import org.controlsfx.control.textfield.*?>
 <?import org.controlsfx.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.text.*?>
@@ -11,206 +12,357 @@
 
 <VBox fx:id="mainRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="584.0" minWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
   <children>
-      <HBox fx:id="mainNavigation" alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="main-navigation">
+      <StackPane>
          <children>
-            <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
-              <items>
-                  <MenuItem mnemonicParsing="false" text="%menu.support" />
-                  <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem mnemonicParsing="false" text="%menu.feedback" />
-                  <SeparatorMenuItem mnemonicParsing="false" />
-                <MenuItem mnemonicParsing="false" text="%menu.exit" />
-              </items>
-               <HBox.margin>
-                  <Insets left="20.0" right="10.0" />
-               </HBox.margin>
-            </MenuButton>
-            <ToggleButton fx:id="newsButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" selected="true" text="%main.news">
-               <toggleGroup>
-                  <ToggleGroup fx:id="mainNavigationToggleGroup" />
-               </toggleGroup>
-            </ToggleButton>
-            <ToggleButton fx:id="chatButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.chat" toggleGroup="$mainNavigationToggleGroup" />
-            <ToggleButton fx:id="gamesButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.games" toggleGroup="$mainNavigationToggleGroup" />
-            <ToggleButton fx:id="vaultButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.vault" toggleGroup="$mainNavigationToggleGroup" />
-            <ToggleButton fx:id="ladderButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.ladder" toggleGroup="$mainNavigationToggleGroup" />
-            <Pane HBox.hgrow="ALWAYS" />
-            <MenuButton fx:id="usernameButton" focusTraversable="false" mnemonicParsing="false" styleClass="username-button" text="Username">
-              <items>
-                <MenuItem mnemonicParsing="false" text="%menu.logOut" />
-                  <MenuItem mnemonicParsing="false" text="My Stats" />
-                  <MenuItem mnemonicParsing="false" text="Change Avatar" />
-              </items>
-               <HBox.margin>
-                  <Insets />
-               </HBox.margin>
-            </MenuButton>
-            <ImageView fx:id="settingsButton" fitHeight="16.0" fitWidth="16.0" onMouseClicked="#openSettingsDialogue" pickOnBounds="true" preserveRatio="true" styleClass="main-menu-button">
-               <HBox.margin>
-                  <Insets left="2.0" right="8.0" />
-               </HBox.margin>
-               <image>
-                  <Image url="@images/gear.png" />
-               </image>
-            </ImageView>
-         </children>
-         <padding>
-            <Insets bottom="12.0" top="12.0" />
-         </padding>
-      </HBox>
-      <VBox fx:id="settingsPanel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" visible="false" VBox.vgrow="ALWAYS">
-         <children>
-            <HBox alignment="BOTTOM_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+            <HBox fx:id="mainNavigation" alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                <children>
                   <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
-                     <items>
+                    <items>
                         <MenuItem mnemonicParsing="false" text="%menu.support" />
                         <SeparatorMenuItem mnemonicParsing="false" />
                         <MenuItem mnemonicParsing="false" text="%menu.feedback" />
                         <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" text="%menu.exit" />
-                     </items>
+                      <MenuItem mnemonicParsing="false" text="%menu.exit" />
+                    </items>
                      <HBox.margin>
-                        <Insets left="20.0" top="18.0" />
+                        <Insets left="20.0" right="10.0" />
                      </HBox.margin>
                   </MenuButton>
-                  <Label styleClass="mimik" text="Settings">
-                     <HBox.margin>
-                        <Insets bottom="1.0" left="25.0" />
-                     </HBox.margin>
-                  </Label>
+                  <HBox fx:id="mainMenuDisappear" styleClass="main-navigation">
+                     <children>
+                        <ToggleButton fx:id="newsButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" selected="true" text="%main.news">
+                           <toggleGroup>
+                              <ToggleGroup fx:id="mainNavigationToggleGroup" />
+                           </toggleGroup>
+                        </ToggleButton>
+                        <ToggleButton fx:id="chatButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.chat" toggleGroup="$mainNavigationToggleGroup" />
+                        <ToggleButton fx:id="gamesButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.games" toggleGroup="$mainNavigationToggleGroup" />
+                        <ToggleButton fx:id="vaultButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.vault" toggleGroup="$mainNavigationToggleGroup" />
+                        <ToggleButton fx:id="ladderButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.ladder" toggleGroup="$mainNavigationToggleGroup" />
+                     </children>
+                  </HBox>
                   <Pane HBox.hgrow="ALWAYS" />
-                  <MenuButton fx:id="usernameButton1" focusTraversable="false" mnemonicParsing="false" styleClass="username-button" text="Username">
-                     <items>
-                        <MenuItem mnemonicParsing="false" text="%menu.logOut" />
+                  <MenuButton fx:id="usernameButton" focusTraversable="false" mnemonicParsing="false" styleClass="username-button" text="Username">
+                    <items>
+                      <MenuItem mnemonicParsing="false" text="%menu.logOut" />
                         <MenuItem mnemonicParsing="false" text="My Stats" />
                         <MenuItem mnemonicParsing="false" text="Change Avatar" />
-                     </items>
+                    </items>
                      <HBox.margin>
-                        <Insets bottom="1.0" right="2.0" />
+                        <Insets />
                      </HBox.margin>
                   </MenuButton>
-                  <ImageView fx:id="settingsButton1" fitHeight="16.0" fitWidth="16.0" onMouseClicked="#closeSettingsDialogue" pickOnBounds="true" preserveRatio="true" styleClass="main-menu-button">
+                  <ImageView fx:id="settingsButton" fitHeight="16.0" fitWidth="16.0" onMouseClicked="#openSettingsDialogue" pickOnBounds="true" preserveRatio="true" styleClass="main-menu-button">
+                     <HBox.margin>
+                        <Insets left="2.0" right="8.0" />
+                     </HBox.margin>
                      <image>
                         <Image url="@images/gear.png" />
                      </image>
-                     <HBox.margin>
-                        <Insets bottom="8.0" right="8.0" />
-                     </HBox.margin>
                   </ImageView>
                </children>
+               <padding>
+                  <Insets bottom="12.0" top="12.0" />
+               </padding>
             </HBox>
-            <ImageView fitHeight="22.0" fitWidth="649.0" opacity="0.17" pickOnBounds="true" preserveRatio="true">
-               <image>
-                  <Image url="@images/Untitled-2.png" />
-               </image>
-               <VBox.margin>
-                  <Insets left="50.0" />
-               </VBox.margin>
-            </ImageView>
-            <VBox>
+            <Label fx:id="settingsLabel" styleClass="mimik" text="Settings" visible="false" StackPane.alignment="CENTER_LEFT">
+               <StackPane.margin>
+                  <Insets left="110.0" />
+               </StackPane.margin>
+            </Label>
+         </children>
+      </StackPane>
+      <Separator prefWidth="200.0" />
+      <AnchorPane maxHeight="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="0.0" translateX="650.0" translateY="-595.0">
+         <children>
+            <VBox fillWidth="false" layoutX="-304.5" layoutY="304.5">
                <children>
-                  <Label text="Settings">
-                     <VBox.margin>
-                        <Insets bottom="9.0" top="9.0" />
-                     </VBox.margin>
-                  </Label>
-                  <HBox>
+                  <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="909.0" prefWidth="250.0" rotate="-90.0" VBox.vgrow="ALWAYS">
                      <children>
-                        <VBox>
-                           <children>
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="stuff" />
-                              <RadioButton mnemonicParsing="false" text="More Stuff" />
-                           </children>
-                        </VBox>
-                        <VBox>
-                           <children>
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="stuff" />
-                              <RadioButton mnemonicParsing="false" text="More Stuff" />
-                           </children>
-                        </VBox>
-                        <VBox>
-                           <children>
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="stuff" />
-                              <RadioButton mnemonicParsing="false" text="More Stuff" />
-                           </children>
-                        </VBox>
-                        <VBox>
-                           <children>
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="stuff" />
-                              <RadioButton mnemonicParsing="false" text="More Stuff" />
-                           </children>
-                        </VBox>
-                        <VBox>
-                           <children>
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="stuff" />
-                              <RadioButton mnemonicParsing="false" text="More Stuff" />
-                           </children>
-                        </VBox>
-                        <VBox>
-                           <children>
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="stuff" />
-                              <RadioButton mnemonicParsing="false" text="More Stuff" />
-                           </children>
-                        </VBox>
-                        <VBox>
-                           <children>
-                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="stuff" />
-                              <RadioButton mnemonicParsing="false" text="More Stuff" />
-                           </children>
-                        </VBox>
+                        <Accordion>
+                           <panes>
+                              <TitledPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="General">
+                                 <content>
+                                    <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="222.0" rotate="90.0">
+                                       <children>
+                                          <CheckBox mnemonicParsing="false" text="Automatic Login">
+                                             <VBox.margin>
+                                                <Insets />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <Button mnemonicParsing="false" text="Test Proxy Server">
+                                             <VBox.margin>
+                                                <Insets top="7.0" />
+                                             </VBox.margin>
+                                          </Button>
+                                          <Label text="Game Path :">
+                                             <VBox.margin>
+                                                <Insets left="25.0" top="5.0" />
+                                             </VBox.margin>
+                                          </Label>
+                                          <HBox alignment="CENTER_LEFT">
+                                             <children>
+                                                <TextField />
+                                                <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="28.0" text="..." />
+                                             </children>
+                                          </HBox>
+                                          <Label text="Game Port :">
+                                             <VBox.margin>
+                                                <Insets left="25.0" top="5.0" />
+                                             </VBox.margin>
+                                          </Label>
+                                          <HBox>
+                                             <children>
+                                                <TextField text="    6112" />
+                                                <VBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="30.0">
+                                                   <children>
+                                                      <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="25.0" prefWidth="30.0" scaleY="0.5" text="^" translateY="5.0" />
+                                                      <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="25.0" prefWidth="30.0" scaleY="0.5" text="v" translateY="-5.0">
+                                                         <padding>
+                                                            <Insets right="2.0" />
+                                                         </padding>
+                                                      </Button>
+                                                   </children>
+                                                   <opaqueInsets>
+                                                      <Insets />
+                                                   </opaqueInsets>
+                                                </VBox>
+                                             </children>
+                                          </HBox>
+                                          <CheckBox mnemonicParsing="false" text="Enable UPnP">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="Savez Game Logs">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <Hyperlink text="Link Account To Steam...">
+                                             <VBox.margin>
+                                                <Insets left="20.0" />
+                                             </VBox.margin>
+                                          </Hyperlink>
+                                       </children>
+                                       <padding>
+                                          <Insets left="19.0" />
+                                       </padding>
+                                    </VBox>
+                                 </content>
+                              </TitledPane>
+                              <TitledPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Communication">
+                                 <content>
+                                    <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="256.0" rotate="90.0">
+                                       <children>
+                                          <Label text="Chat :">
+                                             <VBox.margin>
+                                                <Insets left="25.0" />
+                                             </VBox.margin>
+                                          </Label>
+                                          <Separator prefWidth="200.0" />
+                                          <Button mnemonicParsing="false" text="Clear Window">
+                                             <VBox.margin>
+                                                <Insets />
+                                             </VBox.margin>
+                                          </Button>
+                                          <CheckBox mnemonicParsing="false" text="Colored Nicknames">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="Join Parts">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="Friend Replays">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="Team Invitations">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="Autojoin Post Game Chat">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <Label text="Voice :">
+                                             <VBox.margin>
+                                                <Insets left="25.0" />
+                                             </VBox.margin>
+                                          </Label>
+                                          <Separator prefWidth="200.0" />
+                                          <CheckBox mnemonicParsing="false" text="Enable Muble Connector">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="Automatic Channel Switching">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                       </children>
+                                       <padding>
+                                          <Insets left="5.0" />
+                                       </padding>
+                                    </VBox>
+                                 </content>
+                              </TitledPane>
+                           </panes>
+                        </Accordion>
+                        <Accordion>
+                           <panes>
+                              <TitledPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Toast Message">
+                                 <content>
+                                    <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="256.0" rotate="90.0">
+                                       <padding>
+                                          <Insets left="5.0" />
+                                       </padding>
+                                       <children>
+                                          <CheckBox mnemonicParsing="false" text="Enable">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="Teaminvite Popup">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="Teaminvite Sound">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="Teaminvite Friends Only">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="NewGame Popup">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="NewGame Sound">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="NewGame FriendsOnly">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="User Online Popup">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="User Online Sound">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="User Online FriendsOnly">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                       </children>
+                                    </VBox>
+                                 </content>
+                              </TitledPane>
+                              <TitledPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Theme">
+                                 <content>
+                                    <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="217.0" rotate="90.0">
+                                       <children>
+                                          <Label text="Current Theme :">
+                                             <VBox.margin>
+                                                <Insets left="25.0" top="5.0" />
+                                             </VBox.margin>
+                                          </Label>
+                                          <HBox>
+                                             <children>
+                                                <ListView prefHeight="157.0" prefWidth="184.0" />
+                                                <ScrollBar orientation="VERTICAL" />
+                                             </children>
+                                          </HBox>
+                                          <Label text="Browse :">
+                                             <VBox.margin>
+                                                <Insets left="25.0" top="5.0" />
+                                             </VBox.margin>
+                                          </Label>
+                                          <HBox alignment="CENTER_LEFT">
+                                             <children>
+                                                <TextField />
+                                                <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="28.0" text="..." />
+                                             </children>
+                                          </HBox>
+                                       </children>
+                                       <padding>
+                                          <Insets left="22.0" />
+                                       </padding>
+                                    </VBox>
+                                 </content>
+                              </TitledPane>
+                              <TitledPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Reinitiate">
+                                 <content>
+                                    <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="256.0" rotate="90.0">
+                                       <padding>
+                                          <Insets left="5.0" />
+                                       </padding>
+                                       <children>
+                                          <CheckBox mnemonicParsing="false" text="Clear Cache">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="Clear Settings">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                          <CheckBox mnemonicParsing="false" text="Clear Game Files (Irreversible!)">
+                                             <VBox.margin>
+                                                <Insets top="5.0" />
+                                             </VBox.margin>
+                                          </CheckBox>
+                                       </children>
+                                    </VBox>
+                                 </content>
+                              </TitledPane>
+                           </panes>
+                        </Accordion>
                      </children>
-                  </HBox>
-                  <Separator prefWidth="200.0">
-                     <VBox.margin>
-                        <Insets top="9.0" />
-                     </VBox.margin>
-                  </Separator>
-                  <Label text="Lots of Settings">
-                     <VBox.margin>
-                        <Insets bottom="9.0" top="9.0" />
-                     </VBox.margin>
-                  </Label>
+                  </VBox>
                </children>
             </VBox>
-            <HBox>
-               <children>
-                  <CheckBox mnemonicParsing="false" text="CheckBox" />
-                  <CheckBox mnemonicParsing="false" text="CheckBox" />
-                  <CheckBox mnemonicParsing="false" text="CheckBox" />
-                  <CheckBox mnemonicParsing="false" text="CheckBox" />
-                  <CheckBox mnemonicParsing="false" text="CheckBox" />
-                  <CheckBox mnemonicParsing="false" text="CheckBox" />
-                  <CheckBox mnemonicParsing="false" text="CheckBox" />
-               </children>
-            </HBox>
-            <Separator prefWidth="200.0" />
-            <Pane maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" />
-            <HBox>
-               <children>
-                  <Pane maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
-                  <Button maxWidth="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#closeSettingsDialogue" prefWidth="90.0" text="OK" HBox.hgrow="ALWAYS">
-                     <HBox.margin>
-                        <Insets top="3.0" />
-                     </HBox.margin>
-                  </Button>
-                  <Button maxWidth="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#closeSettingsDialogue" prefWidth="90.0" text="Cancel" HBox.hgrow="ALWAYS">
-                     <HBox.margin>
-                        <Insets left="10.0" top="3.0" />
-                     </HBox.margin>
-                  </Button>
-               </children>
-            </HBox>
          </children>
-      </VBox>
-      <ImageView fx:id="underMenuHat" fitHeight="22.0" fitWidth="649.0" opacity="0.17" pickOnBounds="true" preserveRatio="true" translateY="-18.0">
-         <image>
-            <Image url="@images/Untitled-2.png" />
-         </image>
-         <VBox.margin>
-            <Insets left="50.0" />
-         </VBox.margin>
-      </ImageView>
+      </AnchorPane>
+      <Pane maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" />
+      <Separator prefWidth="200.0" />
+      <HBox>
+         <children>
+            <Pane maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+            <Button maxWidth="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#closeSettingsDialogue" prefWidth="30.0" text="OK" HBox.hgrow="ALWAYS">
+               <HBox.margin>
+                  <Insets top="3.0" />
+               </HBox.margin>
+            </Button>
+            <Button maxWidth="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#closeSettingsDialogue" prefWidth="30.0" text="Cancel" HBox.hgrow="ALWAYS">
+               <HBox.margin>
+                  <Insets left="10.0" top="3.0" />
+               </HBox.margin>
+            </Button>
+         </children>
+      </HBox>
       <AnchorPane fx:id="contentPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" translateY="-30.0" VBox.vgrow="ALWAYS" />
       <HBox minHeight="20.0" styleClass="status-bar">
          <children>

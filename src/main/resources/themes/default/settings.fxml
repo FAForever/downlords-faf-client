@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane maxHeight="-Infinity" minHeight="-Infinity" prefHeight="260.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <VBox fillWidth="false" layoutX="-304.5" layoutY="304.5">
+         <children>
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="909.0" prefWidth="260.0" rotate="-90.0" VBox.vgrow="ALWAYS">
+               <children>
+                  <TitledPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="General">
+                     <content>
+                        <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" rotate="90.0">
+                           <children>
+                              <CheckBox mnemonicParsing="false" text="Automatic Login">
+                                 <VBox.margin>
+                                    <Insets />
+                                 </VBox.margin>
+                              </CheckBox>
+                              <Button mnemonicParsing="false" text="Test Proxy Server">
+                                 <VBox.margin>
+                                    <Insets top="7.0" />
+                                 </VBox.margin>
+                              </Button>
+                              <Label text="Game Path :">
+                                 <VBox.margin>
+                                    <Insets left="25.0" top="5.0" />
+                                 </VBox.margin>
+                              </Label>
+                              <HBox alignment="CENTER_LEFT">
+                                 <children>
+                                    <TextField />
+                                    <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="28.0" text="..." />
+                                 </children>
+                              </HBox>
+                              <Label text="Game Port :">
+                                 <VBox.margin>
+                                    <Insets left="25.0" top="5.0" />
+                                 </VBox.margin>
+                              </Label>
+                              <HBox>
+                                 <children>
+                                    <TextField text="    6112" />
+                                    <VBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="30.0">
+                                       <children>
+                                          <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="25.0" prefWidth="30.0" scaleY="0.5" text="^" translateY="5.0" />
+                                          <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="25.0" prefWidth="30.0" scaleY="0.5" text="v" translateY="-5.0">
+                                             <padding>
+                                                <Insets right="2.0" />
+                                             </padding>
+                                          </Button>
+                                       </children>
+                                       <opaqueInsets>
+                                          <Insets />
+                                       </opaqueInsets>
+                                    </VBox>
+                                 </children>
+                              </HBox>
+                              <CheckBox mnemonicParsing="false" text="Enable UPnP">
+                                 <VBox.margin>
+                                    <Insets top="5.0" />
+                                 </VBox.margin>
+                              </CheckBox>
+                              <CheckBox mnemonicParsing="false" text="Savez Game Logs">
+                                 <VBox.margin>
+                                    <Insets top="5.0" />
+                                 </VBox.margin>
+                              </CheckBox>
+                              <Hyperlink text="Link Account To Steam...">
+                                 <VBox.margin>
+                                    <Insets left="20.0" />
+                                 </VBox.margin>
+                              </Hyperlink>
+                           </children>
+                        </VBox>
+                     </content>
+                  </TitledPane>
+                  <TitledPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Chat">
+                     <content>
+                        <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" prefHeight="200.0" rotate="90.0">
+                           <children>
+                              <Button mnemonicParsing="false" text="Clear Window">
+                                 <VBox.margin>
+                                    <Insets />
+                                 </VBox.margin>
+                              </Button>
+                              <CheckBox mnemonicParsing="false" text="Colored Nicknames">
+                                 <VBox.margin>
+                                    <Insets top="5.0" />
+                                 </VBox.margin>
+                              </CheckBox>
+                              <CheckBox mnemonicParsing="false" text="Join Parts">
+                                 <VBox.margin>
+                                    <Insets top="5.0" />
+                                 </VBox.margin>
+                              </CheckBox>
+                              <CheckBox mnemonicParsing="false" text="Friend Replays">
+                                 <VBox.margin>
+                                    <Insets top="5.0" />
+                                 </VBox.margin>
+                              </CheckBox>
+                              <CheckBox mnemonicParsing="false" text="Team Invitations">
+                                 <VBox.margin>
+                                    <Insets top="5.0" />
+                                 </VBox.margin>
+                              </CheckBox>
+                              <CheckBox mnemonicParsing="false" text="Autojoin Post Game Chat">
+                                 <VBox.margin>
+                                    <Insets top="5.0" />
+                                 </VBox.margin>
+                              </CheckBox>
+                           </children>
+                           <padding>
+                              <Insets left="40.0" />
+                           </padding>
+                        </VBox>
+                     </content>
+                  </TitledPane>
+                  <TitledPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Theme">
+                     <content>
+                        <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" rotate="90.0">
+                           <children>
+                              <Label text="Current Theme :">
+                                 <VBox.margin>
+                                    <Insets left="25.0" top="5.0" />
+                                 </VBox.margin>
+                              </Label>
+                              <HBox>
+                                 <children>
+                                    <ListView />
+                                    <ScrollBar orientation="VERTICAL" />
+                                 </children>
+                              </HBox>
+                              <Label text="Browse :">
+                                 <VBox.margin>
+                                    <Insets left="25.0" top="5.0" />
+                                 </VBox.margin>
+                              </Label>
+                              <HBox alignment="CENTER_LEFT">
+                                 <children>
+                                    <TextField />
+                                    <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="28.0" text="..." />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </content>
+                  </TitledPane>
+               </children>
+            </VBox>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>
