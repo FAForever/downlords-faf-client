@@ -177,5 +177,4 @@ public class BaseConfig {
   PatchService patchService() {
     return new GitRepositoryPatchService();
   }
-
 }
