@@ -3,7 +3,7 @@ package com.faforever.client.legacy.update;
 import com.faforever.client.game.ModInfoBean;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.update.UpdateService;
+import com.faforever.client.update.ForgedAllianceUpdateService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.DigestUtils;
@@ -23,7 +23,7 @@ import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
-public class LegacyUpdateService implements UpdateService, UpdateServerResponseListener {
+public class LegacyForgedAllianceUpdateService implements ForgedAllianceUpdateService, UpdateServerResponseListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -46,17 +46,19 @@ public class LegacyUpdateService implements UpdateService, UpdateServerResponseL
   private ServerWriter serverWriter;
 
   @Override
-  public Service<Void> updateInBackground(ModInfoBean modInfoBean, Callback<Void> callback) {
+  public Service<Void> updateInBackground(String modName, Callback<Void> callback) {
     return ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        update( modInfoBean);
+        update( modName);
         return null;
       }
     }, callback);
   }
 
-  private void update(ModInfoBean modInfoBean) throws IOException {
+  private void update(String modName) throws IOException {
+    updateServerAccessor.connect();
+
     String host = environment.getProperty("update.host");
     int port = environment.getProperty("update.port", Integer.class);
 
@@ -69,8 +71,8 @@ public class LegacyUpdateService implements UpdateService, UpdateServerResponseL
 
         startUpdateServerReaderInBackground(updateServerSocket.getInputStream());
 
-        updateServerAccessor.requestBinFilesToUpdate(modInfoBean);
-        updateServerAccessor.requestGameDataFilesToUpdate(modInfoBean);
+        updateServerAccessor.requestBinFilesToUpdate(modName);
+        updateServerAccessor.requestGameDataFilesToUpdate(modName);
       }
     }
   }

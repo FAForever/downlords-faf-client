@@ -193,7 +193,7 @@ public class ServerAccessorImpl implements ServerAccessor,
     serverReader.setOnPlayerInfoListener(this);
     serverReader.setOnFafLoginSucceededListener(this);
     serverReader.setOnModInfoListener(this);
-    serverReader.setOnGameLaunchInfoListenerListener(this);
+    serverReader.setOnGameLaunchInfoListener(this);
     serverReader.setOnFriendListListener(this);
     serverReader.setOnFoeListListener(this);
     serverReader.blockingRead();
@@ -293,7 +293,8 @@ public class ServerAccessorImpl implements ServerAccessor,
         preferencesService.getPreferences().getForgedAlliance().getPort(),
         new boolean[0],
         newGameInfo.getMod(),
-        newGameInfo.getPassword()
+        newGameInfo.getPassword(),
+        newGameInfo.getVersion()
     );
 
     gameLaunchCallback = callback;

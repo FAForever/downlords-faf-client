@@ -25,15 +25,20 @@ import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.Skin;
+import javafx.scene.control.SplitMenuButton;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.util.StringConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.control.CheckComboBox;
@@ -49,8 +54,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 
 public class GamesController implements OnGameInfoListener, OnModInfoListener, CreateGameDialogController.OnCreateGameListener {
 
@@ -334,6 +337,10 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
     });
   }
 
+  public void onShowCreateGamePanelButtonClicked(ActionEvent event) {
+
+  }
+
   private static String extractRating(String title) {
     Matcher matcher = RATING_PATTERN.matcher(title);
     if (matcher.find()) {
@@ -400,8 +407,8 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
                     titleTextField.getText(),
                     passwordTextField.getText(),
                     selectedMod.getName(),
-                    mapComboBox.getValue().getName()
-            )
+                    mapComboBox.getValue().getName(),
+                0)
     );
   }
 

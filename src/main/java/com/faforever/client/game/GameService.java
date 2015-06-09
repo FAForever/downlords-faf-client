@@ -11,5 +11,7 @@ public interface GameService {
 
   void hostGame(NewGameInfo name, Callback<Void> callback);
 
+  void cancelLadderSearch();
+
   void joinGame(GameInfoBean gameInfoBean, String password, Callback<Void> callback);
 }

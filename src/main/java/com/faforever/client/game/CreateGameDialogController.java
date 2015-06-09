@@ -145,7 +145,8 @@ public class CreateGameDialogController {
             titleTextField.getText(),
             passwordTextField.getText(),
             modComboBox.getValue().getName(),
-            mapComboBox.getValue().getName()
+            mapComboBox.getValue().getName(),
+            0
         )
     );
   }

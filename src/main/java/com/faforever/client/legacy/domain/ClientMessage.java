@@ -11,7 +11,7 @@ public class ClientMessage {
   public String uniqueId;
   public String localIp;
   public String session;
-  public String access;
+  public GameAccess access;
   public String mapname;
   public String title;
   public String state;
@@ -72,15 +72,16 @@ public class ClientMessage {
     return clientMessage;
   }
 
-  public static ClientMessage hostGame(GameAccess gameAccess, String mapName, String title, int port, boolean[] options, String mod, String password) {
+  public static ClientMessage hostGame(GameAccess gameAccess, String mapName, String title, int port, boolean[] options, String mod, String password, int version) {
     ClientMessage clientMessage = new ClientMessage();
     clientMessage.command = "game_host";
-    clientMessage.access = gameAccess.getString();
-    clientMessage.mapname = mapName;
-    clientMessage.title = title;
-    clientMessage.gameport = port;
-    clientMessage.mod = mod;
+    clientMessage.access = gameAccess;
     clientMessage.password = password;
+    clientMessage.version = version;
+    clientMessage.mod = mod;
+    clientMessage.title = title;
+    clientMessage.mapname = mapName;
+    clientMessage.gameport = port;
     clientMessage.options = options;
 
     return clientMessage;

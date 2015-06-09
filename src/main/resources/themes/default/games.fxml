@@ -1,28 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import org.controlsfx.control.*?>
-<?import java.lang.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SplitMenuButton?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
-
+<?import org.controlsfx.control.CheckComboBox?>
+<?import org.controlsfx.control.RangeSlider?>
 <VBox fx:id="gamesRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GamesController">
    <children>
     <HBox alignment="BASELINE_LEFT" maxWidth="-Infinity" spacing="10.0">
          <children>
-            <SplitMenuButton fx:id="showCreateGamePanelButton" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" text="Create Game (Forged Alliance Forever)">
+            <SplitMenuButton fx:id="showCreateGamePanelButton" mnemonicParsing="false" onAction="#onShowCreateGamePanelButtonClicked" text="Create Game (Forged Alliance Forever)">
               <items>
                 <MenuItem mnemonicParsing="false" text="Action 1" />
                 <MenuItem mnemonicParsing="false" text="Action 2" />

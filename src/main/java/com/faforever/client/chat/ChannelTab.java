@@ -4,9 +4,9 @@ import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -86,7 +86,10 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
     ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        chatService.getChatUsersForChannel(channelName).values().forEach(ChannelTab.this::onUserJoinedChannel);
+        ObservableMap<String, ChatUser> chatUsersForChannel = chatService.getChatUsersForChannel(channelName);
+        synchronized (chatUsersForChannel) {
+          chatUsersForChannel.values().forEach(ChannelTab.this::onUserJoinedChannel);
+        }
         return null;
       }
     });
@@ -172,8 +175,8 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
       } else {
         // Re-add Plateform.runLater() as soon as RT-40417 is fixed
 //        Platform.runLater(() -> {
-          Map<Pane, ChatUserControl> paneChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
-          pane.getChildren().remove(paneChatUserControlMap.get(pane));
+        Map<Pane, ChatUserControl> paneChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
+        pane.getChildren().remove(paneChatUserControlMap.get(pane));
 //        });
       }
     };

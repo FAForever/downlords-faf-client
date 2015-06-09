@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.update;
 
-import com.faforever.client.legacy.writer.QDataInputStream;
+import com.faforever.client.legacy.writer.QDataReader;
 import com.faforever.client.legacy.relay.RelayServerCommandTypeAdapter;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -38,7 +38,7 @@ class UpdateServerReader implements Closeable {
   }
 
   public void blockingRead() throws IOException {
-    try (QDataInputStream dataInput = new QDataInputStream(new DataInputStream(new BufferedInputStream(inputStream)))) {
+    try (QDataReader dataInput = new QDataReader(new DataInputStream(new BufferedInputStream(inputStream)))) {
       while (!stopped) {
         dataInput.skipBlockSize();
         String action = dataInput.readQString();
@@ -51,7 +51,7 @@ class UpdateServerReader implements Closeable {
     }
   }
 
-  private void dispatchServerCommand(UpdateServerCommand command, QDataInputStream dataInput) throws IOException {
+  private void dispatchServerCommand(UpdateServerCommand command, QDataReader dataInput) throws IOException {
     switch (command) {
       case PATH_TO_SIM_MOD:
         updateServerResponseListener.onSimModPath(dataInput.readQString());
