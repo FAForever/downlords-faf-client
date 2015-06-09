@@ -1,5 +1,6 @@
 package com.faforever.client.legacy.proxy;
 
+import com.faforever.client.legacy.writer.QDataReader;
 import com.faforever.client.legacy.writer.QDataOutputStream;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ConcurrentUtil;
@@ -11,8 +12,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.PostConstruct;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.DatagramPacket;
@@ -31,14 +35,10 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 
-// FIXME socket needs reconnection as well (currently, only information in memory is updated
+// FIXME implement disconnect events
 public class ProxyImpl implements Proxy {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  public static final int START_PORT = 12000;
-
-  public static final int MAX_PLAYERS = 12;
 
   private static final byte[] RECONNECTION_ESCAPE_PREFIX = new byte[]{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
@@ -48,8 +48,8 @@ public class ProxyImpl implements Proxy {
    * Number of bytes per connection tag.
    */
   private static final int TAG_LENGTH = 8;
-  public static final int THEIR_TAG_BEGIN_INDEX = RECONNECTION_ESCAPE_PREFIX.length + 1;
-  public static final int THEIR_TAG_END_INDEX = THEIR_TAG_BEGIN_INDEX + TAG_LENGTH;
+  private static final int THEIR_TAG_BEGIN_INDEX = RECONNECTION_ESCAPE_PREFIX.length + 1;
+  private static final int THEIR_TAG_END_INDEX = THEIR_TAG_BEGIN_INDEX + TAG_LENGTH;
 
   /**
    * This byte marks a connection tag offer. That is, the client tells us "hey, this is my tag".
@@ -108,30 +108,42 @@ public class ProxyImpl implements Proxy {
   public static final int PROXY_UPDATE_INTERVAL = 10000;
   private static final int MAX_TAG_OFFERS = 10;
 
-  private Environment environment;
-  private Map<Integer, Peer> peersByUid;
-  private Map<String, Peer> peersByAddress;
+  /** Number of prefix bytes for writing a QByteArray as a QVariant. */
+  private static final int Q_BYTE_ARRAY_PREFIX_LENGTH = 9;
 
-  private boolean gameLaunched;
-  private boolean bottleneck;
-  private InetAddress localInetAddr;
-
-  /**
-   * Public UDP socket that receives game data (default port 6112).
-   */
-  private DatagramSocket publicSocket;
+  @Autowired
+  Environment environment;
 
   @Autowired
   PreferencesService preferencesService;
-  private final Random random;
 
+  private Map<Integer, Peer> peersByUid;
+  private Map<String, Peer> peersByAddress;
+  private boolean gameLaunched;
+  private boolean bottleneck;
+  private InetAddress localInetAddr;
+  /**
+   * Public UDP socket that receives game data if p2p proxy is enabled (default port 6112).
+   */
+  private DatagramSocket publicSocket;
+  private final Random random;
   private int uid;
-  private Socket proxySocket;
-  private Map<Integer, DatagramSocket> proxySockets;
+  /**
+   * Socket to the FAF proxy server.
+   */
+  private Socket fafProxySocket;
   private long lastProxyDataTimestamp;
   private boolean p2pProxyEnabled;
   private Set<Integer> testedLoopbackPorts;
   private Set<OnProxyInitializedListener> onProxyInitializedListeners;
+
+  /**
+   * Holds UDP sockets that represent other players. Key is the player's number (0 - 11).
+   */
+  private Map<Integer, DatagramSocket> proxySockets;
+  private QDataOutputStream fafProxyOutputStream;
+  private QDataReader fafProxyReader;
+  private int gamePort;
 
   public ProxyImpl() {
     random = new Random();
@@ -140,54 +152,49 @@ public class ProxyImpl implements Proxy {
     localInetAddr = InetAddress.getLoopbackAddress();
     testedLoopbackPorts = new HashSet<>();
     onProxyInitializedListeners = new HashSet<>();
+    proxySockets = new HashMap<>();
   }
 
-  private void openSockets() {
-    // TODO why 12000+? Why opening 12 ports? (I can imagine but find out for sure). Understand what happens and document
-    for (int port = START_PORT; port < START_PORT + MAX_PLAYERS; port++) {
-      try {
-        logger.info("Opening proxy at port {}", port);
+  @PostConstruct
+  void postConstruct() {
+    gamePort = preferencesService.getPreferences().getForgedAlliance().getPort();
+  }
 
-        DatagramSocket proxyPort = new DatagramSocket(new InetSocketAddress(localInetAddr, port));
-        proxySockets.put(port, proxyPort);
-
-        startProxyReader(proxyPort);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+  @Override
+  public void closeSockets() {
+    logger.info("Closing proxy sockets");
+    for (DatagramSocket datagramSocket : proxySockets.values()) {
+      logger.debug("Closing socket {}", datagramSocket.getLocalPort());
+      datagramSocket.close();
     }
+    // FIXME close/disconnect/free proxy sockets
   }
 
-  private void startProxyReader(DatagramSocket peerProxySocket) throws IOException {
+  /**
+   * Reads all incoming UDP data (from FA) of the given socket and forwards it to the FAF proxy.
+   *
+   * @param proxySocket a local UDP socket representing another player
+   */
+  private void startProxyReaderInBackground(int playerNumber, int playerUid, DatagramSocket proxySocket) throws IOException {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        if (p2pProxyEnabled && lastProxyDataTimestamp + PROXY_UPDATE_INTERVAL < System.currentTimeMillis()) {
-          // TODO improve log domain
-          logger.info("Reconnecting to proxy due to no data");
-
-          if (proxySocket != null) {
-            proxySocket.close();
-          }
-          connectToFafProxy();
-
-          lastProxyDataTimestamp = System.currentTimeMillis();
+        if (fafProxySocket != null) {
+          fafProxySocket.close();
         }
+        connectToFafProxy();
 
         byte[] buffer = new byte[1024];
         DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
 
-        while (isCancelled()) {
-          peerProxySocket.receive(datagramPacket);
+        int port = proxySocket.getLocalPort();
 
-          int port = peerProxySocket.getPort();
-          if (testedLoopbackPorts.contains(port)) {
-            testedLoopbackPorts.add(port);
-            // TODO useful logging domain is useful?
-            logger.debug("Forwarding packet to proxy");
-          }
+        while (!isCancelled()) {
+          proxySocket.receive(datagramPacket);
 
-          writToFafProxyServer(port, uid, datagramPacket);
+          logger.trace("Received {} bytes from FA, forwarding to FAF proxy", datagramPacket.getLength(), port);
+
+          writeToFafProxyServer(playerNumber, playerUid, datagramPacket);
         }
 
         return null;
@@ -195,18 +202,17 @@ public class ProxyImpl implements Proxy {
     });
   }
 
-  private void writToFafProxyServer(int port, int uid, DatagramPacket datagramPacket) throws IOException {
-    QDataOutputStream proxyOutputStream = new QDataOutputStream(new DataOutputStream(proxySocket.getOutputStream()));
+  private void writeToFafProxyServer(int playerNumber, int uid, DatagramPacket datagramPacket) throws IOException {
+    byte[] data = Arrays.copyOfRange(datagramPacket.getData(), datagramPacket.getOffset(), datagramPacket.getLength());
 
-    byte[] data = datagramPacket.getData();
+    // Number of bytes for port, uid and QByteArray (prefix stuff plus data length)
+    fafProxyOutputStream.writeInt(Short.BYTES + Short.BYTES + Q_BYTE_ARRAY_PREFIX_LENGTH + data.length );
+    fafProxyOutputStream.writeShort(playerNumber);
+    // WTF: The UID can be larger than 65535 but who cares? Just cut it off, what can possibly happen? -.-
+    fafProxyOutputStream.writeShort(uid);
+    fafProxyOutputStream.writeQByteArray(data);
 
-    // Number of bytes for port, uid and data
-    proxyOutputStream.writeInt(Short.BYTES + Short.BYTES + data.length);
-    proxyOutputStream.writeShort(port);
-    proxyOutputStream.writeShort(uid);
-    proxyOutputStream.writeRaw(data);
-
-    proxyOutputStream.flush();
+    fafProxyOutputStream.flush();
   }
 
   private void connectToFafProxy() throws IOException {
@@ -215,22 +221,50 @@ public class ProxyImpl implements Proxy {
 
     logger.info("Connecting to FAF proxy at {}:{}", proxyHost, proxyPort);
 
-    proxySocket = new Socket();
-    proxySocket.setTcpNoDelay(true);
-    proxySocket.connect(new InetSocketAddress(proxyHost, proxyPort), PROXY_CONNECTION_TIMEOUT);
+    fafProxySocket = new Socket();
+    fafProxySocket.setTcpNoDelay(true);
+    fafProxySocket.connect(new InetSocketAddress(proxyHost, proxyPort), PROXY_CONNECTION_TIMEOUT);
 
-    logger.info("Proxy connection successful");
+    fafProxyOutputStream = new QDataOutputStream(new BufferedOutputStream(fafProxySocket.getOutputStream()));
+    fafProxyReader = new QDataReader(new DataInputStream(new BufferedInputStream(fafProxySocket.getInputStream())));
 
-    sendUid(proxySocket, uid);
+    sendUid(uid);
+    startFafProxyReaderInBackground();
   }
 
-  private void sendUid(Socket proxySocket, int uid) throws IOException {
+  private void startFafProxyReaderInBackground() {
+    ConcurrentUtil.executeInBackground(new Task<Void>() {
+      @Override
+      protected Void call() throws Exception {
+        byte[] payloadBuffer = new byte[1024];
+        byte[] datagramBuffer = new byte[1024];
+        DatagramPacket datagramPacket = new DatagramPacket(datagramBuffer, datagramBuffer.length);
+        datagramPacket.setSocketAddress(new InetSocketAddress(localInetAddr, gamePort));
+
+        while (!isCancelled()) {
+          int blockSize = fafProxyReader.readInt32();
+
+
+          int playerNumber = fafProxyReader.readShort();
+
+          int payloadSize = fafProxyReader.readQByteArray(payloadBuffer);
+
+          logger.trace("Received {} bytes from FAF proxy, forwarding to FA", payloadSize);
+
+          datagramPacket.setData(payloadBuffer, 0, payloadSize);
+          proxySockets.get(playerNumber).send(datagramPacket);
+        }
+        return null;
+      }
+    });
+  }
+
+  private void sendUid(int uid) throws IOException {
     logger.debug("Sending UID to server: {}", uid);
 
-    QDataOutputStream proxyOutputStream = new QDataOutputStream(new DataOutputStream(proxySocket.getOutputStream()));
-    proxyOutputStream.writeInt(Short.BYTES);
-    proxyOutputStream.writeShort(uid);
-    proxyOutputStream.flush();
+    fafProxyOutputStream.writeInt(Short.BYTES);
+    fafProxyOutputStream.writeShort(uid);
+    fafProxyOutputStream.flush();
   }
 
   @Override
@@ -275,7 +309,7 @@ public class ProxyImpl implements Proxy {
   @Override
   public void registerPeerIfNecessary(String publicAddress) {
     if (peersByAddress.containsKey(publicAddress)) {
-      logger.debug("Peer '{}' is already registered, ign", publicAddress);
+      logger.debug("Peer '{}' is already registered", publicAddress);
       return;
     }
 
@@ -297,9 +331,7 @@ public class ProxyImpl implements Proxy {
   }
 
   @Override
-  public void initialize() throws SocketException {
-    int gamePort = preferencesService.getPreferences().getForgedAlliance().getPort();
-
+  public void initializeP2pProxy() throws SocketException {
     publicSocket = new DatagramSocket(gamePort);
     readPublicSocketInBackground(publicSocket);
 
@@ -327,20 +359,25 @@ public class ProxyImpl implements Proxy {
 
   @Override
   public int getPort() {
-    return 0;
+    throw new UnsupportedOperationException("Not yet implemented");
   }
 
   @Override
-  public InetSocketAddress bindSocket(int port, int uid) throws IOException {
-    InetSocketAddress inetSocketAddress = new InetSocketAddress(localInetAddr, port);
+  public InetSocketAddress bindAndGetProxySocketAddress(int playerNumber, int playerUid) throws IOException {
+    logger.debug("Opening proxy socket for player #{} with uid {}", playerNumber, playerUid);
 
-    logger.debug("Binding socket '{}' for uid '{}'", inetSocketAddress, uid);
+    DatagramSocket proxySocket = new DatagramSocket(new InetSocketAddress(localInetAddr, 0));
+    InetSocketAddress proxySocketAddress = (InetSocketAddress) proxySocket.getLocalSocketAddress();
 
-    if (proxySocket == null || !proxySocket.isConnected()) {
-      connectToFafProxy();
-    }
+    proxySockets.put(playerNumber, proxySocket);
 
-    return (InetSocketAddress) proxySockets.get(port).getLocalSocketAddress();
+    logger.debug("Player #{} with uid {} has been assigned to proxy socket {}",
+        playerNumber, playerUid, SocketAddressUtil.toString(proxySocketAddress)
+    );
+
+    startProxyReaderInBackground(playerNumber, playerUid, proxySocket);
+
+    return proxySocketAddress;
   }
 
   @Override

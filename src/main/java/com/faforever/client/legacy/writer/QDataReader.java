@@ -7,16 +7,16 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-public class QDataInputStream extends Reader {
+public class QDataReader extends Reader {
 
   private DataInput dataInput;
   private Charset charset;
 
-  public QDataInputStream(DataInput dataInput) {
+  public QDataReader(DataInput dataInput) {
     this(dataInput, StandardCharsets.UTF_16BE);
   }
 
-  public QDataInputStream(DataInput dataInput, Charset charset) {
+  public QDataReader(DataInput dataInput, Charset charset) {
     this.dataInput = dataInput;
     this.charset = charset;
   }
@@ -51,13 +51,22 @@ public class QDataInputStream extends Reader {
     dataInput.skipBytes(Integer.SIZE / Byte.SIZE);
   }
 
-  public String readRaw(int size) throws IOException {
-    byte[] buffer = new byte[size];
-    dataInput.readFully(buffer);
-    return new String(buffer, charset);
+  public int readShort() throws IOException {
+    return dataInput.readUnsignedShort();
   }
 
-  public boolean readBoolean() throws IOException {
-    return dataInput.readBoolean();
+  /**
+   * @return the number of bytes read
+   */
+  public int readQByteArray(byte[] buffer) throws IOException {
+    // Skip first 4 bytes that tell us this is a QByteArray as well as the 1-byte null flag
+    dataInput.skipBytes(5);
+    int arraySize = dataInput.readInt();
+    if (arraySize == 0xffffffff) {
+      // 0xffffffff means the array is null
+      return 0;
+    }
+    dataInput.readFully(buffer, 0, arraySize);
+    return arraySize;
   }
 }

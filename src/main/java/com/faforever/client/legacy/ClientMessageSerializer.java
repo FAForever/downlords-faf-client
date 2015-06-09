@@ -1,8 +1,11 @@
 package com.faforever.client.legacy;
 
 import com.faforever.client.legacy.domain.ClientMessage;
+import com.faforever.client.legacy.domain.GameAccess;
+import com.faforever.client.legacy.gson.GameClassTypeAdapter;
 import com.faforever.client.legacy.writer.JsonSerializer;
 import com.faforever.client.legacy.writer.QStreamWriter;
+import com.google.gson.GsonBuilder;
 import javafx.beans.property.StringProperty;
 
 import java.io.IOException;
@@ -25,5 +28,10 @@ public class ClientMessageSerializer extends JsonSerializer<ClientMessage> {
   protected void appendMore(QStreamWriter qStreamWriter) throws IOException {
     qStreamWriter.append(username);
     qStreamWriter.append(sessionIdProperty.get());
+  }
+
+  @Override
+  protected void addTypeAdapters(GsonBuilder gsonBuilder) {
+    gsonBuilder.registerTypeAdapter(GameAccess.class, new GameClassTypeAdapter());
   }
 }

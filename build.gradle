@@ -14,6 +14,7 @@ idea {
   project {
     jdkName = JavaVersion.VERSION_1_8
     languageLevel = JavaVersion.VERSION_1_8
+    vcs = 'Git'
   }
   module {
     downloadJavadoc = false

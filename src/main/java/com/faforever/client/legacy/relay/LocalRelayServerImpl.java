@@ -72,11 +72,11 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
                FaDataInputStream supComInput = createFaInputStream(supComSocket.getInputStream());
                FaDataOutputStream faOutputStream = createFaOutputStream(supComSocket.getOutputStream());
                ServerWriter serverWriter = createServerWriter(fafSocket);
-               RelayServerReader relayServerReader = new RelayServerReader(fafSocket.getInputStream(), proxyServer, faOutputStream, serverWriter)) {
+               Relayer relayer = new Relayer(fafSocket.getInputStream(), proxyServer, faOutputStream, serverWriter)) {
 
             startFaReader(supComInput, serverWriter);
 
-            relayServerReader.blockingRead();
+            relayer.blockingRead();
           }
         }
       }

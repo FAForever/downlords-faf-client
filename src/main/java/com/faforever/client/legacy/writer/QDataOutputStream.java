@@ -1,57 +1,32 @@
 package com.faforever.client.legacy.writer;
 
-import java.io.Closeable;
-import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Writer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
-public class QDataOutputStream extends Writer {
+public class QDataOutputStream extends DataOutputStream {
 
-  private DataOutput dataOutput;
-  private Charset charset;
+  /**
+   * FAF currently ready/writes QByteArrays as QVariant, which is like the "object writer" for QT. To know what data
+   * type is being read, a "type of the data" number prefixes the data. This constant holds this value.
+   * <p>
+   * See <a href="http://doc.qt.io/qt-4.8/datastreamformat.html">http://doc.qt.io/qt-4.8/datastreamformat.html</a>
+   */
+  private static final int Q_BYTE_ARRAY_DATA_TYPE = 12;
 
-  public QDataOutputStream(DataOutput dataOutput) {
-    this(dataOutput, StandardCharsets.UTF_16BE);
+  public QDataOutputStream(OutputStream outputStream) {
+    super(outputStream);
   }
 
-  public QDataOutputStream(DataOutput dataOutput, Charset charset) {
-    this.dataOutput = dataOutput;
-    this.charset = charset;
-  }
+  public void writeQByteArray(byte[] data) throws IOException {
+    writeInt(Q_BYTE_ARRAY_DATA_TYPE);
+    writeByte(0);
 
-  @Override
-  public void write(char[] cbuf, int off, int len) throws IOException {
-    dataOutput.write(new String(cbuf).getBytes(charset), off, len);
-  }
-
-  @Override
-  public void flush() throws IOException {
-    ((OutputStream) dataOutput).flush();
-  }
-
-  @Override
-  public void close() throws IOException {
-    if (dataOutput instanceof Closeable) {
-      ((Closeable) dataOutput).close();
+    if (data == null) {
+      writeInt(Integer.MAX_VALUE);
+    } else {
+      writeInt(data.length);
+      write(data);
     }
-  }
-
-  public void writeInt(int value) throws IOException {
-    dataOutput.writeInt(value);
-  }
-
-  public void writeRaw(byte[] bytes) throws IOException {
-    dataOutput.write(bytes);
-  }
-
-  public void writeBoolean(boolean value) throws IOException {
-    dataOutput.writeBoolean(value);
-  }
-
-  public void writeShort(int uid) throws IOException {
-    dataOutput.writeShort(uid);
   }
 }

@@ -5,6 +5,7 @@
   <logger name="com.faforever.client.map" level="warn"/>
   <logger name="com.faforever.client.legacy" level="warn"/>
   <logger name="com.faforever.client.legacy.map" level="warn"/>
+  <logger name="com.faforever.client.legacy.writer" level="warn"/>
   <logger name="com.faforever.client.legacy.relay" level="warn"/>
   <logger name="com.faforever.client.legacy.proxy" level="warn"/>
   <logger name="com.faforever.client.chat" level="warn"/>

@@ -16,7 +16,7 @@ import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
 import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
-import com.faforever.client.legacy.writer.QDataInputStream;
+import com.faforever.client.legacy.writer.QDataReader;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -45,7 +45,7 @@ class ServerReader {
   private OnGameInfoListener onGameInfoListener;
   private OnPlayerInfoListener onPlayerInfoListener;
   private OnPingListener onPingListener;
-  private OnGameLaunchInfoListener onGameLaunchInfoListenerListener;
+  private OnGameLaunchInfoListener onGameLaunchInfoListener;
   private OnFafLoginSucceededListener onFafLoginSucceededListener;
   private OnModInfoListener onModInfoListener;
   private OnFriendListListener onFriendListListener;
@@ -68,7 +68,7 @@ class ServerReader {
    * {@link ServerObject}</li> </ol> I'm not yet happy with those terms, so any suggestions are welcome.
    */
   public void blockingRead() throws IOException {
-    try (QDataInputStream dataInput = new QDataInputStream(new DataInputStream(new BufferedInputStream(socket.getInputStream())))) {
+    try (QDataReader dataInput = new QDataReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())))) {
 
       while (!stopped && !socket.isInputShutdown()) {
         dataInput.skipBlockSize();
@@ -86,7 +86,7 @@ class ServerReader {
     logger.info("Connection to server {} has been closed", socket.getRemoteSocketAddress());
   }
 
-  private void dispatchServerMessage(QDataInputStream socketIn, ServerMessageType serverMessageType) throws IOException {
+  private void dispatchServerMessage(QDataReader socketIn, ServerMessageType serverMessageType) throws IOException {
     switch (serverMessageType) {
       case PING:
         onPingListener.onServerPing();
@@ -151,7 +151,7 @@ class ServerReader {
 
         case GAME_LAUNCH:
           GameLaunchInfo gameLaunchInfo = gson.fromJson(jsonString, GameLaunchInfo.class);
-          onGameLaunchInfoListenerListener.onGameLaunchInfo(gameLaunchInfo);
+          onGameLaunchInfoListener.onGameLaunchInfo(gameLaunchInfo);
           break;
 
         case MOD_INFO:
@@ -208,8 +208,8 @@ class ServerReader {
     this.onFafLoginSucceededListener = onFafLoginSucceededListener;
   }
 
-  public void setOnGameLaunchInfoListenerListener(OnGameLaunchInfoListener onGameLaunchInfoListenerListener) {
-    this.onGameLaunchInfoListenerListener = onGameLaunchInfoListenerListener;
+  public void setOnGameLaunchInfoListener(OnGameLaunchInfoListener onGameLaunchInfoListener) {
+    this.onGameLaunchInfoListener = onGameLaunchInfoListener;
   }
 
   public void setOnModInfoListener(OnModInfoListener onModInfoListener) {

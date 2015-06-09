@@ -7,16 +7,16 @@ import java.util.Map;
  * Enumeration of known server commands (the "command" part of a server domain).
  */
 enum RelayServerCommand {
-  PING("ping"),
-  HOST_GAME("HostGame"),
-  SEND_NAT_PACKET("SendNatPacket"),
-  P2P_RECONNECT("P2pReconnect"),
-  JOIN_GAME("JoinGame"),
-  CONNECT_TO_PEER("ConnectToPeer"),
-  CREATE_LOBBY("CreateLobby"),
-  DISCONNECT_FROM_PEER("DisconnectFromPeer"),
-  CONNECT_TO_PROXY("ConnectToProxy"),
-  JOIN_PROXY("JoinProxy");
+  PING("ping", 0),
+  HOST_GAME("HostGame", 0),
+  SEND_NAT_PACKET("SendNatPacket", 1),
+  P2P_RECONNECT("P2pReconnect", 0),
+  JOIN_GAME("JoinGame", 3),
+  CONNECT_TO_PEER("ConnectToPeer", 3),
+  CREATE_LOBBY("CreateLobby", 4),
+  DISCONNECT_FROM_PEER("DisconnectFromPeer", 0),
+  CONNECT_TO_PROXY("ConnectToProxy", 4),
+  JOIN_PROXY("JoinProxy", 4);
 
   private static final Map<String, RelayServerCommand> fromString;
 
@@ -27,14 +27,21 @@ enum RelayServerCommand {
     }
   }
 
+  private final int numberOfArgs;
+
   private String string;
 
-  RelayServerCommand(String string) {
+  RelayServerCommand(String string, int numberOfArgs) {
     this.string = string;
+    this.numberOfArgs = numberOfArgs;
   }
 
   public String getString() {
     return string;
+  }
+
+  public int getNumberOfArgs() {
+    return numberOfArgs;
   }
 
   public static RelayServerCommand fromString(String string) {

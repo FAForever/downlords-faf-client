@@ -43,16 +43,18 @@ public class FaDataOutputStream extends OutputStream {
     outputStream.writeByte(b);
   }
 
-  public void writeChunks(List<Object> chunks) throws IOException {
-    writeInt(chunks.size());
+  public void writeArgs(List<Object> args) throws IOException {
+    writeInt(args.size());
 
-    for (Object chunk : chunks) {
-      if (chunk instanceof Double) {
-        int value = ((Double) chunk).intValue();
+    for (Object arg : args) {
+      if (arg instanceof Double) {
         writeByte(FIELD_TYPE_INT);
-        writeInt(value);
+        writeInt(((Double) arg).intValue());
+      } else if (arg instanceof Integer) {
+        writeByte(FIELD_TYPE_INT);
+        writeInt((int) arg);
       } else {
-        String value = (String) chunk;
+        String value = (String) arg;
         writeByte(FIELD_TYPE_STRING);
         writeInt(value.length());
         writeString(value);
@@ -60,18 +62,21 @@ public class FaDataOutputStream extends OutputStream {
     }
   }
 
-  public void writeUdpChunks(List<Object> chunks) throws IOException {
-    writeInt(chunks.size());
+  public void writeUdpArgs(List<Object> args) throws IOException {
+    writeInt(args.size());
 
     boolean isFollowingString = false;
 
-    for (Object chunk : chunks) {
-      if (chunk instanceof Double) {
-        int value = ((Double) chunk).intValue();
+    for (Object arg : args) {
+      if (arg instanceof Double) {
+        int value = ((Double) arg).intValue();
         writeByte(FIELD_TYPE_INT);
         writeInt(value);
+      } else if(arg instanceof Integer) {
+        writeByte(FIELD_TYPE_INT);
+        writeInt((int) arg);
       } else {
-        String value = ((String) chunk).replace("\t", "/t").replace("\n", "/n");
+        String value = ((String) arg).replace("\t", "/t").replace("\n", "/n");
 
         if (isFollowingString) {
           value = DELIMITER + value;
