@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import org.controlsfx.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.text.*?>
 <?import java.lang.*?>
 <?import javafx.geometry.*?>
@@ -7,18 +9,16 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox fx:id="mainRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="500.0" minWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
+<VBox fx:id="mainRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="584.0" minWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
   <children>
-      <HBox fx:id="mainNavigation" alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="main-navigation" VBox.vgrow="NEVER">
+      <HBox fx:id="mainNavigation" alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="main-navigation">
          <children>
             <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
               <items>
                   <MenuItem mnemonicParsing="false" text="%menu.support" />
-                  <MenuItem mnemonicParsing="false" text="%menu.settings" />
                   <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem mnemonicParsing="false" text="%menu.feedback" />
                   <SeparatorMenuItem mnemonicParsing="false" />
-                <MenuItem mnemonicParsing="false" text="%menu.logOut" />
                 <MenuItem mnemonicParsing="false" text="%menu.exit" />
               </items>
                <HBox.margin>
@@ -37,22 +37,181 @@
             <Pane HBox.hgrow="ALWAYS" />
             <MenuButton fx:id="usernameButton" focusTraversable="false" mnemonicParsing="false" styleClass="username-button" text="Username">
               <items>
-                <MenuItem mnemonicParsing="false" text="Action 1" />
-                <MenuItem mnemonicParsing="false" text="Action 2" />
+                <MenuItem mnemonicParsing="false" text="%menu.logOut" />
+                  <MenuItem mnemonicParsing="false" text="My Stats" />
+                  <MenuItem mnemonicParsing="false" text="Change Avatar" />
               </items>
                <HBox.margin>
                   <Insets />
                </HBox.margin>
             </MenuButton>
+            <ImageView fx:id="settingsButton" fitHeight="16.0" fitWidth="16.0" onMouseClicked="#openSettingsDialogue" pickOnBounds="true" preserveRatio="true" styleClass="main-menu-button">
+               <HBox.margin>
+                  <Insets left="2.0" right="8.0" />
+               </HBox.margin>
+               <image>
+                  <Image url="@images/gear.png" />
+               </image>
+            </ImageView>
          </children>
-         <VBox.margin>
-            <Insets />
-         </VBox.margin>
          <padding>
             <Insets bottom="12.0" top="12.0" />
          </padding>
       </HBox>
-      <AnchorPane fx:id="contentPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS" />
+      <VBox fx:id="settingsPanel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" visible="false" VBox.vgrow="ALWAYS">
+         <children>
+            <HBox alignment="BOTTOM_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+               <children>
+                  <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
+                     <items>
+                        <MenuItem mnemonicParsing="false" text="%menu.support" />
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                        <MenuItem mnemonicParsing="false" text="%menu.feedback" />
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                        <MenuItem mnemonicParsing="false" text="%menu.exit" />
+                     </items>
+                     <HBox.margin>
+                        <Insets left="20.0" top="18.0" />
+                     </HBox.margin>
+                  </MenuButton>
+                  <Label styleClass="mimik" text="Settings">
+                     <HBox.margin>
+                        <Insets bottom="1.0" left="25.0" />
+                     </HBox.margin>
+                  </Label>
+                  <Pane HBox.hgrow="ALWAYS" />
+                  <MenuButton fx:id="usernameButton1" focusTraversable="false" mnemonicParsing="false" styleClass="username-button" text="Username">
+                     <items>
+                        <MenuItem mnemonicParsing="false" text="%menu.logOut" />
+                        <MenuItem mnemonicParsing="false" text="My Stats" />
+                        <MenuItem mnemonicParsing="false" text="Change Avatar" />
+                     </items>
+                     <HBox.margin>
+                        <Insets bottom="1.0" right="2.0" />
+                     </HBox.margin>
+                  </MenuButton>
+                  <ImageView fx:id="settingsButton1" fitHeight="16.0" fitWidth="16.0" onMouseClicked="#closeSettingsDialogue" pickOnBounds="true" preserveRatio="true" styleClass="main-menu-button">
+                     <image>
+                        <Image url="@images/gear.png" />
+                     </image>
+                     <HBox.margin>
+                        <Insets bottom="8.0" right="8.0" />
+                     </HBox.margin>
+                  </ImageView>
+               </children>
+            </HBox>
+            <ImageView fitHeight="22.0" fitWidth="649.0" opacity="0.17" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@images/Untitled-2.png" />
+               </image>
+               <VBox.margin>
+                  <Insets left="50.0" />
+               </VBox.margin>
+            </ImageView>
+            <VBox>
+               <children>
+                  <Label text="Settings">
+                     <VBox.margin>
+                        <Insets bottom="9.0" top="9.0" />
+                     </VBox.margin>
+                  </Label>
+                  <HBox>
+                     <children>
+                        <VBox>
+                           <children>
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="stuff" />
+                              <RadioButton mnemonicParsing="false" text="More Stuff" />
+                           </children>
+                        </VBox>
+                        <VBox>
+                           <children>
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="stuff" />
+                              <RadioButton mnemonicParsing="false" text="More Stuff" />
+                           </children>
+                        </VBox>
+                        <VBox>
+                           <children>
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="stuff" />
+                              <RadioButton mnemonicParsing="false" text="More Stuff" />
+                           </children>
+                        </VBox>
+                        <VBox>
+                           <children>
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="stuff" />
+                              <RadioButton mnemonicParsing="false" text="More Stuff" />
+                           </children>
+                        </VBox>
+                        <VBox>
+                           <children>
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="stuff" />
+                              <RadioButton mnemonicParsing="false" text="More Stuff" />
+                           </children>
+                        </VBox>
+                        <VBox>
+                           <children>
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="stuff" />
+                              <RadioButton mnemonicParsing="false" text="More Stuff" />
+                           </children>
+                        </VBox>
+                        <VBox>
+                           <children>
+                              <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="stuff" />
+                              <RadioButton mnemonicParsing="false" text="More Stuff" />
+                           </children>
+                        </VBox>
+                     </children>
+                  </HBox>
+                  <Separator prefWidth="200.0">
+                     <VBox.margin>
+                        <Insets top="9.0" />
+                     </VBox.margin>
+                  </Separator>
+                  <Label text="Lots of Settings">
+                     <VBox.margin>
+                        <Insets bottom="9.0" top="9.0" />
+                     </VBox.margin>
+                  </Label>
+               </children>
+            </VBox>
+            <HBox>
+               <children>
+                  <CheckBox mnemonicParsing="false" text="CheckBox" />
+                  <CheckBox mnemonicParsing="false" text="CheckBox" />
+                  <CheckBox mnemonicParsing="false" text="CheckBox" />
+                  <CheckBox mnemonicParsing="false" text="CheckBox" />
+                  <CheckBox mnemonicParsing="false" text="CheckBox" />
+                  <CheckBox mnemonicParsing="false" text="CheckBox" />
+                  <CheckBox mnemonicParsing="false" text="CheckBox" />
+               </children>
+            </HBox>
+            <Separator prefWidth="200.0" />
+            <Pane maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" />
+            <HBox>
+               <children>
+                  <Pane maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+                  <Button maxWidth="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#closeSettingsDialogue" prefWidth="90.0" text="OK" HBox.hgrow="ALWAYS">
+                     <HBox.margin>
+                        <Insets top="3.0" />
+                     </HBox.margin>
+                  </Button>
+                  <Button maxWidth="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#closeSettingsDialogue" prefWidth="90.0" text="Cancel" HBox.hgrow="ALWAYS">
+                     <HBox.margin>
+                        <Insets left="10.0" top="3.0" />
+                     </HBox.margin>
+                  </Button>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <ImageView fx:id="underMenuHat" fitHeight="22.0" fitWidth="649.0" opacity="0.17" pickOnBounds="true" preserveRatio="true" translateY="-18.0">
+         <image>
+            <Image url="@images/Untitled-2.png" />
+         </image>
+         <VBox.margin>
+            <Insets left="50.0" />
+         </VBox.margin>
+      </ImageView>
+      <AnchorPane fx:id="contentPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" translateY="-30.0" VBox.vgrow="ALWAYS" />
       <HBox minHeight="20.0" styleClass="status-bar">
          <children>
             <Label fx:id="natStatusLabel" styleClass="status-bar-label" text="%statusbar.nat" />

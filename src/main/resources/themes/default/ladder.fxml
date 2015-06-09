@@ -7,9 +7,9 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<TabPane fx:id="ladderRoot" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.leaderboard.LadderController">
+<TabPane fx:id="ladderRoot" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.leaderboard.LadderController">
   <tabs>
-    <Tab fx:id="ladderByRatingTab" text="By Ladder Rating">
+    <Tab fx:id="ladderByRatingTab" styleClass="mimiktab" text="By Ladder Rating">
       <content>
             <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                <children>
@@ -28,7 +28,7 @@
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                      </columnResizePolicy>
                   </TableView>
-                  <Slider fx:id="ratingSlider" blockIncrement="1000.0" majorTickUnit="1000.0" max="10000.0" min="0.0" minorTickCount="0" showTickLabels="true" showTickMarks="true" value="0.0" VBox.vgrow="NEVER">
+                  <Slider fx:id="ratingSlider" blockIncrement="1000.0" majorTickUnit="1000.0" max="6680.0" min="0.0" minorTickCount="0" showTickLabels="true" showTickMarks="true" value="0.0" VBox.vgrow="NEVER">
                      <VBox.margin>
                         <Insets top="5.0" />
                      </VBox.margin>
@@ -39,13 +39,13 @@
             </VBox>
       </content>
     </Tab>
-    <Tab fx:id="ladderByMapTab" text="By Map">
+    <Tab fx:id="ladderByMapTab" styleClass="mimiktab" text="By Map">
       <content>
-            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
+            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="-Infinity">
                <children>
                   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
                      <children>
-                        <ImageView fx:id="mapImageView" fitHeight="256.0" fitWidth="256.0" pickOnBounds="true" preserveRatio="true" />
+                        <ImageView fx:id="mapImageView" fitHeight="90.0" fitWidth="90.0" pickOnBounds="true" preserveRatio="true" />
                         <Label fx:id="MapStatsMapName" text="Map Name" />
                         <Label fx:id="MapStatsGamesPlayed" text="Games Played on This Map" />
                         <Label fx:id="MapStatsDrawPecrcent" text="Percentage of Games ended in a Draw" />
@@ -66,7 +66,7 @@
                </children></HBox>
       </content>
     </Tab>
-      <Tab fx:id="ladderByRankTab" text="By Rank">
+      <Tab fx:id="ladderByRankTab" styleClass="mimiktab" text="By Rank">
          <content>
             <Label text="We're debating implementing this.">
                <font>

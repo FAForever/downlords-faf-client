@@ -1,5 +1,7 @@
 package com.faforever.client.preferences;
 
+import java.util.List;
+
 public class Preferences {
 
   private WindowPrefs mainWindow;
@@ -46,4 +48,6 @@ public class Preferences {
   public String getLastMap() {
     return lastMap;
   }
+
+  public List<String> lastMods;
 }

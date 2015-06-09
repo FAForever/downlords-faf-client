@@ -32,11 +32,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.awt.MenuItem;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
@@ -83,6 +87,18 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @FXML
   MenuButton usernameButton;
 
+  @FXML
+  MenuButton usernameButton1;
+
+  @FXML
+  ImageView settingsButton;
+
+  @FXML
+  VBox settingsPanel;
+
+  @FXML
+  ImageView underMenuHat;
+
   @Autowired
   NewsController newsController;
 
@@ -124,6 +140,28 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   private Stage stage;
 
+  @FXML
+  void initialize() {
+    settingsPanel.managedProperty().bind(settingsPanel.visibleProperty());
+    contentPane.managedProperty().bind(contentPane.visibleProperty());
+    mainNavigation.managedProperty().bind(mainNavigation.visibleProperty());
+    underMenuHat.managedProperty().bind(underMenuHat.visibleProperty());
+  }
+
+  public void openSettingsDialogue(){
+    settingsPanel.visibleProperty().setValue(true);
+    contentPane.visibleProperty().setValue(false);
+    mainNavigation.visibleProperty().setValue(false);
+    underMenuHat.visibleProperty().setValue(false);
+  }
+
+  public void closeSettingsDialogue() {
+    settingsPanel.visibleProperty().setValue(false);
+    contentPane.visibleProperty().setValue(true);
+    mainNavigation.visibleProperty().setValue(true);
+    underMenuHat.visibleProperty().setValue(true);
+  }
+
   public void display(Stage stage) {
     this.stage = stage;
 
@@ -145,6 +183,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     registerWindowPreferenceListeners(stage, mainWindowPrefs);
 
     usernameButton.setText(userService.getUsername());
+    usernameButton1.setText(userService.getUsername());
 
     checkUdpPort();
     checkForFafUpdate();
