@@ -15,7 +15,6 @@ import com.faforever.client.legacy.ladder.LadderParser;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.util.UID;
@@ -55,17 +54,12 @@ public class ServerAccessorImpl implements ServerAccessor,
   private static final int VERSION = 123;
   private static final long RECONNECT_DELAY = 3000;
   private static final String PONG = "PONG";
-  private static final int MAX_LEADERBOARD_ENTRIES = 100_000;
-  private static final String LEADERBOARD_1V1 = "1v1";
 
   @Autowired
   Environment environment;
 
   @Autowired
   PreferencesService preferencesService;
-
-  @Autowired
-  UserService userService;
 
   @Autowired
   LadderParser ladderParser;

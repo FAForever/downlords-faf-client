@@ -20,9 +20,6 @@ import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.legacy.proxy.ProxyImpl;
 import com.faforever.client.legacy.relay.LocalRelayServer;
 import com.faforever.client.legacy.relay.LocalRelayServerImpl;
-import com.faforever.client.legacy.update.LegacyForgedAllianceUpdateService;
-import com.faforever.client.legacy.update.UpdateServerAccessor;
-import com.faforever.client.legacy.update.UpdateServerAccessorImpl;
 import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.lobby.LobbyServiceImpl;
 import com.faforever.client.mod.ModService;
@@ -36,7 +33,6 @@ import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.supcom.ForgedAllianceServiceImpl;
-import com.faforever.client.update.ForgedAllianceUpdateService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
 import com.faforever.client.vault.VaultController;
@@ -180,15 +176,5 @@ public class BaseConfig {
   @Bean
   PatchService patchService() {
     return new GitRepositoryPatchService();
-  }
-
-  @Bean
-  ForgedAllianceUpdateService forgedAllianceUpdateService() {
-    return new LegacyForgedAllianceUpdateService();
-  }
-
-  @Bean
-  UpdateServerAccessor updateServerAccessor() {
-    return new UpdateServerAccessorImpl();
   }
 }

@@ -5,7 +5,6 @@ import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.supcom.ForgedAllianceService;
-import com.faforever.client.update.ForgedAllianceUpdateService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
@@ -32,9 +31,6 @@ public class GameServiceImpl implements GameService {
 
   @Autowired
   ForgedAllianceService forgedAllianceService;
-
-  @Autowired
-  ForgedAllianceUpdateService forgedAllianceUpdateService;
 
   @Autowired
   Proxy proxy;
