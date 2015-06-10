@@ -35,12 +35,16 @@ public class PreferencesService {
   private final Path preferencesFilePath;
   private final Gson gson;
   private Preferences preferences;
+
+  /**
+   * @see #storeInBackground()
+   */
   private final Timer timer;
   private TimerTask storeInBackgroundTask;
   private Repository fafRepoDirectory;
 
   public PreferencesService() {
-    this.preferencesFilePath = getPreferencesFilePath();
+    this.preferencesFilePath = getPreferencesDirectory().resolve(PREFS_FILE_NAME);
     timer = new Timer("PrefTimer", true);
     gson = new GsonBuilder()
         .setPrettyPrinting()
@@ -48,7 +52,7 @@ public class PreferencesService {
   }
 
   @PostConstruct
-  void init() throws IOException {
+  void postConstruct() throws IOException {
     if (Files.exists(preferencesFilePath)) {
       deleteFileIfEmpty();
       readExistingFile(preferencesFilePath);
@@ -92,20 +96,24 @@ public class PreferencesService {
     return getFafDataDirectory().resolve("gamedata");
   }
 
-  private Path getPreferencesFilePath() {
-    return getPreferencesDirectory().resolve(PREFS_FILE_NAME);
-  }
-
   public Path getMapsDirectory() {
     return Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance", "Maps");
   }
 
   private void initDefaultPreferences() {
+    if (preferences != null) {
+      throw new IllegalStateException("Preferences have already been initialized");
+    }
+
     logger.debug("Initializing default user preferences");
     preferences = new Preferences();
   }
 
   private void readExistingFile(Path path) {
+    if (preferences != null) {
+      throw new IllegalStateException("Preferences have already been initialized");
+    }
+
     try (Reader reader = Files.newBufferedReader(path, CHARSET)) {
       logger.debug("Reading preferences file {}", preferencesFilePath.toAbsolutePath());
       preferences = gson.fromJson(reader, Preferences.class);
