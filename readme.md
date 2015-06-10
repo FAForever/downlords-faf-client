@@ -1,1 +1,1 @@
-Please see the [project page](http://micheljung.github.io/faf-client-2.0/)
+Please see the [project page](http://micheljung.github.io/downlords-faf-client/)
