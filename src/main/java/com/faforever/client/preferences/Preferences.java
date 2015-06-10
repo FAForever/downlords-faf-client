@@ -49,5 +49,6 @@ public class Preferences {
     return lastMap;
   }
 
+  // FIXME explain tatsu what the correct way of doing this is ;-)
   public List<String> lastMods;
 }

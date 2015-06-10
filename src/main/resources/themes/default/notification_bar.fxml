@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+
+<HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" minHeight="20.0" minWidth="400.0"
+      styleClass="notification-bar" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
+  <children>
+    <Label fx:id="messageLabel" text="Label">
+      <HBox.margin>
+        <Insets left="10.0"/>
+      </HBox.margin>
+    </Label>
+    <HBox fx:id="buttonsPane" alignment="CENTER_RIGHT" HBox.hgrow="SOMETIMES"/>
+    <Button fx:id="closeButton" focusTraversable="false" mnemonicParsing="false">
+      <graphic>
+        <ImageView pickOnBounds="true" preserveRatio="true">
+          <image>
+            <Image url="@images/small_close.png"/>
+          </image>
+        </ImageView>
+      </graphic>
+    </Button>
+  </children>
+</HBox>
