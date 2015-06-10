@@ -3,7 +3,7 @@ package com.faforever.client.taskqueue;
 import javafx.concurrent.Task;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class PriorityAwareTask<V> extends Task<V> implements Comparable<PriorityAwareTask> {
+public abstract class PrioritizedTask<V> extends Task<V> implements Comparable<PrioritizedTask> {
 
   public enum Priority {
     LOW,
@@ -14,17 +14,17 @@ public abstract class PriorityAwareTask<V> extends Task<V> implements Comparable
   private final Priority priority;
   private final long creationTime;
 
-  public PriorityAwareTask() {
+  public PrioritizedTask() {
     this(Priority.MEDIUM);
   }
 
-  public PriorityAwareTask(Priority priority) {
+  public PrioritizedTask(Priority priority) {
     this.priority = priority;
     creationTime = System.currentTimeMillis();
   }
 
   @Override
-  public int compareTo(@NotNull PriorityAwareTask other) {
+  public int compareTo(@NotNull PrioritizedTask other) {
     return priority.compareTo(other.priority);
   }
 }

@@ -3,6 +3,9 @@ package com.faforever.client.map;
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.taskqueue.PrioritizedTask;
+import com.faforever.client.taskqueue.TaskQueueService;
+import com.faforever.client.util.Callback;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
@@ -30,6 +33,7 @@ import java.util.List;
 public class LegacyMapService implements MapService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   private final Gson gson;
 
   @Autowired
@@ -40,6 +44,9 @@ public class LegacyMapService implements MapService {
 
   @Autowired
   HtmlParser htmlParser;
+
+  @Autowired
+  TaskQueueService taskQueueService;
 
   public LegacyMapService() {
     gson = new GsonBuilder().create();
@@ -66,44 +73,40 @@ public class LegacyMapService implements MapService {
   }
 
   @Override
-  public List<MapInfoBean> getMapsFromVault(int page, int maxEntries) {
-    // FIXME to background thread
+  public void getMapsFromVaultInBackground(int page, int maxEntries, Callback<List<MapInfoBean>> callback) {
+    PrioritizedTask<List<MapInfoBean>> task = new PrioritizedTask<List<MapInfoBean>>() {
+      @Override
+      protected List<MapInfoBean> call() throws Exception {
+        MapVaultHtmlContentHandler mapVaultHtmlContentHandler = new MapVaultHtmlContentHandler();
 
-    List<MapInfoBean> maps = FXCollections.observableArrayList();
+        String urlString = environment.getProperty("vault.mapQueryUrl");
+        String params = String.format(environment.getProperty("vault.mapQueryParams"), page, maxEntries);
 
-    MapVaultHtmlContentHandler mapVaultHtmlContentHandler = new MapVaultHtmlContentHandler();
+        URL url = new URL(urlString + "?" + params);
+        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 
-    String urlString = environment.getProperty("vault.mapQueryUrl");
-    String params = String.format(environment.getProperty("vault.mapQueryParams"),
-        page, maxEntries
-    );
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
+          JsonReader jsonReader = new JsonReader(reader);
+          jsonReader.beginObject();
 
-    try {
-      URL url = new URL(urlString + "?" + params);
-      HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+          while (jsonReader.hasNext()) {
+            String key = jsonReader.nextName();
+            if (!"layout".equals(key)) {
+              jsonReader.skipValue();
+              continue;
+            }
 
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
-        JsonReader jsonReader = new JsonReader(reader);
-        jsonReader.beginObject();
-
-        while (jsonReader.hasNext()) {
-          String key = jsonReader.nextName();
-          if (!"layout".equals(key)) {
-            jsonReader.skipValue();
-            continue;
+            String layout = jsonReader.nextString();
+            return htmlParser.parse(layout, mapVaultHtmlContentHandler);
           }
 
-          String layout = jsonReader.nextString();
-          return htmlParser.parse(layout, mapVaultHtmlContentHandler);
+          jsonReader.endObject();
         }
 
-        jsonReader.endObject();
+        throw new IllegalStateException("Map vault could not be read from " + url);
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-
-    return maps;
+    };
+    taskQueueService.submitTask(task, callback);
   }
 
   @Override

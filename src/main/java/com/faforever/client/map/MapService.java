@@ -1,6 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.game.MapInfoBean;
+import com.faforever.client.util.Callback;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 
@@ -12,7 +13,7 @@ public interface MapService {
 
   Image loadLargePreview(String mapName);
 
-  List<MapInfoBean> getMapsFromVault(int page, int maxEntries);
+  void getMapsFromVaultInBackground(int page, int maxEntries, Callback<List<MapInfoBean>> callback);
 
   ObservableList<MapInfoBean> getLocalMaps();
 }

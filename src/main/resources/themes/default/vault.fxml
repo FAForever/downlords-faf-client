@@ -4,11 +4,13 @@
 <?import java.lang.*?>
 <?import javafx.scene.control.*?>
 
-<TabPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.40">
+<TabPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0"
+         prefWidth="600.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.40"
+         xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.vault.VaultController">
   <tabs>
     <Tab text="%vault.maps">
          <content>
-            <TableView prefHeight="200.0" prefWidth="200.0">
+           <TableView fx:id="mapTableView" prefHeight="200.0" prefWidth="200.0">
               <columns>
                 <TableColumn prefWidth="75.0" text="%map.name" />
                 <TableColumn prefWidth="75.0" text="%map.players" />

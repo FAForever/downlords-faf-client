@@ -1,10 +1,10 @@
 package com.faforever.client.taskqueue;
 
+import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 import javafx.concurrent.Task;
 
 import javax.annotation.PostConstruct;
@@ -15,18 +15,20 @@ public class TaskQueueServiceImpl implements TaskQueueService {
   /**
    * Since there is no observable queue in JavaFX, this list serves as target for listeners.
    */
-  private final ObservableList<Task<?>> list;
-  private PriorityBlockingQueue<Task<?>> queue;
+  private final ObservableList<PrioritizedTask<?>> list;
+  private PriorityBlockingQueue<PrioritizedTask<?>> queue;
 
   public TaskQueueServiceImpl() {
     queue = new PriorityBlockingQueue<>();
-    list = new SortedList<>(FXCollections.observableArrayList());
+    list = FXCollections.observableArrayList();
   }
 
   @Override
-  public <T> void submitTask(PriorityAwareTask<T> task) {
+  public <T> void submitTask(PrioritizedTask<T> task, Callback<T> callback) {
+    ConcurrentUtil.setCallbackOnTask(task, callback);
     queue.add(task);
     list.add(task);
+    FXCollections.sort(list);
   }
 
   @Override
@@ -40,13 +42,9 @@ public class TaskQueueServiceImpl implements TaskQueueService {
       @Override
       protected Void call() throws Exception {
         while (!isCancelled()) {
-
-          Task<?> task = queue.take();
-          try {
-            task.run();
-          } finally {
-            list.remove(task);
-          }
+          PrioritizedTask<?> task = queue.take();
+          task.run();
+          list.remove(task);
         }
         return null;
       }
