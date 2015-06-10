@@ -26,6 +26,8 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModServiceImpl;
 import com.faforever.client.network.PortCheckService;
 import com.faforever.client.network.PortCheckServiceImpl;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.patch.GitRepositoryPatchService;
 import com.faforever.client.patch.PatchService;
 import com.faforever.client.player.PlayerService;
@@ -33,6 +35,8 @@ import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.supcom.ForgedAllianceServiceImpl;
+import com.faforever.client.taskqueue.TaskQueueService;
+import com.faforever.client.taskqueue.TaskQueueServiceImpl;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
 import com.faforever.client.vault.VaultController;
@@ -170,11 +174,21 @@ public class BaseConfig {
 
   @Bean
   Proxy proxy() {
-    return new ProxyImpl();
+    return new ProxyImpl(preferencesService().getPreferences().getForgedAlliance());
   }
 
   @Bean
   PatchService patchService() {
     return new GitRepositoryPatchService();
+  }
+
+  @Bean
+  TaskQueueService taskQueueService() {
+    return new TaskQueueServiceImpl();
+  }
+
+  @Bean
+  NotificationService notificationService() {
+    return new NotificationServiceImpl();
   }
 }
