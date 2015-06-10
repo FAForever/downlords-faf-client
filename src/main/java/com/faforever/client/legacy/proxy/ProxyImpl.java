@@ -1,7 +1,8 @@
 package com.faforever.client.legacy.proxy;
 
-import com.faforever.client.legacy.writer.QDataReader;
 import com.faforever.client.legacy.writer.QDataOutputStream;
+import com.faforever.client.legacy.writer.QDataReader;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.SocketAddressUtil;
@@ -12,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
-import javax.annotation.PostConstruct;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -143,9 +143,11 @@ public class ProxyImpl implements Proxy {
   private Map<Integer, DatagramSocket> proxySockets;
   private QDataOutputStream fafProxyOutputStream;
   private QDataReader fafProxyReader;
-  private int gamePort;
+  private ForgedAlliancePrefs forgedAlliancePrefs;
 
-  public ProxyImpl() {
+  public ProxyImpl(ForgedAlliancePrefs forgedAlliancePrefs) {
+    this.forgedAlliancePrefs = forgedAlliancePrefs;
+
     random = new Random();
     peersByUid = new HashMap<>();
     peersByAddress = new HashMap<>();
@@ -153,11 +155,6 @@ public class ProxyImpl implements Proxy {
     testedLoopbackPorts = new HashSet<>();
     onProxyInitializedListeners = new HashSet<>();
     proxySockets = new HashMap<>();
-  }
-
-  @PostConstruct
-  void postConstruct() {
-    gamePort = preferencesService.getPreferences().getForgedAlliance().getPort();
   }
 
   @Override
@@ -179,10 +176,7 @@ public class ProxyImpl implements Proxy {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        if (fafProxySocket != null) {
-          fafProxySocket.close();
-        }
-        connectToFafProxy();
+        ensureFafProxyConnection();
 
         byte[] buffer = new byte[1024];
         DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
@@ -215,7 +209,11 @@ public class ProxyImpl implements Proxy {
     fafProxyOutputStream.flush();
   }
 
-  private void connectToFafProxy() throws IOException {
+  private void ensureFafProxyConnection() throws IOException {
+    if (fafProxySocket != null && fafProxySocket.isConnected()) {
+      return;
+    }
+
     String proxyHost = environment.getProperty("proxy.host");
     Integer proxyPort = environment.getProperty("proxy.port", Integer.class);
 
@@ -239,7 +237,7 @@ public class ProxyImpl implements Proxy {
         byte[] payloadBuffer = new byte[1024];
         byte[] datagramBuffer = new byte[1024];
         DatagramPacket datagramPacket = new DatagramPacket(datagramBuffer, datagramBuffer.length);
-        datagramPacket.setSocketAddress(new InetSocketAddress(localInetAddr, gamePort));
+        datagramPacket.setSocketAddress(new InetSocketAddress(localInetAddr, forgedAlliancePrefs.getPort()));
 
         while (!isCancelled()) {
           int blockSize = fafProxyReader.readInt32();
@@ -332,7 +330,7 @@ public class ProxyImpl implements Proxy {
 
   @Override
   public void initializeP2pProxy() throws SocketException {
-    publicSocket = new DatagramSocket(gamePort);
+    publicSocket = new DatagramSocket(forgedAlliancePrefs.getPort());
     readPublicSocketInBackground(publicSocket);
 
     onProxyInitializedListeners.forEach(Proxy.OnProxyInitializedListener::onProxyInitialized);
