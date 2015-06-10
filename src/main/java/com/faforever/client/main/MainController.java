@@ -89,10 +89,22 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   ImageView settingsButton;
 
   @FXML
+  ImageView settingsButton2;
+
+  @FXML
+  VBox settingsPanel;
+
+  @FXML
   Label settingsLabel;
 
   @FXML
   HBox mainMenuDisappear;
+
+  @FXML
+  VBox settingsOK;
+
+  @FXML
+  Pane stretch;
 
   @Autowired
   NewsController newsController;
@@ -137,25 +149,36 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   void initialize() {
-
+    stretch.managedProperty().setValue(false);
+    settingsPanel.managedProperty().bind(settingsPanel.visibleProperty());
     contentPane.managedProperty().bind(contentPane.visibleProperty());
-    mainNavigation.managedProperty().bind(mainNavigation.visibleProperty());
     settingsLabel.managedProperty().bind(settingsLabel.visibleProperty());
     mainMenuDisappear.managedProperty().bind(mainMenuDisappear.visibleProperty());
+    settingsOK.managedProperty().bind(settingsOK.visibleProperty());
+    settingsButton.managedProperty().bind(settingsButton.visibleProperty());
+    settingsButton2.managedProperty().bind(settingsButton2.visibleProperty());
   }
 
   public void openSettingsDialogue(){
-
+    settingsPanel.visibleProperty().setValue(true);
+    settingsOK.visibleProperty().setValue(true);
     contentPane.visibleProperty().setValue(false);
-    mainNavigation.visibleProperty().setValue(false);
-    settingsLabel.visibleProperty().setValue(false);
+    settingsLabel.visibleProperty().setValue(true);
+    mainMenuDisappear.visibleProperty().setValue(false);
+    settingsButton.visibleProperty().setValue(false);
+    settingsButton2.visibleProperty().setValue(true);
+    stretch.managedProperty().setValue(true);
   }
 
   public void closeSettingsDialogue() {
-
+    settingsPanel.visibleProperty().setValue(false);
+    settingsOK.visibleProperty().setValue(false);
     contentPane.visibleProperty().setValue(true);
-    mainNavigation.visibleProperty().setValue(true);
-    settingsLabel.visibleProperty().setValue(true);
+    settingsLabel.visibleProperty().setValue(false);
+    mainMenuDisappear.visibleProperty().setValue(true);
+    settingsButton.visibleProperty().setValue(true);
+    settingsButton2.visibleProperty().setValue(false);
+    stretch.managedProperty().setValue(false);
   }
 
   public void display(Stage stage) {
