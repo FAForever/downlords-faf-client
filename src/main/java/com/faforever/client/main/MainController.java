@@ -22,10 +22,8 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.vault.VaultController;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -37,20 +35,14 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.controlsfx.control.TaskProgressView;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.swing.JSplitPane;
-
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
@@ -94,27 +86,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   MenuButton usernameButton;
-
-  @FXML
-  ImageView settingsButton;
-
-  @FXML
-  ImageView settingsButton2;
-
-  @FXML
-  VBox settingsPanel;
-
-  @FXML
-  Label settingsLabel;
-
-  @FXML
-  HBox mainMenuDisappear;
-
-  @FXML
-  VBox settingsOK;
-
-  @FXML
-  Pane stretch;
 
   @FXML
   Pane taskQueuePane;
@@ -165,14 +136,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   void initialize() {
-    stretch.managedProperty().setValue(false);
-    settingsPanel.managedProperty().bind(settingsPanel.visibleProperty());
     contentPane.managedProperty().bind(contentPane.visibleProperty());
-    settingsLabel.managedProperty().bind(settingsLabel.visibleProperty());
-    mainMenuDisappear.managedProperty().bind(mainMenuDisappear.visibleProperty());
-    settingsOK.managedProperty().bind(settingsOK.visibleProperty());
-    settingsButton.managedProperty().bind(settingsButton.visibleProperty());
-    settingsButton2.managedProperty().bind(settingsButton2.visibleProperty());
 
     taskQueueService.addChangeListener(change -> {
       if (change.wasAdded()) {
@@ -196,29 +160,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   private void setCurrentTask(PrioritizedTask<?> node) {
-    task
-  }
-
-  public void openSettingsDialogue() {
-    settingsPanel.visibleProperty().setValue(true);
-    settingsOK.visibleProperty().setValue(true);
-    contentPane.visibleProperty().setValue(false);
-    settingsLabel.visibleProperty().setValue(true);
-    mainMenuDisappear.visibleProperty().setValue(false);
-    settingsButton.visibleProperty().setValue(false);
-    settingsButton2.visibleProperty().setValue(true);
-    stretch.managedProperty().setValue(true);
-  }
-
-  public void closeSettingsDialogue() {
-    settingsPanel.visibleProperty().setValue(false);
-    settingsOK.visibleProperty().setValue(false);
-    contentPane.visibleProperty().setValue(true);
-    settingsLabel.visibleProperty().setValue(false);
-    mainMenuDisappear.visibleProperty().setValue(true);
-    settingsButton.visibleProperty().setValue(true);
-    settingsButton2.visibleProperty().setValue(false);
-    stretch.managedProperty().setValue(false);
   }
 
   public void display(Stage stage) {
