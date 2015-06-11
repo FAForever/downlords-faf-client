@@ -1,15 +1,11 @@
 package com.faforever.client.map;
 
 import com.faforever.client.game.MapInfoBean;
-import com.faforever.client.legacy.htmlparser.HtmlParser;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.taskqueue.PrioritizedTask;
-import com.faforever.client.taskqueue.TaskQueueService;
+import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonReader;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -20,16 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.env.Environment;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.invoke.MethodHandles;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+
+import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 public class LegacyMapService implements MapService {
 
@@ -42,7 +36,7 @@ public class LegacyMapService implements MapService {
   PreferencesService preferencesService;
 
   @Autowired
-  TaskQueueService taskQueueService;
+  TaskService taskService;
 
   @Autowired
   MapVaultParser mapVaultParser;
@@ -69,13 +63,12 @@ public class LegacyMapService implements MapService {
 
   @Override
   public void getMapsFromVaultInBackground(int page, int maxEntries, Callback<List<MapInfoBean>> callback) {
-    PrioritizedTask<List<MapInfoBean>> task = new PrioritizedTask<List<MapInfoBean>>() {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<MapInfoBean>>() {
       @Override
       protected List<MapInfoBean> call() throws Exception {
         return mapVaultParser.parseMapVault(page, maxEntries);
       }
-    };
-    taskQueueService.submitTask(task, callback);
+    }, callback);
   }
 
   @Override

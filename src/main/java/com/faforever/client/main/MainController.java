@@ -16,8 +16,8 @@ import com.faforever.client.news.NewsController;
 import com.faforever.client.patch.PatchService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
-import com.faforever.client.taskqueue.PrioritizedTask;
-import com.faforever.client.taskqueue.TaskQueueService;
+import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
@@ -42,6 +42,7 @@ import javafx.stage.Stage;
 import org.controlsfx.control.TaskProgressView;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -130,15 +131,18 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   UserService userService;
 
   @Autowired
-  TaskQueueService taskQueueService;
+  TaskService taskService;
 
   private Stage stage;
 
   @FXML
   void initialize() {
     contentPane.managedProperty().bind(contentPane.visibleProperty());
+  }
 
-    taskQueueService.addChangeListener(change -> {
+  @PostConstruct
+  void postConstruct() {
+    taskService.addChangeListener(taskGroup, change -> {
       if (change.wasAdded()) {
         addPrioritizedTaskToQueuePane(change.getAddedSubList());
       }
@@ -156,10 +160,11 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     taskQueuePane.getChildren().setAll(taskPanes);
 
-    setCurrentTask(tasks.get(tasks.size() - 1));
+    setCurrentTaskInStatusBar(tasks.get(tasks.size() - 1));
   }
 
-  private void setCurrentTask(PrioritizedTask<?> node) {
+  private void setCurrentTaskInStatusBar(PrioritizedTask<?> task) {
+    progressBar.progressProperty().bind(task.progressProperty());
   }
 
   public void display(Stage stage) {

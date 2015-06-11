@@ -15,8 +15,8 @@ import com.faforever.client.legacy.ladder.LadderParser;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.taskqueue.PrioritizedTask;
-import com.faforever.client.taskqueue.TaskQueueService;
+import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.util.UID;
@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
 public class ServerAccessorImpl implements ServerAccessor,
@@ -67,7 +68,7 @@ public class ServerAccessorImpl implements ServerAccessor,
   LadderParser ladderParser;
 
   @Autowired
-  TaskQueueService taskQueueService;
+  TaskService taskService;
 
   private Task<Void> fafConnectionTask;
   private String uniqueId;
@@ -368,7 +369,7 @@ public class ServerAccessorImpl implements ServerAccessor,
 
   @Override
   public void requestLadderInfoInBackground(Callback<List<LadderEntryBean>> callback) {
-    taskQueueService.submitTask(new PrioritizedTask<List<LadderEntryBean>>() {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LadderEntryBean>>() {
       @Override
       protected List<LadderEntryBean> call() throws Exception {
         return ladderParser.parseLadder();

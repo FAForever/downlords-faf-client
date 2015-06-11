@@ -1,4 +1,4 @@
-package com.faforever.client.taskqueue;
+package com.faforever.client.task;
 
 import javafx.concurrent.Task;
 import org.jetbrains.annotations.NotNull;

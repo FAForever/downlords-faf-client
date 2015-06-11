@@ -37,11 +37,10 @@ import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.supcom.ForgedAllianceServiceImpl;
-import com.faforever.client.taskqueue.TaskQueueService;
-import com.faforever.client.taskqueue.TaskQueueServiceImpl;
+import com.faforever.client.task.TaskService;
+import com.faforever.client.task.TaskServiceImpl;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
-import com.faforever.client.vault.VaultController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
@@ -185,8 +184,8 @@ public class BaseConfig {
   }
 
   @Bean
-  TaskQueueService taskQueueService() {
-    return new TaskQueueServiceImpl();
+  TaskService taskQueueService() {
+    return new TaskServiceImpl();
   }
 
   @Bean

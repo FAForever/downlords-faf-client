@@ -1,5 +1,7 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
@@ -17,6 +19,8 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.faforever.client.task.TaskGroup.NET_LIGHT;
+
 public class MockChatService implements ChatService {
 
   private static final long CONNECTION_DELAY = 5000;
@@ -25,6 +29,9 @@ public class MockChatService implements ChatService {
 
   @Autowired
   UserService userService;
+
+  @Autowired
+  TaskService taskService;
 
   private Collection<OnChatMessageListener> onChatMessageListeners;
   private Collection<OnChatConnectedListener> onChatConnectedListeners;
@@ -105,7 +112,7 @@ public class MockChatService implements ChatService {
 
   @Override
   public void sendMessageInBackground(String target, String message, Callback<String> callback) {
-    ConcurrentUtil.executeInBackground(new Task<String>() {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<String>() {
       @Override
       protected String call() throws Exception {
         Thread.sleep(200);

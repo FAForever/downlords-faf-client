@@ -1,8 +1,8 @@
 package com.faforever.client.network;
 
+import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
-import com.faforever.client.util.ConcurrentUtil;
-import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +19,9 @@ import java.net.SocketTimeoutException;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.faforever.client.task.PrioritizedTask.Priority.LOW;
+import static com.faforever.client.task.TaskGroup.NET_LIGHT;
+
 public class PortCheckServiceImpl implements PortCheckService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -27,11 +30,14 @@ public class PortCheckServiceImpl implements PortCheckService {
   private static final String EXPECTED_ANSWER = "OK";
 
   @Autowired
+  TaskService taskService;
+
+  @Autowired
   Environment environment;
 
   @Override
   public void checkUdpPortInBackground(int port, Callback<Boolean> callback) {
-    ConcurrentUtil.executeInBackground(new Task<Boolean>() {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<Boolean>(LOW) {
       @Override
       protected Boolean call() throws Exception {
         String remoteHost = environment.getProperty("portCheck.host");

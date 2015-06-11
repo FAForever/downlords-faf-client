@@ -1,19 +1,25 @@
 package com.faforever.client.leaderboard;
 
+import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
-import com.faforever.client.util.ConcurrentUtil;
-import javafx.concurrent.Task;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
+import static com.faforever.client.task.TaskGroup.NET_LIGHT;
+
 public class MockLadderService implements LadderService {
 
+  @Autowired
+  TaskService taskService;
 
   @Override
   public void getLadderInfo(Callback<List<LadderEntryBean>> callback) {
-    ConcurrentUtil.executeInBackground(new Task<List<LadderEntryBean>>() {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LadderEntryBean>>(HIGH) {
       @Override
       protected List<LadderEntryBean> call() throws Exception {
         ArrayList<LadderEntryBean> list = new ArrayList<LadderEntryBean>();

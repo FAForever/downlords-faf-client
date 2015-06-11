@@ -8,10 +8,10 @@ import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.ModInfo;
 import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
-import com.faforever.client.util.ConcurrentUtil;
-import javafx.concurrent.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -19,6 +19,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
+import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 public class MockServerAccessor implements ServerAccessor {
 
@@ -30,6 +33,9 @@ public class MockServerAccessor implements ServerAccessor {
   @Autowired
   private UserService userService;
 
+  @Autowired
+  private TaskService taskService;
+
   public MockServerAccessor() {
     onModInfoMessageListeners = new ArrayList<>();
     onGameInfoListeners = new ArrayList<>();
@@ -37,7 +43,7 @@ public class MockServerAccessor implements ServerAccessor {
 
   @Override
   public void connectAndLogInInBackground(Callback<Void> callback) {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<Void>() {
       @Override
       protected Void call() throws Exception {
         for (OnModInfoListener onModInfoMessageListener : onModInfoMessageListeners) {
@@ -97,7 +103,7 @@ public class MockServerAccessor implements ServerAccessor {
 
   @Override
   public void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchInfo> callback) {
-    ConcurrentUtil.executeInBackground(new Task<GameLaunchInfo>() {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<GameLaunchInfo>(HIGH) {
       @Override
       protected GameLaunchInfo call() throws Exception {
         GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
@@ -112,7 +118,7 @@ public class MockServerAccessor implements ServerAccessor {
 
   @Override
   public void requestJoinGame(GameInfoBean gameInfoBean, String password, Callback<GameLaunchInfo> callback) {
-    ConcurrentUtil.executeInBackground(new Task<GameLaunchInfo>() {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<GameLaunchInfo>(HIGH) {
       @Override
       protected GameLaunchInfo call() throws Exception {
         GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();

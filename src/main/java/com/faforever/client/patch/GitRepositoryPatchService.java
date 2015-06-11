@@ -1,13 +1,12 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
-import com.faforever.client.util.ConcurrentUtil;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
 import jbsdiff.InvalidHeaderException;
 import jbsdiff.Patch;
 import org.apache.commons.compress.compressors.CompressorException;
@@ -35,6 +34,10 @@ import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.Set;
 
+import static com.faforever.client.task.PrioritizedTask.Priority.LOW;
+import static com.faforever.client.task.TaskGroup.NET_HEAVY;
+import static com.faforever.client.task.TaskGroup.NET_LIGHT;
+
 public class GitRepositoryPatchService implements PatchService {
 
   private enum InstallType {
@@ -59,6 +62,9 @@ public class GitRepositoryPatchService implements PatchService {
 
   @Autowired
   PreferencesService preferencesService;
+
+  @Autowired
+  TaskService taskService;
 
   /**
    * Path containing the FAF "bin" directory (e. g. "%PROGRAMDATA\FAForever\bin")
@@ -91,8 +97,8 @@ public class GitRepositoryPatchService implements PatchService {
   }
 
   @Override
-  public Service<Void> patchInBackground(Callback<Void> callback) {
-    return ConcurrentUtil.executeInBackground(new Task<Void>() {
+  public void patchInBackground(Callback<Void> callback) {
+    taskService.submitTask(NET_HEAVY, new PrioritizedTask<Void>(LOW) {
       @Override
       protected Void call() throws Exception {
         if (Files.notExists(binaryPatchRepoDirectory)) {
@@ -210,13 +216,12 @@ public class GitRepositoryPatchService implements PatchService {
   public void needsPatching(Callback<Boolean> callback) {
     logger.info("Checking for FAF update");
 
-    ConcurrentUtil.executeInBackground(new Task<Boolean>() {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<Boolean>(LOW) {
       @Override
       protected Boolean call() throws Exception {
-        boolean needsPatching = Files.notExists(binaryPatchRepoDirectory)
+        return Files.notExists(binaryPatchRepoDirectory)
             || areNewPatchFilesAvailable()
             || !areLocalFilesPatched();
-        return needsPatching;
       }
     }, callback);
   }
