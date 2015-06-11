@@ -1,6 +1,10 @@
 package com.faforever.client.legacy.htmlparser;
 
 import com.faforever.client.util.JavaFxUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.w3c.tidy.Tidy;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -12,6 +16,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +31,8 @@ import static java.util.Collections.enumeration;
  * as clean as possible (which as you can guess isn't that easy).
  */
 public class HtmlParser {
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * Parses the document at the given URL. The document is always put into &lt;root&gt;&lt;/root&gt; because the SAX
@@ -46,7 +55,7 @@ public class HtmlParser {
     }
 
     try (InputStream inputStream = connection.getInputStream()) {
-      return parseData(new BufferedInputStream(inputStream), htmlContentHandler);
+      return parseData(inputStream, htmlContentHandler);
     }
   }
 
@@ -56,21 +65,23 @@ public class HtmlParser {
    * this.
    */
   public <RESULT_TYPE> RESULT_TYPE parse(String string, HtmlContentHandler<RESULT_TYPE> htmlContentHandler) throws IOException {
+    logger.trace("Parsing maps from HTML string: {}", string);
     return parseData(new ByteArrayInputStream(string.getBytes(StandardCharsets.US_ASCII)), htmlContentHandler);
   }
 
   private static <T> T parseData(InputStream inputStream, HtmlContentHandler<T> htmlContentHandler) throws IOException {
-    // Wrap the result inside a <root> element since every well-formed XML needs a such. Otherwise it can't be parsed.
-    SequenceInputStream sequenceInputStream = new SequenceInputStream(enumeration(asList(
-        new ByteArrayInputStream("<root>".getBytes(StandardCharsets.US_ASCII)),
-        new BufferedInputStream(inputStream),
-        new ByteArrayInputStream("</root>".getBytes(StandardCharsets.US_ASCII))
-    )));
+    StringWriter out = new StringWriter();
+
+    Tidy tidy = new Tidy();
+    tidy.setXmlOut(true);
+    tidy.setQuiet(true);
+    tidy.setShowWarnings(false);
+    tidy.parse(inputStream, out);
 
     try {
       XMLReader xmlReader = XMLReaderFactory.createXMLReader();
       xmlReader.setContentHandler(htmlContentHandler);
-      xmlReader.parse(new InputSource(sequenceInputStream));
+      xmlReader.parse(new InputSource(new StringReader(out.toString())));
 
       return htmlContentHandler.getResult();
     } catch (SAXException e) {

@@ -14,6 +14,7 @@ import org.apache.commons.compress.compressors.CompressorException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -224,7 +225,12 @@ public class GitRepositoryPatchService implements PatchService {
     boolean needsPatching;
     Git git = Git.open(binaryPatchRepoDirectory.toFile());
 
-    String localHead = git.getRepository().resolve(Constants.HEAD).name();
+    ObjectId head = git.getRepository().resolve(Constants.HEAD);
+    if (head == null) {
+      return true;
+    }
+
+    String localHead = head.name();
 
     String remoteHead = null;
     for (Ref ref : git.lsRemote().call()) {

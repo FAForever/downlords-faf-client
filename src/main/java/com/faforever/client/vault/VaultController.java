@@ -6,6 +6,8 @@ import com.faforever.client.util.Callback;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.Pane;
 import org.slf4j.Logger;
@@ -20,15 +22,48 @@ public class VaultController {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
+  TabPane vaultRoot;
+
+  @FXML
   TableView<MapInfoBean> mapTableView;
+
+  @FXML
+  TableColumn<MapInfoBean, String> nameColumn;
+
+  @FXML
+  TableColumn<MapInfoBean, String> descriptionColumn;
+
+  @FXML
+  TableColumn<MapInfoBean, Number> playsColumn;
+
+  @FXML
+  TableColumn<MapInfoBean, Number> sizeColumn;
+
+  @FXML
+  TableColumn<MapInfoBean, String> creatorColumn;
+
+  @FXML
+  TableColumn<MapInfoBean, Number> ratingColumn;
+
+  @FXML
+  TableColumn<MapInfoBean, Number> downloadsColumn;
 
   @Autowired
   MapService mapService;
 
-  private Node root;
-
   public Node getRoot() {
-    return new Pane();
+    return vaultRoot;
+  }
+
+  @FXML
+  void initialize() {
+    nameColumn.setCellValueFactory(param -> param.getValue().nameProperty());
+    descriptionColumn.setCellValueFactory(param -> param.getValue().descriptionProperty());
+    playsColumn.setCellValueFactory(param -> param.getValue().playsProperty());
+    sizeColumn.setCellValueFactory(param -> param.getValue().ratingProperty());
+    // creatorColumn.setCellValueFactory(param -> param.getValue().creatorProperty());
+    ratingColumn.setCellValueFactory(param -> param.getValue().ratingProperty());
+    downloadsColumn.setCellValueFactory(param -> param.getValue().downloadsProperty());
   }
 
   public void setUpIfNecessary() {

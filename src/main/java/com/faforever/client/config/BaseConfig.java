@@ -16,6 +16,8 @@ import com.faforever.client.legacy.ServerAccessorImpl;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
 import com.faforever.client.legacy.ladder.LadderParser;
 import com.faforever.client.legacy.ladder.LegacyLadderParser;
+import com.faforever.client.legacy.map.LegacyMapVaultParser;
+import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.legacy.proxy.ProxyImpl;
 import com.faforever.client.legacy.relay.LocalRelayServer;
@@ -119,11 +121,6 @@ public class BaseConfig {
   }
 
   @Bean
-  VaultController vaultController() {
-    return new VaultController();
-  }
-
-  @Bean
   PreferencesService preferencesService() {
     return new PreferencesService();
   }
@@ -161,6 +158,11 @@ public class BaseConfig {
   @Bean
   LadderParser ladderParser() {
     return new LegacyLadderParser();
+  }
+
+  @Bean
+  MapVaultParser mapVaultParser() {
+    return new LegacyMapVaultParser();
   }
 
   @Bean

@@ -24,6 +24,7 @@ import com.faforever.client.main.MainController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.LegacyMapService;
 import com.faforever.client.news.NewsController;
+import com.faforever.client.vault.VaultController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -79,6 +80,11 @@ public class UiConfig {
   @Bean
   LadderController leaderboardController() {
     return loadController("ladder.fxml");
+  }
+
+  @Bean
+  VaultController vaultController() {
+    return loadController("vault.fxml");
   }
 
   @Bean

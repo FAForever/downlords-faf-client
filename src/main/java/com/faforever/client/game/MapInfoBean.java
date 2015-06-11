@@ -8,10 +8,10 @@ import javafx.beans.property.StringProperty;
 
 public class MapInfoBean {
 
-  private final SimpleFloatProperty rating;
-  private final StringProperty description;
   private final StringProperty name;
+  private final SimpleFloatProperty rating;
   private final IntegerProperty plays;
+  private final StringProperty description;
   private final IntegerProperty downloads;
 
   public MapInfoBean() {

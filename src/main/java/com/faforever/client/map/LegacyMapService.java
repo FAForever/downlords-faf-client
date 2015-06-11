@@ -2,6 +2,7 @@ package com.faforever.client.map;
 
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
+import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.taskqueue.PrioritizedTask;
 import com.faforever.client.taskqueue.TaskQueueService;
@@ -43,10 +44,10 @@ public class LegacyMapService implements MapService {
   PreferencesService preferencesService;
 
   @Autowired
-  HtmlParser htmlParser;
+  TaskQueueService taskQueueService;
 
   @Autowired
-  TaskQueueService taskQueueService;
+  MapVaultParser mapVaultParser;
 
   public LegacyMapService() {
     gson = new GsonBuilder().create();
@@ -77,33 +78,7 @@ public class LegacyMapService implements MapService {
     PrioritizedTask<List<MapInfoBean>> task = new PrioritizedTask<List<MapInfoBean>>() {
       @Override
       protected List<MapInfoBean> call() throws Exception {
-        MapVaultHtmlContentHandler mapVaultHtmlContentHandler = new MapVaultHtmlContentHandler();
-
-        String urlString = environment.getProperty("vault.mapQueryUrl");
-        String params = String.format(environment.getProperty("vault.mapQueryParams"), page, maxEntries);
-
-        URL url = new URL(urlString + "?" + params);
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
-          JsonReader jsonReader = new JsonReader(reader);
-          jsonReader.beginObject();
-
-          while (jsonReader.hasNext()) {
-            String key = jsonReader.nextName();
-            if (!"layout".equals(key)) {
-              jsonReader.skipValue();
-              continue;
-            }
-
-            String layout = jsonReader.nextString();
-            return htmlParser.parse(layout, mapVaultHtmlContentHandler);
-          }
-
-          jsonReader.endObject();
-        }
-
-        throw new IllegalStateException("Map vault could not be read from " + url);
+        return mapVaultParser.parseMapVault(page, maxEntries);
       }
     };
     taskQueueService.submitTask(task, callback);

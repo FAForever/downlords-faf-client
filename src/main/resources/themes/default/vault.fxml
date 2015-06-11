@@ -4,54 +4,65 @@
 <?import java.lang.*?>
 <?import javafx.scene.control.*?>
 
-<TabPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0"
-         prefWidth="600.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.40"
-         xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.vault.VaultController">
+<TabPane fx:id="vaultRoot" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.vault.VaultController">
   <tabs>
     <Tab text="%vault.maps">
-         <content>
-           <TableView fx:id="mapTableView" prefHeight="200.0" prefWidth="200.0">
+      <content>
+        <VBox>
+          <children>
+            <TableView fx:id="mapTableView" VBox.vgrow="ALWAYS">
               <columns>
-                <TableColumn prefWidth="75.0" text="%map.name" />
-                <TableColumn prefWidth="75.0" text="%map.players" />
-                  <TableColumn prefWidth="75.0" text="%map.size" />
-                  <TableColumn prefWidth="75.0" text="%map.creator" />
+                <TableColumn fx:id="nameColumn" prefWidth="75.0" text="%map.name" />
+                <TableColumn fx:id="descriptionColumn" prefWidth="75.0" text="%map.description" />
+                <TableColumn fx:id="playsColumn" prefWidth="75.0" text="%map.plays" />
+                <TableColumn fx:id="sizeColumn" prefWidth="75.0" text="%map.size" />
+                <TableColumn fx:id="creatorColumn" prefWidth="75.0" text="%map.creator" />
+                        <TableColumn fx:id="ratingColumn" prefWidth="75.0" text="%map.rating" />
+                        <TableColumn fx:id="downloadsColumn" prefWidth="75.0" text="%map.rating" />
               </columns>
+              <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+              </columnResizePolicy>
             </TableView>
-         </content></Tab>
+            <Pagination />
+          </children>
+        </VBox>
+      </content>
+    </Tab>
     <Tab text="%vault.mods">
-         <content>
-            <TreeTableView prefHeight="200.0" prefWidth="200.0">
-              <columns>
-                <TreeTableColumn prefWidth="75.0" text="C1" />
-                <TreeTableColumn prefWidth="75.0" text="C2" />
-              </columns>
-            </TreeTableView>
-         </content></Tab>
-      <Tab text="%vault.replays">
-         <content>
-            <TreeTableView prefHeight="200.0" prefWidth="200.0">
-              <columns>
-                <TreeTableColumn prefWidth="75.0" text="C1" />
-                <TreeTableColumn prefWidth="75.0" text="C2" />
-              </columns>
-            </TreeTableView>
-         </content>
-      </Tab>
-      <Tab text="%vault.tutorials">
-         <content>
-            <TableView prefHeight="200.0" prefWidth="200.0">
-              <columns>
-                <TableColumn minWidth="40.0" prefWidth="100.0" text="%tutorial.map" />
-                <TableColumn minWidth="40.0" prefWidth="100.0" text="%tutorial.title" />
-                  <TableColumn minWidth="40.0" prefWidth="100.0" text="%tutorial.description" />
-                  <TableColumn minWidth="40.0" prefWidth="40.0" text="%tutorial.length" />
-              </columns>
-               <columnResizePolicy>
-                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-               </columnResizePolicy>
-            </TableView>
-         </content>
-      </Tab>
+      <content>
+        <TreeTableView prefHeight="200.0" prefWidth="200.0">
+          <columns>
+            <TreeTableColumn prefWidth="75.0" text="C1" />
+            <TreeTableColumn prefWidth="75.0" text="C2" />
+          </columns>
+        </TreeTableView>
+      </content>
+    </Tab>
+    <Tab text="%vault.replays">
+      <content>
+        <TreeTableView prefHeight="200.0" prefWidth="200.0">
+          <columns>
+            <TreeTableColumn prefWidth="75.0" text="C1" />
+            <TreeTableColumn prefWidth="75.0" text="C2" />
+          </columns>
+        </TreeTableView>
+      </content>
+    </Tab>
+    <Tab text="%vault.tutorials">
+      <content>
+        <TableView prefHeight="200.0" prefWidth="200.0">
+          <columns>
+            <TableColumn minWidth="40.0" prefWidth="100.0" text="%tutorial.map" />
+            <TableColumn minWidth="40.0" prefWidth="100.0" text="%tutorial.title" />
+            <TableColumn minWidth="40.0" prefWidth="100.0" text="%tutorial.description" />
+            <TableColumn minWidth="40.0" prefWidth="40.0" text="%tutorial.length" />
+          </columns>
+          <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+          </columnResizePolicy>
+        </TableView>
+      </content>
+    </Tab>
   </tabs>
 </TabPane>

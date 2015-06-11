@@ -57,9 +57,11 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
     }
 
     if (localName.equals("span") && "downloads".equals(atts.getValue("class"))) {
-      currentProperty = MapProperty.DESCRIPTION;
+      currentProperty = MapProperty.DOWNLOADS;
       return;
     }
+
+    currentProperty = null;
   }
 
   @Override
@@ -85,14 +87,17 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
         currentBean.setDownloads(Integer.parseInt(currentValue));
         return;
       case NAME:
-        currentBean.setName(currentValue);
+        currentBean.setName(currentValue.replaceAll("[\\s\\n]+", "\\s"));
         return;
       case DESCRIPTION:
-        currentBean.setDescription(currentValue);
+        currentBean.setDescription(currentValue.replaceAll("[\\s\\n]+", " "));
         return;
       case RATING:
         currentBean.setRating(Float.parseFloat(currentValue));
         return;
+
+      default:
+        throw new IllegalStateException("Unhandled property: " + currentProperty);
     }
   }
 
