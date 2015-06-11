@@ -20,5 +20,5 @@ public interface TaskQueueService {
    */
   <T> void submitTask(PrioritizedTask<T> task, Callback<T> callback);
 
-  void addChangeListener(ListChangeListener<? super Task<?>> listener);
+  void addChangeListener(ListChangeListener<PrioritizedTask<?>> listener);
 }

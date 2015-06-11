@@ -32,7 +32,7 @@ public class TaskQueueServiceImpl implements TaskQueueService {
   }
 
   @Override
-  public void addChangeListener(ListChangeListener<? super Task<?>> listener) {
+  public void addChangeListener(ListChangeListener<PrioritizedTask<?>> listener) {
     list.addListener(listener);
   }
 

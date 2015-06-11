@@ -18,7 +18,7 @@
                 <TableColumn fx:id="sizeColumn" prefWidth="75.0" text="%map.size" />
                 <TableColumn fx:id="creatorColumn" prefWidth="75.0" text="%map.creator" />
                         <TableColumn fx:id="ratingColumn" prefWidth="75.0" text="%map.rating" />
-                        <TableColumn fx:id="downloadsColumn" prefWidth="75.0" text="%map.rating" />
+                        <TableColumn fx:id="downloadsColumn" prefWidth="75.0" text="%map.downloads" />
               </columns>
               <columnResizePolicy>
                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

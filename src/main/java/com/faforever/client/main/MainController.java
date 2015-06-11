@@ -16,12 +16,16 @@ import com.faforever.client.news.NewsController;
 import com.faforever.client.patch.PatchService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
+import com.faforever.client.taskqueue.PrioritizedTask;
+import com.faforever.client.taskqueue.TaskQueueService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.vault.VaultController;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -30,6 +34,7 @@ import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.ImageView;
@@ -39,18 +44,20 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import org.controlsfx.control.TaskProgressView;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.awt.MenuItem;
+import javax.swing.JSplitPane;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
 public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnLobbyDisconnectedListener {
-
-  @FXML
-  Pane mainNavigation;
 
   @FXML
   Pane contentPane;
@@ -72,6 +79,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   ButtonBase ladderButton;
+
+  @FXML
+  ProgressBar progressBar;
 
   @FXML
   Region mainRoot;
@@ -105,6 +115,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   Pane stretch;
+
+  @FXML
+  Pane taskQueuePane;
 
   @Autowired
   NewsController newsController;
@@ -145,6 +158,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Autowired
   UserService userService;
 
+  @Autowired
+  TaskQueueService taskQueueService;
+
   private Stage stage;
 
   @FXML
@@ -157,9 +173,33 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     settingsOK.managedProperty().bind(settingsOK.visibleProperty());
     settingsButton.managedProperty().bind(settingsButton.visibleProperty());
     settingsButton2.managedProperty().bind(settingsButton2.visibleProperty());
+
+    taskQueueService.addChangeListener(change -> {
+      if (change.wasAdded()) {
+        addPrioritizedTaskToQueuePane(change.getAddedSubList());
+      }
+    });
   }
 
-  public void openSettingsDialogue(){
+  private void addPrioritizedTaskToQueuePane(List<? extends PrioritizedTask<?>> tasks) {
+    new TaskProgressView<>();
+
+    List<Node> taskPanes = new ArrayList<>();
+
+    for (Node taskPane : taskPanes) {
+      taskPanes.add(taskPane);
+    }
+
+    taskQueuePane.getChildren().setAll(taskPanes);
+
+    setCurrentTask(tasks.get(tasks.size() - 1));
+  }
+
+  private void setCurrentTask(PrioritizedTask<?> node) {
+    task
+  }
+
+  public void openSettingsDialogue() {
     settingsPanel.visibleProperty().setValue(true);
     settingsOK.visibleProperty().setValue(true);
     contentPane.visibleProperty().setValue(false);

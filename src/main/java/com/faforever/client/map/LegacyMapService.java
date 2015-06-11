@@ -35,8 +35,6 @@ public class LegacyMapService implements MapService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private final Gson gson;
-
   @Autowired
   Environment environment;
 
@@ -48,10 +46,6 @@ public class LegacyMapService implements MapService {
 
   @Autowired
   MapVaultParser mapVaultParser;
-
-  public LegacyMapService() {
-    gson = new GsonBuilder().create();
-  }
 
   @Override
   @Cacheable("smallMapPreview")

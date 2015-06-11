@@ -394,17 +394,42 @@
          </children>
       </VBox>
       <AnchorPane fx:id="contentPane" VBox.vgrow="ALWAYS" />
-      <HBox minHeight="20.0" styleClass="status-bar">
+      <HBox minHeight="10.0" prefHeight="18.0" styleClass="status-bar">
          <children>
-            <Label fx:id="natStatusLabel" styleClass="status-bar-label" text="%statusbar.nat" />
+            <Label fx:id="progressLabel" text="Label" />
             <Pane HBox.hgrow="ALWAYS" />
-            <Label styleClass="status-bar-label" text="&lt;Ladder Game Available&gt;" />
-            <Pane HBox.hgrow="ALWAYS" />
-            <Label fx:id="statusLabel" styleClass="status-bar-label" text="%statusbar.connected" />
+            <ProgressBar maxHeight="1.7976931348623157E308" minWidth="20.0" prefWidth="150.0" />
+            <Separator focusTraversable="false" orientation="VERTICAL" />
+            <MenuButton focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.portReachable">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="Action 1" />
+                  <MenuItem mnemonicParsing="false" text="Action 2" />
+               </items>
+            </MenuButton>
+            <Separator focusTraversable="false" orientation="VERTICAL" />
+            <MenuButton focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.fafConnected">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="Action 1" />
+                  <MenuItem mnemonicParsing="false" text="Action 2" />
+               </items>
+            </MenuButton>
+            <Separator focusTraversable="false" orientation="VERTICAL" />
+            <MenuButton focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.ircConnecting">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="Action 1" />
+                  <MenuItem mnemonicParsing="false" text="Action 2" />
+               </items>
+            </MenuButton>
          </children>
          <VBox.margin>
-            <Insets left="2.0" right="2.0" />
+            <Insets top="5.0" />
          </VBox.margin>
+         <opaqueInsets>
+            <Insets />
+         </opaqueInsets>
+         <padding>
+            <Insets left="5.0" right="5.0" />
+         </padding>
       </HBox>
   </children>
 </VBox>

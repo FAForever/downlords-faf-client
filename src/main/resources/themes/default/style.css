@@ -257,58 +257,6 @@
     -fx-background-radius: 3, 2, 1, 4, 1;
 }
 
-/***************** Slider *****************/
-
-
-/*
-.slider .thumb {
-    -fx-background-color:
-        linear-gradient(to bottom, derive(-fx-text-box-border, -20%), derive(-fx-text-box-border, -30%)),
-        -fx-inner-border,
-        -fx-body-color;
-    -fx-background-insets: 0, 0, 0;
-    *//*
-
-*/
-/*-fx-background-radius: 0.416667em, 0.333333em, 0.25em; *//*
-*/
-/*
-*//*
-
-*/
-/* 5, 4,3 *//*
-*/
-/*
-
-    -fx-background-radius: 0, 0, 0;
-    -fx-padding   dertmines the size of the whole element
-    -fx-padding-right: 10;  never loaded
-    -fx-padding-top: 50; never loaded
-    -fx-padding-bottom: 0; never loaded
-    -fx-effect: dropshadow(two-pass-box , rgba(0, 0, 0, 0.1), 5, 0.0 , 0, 2);
-    -fx-min-width: 100px;
-}
-.slider:focused .thumb {
-    -fx-background-insets: 0, 0, 0; border
-    *//*
-
-*/
-/*-fx-background-radius: 0.416667em, 0.333333em, 0.25em; *//*
-*/
-/*
-*//*
-
-*/
-/* 5, 4,3 *//*
-
-
-    -fx-background-radius: 0, 0, 0;
-}
-*/
-
-
-
-
 /***************** Window *****************/
 
 .decorated-window {
@@ -317,7 +265,6 @@
   -fx-background-position: top;
   -fx-background-repeat: no-repeat;
 }
-
 
 /***************** Menu *****************/
 
@@ -356,6 +303,19 @@
   -fx-border-color: -fx-box-border;
 }
 
+/***************** Status bar *****************/
+
+.status-bar {
+  -fx-font-size: 11px;
+}
+
+.status-bar-menu-button {
+  -fx-background-color: transparent;
+  -fx-background-repeat: no-repeat;
+}
+.status-bar-menu-button:openvertically {
+  -fx-shape: "M 0 0 h 5 l -3.5 2 z";
+}
 
 /***************** Transparent table *****************/
 
@@ -365,7 +325,6 @@
   -fx-background: transparent;
   -fx-control-inner-background: transparent;
 }
-
 
 /***************** Navigation *****************/
 
@@ -400,6 +359,19 @@
 .slider > .axis:bottom {
   -fx-padding : 50, 50, 50, 50;
   -fx-margin : 50, 50, 50, 50;
+}
+
+/***************** Window decoration *****************/
+
+.progress-bar {
+    -fx-indeterminate-bar-length: 40;
+    -fx-indeterminate-bar-animation-time: 1.5;
+}
+.progress-bar > .bar {
+    -fx-padding: 0;
+}
+.progress-bar:indeterminate > .bar {
+    -fx-background-color: linear-gradient(to left, transparent, -fx-accent);
 }
 
 /***************** Window decoration *****************/
