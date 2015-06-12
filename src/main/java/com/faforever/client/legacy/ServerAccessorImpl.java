@@ -179,6 +179,7 @@ public class ServerAccessorImpl implements ServerAccessor,
   private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
     ServerWriter serverWriter = new ServerWriter(outputStream);
     serverWriter.registerObjectWriter(new ClientMessageSerializer(username, sessionId), ClientMessage.class);
+    serverWriter.registerObjectWriter(new PongMessageSerializer(username, sessionId), PongMessage.class);
     serverWriter.registerObjectWriter(new StringSerializer(), String.class);
     return serverWriter;
   }
@@ -221,7 +222,7 @@ public class ServerAccessorImpl implements ServerAccessor,
 
   @Override
   public void onServerPing() {
-    writeToServer(PONG);
+    writeToServer(new PongMessage());
   }
 
   @Override

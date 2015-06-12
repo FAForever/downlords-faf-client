@@ -89,8 +89,8 @@ class ServerReader {
   private void dispatchServerMessage(QDataReader socketIn, ServerMessageType serverMessageType) throws IOException {
     switch (serverMessageType) {
       case PING:
-        onPingListener.onServerPing();
         logger.debug("Server PINGed");
+        onPingListener.onServerPing();
         break;
 
       case LOGIN_AVAILABLE:
