@@ -100,7 +100,10 @@ public class GitRepositoryPatchService implements PatchService {
 
   @Override
   public void patchInBackground(Callback<Void> callback) {
-    initDirectories();
+    if (initAndCheckDirectories()) {
+      logger.warn("Aborted patching since directories aren't initialized properly");
+      return;
+    }
 
     taskService.submitTask(NET_HEAVY, new PrioritizedTask<Void>(i18n.get("patchTask.title"), LOW) {
       @Override
@@ -150,11 +153,20 @@ public class GitRepositoryPatchService implements PatchService {
     }, callback);
   }
 
-  private void initDirectories() {
+  /**
+   * Since it's possible that the user has changed or never specified the game path, this method needs to be called
+   * every time before any work is done.
+   */
+  private boolean initAndCheckDirectories() {
     fafBinDirectory = preferencesService.getFafBinDirectory();
     binaryPatchRepoDirectory = preferencesService.getFafReposDirectory().resolve(REPO_NAME);
-    faBinDirectory = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("bin");
     patchSourceDirectory = binaryPatchRepoDirectory.resolve(BINARY_PATCH_DIRECTORY);
+    Path faDirectory = preferencesService.getPreferences().getForgedAlliance().getPath();
+    if (faDirectory == null) {
+      return false;
+    }
+    faBinDirectory = faDirectory.resolve("bin");
+    return true;
   }
 
   private void clonePatchRepository() {
@@ -228,15 +240,14 @@ public class GitRepositoryPatchService implements PatchService {
   @Override
   public void needsPatching(Callback<Boolean> callback) {
     logger.info("Checking for FAF update");
-    initDirectories();
 
     taskService.submitTask(NET_LIGHT, new PrioritizedTask<Boolean>(i18n.get("updateCheckTask.title"), LOW) {
       @Override
       protected Boolean call() throws Exception {
-        return fafBinDirectory != null
-            && (Files.notExists(binaryPatchRepoDirectory)
-            || areNewPatchFilesAvailable()
-            || !areLocalFilesPatched());
+        return initAndCheckDirectories() &&
+            (Files.notExists(binaryPatchRepoDirectory)
+                || areNewPatchFilesAvailable()
+                || !areLocalFilesPatched());
       }
     }, callback);
   }

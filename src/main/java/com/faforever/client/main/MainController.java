@@ -225,6 +225,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     usernameButton.setText(userService.getUsername());
 
     checkGamePort();
+    checkForFafUpdate();
   }
 
   private void checkForFafUpdate() {
