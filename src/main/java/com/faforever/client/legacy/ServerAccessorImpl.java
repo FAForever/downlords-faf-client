@@ -151,7 +151,7 @@ public class ServerAccessorImpl implements ServerAccessor,
             } else {
               logger.warn("Lost connection to FAF server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
               if (onLobbyDisconnectedListener != null) {
-                Platform.runLater(onLobbyDisconnectedListener::onFaDisconnected);
+                Platform.runLater(onLobbyDisconnectedListener::onFafDisconnected);
               }
               Thread.sleep(RECONNECT_DELAY);
             }

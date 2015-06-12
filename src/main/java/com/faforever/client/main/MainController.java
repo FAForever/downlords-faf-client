@@ -356,17 +356,17 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @Override
   public void onFaConnected() {
-//    statusLabel.setText(i18n.get("statusbar.connected"));
+    fafConnectionButton.setText(i18n.get("statusBar.fafConnected"));
   }
 
   @Override
   public void onFaConnecting() {
-//    statusLabel.setText(i18n.get("statusbar.connecting"));
+    fafConnectionButton.setText(i18n.get("statusBar.fafConnecting"));
   }
 
   @Override
-  public void onFaDisconnected() {
-//    statusLabel.setText(i18n.get("statusbar.disconnected"));
+  public void onFafDisconnected() {
+    fafConnectionButton.setText(i18n.get("statusBar.fafDisconnected"));
   }
 
   private void setContent(Node node) {
