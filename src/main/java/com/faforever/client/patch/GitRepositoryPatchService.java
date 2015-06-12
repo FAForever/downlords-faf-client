@@ -105,6 +105,7 @@ public class GitRepositoryPatchService implements PatchService {
     taskService.submitTask(NET_HEAVY, new PrioritizedTask<Void>(i18n.get("patchTask.title"), LOW) {
       @Override
       protected Void call() throws Exception {
+
         if (Files.notExists(binaryPatchRepoDirectory)) {
           clonePatchRepository();
         }
@@ -130,6 +131,7 @@ public class GitRepositoryPatchService implements PatchService {
             Path patchFile = getPatchFile(bytesOfFileToPatch);
 
             if (Files.notExists(patchFile)) {
+              updateProgress(++progress, entries.size());
               continue;
             }
 
