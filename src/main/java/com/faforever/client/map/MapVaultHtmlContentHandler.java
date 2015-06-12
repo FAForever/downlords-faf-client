@@ -1,12 +1,15 @@
 package com.faforever.client.map;
 
 import com.faforever.client.game.MapInfoBean;
+import com.faforever.client.game.MapSize;
 import com.faforever.client.legacy.htmlparser.HtmlContentHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoBean>> {
 
@@ -15,8 +18,14 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
     DOWNLOADS,
     NAME,
     DESCRIPTION,
+    MAP_MISC,
     RATING
   }
+
+  /**
+   * Extracts data out of "8 players, 10x10 km, v.25".
+   */
+  private static Pattern MAP_MISC_PATTERN = Pattern.compile("(\\d+)\\s+players,\\s+(\\d+)x(\\d+)\\s+km,\\s+v.(\\d+)");
 
   private MapProperty currentProperty;
   private List<MapInfoBean> result;
@@ -48,6 +57,11 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
 
     if (localName.equals("div") && "map_desc".equals(atts.getValue("class"))) {
       currentProperty = MapProperty.DESCRIPTION;
+      return;
+    }
+
+    if (localName.equals("div") && "map_misc".equals(atts.getValue("class"))) {
+      currentProperty = MapProperty.MAP_MISC;
       return;
     }
 
@@ -94,6 +108,18 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
         return;
       case RATING:
         currentBean.setRating(Float.parseFloat(currentValue));
+        return;
+      case MAP_MISC:
+        Matcher matcher = MAP_MISC_PATTERN.matcher(currentValue);
+        if (matcher.matches()) {
+          currentBean.setPlayers(Integer.parseInt(matcher.group(1)));
+
+          int mapWidth = Integer.parseInt(matcher.group(2));
+          int mapHeight = Integer.parseInt(matcher.group(3));
+          currentBean.setSize(new MapSize(mapWidth, mapHeight));
+
+          currentBean.setVersion(Integer.parseInt(matcher.group(4)));
+        }
         return;
 
       default:
