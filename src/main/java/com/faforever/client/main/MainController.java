@@ -224,7 +224,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     usernameButton.setText(userService.getUsername());
 
-    checkUdpPort();
+    checkGamePort();
     checkForFafUpdate();
   }
 
@@ -271,7 +271,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     });
   }
 
-  private void checkUdpPort() {
+  private void checkGamePort() {
     portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
     portCheckService.checkUdpPortInBackground(preferencesService.getPreferences().getForgedAlliance().getPort(), new Callback<Boolean>() {
       @Override
@@ -399,7 +399,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   public void onPortCheckRetryClicked(ActionEvent event) {
-    // FIXME implement
+    checkGamePort();
   }
 
   public void onFafReconnectClicked(ActionEvent event) {
