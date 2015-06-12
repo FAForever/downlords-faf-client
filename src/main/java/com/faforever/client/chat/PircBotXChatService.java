@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
@@ -41,6 +42,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
@@ -71,6 +73,9 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Autowired
   TaskService taskService;
+
+  @Autowired
+  I18n i18n;
 
   private Configuration configuration;
   private PircBotX pircBotX;
@@ -265,7 +270,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void sendMessageInBackground(String target, String message, Callback<String> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<String>() {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<String>(i18n.get("chat.sendMessageTask.title"), HIGH) {
       @Override
       protected String call() throws Exception {
         pircBotX.sendIRC().message(target, message);
@@ -296,7 +301,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void sendActionInBackground(String target, String action, Callback<String> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<String>() {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<String>(i18n.get("chat.sendActionTask.title")) {
       @Override
       protected String call() throws Exception {
         pircBotX.sendIRC().action(target, action);

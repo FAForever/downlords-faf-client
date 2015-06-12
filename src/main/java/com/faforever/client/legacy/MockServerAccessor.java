@@ -2,6 +2,7 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LadderEntryBean;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
@@ -31,10 +32,13 @@ public class MockServerAccessor implements ServerAccessor {
   private Collection<OnGameInfoListener> onGameInfoListeners;
 
   @Autowired
-  private UserService userService;
+  UserService userService;
 
   @Autowired
-  private TaskService taskService;
+  TaskService taskService;
+
+  @Autowired
+  I18n i18n;
 
   public MockServerAccessor() {
     onModInfoMessageListeners = new ArrayList<>();
@@ -43,7 +47,7 @@ public class MockServerAccessor implements ServerAccessor {
 
   @Override
   public void connectAndLogInInBackground(Callback<Void> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<Void>() {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<Void>(i18n.get("login.progress.message")) {
       @Override
       protected Void call() throws Exception {
         for (OnModInfoListener onModInfoMessageListener : onModInfoMessageListeners) {
@@ -103,7 +107,7 @@ public class MockServerAccessor implements ServerAccessor {
 
   @Override
   public void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchInfo> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<GameLaunchInfo>(HIGH) {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<GameLaunchInfo>(i18n.get("requestNewGameTask.title"), HIGH) {
       @Override
       protected GameLaunchInfo call() throws Exception {
         GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
@@ -118,7 +122,7 @@ public class MockServerAccessor implements ServerAccessor {
 
   @Override
   public void requestJoinGame(GameInfoBean gameInfoBean, String password, Callback<GameLaunchInfo> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<GameLaunchInfo>(HIGH) {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<GameLaunchInfo>(i18n.get("requestJoinGameTask.title"), HIGH) {
       @Override
       protected GameLaunchInfo call() throws Exception {
         GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();

@@ -4,6 +4,7 @@ import com.faforever.client.config.BaseConfig;
 import com.faforever.client.config.UiConfig;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
+import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Application;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
@@ -19,6 +20,8 @@ public class Main extends Application {
 
   @Override
   public void start(Stage stage) throws Exception {
+    JavaFxUtil.fixTooltipDuration();
+
     AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(BaseConfig.class, UiConfig.class);
 
     context.getBeanFactory().registerSingleton("hostServices", getHostServices());

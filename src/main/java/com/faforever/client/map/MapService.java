@@ -13,7 +13,7 @@ public interface MapService {
 
   Image loadLargePreview(String mapName);
 
-  void getMapsFromVaultInBackground(int page, int maxEntries, Callback<List<MapInfoBean>> callback);
+  void readMapVaultInBackground(int page, int maxEntries, Callback<List<MapInfoBean>> callback);
 
   ObservableList<MapInfoBean> getLocalMaps();
 }

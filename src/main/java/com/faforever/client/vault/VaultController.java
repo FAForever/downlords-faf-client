@@ -9,7 +9,6 @@ import javafx.scene.Node;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.layout.Pane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +67,7 @@ public class VaultController {
 
   public void setUpIfNecessary() {
     // FIXME test code so far
-    mapService.getMapsFromVaultInBackground(0, 100, new Callback<List<MapInfoBean>>() {
+    mapService.readMapVaultInBackground(0, 100, new Callback<List<MapInfoBean>>() {
       @Override
       public void success(List<MapInfoBean> result) {
         mapTableView.setItems(FXCollections.observableList(result));

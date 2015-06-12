@@ -1,5 +1,6 @@
 package com.faforever.client.leaderboard;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
@@ -17,9 +18,12 @@ public class MockLadderService implements LadderService {
   @Autowired
   TaskService taskService;
 
+  @Autowired
+  I18n i18n;
+
   @Override
   public void getLadderInfo(Callback<List<LadderEntryBean>> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LadderEntryBean>>(HIGH) {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LadderEntryBean>>(i18n.get("readLadderTask.title"), HIGH) {
       @Override
       protected List<LadderEntryBean> call() throws Exception {
         ArrayList<LadderEntryBean> list = new ArrayList<LadderEntryBean>();

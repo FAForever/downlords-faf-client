@@ -1,5 +1,6 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
@@ -66,6 +67,9 @@ public class GitRepositoryPatchService implements PatchService {
   @Autowired
   TaskService taskService;
 
+  @Autowired
+  I18n i18n;
+
   /**
    * Path containing the FAF "bin" directory (e. g. "%PROGRAMDATA\FAForever\bin")
    */
@@ -98,7 +102,7 @@ public class GitRepositoryPatchService implements PatchService {
 
   @Override
   public void patchInBackground(Callback<Void> callback) {
-    taskService.submitTask(NET_HEAVY, new PrioritizedTask<Void>(LOW) {
+    taskService.submitTask(NET_HEAVY, new PrioritizedTask<Void>(i18n.get("patchTask.title"), LOW) {
       @Override
       protected Void call() throws Exception {
         if (Files.notExists(binaryPatchRepoDirectory)) {
@@ -216,7 +220,7 @@ public class GitRepositoryPatchService implements PatchService {
   public void needsPatching(Callback<Boolean> callback) {
     logger.info("Checking for FAF update");
 
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<Boolean>(LOW) {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<Boolean>(i18n.get("updateCheckTask.title"), LOW) {
       @Override
       protected Boolean call() throws Exception {
         return Files.notExists(binaryPatchRepoDirectory)

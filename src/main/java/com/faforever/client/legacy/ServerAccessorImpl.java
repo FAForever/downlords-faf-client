@@ -2,6 +2,7 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LadderEntryBean;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.GameAccess;
@@ -69,6 +70,9 @@ public class ServerAccessorImpl implements ServerAccessor,
 
   @Autowired
   TaskService taskService;
+
+  @Autowired
+  I18n i18n;
 
   private Task<Void> fafConnectionTask;
   private String uniqueId;
@@ -369,7 +373,7 @@ public class ServerAccessorImpl implements ServerAccessor,
 
   @Override
   public void requestLadderInfoInBackground(Callback<List<LadderEntryBean>> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LadderEntryBean>>() {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LadderEntryBean>>(i18n.get("readLadderTask.title")) {
       @Override
       protected List<LadderEntryBean> call() throws Exception {
         return ladderParser.parseLadder();

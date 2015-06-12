@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
@@ -32,6 +33,9 @@ public class MockChatService implements ChatService {
 
   @Autowired
   TaskService taskService;
+
+  @Autowired
+  I18n i18n;
 
   private Collection<OnChatMessageListener> onChatMessageListeners;
   private Collection<OnChatConnectedListener> onChatConnectedListeners;
@@ -112,7 +116,7 @@ public class MockChatService implements ChatService {
 
   @Override
   public void sendMessageInBackground(String target, String message, Callback<String> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<String>() {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<String>(i18n.get("chat.sendMessageTask.title")) {
       @Override
       protected String call() throws Exception {
         Thread.sleep(200);

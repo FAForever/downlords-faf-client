@@ -30,7 +30,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.Skin;
 import javafx.scene.control.SplitMenuButton;
-import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -285,7 +284,7 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
   private void displayGameDetail(GameInfoBean gameInfoBean) {
     mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapName()));
     gameTitleLabel.setText(gameInfoBean.getTitle());
-    numberOfPlayersLabel.setText(String.format(i18n.get("game.detail.players.format"), gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
+    numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     hosterLabel.setText(gameInfoBean.getHost());
     gameModeLabel.setText(gameInfoBean.getFeaturedMod());
   }

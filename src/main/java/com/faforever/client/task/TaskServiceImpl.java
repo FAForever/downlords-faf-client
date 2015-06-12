@@ -31,6 +31,7 @@ public class TaskServiceImpl implements TaskService {
 
   public TaskServiceImpl() {
     queuesByGroup = new HashMap<>();
+    queueListsByGroup = new HashMap<>();
 
     for (TaskGroup taskGroup : TaskGroup.values()) {
       queuesByGroup.put(taskGroup, new PriorityBlockingQueue<>());

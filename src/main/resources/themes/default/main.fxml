@@ -68,39 +68,47 @@
       </padding>
     </HBox>
       <AnchorPane fx:id="contentPane" VBox.vgrow="ALWAYS" />
-      <HBox minHeight="10.0" prefHeight="18.0" styleClass="status-bar">
+    <HBox alignment="CENTER_LEFT" minHeight="18.0" styleClass="status-bar">
          <children>
-            <Label fx:id="progressLabel" text="Label" />
-            <Pane HBox.hgrow="ALWAYS" />
-           <ProgressBar fx:id="progressBar" maxHeight="1.7976931348623157E308" minWidth="20.0" prefWidth="150.0"/>
+           <HBox fx:id="taskPane" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+             <children>
+               <Label fx:id="taskProgressLabel" text="Label"/>
+               <Pane HBox.hgrow="ALWAYS"/>
+               <ProgressBar fx:id="taskProgressBar" maxHeight="1.7976931348623157E308" minWidth="20.0"
+                            prefWidth="150.0"/>
+             </children>
+           </HBox>
             <Separator focusTraversable="false" orientation="VERTICAL" />
-            <MenuButton focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.portReachable">
+           <MenuButton fx:id="portCheckStatusButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
+                       styleClass="status-bar-menu-button" text="%statusBar.portReachable">
+             <tooltip>
+               <Tooltip text="&lt;Tooltip text inserted by code&gt;"/>
+             </tooltip>
                <items>
-                  <MenuItem mnemonicParsing="false" text="Action 1" />
-                  <MenuItem mnemonicParsing="false" text="Action 2" />
+                 <MenuItem mnemonicParsing="false" onAction="#onPortCheckHelpClicked" text="%statusBar.help"/>
+                 <MenuItem mnemonicParsing="false" onAction="#onChangePortClicked" text="%statusBar.changePort"/>
+                 <MenuItem mnemonicParsing="false" onAction="#onEnableUpnpClicked" text="%statusBar.enableUpnp"/>
+                 <MenuItem mnemonicParsing="false" onAction="#onPortCheckRetryClicked" text="%statusBar.retry"/>
                </items>
             </MenuButton>
             <Separator focusTraversable="false" orientation="VERTICAL" />
-            <MenuButton focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.fafConnected">
+           <MenuButton fx:id="fafConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
+                       styleClass="status-bar-menu-button" text="%statusBar.fafConnected">
                <items>
-                  <MenuItem mnemonicParsing="false" text="Action 1" />
-                  <MenuItem mnemonicParsing="false" text="Action 2" />
+                 <MenuItem mnemonicParsing="false" onAction="#onFafReconnectClicked" text="%statusBar.reconnect"/>
                </items>
             </MenuButton>
             <Separator focusTraversable="false" orientation="VERTICAL" />
-            <MenuButton focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.ircConnecting">
+           <MenuButton fx:id="ircConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
+                       styleClass="status-bar-menu-button" text="%statusBar.ircConnected">
                <items>
-                  <MenuItem mnemonicParsing="false" text="Action 1" />
-                  <MenuItem mnemonicParsing="false" text="Action 2" />
+                 <MenuItem mnemonicParsing="false" onAction="#onIrcReconnectClicked" text="%statusBar.reconnect"/>
                </items>
             </MenuButton>
          </children>
          <VBox.margin>
             <Insets top="5.0" />
          </VBox.margin>
-         <opaqueInsets>
-            <Insets />
-         </opaqueInsets>
          <padding>
             <Insets left="5.0" right="5.0" />
          </padding>

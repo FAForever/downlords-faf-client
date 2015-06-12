@@ -1,6 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.game.MapInfoBean;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
@@ -41,6 +42,9 @@ public class LegacyMapService implements MapService {
   @Autowired
   MapVaultParser mapVaultParser;
 
+  @Autowired
+  I18n i18n;
+
   @Override
   @Cacheable("smallMapPreview")
   public Image loadSmallPreview(String mapName) {
@@ -62,8 +66,8 @@ public class LegacyMapService implements MapService {
   }
 
   @Override
-  public void getMapsFromVaultInBackground(int page, int maxEntries, Callback<List<MapInfoBean>> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<MapInfoBean>>() {
+  public void readMapVaultInBackground(int page, int maxEntries, Callback<List<MapInfoBean>> callback) {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<MapInfoBean>>(i18n.get("readMapVaultTask.title")) {
       @Override
       protected List<MapInfoBean> call() throws Exception {
         return mapVaultParser.parseMapVault(page, maxEntries);

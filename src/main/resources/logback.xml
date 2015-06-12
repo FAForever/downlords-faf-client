@@ -10,6 +10,7 @@
   <logger name="com.faforever.client.legacy.relay" level="warn"/>
   <logger name="com.faforever.client.legacy.proxy" level="warn"/>
   <logger name="com.faforever.client.chat" level="warn"/>
+  <logger name="com.faforever.client.task" level="warn"/>
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>

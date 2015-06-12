@@ -1,5 +1,6 @@
 package com.faforever.client.network;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
@@ -35,9 +36,12 @@ public class PortCheckServiceImpl implements PortCheckService {
   @Autowired
   Environment environment;
 
+  @Autowired
+  I18n i18n;
+
   @Override
   public void checkUdpPortInBackground(int port, Callback<Boolean> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<Boolean>(LOW) {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<Boolean>(i18n.get("portCheckTask.title"), LOW) {
       @Override
       protected Boolean call() throws Exception {
         String remoteHost = environment.getProperty("portCheck.host");

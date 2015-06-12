@@ -17,13 +17,13 @@ import com.faforever.client.patch.PatchService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.vault.VaultController;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Service;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -31,6 +31,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ToggleButton;
@@ -39,11 +40,9 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
-import org.controlsfx.control.TaskProgressView;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
@@ -74,22 +73,28 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   ButtonBase ladderButton;
 
   @FXML
-  ProgressBar progressBar;
+  ProgressBar taskProgressBar;
 
   @FXML
   Region mainRoot;
 
   @FXML
-  Label statusLabel;
-
-  @FXML
-  Label natStatusLabel;
-
-  @FXML
   MenuButton usernameButton;
 
   @FXML
-  Pane taskQueuePane;
+  Pane taskPane;
+
+  @FXML
+  Labeled portCheckStatusButton;
+
+  @FXML
+  MenuButton fafConnectionButton;
+
+  @FXML
+  MenuButton ircConnectionButton;
+
+  @FXML
+  Label taskProgressLabel;
 
   @Autowired
   NewsController newsController;
@@ -137,34 +142,64 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   void initialize() {
-    contentPane.managedProperty().bind(contentPane.visibleProperty());
+    taskPane.managedProperty().bind(taskPane.visibleProperty());
+    taskProgressBar.managedProperty().bind(taskProgressBar.visibleProperty());
+    taskProgressLabel.managedProperty().bind(taskProgressLabel.visibleProperty());
+
+    setCurrentTaskInStatusBar(null);
   }
 
   @PostConstruct
   void postConstruct() {
-    taskService.addChangeListener(taskGroup, change -> {
-      if (change.wasAdded()) {
-        addPrioritizedTaskToQueuePane(change.getAddedSubList());
+    taskService.addChangeListener(TaskGroup.NET_HEAVY, change -> {
+      while (change.next()) {
+        if (change.wasAdded()) {
+          addTasks(change.getAddedSubList());
+        }
+        if (change.wasRemoved()) {
+          removeTasks(change.getRemoved());
+        }
       }
     });
+    portCheckStatusButton.getTooltip().setText(
+        i18n.get("statusBar.portCheckTooltip", preferencesService.getPreferences().getForgedAlliance().getPort())
+    );
   }
 
-  private void addPrioritizedTaskToQueuePane(List<? extends PrioritizedTask<?>> tasks) {
-    new TaskProgressView<>();
+  private void removeTasks(List<? extends PrioritizedTask<?>> removed) {
+    setCurrentTaskInStatusBar(null);
+  }
 
-    List<Node> taskPanes = new ArrayList<>();
-
-    for (Node taskPane : taskPanes) {
-      taskPanes.add(taskPane);
-    }
-
-    taskQueuePane.getChildren().setAll(taskPanes);
+  /**
+   * @param tasks a list of prioritized tasks, sorted by priority (lowest first)
+   */
+  private void addTasks(List<? extends PrioritizedTask<?>> tasks) {
+//    List<Node> taskPanes = new ArrayList<>();
+//
+//    for (PrioritizedTask<?> taskPane : tasks) {
+//      taskPanes.add(new Pane());
+//    }
+//
+//    taskPane.getChildren().setAll(taskPanes);
 
     setCurrentTaskInStatusBar(tasks.get(tasks.size() - 1));
   }
 
+  /**
+   * @param task the task to set, {@code null} to unset
+   */
   private void setCurrentTaskInStatusBar(PrioritizedTask<?> task) {
-    progressBar.progressProperty().bind(task.progressProperty());
+    if (task == null) {
+      taskProgressBar.setVisible(false);
+      taskProgressLabel.setVisible(false);
+      return;
+    }
+
+    taskProgressBar.setVisible(true);
+    taskProgressBar.progressProperty().bind(task.progressProperty());
+
+    taskProgressLabel.setVisible(true);
+    taskProgressLabel.setText(task.getTitle());
   }
 
   public void display(Stage stage) {
@@ -212,18 +247,17 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
         alert.resultProperty().addListener((observable, oldValue, newValue) -> {
           if (newValue == updateNowButtonType) {
-            Service<Void> patchTask = patchService.patchInBackground(new Callback<Void>() {
+            patchService.patchInBackground(new Callback<Void>() {
               @Override
               public void success(Void result) {
-
+                // FIXME implement
               }
 
               @Override
               public void error(Throwable e) {
-
+                // FIXME implement
               }
             });
-            // TODO show update progress somewhere
           }
         });
 
@@ -238,23 +272,20 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   private void checkUdpPort() {
-    // FIXME i18n/icons
-    natStatusLabel.setText("Checking NAT");
+    portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
     portCheckService.checkUdpPortInBackground(preferencesService.getPreferences().getForgedAlliance().getPort(), new Callback<Boolean>() {
       @Override
       public void success(Boolean result) {
-        // FIXME add iamge
         if (result) {
-          natStatusLabel.setText("NAT: OK");
+          portCheckStatusButton.setText(i18n.get("statusBar.portReachable"));
         } else {
-          natStatusLabel.setText("NAT: Closed");
+          portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
         }
       }
 
       @Override
       public void error(Throwable e) {
-        // FIXME add image
-        natStatusLabel.setText("NAT: Error");
+        portCheckStatusButton.setText("NAT: Error");
       }
     });
   }
@@ -325,17 +356,17 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @Override
   public void onFaConnected() {
-    statusLabel.setText(i18n.get("statusbar.connected"));
+//    statusLabel.setText(i18n.get("statusbar.connected"));
   }
 
   @Override
   public void onFaConnecting() {
-    statusLabel.setText(i18n.get("statusbar.connecting"));
+//    statusLabel.setText(i18n.get("statusbar.connecting"));
   }
 
   @Override
   public void onFaDisconnected() {
-    statusLabel.setText(i18n.get("statusbar.disconnected"));
+//    statusLabel.setText(i18n.get("statusbar.disconnected"));
   }
 
   private void setContent(Node node) {
@@ -353,5 +384,30 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     for (Node child : children) {
       child.setVisible(child == node);
     }
+  }
+
+  public void onPortCheckHelpClicked(ActionEvent event) {
+    // FIXME implement
+  }
+
+  public void onChangePortClicked(ActionEvent event) {
+    // FIXME implement
+  }
+
+  public void onEnableUpnpClicked(ActionEvent event) {
+    // FIXME implement
+  }
+
+  public void onPortCheckRetryClicked(ActionEvent event) {
+    // FIXME implement
+  }
+
+  public void onFafReconnectClicked(ActionEvent event) {
+    // FIXME implement
+  }
+
+  public void onIrcReconnectClicked(ActionEvent event) {
+    // FIXME implement
+
   }
 }

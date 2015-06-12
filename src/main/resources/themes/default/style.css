@@ -1,5 +1,5 @@
 .root {
-  -fx-font-size: 14px;
+  -fx-font-size: 1.2em;
 
   /***************************************************************************
    *                                                                         *
@@ -306,15 +306,24 @@
 /***************** Status bar *****************/
 
 .status-bar {
-  -fx-font-size: 11px;
+  -fx-font-size: .9em;
+  -fx-border-width: 1 0 0 0;
+  -fx-border-color: -fx-box-border;
+}
+
+.status-bar .tooltip {
+  -fx-font-size: 1.2em;
 }
 
 .status-bar-menu-button {
   -fx-background-color: transparent;
   -fx-background-repeat: no-repeat;
 }
-.status-bar-menu-button:openvertically {
-  -fx-shape: "M 0 0 h 5 l -3.5 2 z";
+.status-bar-menu-button > .label {
+  -fx-padding: 0 2 0 0;
+}
+.status-bar-menu-button:openvertically > .arrow-button > .arrow {
+  -fx-shape: "M0 1 L1 1 L.5 0 Z";
 }
 
 /***************** Transparent table *****************/
@@ -329,7 +338,7 @@
 /***************** Navigation *****************/
 
 .main-navigation > .toggle-button {
-  -fx-font-size: 20px;
+  -fx-font-size: 1.6em;
   -fx-text-fill: -fx-dark-text-color;
   -fx-background-color: transparent;
 }
@@ -343,10 +352,6 @@
   -fx-text-fill: -fx-light-text-color;
   -fx-effect: dropshadow(gaussian, rgba(255,255,255,.4), 5, 0.8, 0, 0);
 }
-
-.main-navigation > .toggle-button > .text {
-}
-
 
 /***************** Tabs *****************/
 
@@ -425,7 +430,7 @@
 /***************** Login *****************/
 
 .login {
-  -fx-font-size: 16px;
+  -fx-font-size: 1.5em;
 }
 
 
