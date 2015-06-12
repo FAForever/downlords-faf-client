@@ -9,15 +9,22 @@ public class ForgedAlliancePrefs {
   private int port;
 
   public ForgedAlliancePrefs() {
-    this.path = "C:\\Games\\Supreme Commander - Forged Alliance";
     this.port = 6112;
   }
 
   public Path getPath() {
+    if (path == null) {
+      return null;
+    }
     return Paths.get(path);
   }
 
   public int getPort() {
     return port;
+  }
+
+
+  public void setPath(Path path) {
+    this.path = path.toAbsolutePath().toString();
   }
 }

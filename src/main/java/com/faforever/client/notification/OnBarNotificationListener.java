@@ -2,5 +2,5 @@ package com.faforever.client.notification;
 
 public interface OnBarNotificationListener {
 
-  void onBarNotification(BarNotification notification);
+  void onBarNotification(PersistentNotification notification);
 }

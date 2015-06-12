@@ -56,6 +56,8 @@ public class GitRepositoryPatchService implements PatchService {
   private static final String REPO_NAME = "binary-patch";
   private static final String STEAM_API_DLL = "steam_api.dll";
   private static final String BINARY_PATCH_DIRECTORY = "bsdiff4";
+  private static final long UPDATE_CHECK_PERIOD = 3600_000;
+
   private final Gson gson;
 
   @Autowired
@@ -93,15 +95,13 @@ public class GitRepositoryPatchService implements PatchService {
 
   @PostConstruct
   void postConstruct() {
-    fafBinDirectory = preferencesService.getFafBinDirectory();
-    binaryPatchRepoDirectory = preferencesService.getFafReposDirectory().resolve(REPO_NAME);
-    faBinDirectory = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("bin");
-    patchSourceDirectory = binaryPatchRepoDirectory.resolve(BINARY_PATCH_DIRECTORY);
     patchRepositoryUri = environment.getProperty("patch.git.url");
   }
 
   @Override
   public void patchInBackground(Callback<Void> callback) {
+    initDirectories();
+
     taskService.submitTask(NET_HEAVY, new PrioritizedTask<Void>(i18n.get("patchTask.title"), LOW) {
       @Override
       protected Void call() throws Exception {
@@ -148,6 +148,13 @@ public class GitRepositoryPatchService implements PatchService {
         return null;
       }
     }, callback);
+  }
+
+  private void initDirectories() {
+    fafBinDirectory = preferencesService.getFafBinDirectory();
+    binaryPatchRepoDirectory = preferencesService.getFafReposDirectory().resolve(REPO_NAME);
+    faBinDirectory = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("bin");
+    patchSourceDirectory = binaryPatchRepoDirectory.resolve(BINARY_PATCH_DIRECTORY);
   }
 
   private void clonePatchRepository() {
@@ -221,13 +228,15 @@ public class GitRepositoryPatchService implements PatchService {
   @Override
   public void needsPatching(Callback<Boolean> callback) {
     logger.info("Checking for FAF update");
+    initDirectories();
 
     taskService.submitTask(NET_LIGHT, new PrioritizedTask<Boolean>(i18n.get("updateCheckTask.title"), LOW) {
       @Override
       protected Boolean call() throws Exception {
-        return Files.notExists(binaryPatchRepoDirectory)
+        return fafBinDirectory != null
+            && (Files.notExists(binaryPatchRepoDirectory)
             || areNewPatchFilesAvailable()
-            || !areLocalFilesPatched();
+            || !areLocalFilesPatched());
       }
     }, callback);
   }

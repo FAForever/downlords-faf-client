@@ -432,13 +432,21 @@
 
 /***************** Login *****************/
 
-.login {
-  -fx-font-size: 1.5em;
+.login .text-field {
+  -fx-padding: .6em;
+  -fx-font-size: 1.3em;
 }
 
+.login .button {
+  -fx-padding: .7em;
+}
 
-.login > .login-Icon {
-  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.2), 15, 0.8, 0, 0);
+.login .button > .text {
+  -fx-font-size: 1.3em;
+}
+
+.login-Icon {
+ -fx-effect: dropshadow(gaussian, rgba(255,255,255,.2), 15, 0.8, 0, 0);
 }
 
 /***************** Chat (WebView, therefore default CSS). Java FX  variables can't be used *****************/

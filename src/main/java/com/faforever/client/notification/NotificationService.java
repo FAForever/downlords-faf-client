@@ -3,22 +3,22 @@ package com.faforever.client.notification;
 public interface NotificationService {
 
   /**
-   * Adds a {@link BarNotification} to be displayed.
+   * Adds a {@link PersistentNotification} to be displayed.
    */
-  void addNotification(BarNotification notification);
+  void addNotification(PersistentNotification notification);
 
   /**
-   * Adds a {@link ToastNotification} to be displayed.
+   * Adds a {@link TransientNotification} to be displayed.
    */
-  void addNotification(ToastNotification notification);
+  void addNotification(TransientNotification notification);
 
   /**
-   * Adds a listener to be notified about added/removed {@link BarNotification}s
+   * Adds a listener to be notified about added/removed {@link PersistentNotification}s
    */
   void addBarNotificationListener(OnBarNotificationListener listener);
 
   /**
-   * Adds a listener to be notified about added/removed {@link ToastNotification}s
+   * Adds a listener to be notified about added/removed {@link TransientNotification}s
    */
   void addToastNotificationListener(OnToastNotificationListener listener);
 }

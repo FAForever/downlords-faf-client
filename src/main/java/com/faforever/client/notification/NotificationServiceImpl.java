@@ -14,12 +14,12 @@ public class NotificationServiceImpl implements NotificationService {
   }
 
   @Override
-  public void addNotification(BarNotification notification) {
+  public void addNotification(PersistentNotification notification) {
     onBarNotificationListeners.forEach(listener -> listener.onBarNotification(notification));
   }
 
   @Override
-  public void addNotification(ToastNotification notification) {
+  public void addNotification(TransientNotification notification) {
     onToastNotificationListeners.forEach(listener -> listener.onToastNotification(notification));
   }
 
