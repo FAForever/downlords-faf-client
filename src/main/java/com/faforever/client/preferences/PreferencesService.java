@@ -5,6 +5,7 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.DirectoryChooserAction;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.util.OperatingSystem;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -104,7 +105,7 @@ public class PreferencesService {
     List<Action> actions = Collections.singletonList(
         new DirectoryChooserAction(i18n.get("missingGamePath.locateAction"), i18n.get("missingGamePath.chooserTitle"))
     );
-    notificationService.addNotification(new PersistentNotification(i18n.get("missingGamePath.notification"), actions));
+    notificationService.addNotification(new PersistentNotification(i18n.get("missingGamePath.notification"), Severity.WARN, actions));
   }
 
   /**

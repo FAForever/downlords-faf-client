@@ -1,5 +1,9 @@
 package com.faforever.client.notification;
 
+import javafx.collections.ListChangeListener;
+
+import java.util.List;
+
 public interface NotificationService {
 
   /**
@@ -15,10 +19,14 @@ public interface NotificationService {
   /**
    * Adds a listener to be notified about added/removed {@link PersistentNotification}s
    */
-  void addBarNotificationListener(OnBarNotificationListener listener);
+  void addPersistentNotificationListener(ListChangeListener<PersistentNotification> listener);
 
   /**
-   * Adds a listener to be notified about added/removed {@link TransientNotification}s
+   * Adds a listener to be notified whenever a {@link TransientNotification} has been fired.
    */
-  void addToastNotificationListener(OnToastNotificationListener listener);
+  void addTransientNotificationListener(OnTransientNotificationListener listener);
+
+  List<PersistentNotification> getPersistentNotifications();
+
+  void removeNotification(PersistentNotification notification);
 }

@@ -11,31 +11,26 @@ import java.util.List;
  */
 public class TransientNotification {
 
-  private String title;
-  private String message;
+  private final String title;
+  private final String text;
   private Image image;
   private List<Action> actions;
 
-  public TransientNotification(String title, String message) {
-    this.title = title;
-    this.message = message;
+  public TransientNotification(String title, String text) {
+    this(title, text, null, null);
   }
 
-  public TransientNotification(String title, String message, Image image) {
-    this.title = title;
-    this.message = message;
-    this.image = image;
+  public TransientNotification(String title, String text, Image image) {
+    this(title, text, image, null);
   }
 
-  public TransientNotification(String title, String message, List<Action> actions) {
-    this.title = title;
-    this.message = message;
-    this.actions = actions;
+  public TransientNotification(String title, String text, List<Action> actions) {
+    this(title, text, null, actions);
   }
 
-  public TransientNotification(String title, String message, Image image, List<Action> actions) {
+  public TransientNotification(String title, String text, Image image, List<Action> actions) {
     this.title = title;
-    this.message = message;
+    this.text = text;
     this.image = image;
     this.actions = actions;
   }

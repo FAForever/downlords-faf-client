@@ -13,8 +13,8 @@
 
 <VBox fx:id="mainRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="441.0" minWidth="691.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
   <children>
-    <HBox fx:id="mainNavigation" alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308"
-          minHeight="-Infinity" minWidth="-Infinity">
+    <HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity"
+          minWidth="-Infinity">
          <children>
            <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
              <items>
@@ -51,12 +51,16 @@
                </children>
             </HBox>
            <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"/>
-           <MenuButton fx:id="usernameButton" focusTraversable="false" mnemonicParsing="false"
-                       styleClass="username-button" text="Username">
+           <Button fx:id="notificationsButton" focusTraversable="false" mnemonicParsing="false"
+                   onAction="#onNotificationsButtonClicked" styleClass="notification-button" text="0">
+             <HBox.margin>
+               <Insets right="10.0"/>
+             </HBox.margin>
+           </Button>
+           <MenuButton fx:id="usernameButton" focusTraversable="false" minWidth="10.0" mnemonicParsing="false"
+                       prefWidth="100.0" styleClass="username-button" text="Username">
              <items>
                <MenuItem mnemonicParsing="false" text="%menu.logOut"/>
-               <MenuItem mnemonicParsing="false" text="My Stats"/>
-               <MenuItem mnemonicParsing="false" text="Change Avatar"/>
              </items>
              <HBox.margin>
                <Insets/>

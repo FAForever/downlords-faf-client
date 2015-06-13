@@ -22,5 +22,4 @@ public class DirectoryChooserAction extends Action {
     directoryChooser.setTitle(directoryChooserTitle);
     directoryChooser.showDialog(owner);
   }
-
 }

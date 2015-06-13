@@ -1,36 +1,38 @@
 package com.faforever.client.notification;
 
-import javafx.scene.image.Image;
+import javafx.scene.layout.HBox;
 
 import java.util.List;
 
 /**
  * A notification that keeps displaying until the user performs a suggested action or dismisses it. The notification
- * consist of a text, an optional image and zero or actions and is always rendered with a close button.
+ * consist of a severity, a text and zero or more actions and is always rendered with a close button.
  */
-public class PersistentNotification {
+public class PersistentNotification extends HBox {
 
-  private String message;
-  private Image image;
+  private final String text;
+  private final Severity severity;
   private List<Action> actions;
 
-  public PersistentNotification(String message) {
-    this.message = message;
+  public PersistentNotification(String text, Severity severity) {
+    this(text, severity, null);
   }
 
-  public PersistentNotification(String message, Image image) {
-    this.message = message;
-    this.image = image;
-  }
-
-  public PersistentNotification(String message, List<Action> actions) {
-    this.message = message;
+  public PersistentNotification(String text, Severity severity, List<Action> actions) {
+    this.text = text;
+    this.severity = severity;
     this.actions = actions;
   }
 
-  public PersistentNotification(String message, Image image, List<Action> actions) {
-    this.message = message;
-    this.image = image;
-    this.actions = actions;
+  public String getText() {
+    return text;
+  }
+
+  public List<Action> getActions() {
+    return actions;
+  }
+
+  public Severity getSeverity() {
+    return severity;
   }
 }

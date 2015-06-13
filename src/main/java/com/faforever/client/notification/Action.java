@@ -3,18 +3,37 @@ package com.faforever.client.notification;
 import javafx.event.ActionEvent;
 
 /**
- * When displaying a notification, there may be associated actions consisting of a title and an action.
+ * Notifications have actions associated with it. This class represents such an action.
  */
-public abstract class Action {
+public class Action {
+
+  public interface ActionCallback {
+
+    void call(ActionEvent event);
+  }
 
   private String title;
+  private ActionCallback callback;
 
   public Action(String title) {
     this.title = title;
   }
 
-  public void onDismissed() {
+  public Action(String title, ActionCallback callback) {
+    this.title = title;
+    this.callback = callback;
   }
 
-  public abstract void call(ActionEvent event);
+  /**
+   * Calls the specified callback, if any. Subclasses may override.
+   */
+  public void call(ActionEvent event) {
+    if (callback != null) {
+      callback.call(event);
+    }
+  }
+
+  public String getTitle() {
+    return title;
+  }
 }

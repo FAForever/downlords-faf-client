@@ -246,6 +246,11 @@ public class WindowDecorator {
   }
 
   public void onMouseDragged(MouseEvent event) {
+    if (dragOffset == null) {
+      // Somehow the drag event occurred without an initial press event
+      onMousePressed(event);
+    }
+
     if (isResizing) {
       onWindowResize(event);
     } else {
@@ -316,6 +321,7 @@ public class WindowDecorator {
 
   public void onMouseReleased(Event event) {
     isResizing = false;
+    dragOffset = null;
   }
 
   public void onMouseExited(Event event) {

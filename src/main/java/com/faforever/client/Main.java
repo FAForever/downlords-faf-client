@@ -25,9 +25,10 @@ public class Main extends Application {
     JavaFxUtil.fixTooltipDuration();
     configureLogging();
 
-    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(BaseConfig.class, UiConfig.class);
-
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
     context.getBeanFactory().registerSingleton("hostServices", getHostServices());
+    context.register(BaseConfig.class, UiConfig.class);
+    context.refresh();
 
     stage.getIcons().add(new Image("/images/tray_icon.png"));
     stage.initStyle(StageStyle.TRANSPARENT);

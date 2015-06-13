@@ -16,14 +16,9 @@ public class FxmlLoaderImpl implements FxmlLoader {
   private Locale locale;
   private String theme;
 
-  public FxmlLoaderImpl(MessageSource messageSource, Locale locale) {
+  public FxmlLoaderImpl(MessageSource messageSource, Locale locale, String theme) {
     this.messageSource = messageSource;
     this.locale = locale;
-  }
-
-
-  @Override
-  public void setTheme(String theme) {
     this.theme = theme;
   }
 
@@ -35,6 +30,11 @@ public class FxmlLoaderImpl implements FxmlLoader {
   @Override
   public void loadCustomControl(String file, Object control) {
     load(file, control, control);
+  }
+
+  @Override
+  public <T> T loadAndGetRoot(String file) {
+    return loadAndGetRoot(file, null);
   }
 
   @Override

@@ -16,12 +16,23 @@ public final class ConcurrentUtil {
   }
 
   /**
-   * Executes the given task in background without a callback.
+   * Executes the given task in background. A callback is automatically added that logs to error if the task has
+   * failed.
    *
    * @return the {@link Service} the specified task has been started in.
    */
   public static <T> Service<T> executeInBackground(final Task<T> task) {
-    return executeInBackground(task, null);
+    return executeInBackground(task, new Callback<T>() {
+      @Override
+      public void success(T result) {
+
+      }
+
+      @Override
+      public void error(Throwable e) {
+        logger.error("Task failed", e);
+      }
+    });
   }
 
   /**
