@@ -292,6 +292,10 @@
   -fx-background-color: transparent;
 }
 
+.username-button:hover {
+  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.4), 5, 0.8, 0, 0);
+}
+
 .username-button > .label {
   -fx-text-fill: -fx-dark-text-color;
 }

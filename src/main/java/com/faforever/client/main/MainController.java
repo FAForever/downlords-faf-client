@@ -216,9 +216,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     int numberOfNotifications = notifications.size();
     notificationsButton.setText(String.valueOf(numberOfNotifications));
 
-    Severity highestSeverity = Severity.INFO;
+    Severity highestSeverity = null;
     for (PersistentNotification notification : notifications) {
-      if (notification.getSeverity().compareTo(highestSeverity) > 0) {
+      if (highestSeverity == null || notification.getSeverity().compareTo(highestSeverity) > 0) {
         highestSeverity = notification.getSeverity();
       }
     }
