@@ -178,62 +178,61 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
 
     createGamePanel.managedProperty().bind(createGamePanel.visibleProperty());
 
+    rankingSlider.setFocusTraversable(false);
+    rankingSlider.lowValueProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue.intValue() < rankingSlider.getHighValue()) {
+        minRankingTextField.setText(String.valueOf(newValue.intValue()));
+      }
+    });
+    rankingSlider.highValueProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue.intValue() > rankingSlider.getLowValue()) {
+        maxRankingTextField.setText(String.valueOf(newValue.intValue()));
+      }
+    });
+    minRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+      rankingSlider.setLowValue(Double.parseDouble(newValue));
+    });
+    maxRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+      rankingSlider.setHighValue(Double.parseDouble(newValue));
+    });
 
-      rankingSlider.setFocusTraversable(false);
-      rankingSlider.lowValueProperty().addListener((observable, oldValue, newValue) -> {
-          if (newValue.intValue() < rankingSlider.getHighValue()) {
-              minRankingTextField.setText(String.valueOf(newValue.intValue()));
-          }
-      });
-      rankingSlider.highValueProperty().addListener((observable, oldValue, newValue) -> {
-          if (newValue.intValue() > rankingSlider.getLowValue()) {
-              maxRankingTextField.setText(String.valueOf(newValue.intValue()));
-          }
-      });
-      minRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-          rankingSlider.setLowValue(Double.parseDouble(newValue));
-      });
-      maxRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-          rankingSlider.setHighValue(Double.parseDouble(newValue));
-      });
+    rankingSlider.setMax(2500);
+    rankingSlider.setMin(0);
+    rankingSlider.setHighValue(1300);
+    rankingSlider.setLowValue(800);
 
-      rankingSlider.setMax(2500);
-      rankingSlider.setMin(0);
-      rankingSlider.setHighValue(1300);
-      rankingSlider.setLowValue(800);
+    mapComboBox.setButtonCell(new ListCell<MapInfoBean>() {
+      @Override
+      protected void updateItem(MapInfoBean item, boolean empty) {
+        super.updateItem(item, empty);
+        if (item == null || empty) {
+          return;
+        }
 
-      mapComboBox.setButtonCell(new ListCell<MapInfoBean>() {
-          @Override
-          protected void updateItem(MapInfoBean item, boolean empty) {
-              super.updateItem(item, empty);
-              if (item == null || empty) {
-                  return;
-              }
+        Image mapPreview = mapService.loadSmallPreview(item.getName());
+        setGraphic(new ImageView(mapPreview));
+        setText(item.getName());
+      }
+    });
 
-              Image mapPreview = mapService.loadSmallPreview(item.getName());
-              setGraphic(new ImageView(mapPreview));
-              setText(item.getName());
-          }
-      });
+    additionalModsCheckComboBox.setConverter(new StringConverter<ModInfoBean>() {
+      @Override
+      public String toString(ModInfoBean object) {
+        return object.getFullName();
+      }
 
-      additionalModsCheckComboBox.setConverter(new StringConverter<ModInfoBean>() {
-          @Override
-          public String toString(ModInfoBean object) {
-              return object.getFullName();
-          }
-
-          @Override
-          public ModInfoBean fromString(String string) {
-              return null;
-          }
-      });
+      @Override
+      public ModInfoBean fromString(String string) {
+        return null;
+      }
+    });
 
     additionalModsCheckComboBox.skinProperty().addListener(new ChangeListener<Skin>() {
       @Override
       public void changed(ObservableValue<? extends Skin> observable, Skin oldValue, Skin newValue) {
-        if(oldValue==null && newValue!=null){
-          CheckComboBoxSkin skin = (CheckComboBoxSkin)newValue;
-          ComboBox combo = (ComboBox)skin.getChildren().get(0);
+        if (oldValue == null && newValue != null) {
+          CheckComboBoxSkin skin = (CheckComboBoxSkin) newValue;
+          ComboBox combo = (ComboBox) skin.getChildren().get(0);
           combo.setPrefWidth(300.0);
           combo.setMaxWidth(Double.MAX_VALUE);
         }
@@ -383,7 +382,7 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
   }
 
   public void onTableClicked(MouseEvent event) {
-    if(event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+    if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
       joinSelectedGame();
     }
   }
@@ -403,12 +402,12 @@ public class GamesController implements OnGameInfoListener, OnModInfoListener, C
 
   public void onCreateGameButtonClicked(ActionEvent actionEvent) {
     onGameCreateListener.onCreateGame(
-            new NewGameInfo(
-                    titleTextField.getText(),
-                    passwordTextField.getText(),
-                    selectedMod.getName(),
-                    mapComboBox.getValue().getName(),
-                0)
+        new NewGameInfo(
+            titleTextField.getText(),
+            passwordTextField.getText(),
+            selectedMod.getName(),
+            mapComboBox.getValue().getName(),
+            0)
     );
   }
 
