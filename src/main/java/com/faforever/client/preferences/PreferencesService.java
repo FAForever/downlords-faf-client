@@ -86,7 +86,7 @@ public class PreferencesService {
 
     Path path = preferences.getForgedAlliance().getPath();
     if (path == null || Files.notExists(path)) {
-      logger.debug("Game path is not specified, trying to detect");
+      logger.info("Game path is not specified, trying to detect");
       detectGamePath();
     }
   }
@@ -94,14 +94,14 @@ public class PreferencesService {
   private void detectGamePath() {
     for (Path path : USUAL_GAME_PATHS) {
       if (Files.isDirectory(path)) {
-        logger.debug("Found game path at {}", path);
+        logger.info("Found game path at {}", path);
         preferences.getForgedAlliance().setPath(path);
         storeInBackground();
         return;
       }
     }
 
-    logger.debug("Game path could not be detected, notifying user");
+    logger.info("Game path could not be detected");
     List<Action> actions = Collections.singletonList(
         new DirectoryChooserAction(i18n.get("missingGamePath.locateAction"), i18n.get("missingGamePath.chooserTitle"))
     );
