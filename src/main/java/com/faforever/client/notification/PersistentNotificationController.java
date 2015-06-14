@@ -1,13 +1,13 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.util.ThemeUtil;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
 import java.util.ArrayList;
@@ -18,6 +18,10 @@ import java.util.List;
  */
 public class PersistentNotificationController {
 
+  private static final String CSS_STYLE_INFO = "info";
+  private static final String CSS_STYLE_WARN = "warn";
+  private static final String CSS_STYLE_ERROR = "error";
+
   @FXML
   Node notificationRoot;
 
@@ -25,7 +29,7 @@ public class PersistentNotificationController {
   Label messageLabel;
 
   @FXML
-  ImageView imageView;
+  Label iconLabel;
 
   @FXML
   HBox actionButtonsContainer;
@@ -46,21 +50,27 @@ public class PersistentNotificationController {
       throw new IllegalStateException("Theme must be set first");
     }
 
+    ObservableList<String> styleClasses = iconLabel.getStyleClass();
+    styleClasses.removeAll(CSS_STYLE_INFO, CSS_STYLE_WARN, CSS_STYLE_ERROR);
+
     Image image;
     switch (severity) {
       case INFO:
-        image = new Image(ThemeUtil.themeFile(theme, "images/info.png"));
+        iconLabel.setText("\uf05a");
+        styleClasses.add(CSS_STYLE_INFO);
         break;
       case WARN:
-        image = new Image(ThemeUtil.themeFile(theme, "images/warn.png"));
+        iconLabel.setText("\uf071");
+        styleClasses.add(CSS_STYLE_WARN);
         break;
       case ERROR:
-        image = new Image(ThemeUtil.themeFile(theme, "images/error.png"));
+        iconLabel.setText("\uf06a");
+        styleClasses.add(CSS_STYLE_ERROR);
         break;
       default:
         throw new IllegalStateException("Unhandled severity: " + severity);
     }
-    imageView.setImage(image);
+    iconLabel.setLabelFor(iconLabel);
   }
 
   private void setActions(List<Action> actions) {

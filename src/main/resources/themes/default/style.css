@@ -423,6 +423,23 @@
   -fx-background-color: -fx-control-inner-background;
 }
 
+.notification-icon {
+  -fx-font-family: "FontAwesome";
+  -fx-font-size : 2.5em;
+}
+
+.notification-icon.info {
+  -fx-text-fill : -fx-accent;
+}
+
+.notification-icon.warn {
+  -fx-text-fill : #e2932c;
+}
+
+.notification-icon.error {
+  -fx-text-fill : #cb3d3d;
+}
+
 
 /***************** Create game *****************/
 

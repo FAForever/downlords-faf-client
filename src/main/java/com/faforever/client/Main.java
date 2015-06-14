@@ -9,6 +9,7 @@ import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
 import javafx.application.Application;
 import javafx.scene.image.Image;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.springframework.context.ApplicationContext;
@@ -22,6 +23,7 @@ public class Main extends Application {
 
   @Override
   public void start(Stage stage) throws Exception {
+    Font.loadFont(Main.class.getResource("/font/fontawesome-webfont.ttf").toExternalForm(), 10);
     JavaFxUtil.fixTooltipDuration();
     configureLogging();
 
