@@ -82,11 +82,28 @@ public class MockServerAccessor implements ServerAccessor {
 
         for (OnGameInfoListener onGameInfoListener : onGameInfoListeners) {
           GameInfo gameInfo = new GameInfo();
+          gameInfo.uid = 1;
           gameInfo.title = "Mock game";
           gameInfo.access = GameAccess.PUBLIC;
           gameInfo.featuredMod = "faf";
           gameInfo.mapname = "scmp_015";
           gameInfo.numPlayers = 3;
+          gameInfo.maxPlayers = 6;
+          gameInfo.host = "Mock user";
+          gameInfo.state = GameState.OPEN;
+          gameInfo.options = new Boolean[0];
+          gameInfo.simMods = Collections.emptyMap();
+          gameInfo.teams = Collections.emptyMap();
+          gameInfo.featuredModVersions = Collections.emptyMap();
+
+          onGameInfoListener.onGameInfo(gameInfo);
+          gameInfo = new GameInfo();
+          gameInfo.uid = 2;
+          gameInfo.title = "Protected mock game";
+          gameInfo.access = GameAccess.PASSWORD;
+          gameInfo.featuredMod = "faf";
+          gameInfo.mapname = "scmp_016";
+          gameInfo.numPlayers = 1;
           gameInfo.maxPlayers = 6;
           gameInfo.host = "Mock user";
           gameInfo.state = GameState.OPEN;

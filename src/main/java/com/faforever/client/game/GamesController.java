@@ -139,7 +139,6 @@ public class GamesController implements OnGameInfoListener {
     gameService.addOnGameInfoListener(this);
 
     passwordPopup = new Popup();
-    passwordPopup.setAutoFix(false);
     passwordPopup.setAutoHide(true);
     passwordPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
     passwordPopup.getContent().setAll(enterPasswordController.getRoot());
@@ -189,8 +188,7 @@ public class GamesController implements OnGameInfoListener {
       displayGameDetail(newValue);
     });
 
-    // FIXME complete
-//    accessColumn.setCellValueFactory();
+    accessColumn.setCellValueFactory(param -> param.getValue().accessProperty());
   }
 
   private void displayGameDetail(GameInfoBean gameInfoBean) {

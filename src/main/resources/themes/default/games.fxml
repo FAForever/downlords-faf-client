@@ -33,7 +33,7 @@
             <TableColumn fx:id="rankingColumn" minWidth="2.0" text="%game.ranking" />
             <TableColumn fx:id="modsColumn" minWidth="2.0" text="%game.mods" />
             <TableColumn fx:id="hostColumn" minWidth="2.0" text="%game.host" />
-            <TableColumn fx:id="acccessColumn" minWidth="2.0" text="%game.host"/>
+            <TableColumn fx:id="accessColumn" minWidth="2.0" text="%game.access" />
           </columns>
           <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
