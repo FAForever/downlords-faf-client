@@ -140,6 +140,9 @@ public class GamesController implements OnGameInfoListener {
     gameInfoBeans.addListener((MapChangeListener<Integer, GameInfoBean>) change -> {
       if (change.wasAdded()) {
         gamesTable.getItems().add(change.getValueAdded());
+        if (gamesTable.getSelectionModel().getSelectedItem() == null) {
+          gamesTable.getSelectionModel().select(0);
+        }
       } else {
         gamesTable.getItems().remove(change.getValueRemoved());
       }
