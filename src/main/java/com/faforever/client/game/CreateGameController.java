@@ -222,7 +222,7 @@ public class CreateGameController {
 
     NewGameInfo newGameInfo = new NewGameInfo(
         titleTextField.getText(),
-        passwordTextField.getText(),
+        StringUtils.trimToNull(passwordTextField.getText()),
         gameTypeComboBox.getSelectionModel().getSelectedItem().getName(),
         mapListView.getSelectionModel().getSelectedItem().getName(),
         0);
