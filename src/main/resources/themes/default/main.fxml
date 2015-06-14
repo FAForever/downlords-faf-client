@@ -11,7 +11,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-
 <VBox fx:id="mainRoot" minHeight="500.0" minWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
    <children>
       <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
@@ -59,9 +58,14 @@
                  </MenuButton>
                </children>
             <padding>
-              <Insets bottom="12.0" top="12.0" />
+              <Insets bottom="8.0" top="8.0" />
             </padding>
           </HBox>
+            <Separator prefWidth="200.0">
+               <padding>
+                  <Insets bottom="10.0" />
+               </padding>
+            </Separator>
             <AnchorPane fx:id="contentPane" VBox.vgrow="ALWAYS" />
         </children>
       </VBox>

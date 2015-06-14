@@ -7,6 +7,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
+import com.faforever.client.util.ThemeUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -19,6 +20,10 @@ import org.springframework.core.env.Environment;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -61,11 +66,21 @@ public class LegacyMapService implements MapService {
   @Override
   @Cacheable("largeMapPreview")
   public Image loadLargePreview(String mapName) {
-    String url = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.large"));
+    String urlString = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.large"));
 
-    logger.debug("Fetching large preview for map {} from {}", mapName, url);
+    logger.debug("Fetching large preview for map {} from {}", mapName, urlString);
 
-    return new Image(url, true);
+    try {
+      HttpURLConnection connection = (HttpURLConnection) new URL(urlString).openConnection();
+      if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+        return new Image(urlString, true);
+      }
+
+      String theme = preferencesService.getPreferences().getTheme();
+      return new Image(ThemeUtil.themeFile(theme, "images/map_background.png"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override

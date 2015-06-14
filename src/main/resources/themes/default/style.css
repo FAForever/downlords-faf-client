@@ -471,9 +471,16 @@
 
 /***************** Game detail *****************/
 
+.map-preview-box {
+  -fx-effect: dropshadow(gaussian, #dcdcdc, 9, 0.5, 0, 0);
+}
+
 .map-preview {
-  -fx-background: white;
-  -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
+  -fx-effect: innershadow(gaussian, #dcdcdc, 10, 0.8, 0, 0);
+}
+
+.game-detail {
+  -fx-background: transparent;
 }
 
 /***************** Window decoration *****************/
@@ -624,3 +631,4 @@ a {
 .chat-message.self {
   color: orange;
 }
+

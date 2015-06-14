@@ -29,6 +29,8 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.vault.VaultController;
+import javafx.animation.PathTransition;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -48,9 +50,12 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.Path;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -113,6 +118,12 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   Label taskProgressLabel;
+
+  @FXML
+  Path path = new Path();
+
+  /*@FXML
+  PathTransition*/
 
   @Autowired
   NewsController newsController;
@@ -355,6 +366,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     }
   }
 
+  private double currentPosition;
+
   @FXML
   void onNavigationButton(ActionEvent event) {
     ToggleButton button = (ToggleButton) event.getSource();
@@ -364,6 +377,18 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     if (!button.isSelected()) {
       button.setSelected(true);
     }
+
+    Bounds boundsInLocal = button.getBoundsInLocal();
+    Bounds buttonBoundsInScene = button.localToScene(boundsInLocal);
+
+    currentPosition = buttonBoundsInScene.getMinX();
+
+    path.getElements().add(new MoveTo(currentPosition+buttonBoundsInScene.getMinX(),0));
+    PathTransition pathTransition = new PathTransition();
+    pathTransition.setDuration(Duration.millis(4000));
+    pathTransition.setPath(path);
+    pathTransition.setNode(rectPath);
+    pathTransition.play();
 
     // TODO let the component initialize themselves instead of calling a setUp method
     if (button == newsButton) {
