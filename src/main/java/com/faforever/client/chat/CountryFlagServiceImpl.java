@@ -15,16 +15,19 @@ public class CountryFlagServiceImpl implements CountryFlagService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private static final Collection<String> KNOWN_NON_COUNTRY_CODES = Arrays.asList("A1", "A2");
+  private static final Collection<String> NON_COUNTRY_CODES = Arrays.asList("A1", "A2", "");
 
   @Override
   @Cacheable("countryFlags")
-  public Image loadCountryFlag(String country) {
-    if (KNOWN_NON_COUNTRY_CODES.contains(country)) {
-      return null;
+  public Image loadCountryFlag(final String country) {
+    String imageName;
+    if (NON_COUNTRY_CODES.contains(country)) {
+      imageName = "earth";
+    } else {
+      imageName = country.toLowerCase();
     }
 
-    String path = "/images/flags/" + country.toLowerCase() + ".png";
+    String path = "/images/flags/" + imageName + ".png";
     try {
       return new Image(new ClassPathResource(path).getURL().toString(), true);
     } catch (IOException e) {
