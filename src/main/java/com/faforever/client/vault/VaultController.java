@@ -1,6 +1,7 @@
 package com.faforever.client.vault;
 
 import com.faforever.client.game.MapInfoBean;
+import com.faforever.client.game.MapSize;
 import com.faforever.client.map.MapService;
 import com.faforever.client.util.Callback;
 import javafx.collections.FXCollections;
@@ -36,7 +37,7 @@ public class VaultController {
   TableColumn<MapInfoBean, Number> playsColumn;
 
   @FXML
-  TableColumn<MapInfoBean, Number> sizeColumn;
+  TableColumn<MapInfoBean, MapSize> sizeColumn;
 
   @FXML
   TableColumn<MapInfoBean, String> creatorColumn;
@@ -46,6 +47,12 @@ public class VaultController {
 
   @FXML
   TableColumn<MapInfoBean, Number> downloadsColumn;
+
+  @FXML
+  TableColumn<MapInfoBean, Number> playersColumn;
+
+  @FXML
+  TableColumn<MapInfoBean, Number> versionColumn;
 
   @Autowired
   MapService mapService;
@@ -59,10 +66,12 @@ public class VaultController {
     nameColumn.setCellValueFactory(param -> param.getValue().nameProperty());
     descriptionColumn.setCellValueFactory(param -> param.getValue().descriptionProperty());
     playsColumn.setCellValueFactory(param -> param.getValue().playsProperty());
-    sizeColumn.setCellValueFactory(param -> param.getValue().ratingProperty());
     // creatorColumn.setCellValueFactory(param -> param.getValue().creatorProperty());
     ratingColumn.setCellValueFactory(param -> param.getValue().ratingProperty());
     downloadsColumn.setCellValueFactory(param -> param.getValue().downloadsProperty());
+    sizeColumn.setCellValueFactory(param -> param.getValue().sizeProperty());
+    playersColumn.setCellValueFactory(param -> param.getValue().playersProperty());
+    versionColumn.setCellValueFactory(param -> param.getValue().versionProperty());
   }
 
   public void setUpIfNecessary() {

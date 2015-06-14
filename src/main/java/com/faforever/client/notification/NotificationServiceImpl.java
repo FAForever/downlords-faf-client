@@ -1,35 +1,50 @@
 package com.faforever.client.notification;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class NotificationServiceImpl implements NotificationService {
 
-  private List<OnBarNotificationListener> onBarNotificationListeners;
-  private List<OnToastNotificationListener> onToastNotificationListeners;
+  private ObservableList<PersistentNotification> persistentNotifications;
+  private List<OnTransientNotificationListener> onTransientNotificationListeners;
 
   public NotificationServiceImpl() {
-    onBarNotificationListeners = new ArrayList<>();
-    onToastNotificationListeners = new ArrayList<>();
+    persistentNotifications = FXCollections.observableArrayList();
+    onTransientNotificationListeners = new ArrayList<>();
   }
 
   @Override
-  public void addNotification(BarNotification notification) {
-    onBarNotificationListeners.forEach(listener -> listener.onBarNotification(notification));
+  public void addNotification(PersistentNotification notification) {
+    persistentNotifications.add(notification);
   }
 
   @Override
-  public void addNotification(ToastNotification notification) {
-    onToastNotificationListeners.forEach(listener -> listener.onToastNotification(notification));
+  public void addNotification(TransientNotification notification) {
+    onTransientNotificationListeners.forEach(listener -> listener.onTransientNotification(notification));
   }
 
   @Override
-  public void addBarNotificationListener(OnBarNotificationListener listener) {
-    onBarNotificationListeners.add(listener);
+  public void addPersistentNotificationListener(ListChangeListener<PersistentNotification> listener) {
+    persistentNotifications.addListener(listener);
   }
 
   @Override
-  public void addToastNotificationListener(OnToastNotificationListener listener) {
-    onToastNotificationListeners.add(listener);
+  public void addTransientNotificationListener(OnTransientNotificationListener listener) {
+    onTransientNotificationListeners.add(listener);
+  }
+
+  @Override
+  public List<PersistentNotification> getPersistentNotifications() {
+    return Collections.unmodifiableList(persistentNotifications);
+  }
+
+  @Override
+  public void removeNotification(PersistentNotification notification) {
+    persistentNotifications.remove(notification);
   }
 }

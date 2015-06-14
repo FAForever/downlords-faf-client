@@ -1,5 +1,6 @@
 package com.faforever.client.preferences;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Preferences {
@@ -11,6 +12,7 @@ public class Preferences {
   private String lastGameMod;
   private ChatPrefs chat;
   private String lastMap;
+  private List<String> ignoredNotifications;
 
   public Preferences() {
     login = new LoginPrefs();
@@ -19,6 +21,7 @@ public class Preferences {
     theme = "default";
     chat = new ChatPrefs();
     lastGameMod = "faf";
+    ignoredNotifications = new ArrayList<>();
   }
 
   public LoginPrefs getLogin() {
@@ -51,4 +54,8 @@ public class Preferences {
 
   // FIXME explain tatsu what the correct way of doing this is ;-)
   public List<String> lastMods;
+
+  public List<String> getIgnoredNotifications() {
+    return ignoredNotifications;
+  }
 }

@@ -1,18 +1,24 @@
 package com.faforever.client.game;
 
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.jetbrains.annotations.NotNull;
 
-public class MapInfoBean {
+public class MapInfoBean implements Comparable<MapInfoBean> {
 
   private final StringProperty name;
   private final SimpleFloatProperty rating;
   private final IntegerProperty plays;
   private final StringProperty description;
   private final IntegerProperty downloads;
+  private final IntegerProperty players;
+  private final ObjectProperty<MapSize> size;
+  private final IntegerProperty version;
 
   public MapInfoBean() {
     this(null);
@@ -24,6 +30,10 @@ public class MapInfoBean {
     this.plays = new SimpleIntegerProperty();
     this.downloads = new SimpleIntegerProperty();
     this.rating = new SimpleFloatProperty();
+    this.players = new SimpleIntegerProperty();
+    this.size = new SimpleObjectProperty<>();
+    this.version = new SimpleIntegerProperty();
+
   }
 
   public String getName() {
@@ -75,7 +85,6 @@ public class MapInfoBean {
   }
 
   public float getRating() {
-
     return rating.get();
   }
 
@@ -85,5 +94,46 @@ public class MapInfoBean {
 
   public SimpleFloatProperty ratingProperty() {
     return rating;
+  }
+
+  public MapSize getSize() {
+    return size.get();
+  }
+
+  public ObjectProperty<MapSize> sizeProperty() {
+    return size;
+  }
+
+  public void setSize(MapSize size) {
+    this.size.set(size);
+  }
+
+  public int getPlayers() {
+    return players.get();
+  }
+
+  public IntegerProperty playersProperty() {
+    return players;
+  }
+
+  public void setPlayers(int players) {
+    this.players.set(players);
+  }
+
+  public int getVersion() {
+    return version.get();
+  }
+
+  public IntegerProperty versionProperty() {
+    return version;
+  }
+
+  public void setVersion(int version) {
+    this.version.set(version);
+  }
+
+  @Override
+  public int compareTo(@NotNull MapInfoBean o) {
+    return getName().compareTo(o.getName());
   }
 }

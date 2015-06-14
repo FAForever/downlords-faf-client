@@ -15,8 +15,7 @@ import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.fxml.FxmlLoaderImpl;
-import com.faforever.client.game.CreateGameDialogFactory;
-import com.faforever.client.game.CreateGameDialogFactoryImpl;
+import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.leaderboard.LadderController;
 import com.faforever.client.login.LoginController;
@@ -24,6 +23,9 @@ import com.faforever.client.main.MainController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.LegacyMapService;
 import com.faforever.client.news.NewsController;
+import com.faforever.client.notification.NotificationNodeFactory;
+import com.faforever.client.notification.NotificationNodeFactoryImpl;
+import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.vault.VaultController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -83,6 +85,16 @@ public class UiConfig {
   }
 
   @Bean
+  PersistentNotificationsController notificationsController() {
+    return loadController("persistent_notifications.fxml");
+  }
+
+  @Bean
+  CreateGameController createGameController() {
+    return loadController("create_game.fxml");
+  }
+
+  @Bean
   VaultController vaultController() {
     return loadController("vault.fxml");
   }
@@ -113,18 +125,19 @@ public class UiConfig {
   }
 
   @Bean
-  CreateGameDialogFactory createGameDialogFactory() { return new CreateGameDialogFactoryImpl(); }
-
-  @Bean
   UserInfoWindowFactory userInfoWindowFactory() {
     return new UserInfoWindowFactoryImpl();
   }
 
   @Bean
+  NotificationNodeFactory notificationPaneFactory() {
+    return new NotificationNodeFactoryImpl();
+  }
+
+  @Bean
   FxmlLoader fxmlLoader() {
-    FxmlLoaderImpl fxmlLoader = new FxmlLoaderImpl(baseConfig.messageSource(), baseConfig.locale());
-    fxmlLoader.setTheme(baseConfig.preferencesService().getPreferences().getTheme());
-    return fxmlLoader;
+    String theme = baseConfig.preferencesService().getPreferences().getTheme();
+    return new FxmlLoaderImpl(baseConfig.messageSource(), baseConfig.locale(), theme);
   }
 
   @Bean

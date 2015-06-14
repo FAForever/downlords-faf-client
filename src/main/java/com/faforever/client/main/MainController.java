@@ -4,6 +4,7 @@ import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
+import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LadderController;
@@ -11,8 +12,13 @@ import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
 import com.faforever.client.legacy.OnLobbyDisconnectedListener;
 import com.faforever.client.lobby.LobbyService;
+import com.faforever.client.network.GamePortCheckListener;
 import com.faforever.client.network.PortCheckService;
 import com.faforever.client.news.NewsController;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.PersistentNotificationsController;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.PatchService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
@@ -23,9 +29,12 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.vault.VaultController;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBase;
@@ -39,6 +48,8 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.stage.Popup;
+import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,7 +60,14 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
-public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnLobbyDisconnectedListener {
+public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnLobbyDisconnectedListener, GamePortCheckListener {
+
+  private static final PseudoClass NOTIFICATION_INFO_PSEUDO_STATE = PseudoClass.getPseudoClass("info");
+  private static final PseudoClass NOTIFICATION_WARN_PSEUDO_STATE = PseudoClass.getPseudoClass("warn");
+  private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_STATE = PseudoClass.getPseudoClass("error");
+
+  @FXML
+  ButtonBase notificationsButton;
 
   @FXML
   Pane contentPane;
@@ -112,6 +130,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   LadderController ladderController;
 
   @Autowired
+  PersistentNotificationsController persistentNotificationsController;
+
+  @Autowired
   PreferencesService preferencesService;
 
   @Autowired
@@ -138,7 +159,15 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Autowired
   TaskService taskService;
 
+  @Autowired
+  NotificationService notificationService;
+
+  @Autowired
+  FxmlLoader fxmlLoader;
+
   private Stage stage;
+
+  private Popup notificationsPopup;
 
   @FXML
   void initialize() {
@@ -151,6 +180,16 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @PostConstruct
   void postConstruct() {
+    notificationsPopup = new Popup();
+    notificationsPopup.getContent().setAll(persistentNotificationsController.getRoot());
+    notificationsPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
+    notificationsPopup.setAutoFix(false);
+    notificationsPopup.setAutoHide(true);
+
+    notificationService.addPersistentNotificationListener(change -> {
+      Platform.runLater(() -> updateNotificationsButton(change.getList()));
+    });
+
     taskService.addChangeListener(TaskGroup.NET_HEAVY, change -> {
       while (change.next()) {
         if (change.wasAdded()) {
@@ -164,6 +203,29 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     portCheckStatusButton.getTooltip().setText(
         i18n.get("statusBar.portCheckTooltip", preferencesService.getPreferences().getForgedAlliance().getPort())
     );
+    portCheckService.addGamePortCheckListener(this);
+  }
+
+  /**
+   * Updates the number displayed in the notifications button and sets its CSS pseudo class based on the highest
+   * notification {@code Severity} of all current notifications.
+   */
+  private void updateNotificationsButton(List<? extends PersistentNotification> notifications) {
+    JavaFxUtil.assertApplicationThread();
+
+    int numberOfNotifications = notifications.size();
+    notificationsButton.setText(String.valueOf(numberOfNotifications));
+
+    Severity highestSeverity = null;
+    for (PersistentNotification notification : notifications) {
+      if (highestSeverity == null || notification.getSeverity().compareTo(highestSeverity) > 0) {
+        highestSeverity = notification.getSeverity();
+      }
+    }
+
+    notificationsButton.pseudoClassStateChanged(NOTIFICATION_INFO_PSEUDO_STATE, highestSeverity == Severity.INFO);
+    notificationsButton.pseudoClassStateChanged(NOTIFICATION_WARN_PSEUDO_STATE, highestSeverity == Severity.WARN);
+    notificationsButton.pseudoClassStateChanged(NOTIFICATION_ERROR_PSEUDO_STATE, highestSeverity == Severity.ERROR);
   }
 
   private void removeTasks(List<? extends PrioritizedTask<?>> removed) {
@@ -224,8 +286,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     usernameButton.setText(userService.getUsername());
 
-    checkUdpPort();
     checkForFafUpdate();
+    portCheckService.checkGamePortInBackground();
   }
 
   private void checkForFafUpdate() {
@@ -271,25 +333,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     });
   }
 
-  private void checkUdpPort() {
-    portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
-    portCheckService.checkUdpPortInBackground(preferencesService.getPreferences().getForgedAlliance().getPort(), new Callback<Boolean>() {
-      @Override
-      public void success(Boolean result) {
-        if (result) {
-          portCheckStatusButton.setText(i18n.get("statusBar.portReachable"));
-        } else {
-          portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
-        }
-      }
-
-      @Override
-      public void error(Throwable e) {
-        portCheckStatusButton.setText("NAT: Error");
-      }
-    });
-  }
-
   private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {
     if (mainWindowPrefs.isMaximized()) {
       WindowDecorator.maximize(stage);
@@ -329,7 +372,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     } else if (button == chatButton) {
       setContent(chatController.getRoot());
     } else if (button == gamesButton) {
-      gamesController.setUpIfNecessary(stage);
+      gamesController.setUpIfNecessary();
       setContent(gamesController.getRoot());
     } else if (button == vaultButton) {
       vaultController.setUpIfNecessary();
@@ -356,17 +399,17 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @Override
   public void onFaConnected() {
-//    statusLabel.setText(i18n.get("statusbar.connected"));
+    fafConnectionButton.setText(i18n.get("statusBar.fafConnected"));
   }
 
   @Override
   public void onFaConnecting() {
-//    statusLabel.setText(i18n.get("statusbar.connecting"));
+    fafConnectionButton.setText(i18n.get("statusBar.fafConnecting"));
   }
 
   @Override
-  public void onFaDisconnected() {
-//    statusLabel.setText(i18n.get("statusbar.disconnected"));
+  public void onFafDisconnected() {
+    fafConnectionButton.setText(i18n.get("statusBar.fafDisconnected"));
   }
 
   private void setContent(Node node) {
@@ -386,28 +429,53 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     }
   }
 
-  public void onPortCheckHelpClicked(ActionEvent event) {
+  @FXML
+  void onPortCheckHelpClicked(ActionEvent event) {
     // FIXME implement
   }
 
-  public void onChangePortClicked(ActionEvent event) {
+  @FXML
+  void onChangePortClicked(ActionEvent event) {
     // FIXME implement
   }
 
-  public void onEnableUpnpClicked(ActionEvent event) {
+  @FXML
+  void onEnableUpnpClicked(ActionEvent event) {
     // FIXME implement
   }
 
-  public void onPortCheckRetryClicked(ActionEvent event) {
+  @FXML
+  void onPortCheckRetryClicked(ActionEvent event) {
+    portCheckService.checkGamePortInBackground();
+  }
+
+  @FXML
+  void onFafReconnectClicked(ActionEvent event) {
     // FIXME implement
   }
 
-  public void onFafReconnectClicked(ActionEvent event) {
+  @FXML
+  void onIrcReconnectClicked(ActionEvent event) {
     // FIXME implement
   }
 
-  public void onIrcReconnectClicked(ActionEvent event) {
-    // FIXME implement
+  @FXML
+  void onNotificationsButtonClicked(ActionEvent event) {
+    Bounds screenBounds = notificationsButton.localToScreen(notificationsButton.getBoundsInLocal());
+    notificationsPopup.show(notificationsButton.getScene().getWindow(), screenBounds.getMaxX(), screenBounds.getMaxY());
+  }
 
+  @Override
+  public void onGamePortCheckResult(Boolean result) {
+    if (result) {
+      portCheckStatusButton.setText(i18n.get("statusBar.portReachable"));
+    } else {
+      portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
+    }
+  }
+
+  @Override
+  public void onGamePortCheckStarted() {
+    portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
   }
 }

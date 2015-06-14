@@ -14,11 +14,13 @@
               <columns>
                 <TableColumn fx:id="nameColumn" prefWidth="75.0" text="%map.name" />
                 <TableColumn fx:id="descriptionColumn" prefWidth="75.0" text="%map.description" />
-                <TableColumn fx:id="playsColumn" prefWidth="75.0" text="%map.plays" />
+                <TableColumn fx:id="playersColumn" prefWidth="75.0" text="%map.players"/>
                 <TableColumn fx:id="sizeColumn" prefWidth="75.0" text="%map.size" />
                 <TableColumn fx:id="creatorColumn" prefWidth="75.0" text="%map.creator" />
                         <TableColumn fx:id="ratingColumn" prefWidth="75.0" text="%map.rating" />
                         <TableColumn fx:id="downloadsColumn" prefWidth="75.0" text="%map.downloads" />
+                <TableColumn fx:id="playsColumn" prefWidth="75.0" text="%map.plays"/>
+                <TableColumn fx:id="versionColumn" prefWidth="75.0" text="%map.version"/>
               </columns>
               <columnResizePolicy>
                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

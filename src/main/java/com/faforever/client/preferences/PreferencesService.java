@@ -1,5 +1,11 @@
 package com.faforever.client.preferences;
 
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.DirectoryChooserAction;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.util.OperatingSystem;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -8,6 +14,7 @@ import com.sun.jna.platform.win32.ShlObj;
 import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -19,18 +26,35 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class PreferencesService {
 
-  public static final long STORE_DELAY = 1000;
-
+  private static final long STORE_DELAY = 1000;
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final Charset CHARSET = StandardCharsets.UTF_8;
   private static final String PREFS_FILE_NAME = "client.prefs";
   private static final String APP_DATA_SUB_FOLDER = "Forged Alliance Forever";
   private static final String USER_HOME_SUB_FOLDER = ".faforever";
+
+  private static final Collection<Path> USUAL_GAME_PATHS = Arrays.asList(
+      Paths.get(System.getenv("ProgramFiles") + "\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
+      Paths.get(System.getenv("ProgramFiles") + " (x86)\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
+      Paths.get(System.getenv("ProgramFiles") + "\\Steam\\steamapps\\common\\supreme commander forged alliance"),
+      Paths.get(System.getenv("ProgramFiles") + "\\Supreme Commander - Forged Alliance")
+
+  );
+
+  @Autowired
+  NotificationService notificationService;
+
+  @Autowired
+  I18n i18n;
 
   private final Path preferencesFilePath;
   private final Gson gson;
@@ -59,6 +83,29 @@ public class PreferencesService {
     } else {
       initDefaultPreferences();
     }
+
+    Path path = preferences.getForgedAlliance().getPath();
+    if (path == null || Files.notExists(path)) {
+      logger.debug("Game path is not specified, trying to detect");
+      detectGamePath();
+    }
+  }
+
+  private void detectGamePath() {
+    for (Path path : USUAL_GAME_PATHS) {
+      if (Files.isDirectory(path)) {
+        logger.debug("Found game path at {}", path);
+        preferences.getForgedAlliance().setPath(path);
+        storeInBackground();
+        return;
+      }
+    }
+
+    logger.debug("Game path could not be detected, notifying user");
+    List<Action> actions = Collections.singletonList(
+        new DirectoryChooserAction(i18n.get("missingGamePath.locateAction"), i18n.get("missingGamePath.chooserTitle"))
+    );
+    notificationService.addNotification(new PersistentNotification(i18n.get("missingGamePath.notification"), Severity.WARN, actions));
   }
 
   /**

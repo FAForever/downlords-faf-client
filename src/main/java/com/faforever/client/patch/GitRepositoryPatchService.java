@@ -56,6 +56,8 @@ public class GitRepositoryPatchService implements PatchService {
   private static final String REPO_NAME = "binary-patch";
   private static final String STEAM_API_DLL = "steam_api.dll";
   private static final String BINARY_PATCH_DIRECTORY = "bsdiff4";
+  private static final long UPDATE_CHECK_PERIOD = 3600_000;
+
   private final Gson gson;
 
   @Autowired
@@ -93,18 +95,20 @@ public class GitRepositoryPatchService implements PatchService {
 
   @PostConstruct
   void postConstruct() {
-    fafBinDirectory = preferencesService.getFafBinDirectory();
-    binaryPatchRepoDirectory = preferencesService.getFafReposDirectory().resolve(REPO_NAME);
-    faBinDirectory = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("bin");
-    patchSourceDirectory = binaryPatchRepoDirectory.resolve(BINARY_PATCH_DIRECTORY);
     patchRepositoryUri = environment.getProperty("patch.git.url");
   }
 
   @Override
   public void patchInBackground(Callback<Void> callback) {
+    if (initAndCheckDirectories()) {
+      logger.warn("Aborted patching since directories aren't initialized properly");
+      return;
+    }
+
     taskService.submitTask(NET_HEAVY, new PrioritizedTask<Void>(i18n.get("patchTask.title"), LOW) {
       @Override
       protected Void call() throws Exception {
+
         if (Files.notExists(binaryPatchRepoDirectory)) {
           clonePatchRepository();
         }
@@ -130,6 +134,7 @@ public class GitRepositoryPatchService implements PatchService {
             Path patchFile = getPatchFile(bytesOfFileToPatch);
 
             if (Files.notExists(patchFile)) {
+              updateProgress(++progress, entries.size());
               continue;
             }
 
@@ -146,6 +151,22 @@ public class GitRepositoryPatchService implements PatchService {
         return null;
       }
     }, callback);
+  }
+
+  /**
+   * Since it's possible that the user has changed or never specified the game path, this method needs to be called
+   * every time before any work is done.
+   */
+  private boolean initAndCheckDirectories() {
+    fafBinDirectory = preferencesService.getFafBinDirectory();
+    binaryPatchRepoDirectory = preferencesService.getFafReposDirectory().resolve(REPO_NAME);
+    patchSourceDirectory = binaryPatchRepoDirectory.resolve(BINARY_PATCH_DIRECTORY);
+    Path faDirectory = preferencesService.getPreferences().getForgedAlliance().getPath();
+    if (faDirectory == null) {
+      return false;
+    }
+    faBinDirectory = faDirectory.resolve("bin");
+    return true;
   }
 
   private void clonePatchRepository() {
@@ -223,9 +244,10 @@ public class GitRepositoryPatchService implements PatchService {
     taskService.submitTask(NET_LIGHT, new PrioritizedTask<Boolean>(i18n.get("updateCheckTask.title"), LOW) {
       @Override
       protected Boolean call() throws Exception {
-        return Files.notExists(binaryPatchRepoDirectory)
-            || areNewPatchFilesAvailable()
-            || !areLocalFilesPatched();
+        return initAndCheckDirectories() &&
+            (Files.notExists(binaryPatchRepoDirectory)
+                || areNewPatchFilesAvailable()
+                || !areLocalFilesPatched());
       }
     }, callback);
   }

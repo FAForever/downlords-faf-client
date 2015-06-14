@@ -51,6 +51,11 @@ public class TaskServiceImpl implements TaskService {
   }
 
   @Override
+  public <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task) {
+    submitTask(taskGroup, task, null);
+  }
+
+  @Override
   public void addChangeListener(TaskGroup taskGroup, ListChangeListener<PrioritizedTask<?>> listener) {
     queueListsByGroup.get(taskGroup).addListener(listener);
   }

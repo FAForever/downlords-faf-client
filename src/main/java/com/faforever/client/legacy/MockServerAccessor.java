@@ -7,14 +7,21 @@ import com.faforever.client.leaderboard.LadderEntryBean;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,9 +33,10 @@ import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 public class MockServerAccessor implements ServerAccessor {
 
-  private Collection<OnModInfoListener> onModInfoMessageListeners;
-  private OnPlayerInfoListener onPlayerInfoListener;
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  private Collection<OnGameTypeInfoListener> onModInfoMessageListeners;
+  private OnPlayerInfoListener onPlayerInfoListener;
   private Collection<OnGameInfoListener> onGameInfoListeners;
 
   @Autowired
@@ -36,6 +44,9 @@ public class MockServerAccessor implements ServerAccessor {
 
   @Autowired
   TaskService taskService;
+
+  @Autowired
+  NotificationService notificationService;
 
   @Autowired
   I18n i18n;
@@ -50,14 +61,14 @@ public class MockServerAccessor implements ServerAccessor {
     taskService.submitTask(NET_LIGHT, new PrioritizedTask<Void>(i18n.get("login.progress.message")) {
       @Override
       protected Void call() throws Exception {
-        for (OnModInfoListener onModInfoMessageListener : onModInfoMessageListeners) {
-          ModInfo modInfo = new ModInfo();
-          modInfo.fullname = "Forged Alliance Forever";
-          modInfo.name = "faf";
-          modInfo.live = true;
-          modInfo.host = true;
+        for (OnGameTypeInfoListener onModInfoMessageListener : onModInfoMessageListeners) {
+          GameTypeInfo gameTypeInfo = new GameTypeInfo();
+          gameTypeInfo.fullname = "Forged Alliance Forever";
+          gameTypeInfo.name = "faf";
+          gameTypeInfo.live = true;
+          gameTypeInfo.host = true;
 
-          onModInfoMessageListener.onModInfo(modInfo);
+          onModInfoMessageListener.onGameTypeInfo(gameTypeInfo);
         }
 
         if (onPlayerInfoListener != null) {
@@ -85,13 +96,24 @@ public class MockServerAccessor implements ServerAccessor {
 
           onGameInfoListener.onGameInfo(gameInfo);
         }
+
+        notificationService.addNotification(
+            new PersistentNotification(
+                "You are using the mock server accessor",
+                Severity.INFO,
+                Collections.singletonList(
+                    new Action("Log to console", event -> logger.info("Log entry triggered by notification action"))
+                )
+            )
+        );
+
         return null;
       }
     }, callback);
   }
 
   @Override
-  public void addOnModInfoMessageListener(OnModInfoListener listener) {
+  public void addOnGameTypeInfoListener(OnGameTypeInfoListener listener) {
     onModInfoMessageListeners.add(listener);
   }
 

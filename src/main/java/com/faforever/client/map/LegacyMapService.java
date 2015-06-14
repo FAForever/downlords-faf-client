@@ -23,6 +23,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
@@ -92,6 +93,6 @@ public class LegacyMapService implements MapService {
   }
 
   private static String getMapUrl(String mapName, String baseUrl) {
-    return StringEscapeUtils.escapeHtml4(String.format(baseUrl, mapName));
+    return StringEscapeUtils.escapeHtml4(String.format(baseUrl, mapName)).toLowerCase(Locale.US);
   }
 }

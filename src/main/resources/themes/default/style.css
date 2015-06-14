@@ -122,15 +122,30 @@
       -fx-light-text-color 40%
   );
 
+
+  /* The color to use for -fx-text-fill when text is to be painted on top of
+   * a background filled with the -fx-background color.
+   */
+  -fx-text-background-color: ladder(
+      -fx-background,
+      -fx-dark-text-color  10%,
+      -fx-mid-text-color   20%,
+      -fx-light-text-color 30%
+  );
+
   /* Background for items in list like things such as menus, lists, trees,
    * and tables. */
-  -fx-selection-bar: derive(-fx-color, 10%);
+  -fx-selection-bar: -fx-accent;
 
-  -fx-focused-text-base-color : ladder(
+  /* Background color to use for selection of list cells etc. This is when
+   * the control doesn't have focus or the row of a previously selected item. */
+  -fx-selection-bar-non-focused: derive(-fx-accent, -50%);
+
+  -fx-focused-text-base-color: ladder(
       -fx-selection-bar,
-      -fx-mid-text-color 30%,
       -fx-dark-text-color 40%,
-      -fx-light-text-color 50%
+      -fx-mid-text-color 50%,
+      -fx-light-text-color 60%
   );
 
   /* A little brighter than -fx-color and used to draw boxes around objects such
@@ -141,6 +156,9 @@
       derive(-fx-color,20%) 20%,
       derive(-fx-color,40%) 30%
   );
+
+  /* This is NOT from modena. */
+  -fx-context-menu-background: rgba(0, 0, 0, .8);
 }
 
 .scroll-bar > .increment-button > .increment-arrow,
@@ -155,6 +173,7 @@
 .scroll-bar > .decrement-button:pressed > .decrement-arrow {
     -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,55%);
 }
+
 
 /***************** Text field *****************/
 
@@ -288,6 +307,10 @@
   -fx-background-color: transparent;
 }
 
+.username-button:hover {
+  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.4), 5, 0.8, 0, 0);
+}
+
 .username-button > .label {
   -fx-text-fill: -fx-dark-text-color;
 }
@@ -297,7 +320,7 @@
 }
 
 .context-menu {
-  -fx-background-color: rgba(0, 0, 0, .8);
+  -fx-background-color: -fx-context-menu-background;
   -fx-text-fill: -secondary-text-color;
   -fx-min-width: 120px;
   -fx-border-color: -fx-box-border;
@@ -306,9 +329,12 @@
 /***************** Status bar *****************/
 
 .status-bar {
-  -fx-font-size: .9em;
   -fx-border-width: 1 0 0 0;
   -fx-border-color: -fx-box-border;
+}
+
+.status-bar .text {
+  -fx-font-size: .9em;
 }
 
 .status-bar .tooltip {
@@ -338,7 +364,7 @@
 /***************** Navigation *****************/
 
 .main-navigation > .toggle-button {
-  -fx-font-size: 1.6em;
+  -fx-font-size: 1.5em;
   -fx-text-fill: -fx-dark-text-color;
   -fx-background-color: transparent;
 }
@@ -350,6 +376,58 @@
 
 .main-navigation > .toggle-button:selected {
   -fx-text-fill: -fx-light-text-color;
+  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.4), 5, 0.8, 0, 0);
+}
+
+/***************** Notification button *****************/
+
+.notification-button {
+  -fx-min-width: 2.5em;
+  -fx-min-height: 2.5em;
+}
+
+.notification-button:info {
+  -fx-base: -fx-accent;
+}
+
+.notification-button:warn {
+  -fx-base: #e2932c;
+}
+
+.notification-button:error {
+  -fx-base: #cb3d3d;
+}
+
+/***************** Notifications *****************/
+
+.persistent-notifications {
+  -fx-background-color: -fx-background;
+  -fx-background-radius: 5;
+  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.4), 5, 0.8, 0, 0);
+}
+
+.no-notifications {
+  -fx-text-fill: -fx-dark-text-color;
+}
+
+.notification-close-button {
+  -fx-background-color: transparent;
+  -fx-background-radius: 1.0em;
+  -fx-padding: 0;
+  -fx-min-width: 20;
+  -fx-min-height: 20;
+}
+
+.notification-close-button:hover {
+  -fx-background-color: -fx-control-inner-background;
+}
+
+
+/***************** Create game *****************/
+
+.create-game-popup {
+  -fx-background-color: -fx-background;
+  -fx-background-radius: 5;
   -fx-effect: dropshadow(gaussian, rgba(255,255,255,.4), 5, 0.8, 0, 0);
 }
 
@@ -366,7 +444,7 @@
   -fx-margin : 50, 50, 50, 50;
 }
 
-/***************** Window decoration *****************/
+/***************** Progress bar *****************/
 
 .progress-bar {
     -fx-indeterminate-bar-length: 40;
@@ -429,13 +507,21 @@
 
 /***************** Login *****************/
 
-.login {
-  -fx-font-size: 1.5em;
+.login .text-field {
+  -fx-padding: .6em;
+  -fx-font-size: 1.3em;
 }
 
+.login .button {
+  -fx-padding: .7em;
+}
 
-.login > .login-Icon {
-  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.2), 15, 0.8, 0, 0);
+.login .button > .text {
+  -fx-font-size: 1.3em;
+}
+
+.login-Icon {
+ -fx-effect: dropshadow(gaussian, rgba(255,255,255,.2), 15, 0.8, 0, 0);
 }
 
 /***************** Chat (WebView, therefore default CSS). Java FX  variables can't be used *****************/

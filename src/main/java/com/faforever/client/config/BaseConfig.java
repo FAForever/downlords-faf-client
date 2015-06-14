@@ -192,4 +192,5 @@ public class BaseConfig {
   NotificationService notificationService() {
     return new NotificationServiceImpl();
   }
+
 }

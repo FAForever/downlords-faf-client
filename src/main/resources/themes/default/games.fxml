@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.web.*?>
-<?import javafx.scene.text.*?>
-<?import org.controlsfx.control.*?>
 <?import java.lang.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
@@ -12,211 +9,86 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
-<TabPane fx:id="gamesRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GamesController">
-   <tabs>
-      <Tab closable="false" styleClass="hidetab">
-         <content>
-            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="0.0">
-               <children>
-                <HBox alignment="BASELINE_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" spacing="10.0">
-                     <children>
-                        <SplitMenuButton fx:id="showCreateGamePanelButton" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" text="Create Game (Forged Alliance Forever)">
-                          <items>
-                            <MenuItem mnemonicParsing="false" text="Action 1" />
-                            <MenuItem mnemonicParsing="false" text="Action 2" />
-                          </items>
-                           <HBox.margin>
-                              <Insets left="5.0" />
-                           </HBox.margin>
-                        </SplitMenuButton>
-                        <CheckBox mnemonicParsing="false" onAction="#onShowPrivateGames" selected="true" text="%games.showPrivateGames" />
-                     </children>
-                </HBox>
-                  <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
-                     <children>
-                        <VBox fx:id="gamePreviewPanel" maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="-Infinity" prefWidth="263.0">
-                           <children>
-                              <HBox alignment="CENTER" maxHeight="1.7976931348623157E308" VBox.vgrow="NEVER">
-                                 <children>
-                                    <ImageView fx:id="mapImageView" fitHeight="256.0" fitWidth="256.0" pickOnBounds="true" preserveRatio="true" HBox.hgrow="NEVER">
-                                       <HBox.margin>
-                                          <Insets bottom="10.0" />
-                                       </HBox.margin>
-                                    </ImageView>
-                                 </children>
-                              </HBox>
-                              <Label fx:id="gameTitleLabel" maxHeight="1.7976931348623157E308" styleClass="game-detail-title" text="Game title">
-                                 <padding>
-                                    <Insets left="10.0" />
-                                 </padding>
-                              </Label>
-                              <Label fx:id="numberOfPlayersLabel" maxHeight="1.7976931348623157E308" text="Number of players">
-                                 <padding>
-                                    <Insets left="10.0" />
-                                 </padding>
-                              </Label>
-                              <Label fx:id="hosterLabel" maxHeight="1.7976931348623157E308" text="Hoster">
-                                 <VBox.margin>
-                                    <Insets top="10.0" />
-                                 </VBox.margin>
-                                 <padding>
-                                    <Insets left="10.0" />
-                                 </padding>
-                              </Label>
-                              <Label fx:id="gameModeLabel" maxHeight="1.7976931348623157E308" text="Game mode">
-                                 <VBox.margin>
-                                    <Insets top="10.0" />
-                                 </VBox.margin>
-                                 <padding>
-                                    <Insets left="10.0" />
-                                 </padding>
-                              </Label>
-                           </children>
-                        </VBox>
-                        <VBox fx:id="createGamePanel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="-Infinity" prefWidth="213.0" visible="false">
-                           <children>
-                              <Label text="%games.create" />
-                              <Separator maxWidth="1.7976931348623157E308">
-                                 <padding>
-                                    <Insets bottom="6.0" top="6.0" />
-                                 </padding>
-                              </Separator>
-                              <TextField fx:id="titleTextField" promptText="%game.title" />
-                              <TextField fx:id="passwordTextField" promptText="%game.passwordHint">
-                                 <VBox.margin>
-                                    <Insets top="8.0" />
-                                 </VBox.margin>
-                              </TextField>
-                              <Separator maxWidth="1.7976931348623157E308">
-                                 <padding>
-                                    <Insets bottom="6.0" top="6.0" />
-                                 </padding>
-                              </Separator>
-                              <Label text="%game.ranking" />
-                              <HBox>
-                                 <children>
-                                    <Pane prefWidth="20.0" />
-                                    <Label text="Min">
-                                       <font>
-                                          <Font size="10.0" />
-                                       </font>
-                                    </Label>
-                                    <Pane HBox.hgrow="ALWAYS" />
-                                    <Label text="Max">
-                                       <font>
-                                          <Font size="10.0" />
-                                       </font>
-                                    </Label>
-                                    <Pane prefWidth="20.0" />
-                                 </children>
-                                 <VBox.margin>
-                                    <Insets />
-                                 </VBox.margin>
-                              </HBox>
-                              <RangeSlider fx:id="rankingSlider" blockIncrement="100.0" majorTickUnit="500.0" minHeight="-Infinity" minorTickCount="4" prefHeight="40.0" showTickLabels="true" showTickMarks="true" snapToTicks="true">
-                                 <VBox.margin>
-                                    <Insets top="3.0" />
-                                 </VBox.margin>
-                              </RangeSlider>
-                              <HBox fillHeight="false" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="40.0">
-                                 <children>
-                                    <TextField fx:id="minRankingTextField" prefWidth="55.0">
-                                       <HBox.margin>
-                                          <Insets />
-                                       </HBox.margin>
-                                    </TextField>
-                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="-" HBox.hgrow="ALWAYS">
-                                       <font>
-                                          <Font name="Bell MT" size="23.0" />
-                                       </font>
-                                    </Label>
-                                    <TextField fx:id="maxRankingTextField" minWidth="-Infinity" prefWidth="55.0">
-                                       <HBox.margin>
-                                          <Insets left="6.0" />
-                                       </HBox.margin>
-                                    </TextField>
-                                 </children>
-                              </HBox>
-                              <Separator maxWidth="1.7976931348623157E308">
-                                 <padding>
-                                    <Insets bottom="6.0" top="6.0" />
-                                 </padding>
-                              </Separator>
-                              <Label text="%game.create.map" />
-                              <ComboBox fx:id="mapComboBox" maxWidth="1.7976931348623157E308">
-                                 <VBox.margin>
-                                    <Insets top="3.0" />
-                                 </VBox.margin>
-                              </ComboBox>
-                              <Separator maxWidth="1.7976931348623157E308">
-                                 <padding>
-                                    <Insets bottom="6.0" top="6.0" />
-                                 </padding>
-                              </Separator>
-                              <Label text="%game.mods" />
-                              <CheckComboBox fx:id="additionalModsCheckComboBox" maxWidth="1.7976931348623157E308">
-                                 <VBox.margin>
-                                    <Insets top="3.0" />
-                                 </VBox.margin>
-                              </CheckComboBox>
-                              <HBox>
-                                 <VBox.margin>
-                                    <Insets top="8.0" />
-                                 </VBox.margin>
-                                 <children>
-                                    <Button fx:id="createGameButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%games.create" HBox.hgrow="ALWAYS">
-                                       <HBox.margin>
-                                          <Insets top="3.0" />
-                                       </HBox.margin>
-                                    </Button>
-                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%games.cancel" HBox.hgrow="ALWAYS">
-                                       <HBox.margin>
-                                          <Insets left="10.0" top="3.0" />
-                                       </HBox.margin>
-                                    </Button>
-                                 </children>
-                              </HBox>
-                              <Separator maxWidth="1.7976931348623157E308">
-                                 <padding>
-                                    <Insets bottom="6.0" top="6.0" />
-                                 </padding>
-                              </Separator>
-                           </children>
-                           <HBox.margin>
-                              <Insets />
-                           </HBox.margin>
-                           <padding>
-                              <Insets left="4.0" right="9.0" />
-                           </padding>
-                        </VBox>
-                        <TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" onMouseClicked="#onTableClicked" HBox.hgrow="ALWAYS">
-                           <columns>
-                              <TableColumn fx:id="mapPreviewColumn" maxWidth="42.0" minWidth="42.0" prefWidth="42.0" resizable="false" text="%game.map" />
-                              <TableColumn fx:id="gameTitleColumn" maxWidth="600.0" minWidth="90.0" prefWidth="150.0" text="%game.title" />
-                              <TableColumn fx:id="playersColumn" maxWidth="37.0" minWidth="37.0" prefWidth="37.0" resizable="false" text="%game.players" />
-                              <TableColumn fx:id="rankingColumn" maxWidth="600.0" minWidth="90.0" prefWidth="250.0" text="%game.ranking" />
-                              <TableColumn fx:id="modsColumn" maxWidth="600.0" minWidth="50.0" prefWidth="250.0" text="%game.mods" />
-                           </columns>
-                           <columnResizePolicy>
-                              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                           </columnResizePolicy>
-                        </TableView>
-                     </children>
-                  </HBox>
-               </children>
-               <padding>
-                  <Insets bottom="10.0" right="10.0" top="10.0" />
-               </padding>
-            </VBox>
-         </content>
-      </Tab>
-   </tabs>
-</TabPane>
+<VBox fx:id="gamesRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity"
+      minWidth="0.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.faforever.client.game.GamesController">
+  <children>
+    <HBox alignment="BASELINE_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0"
+          minWidth="0.0" spacing="10.0">
+      <children>
+        <Button fx:id="createGameButton" mnemonicParsing="false" onAction="#onCreateGameButtonClicked"
+                text="%games.create"/>
+        <CheckBox mnemonicParsing="false" onAction="#onShowPrivateGames" selected="true"
+                  text="%games.showPrivateGames"/>
+      </children>
+    </HBox>
+    <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
+          VBox.vgrow="ALWAYS">
+      <children>
+        <VBox fx:id="gamePreviewPanel" maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="-Infinity"
+              prefWidth="263.0">
+          <children>
+            <HBox alignment="CENTER" maxHeight="1.7976931348623157E308" VBox.vgrow="NEVER">
+              <children>
+                <ImageView fx:id="mapImageView" fitHeight="256.0" fitWidth="256.0" pickOnBounds="true"
+                           preserveRatio="true" HBox.hgrow="NEVER">
+                  <HBox.margin>
+                    <Insets bottom="10.0"/>
+                  </HBox.margin>
+                </ImageView>
+              </children>
+            </HBox>
+            <Label fx:id="gameTitleLabel" maxHeight="1.7976931348623157E308" styleClass="game-detail-title"
+                   text="&lt;Game title&gt;">
+              <padding>
+                <Insets left="10.0"/>
+              </padding>
+            </Label>
+            <Label fx:id="numberOfPlayersLabel" maxHeight="1.7976931348623157E308" text="&lt;Number of players&gt;">
+              <padding>
+                <Insets left="10.0"/>
+              </padding>
+            </Label>
+            <Label fx:id="hosterLabel" maxHeight="1.7976931348623157E308" text="&lt;Hoster&gt;">
+              <VBox.margin>
+                <Insets top="10.0"/>
+              </VBox.margin>
+              <padding>
+                <Insets left="10.0"/>
+              </padding>
+            </Label>
+            <Label fx:id="gameModeLabel" maxHeight="1.7976931348623157E308" text="&lt;Game mode&gt;">
+              <VBox.margin>
+                <Insets top="10.0"/>
+              </VBox.margin>
+              <padding>
+                <Insets left="10.0"/>
+              </padding>
+            </Label>
+          </children>
+        </VBox>
+        <TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                   onMouseClicked="#onTableClicked" HBox.hgrow="ALWAYS">
+          <columns>
+            <TableColumn fx:id="mapPreviewColumn" maxWidth="42.0" minWidth="42.0" prefWidth="42.0" resizable="false"
+                         text="%game.map"/>
+            <TableColumn fx:id="gameTitleColumn" maxWidth="600.0" minWidth="90.0" prefWidth="150.0" text="%game.title"/>
+            <TableColumn fx:id="playersColumn" maxWidth="37.0" minWidth="37.0" prefWidth="37.0" resizable="false"
+                         text="%game.players"/>
+            <TableColumn fx:id="rankingColumn" maxWidth="600.0" minWidth="90.0" prefWidth="250.0" text="%game.ranking"/>
+            <TableColumn fx:id="modsColumn" maxWidth="600.0" minWidth="50.0" prefWidth="250.0" text="%game.mods"/>
+          </columns>
+          <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+          </columnResizePolicy>
+        </TableView>
+      </children>
+    </HBox>
+  </children>
+</VBox>

@@ -23,5 +23,14 @@ public interface TaskService {
    */
   <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task, Callback<T> callback);
 
+  /**
+   * Submits a task for execution in background.
+   *
+   * @param <T> the task's result type
+   * @param taskGroup the task group this task should be assigned to
+   * @param task the task to execute
+   */
+  <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task);
+
   void addChangeListener(TaskGroup taskGroup, ListChangeListener<PrioritizedTask<?>> listener);
 }
