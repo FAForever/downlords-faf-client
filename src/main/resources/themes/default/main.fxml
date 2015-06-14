@@ -12,7 +12,8 @@
 <?import javafx.scene.layout.*?>
 
 
-<AnchorPane fx:id="mainRoot" minHeight="300.0" minWidth="400.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
+<AnchorPane fx:id="mainRoot" minHeight="300.0" minWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
    <children>
       <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="18.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <children>

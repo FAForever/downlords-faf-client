@@ -13,6 +13,7 @@ public class Preferences {
   private ChatPrefs chat;
   private String lastMap;
   private List<String> ignoredNotifications;
+  private String latestGameTitle;
 
   public Preferences() {
     login = new LoginPrefs();
@@ -57,5 +58,13 @@ public class Preferences {
 
   public List<String> getIgnoredNotifications() {
     return ignoredNotifications;
+  }
+
+  public void setLatestGameTitle(String latestGameTitle) {
+    this.latestGameTitle = latestGameTitle;
+  }
+
+  public String getLatestGameTitle() {
+    return latestGameTitle;
   }
 }

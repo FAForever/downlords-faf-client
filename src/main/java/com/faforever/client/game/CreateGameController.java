@@ -126,6 +126,11 @@ public class CreateGameController {
     initMapSelection();
     initModList();
     initGameTypeComboBox();
+    initLatestGameSettings();
+  }
+
+  private void initLatestGameSettings() {
+    titleTextField.setText(preferencesService.getPreferences().getLatestGameTitle());
   }
 
   private void initGameTypeComboBox() {
@@ -194,6 +199,11 @@ public class CreateGameController {
     rankingSlider.setMin(environment.getProperty("rating.min", Integer.class));
     rankingSlider.setHighValue(environment.getProperty("rating.selectedMax", Integer.class));
     rankingSlider.setLowValue(environment.getProperty("rating.selectedMin", Integer.class));
+
+    titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+      preferencesService.getPreferences().setLatestGameTitle(newValue);
+      preferencesService.storeInBackground();
+    });
   }
 
   @FXML
