@@ -7,13 +7,13 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<TabPane fx:id="ladderRoot" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.leaderboard.LadderController">
+<TabPane fx:id="ladderRoot" minHeight="0.0" minWidth="0.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.leaderboard.LadderController">
   <tabs>
     <Tab fx:id="ladderByRatingTab" closable="false" styleClass="mimiktab" text="By Ladder Rating">
       <content>
-            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0">
                <children>
-                  <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="transparent-background-table" VBox.vgrow="ALWAYS">
+                  <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" styleClass="transparent-background-table" VBox.vgrow="ALWAYS">
                      <columns>
                        <TableColumn fx:id="rankColumn" text="Rank" />
                        <TableColumn fx:id="nameColumn" text="Name" />
@@ -38,7 +38,7 @@
     </Tab>
     <Tab fx:id="ladderByMapTab" closable="false" styleClass="mimiktab" text="By Map">
       <content>
-            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="-Infinity">
+            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0">
                <children>
                   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
                      <children>
@@ -65,7 +65,7 @@
     </Tab>
     <Tab fx:id="ladderByRankTab" closable="false" styleClass="mimiktab" text="By Rank">
          <content>
-            <Label text="We're debating implementing this.">
+            <Label minHeight="0.0" minWidth="0.0" text="We're debating implementing this.">
                <font>
                   <Font size="25.0" />
                </font>

@@ -12,10 +12,9 @@
 <?import javafx.scene.layout.*?>
 
 
-<AnchorPane fx:id="mainRoot" minHeight="300.0" minWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
+<VBox fx:id="mainRoot" minHeight="500.0" minWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
    <children>
-      <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="18.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
         <children>
           <HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
                <children>
@@ -66,7 +65,7 @@
             <AnchorPane fx:id="contentPane" VBox.vgrow="ALWAYS" />
         </children>
       </VBox>
-    <HBox alignment="CENTER_LEFT" minHeight="18.0" styleClass="status-bar" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+    <HBox alignment="CENTER_LEFT" minHeight="22.0" styleClass="status-bar" VBox.vgrow="NEVER">
          <children>
            <HBox fx:id="taskPane" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
              <children>
@@ -105,4 +104,4 @@
          </padding>
       </HBox>
    </children>
-</AnchorPane>
+</VBox>
