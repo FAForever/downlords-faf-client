@@ -49,6 +49,8 @@ public class LegacyMapService implements MapService {
   @Override
   @Cacheable("smallMapPreview")
   public Image loadSmallPreview(String mapName) {
+
+
     String url = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.small"));
 
     logger.debug("Fetching small preview for map {} from {}", mapName, url);

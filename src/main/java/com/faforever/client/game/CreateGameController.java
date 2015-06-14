@@ -18,13 +18,13 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.RangeSlider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 import java.util.Objects;
 
 public class CreateGameController {
@@ -115,6 +115,9 @@ public class CreateGameController {
         mapListView.scrollTo(newMapIndex);
       }
     });
+
+    gameTypeComboBox.setCellFactory(param -> new ModListCell());
+    gameTypeComboBox.setButtonCell(new ModListCell());
   }
 
   @PostConstruct
@@ -126,13 +129,17 @@ public class CreateGameController {
   }
 
   private void initGameTypeComboBox() {
-    List<GameTypeBean> gameTypes = gameService.getGameTypes();
+    gameService.addOnGameTypeInfoListener(change -> {
+      change.getValueAdded();
 
-    gameTypeComboBox.getItems().setAll(gameTypes);
-    gameTypeComboBox.setCellFactory(param -> new ModListCell());
+      gameTypeComboBox.getItems().add(change.getValueAdded());
+      selectLatestGameType();
+    });
+  }
 
-    String lastGameMod = preferencesService.getPreferences().getLastGameMod();
-    for (GameTypeBean mod : gameTypes) {
+  private void selectLatestGameType() {
+    String lastGameMod = preferencesService.getPreferences().getLatestGameType();
+    for (GameTypeBean mod : gameTypeComboBox.getItems()) {
       if (Objects.equals(mod.getName(), lastGameMod)) {
         gameTypeComboBox.getSelectionModel().select(mod);
         break;
@@ -198,6 +205,11 @@ public class CreateGameController {
 
   @FXML
   void onCreateButtonClicked(ActionEvent event) {
+    if (StringUtils.isEmpty(titleTextField.getText())) {
+      // TODO tell the user
+      return;
+    }
+
     NewGameInfo newGameInfo = new NewGameInfo(
         titleTextField.getText(),
         passwordTextField.getText(),

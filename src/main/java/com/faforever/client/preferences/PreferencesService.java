@@ -86,7 +86,7 @@ public class PreferencesService {
 
     Path path = preferences.getForgedAlliance().getPath();
     if (path == null || Files.notExists(path)) {
-      logger.info("Game path is not specified, trying to detect");
+      logger.info("Game path is not specified or non-existent, trying to detect");
       detectGamePath();
     }
   }

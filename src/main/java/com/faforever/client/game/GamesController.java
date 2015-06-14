@@ -72,7 +72,6 @@ public class GamesController implements OnGameInfoListener {
   @FXML
   VBox gamePreviewPanel;
 
-
   @FXML
   TableView<GameInfoBean> gamesTable;
 
@@ -87,6 +86,9 @@ public class GamesController implements OnGameInfoListener {
 
   @FXML
   TableColumn<GameInfoBean, String> rankingColumn;
+
+  @FXML
+  TableColumn<GameInfoBean, String> hostColumn;
 
   @Autowired
   PreferencesService preferenceService;
@@ -165,6 +167,7 @@ public class GamesController implements OnGameInfoListener {
         return StringUtils.defaultString(extractRating(param.getValue().getTitle()));
       }
     });
+    hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
 
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       displayGameDetail(newValue);

@@ -75,7 +75,7 @@ public class MockServerAccessor implements ServerAccessor {
           PlayerInfo playerInfo = new PlayerInfo();
           playerInfo.login = userService.getUsername();
           playerInfo.clan = "ABC";
-          playerInfo.country = "CH";
+          playerInfo.country = "A1";
           onPlayerInfoListener.onPlayerInfo(playerInfo);
         }
 

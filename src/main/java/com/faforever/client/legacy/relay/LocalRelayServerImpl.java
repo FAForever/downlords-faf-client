@@ -17,6 +17,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.List;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
@@ -39,13 +40,17 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
     return port;
   }
 
+  @PostConstruct
+  void postConstruct() {
+    startInBackground();
+  }
+
   /**
    * Starts a local, GPG-like server in background that FA can connect to. Received data is forwarded to the FAF server
    * and vice-versa.
    */
   @Override
-  @PostConstruct
-  public void startInBackground() throws IOException {
+  public void startInBackground() {
     proxyServer.addOnProxyInitializedListener(this);
 
     executeInBackground(new Task<Void>() {
@@ -110,7 +115,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
       protected Void call() throws Exception {
         try {
           redirectFaToFaf(faInputStream, serverWriter);
-        } catch (EOFException e) {
+        } catch (EOFException | SocketException e) {
           logger.info("Forged Alliance disconnected from local relay server (EOF)");
         }
         return null;

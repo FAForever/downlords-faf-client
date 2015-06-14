@@ -126,12 +126,7 @@
   /* The color to use for -fx-text-fill when text is to be painted on top of
    * a background filled with the -fx-background color.
    */
-  -fx-text-background-color: ladder(
-      -fx-background,
-      -fx-dark-text-color  10%,
-      -fx-mid-text-color   20%,
-      -fx-light-text-color 30%
-  );
+  -fx-text-background-color: -fx-light-text-color;
 
   /* Background for items in list like things such as menus, lists, trees,
    * and tables. */
@@ -473,6 +468,12 @@
 }
 .progress-bar:indeterminate > .bar {
     -fx-background-color: linear-gradient(to left, transparent, -fx-accent);
+}
+
+/***************** Window decoration *****************/
+
+.map-preview {
+  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.4), 5, 0.8, 0, 0);
 }
 
 /***************** Window decoration *****************/

@@ -11,6 +11,9 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +23,7 @@ import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
 
@@ -40,10 +41,10 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
   @Autowired
   Proxy proxy;
 
-  private Map<String, GameTypeBean> gameTypeBeans;
+  private ObservableMap<String, GameTypeBean> gameTypeBeans;
 
   public GameServiceImpl() {
-    gameTypeBeans = new HashMap<>();
+    gameTypeBeans = FXCollections.observableHashMap();
   }
 
   @PostConstruct
@@ -107,6 +108,11 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
   @Override
   public List<GameTypeBean> getGameTypes() {
     return new ArrayList<>(gameTypeBeans.values());
+  }
+
+  @Override
+  public void addOnGameTypeInfoListener(MapChangeListener<String, GameTypeBean> changeListener) {
+    gameTypeBeans.addListener(changeListener);
   }
 
   private Callback<GameLaunchInfo> gameLaunchCallback(final Callback<Void> callback) {

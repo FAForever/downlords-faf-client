@@ -9,7 +9,7 @@ public class Preferences {
   private ForgedAlliancePrefs forgedAlliance;
   private LoginPrefs login;
   private String theme;
-  private String lastGameMod;
+  private String latestGameType;
   private ChatPrefs chat;
   private String lastMap;
   private List<String> ignoredNotifications;
@@ -20,7 +20,7 @@ public class Preferences {
     mainWindow = new WindowPrefs(800, 600);
     theme = "default";
     chat = new ChatPrefs();
-    lastGameMod = "faf";
+    latestGameType = "faf";
     ignoredNotifications = new ArrayList<>();
   }
 
@@ -40,8 +40,8 @@ public class Preferences {
     return forgedAlliance;
   }
 
-  public String getLastGameMod() {
-    return lastGameMod;
+  public String getLatestGameType() {
+    return latestGameType;
   }
 
   public ChatPrefs getChat() {
