@@ -9,21 +9,18 @@
 
 <TabPane fx:id="ladderRoot" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.leaderboard.LadderController">
   <tabs>
-    <Tab fx:id="ladderByRatingTab" styleClass="mimiktab" text="By Ladder Rating">
+    <Tab fx:id="ladderByRatingTab" closable="false" styleClass="mimiktab" text="By Ladder Rating">
       <content>
             <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                <children>
                   <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="transparent-background-table" VBox.vgrow="ALWAYS">
                      <columns>
-                        <TableColumn fx:id="rankColumn" maxWidth="-1.0" minWidth="39.0" prefWidth="-1.0" resizable="false" sortable="false" text="Rank" />
-                        <TableColumn fx:id="nameColumn" maxWidth="1.7976931348623157E308" minWidth="50.0" prefWidth="100.0" sortable="false" text="Name" />
-                        <TableColumn fx:id="winLossColumn" maxWidth="-1.0" minWidth="108.0" prefWidth="-1.0" sortable="false" text="Win/Loss Ratio" />
-                        <TableColumn fx:id="gamesPlayedColumn" maxWidth="-1.0" minWidth="100.0" prefWidth="-1.0" sortable="false" text="Games Played" />
-                        <TableColumn fx:id="ratingColumn" maxWidth="-1.0" minWidth="50.0" prefWidth="-1.0" sortable="false" text="Rating" />
+                       <TableColumn fx:id="rankColumn" text="Rank"/>
+                       <TableColumn fx:id="nameColumn" text="Name"/>
+                       <TableColumn fx:id="winLossColumn" text="Win/Loss Ratio"/>
+                       <TableColumn fx:id="gamesPlayedColumn" text="Games Played"/>
+                       <TableColumn fx:id="ratingColumn" text="Rating"/>
                      </columns>
-                     <VBox.margin>
-                        <Insets left="8.0" right="14.0" />
-                     </VBox.margin>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                      </columnResizePolicy>
@@ -39,7 +36,7 @@
             </VBox>
       </content>
     </Tab>
-    <Tab fx:id="ladderByMapTab" styleClass="mimiktab" text="By Map">
+    <Tab fx:id="ladderByMapTab" closable="false" styleClass="mimiktab" text="By Map">
       <content>
             <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="-Infinity">
                <children>
@@ -66,7 +63,7 @@
                </children></HBox>
       </content>
     </Tab>
-      <Tab fx:id="ladderByRankTab" styleClass="mimiktab" text="By Rank">
+    <Tab fx:id="ladderByRankTab" closable="false" styleClass="mimiktab" text="By Rank">
          <content>
             <Label text="We're debating implementing this.">
                <font>
@@ -76,7 +73,4 @@
          </content>
       </Tab>
   </tabs>
-   <padding>
-      <Insets left="8.0" right="8.0" />
-   </padding>
 </TabPane>
