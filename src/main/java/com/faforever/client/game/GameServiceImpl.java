@@ -1,8 +1,10 @@
 package com.faforever.client.game;
 
 import com.faforever.client.legacy.OnGameInfoListener;
+import com.faforever.client.legacy.OnGameTypeInfoListener;
 import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.user.UserService;
@@ -14,12 +16,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class GameServiceImpl implements GameService {
+public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -34,6 +39,17 @@ public class GameServiceImpl implements GameService {
 
   @Autowired
   Proxy proxy;
+
+  private Map<String, GameTypeBean> gameTypeBeans;
+
+  public GameServiceImpl() {
+    gameTypeBeans = new HashMap<>();
+  }
+
+  @PostConstruct
+  void postConstruct() {
+    serverAccessor.addOnGameTypeInfoListener(this);
+  }
 
   @Override
   public void publishPotentialPlayer() {
@@ -88,6 +104,11 @@ public class GameServiceImpl implements GameService {
     });
   }
 
+  @Override
+  public List<GameTypeBean> getGameTypes() {
+    return new ArrayList<>(gameTypeBeans.values());
+  }
+
   private Callback<GameLaunchInfo> gameLaunchCallback(final Callback<Void> callback) {
     return new Callback<GameLaunchInfo>() {
       @Override
@@ -138,5 +159,14 @@ public class GameServiceImpl implements GameService {
       Collections.addAll(fixedArgs, split);
     }
     return fixedArgs;
+  }
+
+  @Override
+  public void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
+    if (!gameTypeInfo.host || !gameTypeInfo.live || gameTypeBeans.containsKey(gameTypeInfo.name)) {
+      return;
+    }
+
+    gameTypeBeans.put(gameTypeInfo.name, new GameTypeBean(gameTypeInfo));
   }
 }

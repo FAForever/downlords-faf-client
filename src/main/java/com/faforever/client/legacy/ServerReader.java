@@ -5,7 +5,7 @@ import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameType;
-import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.domain.OnFafLoginSucceededListener;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.legacy.domain.ServerMessageType;
@@ -47,7 +47,7 @@ class ServerReader {
   private OnPingListener onPingListener;
   private OnGameLaunchInfoListener onGameLaunchInfoListener;
   private OnFafLoginSucceededListener onFafLoginSucceededListener;
-  private OnModInfoListener onModInfoListener;
+  private OnGameTypeInfoListener onGameTypeInfoListener;
   private OnFriendListListener onFriendListListener;
   private OnFoeListListener onFoeListListener;
 
@@ -155,8 +155,8 @@ class ServerReader {
           break;
 
         case MOD_INFO:
-          ModInfo modInfo = gson.fromJson(jsonString, ModInfo.class);
-          onModInfoListener.onModInfo(modInfo);
+          GameTypeInfo gameTypeInfo = gson.fromJson(jsonString, GameTypeInfo.class);
+          onGameTypeInfoListener.onGameTypeInfo(gameTypeInfo);
           break;
 
         case TUTORIALS_INFO:
@@ -212,8 +212,8 @@ class ServerReader {
     this.onGameLaunchInfoListener = onGameLaunchInfoListener;
   }
 
-  public void setOnModInfoListener(OnModInfoListener onModInfoListener) {
-    this.onModInfoListener = onModInfoListener;
+  public void setOnGameTypeInfoListener(OnGameTypeInfoListener onGameTypeInfoListener) {
+    this.onGameTypeInfoListener = onGameTypeInfoListener;
   }
 
   public void setOnFriendListListener(OnFriendListListener onFriendListListener) {

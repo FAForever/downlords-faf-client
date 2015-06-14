@@ -122,15 +122,30 @@
       -fx-light-text-color 40%
   );
 
+
+  /* The color to use for -fx-text-fill when text is to be painted on top of
+   * a background filled with the -fx-background color.
+   */
+  -fx-text-background-color: ladder(
+      -fx-background,
+      -fx-dark-text-color  10%,
+      -fx-mid-text-color   20%,
+      -fx-light-text-color 30%
+  );
+
   /* Background for items in list like things such as menus, lists, trees,
    * and tables. */
-  -fx-selection-bar: derive(-fx-color, 10%);
+  -fx-selection-bar: -fx-accent;
 
-  -fx-focused-text-base-color : ladder(
+  /* Background color to use for selection of list cells etc. This is when
+   * the control doesn't have focus or the row of a previously selected item. */
+  -fx-selection-bar-non-focused: derive(-fx-accent, -50%);
+
+  -fx-focused-text-base-color: ladder(
       -fx-selection-bar,
-      -fx-mid-text-color 30%,
       -fx-dark-text-color 40%,
-      -fx-light-text-color 50%
+      -fx-mid-text-color 50%,
+      -fx-light-text-color 60%
   );
 
   /* A little brighter than -fx-color and used to draw boxes around objects such
@@ -386,7 +401,7 @@
 /***************** Notifications *****************/
 
 .persistent-notifications {
-  -fx-background-color: black;
+  -fx-background-color: -fx-background;
   -fx-background-radius: 5;
   -fx-effect: dropshadow(gaussian, rgba(255,255,255,.4), 5, 0.8, 0, 0);
 }
@@ -405,6 +420,15 @@
 
 .notification-close-button:hover {
   -fx-background-color: -fx-control-inner-background;
+}
+
+
+/***************** Create game *****************/
+
+.create-game-popup {
+  -fx-background-color: -fx-background;
+  -fx-background-radius: 5;
+  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.4), 5, 0.8, 0, 0);
 }
 
 /***************** Tabs *****************/

@@ -21,7 +21,7 @@ public interface ServerAccessor {
    */
   void connectAndLogInInBackground(Callback<Void> callback);
 
-  void addOnModInfoMessageListener(OnModInfoListener listener);
+  void addOnGameTypeInfoListener(OnGameTypeInfoListener listener);
 
   void addOnGameInfoListener(OnGameInfoListener listener);
 

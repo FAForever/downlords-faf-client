@@ -8,7 +8,7 @@ import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
-import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.domain.OnFafLoginSucceededListener;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.legacy.domain.SessionInfo;
@@ -47,7 +47,7 @@ public class ServerAccessorImpl implements ServerAccessor,
     OnPingListener,
     OnPlayerInfoListener,
     OnFafLoginSucceededListener,
-    OnModInfoListener,
+    OnGameTypeInfoListener,
     OnGameLaunchInfoListener,
     OnFriendListListener,
     OnFoeListListener,
@@ -84,7 +84,7 @@ public class ServerAccessorImpl implements ServerAccessor,
   private Callback<Void> loginCallback;
   private Callback<GameLaunchInfo> gameLaunchCallback;
   private Collection<OnGameInfoListener> onGameInfoListeners;
-  private Collection<OnModInfoListener> onModInfoListeners;
+  private Collection<OnGameTypeInfoListener> onGameTypeInfoListeners;
   private Collection<OnFoeListListener> onFoeListListeners;
 
   // Yes I know, those aren't lists. They will become if it's necessary
@@ -97,7 +97,7 @@ public class ServerAccessorImpl implements ServerAccessor,
 
   public ServerAccessorImpl() {
     onGameInfoListeners = new ArrayList<>();
-    onModInfoListeners = new ArrayList<>();
+    onGameTypeInfoListeners = new ArrayList<>();
     sessionId = new SimpleStringProperty();
   }
 
@@ -197,7 +197,7 @@ public class ServerAccessorImpl implements ServerAccessor,
     serverReader.setOnPingListener(this);
     serverReader.setOnPlayerInfoListener(this);
     serverReader.setOnFafLoginSucceededListener(this);
-    serverReader.setOnModInfoListener(this);
+    serverReader.setOnGameTypeInfoListener(this);
     serverReader.setOnGameLaunchInfoListener(this);
     serverReader.setOnFriendListListener(this);
     serverReader.setOnFoeListListener(this);
@@ -238,8 +238,8 @@ public class ServerAccessorImpl implements ServerAccessor,
   }
 
   @Override
-  public void addOnModInfoMessageListener(OnModInfoListener listener) {
-    onModInfoListeners.add(listener);
+  public void addOnGameTypeInfoListener(OnGameTypeInfoListener listener) {
+    onGameTypeInfoListeners.add(listener);
   }
 
   @Override
@@ -250,9 +250,9 @@ public class ServerAccessorImpl implements ServerAccessor,
   }
 
   @Override
-  public void onModInfo(ModInfo modInfo) {
-    for (OnModInfoListener listener : onModInfoListeners) {
-      Platform.runLater(() -> listener.onModInfo(modInfo));
+  public void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
+    for (OnGameTypeInfoListener listener : onGameTypeInfoListeners) {
+      Platform.runLater(() -> listener.onGameTypeInfo(gameTypeInfo));
     }
   }
 

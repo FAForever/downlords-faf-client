@@ -8,6 +8,7 @@ public enum ServerObjectType {
   GAME_INFO("game_info"),
   PLAYER_INFO("player_info"),
   GAME_LAUNCH("game_launch"),
+  // TODO rename to GAME_TYPE_INFO?
   MOD_INFO("mod_info"),
   TUTORIALS_INFO("tutorials_info"),
   MATCHMAKER_INFO("matchmaker_info"),

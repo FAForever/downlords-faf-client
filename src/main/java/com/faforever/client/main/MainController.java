@@ -372,7 +372,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     } else if (button == chatButton) {
       setContent(chatController.getRoot());
     } else if (button == gamesButton) {
-      gamesController.setUpIfNecessary(stage);
+      gamesController.setUpIfNecessary();
       setContent(gamesController.getRoot());
     } else if (button == vaultButton) {
       vaultController.setUpIfNecessary();

@@ -7,8 +7,9 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.jetbrains.annotations.NotNull;
 
-public class MapInfoBean {
+public class MapInfoBean implements Comparable<MapInfoBean> {
 
   private final StringProperty name;
   private final SimpleFloatProperty rating;
@@ -129,5 +130,10 @@ public class MapInfoBean {
 
   public void setVersion(int version) {
     this.version.set(version);
+  }
+
+  @Override
+  public int compareTo(@NotNull MapInfoBean o) {
+    return getName().compareTo(o.getName());
   }
 }

@@ -1,19 +1,19 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.legacy.domain.GameTypeInfo;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class ModInfoBean {
+public class GameTypeBean {
 
   private StringProperty name;
   private StringProperty fullName;
   private StringProperty description;
 
-  public ModInfoBean(ModInfo modInfo) {
-    name = new SimpleStringProperty(modInfo.name);
-    fullName = new SimpleStringProperty(modInfo.fullname);
-    description = new SimpleStringProperty(modInfo.desc);
+  public GameTypeBean(GameTypeInfo gameTypeInfo) {
+    name = new SimpleStringProperty(gameTypeInfo.name);
+    fullName = new SimpleStringProperty(gameTypeInfo.fullname);
+    description = new SimpleStringProperty(gameTypeInfo.desc);
   }
 
   public String getName() {

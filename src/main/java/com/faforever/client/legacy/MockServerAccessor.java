@@ -7,7 +7,7 @@ import com.faforever.client.leaderboard.LadderEntryBean;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
@@ -35,7 +35,7 @@ public class MockServerAccessor implements ServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private Collection<OnModInfoListener> onModInfoMessageListeners;
+  private Collection<OnGameTypeInfoListener> onModInfoMessageListeners;
   private OnPlayerInfoListener onPlayerInfoListener;
   private Collection<OnGameInfoListener> onGameInfoListeners;
 
@@ -61,14 +61,14 @@ public class MockServerAccessor implements ServerAccessor {
     taskService.submitTask(NET_LIGHT, new PrioritizedTask<Void>(i18n.get("login.progress.message")) {
       @Override
       protected Void call() throws Exception {
-        for (OnModInfoListener onModInfoMessageListener : onModInfoMessageListeners) {
-          ModInfo modInfo = new ModInfo();
-          modInfo.fullname = "Forged Alliance Forever";
-          modInfo.name = "faf";
-          modInfo.live = true;
-          modInfo.host = true;
+        for (OnGameTypeInfoListener onModInfoMessageListener : onModInfoMessageListeners) {
+          GameTypeInfo gameTypeInfo = new GameTypeInfo();
+          gameTypeInfo.fullname = "Forged Alliance Forever";
+          gameTypeInfo.name = "faf";
+          gameTypeInfo.live = true;
+          gameTypeInfo.host = true;
 
-          onModInfoMessageListener.onModInfo(modInfo);
+          onModInfoMessageListener.onGameTypeInfo(gameTypeInfo);
         }
 
         if (onPlayerInfoListener != null) {
@@ -113,7 +113,7 @@ public class MockServerAccessor implements ServerAccessor {
   }
 
   @Override
-  public void addOnModInfoMessageListener(OnModInfoListener listener) {
+  public void addOnGameTypeInfoListener(OnGameTypeInfoListener listener) {
     onModInfoMessageListeners.add(listener);
   }
 
