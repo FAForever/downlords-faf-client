@@ -4,6 +4,7 @@ import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LadderEntryBean;
+import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
@@ -82,7 +83,7 @@ public class MockServerAccessor implements ServerAccessor {
         for (OnGameInfoListener onGameInfoListener : onGameInfoListeners) {
           GameInfo gameInfo = new GameInfo();
           gameInfo.title = "Mock game";
-          gameInfo.access = "public";
+          gameInfo.access = GameAccess.PUBLIC;
           gameInfo.featuredMod = "faf";
           gameInfo.mapname = "scmp_015";
           gameInfo.numPlayers = 3;

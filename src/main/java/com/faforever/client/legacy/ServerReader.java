@@ -1,5 +1,6 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.SocialInfo;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
@@ -13,6 +14,7 @@ import com.faforever.client.legacy.domain.ServerObject;
 import com.faforever.client.legacy.domain.ServerObjectType;
 import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.legacy.domain.StatisticsType;
+import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
 import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
@@ -57,6 +59,7 @@ class ServerReader {
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .registerTypeAdapter(GameType.class, new GameTypeTypeAdapter())
         .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
+        .registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter())
         .registerTypeAdapter(StatisticsType.class, new StatisticsTypeTypeAdapter())
         .create();
   }

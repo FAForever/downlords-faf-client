@@ -70,12 +70,12 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
       logger.info("Relay server listening on port {}", port);
 
       while (!isCancelled()) {
-        try (Socket supComSocket = serverSocket.accept()) {
-          logger.debug("Forged Alliance connected to relay server from {}:{}", supComSocket.getInetAddress(), supComSocket.getPort());
+        try (Socket faSocket = serverSocket.accept()) {
+          logger.debug("Forged Alliance connected to relay server from {}:{}", faSocket.getInetAddress(), faSocket.getPort());
 
           try (Socket fafSocket = new Socket(environment.getProperty("relay.host"), environment.getProperty("relay.port", int.class));
-               FaDataInputStream supComInput = createFaInputStream(supComSocket.getInputStream());
-               FaDataOutputStream faOutputStream = createFaOutputStream(supComSocket.getOutputStream());
+               FaDataInputStream supComInput = createFaInputStream(faSocket.getInputStream());
+               FaDataOutputStream faOutputStream = createFaOutputStream(faSocket.getOutputStream());
                ServerWriter serverWriter = createServerWriter(fafSocket);
                Relayer relayer = new Relayer(fafSocket.getInputStream(), proxyServer, faOutputStream, serverWriter)) {
 
@@ -83,6 +83,8 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
 
             relayer.blockingRead();
           }
+        } catch (SocketException | EOFException e) {
+          logger.debug("Forged Alliance disconnected from relay server");
         }
       }
     }
