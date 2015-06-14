@@ -76,13 +76,11 @@
         <TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                    onMouseClicked="#onTableClicked" HBox.hgrow="ALWAYS">
           <columns>
-            <TableColumn fx:id="mapPreviewColumn" maxWidth="42.0" minWidth="42.0" prefWidth="42.0" resizable="false"
-                         text="%game.map"/>
-            <TableColumn fx:id="gameTitleColumn" maxWidth="600.0" minWidth="90.0" prefWidth="150.0" text="%game.title"/>
-            <TableColumn fx:id="playersColumn" maxWidth="37.0" minWidth="37.0" prefWidth="37.0" resizable="false"
-                         text="%game.players"/>
-            <TableColumn fx:id="rankingColumn" maxWidth="600.0" minWidth="90.0" prefWidth="250.0" text="%game.ranking"/>
-            <TableColumn fx:id="modsColumn" maxWidth="600.0" minWidth="50.0" prefWidth="250.0" text="%game.mods"/>
+            <TableColumn fx:id="mapPreviewColumn" text="%game.map"/>
+            <TableColumn fx:id="gameTitleColumn" text="%game.title"/>
+            <TableColumn fx:id="playersColumn" minWidth="37.0" text="%game.players"/>
+            <TableColumn fx:id="rankingColumn" text="%game.ranking"/>
+            <TableColumn fx:id="modsColumn" text="%game.mods"/>
           </columns>
           <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
