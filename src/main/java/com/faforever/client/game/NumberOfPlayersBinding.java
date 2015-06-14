@@ -20,6 +20,6 @@ public class NumberOfPlayersBinding extends StringBinding {
 
   @Override
   protected String computeValue() {
-    return String.format(i18n.get("game.players.format"), numPlayers.get(), maxPlayers.get());
+    return i18n.get("game.players.format", numPlayers.get(), maxPlayers.get());
   }
 }
