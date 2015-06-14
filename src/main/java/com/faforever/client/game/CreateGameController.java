@@ -29,6 +29,8 @@ import java.util.Objects;
 
 public class CreateGameController {
 
+  private static final String DEFAULT_MOD = "faf";
+
   @FXML
   Label mapNameLabel;
 
@@ -138,12 +140,16 @@ public class CreateGameController {
       change.getValueAdded();
 
       gameTypeComboBox.getItems().add(change.getValueAdded());
-      selectLatestGameType();
+      selectLatestOrDefaultGameType();
     });
   }
 
-  private void selectLatestGameType() {
+  private void selectLatestOrDefaultGameType() {
     String lastGameMod = preferencesService.getPreferences().getLatestGameType();
+    if (lastGameMod == null) {
+      lastGameMod = DEFAULT_MOD;
+    }
+
     for (GameTypeBean mod : gameTypeComboBox.getItems()) {
       if (Objects.equals(mod.getName(), lastGameMod)) {
         gameTypeComboBox.getSelectionModel().select(mod);

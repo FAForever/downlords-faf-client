@@ -89,6 +89,9 @@ public class GamesController implements OnGameInfoListener {
   @FXML
   TableColumn<GameInfoBean, String> hostColumn;
 
+  @FXML
+  TableColumn<GameInfoBean, GameAccess> accessColumn;
+
   @Autowired
   PreferencesService preferenceService;
 
@@ -119,6 +122,8 @@ public class GamesController implements OnGameInfoListener {
 
   private Popup createGamePopup;
   private Popup passwordPopup;
+  private double lastMouseX;
+  private double lastMouseY;
 
   public GamesController() {
     gameInfoBeans = FXCollections.observableHashMap();
@@ -183,6 +188,9 @@ public class GamesController implements OnGameInfoListener {
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       displayGameDetail(newValue);
     });
+
+    // FIXME complete
+//    accessColumn.setCellValueFactory();
   }
 
   private void displayGameDetail(GameInfoBean gameInfoBean) {
@@ -201,9 +209,7 @@ public class GamesController implements OnGameInfoListener {
     GameInfoBean gameInfoBean = gamesTable.getSelectionModel().getSelectedItem();
 
     if (gameInfoBean.getAccess() == GameAccess.PASSWORD && password == null) {
-      Popup popup = new Popup();
-      popup.getContent().setAll(enterPasswordController.getRoot());
-      popup.show(gamesRoot.getScene().getWindow());
+      passwordPopup.show(gamesRoot.getScene().getWindow(), lastMouseX, lastMouseY);
     } else {
       gameService.joinGame(gameInfoBean, password, new Callback<Void>() {
         @Override
@@ -253,6 +259,8 @@ public class GamesController implements OnGameInfoListener {
 
   public void onTableClicked(MouseEvent event) {
     if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+      lastMouseX = event.getScreenX();
+      lastMouseY = event.getScreenY();
       joinSelectedGame(null);
     }
   }

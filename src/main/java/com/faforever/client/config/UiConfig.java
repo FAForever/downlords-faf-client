@@ -16,6 +16,7 @@ import com.faforever.client.fx.SceneFactoryImpl;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.fxml.FxmlLoaderImpl;
 import com.faforever.client.game.CreateGameController;
+import com.faforever.client.game.EnterPasswordController;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.leaderboard.LadderController;
 import com.faforever.client.login.LoginController;
@@ -92,6 +93,11 @@ public class UiConfig {
   @Bean
   CreateGameController createGameController() {
     return loadController("create_game.fxml");
+  }
+
+  @Bean
+  EnterPasswordController enterPasswordController() {
+    return loadController("enter_password.fxml");
   }
 
   @Bean
