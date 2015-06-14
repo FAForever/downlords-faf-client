@@ -193,6 +193,7 @@ public class CreateGameController {
   void onRandomMapButtonClicked(ActionEvent event) {
     int mapIndex = (int) (Math.random() * filteredMaps.size());
     mapListView.getSelectionModel().select(mapIndex);
+    mapListView.scrollTo(mapIndex);
   }
 
   @FXML
