@@ -6,18 +6,19 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.web.WebView?>
 
-<fx:root styleClass="mimik" type="Tab" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
-  <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0">
+<fx:root type="Tab" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
+  <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
     <children>
-      <SplitPane dividerPositions="1.0" focusTraversable="false" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+      <SplitPane dividerPositions="0.9" focusTraversable="false" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
         <items>
-          <WebView fx:id="messagesWebView" minHeight="-1.0" minWidth="250.0" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-          <VBox maxHeight="1.7976931348623157E308" minWidth="200.0" SplitPane.resizableWithParent="false">
+          <WebView fx:id="messagesWebView" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+          <VBox maxHeight="1.7976931348623157E308" minWidth="250.0" prefWidth="250.0"
+                SplitPane.resizableWithParent="false">
             <children>
               <TextField fx:id="userSearchTextField" promptText="%chat.searchPrompt" />
               <ScrollPane fitToWidth="true" focusTraversable="false" VBox.vgrow="ALWAYS">
                 <content>
-                  <VBox fx:id="usersVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefWidth="300.0">
+                  <VBox fx:id="usersVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                     <children>
                       <TitledPane focusTraversable="false" maxWidth="1.7976931348623157E308" text="%chat.category.moderators">
                         <content>
