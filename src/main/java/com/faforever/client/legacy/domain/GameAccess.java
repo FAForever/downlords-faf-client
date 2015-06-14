@@ -12,7 +12,7 @@ public enum GameAccess {
   static {
     fromString = new HashMap<>(values().length, 1);
     for (GameAccess gameAccess : values()) {
-      fromString.put(gameAccess.name(), gameAccess);
+      fromString.put(gameAccess.getString(), gameAccess);
     }
   }
 

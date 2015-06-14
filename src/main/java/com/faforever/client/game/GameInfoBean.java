@@ -46,7 +46,7 @@ public class GameInfoBean {
     title = new SimpleStringProperty(StringEscapeUtils.unescapeHtml4(gameInfo.title));
     mapName = new SimpleStringProperty(gameInfo.mapname);
     featuredMod = new SimpleStringProperty(gameInfo.featuredMod);
-    access = new SimpleObjectProperty<GameAccess>(gameInfo.access);
+    access = new SimpleObjectProperty<>(gameInfo.access);
     minRanking = new SimpleObjectProperty<>(gameInfo.minRanking);
     maxRanking = new SimpleObjectProperty<>(gameInfo.maxRanking);
     numPlayers = new SimpleObjectProperty<>(gameInfo.numPlayers);

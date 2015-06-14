@@ -11,7 +11,11 @@ public class GameAccessTypeAdapter extends TypeAdapter<GameAccess> {
 
   @Override
   public void write(JsonWriter out, GameAccess value) throws IOException {
-    out.value(value.getString());
+    if (value == null) {
+      out.nullValue();
+    } else {
+      out.value(value.getString());
+    }
   }
 
   @Override

@@ -2,7 +2,7 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.GameAccess;
-import com.faforever.client.legacy.gson.GameClassTypeAdapter;
+import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.writer.JsonSerializer;
 import com.faforever.client.legacy.writer.QStreamWriter;
 import com.google.gson.GsonBuilder;
@@ -32,6 +32,6 @@ public class ClientMessageSerializer extends JsonSerializer<ClientMessage> {
 
   @Override
   protected void addTypeAdapters(GsonBuilder gsonBuilder) {
-    gsonBuilder.registerTypeAdapter(GameAccess.class, new GameClassTypeAdapter());
+    gsonBuilder.registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter());
   }
 }

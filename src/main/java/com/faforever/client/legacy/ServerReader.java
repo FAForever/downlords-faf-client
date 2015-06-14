@@ -176,10 +176,10 @@ class ServerReader {
           break;
 
         default:
-          logger.warn("Missing case for server object type:: " + serverObjectType);
+          logger.warn("Missing case for server object type: " + serverObjectType);
       }
     } catch (JsonSyntaxException e) {
-      logger.warn("Could not deserialize message: " + jsonString);
+      logger.warn("Could not deserialize message: " + jsonString, e);
     }
   }
 
