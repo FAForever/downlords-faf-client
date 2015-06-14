@@ -112,7 +112,7 @@ public class CreateGameController {
   @PostConstruct
   void postConstruct() {
     initRankingSlider();
-    initMapList();
+    initMapSelection();
     initModList();
     initGameTypeComboBox();
   }
@@ -137,7 +137,7 @@ public class CreateGameController {
     modListView.setCellFactory(param -> new ModListCell());
   }
 
-  private void initMapList() {
+  private void initMapSelection() {
     ObservableList<MapInfoBean> localMaps = mapService.getLocalMaps();
 
     filteredMaps = new FilteredList<>(localMaps);
@@ -150,7 +150,7 @@ public class CreateGameController {
       }
       mapImageView.setImage(mapService.loadLargePreview(newValue.getName()));
     });
-    // FIXME use last map
+    // FIXME use latest hosted map
     mapListView.getSelectionModel().select(0);
   }
 
@@ -179,10 +179,14 @@ public class CreateGameController {
     rankingSlider.setLowValue(environment.getProperty("rating.selectedMin", Integer.class));
   }
 
-  public void onRandomMapButtonClicked(ActionEvent event) {
+  @FXML
+  void onRandomMapButtonClicked(ActionEvent event) {
+    int mapIndex = (int) (Math.random() * filteredMaps.size());
+    mapListView.getSelectionModel().select(mapIndex);
   }
 
-  public void onCreateButtonClicked(ActionEvent event) {
+  @FXML
+  void onCreateButtonClicked(ActionEvent event) {
     NewGameInfo newGameInfo = new NewGameInfo(
         titleTextField.getText(),
         passwordTextField.getText(),
