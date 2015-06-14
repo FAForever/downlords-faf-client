@@ -7,7 +7,7 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<TabPane fx:id="ladderRoot" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="0.0" minWidth="0.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.leaderboard.LadderController">
+<TabPane fx:id="ladderRoot" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.leaderboard.LadderController">
   <tabs>
     <Tab fx:id="ladderByRatingTab" closable="false" styleClass="mimiktab" text="By Ladder Rating">
       <content>
@@ -15,11 +15,11 @@
                <children>
                   <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="transparent-background-table" VBox.vgrow="ALWAYS">
                      <columns>
-                       <TableColumn fx:id="rankColumn" text="Rank"/>
-                       <TableColumn fx:id="nameColumn" text="Name"/>
-                       <TableColumn fx:id="winLossColumn" text="Win/Loss Ratio"/>
-                       <TableColumn fx:id="gamesPlayedColumn" text="Games Played"/>
-                       <TableColumn fx:id="ratingColumn" text="Rating"/>
+                       <TableColumn fx:id="rankColumn" text="Rank" />
+                       <TableColumn fx:id="nameColumn" text="Name" />
+                       <TableColumn fx:id="winLossColumn" text="Win/Loss Ratio" />
+                       <TableColumn fx:id="gamesPlayedColumn" text="Games Played" />
+                       <TableColumn fx:id="ratingColumn" text="Rating" />
                      </columns>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

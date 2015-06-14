@@ -11,111 +11,97 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox fx:id="mainRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="441.0" minWidth="691.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
-  <children>
-    <HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity"
-          minWidth="-Infinity">
-         <children>
-           <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
-             <items>
-               <MenuItem mnemonicParsing="false" text="%menu.support"/>
-               <SeparatorMenuItem mnemonicParsing="false"/>
-               <MenuItem mnemonicParsing="false" text="%menu.feedback"/>
-               <SeparatorMenuItem mnemonicParsing="false"/>
-               <MenuItem mnemonicParsing="false" text="%menu.exit"/>
-             </items>
-             <HBox.margin>
-               <Insets left="20.0" right="10.0"/>
-             </HBox.margin>
-           </MenuButton>
-           <HBox styleClass="main-navigation">
+
+<AnchorPane fx:id="mainRoot" minHeight="300.0" minWidth="400.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
+   <children>
+      <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" AnchorPane.bottomAnchor="18.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <children>
+          <HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
                <children>
-                 <ToggleButton fx:id="newsButton" focusTraversable="false" mnemonicParsing="false"
-                               onAction="#onNavigationButton" selected="true" text="%main.news">
-                   <toggleGroup>
-                     <ToggleGroup fx:id="mainNavigationToggleGroup"/>
-                   </toggleGroup>
-                 </ToggleButton>
-                 <ToggleButton fx:id="chatButton" focusTraversable="false" mnemonicParsing="false"
-                               onAction="#onNavigationButton" text="%main.chat"
-                               toggleGroup="$mainNavigationToggleGroup"/>
-                 <ToggleButton fx:id="gamesButton" focusTraversable="false" mnemonicParsing="false"
-                               onAction="#onNavigationButton" text="%main.games"
-                               toggleGroup="$mainNavigationToggleGroup"/>
-                 <ToggleButton fx:id="vaultButton" focusTraversable="false" mnemonicParsing="false"
-                               onAction="#onNavigationButton" text="%main.vault"
-                               toggleGroup="$mainNavigationToggleGroup"/>
-                 <ToggleButton fx:id="ladderButton" focusTraversable="false" mnemonicParsing="false"
-                               onAction="#onNavigationButton" text="%main.ladder"
-                               toggleGroup="$mainNavigationToggleGroup"/>
+                 <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
+                   <items>
+                     <MenuItem mnemonicParsing="false" text="%menu.support" />
+                     <SeparatorMenuItem mnemonicParsing="false" />
+                     <MenuItem mnemonicParsing="false" text="%menu.feedback" />
+                     <SeparatorMenuItem mnemonicParsing="false" />
+                     <MenuItem mnemonicParsing="false" text="%menu.exit" />
+                   </items>
+                   <HBox.margin>
+                     <Insets left="20.0" right="10.0" />
+                   </HBox.margin>
+                 </MenuButton>
+                 <HBox styleClass="main-navigation">
+                     <children>
+                       <ToggleButton fx:id="newsButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" selected="true" text="%main.news">
+                         <toggleGroup>
+                           <ToggleGroup fx:id="mainNavigationToggleGroup" />
+                         </toggleGroup>
+                       </ToggleButton>
+                       <ToggleButton fx:id="chatButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.chat" toggleGroup="$mainNavigationToggleGroup" />
+                       <ToggleButton fx:id="gamesButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.games" toggleGroup="$mainNavigationToggleGroup" />
+                       <ToggleButton fx:id="vaultButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.vault" toggleGroup="$mainNavigationToggleGroup" />
+                       <ToggleButton fx:id="ladderButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.ladder" toggleGroup="$mainNavigationToggleGroup" />
+                     </children>
+                  </HBox>
+                 <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+                 <Button fx:id="notificationsButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNotificationsButtonClicked" styleClass="notification-button" text="0">
+                   <HBox.margin>
+                     <Insets right="10.0" />
+                   </HBox.margin>
+                 </Button>
+                 <MenuButton fx:id="usernameButton" focusTraversable="false" minWidth="10.0" mnemonicParsing="false" prefWidth="100.0" styleClass="username-button" text="Username">
+                   <items>
+                     <MenuItem mnemonicParsing="false" text="%menu.logOut" />
+                   </items>
+                   <HBox.margin>
+                     <Insets />
+                   </HBox.margin>
+                 </MenuButton>
                </children>
-            </HBox>
-           <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"/>
-           <Button fx:id="notificationsButton" focusTraversable="false" mnemonicParsing="false"
-                   onAction="#onNotificationsButtonClicked" styleClass="notification-button" text="0">
-             <HBox.margin>
-               <Insets right="10.0"/>
-             </HBox.margin>
-           </Button>
-           <MenuButton fx:id="usernameButton" focusTraversable="false" minWidth="10.0" mnemonicParsing="false"
-                       prefWidth="100.0" styleClass="username-button" text="Username">
-             <items>
-               <MenuItem mnemonicParsing="false" text="%menu.logOut"/>
-             </items>
-             <HBox.margin>
-               <Insets/>
-             </HBox.margin>
-           </MenuButton>
-         </children>
-      <padding>
-        <Insets bottom="12.0" top="12.0"/>
-      </padding>
-    </HBox>
-      <AnchorPane fx:id="contentPane" VBox.vgrow="ALWAYS" />
-    <HBox alignment="CENTER_LEFT" minHeight="18.0" styleClass="status-bar">
+            <padding>
+              <Insets bottom="12.0" top="12.0" />
+            </padding>
+          </HBox>
+            <AnchorPane fx:id="contentPane" VBox.vgrow="ALWAYS" />
+        </children>
+      </VBox>
+    <HBox alignment="CENTER_LEFT" minHeight="18.0" styleClass="status-bar" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
          <children>
            <HBox fx:id="taskPane" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
              <children>
-               <Label fx:id="taskProgressLabel" text="Label"/>
-               <Pane HBox.hgrow="ALWAYS"/>
-               <ProgressBar fx:id="taskProgressBar" maxHeight="1.7976931348623157E308" minWidth="20.0"
-                            prefWidth="150.0"/>
+               <Label fx:id="taskProgressLabel" text="Label" />
+               <Pane HBox.hgrow="ALWAYS" />
+               <ProgressBar fx:id="taskProgressBar" maxHeight="1.7976931348623157E308" minWidth="20.0" prefWidth="150.0" />
              </children>
            </HBox>
             <Separator focusTraversable="false" orientation="VERTICAL" />
-           <MenuButton fx:id="portCheckStatusButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
-                       styleClass="status-bar-menu-button" text="%statusBar.portReachable">
+           <MenuButton fx:id="portCheckStatusButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.portReachable">
              <tooltip>
-               <Tooltip text="&lt;Tooltip text inserted by code&gt;"/>
+               <Tooltip text="&lt;Tooltip text inserted by code&gt;" />
              </tooltip>
                <items>
-                 <MenuItem mnemonicParsing="false" onAction="#onPortCheckHelpClicked" text="%statusBar.help"/>
-                 <MenuItem mnemonicParsing="false" onAction="#onChangePortClicked" text="%statusBar.changePort"/>
-                 <MenuItem mnemonicParsing="false" onAction="#onEnableUpnpClicked" text="%statusBar.enableUpnp"/>
-                 <MenuItem mnemonicParsing="false" onAction="#onPortCheckRetryClicked" text="%statusBar.retry"/>
+                 <MenuItem mnemonicParsing="false" onAction="#onPortCheckHelpClicked" text="%statusBar.help" />
+                 <MenuItem mnemonicParsing="false" onAction="#onChangePortClicked" text="%statusBar.changePort" />
+                 <MenuItem mnemonicParsing="false" onAction="#onEnableUpnpClicked" text="%statusBar.enableUpnp" />
+                 <MenuItem mnemonicParsing="false" onAction="#onPortCheckRetryClicked" text="%statusBar.retry" />
                </items>
             </MenuButton>
             <Separator focusTraversable="false" orientation="VERTICAL" />
-           <MenuButton fx:id="fafConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
-                       styleClass="status-bar-menu-button" text="%statusBar.fafConnected">
+           <MenuButton fx:id="fafConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.fafConnected">
                <items>
-                 <MenuItem mnemonicParsing="false" onAction="#onFafReconnectClicked" text="%statusBar.reconnect"/>
+                 <MenuItem mnemonicParsing="false" onAction="#onFafReconnectClicked" text="%statusBar.reconnect" />
                </items>
             </MenuButton>
             <Separator focusTraversable="false" orientation="VERTICAL" />
-           <MenuButton fx:id="ircConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
-                       styleClass="status-bar-menu-button" text="%statusBar.ircConnected">
+           <MenuButton fx:id="ircConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.ircConnected">
                <items>
-                 <MenuItem mnemonicParsing="false" onAction="#onIrcReconnectClicked" text="%statusBar.reconnect"/>
+                 <MenuItem mnemonicParsing="false" onAction="#onIrcReconnectClicked" text="%statusBar.reconnect" />
                </items>
             </MenuButton>
          </children>
-         <VBox.margin>
-            <Insets top="5.0" />
-         </VBox.margin>
          <padding>
             <Insets left="5.0" right="5.0" />
          </padding>
       </HBox>
-  </children>
-</VBox>
+   </children>
+</AnchorPane>
