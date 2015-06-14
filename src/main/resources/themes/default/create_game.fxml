@@ -70,7 +70,7 @@
         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
       </rowConstraints>
       <children>
-        <Label contentDisplay="TOP" text="&lt;Map name&gt;">
+        <Label fx:id="mapNameLabel" contentDisplay="TOP" text="&lt;Map name&gt;">
           <graphic>
             <ImageView fx:id="mapImageView" fitHeight="256.0" fitWidth="256.0" pickOnBounds="true"
                        preserveRatio="true"/>

@@ -11,6 +11,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.TextField;
@@ -27,6 +28,9 @@ import java.util.List;
 import java.util.Objects;
 
 public class CreateGameController {
+
+  @FXML
+  Label mapNameLabel;
 
   @FXML
   TextField mapSearchTextField;
@@ -95,16 +99,20 @@ public class CreateGameController {
       public void handle(KeyEvent event) {
         MultipleSelectionModel<MapInfoBean> selectionModel = mapListView.getSelectionModel();
         int currentMapIndex = selectionModel.getSelectedIndex();
+        int newMapIndex = currentMapIndex;
         if (KeyCode.DOWN == event.getCode()) {
           if (filteredMaps.size() > currentMapIndex + 1) {
-            selectionModel.select(++currentMapIndex);
+            newMapIndex++;
           }
+          event.consume();
         } else if (KeyCode.UP == event.getCode()) {
           if (currentMapIndex > 0) {
-            selectionModel.select(--currentMapIndex);
+            newMapIndex--;
           }
+          event.consume();
         }
-        event.consume();
+        selectionModel.select(newMapIndex);
+        mapListView.scrollTo(newMapIndex);
       }
     });
   }
@@ -146,8 +154,10 @@ public class CreateGameController {
     mapListView.setCellFactory(param -> new MapListCell());
     mapListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == null) {
+        mapNameLabel.setText("");
         return;
       }
+      mapNameLabel.setText(newValue.getName());
       mapImageView.setImage(mapService.loadLargePreview(newValue.getName()));
     });
     // FIXME use latest hosted map
