@@ -38,12 +38,12 @@
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
           </columnResizePolicy>
         </TableView>
-            <ScrollPane>
+            <ScrollPane minWidth="-Infinity">
                <HBox.margin>
                   <Insets />
                </HBox.margin>
                <content>
-              <VBox fx:id="gamePreviewPanel" maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="0.0">
+              <VBox fx:id="gamePreviewPanel" maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="276.0">
                 <children>
                   <ImageView fx:id="mapImageView" fitWidth="256.0" pickOnBounds="true" preserveRatio="true" styleClass="map-preview" />
                   <Label fx:id="gameTitleLabel" maxHeight="1.7976931348623157E308" styleClass="game-detail-title" text="&lt;Game title&gt;">
