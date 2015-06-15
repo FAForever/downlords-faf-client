@@ -41,6 +41,7 @@ public class PortCheckServiceImpl implements PortCheckService {
   private static final String PORT_UNREACHABLE_NOTIFICATION_ID = "portUnreachable";
   private static final int REQUEST_DELAY = 1000;
   private static final int TIMEOUT = 5000;
+  // TODO send a random number that the server should send back
   private static final String EXPECTED_ANSWER = "OK";
 
   @Autowired
