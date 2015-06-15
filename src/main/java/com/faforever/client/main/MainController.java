@@ -10,7 +10,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LadderController;
 import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
-import com.faforever.client.legacy.OnLobbyDisconnectedListener;
+import com.faforever.client.legacy.OnFafDisconnectedListener;
 import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.network.GamePortCheckListener;
 import com.faforever.client.network.PortCheckService;
@@ -60,7 +60,7 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
-public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnLobbyDisconnectedListener, GamePortCheckListener {
+public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnFafDisconnectedListener, GamePortCheckListener {
 
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_STATE = PseudoClass.getPseudoClass("info");
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_STATE = PseudoClass.getPseudoClass("warn");
@@ -269,7 +269,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     lobbyService.setOnFafConnectedListener(this);
     lobbyService.setOnLobbyConnectingListener(this);
-    lobbyService.setOnLobbyDisconnectedListener(this);
+    lobbyService.setOnFafDisconnectedListener(this);
 
     chatService.connect();
 

@@ -186,12 +186,12 @@ public class MockServerAccessor implements ServerAccessor {
   }
 
   @Override
-  public void setOnLobbyConnectingListener(OnLobbyConnectingListener onLobbyConnectingListener) {
+  public void setOnFafConnectingListener(OnLobbyConnectingListener onLobbyConnectingListener) {
 
   }
 
   @Override
-  public void setOnLobbyDisconnectedListener(OnLobbyDisconnectedListener onLobbyDisconnectedListener) {
+  public void setOnFafDisconnectedListener(OnFafDisconnectedListener onFafDisconnectedListener) {
 
   }
 

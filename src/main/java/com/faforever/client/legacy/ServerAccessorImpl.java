@@ -89,7 +89,7 @@ public class ServerAccessorImpl implements ServerAccessor,
 
   // Yes I know, those aren't lists. They will become if it's necessary
   private OnLobbyConnectingListener onLobbyConnectingListener;
-  private OnLobbyDisconnectedListener onLobbyDisconnectedListener;
+  private OnFafDisconnectedListener onFafDisconnectedListener;
   private OnLobbyConnectedListener onLobbyConnectedListener;
   private OnPlayerInfoListener onPlayerInfoListener;
   private OnFoeListListener onFoeListListener;
@@ -150,8 +150,8 @@ public class ServerAccessorImpl implements ServerAccessor,
               logger.debug("Login has been cancelled");
             } else {
               logger.warn("Lost connection to FAF server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
-              if (onLobbyDisconnectedListener != null) {
-                Platform.runLater(onLobbyDisconnectedListener::onFafDisconnected);
+              if (onFafDisconnectedListener != null) {
+                Platform.runLater(onFafDisconnectedListener::onFafDisconnected);
               }
               Thread.sleep(RECONNECT_DELAY);
             }
@@ -343,13 +343,13 @@ public class ServerAccessorImpl implements ServerAccessor,
   }
 
   @Override
-  public void setOnLobbyConnectingListener(OnLobbyConnectingListener onLobbyConnectingListener) {
+  public void setOnFafConnectingListener(OnLobbyConnectingListener onLobbyConnectingListener) {
     this.onLobbyConnectingListener = onLobbyConnectingListener;
   }
 
   @Override
-  public void setOnLobbyDisconnectedListener(OnLobbyDisconnectedListener onLobbyDisconnectedListener) {
-    this.onLobbyDisconnectedListener = onLobbyDisconnectedListener;
+  public void setOnFafDisconnectedListener(OnFafDisconnectedListener onFafDisconnectedListener) {
+    this.onFafDisconnectedListener = onFafDisconnectedListener;
   }
 
   @Override

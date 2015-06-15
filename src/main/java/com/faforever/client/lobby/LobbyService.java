@@ -2,7 +2,7 @@ package com.faforever.client.lobby;
 
 import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
-import com.faforever.client.legacy.OnLobbyDisconnectedListener;
+import com.faforever.client.legacy.OnFafDisconnectedListener;
 
 public interface LobbyService {
 
@@ -10,5 +10,5 @@ public interface LobbyService {
 
   void setOnLobbyConnectingListener(OnLobbyConnectingListener listener);
 
-  void setOnLobbyDisconnectedListener(OnLobbyDisconnectedListener listener);
+  void setOnFafDisconnectedListener(OnFafDisconnectedListener listener);
 }

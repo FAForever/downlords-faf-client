@@ -35,9 +35,9 @@ public interface ServerAccessor {
 
   void notifyGameTerminated();
 
-  void setOnLobbyConnectingListener(OnLobbyConnectingListener onLobbyConnectingListener);
+  void setOnFafConnectingListener(OnLobbyConnectingListener onLobbyConnectingListener);
 
-  void setOnLobbyDisconnectedListener(OnLobbyDisconnectedListener onLobbyDisconnectedListener);
+  void setOnFafDisconnectedListener(OnFafDisconnectedListener onFafDisconnectedListener);
 
   void setOnFriendListListener(OnFriendListListener onFriendListListener);
 

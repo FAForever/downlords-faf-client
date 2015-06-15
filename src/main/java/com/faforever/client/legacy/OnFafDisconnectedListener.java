@@ -1,6 +1,6 @@
 package com.faforever.client.legacy;
 
-public interface OnLobbyDisconnectedListener {
+public interface OnFafDisconnectedListener {
 
   void onFafDisconnected();
   }
