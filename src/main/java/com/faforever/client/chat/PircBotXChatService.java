@@ -31,10 +31,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.util.ReflectionUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.EOFException;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
-import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -237,7 +236,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
           try {
             logger.info("Connecting to IRC at {}:{}", configuration.getServerHostname(), configuration.getServerPort());
             pircBotX.startBot();
-          } catch (SocketException | EOFException e) {
+          } catch (IOException e) {
             logger.warn("Lost connection to IRC server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s");
             Thread.sleep(RECONNECT_DELAY);
           }
