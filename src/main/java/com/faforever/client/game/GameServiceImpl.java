@@ -6,6 +6,8 @@ import com.faforever.client.legacy.ServerAccessor;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
+import com.faforever.client.map.MapService;
+import com.faforever.client.patch.PatchService;
 import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
@@ -37,6 +39,12 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
 
   @Autowired
   ForgedAllianceService forgedAllianceService;
+
+  @Autowired
+  PatchService patchService;
+
+  @Autowired
+  MapService mapService;
 
   @Autowired
   Proxy proxy;
@@ -81,7 +89,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
 
   private void updateGameIfNecessary(String modName, Callback<Void> callback) {
     callback.success(null);
-//    forgedAllianceUpdateService.updateInBackground(modName, callback);
   }
 
   @Override
@@ -92,7 +99,8 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
   @Override
   public void joinGame(GameInfoBean gameInfoBean, String password, Callback<Void> callback) {
     cancelLadderSearch();
-    updateGameIfNecessary(gameInfoBean.getFeaturedMod(), new Callback<Void>() {
+
+    Callback<Void> mapDownloadCallback = new Callback<Void>() {
       @Override
       public void success(Void result) {
         serverAccessor.requestJoinGame(gameInfoBean, password, gameLaunchCallback(callback));
@@ -100,9 +108,30 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
 
       @Override
       public void error(Throwable e) {
+
+      }
+    };
+
+    updateGameIfNecessary(gameInfoBean.getFeaturedMod(), new Callback<Void>() {
+      @Override
+      public void success(Void result) {
+        downloadMapIfNecessary(gameInfoBean.getMapName(), mapDownloadCallback);
+      }
+
+      @Override
+      public void error(Throwable e) {
         callback.error(e);
       }
     });
+  }
+
+  private void downloadMapIfNecessary(String mapName, Callback<Void> callback) {
+    if (mapService.isAvailable(mapName)) {
+      callback.success(null);
+      return;
+    }
+
+    mapService.download(mapName, callback);
   }
 
   @Override
