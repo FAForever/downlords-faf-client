@@ -116,14 +116,16 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
   private void onUserJoinedChannel(ChatUser chatUser) {
     JavaFxUtil.assertBackgroundThread();
 
-    PlayerInfoBean playerInfoBean = playerService.registerAndGetPlayerForUsername(chatUser.getUsername());
+    String username = chatUser.getUsername();
+    PlayerInfoBean playerInfoBean = playerService.registerAndGetPlayerForUsername(username);
+
+    playerInfoBean.setModerator(chatUser.isModerator());
 
     playerInfoBean.friendProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, friendsPane));
     playerInfoBean.foeProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, foesPane));
     playerInfoBean.moderatorProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, moderatorsPane));
     playerInfoBean.chatOnlyProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, chatOnlyPane));
 
-    String username = chatUser.getUsername();
 
     Collection<Pane> targetPanesForUser = getTargetPanesForUser(playerInfoBean);
     userToChatUserControls.putIfAbsent(username, new HashMap<>(targetPanesForUser.size(), 1));

@@ -198,11 +198,14 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void addOnChatUserJoinedChannelListener(final OnChatUserJoinedChannelListener listener) {
-    addEventListener(JoinEvent.class,
-        event -> listener.onUserJoinedChannel(
-            event.getChannel().getName(),
-            new ChatUser(event.getUser().getLogin())
-        ));
+
+    addEventListener(JoinEvent.class, event -> {
+      User user = event.getUser();
+      listener.onUserJoinedChannel(
+          event.getChannel().getName(),
+          new ChatUser(user.getLogin(), user.isIrcop())
+      );
+    });
   }
 
   @Override
