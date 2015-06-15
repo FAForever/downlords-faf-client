@@ -6,7 +6,6 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.google.common.collect.ImmutableSortedSet;
-import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
@@ -32,9 +31,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.util.ReflectionUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
+import java.io.EOFException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -45,6 +45,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
+import static javafx.collections.FXCollections.observableHashMap;
+import static javafx.collections.FXCollections.synchronizedObservableMap;
 
 public class PircBotXChatService implements ChatService, Listener, OnChatConnectedListener,
     OnChatUserListListener, OnChatUserJoinedChannelListener, OnChatUserQuitListener, OnChatDisconnectedListener,
@@ -83,16 +85,13 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   public PircBotXChatService() {
     eventListeners = new ConcurrentHashMap<>();
-    chatUserLists = FXCollections.observableHashMap();
+    chatUserLists = observableHashMap();
   }
 
   @Override
   public void onChatUserList(String channelName, Map<String, ChatUser> users) {
     synchronized (chatUserLists) {
-      ObservableMap<String, ChatUser> chatUsers = getChatUsersForChannel(channelName);
-      synchronized (chatUsers) {
-        chatUsers.putAll(users);
-      }
+      getChatUsersForChannel(channelName).putAll(users);
     }
   }
 
@@ -100,9 +99,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   public void onUserJoinedChannel(String channelName, ChatUser chatUser) {
     synchronized (chatUserLists) {
       ObservableMap<String, ChatUser> chatUsers = getChatUsersForChannel(channelName);
-      synchronized (chatUsers) {
-        chatUsers.put(chatUser.getUsername(), chatUser);
-      }
+      chatUsers.put(chatUser.getUsername(), chatUser);
     }
   }
 
@@ -237,8 +234,8 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
           try {
             logger.info("Connecting to IRC at {}:{}", configuration.getServerHostname(), configuration.getServerPort());
             pircBotX.startBot();
-          } catch (IOException e) {
-            logger.warn("Lost connection to IRC server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
+          } catch (SocketException | EOFException e) {
+            logger.warn("Lost connection to IRC server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s");
             Thread.sleep(RECONNECT_DELAY);
           }
         }
@@ -283,7 +280,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   public ObservableMap<String, ChatUser> getChatUsersForChannel(String channelName) {
     synchronized (chatUserLists) {
       if (!chatUserLists.containsKey(channelName)) {
-        chatUserLists.put(channelName, FXCollections.observableHashMap());
+        chatUserLists.put(channelName, synchronizedObservableMap(observableHashMap()));
       }
       return chatUserLists.get(channelName);
     }
@@ -345,7 +342,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   public void onDisconnected(Exception e) {
     synchronized (chatUserLists) {
       chatUserLists.values().forEach(ObservableMap::clear);
-      chatUserLists.clear();
     }
   }
 }

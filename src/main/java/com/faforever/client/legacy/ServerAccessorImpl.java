@@ -209,7 +209,7 @@ public class ServerAccessorImpl implements ServerAccessor,
     this.sessionId.set(message.session);
     this.uniqueId = UID.generate(sessionId.get(), preferencesService.getFafDataDirectory().resolve("uid.log"));
 
-    logger.info("FAF session initiated, session ID: {}", sessionId);
+    logger.info("FAF session initiated, session ID: {}", sessionId.get());
 
     executeInBackground(new Task<Void>() {
       @Override

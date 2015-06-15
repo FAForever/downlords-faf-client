@@ -8,8 +8,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
@@ -71,6 +69,7 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
     setText(channelName);
   }
 
+  @Override
   void postConstruct() {
     super.postConstruct();
 
@@ -111,12 +110,7 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
       filterChatUserControlsBySearchString();
     });
 
-    setOnCloseRequest(new EventHandler<Event>() {
-      @Override
-      public void handle(Event event) {
-        chatService.leaveChannel(channelName);
-      }
-    });
+    setOnCloseRequest(event -> chatService.leaveChannel(channelName));
   }
 
   private void onUserJoinedChannel(ChatUser chatUser) {
@@ -127,7 +121,7 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
     playerInfoBean.friendProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, friendsPane));
     playerInfoBean.foeProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, foesPane));
     playerInfoBean.moderatorProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, moderatorsPane));
-    playerInfoBean.chatOnlyProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, moderatorsPane));
+    playerInfoBean.chatOnlyProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, chatOnlyPane));
 
     String username = chatUser.getUsername();
 
@@ -148,14 +142,17 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
       return;
     }
 
-    Map<Pane, ChatUserControl> paneChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
-    if (paneChatUserControlMap == null) {
+    String username = playerInfoBean.getUsername();
+    Map<Pane, ChatUserControl> paneToChatUserControlMap = userToChatUserControls.get(username);
+    if (paneToChatUserControlMap == null) {
       return;
     }
 
-    for (Map.Entry<Pane, ChatUserControl> entry : paneChatUserControlMap.entrySet()) {
+    for (Map.Entry<Pane, ChatUserControl> entry : paneToChatUserControlMap.entrySet()) {
       Platform.runLater(() -> entry.getKey().getChildren().remove(entry.getValue()));
     }
+    paneToChatUserControlMap.clear();
+    userToChatUserControls.remove(username);
   }
 
   @Override

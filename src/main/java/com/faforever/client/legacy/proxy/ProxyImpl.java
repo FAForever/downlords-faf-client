@@ -187,7 +187,7 @@ public class ProxyImpl implements Proxy {
 
   /**
    * Starts a background reader that reads all incoming UDP data (from FA) of the given socket and forwards it to the
-   * FAF proxy.
+   * FAF proxy. If the connection fails, it does not reconnect automatically.
    *
    * @param proxySocket a local UDP socket representing another player
    */
@@ -256,7 +256,8 @@ public class ProxyImpl implements Proxy {
   }
 
   /**
-   * Starts a reader in background that reads the FAF proxy forwards its data to the corresponding player.
+   * Starts a reader in background that reads the FAF proxy forwards its data to the corresponding player. If the proxy
+   * connection fails, it won't reconnect as it expects to be
    */
   private void startFafProxyReaderInBackground() {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
