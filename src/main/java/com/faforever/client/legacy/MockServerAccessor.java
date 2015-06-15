@@ -1,5 +1,6 @@
 package com.faforever.client.legacy;
 
+import ch.qos.logback.core.joran.conditional.ThenAction;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -15,6 +16,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
@@ -117,10 +119,23 @@ public class MockServerAccessor implements ServerAccessor {
 
         notificationService.addNotification(
             new PersistentNotification(
-                "You are using the mock server accessor",
+                "How about a long-running (7s) mock task?",
                 Severity.INFO,
-                Collections.singletonList(
-                    new Action("Log to console", event -> logger.info("Log entry triggered by notification action"))
+                Arrays.asList(
+                    new Action("Execute", event -> {
+                      taskService.submitTask(TaskGroup.NET_HEAVY, new PrioritizedTask<Void>("Mock task") {
+                        @Override
+                        protected Void call() throws Exception {
+                          Thread.sleep(2000);
+                          for (int i = 0; i < 5; i++) {
+                            updateProgress(i, 5);
+                            Thread.sleep(1000);
+                          }
+                          return null;
+                        }
+                      });
+                    }),
+                    new Action("Nope")
                 )
             )
         );

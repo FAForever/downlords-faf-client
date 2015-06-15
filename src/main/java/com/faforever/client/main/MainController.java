@@ -286,51 +286,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     usernameButton.setText(userService.getUsername());
 
-    checkForFafUpdate();
     portCheckService.checkGamePortInBackground();
-  }
-
-  private void checkForFafUpdate() {
-    patchService.needsPatching(new Callback<Boolean>() {
-      @Override
-      public void success(Boolean needsPatching) {
-        if (!needsPatching) {
-          return;
-        }
-
-        ButtonType updateNowButtonType = new ButtonType(i18n.get("patch.updateAvailable.updateNow"));
-        ButtonType updateLaterButtonType = new ButtonType(i18n.get("patch.updateAvailable.updateLater"));
-
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle(i18n.get("patch.updateAvailable.title"));
-        alert.setHeaderText(i18n.get("patch.updateAvailable.header"));
-        alert.setContentText(i18n.get("patch.updateAvailable.content"));
-        alert.getButtonTypes().setAll(updateNowButtonType, updateLaterButtonType);
-
-        alert.resultProperty().addListener((observable, oldValue, newValue) -> {
-          if (newValue == updateNowButtonType) {
-            patchService.patchInBackground(new Callback<Void>() {
-              @Override
-              public void success(Void result) {
-                // FIXME implement
-              }
-
-              @Override
-              public void error(Throwable e) {
-                // FIXME implement
-              }
-            });
-          }
-        });
-
-        alert.show();
-      }
-
-      @Override
-      public void error(Throwable e) {
-
-      }
-    });
   }
 
   private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {

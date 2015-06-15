@@ -6,7 +6,7 @@ import javafx.concurrent.Task;
 
 public interface PatchService {
 
-  void patchInBackground(Callback<Void> callback);
+  void patchInBackground();
 
-  void needsPatching(Callback<Boolean> callback);
+  void checkForUpdatesInBackground();
 }

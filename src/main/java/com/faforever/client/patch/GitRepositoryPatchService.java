@@ -1,6 +1,10 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
@@ -32,6 +36,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -70,6 +76,9 @@ public class GitRepositoryPatchService implements PatchService {
   TaskService taskService;
 
   @Autowired
+  NotificationService notificationService;
+
+  @Autowired
   I18n i18n;
 
   /**
@@ -96,14 +105,41 @@ public class GitRepositoryPatchService implements PatchService {
   @PostConstruct
   void postConstruct() {
     patchRepositoryUri = environment.getProperty("patch.git.url");
+    checkForUpdatesInBackground();
   }
 
   @Override
-  public void patchInBackground(Callback<Void> callback) {
-    if (initAndCheckDirectories()) {
+  public void patchInBackground() {
+    if (!initAndCheckDirectories()) {
       logger.warn("Aborted patching since directories aren't initialized properly");
       return;
     }
+
+    Callback<Void> callback = new Callback<Void>() {
+      @Override
+      public void success(Void result) {
+        notificationService.addNotification(
+            new PersistentNotification(
+                i18n.get("faUpdateSucceeded.notification"),
+                Severity.INFO
+            )
+        );
+      }
+
+      @Override
+      public void error(Throwable e) {
+        notificationService.addNotification(
+            new PersistentNotification(
+                i18n.get("updateFailed.notification"),
+                Severity.WARN,
+                Collections.singletonList(
+                    new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdatesInBackground())
+                )
+            )
+        );
+      }
+    };
+
 
     taskService.submitTask(NET_HEAVY, new PrioritizedTask<Void>(i18n.get("patchTask.title"), LOW) {
       @Override
@@ -238,12 +274,45 @@ public class GitRepositoryPatchService implements PatchService {
   }
 
   @Override
-  public void needsPatching(Callback<Boolean> callback) {
-    logger.info("Checking for FAF update");
+  public void checkForUpdatesInBackground() {
+    Callback<Boolean> callback = new Callback<Boolean>() {
+      @Override
+      public void success(Boolean needsPatching) {
+        if (!needsPatching) {
+          return;
+        }
+
+        notificationService.addNotification(
+            new PersistentNotification(
+                i18n.get("faUpdateAvailable.notification"),
+                Severity.INFO,
+                Arrays.asList(
+                    new Action(i18n.get("faUpdateAvailable.updateLater")),
+                    new Action(i18n.get("faUpdateAvailable.updateNow"), event -> patchInBackground())
+                )
+            )
+        );
+      }
+
+      @Override
+      public void error(Throwable e) {
+        notificationService.addNotification(
+            new PersistentNotification(
+                i18n.get("updateCheckFailed.notification"),
+                Severity.WARN,
+                Arrays.asList(
+                    new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdatesInBackground())
+                )
+            )
+        );
+      }
+    };
 
     taskService.submitTask(NET_LIGHT, new PrioritizedTask<Boolean>(i18n.get("updateCheckTask.title"), LOW) {
       @Override
       protected Boolean call() throws Exception {
+        logger.info("Checking for FA update");
+
         return initAndCheckDirectories() &&
             (Files.notExists(binaryPatchRepoDirectory)
                 || areNewPatchFilesAvailable()

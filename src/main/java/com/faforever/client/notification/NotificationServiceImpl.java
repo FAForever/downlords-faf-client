@@ -8,13 +8,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static javafx.collections.FXCollections.observableArrayList;
+import static javafx.collections.FXCollections.synchronizedObservableList;
+
 public class NotificationServiceImpl implements NotificationService {
 
   private ObservableList<PersistentNotification> persistentNotifications;
   private List<OnTransientNotificationListener> onTransientNotificationListeners;
 
   public NotificationServiceImpl() {
-    persistentNotifications = FXCollections.observableArrayList();
+    persistentNotifications = synchronizedObservableList(observableArrayList());
     onTransientNotificationListeners = new ArrayList<>();
   }
 
