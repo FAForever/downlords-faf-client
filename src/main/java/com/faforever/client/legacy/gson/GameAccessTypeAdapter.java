@@ -7,7 +7,7 @@ import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 
-public class GameClassTypeAdapter extends TypeAdapter<GameAccess> {
+public class GameAccessTypeAdapter extends TypeAdapter<GameAccess> {
 
   @Override
   public void write(JsonWriter out, GameAccess value) throws IOException {
@@ -20,6 +20,6 @@ public class GameClassTypeAdapter extends TypeAdapter<GameAccess> {
 
   @Override
   public GameAccess read(JsonReader in) throws IOException {
-    return GameAccess.valueOf(in.nextString());
+    return GameAccess.fromString(in.nextString());
   }
 }

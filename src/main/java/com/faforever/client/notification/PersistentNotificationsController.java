@@ -1,9 +1,8 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.util.ConcurrentUtil;
+import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -43,12 +42,14 @@ public class PersistentNotificationsController {
   void postConstruct() {
     addNotifications(notificationService.getPersistentNotifications());
     notificationService.addPersistentNotificationListener(change -> {
-      while (change.next()) {
-        if (change.wasAdded()) {
-          List<? extends PersistentNotification> addedNotifications = change.getAddedSubList();
-          addNotifications(addedNotifications);
-        } else {
-          removeNotifications(change.getRemoved());
+      synchronized (change.getList()) {
+        while (change.next()) {
+          if (change.wasAdded()) {
+            List<? extends PersistentNotification> addedNotifications = change.getAddedSubList();
+            addNotifications(addedNotifications);
+          } else {
+            removeNotifications(change.getRemoved());
+          }
         }
       }
     });
@@ -67,25 +68,18 @@ public class PersistentNotificationsController {
   }
 
   private void addNotifications(List<? extends PersistentNotification> addedNotifications) {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
+    ArrayList<Node> notificationNodes = new ArrayList<>();
 
-      @Override
-      protected Void call() throws Exception {
-        ArrayList<Node> notificationNodes = new ArrayList<>();
+    for (PersistentNotification notification : addedNotifications) {
+      Node node = notificationNodeFactory.createPersistentNotificationNode(notification);
+      notificationNodes.add(node);
+      notificationsToNode.put(notification, node);
+    }
 
-        for (PersistentNotification notification : addedNotifications) {
-          Node node = notificationNodeFactory.createPersistentNotificationNode(notification);
-          notificationNodes.add(node);
-          notificationsToNode.put(notification, node);
-        }
-
-        Platform.runLater(() -> {
-          ObservableList<Node> children = persistentNotificationsRoot.getChildren();
-          children.remove(noNotificationsLabel);
-          children.addAll(notificationNodes);
-        });
-        return null;
-      }
+    Platform.runLater(() -> {
+      ObservableList<Node> children = persistentNotificationsRoot.getChildren();
+      children.remove(noNotificationsLabel);
+      children.addAll(notificationNodes);
     });
   }
 

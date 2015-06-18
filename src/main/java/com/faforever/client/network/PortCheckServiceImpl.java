@@ -9,7 +9,14 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
+import com.faforever.client.util.ConcurrentUtil;
+import com.offbynull.portmapper.MappedPort;
+import com.offbynull.portmapper.PortMapper;
+import com.offbynull.portmapper.PortMapperEventListener;
+import com.offbynull.portmapper.PortMapperFactory;
+import com.offbynull.portmapper.PortType;
 import javafx.application.HostServices;
+import javafx.concurrent.Task;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,16 +39,23 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static com.faforever.client.task.PrioritizedTask.Priority.LOW;
+import static com.faforever.client.task.TaskGroup.IMMEDIATE;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
-public class PortCheckServiceImpl implements PortCheckService {
+public class PortCheckServiceImpl implements PortCheckService, PortMapperEventListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final String PORT_UNREACHABLE_NOTIFICATION_ID = "portUnreachable";
   private static final int REQUEST_DELAY = 1000;
   private static final int TIMEOUT = 5000;
+  // TODO send a random number that the server should send back
   private static final String EXPECTED_ANSWER = "OK";
+
+  /**
+   * Half an hour.
+   */
+  private static final long UPNP_LIFETIME = 1800;
 
   @Autowired
   TaskService taskService;
@@ -73,10 +87,16 @@ public class PortCheckServiceImpl implements PortCheckService {
 
     int port = preferencesService.getPreferences().getForgedAlliance().getPort();
 
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<Boolean>(i18n.get("portCheckTask.title"), LOW) {
+    taskService.submitTask(IMMEDIATE, new PrioritizedTask<Boolean>(i18n.get("portCheckTask.title"), LOW) {
       @Override
       protected Boolean call() throws Exception {
-        return checkPort(port);
+        Boolean successful = checkPort(port);
+        if (!successful) {
+          logger.info("Port check failed, trying UPnP");
+          mapUpnpPort(port);
+          successful = checkPort(port);
+        }
+        return successful;
       }
     }, new Callback<Boolean>() {
       @Override
@@ -94,6 +114,39 @@ public class PortCheckServiceImpl implements PortCheckService {
         logger.info("Port check failed", e);
       }
     });
+  }
+
+  private void mapUpnpPort(int port) throws IOException, InterruptedException {
+    try (PortMapper portMapper = PortMapperFactory.create(this)) {
+      MappedPort mappedPort = portMapper.mapPort(PortType.TCP, port, UPNP_LIFETIME);
+
+      logger.info("Created port mapping from {}:{} to port {}",
+          mappedPort.getExternalAddress(),
+          mappedPort.getExternalPort(),
+          mappedPort.getInternalPort());
+
+      ConcurrentUtil.executeInBackground(new Task<Void>() {
+        @Override
+        protected Void call() throws Exception {
+          try {
+            while (!isCancelled()) {
+              MappedPort refreshedPortMapping = portMapper.refreshPort(mappedPort, mappedPort.getLifetime());
+
+              logger.debug("Port mapping refreshed from {}:{} to port {}",
+                  refreshedPortMapping.getExternalAddress(),
+                  refreshedPortMapping.getExternalPort(),
+                  refreshedPortMapping.getInternalPort());
+
+              Thread.sleep(mappedPort.getLifetime() / 2 * 1000);
+            }
+          } finally {
+            portMapper.unmapPort(mappedPort);
+          }
+
+          return null;
+        }
+      });
+    }
   }
 
   @Override
@@ -128,6 +181,7 @@ public class PortCheckServiceImpl implements PortCheckService {
   /**
    * Notifies the user about port unreachability.
    */
+
   private void notifyPortUnreachable(int port) {
     List<Action> actions = Arrays.asList(
         new Action(
@@ -169,5 +223,10 @@ public class PortCheckServiceImpl implements PortCheckService {
         }
       }
     }, REQUEST_DELAY);
+  }
+
+  @Override
+  public void resetRequired(String details) {
+
   }
 }

@@ -54,8 +54,6 @@ public class LegacyMapService implements MapService {
   @Override
   @Cacheable("smallMapPreview")
   public Image loadSmallPreview(String mapName) {
-
-
     String url = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.small"));
 
     logger.debug("Fetching small preview for map {} from {}", mapName, url);
@@ -107,6 +105,21 @@ public class LegacyMapService implements MapService {
     }
 
     return maps;
+  }
+
+  @Override
+  public boolean isAvailable(String mapName) {
+    for (MapInfoBean mapInfoBean : getLocalMaps()) {
+      if (mapName.equals(mapInfoBean.getName())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public void download(String mapName, Callback<Void> callback) {
+    // FIXME implement
   }
 
   private static String getMapUrl(String mapName, String baseUrl) {

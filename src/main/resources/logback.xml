@@ -1,9 +1,8 @@
 <configuration>
 
-  <logger name="org.pircbotx" level="warn"/>
+  <logger name="org.pircbotx" level="info"/>
   <logger name="com.faforever.client.preferences" level="info"/>
   <logger name="com.faforever.client.map" level="info"/>
-  <logger name="com.faforever.client.legacy" level="info"/>
   <logger name="com.faforever.client.legacy.map" level="info"/>
   <logger name="com.faforever.client.legacy.htmlparser" level="info"/>
   <logger name="com.faforever.client.legacy.writer" level="info"/>
@@ -22,12 +21,12 @@
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>${logDirectory}/downlords-faf-client.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-      <fileNamePattern>downlords-faf-client.%i.log.zip</fileNamePattern>
+      <fileNamePattern>${logDirectory}/downlords-faf-client.%i.log.zip</fileNamePattern>
       <minIndex>1</minIndex>
       <maxIndex>5</maxIndex>
     </rollingPolicy>
     <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-      <maxFileSize>10MB</maxFileSize>
+      <maxFileSize>5MB</maxFileSize>
     </triggeringPolicy>
     <encoder>
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>

@@ -19,16 +19,28 @@ public class ChatUser {
     this.isModerator = new SimpleBooleanProperty(isModerator);
   }
 
+  public boolean isModerator() {
+    return isModerator.get();
+  }
+
+  public void setIsModerator(boolean isModerator) {
+    this.isModerator.set(isModerator);
+  }
+
+  public BooleanProperty isModeratorProperty() {
+    return isModerator;
+  }
+
   public String getUsername() {
     return username.get();
   }
 
-  public StringProperty usernameProperty() {
-    return username;
-  }
-
   public void setUsername(String username) {
     this.username.set(username);
+  }
+
+  public StringProperty usernameProperty() {
+    return username;
   }
 
   @Override

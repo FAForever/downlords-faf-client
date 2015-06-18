@@ -9,7 +9,7 @@ public class GameInfo extends ServerObject {
   public String host;
   public Integer uid;
   public String title;
-  public String access;
+  public GameAccess access;
   public String mapname;
   public GameState state;
   public Boolean[] options;

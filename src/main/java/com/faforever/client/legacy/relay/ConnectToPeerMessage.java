@@ -4,16 +4,17 @@ import static com.faforever.client.legacy.relay.RelayServerCommand.CONNECT_TO_PE
 
 public class ConnectToPeerMessage extends RelayServerMessage {
 
-  private static final int PEER_ADDRESS_INDEX = 0;
-  private static final int USERNAME_INDEX = 1;
-  private static final int PEER_UID_INDEX = 2;
+  private static final int PLAYER_NUMBER_INDEX = 0;
+  private static final int PEER_ADDRESS_INDEX = 1;
+  private static final int USERNAME_INDEX = 2;
+  private static final int PEER_UID_INDEX = 3;
 
   public ConnectToPeerMessage() {
     super(CONNECT_TO_PEER);
   }
 
   public void setPeerUid(int uid) {
-    getArgs().set(3, uid);
+    getArgs().set(PEER_UID_INDEX, uid);
   }
 
   public void setUsername(String username) {
@@ -32,4 +33,7 @@ public class ConnectToPeerMessage extends RelayServerMessage {
     getArgs().set(PEER_ADDRESS_INDEX, peerAddress);
   }
 
+  public void setPlayerNumber(int playerNumber) {
+    getArgs().set(PLAYER_NUMBER_INDEX, playerNumber);
+  }
 }

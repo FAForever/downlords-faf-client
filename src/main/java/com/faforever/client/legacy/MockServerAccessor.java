@@ -1,9 +1,11 @@
 package com.faforever.client.legacy;
 
+import ch.qos.logback.core.joran.conditional.ThenAction;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LadderEntryBean;
+import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
@@ -14,6 +16,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
@@ -81,11 +84,28 @@ public class MockServerAccessor implements ServerAccessor {
 
         for (OnGameInfoListener onGameInfoListener : onGameInfoListeners) {
           GameInfo gameInfo = new GameInfo();
+          gameInfo.uid = 1;
           gameInfo.title = "Mock game";
-          gameInfo.access = "public";
+          gameInfo.access = GameAccess.PUBLIC;
           gameInfo.featuredMod = "faf";
           gameInfo.mapname = "scmp_015";
           gameInfo.numPlayers = 3;
+          gameInfo.maxPlayers = 6;
+          gameInfo.host = "Mock user";
+          gameInfo.state = GameState.OPEN;
+          gameInfo.options = new Boolean[0];
+          gameInfo.simMods = Collections.emptyMap();
+          gameInfo.teams = Collections.emptyMap();
+          gameInfo.featuredModVersions = Collections.emptyMap();
+
+          onGameInfoListener.onGameInfo(gameInfo);
+          gameInfo = new GameInfo();
+          gameInfo.uid = 2;
+          gameInfo.title = "Protected mock game";
+          gameInfo.access = GameAccess.PASSWORD;
+          gameInfo.featuredMod = "faf";
+          gameInfo.mapname = "scmp_016";
+          gameInfo.numPlayers = 1;
           gameInfo.maxPlayers = 6;
           gameInfo.host = "Mock user";
           gameInfo.state = GameState.OPEN;
@@ -99,10 +119,23 @@ public class MockServerAccessor implements ServerAccessor {
 
         notificationService.addNotification(
             new PersistentNotification(
-                "You are using the mock server accessor",
+                "How about a long-running (7s) mock task?",
                 Severity.INFO,
-                Collections.singletonList(
-                    new Action("Log to console", event -> logger.info("Log entry triggered by notification action"))
+                Arrays.asList(
+                    new Action("Execute", event -> {
+                      taskService.submitTask(TaskGroup.NET_HEAVY, new PrioritizedTask<Void>("Mock task") {
+                        @Override
+                        protected Void call() throws Exception {
+                          Thread.sleep(2000);
+                          for (int i = 0; i < 5; i++) {
+                            updateProgress(i, 5);
+                            Thread.sleep(1000);
+                          }
+                          return null;
+                        }
+                      });
+                    }),
+                    new Action("Nope")
                 )
             )
         );
@@ -168,12 +201,12 @@ public class MockServerAccessor implements ServerAccessor {
   }
 
   @Override
-  public void setOnLobbyConnectingListener(OnLobbyConnectingListener onLobbyConnectingListener) {
+  public void setOnFafConnectingListener(OnLobbyConnectingListener onLobbyConnectingListener) {
 
   }
 
   @Override
-  public void setOnLobbyDisconnectedListener(OnLobbyDisconnectedListener onLobbyDisconnectedListener) {
+  public void setOnFafDisconnectedListener(OnFafDisconnectedListener onFafDisconnectedListener) {
 
   }
 

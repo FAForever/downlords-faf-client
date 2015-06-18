@@ -29,6 +29,8 @@ import java.util.Objects;
 
 public class CreateGameController {
 
+  private static final String DEFAULT_MOD = "faf";
+
   @FXML
   Label mapNameLabel;
 
@@ -126,11 +128,22 @@ public class CreateGameController {
     initMapSelection();
     initModList();
     initGameTypeComboBox();
-    initLatestGameSettings();
+    setLatestGameTitle();
+    selectLatestMap();
   }
 
-  private void initLatestGameSettings() {
+  private void setLatestGameTitle() {
     titleTextField.setText(preferencesService.getPreferences().getLatestGameTitle());
+  }
+
+  private void selectLatestMap() {
+    String latestMap = preferencesService.getPreferences().getLatestMap();
+    for (MapInfoBean mapInfoBean : mapListView.getItems()) {
+      if (mapInfoBean.getName().equals(latestMap)) {
+        mapListView.getSelectionModel().select(mapInfoBean);
+        break;
+      }
+    }
   }
 
   private void initGameTypeComboBox() {
@@ -138,12 +151,16 @@ public class CreateGameController {
       change.getValueAdded();
 
       gameTypeComboBox.getItems().add(change.getValueAdded());
-      selectLatestGameType();
+      selectLatestOrDefaultGameType();
     });
   }
 
-  private void selectLatestGameType() {
+  private void selectLatestOrDefaultGameType() {
     String lastGameMod = preferencesService.getPreferences().getLatestGameType();
+    if (lastGameMod == null) {
+      lastGameMod = DEFAULT_MOD;
+    }
+
     for (GameTypeBean mod : gameTypeComboBox.getItems()) {
       if (Objects.equals(mod.getName(), lastGameMod)) {
         gameTypeComboBox.getSelectionModel().select(mod);
@@ -169,8 +186,12 @@ public class CreateGameController {
         mapNameLabel.setText("");
         return;
       }
-      mapNameLabel.setText(newValue.getName());
-      mapImageView.setImage(mapService.loadLargePreview(newValue.getName()));
+      String mapName = newValue.getName();
+
+      mapNameLabel.setText(mapName);
+      mapImageView.setImage(mapService.loadLargePreview(mapName));
+      preferencesService.getPreferences().setLatestMap(mapName);
+      preferencesService.storeInBackground();
     });
     // FIXME use latest hosted map
     mapListView.getSelectionModel().select(0);

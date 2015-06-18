@@ -5,6 +5,7 @@ import com.faforever.client.util.Callback;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface MapService {
@@ -16,4 +17,8 @@ public interface MapService {
   void readMapVaultInBackground(int page, int maxEntries, Callback<List<MapInfoBean>> callback);
 
   ObservableList<MapInfoBean> getLocalMaps();
+
+  boolean isAvailable(String mapName);
+
+  void download(String mapName, Callback<Void> callback);
 }

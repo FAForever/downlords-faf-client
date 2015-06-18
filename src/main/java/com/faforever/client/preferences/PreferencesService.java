@@ -6,6 +6,7 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.DirectoryChooserAction;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.util.Callback;
 import com.faforever.client.util.OperatingSystem;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -93,19 +94,57 @@ public class PreferencesService {
 
   private void detectGamePath() {
     for (Path path : USUAL_GAME_PATHS) {
-      if (Files.isDirectory(path)) {
-        logger.info("Found game path at {}", path);
-        preferences.getForgedAlliance().setPath(path);
-        storeInBackground();
+      if (storeGamePathIfValid(path)) {
         return;
       }
     }
 
+    notifyMissingGamePath();
+  }
+
+  private void notifyMissingGamePath() {
     logger.info("Game path could not be detected");
     List<Action> actions = Collections.singletonList(
-        new DirectoryChooserAction(i18n.get("missingGamePath.locateAction"), i18n.get("missingGamePath.chooserTitle"))
+        new DirectoryChooserAction(i18n.get("missingGamePath.locate"), i18n.get("missingGamePath.chooserTitle"), new Callback<Path>() {
+          @Override
+          public void success(Path result) {
+            boolean isPathValid = storeGamePathIfValid(result);
+            if (!isPathValid) {
+              notifyMissingGamePath();
+            }
+          }
+
+          @Override
+          public void error(Throwable e) {
+            throw new IllegalStateException("DirectoryChooser was not expected to call callback.error()", e);
+          }
+        })
     );
     notificationService.addNotification(new PersistentNotification(i18n.get("missingGamePath.notification"), Severity.WARN, actions));
+  }
+
+  /**
+   * Checks whether the specified path contains a ForgedAlliance.exe (either directly if the user selected the "bin"
+   * directory, or in the "bin" subfolder). If the path is valid, it is stored in the preferences.
+   *
+   * @return {@code true} if the game path is valid, {@code false} otherwise.
+   */
+  private boolean storeGamePathIfValid(Path path) {
+    if (path == null || !Files.isDirectory(path)) {
+      return false;
+    }
+
+    if (!Files.isRegularFile(path.resolve("ForgedAlliance.exe"))) {
+      return storeGamePathIfValid(path.resolve("bin"));
+    }
+
+    // At this point, path points to the "bin" directory
+    Path gamePath = path.getParent();
+
+    logger.info("Found game path at {}", gamePath);
+    preferences.getForgedAlliance().setPath(gamePath);
+    storeInBackground();
+    return true;
   }
 
   /**

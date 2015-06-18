@@ -7,7 +7,8 @@ public class ConnectToProxyMessage extends RelayServerMessage{
   private static final int PEER_UID_INDEX = 3;
 
   public int getPlayerNumber() {
-    return (int) getArgs().get(PLAYER_NUMBER_INDEX);
+    // Keep in mind that JSON doesn't know int but only double; therefore GSON deserializes it as Double
+    return ((Double) getArgs().get(PLAYER_NUMBER_INDEX)).intValue();
   }
 
   public String getUsername() {
@@ -15,6 +16,7 @@ public class ConnectToProxyMessage extends RelayServerMessage{
   }
 
   public int getPeerUid() {
-    return (int) getArgs().get(PEER_UID_INDEX);
+    // Keep in mind that JSON doesn't know int but only double; therefore GSON deserializes it as Double
+    return ((Double) getArgs().get(PEER_UID_INDEX)).intValue();
   }
 }

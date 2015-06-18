@@ -73,6 +73,7 @@ public class TaskServiceImpl implements TaskService {
     PriorityBlockingQueue<PrioritizedTask<?>> queue = queuesByGroup.get(taskGroup);
     ObservableList<PrioritizedTask<?>> queueList = queueListsByGroup.get(taskGroup);
 
+    // FIXME the task group IMMEDIATE should not use the same queueing mechanism
     ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {

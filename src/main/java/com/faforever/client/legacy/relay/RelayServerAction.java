@@ -16,6 +16,7 @@ public enum RelayServerAction {
   DISCONNECT_FROM_PEER("DisconnectFromPeer"),
   CHAT("Chat"),
   GAME_RESULT("GameResult"),
+  STATS("Stats"),
   // Yes, these are the only lower-cased in the protocol. Because fuck you.
   CONNECTED_TO_HOST("connectedToHost"),
   PONG("pong");
@@ -45,5 +46,4 @@ public enum RelayServerAction {
   public String getString() {
     return string;
   }
-
 }

@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameType;
@@ -23,9 +24,9 @@ public class GameInfoBean {
 
   private StringProperty host;
   private StringProperty title;
-  private StringProperty access;
   private StringProperty mapName;
   private StringProperty featuredMod;
+  private ObjectProperty<GameAccess> access;
   private ObjectProperty<Integer> uid;
   private ObjectProperty<Integer> minRanking;
   private ObjectProperty<Integer> maxRanking;
@@ -43,9 +44,9 @@ public class GameInfoBean {
     uid = new SimpleObjectProperty<>(gameInfo.uid);
     host = new SimpleStringProperty(gameInfo.host);
     title = new SimpleStringProperty(StringEscapeUtils.unescapeHtml4(gameInfo.title));
-    access = new SimpleStringProperty(gameInfo.access);
     mapName = new SimpleStringProperty(gameInfo.mapname);
     featuredMod = new SimpleStringProperty(gameInfo.featuredMod);
+    access = new SimpleObjectProperty<>(gameInfo.access);
     minRanking = new SimpleObjectProperty<>(gameInfo.minRanking);
     maxRanking = new SimpleObjectProperty<>(gameInfo.maxRanking);
     numPlayers = new SimpleObjectProperty<>(gameInfo.numPlayers);
@@ -101,11 +102,11 @@ public class GameInfoBean {
     return title;
   }
 
-  public String getAccess() {
+  public GameAccess getAccess() {
     return access.get();
   }
 
-  public StringProperty accessProperty() {
+  public ObjectProperty<GameAccess> accessProperty() {
     return access;
   }
 

@@ -1,6 +1,5 @@
 * Reconnecting after connection failure for both, IRC and FAF server
 * Downloading map previews for unknown maps
-* Fast startup
 * Responsiveness
 * Nice looking UI
 * Good usability
@@ -14,3 +13,5 @@
 * Paste images from clipboard
 * Link previews
 * List running games with option to watch them (but hide them if desired)
+* Non-interruptive notification system
+* Background tasks

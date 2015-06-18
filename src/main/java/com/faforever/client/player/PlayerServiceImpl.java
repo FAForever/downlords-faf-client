@@ -1,11 +1,11 @@
 package com.faforever.client.player;
 
-import com.faforever.client.chat.*;
+import com.faforever.client.chat.ChatService;
+import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.legacy.OnFoeListListener;
 import com.faforever.client.legacy.OnFriendListListener;
 import com.faforever.client.legacy.OnPlayerInfoListener;
 import com.faforever.client.legacy.ServerAccessor;
-import com.faforever.client.legacy.ServerAccessorImpl;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;

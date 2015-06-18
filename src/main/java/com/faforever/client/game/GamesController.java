@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.OnGameInfoListener;
+import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.map.MapService;
@@ -43,8 +44,6 @@ import java.util.regex.Pattern;
 public class GamesController implements OnGameInfoListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  private static final String DEFAULT_MOD = "faf";
 
   private static final Pattern RATING_PATTERN = Pattern.compile("([<>+~](?:\\d\\.?\\d?k|\\d{3,4})|(?:\\d\\.?\\d?k|\\d{3,4})[<>+]|(?:\\d\\.?\\d?k|\\d{1,4})\\s?-\\s?(?:\\d\\.?\\d?k|\\d{3,4}))");
 
@@ -90,6 +89,9 @@ public class GamesController implements OnGameInfoListener {
   @FXML
   TableColumn<GameInfoBean, String> hostColumn;
 
+  @FXML
+  TableColumn<GameInfoBean, GameAccess> accessColumn;
+
   @Autowired
   PreferencesService preferenceService;
 
@@ -111,11 +113,17 @@ public class GamesController implements OnGameInfoListener {
   @Autowired
   CreateGameController createGameController;
 
+  @Autowired
+  EnterPasswordController enterPasswordController;
+
   private ObservableMap<Integer, GameInfoBean> gameInfoBeans;
 
   private GameTypeBean selectedMod;
 
   private Popup createGamePopup;
+  private Popup passwordPopup;
+  private double lastMouseX;
+  private double lastMouseY;
 
   public GamesController() {
     gameInfoBeans = FXCollections.observableHashMap();
@@ -130,11 +138,18 @@ public class GamesController implements OnGameInfoListener {
   void postConstruct() {
     gameService.addOnGameInfoListener(this);
 
+    passwordPopup = new Popup();
+    passwordPopup.setAutoHide(true);
+    passwordPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
+    passwordPopup.getContent().setAll(enterPasswordController.getRoot());
+
     createGamePopup = new Popup();
     createGamePopup.setAutoFix(false);
     createGamePopup.setAutoHide(true);
     createGamePopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
     createGamePopup.getContent().setAll(createGameController.getRoot());
+
+    enterPasswordController.setOnPasswordEnteredListener(this::joinSelectedGame);
   }
 
   private void initializeGameTable() {
@@ -172,6 +187,8 @@ public class GamesController implements OnGameInfoListener {
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       displayGameDetail(newValue);
     });
+
+    accessColumn.setCellValueFactory(param -> param.getValue().accessProperty());
   }
 
   private void displayGameDetail(GameInfoBean gameInfoBean) {
@@ -186,32 +203,25 @@ public class GamesController implements OnGameInfoListener {
 
   }
 
-  @FXML
-  void onJoinGameButtonClicked(ActionEvent event) {
-    joinSelectedGame();
-  }
-
-  private void joinSelectedGame() {
+  private void joinSelectedGame(String password) {
     GameInfoBean gameInfoBean = gamesTable.getSelectionModel().getSelectedItem();
-    if (gameInfoBean == null) {
-      // TODO better to disable the button
-      return;
+
+    if (gameInfoBean.getAccess() == GameAccess.PASSWORD && password == null) {
+      passwordPopup.show(gamesRoot.getScene().getWindow(), lastMouseX, lastMouseY);
+    } else {
+      gameService.joinGame(gameInfoBean, password, new Callback<Void>() {
+        @Override
+        public void success(Void result) {
+          // Cool.
+        }
+
+        @Override
+        public void error(Throwable e) {
+          // FIXME implement
+          logger.warn("Game could not be joined", e);
+        }
+      });
     }
-
-    // FIXME implement
-    String password = null;
-    gameService.joinGame(gameInfoBean, password, new Callback<Void>() {
-      @Override
-      public void success(Void result) {
-        // cool.
-      }
-
-      @Override
-      public void error(Throwable e) {
-        // FIXME implement
-        logger.warn("Game could not be hosted", e);
-      }
-    });
   }
 
   private static String extractRating(String title) {
@@ -247,7 +257,9 @@ public class GamesController implements OnGameInfoListener {
 
   public void onTableClicked(MouseEvent event) {
     if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
-      joinSelectedGame();
+      lastMouseX = event.getScreenX();
+      lastMouseY = event.getScreenY();
+      joinSelectedGame(null);
     }
   }
 

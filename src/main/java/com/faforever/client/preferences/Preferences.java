@@ -14,6 +14,7 @@ public class Preferences {
   private String lastMap;
   private List<String> ignoredNotifications;
   private String latestGameTitle;
+  private String latestMap;
 
   public Preferences() {
     login = new LoginPrefs();
@@ -66,5 +67,13 @@ public class Preferences {
 
   public String getLatestGameTitle() {
     return latestGameTitle;
+  }
+
+  public void setLatestMap(String latestMap) {
+    this.latestMap = latestMap;
+  }
+
+  public String getLatestMap() {
+    return latestMap;
   }
 }
