@@ -74,6 +74,8 @@ public class GameServiceImpl implements GameService {
 
   @Override
   public void joinGame(GameInfoBean gameInfoBean, String password, Callback<Void> callback) {
+    logger.info("Joining game {} ({})", gameInfoBean.getTitle(), gameInfoBean.getUid());
+
     cancelLadderSearch();
     updateGameIfNecessary(gameInfoBean.getFeaturedMod(), new Callback<Void>() {
       @Override
@@ -118,7 +120,7 @@ public class GameServiceImpl implements GameService {
       protected Void call() throws Exception {
         int exitCode = process.waitFor();
         logger.info("Forged Alliance terminated with exit code {}", exitCode);
-        proxy.closeSockets();
+        proxy.close();
         serverAccessor.notifyGameTerminated();
         return null;
       }

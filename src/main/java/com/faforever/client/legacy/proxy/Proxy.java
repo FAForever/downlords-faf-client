@@ -11,7 +11,10 @@ public interface Proxy {
     void onProxyInitialized();
   }
 
-  void closeSockets();
+  /**
+   * Closes all proxy connections.
+   */
+  void close();
 
   void updateConnectedState(int uid, boolean connected);
 

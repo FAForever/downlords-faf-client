@@ -158,7 +158,7 @@ public class ProxyImpl implements Proxy {
   }
 
   @Override
-  public void closeSockets() {
+  public void close() {
     logger.info("Closing proxy sockets");
     for (DatagramSocket datagramSocket : proxySockets.values()) {
       logger.debug("Closing socket {}", datagramSocket.getLocalPort());
@@ -200,7 +200,7 @@ public class ProxyImpl implements Proxy {
     byte[] data = Arrays.copyOfRange(datagramPacket.getData(), datagramPacket.getOffset(), datagramPacket.getLength());
 
     // Number of bytes for port, uid and QByteArray (prefix stuff plus data length)
-    fafProxyOutputStream.writeInt(Short.BYTES + Short.BYTES + Q_BYTE_ARRAY_PREFIX_LENGTH + data.length );
+    fafProxyOutputStream.writeInt(Short.BYTES + Short.BYTES + Q_BYTE_ARRAY_PREFIX_LENGTH + data.length);
     fafProxyOutputStream.writeShort(playerNumber);
     // WTF: The UID can be larger than 65535 but who cares? Just cut it off, what can possibly happen? -.-
     fafProxyOutputStream.writeShort(uid);
