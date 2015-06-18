@@ -12,26 +12,17 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.upnp.UpnpService;
 import com.faforever.client.util.Callback;
-import com.faforever.client.util.ConcurrentUtil;
-import com.offbynull.portmapper.MappedPort;
-import com.offbynull.portmapper.PortMapper;
-import com.offbynull.portmapper.PortMapperEventListener;
-import com.offbynull.portmapper.PortMapperFactory;
-import com.offbynull.portmapper.PortType;
-import com.sun.corba.se.spi.activation.Server;
 import javafx.application.HostServices;
-import javafx.concurrent.Task;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Array;
 import java.net.ConnectException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -40,26 +31,24 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import static com.faforever.client.task.PrioritizedTask.Priority.LOW;
 import static com.faforever.client.task.TaskGroup.IMMEDIATE;
-import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 /**
  * Opens the game port and connects to the FAF relay server in order the see whether data on the game port is received.
  */
-public class PortCheckServiceImpl implements PortCheckService, PortMapperEventListener {
+public class PortCheckServiceImpl implements PortCheckService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final String PORT_UNREACHABLE_NOTIFICATION_ID = "portUnreachable";
   private static final int REQUEST_DELAY = 1000;
   private static final int TIMEOUT = 5000;
-  // TODO send a random number that the server should send back
-  private static final String EXPECTED_ANSWER = "OK";
 
   /**
    * Half an hour.
@@ -84,6 +73,9 @@ public class PortCheckServiceImpl implements PortCheckService, PortMapperEventLi
   @Autowired
   I18n i18n;
 
+  @Autowired
+  UpnpService upnpService;
+
   private Collection<GamePortCheckListener> gamePortCheckListeners;
 
   public PortCheckServiceImpl() {
@@ -102,7 +94,7 @@ public class PortCheckServiceImpl implements PortCheckService, PortMapperEventLi
         Boolean successful = checkPort(port);
         if (!successful) {
           logger.info("Port check failed, trying UPnP");
-          mapUpnpPort(port);
+          upnpService.forwardPort(port);
           successful = checkPort(port);
         }
         return successful;
@@ -125,39 +117,6 @@ public class PortCheckServiceImpl implements PortCheckService, PortMapperEventLi
     });
   }
 
-  private void mapUpnpPort(int port) throws IOException, InterruptedException {
-    try (PortMapper portMapper = PortMapperFactory.create(this)) {
-      MappedPort mappedPort = portMapper.mapPort(PortType.TCP, port, UPNP_LIFETIME);
-
-      logger.info("Created port mapping from {}:{} to port {}",
-          mappedPort.getExternalAddress(),
-          mappedPort.getExternalPort(),
-          mappedPort.getInternalPort());
-
-      ConcurrentUtil.executeInBackground(new Task<Void>() {
-        @Override
-        protected Void call() throws Exception {
-          try {
-            while (!isCancelled()) {
-              MappedPort refreshedPortMapping = portMapper.refreshPort(mappedPort, mappedPort.getLifetime());
-
-              logger.debug("Port mapping refreshed from {}:{} to port {}",
-                  refreshedPortMapping.getExternalAddress(),
-                  refreshedPortMapping.getExternalPort(),
-                  refreshedPortMapping.getInternalPort());
-
-              Thread.sleep(mappedPort.getLifetime() / 2 * 1000);
-            }
-          } finally {
-            portMapper.unmapPort(mappedPort);
-          }
-
-          return null;
-        }
-      });
-    }
-  }
-
   @Override
   public void addGamePortCheckListener(GamePortCheckListener listener) {
     gamePortCheckListeners.add(listener);
@@ -175,7 +134,7 @@ public class PortCheckServiceImpl implements PortCheckService, PortMapperEventLi
     try (DatagramSocket datagramSocket = new DatagramSocket(port)) {
       datagramSocket.setSoTimeout(TIMEOUT);
 
-      byte[] buffer = new byte[EXPECTED_ANSWER.length()];
+      byte[] buffer = new byte[1024];
       datagramSocket.receive(new DatagramPacket(buffer, buffer.length));
 
       logger.info("UDP port {} is reachable", port);
@@ -223,7 +182,7 @@ public class PortCheckServiceImpl implements PortCheckService, PortMapperEventLi
         try {
           try (Socket socket = new Socket(remoteHost, remotePort);
                ServerWriter serverWriter = createServerWriter(socket)) {
-            serverWriter.write(new RelayClientMessage(RelayServerAction.GAME_STATE, Arrays.asList("idle")));
+            serverWriter.write(new RelayClientMessage(RelayServerAction.GAME_STATE, Collections.singletonList("idle")));
           }
         } catch (ConnectException e) {
           logger.warn("Port check server is not reachable");
@@ -234,10 +193,6 @@ public class PortCheckServiceImpl implements PortCheckService, PortMapperEventLi
     }, REQUEST_DELAY);
   }
 
-  @Override
-  public void resetRequired(String details) {
-
-  }
 
 
   private ServerWriter createServerWriter(Socket fafSocket) throws IOException {

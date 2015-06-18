@@ -39,6 +39,8 @@ import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.supcom.ForgedAllianceServiceImpl;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.task.TaskServiceImpl;
+import com.faforever.client.upnp.ClingUpnpService;
+import com.faforever.client.upnp.UpnpService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -162,6 +164,11 @@ public class BaseConfig {
   @Bean
   MapVaultParser mapVaultParser() {
     return new LegacyMapVaultParser();
+  }
+
+  @Bean
+  UpnpService upnpService() {
+    return new ClingUpnpService();
   }
 
   @Bean
