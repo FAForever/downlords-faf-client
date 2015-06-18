@@ -9,5 +9,11 @@ public enum TaskGroup {
   /**
    * Tasks within this group operate on the network for only a short while, like doing a REST request.
    */
-  NET_LIGHT
+  NET_LIGHT,
+
+  /**
+   * Tasks within this group are not queued but executed immediately. This should only be used for tasks that spend most
+   * of their time idling instead of doing anything resource-intensive.
+   */
+  IMMEDIATE
 }
