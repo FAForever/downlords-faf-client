@@ -176,7 +176,7 @@ public class ProxyImpl implements Proxy {
   }
 
   @Override
-  public void closeSockets() {
+  public void close() {
     logger.info("Closing proxy sockets");
     for (DatagramSocket datagramSocket : proxySockets.values()) {
       logger.debug("Closing socket {}", datagramSocket.getLocalPort());

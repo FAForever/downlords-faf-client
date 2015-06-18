@@ -16,6 +16,7 @@ import org.pircbotx.User;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.Listener;
+import org.pircbotx.hooks.events.ActionEvent;
 import org.pircbotx.hooks.events.ConnectEvent;
 import org.pircbotx.hooks.events.DisconnectEvent;
 import org.pircbotx.hooks.events.JoinEvent;
@@ -158,6 +159,16 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
               Instant.ofEpochMilli(event.getTimestamp()),
               event.getUser().getLogin(),
               event.getMessage()
+          )
+      );
+    });
+    addEventListener(ActionEvent.class, event -> {
+      listener.onMessage(event.getChannel().getName(),
+          new ChatMessage(
+              Instant.ofEpochMilli(event.getTimestamp()),
+              event.getUser().getLogin(),
+              event.getMessage(),
+              true
           )
       );
     });

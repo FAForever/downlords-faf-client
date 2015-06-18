@@ -1,6 +1,10 @@
 package com.faforever.client.network;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.legacy.relay.RelayClientMessage;
+import com.faforever.client.legacy.relay.RelayClientMessageSerializer;
+import com.faforever.client.legacy.relay.RelayServerAction;
+import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -15,6 +19,7 @@ import com.offbynull.portmapper.PortMapper;
 import com.offbynull.portmapper.PortMapperEventListener;
 import com.offbynull.portmapper.PortMapperFactory;
 import com.offbynull.portmapper.PortType;
+import com.sun.corba.se.spi.activation.Server;
 import javafx.application.HostServices;
 import javafx.concurrent.Task;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +31,7 @@ import org.springframework.core.env.Environment;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Array;
 import java.net.ConnectException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -42,6 +48,9 @@ import static com.faforever.client.task.PrioritizedTask.Priority.LOW;
 import static com.faforever.client.task.TaskGroup.IMMEDIATE;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
+/**
+ * Opens the game port and connects to the FAF relay server in order the see whether data on the game port is received.
+ */
 public class PortCheckServiceImpl implements PortCheckService, PortMapperEventListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -156,8 +165,8 @@ public class PortCheckServiceImpl implements PortCheckService, PortMapperEventLi
 
   @NotNull
   private Boolean checkPort(int port) throws IOException {
-    String remoteHost = environment.getProperty("portCheck.host");
-    Integer remotePort = environment.getProperty("portCheck.port", Integer.class);
+    String remoteHost = environment.getProperty("relay.host");
+    Integer remotePort = environment.getProperty("relay.port", Integer.class);
 
     logger.info("Checking reachability of UDP port {} using port checker service at {}:{}", port, remoteHost, remotePort);
 
@@ -213,8 +222,8 @@ public class PortCheckServiceImpl implements PortCheckService, PortMapperEventLi
       public void run() {
         try {
           try (Socket socket = new Socket(remoteHost, remotePort);
-               DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream())) {
-            dataOutputStream.writeInt(port);
+               ServerWriter serverWriter = createServerWriter(socket)) {
+            serverWriter.write(new RelayClientMessage(RelayServerAction.GAME_STATE, Arrays.asList("idle")));
           }
         } catch (ConnectException e) {
           logger.warn("Port check server is not reachable");
@@ -228,5 +237,12 @@ public class PortCheckServiceImpl implements PortCheckService, PortMapperEventLi
   @Override
   public void resetRequired(String details) {
 
+  }
+
+
+  private ServerWriter createServerWriter(Socket fafSocket) throws IOException {
+    ServerWriter serverWriter = new ServerWriter(fafSocket.getOutputStream());
+    serverWriter.registerObjectWriter(new RelayClientMessageSerializer(), RelayClientMessage.class);
+    return serverWriter;
   }
 }

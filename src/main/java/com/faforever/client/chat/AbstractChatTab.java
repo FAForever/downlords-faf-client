@@ -55,6 +55,7 @@ import java.util.regex.Pattern;
  * selectable, but text within a WebView is. This comes with some ugly implications; some of the logic has to be
  * performed in interaction with JavaScript, like when the user clicks a link.
  */
+// TODO create a ChatTabController that does not extend Tab but encapsulate it
 public abstract class AbstractChatTab extends Tab {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -304,7 +305,7 @@ public abstract class AbstractChatTab extends Tab {
 
   private void scrollToBottomIfDesired() {
     // TODO add the "if desired" part
-    if(getMessagesWebView().getParent() == null) {
+    if (getMessagesWebView().getParent() == null) {
       return;
     }
     engine.executeScript("window.scrollTo(0, document.body.scrollHeight);");
