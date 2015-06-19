@@ -19,6 +19,8 @@ import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
 import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.legacy.writer.QDataReader;
+import com.faforever.client.stats.PlayerStatistics;
+import com.faforever.client.stats.StatisticsObject;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -52,6 +54,7 @@ class ServerReader {
   private OnGameTypeInfoListener onGameTypeInfoListener;
   private OnFriendListListener onFriendListListener;
   private OnFoeListListener onFoeListListener;
+  private OnPlayerStatsListener onPlayerStatsListener;
 
   public ServerReader(Socket socket) {
     this.socket = socket;
@@ -175,11 +178,30 @@ class ServerReader {
           dispatchSocialInfo(socialInfo);
           break;
 
+        case STATS:
+          StatisticsObject statisticsObject = gson.fromJson(jsonString, StatisticsObject.class);
+          dispatchStatisticsObject(jsonString, statisticsObject);
+
+          break;
         default:
           logger.warn("Missing case for server object type: " + serverObjectType);
       }
     } catch (JsonSyntaxException e) {
       logger.warn("Could not deserialize message: " + jsonString, e);
+    }
+  }
+
+  private void dispatchStatisticsObject(String jsonString, StatisticsObject statisticsObject) {
+    switch (statisticsObject.type) {
+      case LEAGUE_TABLE:
+        // TODO remove it it's never going to be implemented
+        logger.warn("league table is not yet implemented");
+        break;
+
+      case STATS:
+        PlayerStatistics playerStatistics = gson.fromJson(jsonString, PlayerStatistics.class);
+        onPlayerStatsListener.onPlayerStats(playerStatistics);
+        break;
     }
   }
 
@@ -225,5 +247,9 @@ class ServerReader {
 
   public void setOnFoeListListener(OnFoeListListener onFoeListListener) {
     this.onFoeListListener = onFoeListListener;
+  }
+
+  public void setOnPlayerStatsListener(OnPlayerStatsListener onPlayerStatsListener) {
+    this.onPlayerStatsListener = onPlayerStatsListener;
   }
 }

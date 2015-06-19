@@ -16,6 +16,7 @@ import com.faforever.client.legacy.ladder.LadderParser;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
@@ -51,7 +52,8 @@ public class ServerAccessorImpl implements ServerAccessor,
     OnGameLaunchInfoListener,
     OnFriendListListener,
     OnFoeListListener,
-    OnGameInfoListener {
+    OnGameInfoListener,
+    OnPlayerStatsListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -94,6 +96,8 @@ public class ServerAccessorImpl implements ServerAccessor,
   private OnPlayerInfoListener onPlayerInfoListener;
   private OnFoeListListener onFoeListListener;
   private OnFriendListListener onFriendListListener;
+  private OnPlayerStatsListener onPlayerStatsListener;
+  private Callback<PlayerStatistics> playerStatisticsCallback;
 
   public ServerAccessorImpl() {
     onGameInfoListeners = new ArrayList<>();
@@ -201,6 +205,7 @@ public class ServerAccessorImpl implements ServerAccessor,
     serverReader.setOnGameLaunchInfoListener(this);
     serverReader.setOnFriendListListener(this);
     serverReader.setOnFoeListListener(this);
+    serverReader.setOnPlayerStatsListener(this);
     serverReader.blockingRead();
   }
 
@@ -380,5 +385,24 @@ public class ServerAccessorImpl implements ServerAccessor,
         return ladderParser.parseLadder();
       }
     }, callback);
+  }
+
+  @Override
+  public void requestPlayerStatistics(String username, Callback<PlayerStatistics> callback) {
+    // FIXME this is not safe (as well aren't similar implementations in this class)
+    playerStatisticsCallback = callback;
+    writeToServer(ClientMessage.askPlayerStats(username));
+  }
+
+  @Override
+  public void onPlayerStats(PlayerStatistics playerStatistics) {
+    playerStatisticsCallback.success(playerStatistics);
+
+    Platform.runLater(() -> {
+      if (playerStatisticsCallback != null) {
+        playerStatisticsCallback.success(null);
+        playerStatisticsCallback = null;
+      }
+    });
   }
 }

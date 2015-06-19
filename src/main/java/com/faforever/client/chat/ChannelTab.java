@@ -189,6 +189,7 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
   private void createChatUserControlForPlayerIfNecessary(Pane pane, PlayerInfoBean playerInfoBean) {
     Map<Pane, ChatUserControl> paneToChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
 
+    // FIXME occasional NPE here
     ChatUserControl existingChatUserControl = paneToChatUserControlMap.get(pane);
     if (existingChatUserControl != null) {
       return;

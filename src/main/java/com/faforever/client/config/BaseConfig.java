@@ -35,6 +35,8 @@ import com.faforever.client.patch.PatchService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.stats.LegacyStatisticsService;
+import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.supcom.ForgedAllianceServiceImpl;
 import com.faforever.client.task.TaskService;
@@ -198,6 +200,11 @@ public class BaseConfig {
   @Bean
   NotificationService notificationService() {
     return new NotificationServiceImpl();
+  }
+
+  @Bean
+  StatisticsService statisticsService() {
+    return new LegacyStatisticsService();
   }
 
 }

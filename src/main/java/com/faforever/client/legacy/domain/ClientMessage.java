@@ -22,6 +22,15 @@ public class ClientMessage {
   public String mod;
   public Integer uid;
   private String type;
+  private String player;
+
+  public static ClientMessage askPlayerStats(String username) {
+    ClientMessage clientMessage = new ClientMessage();
+    clientMessage.command = "stats";
+    clientMessage.type = "global_90_days";
+    clientMessage.player = username;
+    return clientMessage;
+  }
 
   public static ClientMessage askLeagueTable(String league) {
     ClientMessage clientMessage = new ClientMessage();

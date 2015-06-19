@@ -169,6 +169,18 @@
     -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,55%);
 }
 
+/***************** ChartPlot *****************/
+
+.chart-vertical-grid-lines,
+.chart-horizontal-grid-lines {
+    -fx-stroke: derive(-fx-background,10%);
+    -fx-stroke-dash-array: 0.25em, 0.25em;
+}
+.chart-vertical-zero-line,
+.chart-horizontal-zero-line {
+    -fx-stroke: derive(-fx-text-background-color, 40%);
+}
+
 
 /***************** Text field *****************/
 

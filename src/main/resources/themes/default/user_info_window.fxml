@@ -9,16 +9,17 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.UserInfoWindowController">
+<GridPane fx:id="userInfoRoot" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="com.faforever.client.chat.UserInfoWindowController">
    <columnConstraints>
       <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
       <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
       <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
    </columnConstraints>
    <rowConstraints>
-      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-      <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+      <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
    </rowConstraints>
    <children>
       <Label fx:id="usernameLabel" text="Username" GridPane.columnSpan="2147483647">
@@ -31,30 +32,30 @@
             <Insets left="5.0" />
          </GridPane.margin>
       </Label>
-      <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true" GridPane.rowIndex="1">
+      <ImageView fx:id="countryFlagImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true"
+                 GridPane.rowIndex="1">
          <image>
-            <Image url="@../../images/flags/ch.png" />
          </image>
       </ImageView>
       <TabPane GridPane.columnSpan="2147483647" GridPane.rowIndex="2">
          <tabs>
             <Tab text="Skill">
                <content>
-                  <AreaChart>
+                  <LineChart fx:id="rating90DaysChart" legendVisible="false" title="%playerInfo.rating90Days">
                     <xAxis>
-                      <CategoryAxis side="BOTTOM" />
+                       <NumberAxis fx:id="rating90DaysXAxis" side="BOTTOM"/>
                     </xAxis>
                     <yAxis>
                       <NumberAxis side="LEFT" />
                     </yAxis>
-                  </AreaChart>
+                  </LineChart>
                </content>
             </Tab>
             <Tab text="Skill history">
                <content>
                   <LineChart>
                     <xAxis>
-                      <CategoryAxis side="BOTTOM" />
+                       <NumberAxis side="BOTTOM"/>
                     </xAxis>
                     <yAxis>
                       <NumberAxis side="LEFT" />

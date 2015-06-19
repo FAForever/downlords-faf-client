@@ -2,7 +2,6 @@ package com.faforever.client.chat;
 
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fxml.FxmlLoader;
-import com.faforever.client.i18n.I18n;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
@@ -13,7 +12,6 @@ import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
-import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
@@ -22,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
@@ -34,6 +33,9 @@ public class ChatUserControl extends HBox {
   private static final String CLAN_TAG_FORMAT = "[%s]";
 
   @Autowired
+  ApplicationContext applicationContext;
+
+  @Autowired
   FxmlLoader fxmlLoader;
 
   @Autowired
@@ -41,12 +43,6 @@ public class ChatUserControl extends HBox {
 
   @Autowired
   CountryFlagService countryFlagService;
-
-  @Autowired
-  I18n i18n;
-
-  @Autowired
-  UserInfoWindowFactory userInfoWindowFactory;
 
   @Autowired
   SceneFactory sceneFactory;
@@ -98,13 +94,14 @@ public class ChatUserControl extends HBox {
       return;
     }
 
-    UserInfoWindowController controller = userInfoWindowFactory.create(playerInfoBean);
+    UserInfoWindowController userInfoWindowController = applicationContext.getBean(UserInfoWindowController.class);
+    userInfoWindowController.setPlayerInfoBean(playerInfoBean);
 
     userInfoWindow = new Stage(StageStyle.TRANSPARENT);
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(getScene().getWindow());
 
-    sceneFactory.createScene(userInfoWindow, this, false, CLOSE);
+    sceneFactory.createScene(userInfoWindow, userInfoWindowController.getUserInfoRoot(), true, CLOSE);
 
     userInfoWindow.setOnHiding(event -> {
       userInfoWindow = null;

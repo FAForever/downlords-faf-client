@@ -1,4 +1,4 @@
-package com.faforever.client.legacy.domain;
+package com.faforever.client.leaderboard;
 
 public class LeagueInfo {
   public float score;

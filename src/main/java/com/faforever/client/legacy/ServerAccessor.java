@@ -5,6 +5,7 @@ import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LadderEntryBean;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.util.Callback;
 
 import java.util.List;
@@ -48,4 +49,6 @@ public interface ServerAccessor {
   void setOnLobbyConnectedListener(OnLobbyConnectedListener onLobbyConnectedListener);
 
   void requestLadderInfoInBackground(Callback<List<LadderEntryBean>> callback);
+
+  void requestPlayerStatistics(String username, Callback<PlayerStatistics> callback);
 }

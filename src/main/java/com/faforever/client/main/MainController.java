@@ -8,9 +8,9 @@ import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LadderController;
+import com.faforever.client.legacy.OnFafDisconnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
-import com.faforever.client.legacy.OnFafDisconnectedListener;
 import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.network.GamePortCheckListener;
 import com.faforever.client.network.PortCheckService;
@@ -26,7 +26,6 @@ import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.vault.VaultController;
 import javafx.application.Platform;
@@ -36,9 +35,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBase;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuButton;
@@ -54,6 +51,7 @@ import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import java.util.Collection;
 import java.util.List;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
@@ -187,7 +185,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     notificationsPopup.setAutoHide(true);
 
     notificationService.addPersistentNotificationListener(change -> {
-      Platform.runLater(() -> updateNotificationsButton(change.getList()));
+      Platform.runLater(() -> updateNotificationsButton(change.getSet()));
     });
 
     taskService.addChangeListener(TaskGroup.NET_HEAVY, change -> {
@@ -210,7 +208,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
    * Updates the number displayed in the notifications button and sets its CSS pseudo class based on the highest
    * notification {@code Severity} of all current notifications.
    */
-  private void updateNotificationsButton(List<? extends PersistentNotification> notifications) {
+  private void updateNotificationsButton(Collection<? extends PersistentNotification> notifications) {
     JavaFxUtil.assertApplicationThread();
 
     int numberOfNotifications = notifications.size();

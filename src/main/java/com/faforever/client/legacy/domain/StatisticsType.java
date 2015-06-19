@@ -1,7 +1,7 @@
 package com.faforever.client.legacy.domain;
 
 public enum StatisticsType {
-  LEAGUE_TABLE("legue_table");
+  LEAGUE_TABLE("league_table"), STATS("stats");
 
   private String string;
 

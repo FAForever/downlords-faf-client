@@ -1,4 +1,6 @@
-package com.faforever.client.legacy.domain;
+package com.faforever.client.leaderboard;
+
+import com.faforever.client.stats.StatisticsObject;
 
 import java.util.List;
 
