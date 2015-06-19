@@ -8,6 +8,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
+import com.google.common.base.Strings;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -18,14 +19,12 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class LoginController {
 
@@ -89,15 +88,15 @@ public class LoginController {
     boolean isAutoLogin = loginPrefs.isAutoLogin();
 
     // Fill the form even if autoLogin is true, since user may cancel the login
-    usernameInput.setText(StringUtils.defaultString(username));
+    usernameInput.setText(Strings.nullToEmpty(username));
     autoLoginCheckBox.setSelected(isAutoLogin);
 
     stage.show();
     JavaFxUtil.centerOnScreen(stage);
 
-    if (loginPrefs.isAutoLogin() && isNotEmpty(username) && isNotEmpty(password)) {
+    if (loginPrefs.isAutoLogin() && !isNullOrEmpty(username) && !isNullOrEmpty(password)) {
       login(username, password, true);
-    } else if (isEmpty(username)) {
+    } else if (isNullOrEmpty(username)) {
       usernameInput.requestFocus();
     } else {
       passwordInput.requestFocus();

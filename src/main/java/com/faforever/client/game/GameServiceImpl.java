@@ -110,7 +110,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
 
       @Override
       public void error(Throwable e) {
-
+        callback.error(e);
       }
     };
 

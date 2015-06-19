@@ -6,6 +6,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.google.common.base.Joiner;
+import com.google.common.io.CharStreams;
 import javafx.application.HostServices;
 import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
@@ -23,8 +24,6 @@ import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Window;
 import netscape.javascript.JSObject;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +33,8 @@ import org.springframework.core.io.Resource;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -49,6 +49,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
+
+import static com.google.common.html.HtmlEscapers.htmlEscaper;
 
 /**
  * A chat tab displays messages in a {@link WebView}. The WebView is used since text on a JavaFX canvas isn't
@@ -328,9 +330,9 @@ public abstract class AbstractChatTab extends Tab {
 
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getUsername());
 
-    try (InputStream inputStream = MESSAGE_ITEM_HTML_RESOURCE.getInputStream()) {
+    try (Reader reader = new InputStreamReader(MESSAGE_ITEM_HTML_RESOURCE.getInputStream())) {
       String login = chatMessage.getUsername();
-      String html = IOUtils.toString(inputStream);
+      String html = CharStreams.toString(reader);
 
       String avatar = "";
       String clanTag = "";
@@ -342,7 +344,7 @@ public abstract class AbstractChatTab extends Tab {
         }
       }
 
-      String text = StringEscapeUtils.escapeHtml4(chatMessage.getMessage()).replace("\\", "\\\\");
+      String text = htmlEscaper().escape(chatMessage.getMessage()).replace("\\", "\\\\");
       text = convertUrlsIntoHyperlinks(text);
       text = highlightOwnUsername(text);
 

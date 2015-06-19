@@ -5,7 +5,6 @@ import com.faforever.client.util.Callback;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface MapService {
@@ -18,6 +17,9 @@ public interface MapService {
 
   ObservableList<MapInfoBean> getLocalMaps();
 
+  /**
+   * Returns {@code true} if the given map is available locally, {@code false} otherwise.
+   */
   boolean isAvailable(String mapName);
 
   void download(String mapName, Callback<Void> callback);

@@ -10,6 +10,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
+import com.google.common.base.Strings;
 import javafx.application.Platform;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
@@ -31,7 +32,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -179,7 +179,7 @@ public class GamesController implements OnGameInfoListener {
       @Override
       protected String computeValue() {
         // TODO this is not bound to the title property, however, a game's title can't be changed anyway (atm).
-        return StringUtils.defaultString(extractRating(param.getValue().getTitle()));
+        return Strings.nullToEmpty(extractRating(param.getValue().getTitle()));
       }
     });
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());

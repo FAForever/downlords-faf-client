@@ -4,6 +4,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
+import com.google.common.base.Strings;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
@@ -18,7 +19,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.StringUtils;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.RangeSlider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -243,7 +244,7 @@ public class CreateGameController {
 
     NewGameInfo newGameInfo = new NewGameInfo(
         titleTextField.getText(),
-        StringUtils.trimToNull(passwordTextField.getText()),
+        Strings.emptyToNull(passwordTextField.getText()),
         gameTypeComboBox.getSelectionModel().getSelectedItem().getName(),
         mapListView.getSelectionModel().getSelectedItem().getName(),
         0);

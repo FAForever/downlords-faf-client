@@ -5,25 +5,30 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
+import com.faforever.client.util.Unzipper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.env.Environment;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.zip.ZipInputStream;
 
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
@@ -94,20 +99,48 @@ public class LegacyMapService implements MapService {
 
   @Override
   public boolean isAvailable(String mapName) {
+    logger.debug("Trying to find map {} mapName locally", mapName);
+
     for (MapInfoBean mapInfoBean : getLocalMaps()) {
       if (mapName.equals(mapInfoBean.getName())) {
+        logger.debug("Found map {} locally", mapName);
         return true;
       }
     }
+
+    logger.debug("Map {} is not available locally", mapName);
     return false;
   }
 
   @Override
   public void download(String mapName, Callback<Void> callback) {
-    // FIXME implement
+    String taskTitle = i18n.get("mapDownloadTask.title", mapName);
+    taskService.submitTask(TaskGroup.NET_HEAVY, new PrioritizedTask<Void>(taskTitle) {
+      @Override
+      protected Void call() throws Exception {
+        String mapUrl = getMapUrl(mapName, getMapUrl(mapName, environment.getProperty("vault.mapDownloadUrl")));
+
+        logger.info("Downloading map {} from {}", mapName, mapUrl);
+
+        HttpURLConnection urlConnection = (HttpURLConnection) new URL(mapUrl).openConnection();
+        int bytesToRead = urlConnection.getContentLength();
+
+        Path targetDirectory = preferencesService.getMapsDirectory();
+
+        try (ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(urlConnection.getInputStream()))) {
+          Unzipper.from(inputStream)
+              .to(targetDirectory)
+              .totalBytes(bytesToRead)
+              .listener(this::updateProgress)
+              .unzip();
+        }
+
+        return null;
+      }
+    }, callback);
   }
 
   private static String getMapUrl(String mapName, String baseUrl) {
-    return StringEscapeUtils.escapeHtml4(String.format(baseUrl, mapName)).toLowerCase(Locale.US);
+    return String.format(baseUrl, mapName.toLowerCase(Locale.US));
   }
 }
