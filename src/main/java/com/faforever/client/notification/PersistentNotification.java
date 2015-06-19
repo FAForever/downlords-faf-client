@@ -1,6 +1,6 @@
 package com.faforever.client.notification;
 
-import javafx.scene.layout.HBox;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -8,7 +8,7 @@ import java.util.List;
  * A notification that keeps displaying until the user performs a suggested action or dismisses it. The notification
  * consist of a severity, a text and zero or more actions and is always rendered with a close button.
  */
-public class PersistentNotification extends HBox {
+public class PersistentNotification implements Comparable<PersistentNotification> {
 
   private final String text;
   private final Severity severity;
@@ -34,5 +34,10 @@ public class PersistentNotification extends HBox {
 
   public Severity getSeverity() {
     return severity;
+  }
+
+  @Override
+  public int compareTo(@NotNull PersistentNotification o) {
+    return text.compareTo(o.text);
   }
 }
