@@ -41,6 +41,7 @@ import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.supcom.ForgedAllianceServiceImpl;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.task.TaskServiceImpl;
+import com.faforever.client.upnp.ClingUpnpService;
 import com.faforever.client.upnp.UpnpService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
@@ -174,15 +175,15 @@ public class BaseConfig {
 
   @Bean
   UpnpService upnpService() {
-    logger.warn("Using mock UPnP service");
-    // FIXME disabled so far as it opens too many threads and keeps running etc.
-    return new UpnpService() {
-      @Override
-      public void forwardPort(int port) {
-        logger.warn("Port forwarding service is currently disabled");
-      }
-    };
-//    return new ClingUpnpService();
+//    logger.warn("Using mock UPnP service");
+//    // FIXME disabled so far as it opens too many threads and keeps running etc.
+//    return new UpnpService() {
+//      @Override
+//      public void forwardPort(int port) {
+//        logger.warn("Port forwarding service is currently disabled");
+//      }
+//    };
+    return new ClingUpnpService();
   }
 
   @Bean

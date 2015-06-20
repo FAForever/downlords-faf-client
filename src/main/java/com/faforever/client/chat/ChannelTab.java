@@ -175,8 +175,11 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
         // Re-add Plateform.runLater() as soon as RT-40417 is fixed
 //        Platform.runLater(() -> {
         Map<Pane, ChatUserControl> paneChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
-        // FIXME occasional NPE here
-        pane.getChildren().remove(paneChatUserControlMap.get(pane));
+        if (paneChatUserControlMap == null) {
+          // User has not yet been added to this pane; no need to remove him
+          return;
+        }
+        Platform.runLater(() -> pane.getChildren().remove(paneChatUserControlMap.get(pane)));
 //        });
       }
     };
@@ -188,9 +191,13 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
    * is applied.
    */
   private void createChatUserControlForPlayerIfNecessary(Pane pane, PlayerInfoBean playerInfoBean) {
-    Map<Pane, ChatUserControl> paneToChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
+    String username = playerInfoBean.getUsername();
+    if (!userToChatUserControls.containsKey(username)) {
+      userToChatUserControls.putIfAbsent(username, new HashMap<>(1, 1));
+    }
 
-    // FIXME occasional NPE here
+    Map<Pane, ChatUserControl> paneToChatUserControlMap = userToChatUserControls.get(username);
+
     ChatUserControl existingChatUserControl = paneToChatUserControlMap.get(pane);
     if (existingChatUserControl != null) {
       return;

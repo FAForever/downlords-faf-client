@@ -67,11 +67,9 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     }
 
     PlayerInfoBean playerInfoBean = players.get(playerInfo.login);
-    playerInfoBean.setChatOnly(false);
+    playerInfoBean.updateFromPlayerInfo(playerInfo);
     playerInfoBean.setFriend(friendList.contains(playerInfo.login));
     playerInfoBean.setFoe(foeList.contains(playerInfo.login));
-    playerInfoBean.setMean(playerInfo.ratingMean);
-    playerInfoBean.setDeviation(playerInfo.ratingDeviation);
   }
 
   @Override

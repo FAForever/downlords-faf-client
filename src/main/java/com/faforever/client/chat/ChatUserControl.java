@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fxml.FxmlLoader;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
@@ -112,18 +113,20 @@ public class ChatUserControl extends HBox {
 
   private void configureClanLabel() {
     playerInfoBean.clanProperty().addListener((observable, oldValue, newValue) -> {
-      if (StringUtils.isEmpty(newValue)) {
-        clanLabel.setVisible(false);
-      } else {
-        clanLabel.setText(String.format(CLAN_TAG_FORMAT, newValue));
-        clanLabel.setVisible(true);
-      }
+      Platform.runLater(() -> {
+        if (StringUtils.isEmpty(newValue)) {
+          clanLabel.setVisible(false);
+        } else {
+          clanLabel.setText(String.format(CLAN_TAG_FORMAT, newValue));
+          clanLabel.setVisible(true);
+        }
+      });
     });
   }
 
   private void configureAvatarImageView() {
     playerInfoBean.avatarUrlProperty().addListener((observable, oldValue, newValue) -> {
-      setAvatarUrl(newValue);
+      Platform.runLater(() -> setAvatarUrl(newValue));
     });
     setAvatarUrl(playerInfoBean.getAvatarUrl());
 
@@ -136,7 +139,7 @@ public class ChatUserControl extends HBox {
 
   private void configureCountryImageView() {
     playerInfoBean.countryProperty().addListener((observable, oldValue, newValue) -> {
-      setCountry(newValue);
+      Platform.runLater(() -> setCountry(newValue));
     });
     setCountry(playerInfoBean.getCountry());
 

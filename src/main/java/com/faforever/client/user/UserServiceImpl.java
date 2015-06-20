@@ -20,7 +20,6 @@ public class UserServiceImpl implements UserService {
   @Autowired
   PlayerService playerService;
 
-  private boolean isLoggedIn;
   private String username;
   private String password;
   private PlayerInfoBean currentPlayer;
