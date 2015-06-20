@@ -7,7 +7,7 @@
       </pattern>
     </extension>
     <option name="MAIN_CLASS_NAME" value="com.faforever.client.Main" />
-    <option name="VM_PARAMETERS" value="-Djava.library.path=src/main/native -Dfaf.testing -Dprism.order=sw" />
+    <option name="VM_PARAMETERS" value="-Djava.library.path=src/main/native -Dfaf.testing" />
     <option name="PROGRAM_PARAMETERS" value="" />
     <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />

@@ -361,10 +361,16 @@
 /***************** Transparent table *****************/
 
 .transparent-background-table {
-  -fx-base: transparent;
-  -fx-background-color: transparent;
-  -fx-background: transparent;
-  -fx-control-inner-background: transparent;
+  -fx-control-inner-background: #FFFFFF00;
+  -fx-control-inner-background-alt: #FFFFFF11;
+}
+
+.transparent-background-table .virtual-flow {
+  -fx-color: transparent;
+}
+
+.transparent-background-table .virtual-flow .scroll-bar > .thumb {
+  -fx-color: -fx-base;
 }
 
 /***************** Navigation *****************/

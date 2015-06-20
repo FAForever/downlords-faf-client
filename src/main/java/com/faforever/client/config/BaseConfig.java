@@ -175,15 +175,12 @@ public class BaseConfig {
 
   @Bean
   UpnpService upnpService() {
-//    logger.warn("Using mock UPnP service");
-//    // FIXME disabled so far as it opens too many threads and keeps running etc.
-//    return new UpnpService() {
-//      @Override
-//      public void forwardPort(int port) {
-//        logger.warn("Port forwarding service is currently disabled");
-//      }
-//    };
-    return new ClingUpnpService();
+    if (environment.containsProperty("faf.testing")) {
+      return port -> {
+      };
+    } else {
+      return new ClingUpnpService();
+    }
   }
 
   @Bean
