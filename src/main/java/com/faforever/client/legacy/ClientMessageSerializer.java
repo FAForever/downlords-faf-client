@@ -4,7 +4,7 @@ import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.writer.JsonSerializer;
-import com.faforever.client.legacy.writer.QStreamWriter;
+import com.faforever.client.legacy.io.QStreamWriter;
 import com.google.gson.GsonBuilder;
 import javafx.beans.property.StringProperty;
 

@@ -41,10 +41,11 @@ import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.supcom.ForgedAllianceServiceImpl;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.task.TaskServiceImpl;
-import com.faforever.client.upnp.ClingUpnpService;
 import com.faforever.client.upnp.UpnpService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
@@ -53,6 +54,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Locale;
 
 /**
@@ -62,6 +64,8 @@ import java.util.Locale;
 @org.springframework.context.annotation.Configuration
 @PropertySource("classpath:/faf_client.properties")
 public class BaseConfig {
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final java.lang.String PROPERTY_LOCALE = "locale";
 
@@ -170,7 +174,15 @@ public class BaseConfig {
 
   @Bean
   UpnpService upnpService() {
-    return new ClingUpnpService();
+    logger.warn("Using mock UPnP service");
+    // FIXME disabled so far as it opens too many threads and keeps running etc.
+    return new UpnpService() {
+      @Override
+      public void forwardPort(int port) {
+        logger.warn("Port forwarding service is currently disabled");
+      }
+    };
+//    return new ClingUpnpService();
   }
 
   @Bean

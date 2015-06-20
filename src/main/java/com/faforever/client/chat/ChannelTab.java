@@ -175,6 +175,7 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
         // Re-add Plateform.runLater() as soon as RT-40417 is fixed
 //        Platform.runLater(() -> {
         Map<Pane, ChatUserControl> paneChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
+        // FIXME occasional NPE here
         pane.getChildren().remove(paneChatUserControlMap.get(pane));
 //        });
       }

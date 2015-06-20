@@ -1,4 +1,4 @@
-package com.faforever.client.legacy.writer;
+package com.faforever.client.legacy.io;
 
 import java.io.IOException;
 import java.io.OutputStream;

@@ -1,7 +1,7 @@
 package com.faforever.client.legacy.proxy;
 
-import com.faforever.client.legacy.writer.QDataOutputStream;
-import com.faforever.client.legacy.writer.QDataReader;
+import com.faforever.client.legacy.io.QDataOutputStream;
+import com.faforever.client.legacy.io.QDataReader;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ConcurrentUtil;
@@ -268,25 +268,29 @@ public class ProxyImpl implements Proxy {
         DatagramPacket datagramPacket = new DatagramPacket(datagramBuffer, datagramBuffer.length);
         datagramPacket.setSocketAddress(new InetSocketAddress(localInetAddr, forgedAlliancePrefs.getPort()));
 
-        while (!isCancelled()) {
-          // Skip block size bytes, we have no use for it
-          fafProxyReader.readInt32();
+        try {
+          while (!isCancelled()) {
+            // Skip block size bytes, we have no use for it
+            fafProxyReader.readInt32();
 
-          int playerNumber = fafProxyReader.readShort();
+            int playerNumber = fafProxyReader.readShort();
 
-          int payloadSize = fafProxyReader.readQByteArray(payloadBuffer);
+            int payloadSize = fafProxyReader.readQByteArray(payloadBuffer);
 
-          logger.trace("Received {} bytes from FAF proxy, forwarding to FA", payloadSize);
+            logger.trace("Received {} bytes from FAF proxy, forwarding to FA", payloadSize);
 
-          datagramPacket.setData(payloadBuffer, 0, payloadSize);
+            datagramPacket.setData(payloadBuffer, 0, payloadSize);
 
-          getProxySocketLatchForPlayer(playerNumber).await();
-          DatagramSocket proxySocket = proxySockets.get(playerNumber);
-          if (proxySocket == null) {
-            logger.warn("Tried to start proxy reader for player #{} but no such socket has been opened", playerNumber);
-          } else {
-            proxySocket.send(datagramPacket);
+            getProxySocketLatchForPlayer(playerNumber).await();
+            DatagramSocket proxySocket = proxySockets.get(playerNumber);
+            if (proxySocket == null) {
+              logger.warn("Tried to start proxy reader for player #{} but no such socket has been opened", playerNumber);
+            } else {
+              proxySocket.send(datagramPacket);
+            }
           }
+        }catch (SocketException | EOFException e) {
+          logger.debug("Connection closed");
         }
         return null;
       }

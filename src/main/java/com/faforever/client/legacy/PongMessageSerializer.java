@@ -1,6 +1,6 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.legacy.writer.QStreamWriter;
+import com.faforever.client.legacy.io.QStreamWriter;
 import javafx.beans.property.StringProperty;
 import org.springframework.core.serializer.Serializer;
 

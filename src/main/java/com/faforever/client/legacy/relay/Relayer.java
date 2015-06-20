@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.relay;
 
-import com.faforever.client.legacy.writer.QDataReader;
+import com.faforever.client.legacy.io.QDataReader;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.legacy.proxy.ProxyUtils;

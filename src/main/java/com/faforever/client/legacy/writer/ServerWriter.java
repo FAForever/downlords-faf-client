@@ -1,6 +1,7 @@
 package com.faforever.client.legacy.writer;
 
 import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.legacy.io.QStreamWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.serializer.Serializer;

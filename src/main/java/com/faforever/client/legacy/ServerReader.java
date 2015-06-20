@@ -18,7 +18,7 @@ import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
 import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
-import com.faforever.client.legacy.writer.QDataReader;
+import com.faforever.client.legacy.io.QDataReader;
 import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.stats.StatisticsObject;
 import com.google.gson.FieldNamingPolicy;
