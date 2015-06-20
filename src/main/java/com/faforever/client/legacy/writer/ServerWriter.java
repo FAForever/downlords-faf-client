@@ -10,9 +10,11 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,7 +27,6 @@ public class ServerWriter implements Closeable {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final QStreamWriter qStreamWriter;
-  private boolean closedGracefully;
   private Map<Class<?>, Serializer<?>> objectWriters;
 
   public ServerWriter(OutputStream outputStream) throws IOException {
@@ -52,20 +53,15 @@ public class ServerWriter implements Closeable {
         qStreamWriter.appendWithSize(outputStream.toByteArray());
         qStreamWriter.flush();
       }
+    } catch (EOFException | SocketException e) {
+      logger.debug("Server writer has been closed");
     } catch (IOException e) {
-      if (!closedGracefully) {
-        throw new RuntimeException(e);
-      } else {
-        logger.debug("Server writer has been closed");
-      }
+      logger.debug("Server writer has been closed", e);
     }
   }
 
   @Override
   public void close() throws IOException {
-    closedGracefully = true;
     qStreamWriter.close();
   }
-
-
 }
