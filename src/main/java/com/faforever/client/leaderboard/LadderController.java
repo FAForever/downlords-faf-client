@@ -86,6 +86,7 @@ public class LadderController {
     ladderService.getLadderInfo(new Callback<List<LadderEntryBean>>() {
       @Override
       public void success(List<LadderEntryBean> result) {
+        ladderEntryBeans = result;
         filteredList = new FilteredList<>(observableArrayList(result));
         ratingTable.setItems(filteredList);
       }
