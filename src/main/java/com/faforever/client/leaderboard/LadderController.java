@@ -1,6 +1,7 @@
 package com.faforever.client.leaderboard;
 
 import com.faforever.client.util.Callback;
+import com.faforever.client.util.Validator;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -69,13 +70,32 @@ public class LadderController {
     ratingColumn.setCellValueFactory(param -> param.getValue().ratingProperty());
 
     searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      filteredList.setPredicate(ladderEntryBean -> usernameOrRankingPredicate(newValue, ladderEntryBean));
+      if (Validator.isInt(newValue)) {
+        ratingTable.scrollTo(Integer.parseInt(newValue) - 1);
+      } else {
+        LadderEntryBean foundPlayer = null;
+        for (LadderEntryBean ladderEntryBean : ladderEntryBeans) {
+          if (ladderEntryBean.getUsername().toLowerCase().startsWith(newValue.toLowerCase())) {
+            foundPlayer = ladderEntryBean;
+            break;
+          }
+        }
+        if (foundPlayer == null) {
+          for (LadderEntryBean ladderEntryBean : ladderEntryBeans) {
+            if (ladderEntryBean.getUsername().toLowerCase().contains(newValue.toLowerCase())) {
+              foundPlayer = ladderEntryBean;
+              break;
+            }
+          }
+        }
+        if (foundPlayer != null) {
+          ratingTable.scrollTo(foundPlayer);
+          ratingTable.getSelectionModel().select(foundPlayer);
+        } else {
+          ratingTable.getSelectionModel().select(null);
+        }
+      }
     });
-  }
-
-  private boolean usernameOrRankingPredicate(String newValue, LadderEntryBean ladderEntryBean) {
-    return ladderEntryBean.getUsername().toLowerCase().contains(newValue)
-        || String.valueOf(ladderEntryBean.getRank()).startsWith(newValue);
   }
 
   public void setUpIfNecessary() {

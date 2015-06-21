@@ -24,7 +24,7 @@ import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 public class MockChatService implements ChatService {
 
-  private static final long CONNECTION_DELAY = 5000;
+  private static final long CONNECTION_DELAY = 1000;
   public static final int CHAT_MESSAGE_INTERVAL = 3000;
   private final Timer timer;
 

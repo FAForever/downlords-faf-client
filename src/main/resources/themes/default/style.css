@@ -474,7 +474,7 @@
   -fx-background-color: transparent;
 }
 
-/***************** Range Slider Fixes *****************/
+/***************** Range Slider *****************/
 
 .slider > .axis:bottom {
   -fx-padding : 50, 50, 50, 50;
