@@ -8,20 +8,32 @@ import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.GameState;
+import com.faforever.client.legacy.domain.GameType;
 import com.faforever.client.legacy.domain.GameTypeInfo;
-import com.faforever.client.legacy.domain.OnFafLoginSucceededListener;
 import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.legacy.domain.ServerMessageType;
+import com.faforever.client.legacy.domain.ServerObject;
+import com.faforever.client.legacy.domain.ServerObjectType;
 import com.faforever.client.legacy.domain.SessionInfo;
+import com.faforever.client.legacy.domain.SocialInfo;
+import com.faforever.client.legacy.domain.StatisticsType;
+import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
+import com.faforever.client.legacy.gson.GameStateTypeAdapter;
+import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
+import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.legacy.ladder.LadderParser;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
-import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.util.UID;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -43,23 +55,13 @@ import java.util.List;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
-public class ServerAccessorImpl implements ServerAccessor,
-    OnSessionInfoListener,
-    OnPingListener,
-    OnPlayerInfoListener,
-    OnFafLoginSucceededListener,
-    OnGameTypeInfoListener,
-    OnGameLaunchInfoListener,
-    OnFriendListListener,
-    OnFoeListListener,
-    OnGameInfoListener,
-    OnPlayerStatsListener {
+public class LobbyServerAccessorImpl extends AbstractServerAccessor implements LobbyServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final int VERSION = 123;
   private static final long RECONNECT_DELAY = 3000;
-  private static final String PONG = "PONG";
+  private final Gson gson;
 
   @Autowired
   Environment environment;
@@ -77,7 +79,6 @@ public class ServerAccessorImpl implements ServerAccessor,
   I18n i18n;
 
   private Task<Void> fafConnectionTask;
-  private String uniqueId;
   private String username;
   private String password;
   private String localIp;
@@ -94,15 +95,20 @@ public class ServerAccessorImpl implements ServerAccessor,
   private OnFafDisconnectedListener onFafDisconnectedListener;
   private OnLobbyConnectedListener onLobbyConnectedListener;
   private OnPlayerInfoListener onPlayerInfoListener;
-  private OnFoeListListener onFoeListListener;
   private OnFriendListListener onFriendListListener;
-  private OnPlayerStatsListener onPlayerStatsListener;
-  private Callback<PlayerStatistics> playerStatisticsCallback;
+  private OnFoeListListener onFoeListListener;
 
-  public ServerAccessorImpl() {
+  public LobbyServerAccessorImpl() {
     onGameInfoListeners = new ArrayList<>();
     onGameTypeInfoListeners = new ArrayList<>();
     sessionId = new SimpleStringProperty();
+    gson = new GsonBuilder()
+        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+        .registerTypeAdapter(GameType.class, new GameTypeTypeAdapter())
+        .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
+        .registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter())
+        .registerTypeAdapter(StatisticsType.class, new StatisticsTypeTypeAdapter())
+        .create();
   }
 
   @Override
@@ -180,7 +186,11 @@ public class ServerAccessorImpl implements ServerAccessor,
     executeInBackground(fafConnectionTask);
   }
 
-  private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
+  private void writeToServer(Object object) {
+    serverWriter.write(object);
+  }
+
+  protected ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
     ServerWriter serverWriter = new ServerWriter(outputStream);
     serverWriter.registerObjectWriter(new ClientMessageSerializer(username, sessionId), ClientMessage.class);
     serverWriter.registerObjectWriter(new PongMessageSerializer(username, sessionId), PongMessage.class);
@@ -188,50 +198,20 @@ public class ServerAccessorImpl implements ServerAccessor,
     return serverWriter;
   }
 
-  private void writeToServer(Object object) {
-    serverWriter.write(object);
-  }
-
-  private void blockingReadServer(Socket socket) throws IOException {
-    JavaFxUtil.assertBackgroundThread();
-
-    ServerReader serverReader = new ServerReader(socket);
-    serverReader.setOnSessionInfoListener(this);
-    serverReader.setOnGameInfoListener(this);
-    serverReader.setOnPingListener(this);
-    serverReader.setOnPlayerInfoListener(this);
-    serverReader.setOnFafLoginSucceededListener(this);
-    serverReader.setOnGameTypeInfoListener(this);
-    serverReader.setOnGameLaunchInfoListener(this);
-    serverReader.setOnFriendListListener(this);
-    serverReader.setOnFoeListListener(this);
-    serverReader.setOnPlayerStatsListener(this);
-    serverReader.blockingRead();
-  }
-
-  @Override
-  public void onSessionInitiated(SessionInfo message) {
+  private void onSessionInitiated(SessionInfo message) {
     this.sessionId.set(message.session);
-    this.uniqueId = UID.generate(sessionId.get(), preferencesService.getFafDataDirectory().resolve("uid.log"));
+    String uniqueId = UID.generate(sessionId.get(), preferencesService.getFafDataDirectory().resolve("uid.log"));
 
     logger.info("FAF session initiated, session ID: {}", sessionId.get());
 
-    executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        writeToServer(ClientMessage.login(username, password, sessionId.get(), uniqueId, localIp, VERSION));
-        return null;
-      }
-    });
+    writeToServer(ClientMessage.login(username, password, sessionId.get(), uniqueId, localIp, VERSION));
   }
 
-  @Override
-  public void onServerPing() {
+  private void onServerPing() {
     writeToServer(new PongMessage());
   }
 
-  @Override
-  public void onFafLoginSucceeded() {
+  private void onFafLoginSucceeded() {
     logger.info("FAF login succeeded");
 
     Platform.runLater(() -> {
@@ -247,37 +227,32 @@ public class ServerAccessorImpl implements ServerAccessor,
     onGameTypeInfoListeners.add(listener);
   }
 
-  @Override
-  public void onGameInfo(GameInfo gameInfo) {
+  private void onGameInfo(GameInfo gameInfo) {
     for (OnGameInfoListener listener : onGameInfoListeners) {
       Platform.runLater(() -> listener.onGameInfo(gameInfo));
     }
   }
 
-  @Override
-  public void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
+  private void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
     for (OnGameTypeInfoListener listener : onGameTypeInfoListeners) {
       Platform.runLater(() -> listener.onGameTypeInfo(gameTypeInfo));
     }
   }
 
-  @Override
-  public void onPlayerInfo(PlayerInfo playerInfo) {
+  private void onPlayerInfo(PlayerInfo playerInfo) {
     if (onPlayerInfoListener != null) {
       onPlayerInfoListener.onPlayerInfo(playerInfo);
     }
   }
 
 
-  @Override
-  public void onFriendList(List<String> friends) {
+  private void onFriendList(List<String> friends) {
     if (onFriendListListener != null) {
       onFriendListListener.onFriendList(friends);
     }
   }
 
-  @Override
-  public void onFoeList(List<String> foes) {
+  private void onFoeList(List<String> foes) {
     if (onFoeListListener != null) {
       onFoeListListener.onFoeList(foes);
     }
@@ -332,8 +307,7 @@ public class ServerAccessorImpl implements ServerAccessor,
     writeToServerInBackground(clientMessage);
   }
 
-  @Override
-  public void onGameLaunchInfo(GameLaunchInfo gameLaunchInfo) {
+  private void onGameLaunchInfo(GameLaunchInfo gameLaunchInfo) {
     gameLaunchCallback.success(gameLaunchInfo);
   }
 
@@ -387,22 +361,112 @@ public class ServerAccessorImpl implements ServerAccessor,
     }, callback);
   }
 
-  @Override
-  public void requestPlayerStatistics(String username, Callback<PlayerStatistics> callback) {
-    // FIXME this is not safe (as well aren't similar implementations in this class)
-    playerStatisticsCallback = callback;
-    writeToServer(ClientMessage.askPlayerStats(username));
+  public void onServerMessage(String message) throws IOException {
+    ServerMessageType serverMessageType = ServerMessageType.fromString(message);
+    if (serverMessageType != null) {
+      dispatchServerMessage(serverMessageType);
+    } else {
+      parseServerObject(message);
+    }
   }
 
-  @Override
-  public void onPlayerStats(PlayerStatistics playerStatistics) {
-    playerStatisticsCallback.success(playerStatistics);
+  private void dispatchServerMessage(ServerMessageType serverMessageType) throws IOException {
+    switch (serverMessageType) {
+      case PING:
+        logger.debug("Server PINGed");
+        onServerPing();
+        break;
 
-    Platform.runLater(() -> {
-      if (playerStatisticsCallback != null) {
-        playerStatisticsCallback.success(null);
-        playerStatisticsCallback = null;
+      case LOGIN_AVAILABLE:
+        logger.warn("Login available: {}", readNextString());
+        break;
+
+      case ACK:
+        // Number of bytes acknowledged... as a string... I mean, why not.
+        int acknowledgedBytes = Integer.parseInt(readNextString());
+        // I really don't care. This is TCP with keepalive!
+        logger.debug("Server acknowledged {} bytes", acknowledgedBytes);
+        break;
+
+      case ERROR:
+        logger.warn("Unhandled error from server: {}", readNextString());
+        break;
+
+      case MESSAGE:
+        logger.warn("Unhandled message from server: {}", readNextString());
+        break;
+
+      default:
+        logger.warn("Unknown server response: {}", serverMessageType);
+    }
+  }
+
+  private void parseServerObject(String jsonString) {
+    try {
+      ServerObject serverObject = gson.fromJson(jsonString, ServerObject.class);
+
+      ServerObjectType serverObjectType = ServerObjectType.fromString(serverObject.command);
+
+      if (serverObjectType == null) {
+        logger.warn("Unknown server object: " + jsonString);
+        return;
       }
-    });
+
+      switch (serverObjectType) {
+        case WELCOME:
+          SessionInfo sessionInfo = gson.fromJson(jsonString, SessionInfo.class);
+          if (sessionInfo.session != null) {
+            onSessionInitiated(sessionInfo);
+          } else if (sessionInfo.email != null) {
+            onFafLoginSucceeded();
+          }
+          break;
+
+        case GAME_INFO:
+          GameInfo gameInfo = gson.fromJson(jsonString, GameInfo.class);
+          onGameInfo(gameInfo);
+          break;
+
+        case PLAYER_INFO:
+          PlayerInfo playerInfo = gson.fromJson(jsonString, PlayerInfo.class);
+          onPlayerInfoListener.onPlayerInfo(playerInfo);
+          break;
+
+        case GAME_LAUNCH:
+          GameLaunchInfo gameLaunchInfo = gson.fromJson(jsonString, GameLaunchInfo.class);
+          onGameLaunchInfo(gameLaunchInfo);
+          break;
+
+        case MOD_INFO:
+          GameTypeInfo gameTypeInfo = gson.fromJson(jsonString, GameTypeInfo.class);
+          onGameTypeInfo(gameTypeInfo);
+          break;
+
+        case TUTORIALS_INFO:
+          logger.warn("Tutorials info still unhandled: " + jsonString);
+          break;
+
+        case MATCHMAKER_INFO:
+          logger.warn("Matchmaker info still unhandled: " + jsonString);
+          break;
+
+        case SOCIAL:
+          SocialInfo socialInfo = gson.fromJson(jsonString, SocialInfo.class);
+          dispatchSocialInfo(socialInfo);
+          break;
+        default:
+          logger.warn("Missing case for server object type: " + serverObjectType);
+      }
+    } catch (JsonSyntaxException e) {
+      logger.warn("Could not deserialize message: " + jsonString, e);
+    }
+  }
+
+  private void dispatchSocialInfo(SocialInfo socialInfo) {
+    if (socialInfo.friends != null) {
+      onFriendListListener.onFriendList(socialInfo.friends);
+    } else if (socialInfo.foes != null) {
+      onFoeListListener.onFoeList(socialInfo.foes);
+    }
   }
 }

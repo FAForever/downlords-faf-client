@@ -2,7 +2,7 @@ package com.faforever.client.mod;
 
 import com.faforever.client.game.GameTypeBean;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
-import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.legacy.LobbyServerAccessor;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,11 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ModServiceImpl implements ModService {
 
   @Autowired
-  ServerAccessor serverAccessor;
+  LobbyServerAccessor lobbyServerAccessor;
 
   @Override
   public void addOnModInfoListener(OnGameTypeInfoListener onGameTypeInfoListener) {
-    serverAccessor.addOnGameTypeInfoListener(onGameTypeInfoListener);
+    lobbyServerAccessor.addOnGameTypeInfoListener(onGameTypeInfoListener);
   }
 
   @Override

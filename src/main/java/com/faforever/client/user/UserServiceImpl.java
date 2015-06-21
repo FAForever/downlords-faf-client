@@ -1,7 +1,7 @@
 package com.faforever.client.user;
 
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
@@ -12,7 +12,7 @@ import javax.annotation.PostConstruct;
 public class UserServiceImpl implements UserService {
 
   @Autowired
-  ServerAccessor serverAccessor;
+  LobbyServerAccessor lobbyServerAccessor;
 
   @Autowired
   PreferencesService preferencesService;
@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
     this.password = password;
 
     preferencesService.storeInBackground();
-    serverAccessor.connectAndLogInInBackground(callback);
+    lobbyServerAccessor.connectAndLogInInBackground(callback);
   }
 
   @Override
@@ -70,6 +70,6 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public void cancelLogin() {
-    serverAccessor.disconnect();
+    lobbyServerAccessor.disconnect();
   }
 }

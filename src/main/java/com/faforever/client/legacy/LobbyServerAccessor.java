@@ -5,7 +5,6 @@ import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LadderEntryBean;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.util.Callback;
 
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.List;
  * Entry class for all communication with the FAF lobby server, be it reading or writing. This class should only be
  * called from within services.
  */
-public interface ServerAccessor {
+public interface LobbyServerAccessor {
 
   /**
    * Connects to the FAF server and logs in using the credentials from {@link PreferencesService}. This method runs in
@@ -49,6 +48,4 @@ public interface ServerAccessor {
   void setOnLobbyConnectedListener(OnLobbyConnectedListener onLobbyConnectedListener);
 
   void requestLadderInfoInBackground(Callback<List<LadderEntryBean>> callback);
-
-  void requestPlayerStatistics(String username, Callback<PlayerStatistics> callback);
 }

@@ -181,6 +181,9 @@
     -fx-stroke: derive(-fx-text-background-color, 40%);
 }
 
+.axis {
+    -fx-font-size: 1.2em;
+}
 
 /***************** Text field *****************/
 

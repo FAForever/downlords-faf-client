@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.writer;
 
-import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.io.QStreamWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Sends data to the server. Classes should not use the server writer directly, but {@link ServerAccessor} instead.
+ * Sends data to the server. Classes should not use the server writer directly, but {@link LobbyServerAccessor} instead.
  * TODO improve javadoc, explain that there are different ways to write to the server
  */
 public class ServerWriter implements Closeable {

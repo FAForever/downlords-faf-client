@@ -16,8 +16,17 @@ public class ClientMessageSerializer extends JsonSerializer<ClientMessage> {
   private StringProperty sessionIdProperty;
 
   /**
-   * @param sessionIdProperty the session ID property, so that this serializer can be initialized before the
-   * session ID has been set, but it will still get it afterwards.
+   * Creates a message serializer that does not append username and session ID to sent messages.
+   */
+  public ClientMessageSerializer() {
+
+  }
+
+  /**
+   * Creates a message serializer that appends username and session ID to sent messages.
+   *
+   * @param sessionIdProperty the session ID property, so that this serializer can be initialized before the session ID
+   * has been set, but it will still get it afterwards.
    */
   public ClientMessageSerializer(String username, StringProperty sessionIdProperty) {
     this.username = username;
@@ -26,8 +35,12 @@ public class ClientMessageSerializer extends JsonSerializer<ClientMessage> {
 
   @Override
   protected void appendMore(QStreamWriter qStreamWriter) throws IOException {
-    qStreamWriter.append(username);
-    qStreamWriter.append(sessionIdProperty.get());
+    if (username != null) {
+      qStreamWriter.append(username);
+    }
+    if (sessionIdProperty != null) {
+      qStreamWriter.append(sessionIdProperty.get());
+    }
   }
 
   @Override

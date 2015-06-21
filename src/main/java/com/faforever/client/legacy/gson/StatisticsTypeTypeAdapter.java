@@ -16,6 +16,6 @@ public class StatisticsTypeTypeAdapter extends TypeAdapter<StatisticsType> {
 
   @Override
   public StatisticsType read(JsonReader in) throws IOException {
-    return StatisticsType.valueOf(in.nextString());
+    return StatisticsType.fromString(in.nextString());
   }
 }

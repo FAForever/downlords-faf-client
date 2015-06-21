@@ -231,7 +231,7 @@ public class PlayerInfoBean {
     setDeviation(playerInfo.ratingDeviation);
     if (playerInfo.avatar != null) {
       setAvatarUrl(playerInfo.avatar.url);
-      setAvatarTooltip(playerInfo.avatar.url);
+      setAvatarTooltip(playerInfo.avatar.tooltip);
     }
   }
 }

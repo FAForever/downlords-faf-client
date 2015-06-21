@@ -135,7 +135,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   private Map<String, ChatUser> chatUsers(ImmutableSortedSet<User> users) {
     Map<String, ChatUser> chatUsers = new HashMap<>();
     for (User user : users) {
-      ChatUser chatUser = new ChatUser(user.getLogin(), user.isIrcop());
+      ChatUser chatUser = new ChatUser(user.getRealName(), user.isIrcop());
       chatUsers.put(chatUser.getUsername(), chatUser);
     }
     return chatUsers;
@@ -157,7 +157,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       listener.onMessage(event.getChannel().getName(),
           new ChatMessage(
               Instant.ofEpochMilli(event.getTimestamp()),
-              event.getUser().getLogin(),
+              event.getUser().getRealName(),
               event.getMessage()
           )
       );
@@ -166,7 +166,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       listener.onMessage(event.getChannel().getName(),
           new ChatMessage(
               Instant.ofEpochMilli(event.getTimestamp()),
-              event.getUser().getLogin(),
+              event.getUser().getRealName(),
               event.getMessage(),
               true
           )
@@ -196,10 +196,10 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   public void addOnPrivateChatMessageListener(final OnPrivateChatMessageListener listener) {
     addEventListener(PrivateMessageEvent.class,
         event -> listener.onPrivateMessage(
-            event.getUser().getLogin(),
+            event.getUser().getRealName(),
             new ChatMessage(
                 Instant.ofEpochMilli(event.getTimestamp()),
-                event.getUser().getLogin(),
+                event.getUser().getRealName(),
                 event.getMessage()
             )
         )
@@ -213,7 +213,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       User user = event.getUser();
       listener.onUserJoinedChannel(
           event.getChannel().getName(),
-          new ChatUser(user.getLogin(), user.isIrcop())
+          new ChatUser(user.getRealName(), user.isIrcop())
       );
     });
   }
@@ -221,7 +221,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   @Override
   public void addOnChatUserLeftChannelListener(OnChatUserLeftChannelListener listener) {
     addEventListener(PartEvent.class, event -> {
-      listener.onChatUserLeftChannel(event.getUser().getLogin(), event.getChannel().getName());
+      listener.onChatUserLeftChannel(event.getUser().getRealName(), event.getChannel().getName());
     });
   }
 
@@ -230,7 +230,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   public void addOnChatUserQuitListener(final OnChatUserQuitListener listener) {
     addEventListener(QuitEvent.class,
         event -> listener.onChatUserQuit(
-            event.getUser().getLogin()
+            event.getUser().getRealName()
         ));
   }
 

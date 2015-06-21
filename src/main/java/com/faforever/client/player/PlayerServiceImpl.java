@@ -5,7 +5,7 @@ import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.legacy.OnFoeListListener;
 import com.faforever.client.legacy.OnFriendListListener;
 import com.faforever.client.legacy.OnPlayerInfoListener;
-import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -19,7 +19,7 @@ import java.util.List;
 public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, OnFoeListListener, OnFriendListListener {
 
   @Autowired
-  ServerAccessor serverAccessor;
+  LobbyServerAccessor lobbyServerAccessor;
 
   @Autowired
   ChatService chatService;
@@ -36,9 +36,9 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   @PostConstruct
   void init() {
-    serverAccessor.setOnPlayerInfoMessageListener(this);
-    serverAccessor.setOnFoeListListener(this);
-    serverAccessor.setOnFriendListListener(this);
+    lobbyServerAccessor.setOnPlayerInfoMessageListener(this);
+    lobbyServerAccessor.setOnFoeListListener(this);
+    lobbyServerAccessor.setOnFriendListListener(this);
   }
 
   @Override

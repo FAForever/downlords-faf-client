@@ -10,9 +10,12 @@ import com.faforever.client.i18n.I18nImpl;
 import com.faforever.client.leaderboard.LadderService;
 import com.faforever.client.leaderboard.LadderServiceImpl;
 import com.faforever.client.leaderboard.MockLadderService;
-import com.faforever.client.legacy.MockServerAccessor;
-import com.faforever.client.legacy.ServerAccessor;
-import com.faforever.client.legacy.ServerAccessorImpl;
+import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.legacy.LobbyServerAccessorImpl;
+import com.faforever.client.legacy.MockLobbyServerAccessor;
+import com.faforever.client.legacy.MockStatisticsServerAccessor;
+import com.faforever.client.legacy.StatisticsServerAccessor;
+import com.faforever.client.legacy.StatisticsServerAccessorImpl;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
 import com.faforever.client.legacy.ladder.LadderParser;
 import com.faforever.client.legacy.ladder.LegacyLadderParser;
@@ -101,21 +104,27 @@ public class BaseConfig {
   }
 
   @Bean
-  ServerAccessor serverAccessor() {
+  LobbyServerAccessor lobbyServerAccessor() {
     if (environment.containsProperty("faf.testing")) {
-      return new MockServerAccessor();
-    } else {
-      return new ServerAccessorImpl();
+      return new MockLobbyServerAccessor();
     }
+    return new LobbyServerAccessorImpl();
+  }
+
+  @Bean
+  StatisticsServerAccessor statisticsServerAccessor() {
+    if (environment.containsProperty("faf.testing")) {
+      return new MockStatisticsServerAccessor();
+    }
+    return new StatisticsServerAccessorImpl();
   }
 
   @Bean
   ChatService chatService() {
     if (environment.containsProperty("faf.testing")) {
       return new MockChatService();
-    } else {
-      return new PircBotXChatService();
     }
+    return new PircBotXChatService();
   }
 
   @Bean
@@ -178,18 +187,16 @@ public class BaseConfig {
     if (environment.containsProperty("faf.testing")) {
       return port -> {
       };
-    } else {
-      return new ClingUpnpService();
     }
+    return new ClingUpnpService();
   }
 
   @Bean
   LadderService leaderboardService() {
     if (environment.containsProperty("faf.testing")) {
       return new MockLadderService();
-    } else {
-      return new LadderServiceImpl();
     }
+    return new LadderServiceImpl();
   }
 
   @Bean
@@ -216,5 +223,4 @@ public class BaseConfig {
   StatisticsService statisticsService() {
     return new LegacyStatisticsService();
   }
-
 }

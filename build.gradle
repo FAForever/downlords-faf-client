@@ -84,4 +84,5 @@ dependencies {
   compile 'org.jetbrains:annotations:13.0'
   compile 'net.sf.jtidy:jtidy:r938'
   compile 'org.fourthline.cling:cling-core:2.0.1'
+  compile 'com.neovisionaries:nv-i18n:1.15'
 }
