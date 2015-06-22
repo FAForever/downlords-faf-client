@@ -188,7 +188,6 @@ class Relayer implements Closeable {
 
     // Ask FA to connect to the other player via the local proxy port
     ConnectToPeerMessage connectToPeerMessage = new ConnectToPeerMessage();
-    connectToPeerMessage.setPlayerNumber(playerNumber);
     connectToPeerMessage.setPeerAddress(SocketAddressUtil.toString(proxySocket));
     connectToPeerMessage.setUsername(connectToProxyMessage.getUsername());
     connectToPeerMessage.setPeerUid(connectToProxyMessage.getPeerUid());
