@@ -42,7 +42,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .username(currentPlayer.getUsername())
         .additionalArgs(additionalArgs)
             // FIXME fix the path
-        .logFile(preferencesService.getFafDataDirectory().resolve("faf.log"))
+        .logFile(preferencesService.getFafDataDirectory().resolve("game.log"))
         .localGpgPort(localRelayServer.getPort())
         .build();
 

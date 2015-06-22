@@ -237,22 +237,22 @@ public class ProxyImpl implements Proxy {
       if (fafProxySocket != null && fafProxySocket.isConnected()) {
         return;
       }
+
+      String proxyHost = environment.getProperty("proxy.host");
+      Integer proxyPort = environment.getProperty("proxy.port", Integer.class);
+
+      logger.info("Connecting to FAF proxy at {}:{}", proxyHost, proxyPort);
+
+      fafProxySocket = new Socket();
+      fafProxySocket.setTcpNoDelay(true);
+      fafProxySocket.connect(new InetSocketAddress(proxyHost, proxyPort), PROXY_CONNECTION_TIMEOUT);
+
+      fafProxyOutputStream = new QDataOutputStream(new BufferedOutputStream(fafProxySocket.getOutputStream()));
+      fafProxyReader = new QDataReader(new DataInputStream(new BufferedInputStream(fafProxySocket.getInputStream())));
+
+      sendUid(uid);
+      startFafProxyReaderInBackground();
     }
-
-    String proxyHost = environment.getProperty("proxy.host");
-    Integer proxyPort = environment.getProperty("proxy.port", Integer.class);
-
-    logger.info("Connecting to FAF proxy at {}:{}", proxyHost, proxyPort);
-
-    fafProxySocket = new Socket();
-    fafProxySocket.setTcpNoDelay(true);
-    fafProxySocket.connect(new InetSocketAddress(proxyHost, proxyPort), PROXY_CONNECTION_TIMEOUT);
-
-    fafProxyOutputStream = new QDataOutputStream(new BufferedOutputStream(fafProxySocket.getOutputStream()));
-    fafProxyReader = new QDataReader(new DataInputStream(new BufferedInputStream(fafProxySocket.getInputStream())));
-
-    sendUid(uid);
-    startFafProxyReaderInBackground();
   }
 
   /**
@@ -289,7 +289,7 @@ public class ProxyImpl implements Proxy {
               proxySocket.send(datagramPacket);
             }
           }
-        }catch (SocketException | EOFException e) {
+        } catch (SocketException | EOFException e) {
           logger.debug("Connection closed");
         }
         return null;

@@ -197,10 +197,10 @@ class Relayer implements Closeable {
   }
 
   private void handleJoinProxy(JoinProxyMessage joinProxyMessage) throws IOException {
-    int playerId = joinProxyMessage.getPlayerNumber();
+    int playerNumber = joinProxyMessage.getPlayerNumber();
     int peerUid = joinProxyMessage.getPeerUid();
 
-    InetSocketAddress proxySocket = proxyServer.bindAndGetProxySocketAddress(playerId, peerUid);
+    InetSocketAddress proxySocket = proxyServer.bindAndGetProxySocketAddress(playerNumber, peerUid);
 
     // Ask FA to join the game via the local proxy port
     JoinGameMessage joinGameMessage = new JoinGameMessage();
