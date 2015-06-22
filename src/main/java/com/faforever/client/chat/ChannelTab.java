@@ -16,6 +16,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.web.WebView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
@@ -51,6 +52,12 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
 
   @FXML
   TextField messageTextField;
+
+  @Autowired
+  ChatController chatController;
+
+  @Autowired
+  ChatUserControlFactory chatUserControlFactory;
 
   private final String channelName;
 
@@ -131,18 +138,18 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
       }
     });
 
-    playerInfoBean.friendProperty().addListener((observable, oldValue, newValue) -> {
-      addToOrRemoveFromPane(playerInfoBean, friendsPane, newValue);
-    });
-    playerInfoBean.foeProperty().addListener((observable, oldValue, newValue) -> {
-      addToOrRemoveFromPane(playerInfoBean, foesPane, newValue);
-    });
-    playerInfoBean.chatOnlyProperty().addListener((observable, oldValue, newValue) -> {
-      addToOrRemoveFromPane(playerInfoBean, chatOnlyPane, newValue);
-    });
-    playerInfoBean.getModeratorInChannels().addListener((SetChangeListener<String>) change -> {
-      addToOrRemoveFromPane(playerInfoBean, moderatorsPane, change.wasAdded());
-    });
+    playerInfoBean.friendProperty().addListener((observable, oldValue, newValue) ->
+            addToOrRemoveFromPane(playerInfoBean, friendsPane, newValue)
+    );
+    playerInfoBean.foeProperty().addListener((observable, oldValue, newValue) ->
+            addToOrRemoveFromPane(playerInfoBean, foesPane, newValue)
+    );
+    playerInfoBean.chatOnlyProperty().addListener((observable, oldValue, newValue) ->
+            addToOrRemoveFromPane(playerInfoBean, chatOnlyPane, newValue)
+    );
+    playerInfoBean.getModeratorInChannels().addListener((SetChangeListener<String>) change ->
+            addToOrRemoveFromPane(playerInfoBean, moderatorsPane, change.wasAdded())
+    );
 
 
     Collection<Pane> targetPanesForUser = getTargetPanesForUser(playerInfoBean);

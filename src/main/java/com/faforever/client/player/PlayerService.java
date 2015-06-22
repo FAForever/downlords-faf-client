@@ -1,9 +1,9 @@
 package com.faforever.client.player;
 
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.legacy.OnPlayerInfoListener;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableMap;
+
+import java.util.Set;
 
 public interface PlayerService {
 
@@ -15,4 +15,6 @@ public interface PlayerService {
   void addPlayerListener(MapChangeListener<String, PlayerInfoBean> stringPlayerInfoBeanMapChangeListener);
 
   PlayerInfoBean registerAndGetPlayerForUsername(String username);
+
+  Set<String> getPlayerNames();
 }

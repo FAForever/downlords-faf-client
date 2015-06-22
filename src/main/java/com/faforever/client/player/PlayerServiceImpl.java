@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, OnFoeListListener, OnFriendListListener {
 
@@ -58,6 +59,11 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     }
 
     return players.get(username);
+  }
+
+  @Override
+  public Set<String> getPlayerNames() {
+    return players.keySet();
   }
 
   @Override

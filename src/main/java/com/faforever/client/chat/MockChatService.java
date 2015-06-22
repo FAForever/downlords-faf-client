@@ -169,9 +169,11 @@ public class MockChatService implements ChatService {
 
         ObservableMap<String, ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
 
-        chatUsersForChannel.put(chatUser.getUsername(), chatUser);
-        chatUsersForChannel.put(mockUser.getUsername(), mockUser);
-        chatUsersForChannel.put(moderatorUser.getUsername(), moderatorUser);
+        synchronized (chatUsersForChannel) {
+          chatUsersForChannel.put(chatUser.getUsername(), chatUser);
+          chatUsersForChannel.put(mockUser.getUsername(), mockUser);
+          chatUsersForChannel.put(moderatorUser.getUsername(), moderatorUser);
+        }
 
         return null;
       }

@@ -11,12 +11,14 @@ import javafx.application.HostServices;
 import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -49,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 
@@ -96,13 +99,7 @@ public abstract class AbstractChatTab extends Tab {
   ChatService chatService;
 
   @Autowired
-  ChatController chatController;
-
-  @Autowired
   FxmlLoader fxmlLoader;
-
-  @Autowired
-  ChatUserControlFactory chatUserControlFactory;
 
   @Autowired
   HostServices hostServices;
@@ -126,6 +123,15 @@ public abstract class AbstractChatTab extends Tab {
   private String receiver;
   private String fxmlFile;
 
+  /**
+   * Stores possible values for autocompletion (when strted typing a name, then pressing TAB). This value needs to be
+   * set to {@code null} after the message has been sent or the caret has been moved in order to restart the
+   * autocompletion on next TAB press.
+   */
+  private ArrayList<String> possibleAutoCompletions;
+  private int nextAutoCompleteIndex;
+  private String autoCompletePartialName;
+
   public AbstractChatTab(String receiver, String fxmlFile) {
     this.receiver = receiver;
     this.fxmlFile = fxmlFile;
@@ -141,6 +147,12 @@ public abstract class AbstractChatTab extends Tab {
     fxmlLoader.loadCustomControl(fxmlFile, this);
     initChatView();
     userToCssStyle.put(userService.getUsername(), CSS_STYLE_SELF);
+  }
+
+  private void resetAutoCompletion() {
+    possibleAutoCompletions = null;
+    nextAutoCompleteIndex = -1;
+    autoCompletePartialName = null;
   }
 
   private WebEngine initChatView() {
@@ -233,7 +245,8 @@ public abstract class AbstractChatTab extends Tab {
     return scene == null ? null : scene.getWindow();
   }
 
-  public void onSendMessage(ActionEvent actionEvent) {
+  @FXML
+  void onSendMessage(ActionEvent actionEvent) {
     TextInputControl messageTextField = getMessageTextField();
 
     String text = messageTextField.getText();
@@ -248,6 +261,81 @@ public abstract class AbstractChatTab extends Tab {
     } else {
       sendMessage(messageTextField, text);
     }
+
+    resetAutoCompletion();
+  }
+
+  @FXML
+  void onKeyPressed(KeyEvent keyEvent) {
+    if (keyEvent.getCode() == KeyCode.TAB) {
+      keyEvent.consume();
+      autoComplete();
+    }
+  }
+
+  private void autoComplete() {
+    TextInputControl messageTextField = getMessageTextField();
+
+    if (possibleAutoCompletions == null) {
+      initializeAutoCompletion(messageTextField);
+
+      if (possibleAutoCompletions.isEmpty()) {
+        // There are no autocompletion matches
+        resetAutoCompletion();
+        return;
+      }
+
+      // It's the first autocomplete event at this location, just replace the text with the first user name
+      messageTextField.selectPreviousWord();
+      messageTextField.replaceSelection(possibleAutoCompletions.get(nextAutoCompleteIndex++));
+      return;
+    }
+
+    // At this point, it's a subsequent auto complete event
+    String wordBeforeCaret = getWordBeforeCaret(messageTextField);
+
+    /*
+     * We have to check if the previous word is the one we auto completed. If not we reset and start all over again
+     * as the user started auto completion on another word.
+     */
+    if (!wordBeforeCaret.equals(possibleAutoCompletions.get(nextAutoCompleteIndex - 1))) {
+      resetAutoCompletion();
+      autoComplete();
+      return;
+    }
+
+    if (possibleAutoCompletions.size() == 1) {
+      // No need to cycle since there was only one match
+      return;
+    }
+
+    if (possibleAutoCompletions.size() <= nextAutoCompleteIndex) {
+      // Start over again in order to cycle
+      nextAutoCompleteIndex = 0;
+    }
+
+    messageTextField.selectPreviousWord();
+    messageTextField.replaceSelection(possibleAutoCompletions.get(nextAutoCompleteIndex++));
+  }
+
+  private void initializeAutoCompletion(TextInputControl messageTextField) {
+    autoCompletePartialName = getWordBeforeCaret(messageTextField);
+
+    possibleAutoCompletions = new ArrayList<>();
+    nextAutoCompleteIndex = 0;
+
+    possibleAutoCompletions.addAll(
+        playerService.getPlayerNames().stream()
+            .filter(playerName -> playerName.startsWith(autoCompletePartialName))
+            .collect(Collectors.toList())
+    );
+  }
+
+  private String getWordBeforeCaret(TextInputControl messageTextField) {
+    messageTextField.selectPreviousWord();
+    String selectedText = messageTextField.getSelectedText();
+    messageTextField.positionCaret(messageTextField.getAnchor());
+    return selectedText;
   }
 
   private void sendMessage(final TextInputControl messageTextField, final String text) {
