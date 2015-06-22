@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
@@ -8,9 +9,9 @@ import com.google.common.base.Strings;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -18,12 +19,11 @@ import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import org.springframework.util.StringUtils;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.RangeSlider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.Objects;
@@ -31,6 +31,9 @@ import java.util.Objects;
 public class CreateGameController {
 
   private static final String DEFAULT_MOD = "faf";
+
+  @FXML
+  Button createGameButton;
 
   @FXML
   Label mapNameLabel;
@@ -80,6 +83,9 @@ public class CreateGameController {
   @Autowired
   PreferencesService preferencesService;
 
+  @Autowired
+  I18n i18n;
+
   @FXML
   Node createGameRoot;
 
@@ -97,26 +103,23 @@ public class CreateGameController {
         mapListView.getSelectionModel().select(0);
       }
     });
-    mapSearchTextField.setOnKeyPressed(new EventHandler<KeyEvent>() {
-      @Override
-      public void handle(KeyEvent event) {
-        MultipleSelectionModel<MapInfoBean> selectionModel = mapListView.getSelectionModel();
-        int currentMapIndex = selectionModel.getSelectedIndex();
-        int newMapIndex = currentMapIndex;
-        if (KeyCode.DOWN == event.getCode()) {
-          if (filteredMaps.size() > currentMapIndex + 1) {
-            newMapIndex++;
-          }
-          event.consume();
-        } else if (KeyCode.UP == event.getCode()) {
-          if (currentMapIndex > 0) {
-            newMapIndex--;
-          }
-          event.consume();
+    mapSearchTextField.setOnKeyPressed(event -> {
+      MultipleSelectionModel<MapInfoBean> selectionModel = mapListView.getSelectionModel();
+      int currentMapIndex = selectionModel.getSelectedIndex();
+      int newMapIndex = currentMapIndex;
+      if (KeyCode.DOWN == event.getCode()) {
+        if (filteredMaps.size() > currentMapIndex + 1) {
+          newMapIndex++;
         }
-        selectionModel.select(newMapIndex);
-        mapListView.scrollTo(newMapIndex);
+        event.consume();
+      } else if (KeyCode.UP == event.getCode()) {
+        if (currentMapIndex > 0) {
+          newMapIndex--;
+        }
+        event.consume();
       }
+      selectionModel.select(newMapIndex);
+      mapListView.scrollTo(newMapIndex);
     });
 
     gameTypeComboBox.setCellFactory(param -> new ModListCell());
@@ -125,9 +128,21 @@ public class CreateGameController {
 
   @PostConstruct
   void postConstruct() {
+    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
+      preferencesService.addUpdateListener(preferences -> {
+        if (preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
+          init();
+        }
+      });
+    } else {
+      init();
+    }
+  }
+
+  private void init() {
     initRankingSlider();
-    initMapSelection();
     initModList();
+    initMapSelection();
     initGameTypeComboBox();
     setLastGameTitle();
     selectLastMap();

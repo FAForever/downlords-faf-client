@@ -11,6 +11,7 @@ import javafx.scene.image.Image;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -22,9 +23,10 @@ public class Main extends Application {
 
   @Override
   public void start(Stage stage) throws Exception {
+    configureLogging();
+
     Font.loadFont(Main.class.getResource("/font/fontawesome-webfont.ttf").toExternalForm(), 10);
     JavaFxUtil.fixTooltipDuration();
-    configureLogging();
 
     AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
     context.getBeanFactory().registerSingleton("hostServices", getHostServices());
@@ -44,5 +46,8 @@ public class Main extends Application {
 
   private void configureLogging() {
     System.setProperty("logDirectory", Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA) + "\\FAForever\\logs");
+
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install();
   }
 }

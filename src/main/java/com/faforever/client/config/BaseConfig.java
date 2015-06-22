@@ -29,8 +29,8 @@ import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.lobby.LobbyServiceImpl;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModServiceImpl;
+import com.faforever.client.network.DownlordsPortCheckServiceImpl;
 import com.faforever.client.network.PortCheckService;
-import com.faforever.client.network.PortCheckServiceImpl;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.patch.GitRepositoryPatchService;
@@ -44,8 +44,8 @@ import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.supcom.ForgedAllianceServiceImpl;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.task.TaskServiceImpl;
-import com.faforever.client.upnp.ClingUpnpService;
 import com.faforever.client.upnp.UpnpService;
+import com.faforever.client.upnp.WeUpnpServiceImpl;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
 import org.slf4j.Logger;
@@ -159,7 +159,7 @@ public class BaseConfig {
 
   @Bean
   PortCheckService portCheckService() {
-    return new PortCheckServiceImpl();
+    return new DownlordsPortCheckServiceImpl();
   }
 
   @Bean
@@ -184,11 +184,11 @@ public class BaseConfig {
 
   @Bean
   UpnpService upnpService() {
-    if (environment.containsProperty("faf.testing")) {
-      return port -> {
-      };
-    }
-    return new ClingUpnpService();
+//    if (environment.containsProperty("faf.testing")) {
+//      return port -> {
+//      };
+//    }
+    return new WeUpnpServiceImpl();
   }
 
   @Bean

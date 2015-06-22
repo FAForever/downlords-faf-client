@@ -1,6 +1,7 @@
 <configuration>
 
   <logger name="org.pircbotx" level="info"/>
+  <logger name="org.fourthline.cling" level="warn"/>
   <logger name="com.faforever.client.preferences" level="info"/>
   <logger name="com.faforever.client.map" level="info"/>
   <logger name="com.faforever.client.legacy" level="info"/>
@@ -14,6 +15,10 @@
   <logger name="com.faforever.client.chat" level="info"/>
   <logger name="com.faforever.client.task" level="info"/>
   <logger name="com.faforever.client.preferences" level="info"/>
+
+  <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+    <resetJUL>true</resetJUL>
+  </contextListener>
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>

@@ -9,10 +9,11 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane fx:id="userInfoRoot" minHeight="100.0" minWidth="100.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.UserInfoWindowController">
+<GridPane fx:id="userInfoRoot" minHeight="256.0" minWidth="256.0" xmlns="http://javafx.com/javafx/8.0.40"
+          xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.UserInfoWindowController">
    <columnConstraints>
       <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
-      <ColumnConstraints minWidth="10.0" />
+      <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
    </columnConstraints>
    <rowConstraints>
       <RowConstraints minHeight="10.0" vgrow="NEVER" />

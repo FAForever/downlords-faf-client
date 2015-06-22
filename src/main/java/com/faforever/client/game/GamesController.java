@@ -25,6 +25,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
@@ -116,9 +117,10 @@ public class GamesController implements OnGameInfoListener {
   @Autowired
   EnterPasswordController enterPasswordController;
 
-  private ObservableMap<Integer, GameInfoBean> gameInfoBeans;
+  @Autowired
+  PreferencesService preferencesService;
 
-  private GameTypeBean selectedMod;
+  private ObservableMap<Integer, GameInfoBean> gameInfoBeans;
 
   private Popup createGamePopup;
   private Popup passwordPopup;
@@ -150,6 +152,18 @@ public class GamesController implements OnGameInfoListener {
     createGamePopup.getContent().setAll(createGameController.getRoot());
 
     enterPasswordController.setOnPasswordEnteredListener(this::joinSelectedGame);
+
+    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
+      createGameButton.setDisable(true);
+      createGameButton.setTooltip(new Tooltip(i18n.get("missingGamePath.notification")));
+
+      preferencesService.addUpdateListener(preferences -> {
+        if (preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
+          createGameButton.setDisable(false);
+          createGameButton.setTooltip(null);
+        }
+      });
+    }
   }
 
   private void initializeGameTable() {
@@ -204,6 +218,7 @@ public class GamesController implements OnGameInfoListener {
   }
 
   private void joinSelectedGame(String password) {
+    // FIXME check if game path is set
     GameInfoBean gameInfoBean = gamesTable.getSelectionModel().getSelectedItem();
 
     if (gameInfoBean.getAccess() == GameAccess.PASSWORD && password == null) {

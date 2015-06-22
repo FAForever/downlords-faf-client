@@ -76,7 +76,7 @@ public class ProxyImpl implements Proxy {
   private static final byte MESSAGE_ACKNOWLEDGE = 0x02;
 
   /**
-   * This yte marks a "connect by intermediary" domain. (Description copied from python code) This is needed for "UDP
+   * This byte marks a "connect by intermediary" domain. (Description copied from python code) This is needed for "UDP
    * hole punching". In a situation where the disconnected peer attempts to reconnect to a peer whose NAT requires UDP
    * hole punching the reconnect would fail, because no hole has been punched for the new IP address. But in this case
    * the disconnected peer does not require hole punching, because otherwise p2p udp channel would not have been
