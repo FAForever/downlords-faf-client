@@ -326,7 +326,7 @@ public abstract class AbstractChatTab extends Tab {
 
     possibleAutoCompletions.addAll(
         playerService.getPlayerNames().stream()
-            .filter(playerName -> playerName.startsWith(autoCompletePartialName))
+            .filter(playerName -> playerName.toLowerCase().startsWith(autoCompletePartialName.toLowerCase()))
             .collect(Collectors.toList())
     );
   }
