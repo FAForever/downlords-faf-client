@@ -21,7 +21,8 @@
                      <Insets bottom="5.0" top="5.0"/>
                    </padding>
                  </HBox>
-                  <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" styleClass="transparent-background-table" VBox.vgrow="ALWAYS">
+                 <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                            minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
                      <columns>
                        <TableColumn fx:id="rankColumn" text="Rank" />
                        <TableColumn fx:id="nameColumn" text="Name" />
