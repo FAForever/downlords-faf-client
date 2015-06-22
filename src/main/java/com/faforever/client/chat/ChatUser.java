@@ -4,8 +4,14 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.pircbotx.User;
 
 public class ChatUser {
+
+  public static ChatUser fromIrcUser(User user) {
+    String username = user.getRealName() != null ? user.getRealName() : user.getLogin();
+    return new ChatUser(username, user.isIrcop());
+  }
 
   private StringProperty username;
   private BooleanProperty isModerator;
@@ -23,24 +29,8 @@ public class ChatUser {
     return isModerator.get();
   }
 
-  public void setIsModerator(boolean isModerator) {
-    this.isModerator.set(isModerator);
-  }
-
-  public BooleanProperty isModeratorProperty() {
-    return isModerator;
-  }
-
   public String getUsername() {
     return username.get();
-  }
-
-  public void setUsername(String username) {
-    this.username.set(username);
-  }
-
-  public StringProperty usernameProperty() {
-    return username;
   }
 
   @Override

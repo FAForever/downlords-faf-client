@@ -135,7 +135,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   private Map<String, ChatUser> chatUsers(ImmutableSortedSet<User> users) {
     Map<String, ChatUser> chatUsers = new HashMap<>();
     for (User user : users) {
-      ChatUser chatUser = new ChatUser(user.getRealName(), user.isIrcop());
+      ChatUser chatUser = ChatUser.fromIrcUser(user);
       chatUsers.put(chatUser.getUsername(), chatUser);
     }
     return chatUsers;
@@ -213,7 +213,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       User user = event.getUser();
       listener.onUserJoinedChannel(
           event.getChannel().getName(),
-          new ChatUser(user.getRealName(), user.isIrcop())
+          ChatUser.fromIrcUser(user)
       );
     });
   }
@@ -263,6 +263,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     configuration = new Configuration.Builder()
         .setName(username)
         .setLogin(username)
+        .setRealName(username)
         .setServer(environment.getProperty("irc.host"), environment.getProperty("irc.port", Integer.class))
         .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
         .setAutoSplitMessage(true)
