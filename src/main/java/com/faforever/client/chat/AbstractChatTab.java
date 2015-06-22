@@ -71,6 +71,7 @@ public abstract class AbstractChatTab extends Tab {
   private static final Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
+  private static final String FRIEND_CSS_CLASS = "friend";
   private static final String CSS_STYLE_SELF = "self";
 
   /**
@@ -85,6 +86,10 @@ public abstract class AbstractChatTab extends Tab {
    */
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
+
+  private static final Integer GENERAL = 0;
+  private static final Integer FRIEND = 1;
+  private static final Integer FOE = 0;
 
   private EventHandler<MouseEvent> MOVE_HANDLER = (MouseEvent event) -> {
     lastMouseX = event.getScreenX();
@@ -124,6 +129,10 @@ public abstract class AbstractChatTab extends Tab {
   private boolean isChatReady;
   private WebEngine engine;
   private List<ChatMessage> waitingMessages;
+
+  /**
+   * Maps a user name to a css style class.
+   */
   private Map<String, String> userToCssStyle;
   private double lastMouseX;
   private double lastMouseY;
@@ -525,6 +534,11 @@ public abstract class AbstractChatTab extends Tab {
         cssClasses.add(ACTION_CSS_CLASS);
       } else {
         cssClasses.add(MESSAGE_CSS_CLASS);
+      }
+
+      PlayerInfoBean playerInfo = playerService.getPlayerForUsername(chatMessage.getUsername());
+      if (playerInfo != null && playerInfo.isFriend()) {
+        cssClasses.add(FRIEND_CSS_CLASS);
       }
 
       html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
