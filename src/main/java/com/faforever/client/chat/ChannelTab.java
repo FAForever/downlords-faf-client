@@ -3,10 +3,10 @@ package com.faforever.client.chat;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.SetChangeListener;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -119,12 +119,30 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
     String username = chatUser.getUsername();
     PlayerInfoBean playerInfoBean = playerService.registerAndGetPlayerForUsername(username);
 
-    playerInfoBean.setModerator(chatUser.isModerator());
+    playerInfoBean.moderatorInChannelsProperty().bind(chatUser.moderatorInChannelsProperty());
+    playerInfoBean.usernameProperty().bind(chatUser.usernameProperty());
+    playerInfoBean.usernameProperty().addListener((observable, oldValue, newValue) -> {
+      for (Map.Entry<Pane, ChatUserControl> entry : userToChatUserControls.get(oldValue).entrySet()) {
+        Pane pane = entry.getKey();
+        ChatUserControl chatUserControl = entry.getValue();
 
-    playerInfoBean.friendProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, friendsPane));
-    playerInfoBean.foeProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, foesPane));
-    playerInfoBean.moderatorProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, moderatorsPane));
-    playerInfoBean.chatOnlyProperty().addListener(propertyChangeListenerToDisplayPlayerInPane(playerInfoBean, chatOnlyPane));
+        pane.getChildren().remove(chatUserControl);
+        addChatUserControlSorted(pane, chatUserControl);
+      }
+    });
+
+    playerInfoBean.friendProperty().addListener((observable, oldValue, newValue) -> {
+      addToOrRemoveFromPane(playerInfoBean, friendsPane, newValue);
+    });
+    playerInfoBean.foeProperty().addListener((observable, oldValue, newValue) -> {
+      addToOrRemoveFromPane(playerInfoBean, foesPane, newValue);
+    });
+    playerInfoBean.chatOnlyProperty().addListener((observable, oldValue, newValue) -> {
+      addToOrRemoveFromPane(playerInfoBean, chatOnlyPane, newValue);
+    });
+    playerInfoBean.getModeratorInChannels().addListener((SetChangeListener<String>) change -> {
+      addToOrRemoveFromPane(playerInfoBean, moderatorsPane, change.wasAdded());
+    });
 
 
     Collection<Pane> targetPanesForUser = getTargetPanesForUser(playerInfoBean);
@@ -167,22 +185,20 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
     chatController.openPrivateMessageTabForUser(targetUserName);
   }
 
-  private ChangeListener<Boolean> propertyChangeListenerToDisplayPlayerInPane(PlayerInfoBean playerInfoBean, Pane pane) {
-    return (observable, oldValue, newValue) -> {
-      if (newValue) {
-        createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
-      } else {
-        // Re-add Plateform.runLater() as soon as RT-40417 is fixed
+  private void addToOrRemoveFromPane(PlayerInfoBean playerInfoBean, Pane pane, Boolean add) {
+    if (add) {
+      createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
+    } else {
+      // Re-add Plateform.runLater() as soon as RT-40417 is fixed
 //        Platform.runLater(() -> {
-        Map<Pane, ChatUserControl> paneChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
-        if (paneChatUserControlMap == null) {
-          // User has not yet been added to this pane; no need to remove him
-          return;
-        }
-        Platform.runLater(() -> pane.getChildren().remove(paneChatUserControlMap.get(pane)));
-//        });
+      Map<Pane, ChatUserControl> paneChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
+      if (paneChatUserControlMap == null) {
+        // User has not yet been added to this pane; no need to remove him
+        return;
       }
-    };
+      Platform.runLater(() -> pane.getChildren().remove(paneChatUserControlMap.get(pane)));
+//        });
+    }
   }
 
   /**
@@ -266,7 +282,7 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
       panes.add(foesPane);
     }
 
-    if (playerInfoBean.isModerator()) {
+    if (playerInfoBean.getModeratorInChannels().contains(channelName)) {
       panes.add(moderatorsPane);
     }
 

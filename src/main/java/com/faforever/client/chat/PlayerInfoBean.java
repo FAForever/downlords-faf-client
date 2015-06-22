@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.legacy.domain.PlayerInfo;
 import javafx.beans.property.*;
+import javafx.collections.ObservableSet;
 
 import java.util.Comparator;
 
@@ -25,7 +26,7 @@ public class PlayerInfoBean {
   private StringProperty avatarTooltip;
   private BooleanProperty friend;
   private BooleanProperty foe;
-  private BooleanProperty moderator;
+  private SetProperty<String> moderatorInChannels;
   private BooleanProperty chatOnly;
   private FloatProperty deviation;
   private FloatProperty mean;
@@ -38,7 +39,7 @@ public class PlayerInfoBean {
     avatarTooltip = new SimpleStringProperty();
     friend = new SimpleBooleanProperty();
     foe = new SimpleBooleanProperty();
-    moderator = new SimpleBooleanProperty();
+    moderatorInChannels = new SimpleSetProperty<>();
     chatOnly = new SimpleBooleanProperty(true);
     deviation = new SimpleFloatProperty();
     mean = new SimpleFloatProperty();
@@ -138,18 +139,6 @@ public class PlayerInfoBean {
     this.foe.set(foe);
   }
 
-  public boolean isModerator() {
-    return moderator.get();
-  }
-
-  public BooleanProperty moderatorProperty() {
-    return moderator;
-  }
-
-  public void setModerator(boolean moderator) {
-    this.moderator.set(moderator);
-  }
-
   public boolean isChatOnly() {
     return chatOnly.get();
   }
@@ -190,8 +179,12 @@ public class PlayerInfoBean {
     return foe.get();
   }
 
-  public boolean getModerator() {
-    return moderator.get();
+  public ObservableSet<String> getModeratorInChannels() {
+    return moderatorInChannels.get();
+  }
+
+  public SetProperty<String> moderatorInChannelsProperty() {
+    return moderatorInChannels;
   }
 
   public boolean getIrcOnly() {

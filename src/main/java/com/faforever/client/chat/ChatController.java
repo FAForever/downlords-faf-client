@@ -17,7 +17,8 @@ public class ChatController implements
     OnChatMessageListener,
     OnChatDisconnectedListener,
     OnPrivateChatMessageListener,
-    OnChatUserJoinedChannelListener, OnChatUserLeftChannelListener {
+    OnChatUserJoinedChannelListener,
+    OnChatUserLeftChannelListener {
 
   @Autowired
   ChatService chatService;
