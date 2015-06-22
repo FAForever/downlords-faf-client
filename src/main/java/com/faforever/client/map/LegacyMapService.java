@@ -102,7 +102,7 @@ public class LegacyMapService implements MapService {
     logger.debug("Trying to find map {} mapName locally", mapName);
 
     for (MapInfoBean mapInfoBean : getLocalMaps()) {
-      if (mapName.equals(mapInfoBean.getName())) {
+      if (mapName.equalsIgnoreCase(mapInfoBean.getName())) {
         logger.debug("Found map {} locally", mapName);
         return true;
       }
