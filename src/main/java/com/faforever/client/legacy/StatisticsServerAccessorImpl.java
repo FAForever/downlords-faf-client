@@ -63,11 +63,9 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   }
 
   private void onPlayerStats(PlayerStatistics playerStatistics) {
-    playerStatisticsCallback.success(playerStatistics);
-
     Platform.runLater(() -> {
       if (playerStatisticsCallback != null) {
-        playerStatisticsCallback.success(null);
+        playerStatisticsCallback.success(playerStatistics);
         playerStatisticsCallback = null;
       }
     });

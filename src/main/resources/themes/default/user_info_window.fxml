@@ -9,17 +9,15 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane fx:id="userInfoRoot" minHeight="100.0" minWidth="100.0" xmlns="http://javafx.com/javafx/8.0.40"
-          xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.UserInfoWindowController">
+<GridPane fx:id="userInfoRoot" minHeight="100.0" minWidth="100.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.UserInfoWindowController">
    <columnConstraints>
       <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
-      <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
-      <ColumnConstraints minWidth="10.0"/>
+      <ColumnConstraints minWidth="10.0" />
    </columnConstraints>
    <rowConstraints>
-      <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-      <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-      <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
+      <RowConstraints minHeight="10.0" vgrow="NEVER" />
+      <RowConstraints minHeight="10.0" vgrow="NEVER" />
+      <RowConstraints minHeight="10.0" vgrow="ALWAYS" />
    </rowConstraints>
    <children>
       <Label fx:id="usernameLabel" text="&lt;Username&gt;" GridPane.columnSpan="2147483647">
@@ -27,31 +25,31 @@
             <Font size="32.0" />
          </font>
       </Label>
-      <Label fx:id="countryLabel" text="&lt;Country&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1">
+      <Label fx:id="countryLabel" text="&lt;Country&gt;" GridPane.rowIndex="1">
          <GridPane.margin>
             <Insets left="5.0" />
          </GridPane.margin>
          <graphic>
-            <ImageView fx:id="countryImageView" pickOnBounds="true" preserveRatio="true"/>
+            <ImageView fx:id="countryImageView" pickOnBounds="true" preserveRatio="true" />
          </graphic>
       </Label>
       <TabPane tabClosingPolicy="UNAVAILABLE" GridPane.columnSpan="2147483647" GridPane.rowIndex="2">
          <tabs>
             <Tab text="%playerInfo.rating90Days">
                <content>
-                  <LineChart fx:id="rating90DaysChart" legendVisible="false">
+                  <LineChart fx:id="rating90DaysChart" createSymbols="false" legendVisible="false">
                     <xAxis>
-                       <NumberAxis fx:id="rating90DaysXAxis" side="BOTTOM"/>
+                       <NumberAxis fx:id="rating90DaysXAxis" side="BOTTOM" />
                     </xAxis>
                     <yAxis>
-                       <NumberAxis fx:id="rating90DaysYAxis" side="LEFT"/>
+                       <NumberAxis fx:id="rating90DaysYAxis" side="LEFT" />
                     </yAxis>
                   </LineChart>
                </content>
             </Tab>
          </tabs>
       </TabPane>
-      <Button mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
+      <Button mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="RIGHT">
          <graphic>
             <ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
                <image>
@@ -62,6 +60,6 @@
       </Button>
    </children>
    <padding>
-      <Insets bottom="5.0" left="5.0" right="5.0" top="32.0"/>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="32.0" />
    </padding>
 </GridPane>
