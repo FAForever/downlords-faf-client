@@ -129,18 +129,18 @@ public class CreateGameController {
     initMapSelection();
     initModList();
     initGameTypeComboBox();
-    setLatestGameTitle();
-    selectLatestMap();
+    setLastGameTitle();
+    selectLastMap();
   }
 
-  private void setLatestGameTitle() {
-    titleTextField.setText(preferencesService.getPreferences().getLatestGameTitle());
+  private void setLastGameTitle() {
+    titleTextField.setText(preferencesService.getPreferences().getLastGameTitle());
   }
 
-  private void selectLatestMap() {
-    String latestMap = preferencesService.getPreferences().getLatestMap();
+  private void selectLastMap() {
+    String lastMap = preferencesService.getPreferences().getLastMap();
     for (MapInfoBean mapInfoBean : mapListView.getItems()) {
-      if (mapInfoBean.getName().equals(latestMap)) {
+      if (mapInfoBean.getName().equals(lastMap)) {
         mapListView.getSelectionModel().select(mapInfoBean);
         break;
       }
@@ -152,12 +152,12 @@ public class CreateGameController {
       change.getValueAdded();
 
       gameTypeComboBox.getItems().add(change.getValueAdded());
-      selectLatestOrDefaultGameType();
+      selectLastOrDefaultGameType();
     });
   }
 
-  private void selectLatestOrDefaultGameType() {
-    String lastGameMod = preferencesService.getPreferences().getLatestGameType();
+  private void selectLastOrDefaultGameType() {
+    String lastGameMod = preferencesService.getPreferences().getLastGameType();
     if (lastGameMod == null) {
       lastGameMod = DEFAULT_MOD;
     }
@@ -191,11 +191,16 @@ public class CreateGameController {
 
       mapNameLabel.setText(mapName);
       mapImageView.setImage(mapService.loadLargePreview(mapName));
-      preferencesService.getPreferences().setLatestMap(mapName);
+      preferencesService.getPreferences().setLastMap(mapName);
       preferencesService.storeInBackground();
     });
-    // FIXME use latest hosted map
-    mapListView.getSelectionModel().select(0);
+
+    String lastMap = preferencesService.getPreferences().getLastMap();
+    if (lastMap != null) {
+      for (MapInfoBean map : localMaps) {
+        mapListView.getSelectionModel().select(map);
+      }
+    }
   }
 
   private void initRankingSlider() {
@@ -223,7 +228,7 @@ public class CreateGameController {
     rankingSlider.setLowValue(environment.getProperty("rating.selectedMin", Integer.class));
 
     titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().setLatestGameTitle(newValue);
+      preferencesService.getPreferences().setLastGameTitle(newValue);
       preferencesService.storeInBackground();
     });
   }
