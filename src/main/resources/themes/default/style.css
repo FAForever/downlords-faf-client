@@ -615,9 +615,7 @@ a {
 }
 
 .chat-message:nth-of-type(odd) {
-  /* TODO WebView does not yet allow transparency. As a workaround, the WebView is set to blend mode LIGHTEN. However,
-   things like this don't work as expected with that workaround
-  background-color: rgba(255,255,255,0.06667); */
+  background-color: rgba(255,255,255,0.06667);
 }
 
 .chat-message * {

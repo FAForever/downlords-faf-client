@@ -11,7 +11,9 @@
     <children>
       <SplitPane dividerPositions="0.9" focusTraversable="false" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
         <items>
-          <WebView fx:id="messagesWebView" blendMode="LIGHTEN" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+          <WebView fx:id="messagesWebView" blendMode="ADD" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0"
+                   prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
           <VBox maxHeight="1.7976931348623157E308" minWidth="250.0" prefWidth="250.0" SplitPane.resizableWithParent="false">
             <children>
               <TextField fx:id="userSearchTextField" promptText="%chat.searchPrompt" />
