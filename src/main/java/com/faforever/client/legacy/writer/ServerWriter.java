@@ -38,16 +38,20 @@ public class ServerWriter implements Closeable {
     objectWriters.put(writableClass, objectSerializer);
   }
 
+  @SuppressWarnings("unchecked")
   public void write(Object object){
-    Class<?> type = object.getClass();
-    if (!objectWriters.containsKey(type)) {
-      throw new IllegalStateException("No object writer registered for type: " + type);
+    Class<?> clazz = object.getClass();
+
+    Serializer<Object> serializer = (Serializer<Object>) findSerializerForClass(clazz);
+
+    if (serializer == null) {
+      throw new IllegalStateException("No object writer registered for type: " + clazz);
     }
 
     try {
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-      ((Serializer<Object>) objectWriters.get(type)).serialize(object, outputStream);
+      serializer.serialize(object, outputStream);
 
       synchronized (qStreamWriter) {
         qStreamWriter.appendWithSize(outputStream.toByteArray());
@@ -58,6 +62,21 @@ public class ServerWriter implements Closeable {
     } catch (IOException e) {
       logger.debug("Server writer has been closed", e);
     }
+  }
+
+  /**
+   * Finds the appropriate serializer by walking up the type hierarchy. Interfaces are not checked.
+   *
+   * @return the appropriate serializer, or {@code null} if none was found
+   */
+  private Serializer<?> findSerializerForClass(Class<?> clazz) {
+    Class<?> classToCheck = clazz;
+
+    while (!objectWriters.containsKey(classToCheck) && classToCheck != Object.class) {
+      classToCheck = classToCheck.getSuperclass();
+    }
+
+    return objectWriters.get(classToCheck);
   }
 
   @Override

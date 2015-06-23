@@ -9,8 +9,13 @@ import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
+import com.faforever.client.legacy.domain.GameStatusMessage;
 import com.faforever.client.legacy.domain.GameType;
 import com.faforever.client.legacy.domain.GameTypeInfo;
+import com.faforever.client.legacy.domain.HostGameMessage;
+import com.faforever.client.legacy.domain.InitSessionMessage;
+import com.faforever.client.legacy.domain.JoinGameMessage;
+import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.legacy.domain.ServerMessageType;
 import com.faforever.client.legacy.domain.ServerObject;
@@ -52,6 +57,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.faforever.client.legacy.domain.GameStatusMessage.Status.OFF;
+import static com.faforever.client.legacy.domain.GameStatusMessage.Status.ON;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
@@ -152,7 +159,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
             serverWriter = createServerWriter(outputStream);
 
-            writeToServer(ClientMessage.askSession(username));
+            writeToServer(new InitSessionMessage());
 
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
@@ -204,7 +211,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
     logger.info("FAF session initiated, session ID: {}", sessionId.get());
 
-    writeToServer(ClientMessage.login(username, password, sessionId.get(), uniqueId, localIp, VERSION));
+    writeToServer(new LoginMessage(username, password, sessionId.get(), uniqueId, localIp, VERSION));
   }
 
   private void onServerPing() {
@@ -271,7 +278,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   @Override
   public void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchInfo> callback) {
-    ClientMessage clientMessage = ClientMessage.hostGame(
+    HostGameMessage hostGameMessage = new HostGameMessage(
         StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
         newGameInfo.getMap(),
         newGameInfo.getTitle(),
@@ -283,7 +290,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     );
 
     gameLaunchCallback = callback;
-    writeToServerInBackground(clientMessage);
+    writeToServerInBackground(hostGameMessage);
   }
 
   private void writeToServerInBackground(final ClientMessage clientMessage) {
@@ -298,13 +305,13 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   @Override
   public void requestJoinGame(GameInfoBean gameInfoBean, String password, Callback<GameLaunchInfo> callback) {
-    ClientMessage clientMessage = ClientMessage.joinGame(
+    JoinGameMessage joinGameMessage = new JoinGameMessage(
         gameInfoBean.getUid(),
         preferencesService.getPreferences().getForgedAlliance().getPort(),
         password);
 
     gameLaunchCallback = callback;
-    writeToServerInBackground(clientMessage);
+    writeToServerInBackground(joinGameMessage);
   }
 
   private void onGameLaunchInfo(GameLaunchInfo gameLaunchInfo) {
@@ -313,12 +320,12 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   @Override
   public void notifyGameStarted() {
-    writeToServer(ClientMessage.gameStarted());
+    writeToServer(new GameStatusMessage(ON));
   }
 
   @Override
   public void notifyGameTerminated() {
-    writeToServer(ClientMessage.gameTerminated());
+    writeToServer(new GameStatusMessage(OFF));
   }
 
   @Override
