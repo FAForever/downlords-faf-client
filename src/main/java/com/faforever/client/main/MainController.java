@@ -44,7 +44,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
@@ -92,7 +91,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   ProgressBar taskProgressBar;
 
   @FXML
-  Region mainRoot;
+  Pane mainRoot;
 
   @FXML
   MenuButton usernameButton;
@@ -431,5 +430,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Override
   public void onGamePortCheckStarted() {
     portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
+  }
+
+  public Pane getRoot() {
+    return mainRoot;
   }
 }

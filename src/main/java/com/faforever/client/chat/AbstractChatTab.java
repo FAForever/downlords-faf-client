@@ -3,8 +3,10 @@ package com.faforever.client.chat;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.sound.SoundService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
+import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
 import javafx.application.HostServices;
@@ -110,6 +112,9 @@ public abstract class AbstractChatTab extends Tab {
   @Autowired
   PlayerService playerService;
 
+  @Autowired
+  SoundService soundService;
+
   private boolean isChatReady;
   private WebEngine engine;
   private List<ChatMessage> waitingMessages;
@@ -131,6 +136,7 @@ public abstract class AbstractChatTab extends Tab {
   private ArrayList<String> possibleAutoCompletions;
   private int nextAutoCompleteIndex;
   private String autoCompletePartialName;
+  private Pattern mentionPattern;
 
   public AbstractChatTab(String receiver, String fxmlFile) {
     this.receiver = receiver;
@@ -147,6 +153,7 @@ public abstract class AbstractChatTab extends Tab {
     fxmlLoader.loadCustomControl(fxmlFile, this);
     initChatView();
     userToCssStyle.put(userService.getUsername(), CSS_STYLE_SELF);
+    mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b");
   }
 
   private void resetAutoCompletion() {
@@ -184,6 +191,7 @@ public abstract class AbstractChatTab extends Tab {
     }
 
     engine = messagesWebView.getEngine();
+    JavaFxUtil.makeWebViewTransparent(engine);
     engine.setUserDataDirectory(preferencesService.getPreferencesDirectory().toFile());
     ((JSObject) engine.executeScript("window")).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
@@ -434,7 +442,11 @@ public abstract class AbstractChatTab extends Tab {
 
       String text = htmlEscaper().escape(chatMessage.getMessage()).replace("\\", "\\\\");
       text = convertUrlsIntoHyperlinks(text);
-      text = highlightOwnUsername(text);
+
+      if (mentionPattern.matcher(text).find()) {
+        text = highlightOwnUsername(text);
+        soundService.playChatMentionSound();
+      }
 
       html = html.replace("{time}", timeString)
           .replace("{avatar}", StringUtils.defaultString(avatar))
@@ -465,7 +477,7 @@ public abstract class AbstractChatTab extends Tab {
   private String highlightOwnUsername(String text) {
     // TODO outsource in html file
     return text.replaceAll(
-        "\\b" + Pattern.quote(userService.getUsername()) + "\\b",
+        mentionPattern.pattern(),
         "<span class='own-username'>" + userService.getUsername() + "</span>"
     );
   }

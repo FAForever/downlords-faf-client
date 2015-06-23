@@ -32,7 +32,7 @@ public class NewsController {
     }
 
     engine.setUserDataDirectory(preferencesService.getPreferencesDirectory().toFile());
-
+//    JavaFxUtil.makeWebViewTransparent(engine);
     engine.load(environment.getProperty(PROPERTY_WHATS_NEW_URL));
   }
 

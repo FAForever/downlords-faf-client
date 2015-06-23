@@ -38,6 +38,8 @@ import com.faforever.client.patch.PatchService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.sound.SoundService;
+import com.faforever.client.sound.SoundServiceImpl;
 import com.faforever.client.stats.LegacyStatisticsService;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.supcom.ForgedAllianceService;
@@ -180,6 +182,11 @@ public class BaseConfig {
   @Bean
   MapVaultParser mapVaultParser() {
     return new LegacyMapVaultParser();
+  }
+
+  @Bean
+  SoundService soundService() {
+    return new SoundServiceImpl();
   }
 
   @Bean

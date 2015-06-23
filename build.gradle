@@ -45,9 +45,6 @@ applicationDistribution.from(copyNativeLibs) {
 
 repositories {
   mavenCentral()
-  maven {
-    url = 'http://4thline.org/m2'
-  }
 }
 
 buildscript {

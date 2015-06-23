@@ -14,6 +14,7 @@ public class Preferences {
   private List<String> ignoredNotifications;
   private String lastGameTitle;
   private String lastMap;
+  private NotificationPrefs notification;
 
   public Preferences() {
     login = new LoginPrefs();
@@ -23,6 +24,7 @@ public class Preferences {
     chat = new ChatPrefs();
     lastGameType = "faf";
     ignoredNotifications = new ArrayList<>();
+    notification = new NotificationPrefs();
   }
 
   public LoginPrefs getLogin() {
@@ -70,5 +72,9 @@ public class Preferences {
 
   public String getLastGameTitle() {
     return lastGameTitle;
+  }
+
+  public NotificationPrefs getNotificationPrefs() {
+    return notification;
   }
 }

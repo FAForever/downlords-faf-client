@@ -1,5 +1,6 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.sound.SoundService;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -29,6 +30,9 @@ public class PersistentNotificationsController {
 
   @Autowired
   NotificationNodeFactory notificationNodeFactory;
+
+  @Autowired
+  SoundService soundService;
 
   private Map<PersistentNotification, Node> notificationsToNode;
 
@@ -72,7 +76,25 @@ public class PersistentNotificationsController {
       ObservableList<Node> children = persistentNotificationsRoot.getChildren();
       children.remove(noNotificationsLabel);
       children.add(node);
+
+      playNotificationSound(notification);
     });
+  }
+
+  private void playNotificationSound(PersistentNotification notification) {
+    switch (notification.getSeverity()) {
+      case INFO:
+        soundService.playInfoNotificationSound();
+        break;
+
+      case WARN:
+        soundService.playWarnNotificationSound();
+        break;
+
+      case ERROR:
+        soundService.playErrorNotificationSound();
+        break;
+    }
   }
 
   public Node getRoot() {

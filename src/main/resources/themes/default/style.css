@@ -191,7 +191,7 @@
   -fx-prompt-text-fill: derive(-fx-control-inner-background, 40%);
 }
 
-/***************** Remove ugly borders introduced by modena *****************/
+/***************** Remove ugly borders and default background introduced by modena *****************/
 
 .scroll-pane,
 .split-pane,
@@ -200,7 +200,7 @@
 .table-view,
 .tree-table-view,
 .html-editor {
-  -fx-background-color: -fx-control-inner-background;
+  -fx-background: transparent;
   -fx-background-insets: 0;
   -fx-padding: 0;
 }
@@ -208,10 +208,6 @@
 .scroll-pane,
 .split-pane {
   -fx-background-color: -fx-background;
-}
-.scroll-pane:focused,
-.split-pane:focused {
-    -fx-background-color: -fx-background;
 }
 .titled-pane > *.content {
     -fx-border-color: transparent;
@@ -500,7 +496,6 @@
 /***************** Game detail *****************/
 
 .map-preview {
-  -fx-background: white;
   -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
 }
 
@@ -571,13 +566,17 @@
  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.2), 15, 0.8, 0, 0);
 }
 
+/***************** Web view *****************/
+
+.web-view {
+  -fx-background: transparent;
+}
+
 /***************** Chat (WebView, therefore default CSS). Java FX  variables can't be used *****************/
 
 html, body {
   margin: 0;
   padding: 0;
-  /* Use same as -fx-base */
-  background-color: #1f1f1f;
   /* Use same as -fx-light-text-color */
   color: #F5F5F5;
 }
@@ -613,7 +612,7 @@ a {
 }
 
 .chat-message:nth-of-type(odd) {
-  background-color: #2f2f2f;
+  background-color: rgba(255,255,255,0.0666);
 }
 
 .chat-message * {
