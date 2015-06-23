@@ -114,14 +114,18 @@ public class ChatUserControl extends HBox {
   private void configureClanLabel() {
     playerInfoBean.clanProperty().addListener((observable, oldValue, newValue) -> {
       Platform.runLater(() -> {
-        if (StringUtils.isEmpty(newValue)) {
-          clanLabel.setVisible(false);
-        } else {
-          clanLabel.setText(String.format(CLAN_TAG_FORMAT, newValue));
-          clanLabel.setVisible(true);
-        }
+        setClanTag(newValue);
       });
     });
+  }
+
+  private void setClanTag(String newValue) {
+    if (StringUtils.isEmpty(newValue)) {
+      clanLabel.setVisible(false);
+    } else {
+      clanLabel.setText(String.format(CLAN_TAG_FORMAT, newValue));
+      clanLabel.setVisible(true);
+    }
   }
 
   private void configureAvatarImageView() {
@@ -171,6 +175,7 @@ public class ChatUserControl extends HBox {
   void init() {
     fxmlLoader.loadCustomControl("chat_user_control.fxml", this);
     usernameLabel.setText(playerInfoBean.getUsername());
+    setClanTag(playerInfoBean.getClan());
   }
 
   public PlayerInfoBean getPlayerInfoBean() {
