@@ -576,6 +576,8 @@
 /***************** Chat (WebView, therefore default CSS). Java FX  variables can't be used *****************/
 
 html, body {
+  /* TODO WebView does not yet allow transparency. As a workaround, we use a black background together with WebView set to blend mode LIGHTEN. */
+  background-color: black;
   margin: 0;
   padding: 0;
   /* Use same as -fx-light-text-color */
@@ -599,7 +601,7 @@ a {
 
 .chat-message {
   font-family: System;
-  font-size: 12px;
+  font-size: 14px;
   /* Same height as avatar */
   line-height: 20px;
 }
@@ -613,7 +615,9 @@ a {
 }
 
 .chat-message:nth-of-type(odd) {
-  background-color: rgba(255,255,255,0.0666);
+  /* TODO WebView does not yet allow transparency. As a workaround, the WebView is set to blend mode LIGHTEN. However,
+   things like this don't work as expected with that workaround
+  background-color: rgba(255,255,255,0.06667); */
 }
 
 .chat-message * {

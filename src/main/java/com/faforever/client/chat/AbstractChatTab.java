@@ -6,7 +6,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.sound.SoundService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
-import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
 import javafx.application.HostServices;
@@ -191,7 +190,6 @@ public abstract class AbstractChatTab extends Tab {
     }
 
     engine = messagesWebView.getEngine();
-    JavaFxUtil.makeWebViewTransparent(engine);
     engine.setUserDataDirectory(preferencesService.getPreferencesDirectory().toFile());
     ((JSObject) engine.executeScript("window")).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
