@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane fx:id="newsTileRoot" onMouseClicked="#onMouseClicked" styleClass="news-tile"
+          xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="com.faforever.client.news.NewsTileController">
+  <columnConstraints>
+    <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="10.0" prefWidth="220.0"/>
+  </columnConstraints>
+  <rowConstraints>
+    <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+    <RowConstraints minHeight="10.0" prefHeight="60.0" vgrow="SOMETIMES"/>
+    <RowConstraints minHeight="10.0" prefHeight="150.0" vgrow="SOMETIMES"/>
+    <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+  </rowConstraints>
+  <children>
+    <ImageView fx:id="imageView" fitHeight="100.0" fitWidth="220.0" pickOnBounds="true" preserveRatio="true"
+               styleClass="news-tile-image"/>
+    <Label fx:id="titleLabel" styleClass="news-tile-title" text="&lt;News title&gt;" GridPane.rowIndex="1"
+           GridPane.valignment="TOP">
+      <GridPane.margin>
+        <Insets left="10.0" right="10.0" top="10.0"/>
+      </GridPane.margin>
+    </Label>
+    <Label fx:id="descriptionLabel" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308"
+           maxWidth="1.7976931348623157E308" styleClass="news-tile-text" text="&lt;Short description text&gt;"
+           wrapText="true" GridPane.rowIndex="2" GridPane.valignment="TOP">
+      <GridPane.margin>
+        <Insets left="10.0" right="10.0" top="10.0"/>
+      </GridPane.margin>
+    </Label>
+    <Label fx:id="authoredLabel" styleClass="news-tile-authored" text="&lt;Name on 23.06.2015&gt;"
+           GridPane.halignment="RIGHT" GridPane.rowIndex="3" GridPane.valignment="BOTTOM">
+      <GridPane.margin>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+      </GridPane.margin>
+    </Label>
+  </children>
+</GridPane>

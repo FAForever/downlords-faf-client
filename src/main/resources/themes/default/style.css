@@ -152,8 +152,10 @@
       derive(-fx-color,40%) 30%
   );
 
-  /* This is NOT from modena. */
+  /* These are NOT from modena. */
   -fx-context-menu-background: rgba(0, 0, 0, .8);
+  -fx-tile-background:  rgba(50, 50, 50, .9);
+
 }
 
 .scroll-bar > .increment-button > .increment-arrow,
@@ -287,7 +289,8 @@
 .decorated-window {
   -fx-background-color: black;
   -fx-background-image: url('images/background.jpg');
-  -fx-background-position: top;
+  -fx-background-position: center;
+  -fx-background-repeat: no-repeat;
 }
 
 /***************** Menu *****************/
@@ -408,6 +411,39 @@
 
 .notification-button:error {
   -fx-base: #cb3d3d;
+}
+
+/***************** News *****************/
+
+.news-tile {
+  -fx-background-color: -fx-tile-background;
+  -fx-color: -fx-base;
+  -fx-border-color: derive(-fx-box-border, 10%);
+  -fx-border-width: 1;
+  -fx-effect: dropshadow(gaussian, #00000066, 8, 0.8, 0, 0);
+}
+
+.news-tile:hover {
+  -fx-background-color: derive(-fx-tile-background, 10%);
+  -fx-color: -fx-hover-base;
+  -fx-cursor: hand;
+}
+
+.news-tile-image {
+
+}
+
+.news-tile-title {
+  -fx-font-size: 1.2em;
+  -fx-font-weight: bold;
+}
+
+.news-tile-text {
+
+}
+
+.news-tile-authored {
+  -fx-font-size: 0.8em;
 }
 
 /***************** Notifications *****************/

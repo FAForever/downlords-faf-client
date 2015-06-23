@@ -23,6 +23,7 @@ import com.faforever.client.main.MainController;
 import com.faforever.client.map.LegacyMapService;
 import com.faforever.client.map.MapService;
 import com.faforever.client.news.NewsController;
+import com.faforever.client.news.NewsTileController;
 import com.faforever.client.notification.NotificationNodeFactory;
 import com.faforever.client.notification.NotificationNodeFactoryImpl;
 import com.faforever.client.notification.PersistentNotificationsController;
@@ -92,6 +93,11 @@ public class UiConfig {
     return loadController("user_info_window.fxml");
   }
 
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  NewsTileController newsTileController() {
+    return loadController("news_tile.fxml");
+  }
 
   @Bean
   PersistentNotificationsController notificationsController() {
