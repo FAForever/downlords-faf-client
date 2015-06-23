@@ -360,6 +360,7 @@
 /***************** Table *****************/
 
 .table-view {
+  -fx-background-color: transparent;
   -fx-control-inner-background: #FFFFFF00;
   -fx-control-inner-background-alt: #FFFFFF11;
 }
