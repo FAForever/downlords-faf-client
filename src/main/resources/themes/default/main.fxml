@@ -15,7 +15,8 @@
    <children>
       <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
         <children>
-          <HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
+          <HBox fx:id="mainHeaderPane" alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308"
+                minHeight="-Infinity" minWidth="-Infinity">
                <children>
                  <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
                    <items>

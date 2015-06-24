@@ -64,6 +64,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_STATE = PseudoClass.getPseudoClass("error");
 
   @FXML
+  Pane mainHeaderPane;
+
+  @FXML
   ButtonBase notificationsButton;
 
   @FXML

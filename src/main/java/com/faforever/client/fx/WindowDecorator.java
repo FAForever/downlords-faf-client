@@ -1,6 +1,7 @@
 package com.faforever.client.fx;
 
 import javafx.collections.ObservableList;
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -26,6 +27,8 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
 public class WindowDecorator {
+
+  private static final PseudoClass MAXIMIZED_PSEUDO_STATE = PseudoClass.getPseudoClass("maximized");
 
   public enum WindowButtonType {
     MINIMIZE,
@@ -154,6 +157,8 @@ public class WindowDecorator {
   }
 
   private void restore() {
+    windowRoot.pseudoClassStateChanged(MAXIMIZED_PSEUDO_STATE, false);
+
     maximizeButton.setVisible(restoreButton.isVisible());
     restoreButton.setVisible(false);
 
@@ -167,6 +172,8 @@ public class WindowDecorator {
   }
 
   public void maximize() {
+    windowRoot.pseudoClassStateChanged(MAXIMIZED_PSEUDO_STATE, true);
+
     Rectangle2D visualBounds = getVisualBounds(stage);
 
     stage.setWidth(visualBounds.getWidth());
