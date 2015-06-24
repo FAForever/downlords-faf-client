@@ -61,6 +61,7 @@
               <Insets bottom="12.0" top="12.0" />
             </padding>
           </HBox>
+          <Separator prefWidth="200.0"/>
             <AnchorPane fx:id="contentPane" VBox.vgrow="ALWAYS" />
         </children>
       </VBox>
