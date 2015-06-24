@@ -10,7 +10,7 @@
   /* A dark grey that is the base color for objects.  Instead of using
    * -fx-base directly, the sections in this file will typically use -fx-color.
    */
-  -fx-base: #1f1f1f;
+  -fx-base: #3c0000;
 
   /* A very light grey used for the background of windows.  See also
    * -fx-text-background-color, which should be used as the -fx-text-fill
@@ -284,7 +284,7 @@
 /***************** Window *****************/
 
 .decorated-window {
-  -fx-background-color: #1c0000;
+  -fx-background-color: derive(-fx-base, -90%);
   -fx-background-image: url('images/background.jpg');
   -fx-background-position: center;
   -fx-background-repeat: no-repeat;
@@ -383,7 +383,9 @@
 /***************** Titled pane *****************/
 
 .titled-pane > *.title {
-  -fx-background: transparent;
+  -fx-background-color: transparent;
+  -fx-border-width: 0 0 1 0;
+  -fx-border-color: -fx-box-border;
 }
 
 .titled-pane > *.content {

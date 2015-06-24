@@ -87,8 +87,8 @@ public class JavaFxUtil {
     double height = stage.getHeight();
 
     Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-    stage.setX((screenBounds.getWidth() - width) / 2);
-    stage.setY((screenBounds.getHeight() - height) / 2);
+    stage.setX((screenBounds.getMaxX() - screenBounds.getMinX() - width) / 2);
+    stage.setY((screenBounds.getMaxY() - screenBounds.getMinY() - height) / 2);
   }
 
   public static void assertApplicationThread() {

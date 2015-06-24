@@ -272,9 +272,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     stage.setTitle(environment.getProperty("mainWindowTitle"));
     restoreState(mainWindowPrefs, stage);
     stage.show();
-    JavaFxUtil.centerOnScreen(stage);
 
-    registerWindowPreferenceListeners(stage, mainWindowPrefs);
+    registerWindowListeners(stage, mainWindowPrefs);
 
     usernameButton.setText(userService.getUsername());
 
@@ -282,11 +281,18 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {
+    stage.setWidth(mainWindowPrefs.getWidth());
+    stage.setHeight(mainWindowPrefs.getHeight());
+
     if (mainWindowPrefs.isMaximized()) {
       WindowDecorator.maximize(stage);
     } else {
-      stage.setWidth(mainWindowPrefs.getWidth());
-      stage.setHeight(mainWindowPrefs.getHeight());
+      if (mainWindowPrefs.getX() < 0 && mainWindowPrefs.getY() < 0) {
+        JavaFxUtil.centerOnScreen(stage);
+      } else {
+        stage.setX(mainWindowPrefs.getX());
+        stage.setY(mainWindowPrefs.getY());
+      }
     }
 
 
@@ -331,17 +337,40 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     }
   }
 
-  private void registerWindowPreferenceListeners(final Stage stage, final WindowPrefs mainWindowPrefs) {
+  private void registerWindowListeners(final Stage stage, final WindowPrefs mainWindowPrefs) {
     stage.maximizedProperty().addListener((observable, oldValue, newValue) -> {
+      if (!newValue) {
+        stage.setWidth(mainWindowPrefs.getWidth());
+        stage.setHeight(mainWindowPrefs.getHeight());
+        stage.setX(mainWindowPrefs.getX());
+        stage.setY(mainWindowPrefs.getY());
+      }
       mainWindowPrefs.setMaximized(newValue);
+      preferencesService.storeInBackground();
     });
     stage.heightProperty().addListener((observable, oldValue, newValue) -> {
-      mainWindowPrefs.setHeight(newValue.intValue());
-      preferencesService.storeInBackground();
+      if (!stage.isMaximized()) {
+        mainWindowPrefs.setHeight(newValue.intValue());
+        preferencesService.storeInBackground();
+      }
     });
     stage.widthProperty().addListener((observable, oldValue, newValue) -> {
-      mainWindowPrefs.setWidth(newValue.intValue());
-      preferencesService.storeInBackground();
+      if (!stage.isMaximized()) {
+        mainWindowPrefs.setWidth(newValue.intValue());
+        preferencesService.storeInBackground();
+      }
+    });
+    stage.xProperty().addListener(observable -> {
+      if (!stage.isMaximized()) {
+        mainWindowPrefs.setX(stage.getX());
+        preferencesService.storeInBackground();
+      }
+    });
+    stage.yProperty().addListener(observable -> {
+      if (!stage.isMaximized()) {
+        mainWindowPrefs.setY(stage.getY());
+        preferencesService.storeInBackground();
+      }
     });
   }
 

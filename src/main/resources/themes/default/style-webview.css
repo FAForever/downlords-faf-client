@@ -76,7 +76,8 @@ a {
 }
 
 .chat-message .username {
-  padding-right: 10px;
+  /* I really don't know where else this is set that makes !important necessary */
+  padding-right: 10px !important;
   max-width: 50%;
   text-align: right;
   white-space: nowrap;
