@@ -125,7 +125,7 @@ public class JavaFxUtil {
     WebEngine engine = webView.getEngine();
     engine.setUserDataDirectory(preferencesService.getPreferencesDirectory().toFile());
     try {
-      engine.setUserStyleSheetLocation(new ClassPathResource(ThemeUtil.themeFile(theme, "style.css")).getURL().toString());
+      engine.setUserStyleSheetLocation(new ClassPathResource(ThemeUtil.themeFile(theme, "style-webview.css")).getURL().toString());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
