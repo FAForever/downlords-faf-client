@@ -1,11 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.lang.*?>
 <?import javafx.scene.web.*?>
 <?import javafx.scene.web.WebView?>
 
-
-<FlowPane fx:id="newsRoot" hgap="20.0" vgap="20.0" xmlns="http://javafx.com/javafx/8.0.40"
-          xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.news.NewsController">
-</FlowPane>
+<HBox fx:id="newsRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0"
+      minWidth="0.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.faforever.client.news.NewsController">
+   <children>
+      <ScrollPane fitToWidth="true" hbarPolicy="NEVER" minHeight="0.0" minWidth="0.0" HBox.hgrow="NEVER">
+         <content>
+            <VBox fx:id="newsListPane" minHeight="0.0" minWidth="0.0"/>
+         </content>
+      </ScrollPane>
+      <Separator orientation="VERTICAL"/>
+      <AnchorPane HBox.hgrow="ALWAYS">
+         <children>
+            <WebView fx:id="newsDetailWebView" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0"
+                     AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+         </children>
+      </AnchorPane>
+   </children>
+</HBox>
