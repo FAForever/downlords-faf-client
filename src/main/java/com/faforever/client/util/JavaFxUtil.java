@@ -1,18 +1,23 @@
 package com.faforever.client.util;
 
+import com.faforever.client.preferences.PreferencesService;
 import com.sun.webkit.WebPage;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyCode;
 import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 
@@ -22,6 +27,7 @@ import java.lang.reflect.Field;
 public class JavaFxUtil {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final double ZOOM_STEP = 0.2d;
 
   private JavaFxUtil() {
     // Utility class
@@ -94,6 +100,34 @@ public class JavaFxUtil {
   public static void assertBackgroundThread() {
     if (Platform.isFxApplicationThread()) {
       throw new IllegalStateException("Must not run in FX Application thread");
+    }
+  }
+
+  public static void configureWebView(WebView webView, PreferencesService preferencesService) {
+    webView.setContextMenuEnabled(false);
+    webView.setOnScroll(event -> {
+      if (event.isControlDown()) {
+        if (event.getDeltaY() > 0) {
+          webView.setZoom(webView.getZoom() + ZOOM_STEP);
+        } else {
+          webView.setZoom(webView.getZoom() - ZOOM_STEP);
+        }
+      }
+    });
+    webView.setOnKeyPressed(event -> {
+      if (event.isControlDown() && (event.getCode() == KeyCode.DIGIT0 || event.getCode() == KeyCode.NUMPAD0)) {
+        webView.setZoom(1);
+      }
+    });
+
+    String theme = preferencesService.getPreferences().getTheme();
+
+    WebEngine engine = webView.getEngine();
+    engine.setUserDataDirectory(preferencesService.getPreferencesDirectory().toFile());
+    try {
+      engine.setUserStyleSheetLocation(new ClassPathResource(ThemeUtil.themeFile(theme, "style.css")).getURL().toString());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 }

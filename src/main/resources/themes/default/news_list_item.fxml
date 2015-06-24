@@ -6,7 +6,7 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane fx:id="newsItemRoot" hgap="10.0" onMouseClicked="#onMouseClicked" styleClass="news-item"
+<GridPane fx:id="newsItemRoot" hgap="20.0" onMouseClicked="#onMouseClicked" styleClass="news-item"
           xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
           fx:controller="com.faforever.client.news.NewsListItemController">
   <columnConstraints>

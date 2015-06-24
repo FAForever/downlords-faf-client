@@ -19,7 +19,8 @@
       <AnchorPane HBox.hgrow="ALWAYS">
          <children>
             <WebView fx:id="newsDetailWebView" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0"
-                     AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                     AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"
+                     blendMode="ADD"/>
          </children>
       </AnchorPane>
    </children>

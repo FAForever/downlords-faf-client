@@ -611,7 +611,14 @@
   -fx-background: transparent;
 }
 
-/***************** Chat (WebView, therefore default CSS). Java FX  variables can't be used *****************/
+
+
+
+/*****************
+
+All the following belongs to WebViews (chat, news), therefore default CSS. Java FX variables can't be used.
+
+*****************/
 
 html, body {
   /* TODO WebView does not yet allow transparency. As a workaround, we use a black background together with WebView set to blend mode LIGHTEN. */
@@ -620,6 +627,8 @@ html, body {
   padding: 0;
   /* Use same as -fx-light-text-color */
   color: #F5F5F5;
+  font-family: System;
+  font-size: 14px;
 }
 
 a {
@@ -627,6 +636,8 @@ a {
   color: #609e15;
   text-decoration: none;
 }
+
+/***************** Chat (WebView) *****************/
 
 #chat-table {
   width: 100%;
@@ -638,8 +649,6 @@ a {
 }
 
 .chat-message {
-  font-family: System;
-  font-size: 14px;
   /* Same height as avatar */
   line-height: 20px;
 }
@@ -691,4 +700,16 @@ a {
 
 .chat-message.self {
   color: orange;
+}
+
+/***************** News (WebView) *****************/
+
+html.news-detail {
+  padding: 20px;
+}
+
+.news-detail img {
+  display: block;
+  max-width: 100%;
+  height: auto !important;
 }

@@ -4,7 +4,6 @@ import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
-import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LadderController;
@@ -19,7 +18,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.patch.PatchService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.task.PrioritizedTask;
@@ -48,6 +46,7 @@ import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
 import java.util.Collection;
@@ -115,6 +114,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   Label taskProgressLabel;
 
   @Autowired
+  Environment environment;
+
+  @Autowired
   NewsController newsController;
 
   @Autowired
@@ -145,9 +147,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   PortCheckService portCheckService;
 
   @Autowired
-  PatchService patchService;
-
-  @Autowired
   ChatService chatService;
 
   @Autowired
@@ -161,11 +160,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @Autowired
   NotificationService notificationService;
-
-  @Autowired
-  FxmlLoader fxmlLoader;
-
-  private Stage stage;
 
   private Popup notificationsPopup;
 
@@ -265,8 +259,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   public void display(Stage stage) {
-    this.stage = stage;
-
     lobbyService.setOnFafConnectedListener(this);
     lobbyService.setOnLobbyConnectingListener(this);
     lobbyService.setOnFafDisconnectedListener(this);
@@ -277,7 +269,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     sceneFactory.createScene(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
 
-    stage.setTitle("FA Forever");
+    stage.setTitle(environment.getProperty("mainWindowTitle"));
     restoreState(mainWindowPrefs, stage);
     stage.show();
     JavaFxUtil.centerOnScreen(stage);

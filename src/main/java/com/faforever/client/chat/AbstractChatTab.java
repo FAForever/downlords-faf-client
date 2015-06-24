@@ -6,6 +6,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.sound.SoundService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
+import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
 import javafx.application.HostServices;
@@ -70,7 +71,6 @@ public abstract class AbstractChatTab extends Tab {
   private static final ClassPathResource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
   private static final Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
   private static final DateTimeFormatter SHORT_TIME_FORMAT = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT);
-  private static final double ZOOM_STEP = 0.2d;
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
   private static final String CSS_STYLE_SELF = "self";
@@ -163,34 +163,20 @@ public abstract class AbstractChatTab extends Tab {
 
   private WebEngine initChatView() {
     WebView messagesWebView = getMessagesWebView();
+    JavaFxUtil.configureWebView(messagesWebView, preferencesService);
 
-    messagesWebView.setContextMenuEnabled(false);
-    messagesWebView.setOnScroll(event -> {
-      if (event.isControlDown()) {
-        if (event.getDeltaY() > 0) {
-          messagesWebView.setZoom(messagesWebView.getZoom() + ZOOM_STEP);
-        } else {
-          messagesWebView.setZoom(messagesWebView.getZoom() - ZOOM_STEP);
-        }
-      }
-    });
-    messagesWebView.setOnKeyPressed(event -> {
-      if (event.isControlDown() && (event.getCode() == KeyCode.DIGIT0 || event.getCode() == KeyCode.NUMPAD0)) {
-        messagesWebView.setZoom(1);
-      }
-    });
     messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, MOVE_HANDLER);
     messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
       preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
       preferencesService.storeInBackground();
     });
+
     Double zoom = preferencesService.getPreferences().getChat().getZoom();
     if (zoom != null) {
       messagesWebView.setZoom(zoom);
     }
 
     engine = messagesWebView.getEngine();
-    engine.setUserDataDirectory(preferencesService.getPreferencesDirectory().toFile());
     ((JSObject) engine.executeScript("window")).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
       if (Worker.State.SUCCEEDED.equals(newValue)) {
