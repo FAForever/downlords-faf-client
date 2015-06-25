@@ -38,6 +38,8 @@ import com.faforever.client.patch.PatchService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.replay.ReplayServer;
+import com.faforever.client.replay.ReplayServerImpl;
 import com.faforever.client.sound.SoundService;
 import com.faforever.client.sound.SoundServiceImpl;
 import com.faforever.client.stats.LegacyStatisticsService;
@@ -187,6 +189,11 @@ public class BaseConfig {
   @Bean
   SoundService soundService() {
     return new SoundServiceImpl();
+  }
+
+  @Bean
+  ReplayServer replayServer() {
+    return new ReplayServerImpl();
   }
 
   @Bean

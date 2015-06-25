@@ -43,6 +43,7 @@ public class PreferencesService {
   private static final String PREFS_FILE_NAME = "client.prefs";
   private static final String APP_DATA_SUB_FOLDER = "Forged Alliance Forever";
   private static final String USER_HOME_SUB_FOLDER = ".faforever";
+  private static final String REPLAY_DIRECTORY = "replays";
 
   private static final Collection<Path> USUAL_GAME_PATHS = Arrays.asList(
       Paths.get(System.getenv("ProgramFiles") + "\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
@@ -262,5 +263,9 @@ public class PreferencesService {
    */
   public void addUpdateListener(PreferenceUpdateListener listener) {
     updateListeners.add(listener);
+  }
+
+  public Path getReplayDirectory() {
+    return getPreferencesDirectory().resolve(REPLAY_DIRECTORY);
   }
 }
