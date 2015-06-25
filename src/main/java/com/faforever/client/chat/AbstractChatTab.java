@@ -10,6 +10,7 @@ import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
 import javafx.application.HostServices;
+import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -153,6 +154,14 @@ public abstract class AbstractChatTab extends Tab {
     initChatView();
     userToCssStyle.put(userService.getUsername(), CSS_STYLE_SELF);
     mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b");
+
+    selectedProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
+        // So let's schedule the focus to be executed afterwards
+        Platform.runLater(() -> getMessageTextField().requestFocus());
+      }
+    });
   }
 
   private void resetAutoCompletion() {
@@ -259,7 +268,7 @@ public abstract class AbstractChatTab extends Tab {
 
   @FXML
   void onKeyPressed(KeyEvent keyEvent) {
-    if (keyEvent.getCode() == KeyCode.TAB) {
+    if (!keyEvent.isControlDown() && keyEvent.getCode() == KeyCode.TAB) {
       keyEvent.consume();
       autoComplete();
     }
@@ -267,6 +276,10 @@ public abstract class AbstractChatTab extends Tab {
 
   private void autoComplete() {
     TextInputControl messageTextField = getMessageTextField();
+
+    if (messageTextField.getText().isEmpty()) {
+      return;
+    }
 
     if (possibleAutoCompletions == null) {
       initializeAutoCompletion(messageTextField);
