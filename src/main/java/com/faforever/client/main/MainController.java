@@ -4,13 +4,12 @@ import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
-import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LadderController;
+import com.faforever.client.legacy.OnFafDisconnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
-import com.faforever.client.legacy.OnFafDisconnectedListener;
 import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.network.GamePortCheckListener;
 import com.faforever.client.network.PortCheckService;
@@ -19,14 +18,12 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.patch.PatchService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.vault.VaultController;
 import javafx.animation.PathTransition;
@@ -38,9 +35,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBase;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuButton;
@@ -57,8 +52,10 @@ import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
+import java.util.Collection;
 import java.util.List;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
@@ -70,6 +67,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_STATE = PseudoClass.getPseudoClass("info");
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_STATE = PseudoClass.getPseudoClass("warn");
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_STATE = PseudoClass.getPseudoClass("error");
+
+  @FXML
+  Pane mainHeaderPane;
 
   @FXML
   ButtonBase notificationsButton;
@@ -99,7 +99,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   ProgressBar taskProgressBar;
 
   @FXML
-  Region mainRoot;
+  Pane mainRoot;
 
   @FXML
   MenuButton usernameButton;
@@ -124,6 +124,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   /*@FXML
   PathTransition*/
+
+  @Autowired
+  Environment environment;
 
   @Autowired
   NewsController newsController;
@@ -156,9 +159,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   PortCheckService portCheckService;
 
   @Autowired
-  PatchService patchService;
-
-  @Autowired
   ChatService chatService;
 
   @Autowired
@@ -172,11 +172,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @Autowired
   NotificationService notificationService;
-
-  @Autowired
-  FxmlLoader fxmlLoader;
-
-  private Stage stage;
 
   private Popup notificationsPopup;
 
@@ -198,7 +193,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     notificationsPopup.setAutoHide(true);
 
     notificationService.addPersistentNotificationListener(change -> {
-      Platform.runLater(() -> updateNotificationsButton(change.getList()));
+      Platform.runLater(() -> updateNotificationsButton(change.getSet()));
     });
 
     taskService.addChangeListener(TaskGroup.NET_HEAVY, change -> {
@@ -221,7 +216,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
    * Updates the number displayed in the notifications button and sets its CSS pseudo class based on the highest
    * notification {@code Severity} of all current notifications.
    */
-  private void updateNotificationsButton(List<? extends PersistentNotification> notifications) {
+  private void updateNotificationsButton(Collection<? extends PersistentNotification> notifications) {
     JavaFxUtil.assertApplicationThread();
 
     int numberOfNotifications = notifications.size();
@@ -276,8 +271,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   public void display(Stage stage) {
-    this.stage = stage;
-
     lobbyService.setOnFafConnectedListener(this);
     lobbyService.setOnLobbyConnectingListener(this);
     lobbyService.setOnFafDisconnectedListener(this);
@@ -288,12 +281,11 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     sceneFactory.createScene(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
 
-    stage.setTitle("FA Forever");
+    stage.setTitle(environment.getProperty("mainWindowTitle"));
     restoreState(mainWindowPrefs, stage);
     stage.show();
-    JavaFxUtil.centerOnScreen(stage);
 
-    registerWindowPreferenceListeners(stage, mainWindowPrefs);
+    registerWindowListeners(stage, mainWindowPrefs);
 
     usernameButton.setText(userService.getUsername());
 
@@ -301,11 +293,18 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {
+    stage.setWidth(mainWindowPrefs.getWidth());
+    stage.setHeight(mainWindowPrefs.getHeight());
+
     if (mainWindowPrefs.isMaximized()) {
       WindowDecorator.maximize(stage);
     } else {
-      stage.setWidth(mainWindowPrefs.getWidth());
-      stage.setHeight(mainWindowPrefs.getHeight());
+      if (mainWindowPrefs.getX() < 0 && mainWindowPrefs.getY() < 0) {
+        JavaFxUtil.centerOnScreen(stage);
+      } else {
+        stage.setX(mainWindowPrefs.getX());
+        stage.setY(mainWindowPrefs.getY());
+      }
     }
 
 
@@ -364,17 +363,40 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     }
   }
 
-  private void registerWindowPreferenceListeners(final Stage stage, final WindowPrefs mainWindowPrefs) {
+  private void registerWindowListeners(final Stage stage, final WindowPrefs mainWindowPrefs) {
     stage.maximizedProperty().addListener((observable, oldValue, newValue) -> {
+      if (!newValue) {
+        stage.setWidth(mainWindowPrefs.getWidth());
+        stage.setHeight(mainWindowPrefs.getHeight());
+        stage.setX(mainWindowPrefs.getX());
+        stage.setY(mainWindowPrefs.getY());
+      }
       mainWindowPrefs.setMaximized(newValue);
+      preferencesService.storeInBackground();
     });
     stage.heightProperty().addListener((observable, oldValue, newValue) -> {
-      mainWindowPrefs.setHeight(newValue.intValue());
-      preferencesService.storeInBackground();
+      if (!stage.isMaximized()) {
+        mainWindowPrefs.setHeight(newValue.intValue());
+        preferencesService.storeInBackground();
+      }
     });
     stage.widthProperty().addListener((observable, oldValue, newValue) -> {
-      mainWindowPrefs.setWidth(newValue.intValue());
-      preferencesService.storeInBackground();
+      if (!stage.isMaximized()) {
+        mainWindowPrefs.setWidth(newValue.intValue());
+        preferencesService.storeInBackground();
+      }
+    });
+    stage.xProperty().addListener(observable -> {
+      if (!stage.isMaximized()) {
+        mainWindowPrefs.setX(stage.getX());
+        preferencesService.storeInBackground();
+      }
+    });
+    stage.yProperty().addListener(observable -> {
+      if (!stage.isMaximized()) {
+        mainWindowPrefs.setY(stage.getY());
+        preferencesService.storeInBackground();
+      }
     });
   }
 
@@ -458,5 +480,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Override
   public void onGamePortCheckStarted() {
     portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
+  }
+
+  public Pane getRoot() {
+    return mainRoot;
   }
 }

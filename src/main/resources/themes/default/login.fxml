@@ -15,7 +15,7 @@
         <Image url="@../../images/logo_transparent.png" />
       </image>
       <VBox.margin>
-        <Insets bottom="70.0" top="80.0" />
+        <Insets bottom="50.0" top="70.0"/>
       </VBox.margin>
     </ImageView>
     <AnchorPane>
@@ -59,7 +59,7 @@
         </VBox>
       </children>
       <VBox.margin>
-        <Insets bottom="40.0" left="18.0" right="18.0" top="20.0" />
+        <Insets bottom="20.0" left="18.0" right="18.0" top="20.0"/>
       </VBox.margin>
     </AnchorPane>
   </children>

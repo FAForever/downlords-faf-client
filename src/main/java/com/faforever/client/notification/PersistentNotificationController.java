@@ -1,6 +1,5 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.util.ThemeUtil;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -74,6 +73,10 @@ public class PersistentNotificationController {
   }
 
   private void setActions(List<Action> actions) {
+    if (actions == null) {
+      return;
+    }
+
     List<Button> actionButtons = new ArrayList<>();
     for (Action action : actions) {
       Button button = new Button(action.getTitle());

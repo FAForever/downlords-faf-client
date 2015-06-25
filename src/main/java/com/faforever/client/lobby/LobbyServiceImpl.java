@@ -3,26 +3,26 @@ package com.faforever.client.lobby;
 import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
 import com.faforever.client.legacy.OnFafDisconnectedListener;
-import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.legacy.LobbyServerAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class LobbyServiceImpl implements LobbyService {
 
   @Autowired
-  ServerAccessor serverAccessor;
+  LobbyServerAccessor lobbyServerAccessor;
 
   @Override
   public void setOnFafConnectedListener(OnLobbyConnectedListener listener) {
-    serverAccessor.setOnLobbyConnectedListener(listener);
+    lobbyServerAccessor.setOnLobbyConnectedListener(listener);
   }
 
   @Override
   public void setOnLobbyConnectingListener(OnLobbyConnectingListener listener) {
-    serverAccessor.setOnFafConnectingListener(listener);
+    lobbyServerAccessor.setOnFafConnectingListener(listener);
   }
 
   @Override
   public void setOnFafDisconnectedListener(OnFafDisconnectedListener listener) {
-    serverAccessor.setOnFafDisconnectedListener(listener);
+    lobbyServerAccessor.setOnFafDisconnectedListener(listener);
   }
 }

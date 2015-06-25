@@ -1,6 +1,7 @@
 package com.faforever.client.fx;
 
 import javafx.collections.ObservableList;
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -26,6 +27,8 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
 public class WindowDecorator {
+
+  private static final PseudoClass MAXIMIZED_PSEUDO_STATE = PseudoClass.getPseudoClass("maximized");
 
   public enum WindowButtonType {
     MINIMIZE,
@@ -114,21 +117,25 @@ public class WindowDecorator {
       });
     }
 
-    List<WindowButtonType> buttonList = Arrays.asList(buttons);
-
-    minimizeButton.setVisible(buttonList.contains(MINIMIZE));
-    maximizeButton.setVisible(buttonList.contains(MAXIMIZE_RESTORE));
-    restoreButton.setVisible(buttonList.contains(MAXIMIZE_RESTORE));
-    closeButton.setVisible(buttonList.contains(CLOSE));
-    resizeDirections = EnumSet.noneOf(ResizeDirection.class);
-
     maximizeButton.managedProperty().bind(maximizeButton.visibleProperty());
     restoreButton.managedProperty().bind(restoreButton.visibleProperty());
+
+    List<WindowButtonType> buttonList = Arrays.asList(buttons);
 
     if (!resizable) {
       maximizeButton.setVisible(false);
       restoreButton.setVisible(false);
+    } else if (buttonList.contains(MAXIMIZE_RESTORE)) {
+      maximizeButton.visibleProperty().bind(stage.maximizedProperty().not());
+      restoreButton.visibleProperty().bind(stage.maximizedProperty());
+    } else {
+      maximizeButton.setVisible(false);
+      restoreButton.setVisible(false);
     }
+
+    minimizeButton.setVisible(buttonList.contains(MINIMIZE));
+    closeButton.setVisible(buttonList.contains(CLOSE));
+    resizeDirections = EnumSet.noneOf(ResizeDirection.class);
 
     if (stage.isMaximized()) {
       maximize();
@@ -154,8 +161,7 @@ public class WindowDecorator {
   }
 
   private void restore() {
-    maximizeButton.setVisible(restoreButton.isVisible());
-    restoreButton.setVisible(false);
+    windowRoot.pseudoClassStateChanged(MAXIMIZED_PSEUDO_STATE, false);
 
     stage.setMaximized(false);
     AnchorPane.setTopAnchor(contentPane, RESIZE_BORDER_WIDTH);
@@ -167,17 +173,16 @@ public class WindowDecorator {
   }
 
   public void maximize() {
+    windowRoot.pseudoClassStateChanged(MAXIMIZED_PSEUDO_STATE, true);
+
     Rectangle2D visualBounds = getVisualBounds(stage);
+
+    stage.setMaximized(true);
 
     stage.setWidth(visualBounds.getWidth());
     stage.setHeight(visualBounds.getHeight());
     stage.setX(visualBounds.getMinX());
     stage.setY(visualBounds.getMinY());
-
-    maximizeButton.setVisible(false);
-    restoreButton.setVisible(true);
-
-    stage.setMaximized(true);
 
     AnchorPane.setTopAnchor(contentPane, 0d);
     AnchorPane.setRightAnchor(contentPane, 0d);
@@ -332,7 +337,7 @@ public class WindowDecorator {
     double x1 = stage.getX() + (stage.getWidth() / 2);
     double y1 = stage.getY() + (stage.getHeight() / 2);
 
-    Rectangle2D windowCenter = new Rectangle2D(x1, y1, x1, y1);
+    Rectangle2D windowCenter = new Rectangle2D(x1, y1, 1, 1);
     ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(windowCenter);
     return screensForRectangle.get(0).getVisualBounds();
   }

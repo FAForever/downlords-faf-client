@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -67,8 +68,10 @@ public class PreferencesService {
   private final Timer timer;
   private TimerTask storeInBackgroundTask;
   private Repository fafRepoDirectory;
+  private Collection<PreferenceUpdateListener> updateListeners;
 
   public PreferencesService() {
+    updateListeners = new ArrayList<>();
     this.preferencesFilePath = getPreferencesDirectory().resolve(PREFS_FILE_NAME);
     timer = new Timer("PrefTimer", true);
     gson = new GsonBuilder()
@@ -245,9 +248,19 @@ public class PreferencesService {
       @Override
       public void run() {
         store();
+        for (PreferenceUpdateListener updateListener : updateListeners) {
+          updateListener.onPreferencesUpdated(preferences);
+        }
       }
     };
 
     timer.schedule(storeInBackgroundTask, STORE_DELAY);
+  }
+
+  /**
+   * Adds a listener to be notified whenever the preferences have been updated (that is, stored to file).
+   */
+  public void addUpdateListener(PreferenceUpdateListener listener) {
+    updateListeners.add(listener);
   }
 }

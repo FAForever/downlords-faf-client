@@ -2,7 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
-import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
@@ -32,7 +32,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Autowired
-  ServerAccessor serverAccessor;
+  LobbyServerAccessor lobbyServerAccessor;
 
   @Autowired
   UserService userService;
@@ -57,7 +57,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
 
   @PostConstruct
   void postConstruct() {
-    serverAccessor.addOnGameTypeInfoListener(this);
+    lobbyServerAccessor.addOnGameTypeInfoListener(this);
   }
 
   @Override
@@ -68,7 +68,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
 
   @Override
   public void addOnGameInfoListener(OnGameInfoListener listener) {
-    serverAccessor.addOnGameInfoListener(listener);
+    lobbyServerAccessor.addOnGameInfoListener(listener);
   }
 
   @Override
@@ -77,7 +77,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
     updateGameIfNecessary(newGameInfo.getMod(), new Callback<Void>() {
       @Override
       public void success(Void result) {
-        serverAccessor.requestNewGame(newGameInfo, gameLaunchCallback(callback));
+        lobbyServerAccessor.requestNewGame(newGameInfo, gameLaunchCallback(callback));
       }
 
       @Override
@@ -98,17 +98,19 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
 
   @Override
   public void joinGame(GameInfoBean gameInfoBean, String password, Callback<Void> callback) {
+    logger.info("Joining game {} ({})", gameInfoBean.getTitle(), gameInfoBean.getUid());
+
     cancelLadderSearch();
 
     Callback<Void> mapDownloadCallback = new Callback<Void>() {
       @Override
       public void success(Void result) {
-        serverAccessor.requestJoinGame(gameInfoBean, password, gameLaunchCallback(callback));
+        lobbyServerAccessor.requestJoinGame(gameInfoBean, password, gameLaunchCallback(callback));
       }
 
       @Override
       public void error(Throwable e) {
-
+        callback.error(e);
       }
     };
 
@@ -151,7 +153,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
         List<String> args = fixMalformedArgs(gameLaunchInfo.args);
         try {
           Process process = forgedAllianceService.startGame(gameLaunchInfo.uid, gameLaunchInfo.mod, args);
-          serverAccessor.notifyGameStarted();
+          lobbyServerAccessor.notifyGameStarted();
           waitForProcessTerminationInBackground(process);
 
           Platform.runLater(() -> callback.success(null));
@@ -174,8 +176,8 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
       protected Void call() throws Exception {
         int exitCode = process.waitFor();
         logger.info("Forged Alliance terminated with exit code {}", exitCode);
-        proxy.closeSockets();
-        serverAccessor.notifyGameTerminated();
+        proxy.close();
+        lobbyServerAccessor.notifyGameTerminated();
         return null;
       }
     });

@@ -3,19 +3,25 @@ package com.faforever.client.chat;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.sound.SoundService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
+import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Joiner;
+import com.google.common.io.CharStreams;
 import javafx.application.HostServices;
+import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -23,8 +29,6 @@ import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Window;
 import netscape.javascript.JSObject;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +38,8 @@ import org.springframework.core.io.Resource;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -49,12 +54,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static com.google.common.html.HtmlEscapers.htmlEscaper;
 
 /**
  * A chat tab displays messages in a {@link WebView}. The WebView is used since text on a JavaFX canvas isn't
  * selectable, but text within a WebView is. This comes with some ugly implications; some of the logic has to be
  * performed in interaction with JavaScript, like when the user clicks a link.
  */
+// TODO create a ChatTabController that does not extend Tab but encapsulate it
 public abstract class AbstractChatTab extends Tab {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -63,7 +72,6 @@ public abstract class AbstractChatTab extends Tab {
   private static final ClassPathResource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
   private static final Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
   private static final DateTimeFormatter SHORT_TIME_FORMAT = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT);
-  private static final double ZOOM_STEP = 0.2d;
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
   private static final String CSS_STYLE_SELF = "self";
@@ -93,13 +101,7 @@ public abstract class AbstractChatTab extends Tab {
   ChatService chatService;
 
   @Autowired
-  ChatController chatController;
-
-  @Autowired
   FxmlLoader fxmlLoader;
-
-  @Autowired
-  ChatUserControlFactory chatUserControlFactory;
 
   @Autowired
   HostServices hostServices;
@@ -109,6 +111,9 @@ public abstract class AbstractChatTab extends Tab {
 
   @Autowired
   PlayerService playerService;
+
+  @Autowired
+  SoundService soundService;
 
   private boolean isChatReady;
   private WebEngine engine;
@@ -122,6 +127,16 @@ public abstract class AbstractChatTab extends Tab {
    */
   private String receiver;
   private String fxmlFile;
+
+  /**
+   * Stores possible values for autocompletion (when strted typing a name, then pressing TAB). This value needs to be
+   * set to {@code null} after the message has been sent or the caret has been moved in order to restart the
+   * autocompletion on next TAB press.
+   */
+  private ArrayList<String> possibleAutoCompletions;
+  private int nextAutoCompleteIndex;
+  private String autoCompletePartialName;
+  private Pattern mentionPattern;
 
   public AbstractChatTab(String receiver, String fxmlFile) {
     this.receiver = receiver;
@@ -138,38 +153,39 @@ public abstract class AbstractChatTab extends Tab {
     fxmlLoader.loadCustomControl(fxmlFile, this);
     initChatView();
     userToCssStyle.put(userService.getUsername(), CSS_STYLE_SELF);
+    mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b");
+
+    selectedProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
+        // So let's schedule the focus to be executed afterwards
+        Platform.runLater(() -> getMessageTextField().requestFocus());
+      }
+    });
+  }
+
+  private void resetAutoCompletion() {
+    possibleAutoCompletions = null;
+    nextAutoCompleteIndex = -1;
+    autoCompletePartialName = null;
   }
 
   private WebEngine initChatView() {
     WebView messagesWebView = getMessagesWebView();
+    JavaFxUtil.configureWebView(messagesWebView, preferencesService);
 
-    messagesWebView.setContextMenuEnabled(false);
-    messagesWebView.setOnScroll(event -> {
-      if (event.isControlDown()) {
-        if (event.getDeltaY() > 0) {
-          messagesWebView.setZoom(messagesWebView.getZoom() + ZOOM_STEP);
-        } else {
-          messagesWebView.setZoom(messagesWebView.getZoom() - ZOOM_STEP);
-        }
-      }
-    });
-    messagesWebView.setOnKeyPressed(event -> {
-      if (event.isControlDown() && (event.getCode() == KeyCode.DIGIT0 || event.getCode() == KeyCode.NUMPAD0)) {
-        messagesWebView.setZoom(1);
-      }
-    });
     messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, MOVE_HANDLER);
     messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
       preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
       preferencesService.storeInBackground();
     });
+
     Double zoom = preferencesService.getPreferences().getChat().getZoom();
     if (zoom != null) {
       messagesWebView.setZoom(zoom);
     }
 
     engine = messagesWebView.getEngine();
-    engine.setUserDataDirectory(preferencesService.getPreferencesDirectory().toFile());
     ((JSObject) engine.executeScript("window")).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
       if (Worker.State.SUCCEEDED.equals(newValue)) {
@@ -230,7 +246,8 @@ public abstract class AbstractChatTab extends Tab {
     return scene == null ? null : scene.getWindow();
   }
 
-  public void onSendMessage(ActionEvent actionEvent) {
+  @FXML
+  void onSendMessage(ActionEvent actionEvent) {
     TextInputControl messageTextField = getMessageTextField();
 
     String text = messageTextField.getText();
@@ -245,6 +262,85 @@ public abstract class AbstractChatTab extends Tab {
     } else {
       sendMessage(messageTextField, text);
     }
+
+    resetAutoCompletion();
+  }
+
+  @FXML
+  void onKeyPressed(KeyEvent keyEvent) {
+    if (!keyEvent.isControlDown() && keyEvent.getCode() == KeyCode.TAB) {
+      keyEvent.consume();
+      autoComplete();
+    }
+  }
+
+  private void autoComplete() {
+    TextInputControl messageTextField = getMessageTextField();
+
+    if (messageTextField.getText().isEmpty()) {
+      return;
+    }
+
+    if (possibleAutoCompletions == null) {
+      initializeAutoCompletion(messageTextField);
+
+      if (possibleAutoCompletions.isEmpty()) {
+        // There are no autocompletion matches
+        resetAutoCompletion();
+        return;
+      }
+
+      // It's the first autocomplete event at this location, just replace the text with the first user name
+      messageTextField.selectPreviousWord();
+      messageTextField.replaceSelection(possibleAutoCompletions.get(nextAutoCompleteIndex++));
+      return;
+    }
+
+    // At this point, it's a subsequent auto complete event
+    String wordBeforeCaret = getWordBeforeCaret(messageTextField);
+
+    /*
+     * We have to check if the previous word is the one we auto completed. If not we reset and start all over again
+     * as the user started auto completion on another word.
+     */
+    if (!wordBeforeCaret.equals(possibleAutoCompletions.get(nextAutoCompleteIndex - 1))) {
+      resetAutoCompletion();
+      autoComplete();
+      return;
+    }
+
+    if (possibleAutoCompletions.size() == 1) {
+      // No need to cycle since there was only one match
+      return;
+    }
+
+    if (possibleAutoCompletions.size() <= nextAutoCompleteIndex) {
+      // Start over again in order to cycle
+      nextAutoCompleteIndex = 0;
+    }
+
+    messageTextField.selectPreviousWord();
+    messageTextField.replaceSelection(possibleAutoCompletions.get(nextAutoCompleteIndex++));
+  }
+
+  private void initializeAutoCompletion(TextInputControl messageTextField) {
+    autoCompletePartialName = getWordBeforeCaret(messageTextField);
+
+    possibleAutoCompletions = new ArrayList<>();
+    nextAutoCompleteIndex = 0;
+
+    possibleAutoCompletions.addAll(
+        playerService.getPlayerNames().stream()
+            .filter(playerName -> playerName.toLowerCase().startsWith(autoCompletePartialName.toLowerCase()))
+            .collect(Collectors.toList())
+    );
+  }
+
+  private String getWordBeforeCaret(TextInputControl messageTextField) {
+    messageTextField.selectPreviousWord();
+    String selectedText = messageTextField.getSelectedText();
+    messageTextField.positionCaret(messageTextField.getAnchor());
+    return selectedText;
   }
 
   private void sendMessage(final TextInputControl messageTextField, final String text) {
@@ -304,7 +400,7 @@ public abstract class AbstractChatTab extends Tab {
 
   private void scrollToBottomIfDesired() {
     // TODO add the "if desired" part
-    if(getMessagesWebView().getParent() == null) {
+    if (getMessagesWebView().getParent() == null) {
       return;
     }
     engine.executeScript("window.scrollTo(0, document.body.scrollHeight);");
@@ -327,9 +423,9 @@ public abstract class AbstractChatTab extends Tab {
 
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getUsername());
 
-    try (InputStream inputStream = MESSAGE_ITEM_HTML_RESOURCE.getInputStream()) {
+    try (Reader reader = new InputStreamReader(MESSAGE_ITEM_HTML_RESOURCE.getInputStream())) {
       String login = chatMessage.getUsername();
-      String html = IOUtils.toString(inputStream);
+      String html = CharStreams.toString(reader);
 
       String avatar = "";
       String clanTag = "";
@@ -341,9 +437,13 @@ public abstract class AbstractChatTab extends Tab {
         }
       }
 
-      String text = StringEscapeUtils.escapeHtml4(chatMessage.getMessage()).replace("\\", "\\\\");
+      String text = htmlEscaper().escape(chatMessage.getMessage()).replace("\\", "\\\\");
       text = convertUrlsIntoHyperlinks(text);
-      text = highlightOwnUsername(text);
+
+      if (mentionPattern.matcher(text).find()) {
+        text = highlightOwnUsername(text);
+        soundService.playChatMentionSound();
+      }
 
       html = html.replace("{time}", timeString)
           .replace("{avatar}", StringUtils.defaultString(avatar))
@@ -374,7 +474,7 @@ public abstract class AbstractChatTab extends Tab {
   private String highlightOwnUsername(String text) {
     // TODO outsource in html file
     return text.replaceAll(
-        "\\b" + Pattern.quote(userService.getUsername()) + "\\b",
+        mentionPattern.pattern(),
         "<span class='own-username'>" + userService.getUsername() + "</span>"
     );
   }

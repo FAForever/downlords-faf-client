@@ -1,18 +1,20 @@
 package com.faforever.client.leaderboard;
 
 import com.faforever.client.util.Callback;
-import javafx.collections.FXCollections;
+import com.faforever.client.util.Validator;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Slider;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.util.StringConverter;
+import javafx.scene.control.TextField;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+
+import static javafx.collections.FXCollections.observableArrayList;
 
 
 public class LadderController {
@@ -47,15 +49,17 @@ public class LadderController {
   TableColumn<LadderEntryBean, Number> ratingColumn;
 
   @FXML
-  Slider ratingSlider;
+  TableView<LadderEntryBean> ratingTable;
 
   @FXML
-  TableView<LadderEntryBean> ratingTable;
+  TextField searchTextField;
 
   @Autowired
   LadderService ladderService;
 
   private List<LadderEntryBean> ladderEntryBeans;
+
+  private FilteredList<LadderEntryBean> filteredList;
 
   @FXML
   public void initialize() {
@@ -65,29 +69,37 @@ public class LadderController {
     gamesPlayedColumn.setCellValueFactory(param -> param.getValue().gamesPlayedProperty());
     ratingColumn.setCellValueFactory(param -> param.getValue().ratingProperty());
 
-    ratingSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue.intValue() != oldValue.intValue()) {
-        displayPage(newValue.intValue());
-      }
-    });
-    ratingSlider.setLabelFormatter(new StringConverter<Double>() {
-      @Override
-      public String toString(Double value) {
-        if(value == 0d){
-          return "1";
+    searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+      if (Validator.isInt(newValue)) {
+        ratingTable.scrollTo(Integer.parseInt(newValue) - 1);
+      } else {
+        LadderEntryBean foundPlayer = null;
+        for (LadderEntryBean ladderEntryBean : ladderEntryBeans) {
+          if (ladderEntryBean.getUsername().toLowerCase().startsWith(newValue.toLowerCase())) {
+            foundPlayer = ladderEntryBean;
+            break;
+          }
         }
-        return String.valueOf(value.intValue());
-      }
-
-      @Override
-      public Double fromString(String string) {
-        return null;
+        if (foundPlayer == null) {
+          for (LadderEntryBean ladderEntryBean : ladderEntryBeans) {
+            if (ladderEntryBean.getUsername().toLowerCase().contains(newValue.toLowerCase())) {
+              foundPlayer = ladderEntryBean;
+              break;
+            }
+          }
+        }
+        if (foundPlayer != null) {
+          ratingTable.scrollTo(foundPlayer);
+          ratingTable.getSelectionModel().select(foundPlayer);
+        } else {
+          ratingTable.getSelectionModel().select(null);
+        }
       }
     });
   }
 
   public void setUpIfNecessary() {
-    if(ladderEntryBeans != null){
+    if (ladderEntryBeans != null) {
       return;
     }
 
@@ -95,7 +107,8 @@ public class LadderController {
       @Override
       public void success(List<LadderEntryBean> result) {
         ladderEntryBeans = result;
-        displayPage((int) ratingSlider.getValue());
+        filteredList = new FilteredList<>(observableArrayList(result));
+        ratingTable.setItems(filteredList);
       }
 
       @Override
@@ -104,17 +117,6 @@ public class LadderController {
       }
     });
   }
-
-  /**
-   * @param fromIndex starting at 0
-   */
-  private void displayPage(int fromIndex) {
-    ratingSlider.setMax(Math.max(1, ladderEntryBeans.size()));
-
-    int toIndex = Math.min(fromIndex + ROWS_PER_PAGE, ladderEntryBeans.size());
-    ratingTable.setItems(FXCollections.observableArrayList(ladderEntryBeans.subList(fromIndex, toIndex)));
-  }
-
 
   public Node getRoot() {
     return ladderRoot;

@@ -9,11 +9,20 @@
 
 <TabPane fx:id="ladderRoot" minHeight="0.0" minWidth="0.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.leaderboard.LadderController">
   <tabs>
-    <Tab fx:id="ladderByRatingTab" closable="false" styleClass="mimiktab" text="By Ladder Rating">
+    <Tab fx:id="ladderByRatingTab" closable="false" styleClass="mimiktab" text="%ladder.byRating">
       <content>
             <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0">
                <children>
-                  <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" styleClass="transparent-background-table" VBox.vgrow="ALWAYS">
+                 <HBox alignment="CENTER_RIGHT">
+                   <children>
+                     <TextField fx:id="searchTextField" promptText="%ladder.searchPrompt"/>
+                   </children>
+                   <padding>
+                     <Insets bottom="5.0" top="5.0"/>
+                   </padding>
+                 </HBox>
+                 <TableView fx:id="ratingTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                            minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
                      <columns>
                        <TableColumn fx:id="rankColumn" text="Rank" />
                        <TableColumn fx:id="nameColumn" text="Name" />
@@ -25,45 +34,39 @@
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                      </columnResizePolicy>
                   </TableView>
-                  <Slider fx:id="ratingSlider" blockIncrement="1000.0" majorTickUnit="1000.0" max="6680.0" min="0.0" minorTickCount="0" showTickLabels="true" showTickMarks="true" value="0.0" VBox.vgrow="NEVER">
-                     <VBox.margin>
-                        <Insets top="5.0" />
-                     </VBox.margin>
-                     <padding>
-                        <Insets right="8.0" />
-                     </padding></Slider>
                </children>
             </VBox>
       </content>
     </Tab>
-    <Tab fx:id="ladderByMapTab" closable="false" styleClass="mimiktab" text="By Map">
+    <Tab fx:id="ladderByMapTab" closable="false" styleClass="mimiktab" text="%ladder.byMap">
       <content>
             <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0">
                <children>
                   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
                      <children>
                         <ImageView fx:id="mapImageView" fitHeight="90.0" fitWidth="90.0" pickOnBounds="true" preserveRatio="true" />
-                        <Label fx:id="MapStatsMapName" text="Map Name" />
-                        <Label fx:id="MapStatsGamesPlayed" text="Games Played on This Map" />
-                        <Label fx:id="MapStatsDrawPecrcent" text="Percentage of Games ended in a Draw" />
-                        <Label fx:id="MapStatsAVGduration" text="Average Duration" />
-                        <Label fx:id="MapStatsMAXduration" text="Maximum Duration" />
-                        <Label fx:id="MapStatsUEFOcceurrence" text="UEF %" />
-                        <Label fx:id="MapStatsCybranOcceurrence" text="Cybran %" />
-                        <Label fx:id="MapStatsAeonOcceurrence" text="Aeon %" />
-                        <Label fx:id="MapStatsSeraphimOcceurrence" text="Seraphim %" />
-                        <Label text="Win Ratio :" />
-                        <Label fx:id="MapStatsWRUEF" text="WR UEF % (games won/games played not counting mirror)" />
-                        <Label fx:id="MapStatsWRcybran" text="WR Cybran % (games won/games played not counting mirror)" />
-                        <Label fx:id="MapStatsWRAeon" text="WR Aeon % (games won/games played not counting mirror)" />
-                        <Label fx:id="MapStatsWRseraphim" text="WR seraphim % (games won/games played not counting mirror)" />
+                       <Label fx:id="mapStatsMapName" text="Map Name"/>
+                       <Label fx:id="mapStatsGamesPlayed" text="Games Played on This Map"/>
+                       <Label fx:id="mapStatsDrawPecrcent" text="Percentage of Games ended in a Draw"/>
+                       <Label fx:id="mapStatsAvgDuration" text="Average Duration"/>
+                       <Label fx:id="mapStatsMaxDuration" text="Maximum Duration"/>
+                       <Label fx:id="mapStatsUefOcceurrence" text="UEF %"/>
+                       <Label fx:id="mapStatsCybranOcceurrence" text="Cybran %"/>
+                       <Label fx:id="mapStatsAeonOcceurrence" text="Aeon %"/>
+                       <Label fx:id="mapStatsSeraphimOcceurrence" text="Seraphim %"/>
+                       <Label fx:id="mapStatsWinRatio" text="Win Ratio :"/>
+                       <Label fx:id="mapStatsWRuef" text="WR UEF % (games won/games played not counting mirror)"/>
+                       <Label fx:id="mapStatsWRCybran" text="WR Cybran % (games won/games played not counting mirror)"/>
+                       <Label fx:id="mapStatsWRAeon" text="WR Aeon % (games won/games played not counting mirror)"/>
+                       <Label fx:id="mapStatsWRSeraphim"
+                              text="WR seraphim % (games won/games played not counting mirror)"/>
                      </children>
                   </VBox>
                   <ListView fx:id="MapStatsMapList" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" HBox.hgrow="ALWAYS" />
                </children></HBox>
       </content>
     </Tab>
-    <Tab fx:id="ladderByRankTab" closable="false" styleClass="mimiktab" text="By Rank">
+    <Tab fx:id="ladderByRankTab" closable="false" styleClass="mimiktab" text="%ladder.byRank">
          <content>
             <Label minHeight="0.0" minWidth="0.0" text="We're debating implementing this.">
                <font>

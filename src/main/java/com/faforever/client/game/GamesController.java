@@ -10,6 +10,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
+import com.google.common.base.Strings;
 import javafx.application.Platform;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
@@ -24,6 +25,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
@@ -31,7 +33,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,9 +117,10 @@ public class GamesController implements OnGameInfoListener {
   @Autowired
   EnterPasswordController enterPasswordController;
 
-  private ObservableMap<Integer, GameInfoBean> gameInfoBeans;
+  @Autowired
+  PreferencesService preferencesService;
 
-  private GameTypeBean selectedMod;
+  private ObservableMap<Integer, GameInfoBean> gameInfoBeans;
 
   private Popup createGamePopup;
   private Popup passwordPopup;
@@ -150,6 +152,18 @@ public class GamesController implements OnGameInfoListener {
     createGamePopup.getContent().setAll(createGameController.getRoot());
 
     enterPasswordController.setOnPasswordEnteredListener(this::joinSelectedGame);
+
+    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
+      createGameButton.setDisable(true);
+      createGameButton.setTooltip(new Tooltip(i18n.get("missingGamePath.notification")));
+
+      preferencesService.addUpdateListener(preferences -> {
+        if (preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
+          createGameButton.setDisable(false);
+          createGameButton.setTooltip(null);
+        }
+      });
+    }
   }
 
   private void initializeGameTable() {
@@ -179,7 +193,7 @@ public class GamesController implements OnGameInfoListener {
       @Override
       protected String computeValue() {
         // TODO this is not bound to the title property, however, a game's title can't be changed anyway (atm).
-        return StringUtils.defaultString(extractRating(param.getValue().getTitle()));
+        return Strings.nullToEmpty(extractRating(param.getValue().getTitle()));
       }
     });
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
@@ -204,6 +218,7 @@ public class GamesController implements OnGameInfoListener {
   }
 
   private void joinSelectedGame(String password) {
+    // FIXME check if game path is set
     GameInfoBean gameInfoBean = gamesTable.getSelectionModel().getSelectedItem();
 
     if (gameInfoBean.getAccess() == GameAccess.PASSWORD && password == null) {

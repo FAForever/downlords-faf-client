@@ -1,7 +1,7 @@
 package com.faforever.client.legacy.proxy;
 
-import com.faforever.client.legacy.writer.QDataOutputStream;
-import com.faforever.client.legacy.writer.QDataReader;
+import com.faforever.client.legacy.io.QDataOutputStream;
+import com.faforever.client.legacy.io.QDataReader;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ConcurrentUtil;
@@ -76,7 +76,7 @@ public class ProxyImpl implements Proxy {
   private static final byte MESSAGE_ACKNOWLEDGE = 0x02;
 
   /**
-   * This yte marks a "connect by intermediary" domain. (Description copied from python code) This is needed for "UDP
+   * This byte marks a "connect by intermediary" domain. (Description copied from python code) This is needed for "UDP
    * hole punching". In a situation where the disconnected peer attempts to reconnect to a peer whose NAT requires UDP
    * hole punching the reconnect would fail, because no hole has been punched for the new IP address. But in this case
    * the disconnected peer does not require hole punching, because otherwise p2p udp channel would not have been
@@ -176,7 +176,7 @@ public class ProxyImpl implements Proxy {
   }
 
   @Override
-  public void closeSockets() {
+  public void close() {
     logger.info("Closing proxy sockets");
     for (DatagramSocket datagramSocket : proxySockets.values()) {
       logger.debug("Closing socket {}", datagramSocket.getLocalPort());
@@ -237,22 +237,22 @@ public class ProxyImpl implements Proxy {
       if (fafProxySocket != null && fafProxySocket.isConnected()) {
         return;
       }
+
+      String proxyHost = environment.getProperty("proxy.host");
+      Integer proxyPort = environment.getProperty("proxy.port", Integer.class);
+
+      logger.info("Connecting to FAF proxy at {}:{}", proxyHost, proxyPort);
+
+      fafProxySocket = new Socket();
+      fafProxySocket.setTcpNoDelay(true);
+      fafProxySocket.connect(new InetSocketAddress(proxyHost, proxyPort), PROXY_CONNECTION_TIMEOUT);
+
+      fafProxyOutputStream = new QDataOutputStream(new BufferedOutputStream(fafProxySocket.getOutputStream()));
+      fafProxyReader = new QDataReader(new DataInputStream(new BufferedInputStream(fafProxySocket.getInputStream())));
+
+      sendUid(uid);
+      startFafProxyReaderInBackground();
     }
-
-    String proxyHost = environment.getProperty("proxy.host");
-    Integer proxyPort = environment.getProperty("proxy.port", Integer.class);
-
-    logger.info("Connecting to FAF proxy at {}:{}", proxyHost, proxyPort);
-
-    fafProxySocket = new Socket();
-    fafProxySocket.setTcpNoDelay(true);
-    fafProxySocket.connect(new InetSocketAddress(proxyHost, proxyPort), PROXY_CONNECTION_TIMEOUT);
-
-    fafProxyOutputStream = new QDataOutputStream(new BufferedOutputStream(fafProxySocket.getOutputStream()));
-    fafProxyReader = new QDataReader(new DataInputStream(new BufferedInputStream(fafProxySocket.getInputStream())));
-
-    sendUid(uid);
-    startFafProxyReaderInBackground();
   }
 
   /**
@@ -268,25 +268,29 @@ public class ProxyImpl implements Proxy {
         DatagramPacket datagramPacket = new DatagramPacket(datagramBuffer, datagramBuffer.length);
         datagramPacket.setSocketAddress(new InetSocketAddress(localInetAddr, forgedAlliancePrefs.getPort()));
 
-        while (!isCancelled()) {
-          // Skip block size bytes, we have no use for it
-          fafProxyReader.readInt32();
+        try {
+          while (!isCancelled()) {
+            // Skip block size bytes, we have no use for it
+            fafProxyReader.readInt32();
 
-          int playerNumber = fafProxyReader.readShort();
+            int playerNumber = fafProxyReader.readShort();
 
-          int payloadSize = fafProxyReader.readQByteArray(payloadBuffer);
+            int payloadSize = fafProxyReader.readQByteArray(payloadBuffer);
 
-          logger.trace("Received {} bytes from FAF proxy, forwarding to FA", payloadSize);
+            logger.trace("Received {} bytes from FAF proxy, forwarding to FA", payloadSize);
 
-          datagramPacket.setData(payloadBuffer, 0, payloadSize);
+            datagramPacket.setData(payloadBuffer, 0, payloadSize);
 
-          getProxySocketLatchForPlayer(playerNumber).await();
-          DatagramSocket proxySocket = proxySockets.get(playerNumber);
-          if (proxySocket == null) {
-            logger.warn("Tried to start proxy reader for player #{} but no such socket has been opened", playerNumber);
-          } else {
-            proxySocket.send(datagramPacket);
+            getProxySocketLatchForPlayer(playerNumber).await();
+            DatagramSocket proxySocket = proxySockets.get(playerNumber);
+            if (proxySocket == null) {
+              logger.warn("Tried to start proxy reader for player #{} but no such socket has been opened", playerNumber);
+            } else {
+              proxySocket.send(datagramPacket);
+            }
           }
+        } catch (SocketException | EOFException e) {
+          logger.debug("Connection closed");
         }
         return null;
       }

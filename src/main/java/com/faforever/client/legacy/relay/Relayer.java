@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.relay;
 
-import com.faforever.client.legacy.writer.QDataReader;
+import com.faforever.client.legacy.io.QDataReader;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.legacy.proxy.ProxyUtils;
@@ -188,7 +188,6 @@ class Relayer implements Closeable {
 
     // Ask FA to connect to the other player via the local proxy port
     ConnectToPeerMessage connectToPeerMessage = new ConnectToPeerMessage();
-    connectToPeerMessage.setPlayerNumber(playerNumber);
     connectToPeerMessage.setPeerAddress(SocketAddressUtil.toString(proxySocket));
     connectToPeerMessage.setUsername(connectToProxyMessage.getUsername());
     connectToPeerMessage.setPeerUid(connectToProxyMessage.getPeerUid());
@@ -197,10 +196,10 @@ class Relayer implements Closeable {
   }
 
   private void handleJoinProxy(JoinProxyMessage joinProxyMessage) throws IOException {
-    int playerId = joinProxyMessage.getPlayerNumber();
+    int playerNumber = joinProxyMessage.getPlayerNumber();
     int peerUid = joinProxyMessage.getPeerUid();
 
-    InetSocketAddress proxySocket = proxyServer.bindAndGetProxySocketAddress(playerId, peerUid);
+    InetSocketAddress proxySocket = proxyServer.bindAndGetProxySocketAddress(playerNumber, peerUid);
 
     // Ask FA to join the game via the local proxy port
     JoinGameMessage joinGameMessage = new JoinGameMessage();

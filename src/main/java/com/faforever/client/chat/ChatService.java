@@ -20,6 +20,8 @@ public interface ChatService {
 
   void addOnChatUserLeftChannelListener(OnChatUserLeftChannelListener listener);
 
+  void addOnModeratorSetListener(OnModeratorSetListener listener);
+
   void addOnChatUserQuitListener(OnChatUserQuitListener listener);
 
   void connect();

@@ -5,7 +5,7 @@ import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.legacy.OnFoeListListener;
 import com.faforever.client.legacy.OnFriendListListener;
 import com.faforever.client.legacy.OnPlayerInfoListener;
-import com.faforever.client.legacy.ServerAccessor;
+import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -15,11 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, OnFoeListListener, OnFriendListListener {
 
   @Autowired
-  ServerAccessor serverAccessor;
+  LobbyServerAccessor lobbyServerAccessor;
 
   @Autowired
   ChatService chatService;
@@ -36,9 +37,9 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   @PostConstruct
   void init() {
-    serverAccessor.setOnPlayerInfoMessageListener(this);
-    serverAccessor.setOnFoeListListener(this);
-    serverAccessor.setOnFriendListListener(this);
+    lobbyServerAccessor.setOnPlayerInfoMessageListener(this);
+    lobbyServerAccessor.setOnFoeListListener(this);
+    lobbyServerAccessor.setOnFriendListListener(this);
   }
 
   @Override
@@ -61,17 +62,20 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   }
 
   @Override
+  public Set<String> getPlayerNames() {
+    return players.keySet();
+  }
+
+  @Override
   public void onPlayerInfo(PlayerInfo playerInfo) {
     if (!players.containsKey(playerInfo.login)) {
       players.put(playerInfo.login, new PlayerInfoBean(playerInfo));
     }
 
     PlayerInfoBean playerInfoBean = players.get(playerInfo.login);
-    playerInfoBean.setChatOnly(false);
+    playerInfoBean.updateFromPlayerInfo(playerInfo);
     playerInfoBean.setFriend(friendList.contains(playerInfo.login));
     playerInfoBean.setFoe(foeList.contains(playerInfo.login));
-    playerInfoBean.setMean(playerInfo.ratingMean);
-    playerInfoBean.setDeviation(playerInfo.ratingDeviation);
   }
 
   @Override

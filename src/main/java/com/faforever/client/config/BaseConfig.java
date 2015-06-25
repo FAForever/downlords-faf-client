@@ -10,9 +10,12 @@ import com.faforever.client.i18n.I18nImpl;
 import com.faforever.client.leaderboard.LadderService;
 import com.faforever.client.leaderboard.LadderServiceImpl;
 import com.faforever.client.leaderboard.MockLadderService;
-import com.faforever.client.legacy.MockServerAccessor;
-import com.faforever.client.legacy.ServerAccessor;
-import com.faforever.client.legacy.ServerAccessorImpl;
+import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.legacy.LobbyServerAccessorImpl;
+import com.faforever.client.legacy.MockLobbyServerAccessor;
+import com.faforever.client.legacy.MockStatisticsServerAccessor;
+import com.faforever.client.legacy.StatisticsServerAccessor;
+import com.faforever.client.legacy.StatisticsServerAccessorImpl;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
 import com.faforever.client.legacy.ladder.LadderParser;
 import com.faforever.client.legacy.ladder.LegacyLadderParser;
@@ -26,8 +29,8 @@ import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.lobby.LobbyServiceImpl;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModServiceImpl;
+import com.faforever.client.network.DownlordsPortCheckServiceImpl;
 import com.faforever.client.network.PortCheckService;
-import com.faforever.client.network.PortCheckServiceImpl;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.patch.GitRepositoryPatchService;
@@ -35,12 +38,20 @@ import com.faforever.client.patch.PatchService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.sound.SoundService;
+import com.faforever.client.sound.SoundServiceImpl;
+import com.faforever.client.stats.LegacyStatisticsService;
+import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.supcom.ForgedAllianceServiceImpl;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.task.TaskServiceImpl;
+import com.faforever.client.upnp.UpnpService;
+import com.faforever.client.upnp.WeUpnpServiceImpl;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
@@ -49,6 +60,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Locale;
 
 /**
@@ -58,6 +70,8 @@ import java.util.Locale;
 @org.springframework.context.annotation.Configuration
 @PropertySource("classpath:/faf_client.properties")
 public class BaseConfig {
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final java.lang.String PROPERTY_LOCALE = "locale";
 
@@ -92,21 +106,27 @@ public class BaseConfig {
   }
 
   @Bean
-  ServerAccessor serverAccessor() {
+  LobbyServerAccessor lobbyServerAccessor() {
     if (environment.containsProperty("faf.testing")) {
-      return new MockServerAccessor();
-    } else {
-      return new ServerAccessorImpl();
+      return new MockLobbyServerAccessor();
     }
+    return new LobbyServerAccessorImpl();
+  }
+
+  @Bean
+  StatisticsServerAccessor statisticsServerAccessor() {
+    if (environment.containsProperty("faf.testing")) {
+      return new MockStatisticsServerAccessor();
+    }
+    return new StatisticsServerAccessorImpl();
   }
 
   @Bean
   ChatService chatService() {
     if (environment.containsProperty("faf.testing")) {
       return new MockChatService();
-    } else {
-      return new PircBotXChatService();
     }
+    return new PircBotXChatService();
   }
 
   @Bean
@@ -141,7 +161,7 @@ public class BaseConfig {
 
   @Bean
   PortCheckService portCheckService() {
-    return new PortCheckServiceImpl();
+    return new DownlordsPortCheckServiceImpl();
   }
 
   @Bean
@@ -165,12 +185,25 @@ public class BaseConfig {
   }
 
   @Bean
+  SoundService soundService() {
+    return new SoundServiceImpl();
+  }
+
+  @Bean
+  UpnpService upnpService() {
+//    if (environment.containsProperty("faf.testing")) {
+//      return port -> {
+//      };
+//    }
+    return new WeUpnpServiceImpl();
+  }
+
+  @Bean
   LadderService leaderboardService() {
     if (environment.containsProperty("faf.testing")) {
       return new MockLadderService();
-    } else {
-      return new LadderServiceImpl();
     }
+    return new LadderServiceImpl();
   }
 
   @Bean
@@ -193,4 +226,8 @@ public class BaseConfig {
     return new NotificationServiceImpl();
   }
 
+  @Bean
+  StatisticsService statisticsService() {
+    return new LegacyStatisticsService();
+  }
 }

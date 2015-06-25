@@ -1,5 +1,6 @@
 package com.faforever.client.legacy.writer;
 
+import com.faforever.client.legacy.io.QStreamWriter;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

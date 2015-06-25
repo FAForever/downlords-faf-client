@@ -1,23 +1,24 @@
 package com.faforever.client.notification;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
-import static javafx.collections.FXCollections.observableArrayList;
-import static javafx.collections.FXCollections.synchronizedObservableList;
+import static javafx.collections.FXCollections.observableSet;
+import static javafx.collections.FXCollections.synchronizedObservableSet;
 
 public class NotificationServiceImpl implements NotificationService {
 
-  private ObservableList<PersistentNotification> persistentNotifications;
+  private ObservableSet<PersistentNotification> persistentNotifications;
   private List<OnTransientNotificationListener> onTransientNotificationListeners;
 
   public NotificationServiceImpl() {
-    persistentNotifications = synchronizedObservableList(observableArrayList());
+    persistentNotifications = synchronizedObservableSet(observableSet(new TreeSet<>()));
     onTransientNotificationListeners = new ArrayList<>();
   }
 
@@ -32,7 +33,7 @@ public class NotificationServiceImpl implements NotificationService {
   }
 
   @Override
-  public void addPersistentNotificationListener(ListChangeListener<PersistentNotification> listener) {
+  public void addPersistentNotificationListener(SetChangeListener<PersistentNotification> listener) {
     persistentNotifications.addListener(listener);
   }
 
@@ -42,8 +43,8 @@ public class NotificationServiceImpl implements NotificationService {
   }
 
   @Override
-  public List<PersistentNotification> getPersistentNotifications() {
-    return Collections.unmodifiableList(persistentNotifications);
+  public Set<PersistentNotification> getPersistentNotifications() {
+    return Collections.unmodifiableSet(persistentNotifications);
   }
 
   @Override

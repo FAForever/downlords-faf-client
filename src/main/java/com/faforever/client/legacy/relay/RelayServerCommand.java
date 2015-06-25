@@ -12,7 +12,7 @@ enum RelayServerCommand {
   SEND_NAT_PACKET("SendNatPacket", 1),
   P2P_RECONNECT("P2pReconnect", 0),
   JOIN_GAME("JoinGame", 3),
-  CONNECT_TO_PEER("ConnectToPeer", 4),
+  CONNECT_TO_PEER("ConnectToPeer", 3),
   CREATE_LOBBY("CreateLobby", 4),
   DISCONNECT_FROM_PEER("DisconnectFromPeer", 0),
   CONNECT_TO_PROXY("ConnectToProxy", 4),

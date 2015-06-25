@@ -2,15 +2,14 @@ package com.faforever.client.config;
 
 import com.faforever.client.chat.AvatarService;
 import com.faforever.client.chat.AvatarServiceImpl;
+import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatTabFactory;
 import com.faforever.client.chat.ChatTabFactoryImpl;
-import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatUserControlFactory;
 import com.faforever.client.chat.ChatUserControlFactoryImpl;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.CountryFlagServiceImpl;
-import com.faforever.client.chat.UserInfoWindowFactory;
-import com.faforever.client.chat.UserInfoWindowFactoryImpl;
+import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
 import com.faforever.client.fxml.FxmlLoader;
@@ -21,20 +20,23 @@ import com.faforever.client.game.GamesController;
 import com.faforever.client.leaderboard.LadderController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
-import com.faforever.client.map.MapService;
 import com.faforever.client.map.LegacyMapService;
+import com.faforever.client.map.MapService;
 import com.faforever.client.news.NewsController;
+import com.faforever.client.news.NewsListItemController;
 import com.faforever.client.notification.NotificationNodeFactory;
 import com.faforever.client.notification.NotificationNodeFactoryImpl;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.vault.VaultController;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 
 import java.util.Arrays;
@@ -86,6 +88,18 @@ public class UiConfig {
   }
 
   @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  UserInfoWindowController userInfoWindowController() {
+    return loadController("user_info_window.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  NewsListItemController newsTileController() {
+    return loadController("news_list_item.fxml");
+  }
+
+  @Bean
   PersistentNotificationsController notificationsController() {
     return loadController("persistent_notifications.fxml");
   }
@@ -128,11 +142,6 @@ public class UiConfig {
   @Bean
   MapService mapPreviewService() {
     return new LegacyMapService();
-  }
-
-  @Bean
-  UserInfoWindowFactory userInfoWindowFactory() {
-    return new UserInfoWindowFactoryImpl();
   }
 
   @Bean

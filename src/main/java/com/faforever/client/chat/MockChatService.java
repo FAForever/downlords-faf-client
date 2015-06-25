@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -24,7 +25,7 @@ import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 public class MockChatService implements ChatService {
 
-  private static final long CONNECTION_DELAY = 5000;
+  private static final long CONNECTION_DELAY = 1000;
   public static final int CHAT_MESSAGE_INTERVAL = 3000;
   private final Timer timer;
 
@@ -95,6 +96,11 @@ public class MockChatService implements ChatService {
   }
 
   @Override
+  public void addOnModeratorSetListener(OnModeratorSetListener listener) {
+
+  }
+
+  @Override
   public void addOnChatUserQuitListener(OnChatUserQuitListener listener) {
     onChatUserQuitListeners.add(listener);
   }
@@ -153,16 +159,21 @@ public class MockChatService implements ChatService {
       protected Void call() throws Exception {
         ChatUser chatUser = new ChatUser(userService.getUsername());
         ChatUser mockUser = new ChatUser("MockUser");
+        ChatUser moderatorUser = new ChatUser("MockModerator", Collections.singleton(channelName));
 
         for (OnChatUserJoinedChannelListener onChannelJoinedListener : onChannelJoinedListeners) {
           onChannelJoinedListener.onUserJoinedChannel(channelName, chatUser);
           onChannelJoinedListener.onUserJoinedChannel(channelName, mockUser);
+          onChannelJoinedListener.onUserJoinedChannel(channelName, moderatorUser);
         }
 
         ObservableMap<String, ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
 
-        chatUsersForChannel.put(chatUser.getUsername(), chatUser);
-        chatUsersForChannel.put(mockUser.getUsername(), mockUser);
+        synchronized (chatUsersForChannel) {
+          chatUsersForChannel.put(chatUser.getUsername(), chatUser);
+          chatUsersForChannel.put(mockUser.getUsername(), mockUser);
+          chatUsersForChannel.put(moderatorUser.getUsername(), moderatorUser);
+        }
 
         return null;
       }

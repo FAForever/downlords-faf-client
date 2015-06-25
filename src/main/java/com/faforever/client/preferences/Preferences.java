@@ -9,12 +9,12 @@ public class Preferences {
   private ForgedAlliancePrefs forgedAlliance;
   private LoginPrefs login;
   private String theme;
-  private String latestGameType;
+  private String lastGameType;
   private ChatPrefs chat;
-  private String lastMap;
   private List<String> ignoredNotifications;
-  private String latestGameTitle;
-  private String latestMap;
+  private String lastGameTitle;
+  private String lastMap;
+  private NotificationPrefs notification;
 
   public Preferences() {
     login = new LoginPrefs();
@@ -22,8 +22,9 @@ public class Preferences {
     mainWindow = new WindowPrefs(800, 600);
     theme = "default";
     chat = new ChatPrefs();
-    latestGameType = "faf";
+    lastGameType = "faf";
     ignoredNotifications = new ArrayList<>();
+    notification = new NotificationPrefs();
   }
 
   public LoginPrefs getLogin() {
@@ -42,8 +43,8 @@ public class Preferences {
     return forgedAlliance;
   }
 
-  public String getLatestGameType() {
-    return latestGameType;
+  public String getLastGameType() {
+    return lastGameType;
   }
 
   public ChatPrefs getChat() {
@@ -54,6 +55,10 @@ public class Preferences {
     return lastMap;
   }
 
+  public void setLastMap(String lastMap) {
+    this.lastMap = lastMap;
+  }
+
   // FIXME explain tatsu what the correct way of doing this is ;-)
   public List<String> lastMods;
 
@@ -61,19 +66,15 @@ public class Preferences {
     return ignoredNotifications;
   }
 
-  public void setLatestGameTitle(String latestGameTitle) {
-    this.latestGameTitle = latestGameTitle;
+  public void setLastGameTitle(String lastGameTitle) {
+    this.lastGameTitle = lastGameTitle;
   }
 
-  public String getLatestGameTitle() {
-    return latestGameTitle;
+  public String getLastGameTitle() {
+    return lastGameTitle;
   }
 
-  public void setLatestMap(String latestMap) {
-    this.latestMap = latestMap;
-  }
-
-  public String getLatestMap() {
-    return latestMap;
+  public NotificationPrefs getNotificationPrefs() {
+    return notification;
   }
 }
