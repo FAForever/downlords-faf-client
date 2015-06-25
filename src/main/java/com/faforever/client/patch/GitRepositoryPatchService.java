@@ -342,9 +342,9 @@ public class GitRepositoryPatchService implements PatchService {
     needsPatching = !localHead.equals(remoteHead);
 
     if (needsPatching) {
-      logger.info("New patch files are available at {}", patchRepositoryUri);
+      logger.info("New patch files are available ({})", remoteHead);
     } else {
-      logger.info("Local patch repository is up to date");
+      logger.info("Local patch repository is up to date ({})", remoteHead);
     }
 
     return needsPatching;
