@@ -152,8 +152,10 @@
       derive(-fx-color,40%) 30%
   );
 
-  /* This is NOT from modena. */
+  /* These are NOT from modena. */
   -fx-context-menu-background: rgba(0, 0, 0, .8);
+  -fx-tile-background:  rgba(50, 50, 50, .9);
+  -fx-transparent-hover:  rgba(255, 255, 255, .1);
 }
 
 .scroll-bar > .increment-button > .increment-arrow,
@@ -169,6 +171,21 @@
     -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,55%);
 }
 
+/***************** ChartPlot *****************/
+
+.chart-vertical-grid-lines,
+.chart-horizontal-grid-lines {
+    -fx-stroke: derive(-fx-background,10%);
+    -fx-stroke-dash-array: 0.25em, 0.25em;
+}
+.chart-vertical-zero-line,
+.chart-horizontal-zero-line {
+    -fx-stroke: derive(-fx-text-background-color, 40%);
+}
+
+.axis {
+    -fx-font-size: 1.2em;
+}
 
 /***************** Text field *****************/
 
@@ -176,7 +193,7 @@
   -fx-prompt-text-fill: derive(-fx-control-inner-background, 40%);
 }
 
-/***************** Remove ugly borders introduced by modena *****************/
+/***************** Remove ugly borders and default background introduced by modena *****************/
 
 .scroll-pane,
 .split-pane,
@@ -185,7 +202,7 @@
 .table-view,
 .tree-table-view,
 .html-editor {
-  -fx-background-color: -fx-control-inner-background;
+  -fx-background: transparent;
   -fx-background-insets: 0;
   -fx-padding: 0;
 }
@@ -193,13 +210,6 @@
 .scroll-pane,
 .split-pane {
   -fx-background-color: -fx-background;
-}
-.scroll-pane:focused,
-.split-pane:focused {
-    -fx-background-color: -fx-background;
-}
-.titled-pane > *.content {
-    -fx-border-color: transparent;
 }
 
 /***************** Button-like things *****************/
@@ -274,13 +284,17 @@
 /***************** Window *****************/
 
 .decorated-window {
-  -fx-background-color: black;
-  -fx-background-image: url('images/background.jpg');
-  -fx-background-position: top;
-  -fx-background-repeat: no-repeat;
+  -fx-background-color: derive(-fx-base, -90%);
+  -fx-background-image: url('images/background.png');
+  -fx-border-width: 1;
+  -fx-border-color: -fx-box-border;
 }
 
-/***************** Menu *****************/
+.decorated-window:maximized {
+  -fx-border-width: 0;
+}
+
+/***************** Main window header *****************/
 
 .main-menu-button {
   -fx-background-color: transparent;
@@ -321,6 +335,23 @@
   -fx-border-color: -fx-box-border;
 }
 
+.main-navigation > .toggle-button {
+  -fx-font-size: 1.5em;
+  -fx-text-fill: -fx-dark-text-color;
+  -fx-background-color: transparent;
+}
+
+.main-navigation > .toggle-button:hover {
+  -fx-text-fill: -fx-mid-text-color;
+  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.2), 5, 0.8, 0, 0);
+}
+
+.main-navigation > .toggle-button:selected {
+  -fx-text-fill: -fx-light-text-color;
+  -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
+}
+
+
 /***************** Status bar *****************/
 
 .status-bar {
@@ -347,33 +378,33 @@
   -fx-shape: "M0 1 L1 1 L.5 0 Z";
 }
 
-/***************** Transparent table *****************/
+/***************** Titled pane *****************/
 
-.transparent-background-table {
-  -fx-base: transparent;
+.titled-pane > *.title {
   -fx-background-color: transparent;
-  -fx-background: transparent;
-  -fx-control-inner-background: transparent;
+  -fx-border-width: 0 0 1 0;
+  -fx-border-color: -fx-box-border;
 }
 
-/***************** Navigation *****************/
+.titled-pane > *.content {
+  -fx-border-color: transparent;
+}
 
-.main-navigation > .toggle-button {
-  -fx-font-size: 1.5em;
-  -fx-text-fill: -fx-dark-text-color;
+/***************** Table *****************/
+
+.table-view {
   -fx-background-color: transparent;
+  -fx-control-inner-background: #FFFFFF00;
+  -fx-control-inner-background-alt: #FFFFFF11;
 }
 
-.main-navigation > .toggle-button:hover {
-  -fx-text-fill: -fx-mid-text-color;
-  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.2), 5, 0.8, 0, 0);
+.table-view > .virtual-flow {
+  -fx-color: transparent;
 }
 
-.main-navigation > .toggle-button:selected {
-  -fx-text-fill: -fx-light-text-color;
-  -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
+.table-view > .virtual-flow .scroll-bar > .thumb {
+  -fx-color: -fx-base;
 }
-
 /***************** Notification button *****************/
 
 .notification-button {
@@ -391,6 +422,38 @@
 
 .notification-button:error {
   -fx-base: #cb3d3d;
+}
+
+/***************** News *****************/
+
+.news-item {
+  -fx-border-color: derive(-fx-box-border, 10%);
+  -fx-border-width: 0 0 1 0;
+  -fx-cursor: hand;
+  -fx-text-fill: -fx-mid-text-color;
+}
+
+.news-item:hover {
+  -fx-background-color: -fx-transparent-hover;
+  -fx-color: -fx-hover-base;
+  -fx-text-fill: -fx-light-text-color;
+}
+
+.news-item-image {
+
+}
+
+.news-item-title {
+  -fx-font-size: 1.2em;
+}
+
+.news-item-text {
+
+}
+
+.news-item-authored {
+  -fx-text-fill: -fx-dark-text-color;
+  -fx-font-size: 0.8em;
 }
 
 /***************** Notifications *****************/
@@ -457,7 +520,7 @@
   -fx-background-color: transparent;
 }
 
-/***************** Range Slider Fixes *****************/
+/***************** Range Slider *****************/
 
 .slider > .axis:bottom {
   -fx-padding : 50, 50, 50, 50;
@@ -479,16 +542,8 @@
 
 /***************** Game detail *****************/
 
-.map-preview-box {
-  -fx-effect: dropshadow(gaussian, #dcdcdc, 9, 0.5, 0, 0);
-}
-
 .map-preview {
-  -fx-effect: innershadow(gaussian, #dcdcdc, 10, 0.8, 0, 0);
-}
-
-.game-detail {
-  -fx-background: transparent;
+  -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
 }
 
 /***************** Window decoration *****************/
@@ -558,85 +613,8 @@
  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.2), 15, 0.8, 0, 0);
 }
 
-/***************** Chat (WebView, therefore default CSS). Java FX  variables can't be used *****************/
+/***************** Web view *****************/
 
-html, body {
-  margin: 0;
-  padding: 0;
-  /* Use same as -fx-base */
-  background-color: #1f1f1f;
-  /* Use same as -fx-light-text-color */
-  color: #F5F5F5;
+.web-view {
+  -fx-background: transparent;
 }
-
-a {
-  /* Use same as -fx-accent */
-  color: #609e15;
-  text-decoration: none;
-}
-
-#chat-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.own-username {
-  color: orange;
-}
-
-.chat-message {
-  font-family: System;
-  font-size: 12px;
-  /* Same height as avatar */
-  line-height: 20px;
-}
-
-.chat-message.message .username::after {
-  content: ':';
-}
-
-.chat-message.action {
-  font-style: italic;
-}
-
-.chat-message:nth-of-type(odd) {
-  background-color: #2f2f2f;
-}
-
-.chat-message * {
-  padding: 0 2px;
-  word-wrap: break-word;
-}
-
-.chat-message td {
-  vertical-align: top;
-}
-
-.chat-message .time {
-}
-
-.chat-message > .avatar {
-  width: 40;
-  height: 20px;
-  padding: 0 2px;
-}
-
-.avatar>img {
-  display: block;
-}
-
-.chat-message .text {
-  width: 100%;
-}
-
-.chat-message .username {
-  padding-right: 10px;
-  max-width: 50%;
-  text-align: right;
-  white-space: nowrap;
-}
-
-.chat-message.self {
-  color: orange;
-}
-
