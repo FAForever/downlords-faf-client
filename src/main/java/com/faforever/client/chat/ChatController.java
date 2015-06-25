@@ -61,31 +61,31 @@ public class ChatController implements
   @Override
   public void onMessage(String channelName, ChatMessage chatMessage) {
     Platform.runLater(() -> {
-      addAndGetChannel(channelName).onChatMessage(chatMessage);
+      addAndGetChatTab(channelName).onChatMessage(chatMessage);
     });
   }
 
-  private AbstractChatTab addAndGetChannel(String channelName) {
-    if (!nameToChatTab.containsKey(channelName)) {
-      AbstractChatTab tab = chatTabFactory.createChannelTab(channelName);
-      nameToChatTab.put(channelName, tab);
-      chatsTabPane.getTabs().add(tab);
-      tab.setOnClosed(event -> nameToChatTab.remove(channelName));
+  private AbstractChatTab addAndGetChatTab(String playerOrChanneLName) {
+    if (!nameToChatTab.containsKey(playerOrChanneLName)) {
+      AbstractChatTab tab = chatTabFactory.createChannelTab(playerOrChanneLName);
+      addTab(playerOrChanneLName, tab);
     }
-    return nameToChatTab.get(channelName);
+    return nameToChatTab.get(playerOrChanneLName);
   }
 
-  private AbstractChatTab addAndSelectPrivateMessageTab(String username) {
+  private AbstractChatTab addAndGetPrivateMessageTab(String username) {
     if (!nameToChatTab.containsKey(username)) {
       AbstractChatTab tab = chatTabFactory.createPrivateMessageTab(username);
-      nameToChatTab.put(username, tab);
-      chatsTabPane.getTabs().add(tab);
-      tab.setOnClosed(event -> nameToChatTab.remove(username));
+      addTab(username, tab);
     }
 
-    AbstractChatTab tab = nameToChatTab.get(username);
-    chatsTabPane.getSelectionModel().select(tab);
-    return tab;
+    return nameToChatTab.get(username);
+  }
+
+  private void addTab(String playerOrChannelName, AbstractChatTab tab) {
+    nameToChatTab.put(playerOrChannelName, tab);
+    chatsTabPane.getTabs().add(tab);
+    tab.setOnClosed(event -> nameToChatTab.remove(playerOrChannelName));
   }
 
   @Override
@@ -97,7 +97,7 @@ public class ChatController implements
   @Override
   public void onUserJoinedChannel(String channelName, ChatUser chatUser) {
     Platform.runLater(() -> {
-      addAndGetChannel(channelName);
+      addAndGetChatTab(channelName);
 
       if (isCurrentUser(chatUser)) {
         connectingProgressPane.setVisible(false);
@@ -113,7 +113,7 @@ public class ChatController implements
   @Override
   public void onPrivateMessage(String sender, ChatMessage chatMessage) {
     JavaFxUtil.assertBackgroundThread();
-    Platform.runLater(() -> addAndGetChannel(sender).onChatMessage(chatMessage));
+    Platform.runLater(() -> addAndGetPrivateMessageTab(sender).onChatMessage(chatMessage));
   }
 
   public Node getRoot() {
@@ -121,7 +121,8 @@ public class ChatController implements
   }
 
   public void openPrivateMessageTabForUser(String username) {
-    addAndSelectPrivateMessageTab(username);
+    AbstractChatTab tab = addAndGetPrivateMessageTab(username);
+    chatsTabPane.getSelectionModel().select(tab);
   }
 
   @Override
