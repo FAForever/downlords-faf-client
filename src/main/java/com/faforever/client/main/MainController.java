@@ -119,12 +119,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @FXML
   Label taskProgressLabel;
 
-  @FXML
-  Path path = new Path();
-
-  /*@FXML
-  PathTransition*/
-
   @Autowired
   Environment environment;
 
@@ -321,8 +315,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     }
   }
 
-  private double currentPosition;
-
   @FXML
   void onNavigationButton(ActionEvent event) {
     ToggleButton button = (ToggleButton) event.getSource();
@@ -335,15 +327,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     Bounds boundsInLocal = button.getBoundsInLocal();
     Bounds buttonBoundsInScene = button.localToScene(boundsInLocal);
-
-    currentPosition = buttonBoundsInScene.getMinX();
-
-    path.getElements().add(new MoveTo(currentPosition+buttonBoundsInScene.getMinX(),0));
-    PathTransition pathTransition = new PathTransition();
-    pathTransition.setDuration(Duration.millis(4000));
-    pathTransition.setPath(path);
-    pathTransition.setNode(rectPath);
-    pathTransition.play();
 
     // TODO let the component initialize themselves instead of calling a setUp method
     if (button == newsButton) {
