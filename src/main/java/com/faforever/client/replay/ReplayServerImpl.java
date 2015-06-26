@@ -103,10 +103,9 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGam
         String fafReplayServerHost = environment.getProperty("fafReplayServer.host");
         Integer fafReplayServerPort = environment.getProperty("fafReplayServer.port", Integer.class);
 
-        logger.debug("Opening local replay server on port {}", localReplayServerPort);
-
-
         while (!isCancelled()) {
+          logger.debug("Opening local replay server on port {}", localReplayServerPort);
+
           try (ServerSocket serverSocket = new ServerSocket(localReplayServerPort);
                Socket fafReplayServerSocket = new Socket(fafReplayServerHost, fafReplayServerPort)) {
             while (!serverSocket.isClosed() && !fafReplayServerSocket.isClosed()) {
