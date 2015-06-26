@@ -1,5 +1,8 @@
 package com.faforever.client.legacy.domain;
 
+import java.util.Collection;
+import java.util.Collections;
+
 public class LoginMessage extends ClientMessage {
 
   public String login;
@@ -17,5 +20,10 @@ public class LoginMessage extends ClientMessage {
     this.uniqueId = uniqueId;
     this.localIp = localIp;
     this.version = version;
+  }
+
+  @Override
+  public Collection<String> getStringsToMask() {
+    return Collections.singletonList(password);
   }
 }

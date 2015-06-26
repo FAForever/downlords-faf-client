@@ -10,7 +10,7 @@ import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameStatusMessage;
-import com.faforever.client.legacy.domain.GameType;
+import com.faforever.client.legacy.domain.VictoryCondition;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.domain.HostGameMessage;
 import com.faforever.client.legacy.domain.InitSessionMessage;
@@ -25,7 +25,7 @@ import com.faforever.client.legacy.domain.SocialInfo;
 import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
-import com.faforever.client.legacy.gson.GameTypeTypeAdapter;
+import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.legacy.ladder.LadderParser;
 import com.faforever.client.legacy.writer.ServerWriter;
@@ -111,7 +111,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     sessionId = new SimpleStringProperty();
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-        .registerTypeAdapter(GameType.class, new GameTypeTypeAdapter())
+        .registerTypeAdapter(VictoryCondition.class, new VictoryConditionTypeAdapter())
         .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
         .registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter())
         .registerTypeAdapter(StatisticsType.class, new StatisticsTypeTypeAdapter())
@@ -199,9 +199,9 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   protected ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
     ServerWriter serverWriter = new ServerWriter(outputStream);
-    serverWriter.registerObjectWriter(new ClientMessageSerializer(username, sessionId), ClientMessage.class);
-    serverWriter.registerObjectWriter(new PongMessageSerializer(username, sessionId), PongMessage.class);
-    serverWriter.registerObjectWriter(new StringSerializer(), String.class);
+    serverWriter.registerMessageSerializer(new ClientMessageSerializer(username, sessionId), ClientMessage.class);
+    serverWriter.registerMessageSerializer(new PongMessageSerializer(username, sessionId), PongMessage.class);
+    serverWriter.registerMessageSerializer(new StringSerializer(), String.class);
     return serverWriter;
   }
 

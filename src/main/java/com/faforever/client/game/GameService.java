@@ -21,4 +21,6 @@ public interface GameService {
   List<GameTypeBean> getGameTypes();
 
   void addOnGameTypeInfoListener(MapChangeListener<String, GameTypeBean> changeListener);
+
+  void addOnGameStartedListener(OnGameStartedListener listener);
 }

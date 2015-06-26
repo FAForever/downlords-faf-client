@@ -4,7 +4,7 @@
   <logger name="org.fourthline.cling" level="warn"/>
   <logger name="com.faforever.client.preferences" level="info"/>
   <logger name="com.faforever.client.map" level="info"/>
-  <logger name="com.faforever.client.legacy" level="info"/>
+  <logger name="com.faforever.client.legacy" level="debug"/>
   <logger name="com.faforever.client.legacy.io" level="trace"/>
   <logger name="com.faforever.client.legacy.map" level="info"/>
   <logger name="com.faforever.client.legacy.htmlparser" level="info"/>

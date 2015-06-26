@@ -3,7 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.GameType;
+import com.faforever.client.legacy.domain.VictoryCondition;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
@@ -28,12 +28,10 @@ public class GameInfoBean {
   private StringProperty featuredMod;
   private ObjectProperty<GameAccess> access;
   private ObjectProperty<Integer> uid;
-  private ObjectProperty<Integer> minRanking;
-  private ObjectProperty<Integer> maxRanking;
   private ObjectProperty<Integer> numPlayers;
   private ObjectProperty<Integer> maxPlayers;
   private ObjectProperty<GameState> status;
-  private ObjectProperty<GameType> gameType;
+  private ObjectProperty<VictoryCondition> gameType;
   private ObjectProperty<BigDecimal> gameTime;
   private ListProperty<Boolean> options;
   private MapProperty<String, String> simMods;
@@ -47,12 +45,9 @@ public class GameInfoBean {
     mapName = new SimpleStringProperty(gameInfo.mapname);
     featuredMod = new SimpleStringProperty(gameInfo.featuredMod);
     access = new SimpleObjectProperty<>(gameInfo.access);
-    minRanking = new SimpleObjectProperty<>(gameInfo.minRanking);
-    maxRanking = new SimpleObjectProperty<>(gameInfo.maxRanking);
     numPlayers = new SimpleObjectProperty<>(gameInfo.numPlayers);
     maxPlayers = new SimpleObjectProperty<>(gameInfo.maxPlayers);
     gameType = new SimpleObjectProperty<>(gameInfo.gameType);
-    gameTime = new SimpleObjectProperty<>(gameInfo.gameTime);
     options = new SimpleListProperty<>(FXCollections.observableArrayList(gameInfo.options));
     simMods = new SimpleMapProperty<>(FXCollections.observableMap(gameInfo.simMods));
     teams = new SimpleMapProperty<>(FXCollections.observableMap(gameInfo.teams));
@@ -66,12 +61,9 @@ public class GameInfoBean {
     access.set(gameInfo.access);
     mapName.set(gameInfo.mapname);
     featuredMod.set(gameInfo.featuredMod);
-    minRanking.set(gameInfo.minRanking);
-    maxRanking.set(gameInfo.maxRanking);
     numPlayers.set(gameInfo.numPlayers);
     maxPlayers.set(gameInfo.maxPlayers);
     gameType.set(gameInfo.gameType);
-    gameTime.set(gameInfo.gameTime);
     options.setAll(gameInfo.options);
     simMods.putAll(gameInfo.simMods);
     teams.putAll(gameInfo.teams);
@@ -126,22 +118,6 @@ public class GameInfoBean {
     return featuredMod;
   }
 
-  public Integer getMinRanking() {
-    return minRanking.get();
-  }
-
-  public ObjectProperty<Integer> minRankingProperty() {
-    return minRanking;
-  }
-
-  public Integer getMaxRanking() {
-    return maxRanking.get();
-  }
-
-  public ObjectProperty<Integer> maxRankingProperty() {
-    return maxRanking;
-  }
-
   public Integer getNumPlayers() {
     return numPlayers.get();
   }
@@ -166,11 +142,11 @@ public class GameInfoBean {
     return status;
   }
 
-  public GameType getGameType() {
+  public VictoryCondition getGameType() {
     return gameType.get();
   }
 
-  public ObjectProperty<GameType> gameTypeProperty() {
+  public ObjectProperty<VictoryCondition> gameTypeProperty() {
     return gameType;
   }
 

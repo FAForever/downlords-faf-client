@@ -1,4 +1,4 @@
-package com.faforever.client.supcom;
+package com.faforever.client.fa;
 
 import java.io.IOException;
 import java.util.List;

@@ -92,7 +92,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
 
   private ServerWriter createServerWriter(Socket fafSocket) throws IOException {
     ServerWriter serverWriter = new ServerWriter(fafSocket.getOutputStream());
-    serverWriter.registerObjectWriter(new RelayClientMessageSerializer(), RelayClientMessage.class);
+    serverWriter.registerMessageSerializer(new RelayClientMessageSerializer(), RelayClientMessage.class);
     return serverWriter;
   }
 

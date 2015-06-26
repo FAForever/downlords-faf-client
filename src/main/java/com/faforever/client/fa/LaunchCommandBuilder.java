@@ -1,4 +1,4 @@
-package com.faforever.client.supcom;
+package com.faforever.client.fa;
 
 import org.springframework.util.StringUtils;
 

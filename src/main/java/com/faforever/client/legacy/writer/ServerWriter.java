@@ -34,7 +34,7 @@ public class ServerWriter implements Closeable {
     objectWriters = new HashMap<>();
   }
 
-  public void registerObjectWriter(Serializer<?> objectSerializer, Class<?> writableClass) {
+  public void registerMessageSerializer(Serializer<?> objectSerializer, Class<?> writableClass) {
     objectWriters.put(writableClass, objectSerializer);
   }
 

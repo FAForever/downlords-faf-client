@@ -157,8 +157,8 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
 
   protected ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
     ServerWriter serverWriter = new ServerWriter(outputStream);
-    serverWriter.registerObjectWriter(new ClientMessageSerializer(), ClientMessage.class);
-    serverWriter.registerObjectWriter(new StringSerializer(), String.class);
+    serverWriter.registerMessageSerializer(new ClientMessageSerializer(), ClientMessage.class);
+    serverWriter.registerMessageSerializer(new StringSerializer(), String.class);
     return serverWriter;
   }
 }

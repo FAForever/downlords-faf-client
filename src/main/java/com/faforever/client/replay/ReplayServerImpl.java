@@ -1,9 +1,16 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.game.GameService;
+import com.faforever.client.game.OnGameStartedListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.OnGameInfoListener;
+import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
+import com.faforever.client.legacy.domain.GameState;
+import com.faforever.client.legacy.domain.VictoryCondition;
+import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
+import com.faforever.client.legacy.gson.GameStateTypeAdapter;
+import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.io.QtCompress;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -13,6 +20,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.google.common.io.BaseEncoding;
 import com.google.common.primitives.Bytes;
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.concurrent.Task;
@@ -25,28 +33,21 @@ import javax.annotation.PostConstruct;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.EOFException;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.Base64;
+import java.util.HashMap;
+import java.util.Objects;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
-public class ReplayServerImpl implements ReplayServer, OnGameInfoListener {
+public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGameStartedListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int REPLAY_BUFFER_SIZE = 0x200;
@@ -74,17 +75,23 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener {
   @Autowired
   UserService userService;
 
-  private int uid;
   private final Gson gson;
-  private GameInfo gameInfo;
+
+  private ReplayInfo replayInfo;
 
   public ReplayServerImpl() {
-    gson = new GsonBuilder().create();
+    gson = new GsonBuilder()
+        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+        .registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter())
+        .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
+        .registerTypeAdapter(VictoryCondition.class, new VictoryConditionTypeAdapter())
+        .create();
   }
 
   @PostConstruct
   void postConstruct() {
     gameService.addOnGameInfoListener(this);
+    gameService.addOnGameStartedListener(this);
     startInBackground();
   }
 
@@ -146,11 +153,9 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener {
   }
 
   private void writeReplayDataToFile(ByteArrayOutputStream replayData) throws IOException {
-    ReplayInfo replayInfo = new ReplayInfo();
+    finishReplayInfo();
 
-    replayInfo.setGameEnd(System.currentTimeMillis());
-
-    String fileName = String.format(environment.getProperty("replayFileFormat"), uid, userService.getUsername());
+    String fileName = String.format(environment.getProperty("replayFileFormat"), replayInfo.uid, replayInfo.recorder);
     Path replayFile = preferencesService.getReplayDirectory().resolve(fileName);
 
     logger.info("Writing replay file to {} ({} bytes)", replayFile, replayData.size());
@@ -169,10 +174,35 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener {
 
   @Override
   public void onGameInfo(GameInfo gameInfo) {
-    if (gameInfo.uid != uid) {
+    // As the game information can still change while the players are in the in-game lobby, we need to listen for any
+    // changes and remember them in order to store the game information along with the replay file.
+    if (replayInfo == null || !Objects.equals(gameInfo.uid, replayInfo.uid)) {
       return;
     }
 
-    this.gameInfo = gameInfo;
+    replayInfo.updateFromGameInfo(gameInfo);
+  }
+
+  @Override
+  public void onGameStarted(int uid) {
+    replayInfo = new ReplayInfo();
+    replayInfo.uid = uid;
+    replayInfo.gameTime = pythonTime();
+    replayInfo.versionInfo = new HashMap<>();
+    replayInfo.versionInfo.put("lobby", String.format("dfaf-%s", getClass().getPackage().getImplementationVersion()));
+  }
+
+  private void finishReplayInfo() {
+    replayInfo.gameEnd = pythonTime();
+    replayInfo.recorder = userService.getUsername();
+    replayInfo.complete = true;
+    replayInfo.state = GameState.CLOSED;
+  }
+
+  /**
+   * Returns the current millis the same way as python does since this is what's stored in the replay files *yay*.
+   */
+  private static double pythonTime() {
+    return System.currentTimeMillis() / 1000;
   }
 }

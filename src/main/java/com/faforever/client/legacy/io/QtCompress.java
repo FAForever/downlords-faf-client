@@ -1,8 +1,7 @@
 package com.faforever.client.legacy.io;
 
-import com.jcraft.jzlib.JZlib;
-
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -17,13 +16,13 @@ public final class QtCompress {
     Deflater deflater = new Deflater();
     deflater.setInput(bytes);
 
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    out.write(bytes.length);
+    ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+    new DataOutputStream(byteArray).writeInt(bytes.length);
 
-    try(DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(out, deflater, true)) {
+    try (DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(byteArray, deflater, true)) {
       deflaterOutputStream.flush();
     }
 
-    return out.toByteArray();
+    return byteArray.toByteArray();
   }
 }

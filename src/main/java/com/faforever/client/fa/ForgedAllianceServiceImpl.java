@@ -1,4 +1,4 @@
-package com.faforever.client.supcom;
+package com.faforever.client.fa;
 
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.legacy.relay.LocalRelayServer;

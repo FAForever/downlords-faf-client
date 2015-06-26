@@ -1,12 +1,15 @@
 package com.faforever.client.legacy.relay;
 
 
+import com.faforever.client.legacy.domain.SerializableMessage;
+
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import static com.faforever.client.legacy.relay.RelayServerAction.PONG;
 
-public class RelayClientMessage {
+public class RelayClientMessage implements SerializableMessage {
 
   private RelayServerAction action;
   // Because typos in protocols are cool (this class is JSON serialized).
@@ -27,6 +30,10 @@ public class RelayClientMessage {
 
   public static RelayClientMessage pong() {
     return new RelayClientMessage(PONG, Collections.emptyList());
+  }
+
+  public Collection<String> getStringsToMask() {
+    return Collections.emptyList();
   }
 
 }

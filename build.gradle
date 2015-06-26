@@ -7,7 +7,7 @@ apply plugin: 'com.github.kt3k.coveralls'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-version = '0.4'
+version = '0.4.2-alpha'
 
 mainClassName = "com.faforever.client.Main"
 applicationDefaultJvmArgs = ["-Djava.library.path=../lib"]
@@ -27,6 +27,13 @@ idea {
   module {
     downloadJavadoc = false
     downloadSources = true
+  }
+}
+
+jar {
+  manifest {
+    attributes "Implementation-Title": "Downlord's FAF Client",
+        "Implementation-Version": version
   }
 }
 

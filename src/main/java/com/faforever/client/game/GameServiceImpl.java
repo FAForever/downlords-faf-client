@@ -1,14 +1,14 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fa.ForgedAllianceService;
+import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.PatchService;
-import com.faforever.client.supcom.ForgedAllianceService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
@@ -24,7 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
@@ -49,10 +51,13 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
   @Autowired
   Proxy proxy;
 
+  private Collection<OnGameStartedListener> onGameLaunchingListeners;
+
   private ObservableMap<String, GameTypeBean> gameTypeBeans;
 
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
+    onGameLaunchingListeners = new HashSet<>();
   }
 
   @PostConstruct
@@ -153,9 +158,10 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
         List<String> args = fixMalformedArgs(gameLaunchInfo.args);
         try {
           Process process = forgedAllianceService.startGame(gameLaunchInfo.uid, gameLaunchInfo.mod, args);
+          onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(gameLaunchInfo.uid));
           lobbyServerAccessor.notifyGameStarted();
-          waitForProcessTerminationInBackground(process);
 
+          waitForProcessTerminationInBackground(process);
           Platform.runLater(() -> callback.success(null));
         } catch (Exception e) {
           Platform.runLater(() -> callback.error(e));
@@ -205,5 +211,10 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
     }
 
     gameTypeBeans.put(gameTypeInfo.name, new GameTypeBean(gameTypeInfo));
+  }
+
+  @Override
+  public void addOnGameStartedListener(OnGameStartedListener listener) {
+    onGameLaunchingListeners.add(listener);
   }
 }

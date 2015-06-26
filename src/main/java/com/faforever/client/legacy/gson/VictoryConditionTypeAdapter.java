@@ -1,16 +1,16 @@
 package com.faforever.client.legacy.gson;
 
-import com.faforever.client.legacy.domain.GameType;
+import com.faforever.client.legacy.domain.VictoryCondition;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 
-public class GameTypeTypeAdapter extends TypeAdapter<GameType> {
+public class VictoryConditionTypeAdapter extends TypeAdapter<VictoryCondition> {
 
   @Override
-  public void write(JsonWriter out, GameType value) throws IOException {
+  public void write(JsonWriter out, VictoryCondition value) throws IOException {
     if (value == null) {
       out.value("unknown");
     } else {
@@ -19,11 +19,11 @@ public class GameTypeTypeAdapter extends TypeAdapter<GameType> {
   }
 
   @Override
-  public GameType read(JsonReader in) throws IOException {
+  public VictoryCondition read(JsonReader in) throws IOException {
     String gameType = in.nextString();
     if ("unknown".equals(gameType)) {
-      return GameType.UNKNOWN;
+      return VictoryCondition.UNKNOWN;
     }
-    return GameType.fromNumber(Integer.valueOf(gameType));
+    return VictoryCondition.fromNumber(Integer.valueOf(gameType));
   }
 }

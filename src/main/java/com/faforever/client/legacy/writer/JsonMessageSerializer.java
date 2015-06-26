@@ -1,5 +1,6 @@
 package com.faforever.client.legacy.writer;
 
+import com.faforever.client.legacy.domain.SerializableMessage;
 import com.faforever.client.legacy.io.QStreamWriter;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -18,10 +19,8 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Set;
 
-public class JsonSerializer<T> implements Serializer<T> {
+public class JsonMessageSerializer<T extends SerializableMessage> implements Serializer<T> {
 
   public static final String CONFIDENTIAL_INFORMATION_MASK = "********";
 
@@ -30,13 +29,13 @@ public class JsonSerializer<T> implements Serializer<T> {
 
   // TODO Clean this up, such that the message is logged within ServerWriter and everything makes much more sense
   @Override
-  public void serialize(T object, OutputStream outputStream) throws IOException {
+  public void serialize(SerializableMessage message, OutputStream outputStream) throws IOException {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
     Writer jsonStringWriter = new StringWriter();
 
     // Serialize the object into a StringWriter which is later send as one string block with its size prepended.
-    getGson().toJson(object, object.getClass(), fixedJsonWriter(jsonStringWriter));
+    getGson().toJson(message, message.getClass(), fixedJsonWriter(jsonStringWriter));
 
     QStreamWriter qStreamWriter = new QStreamWriter(byteArrayOutputStream);
     qStreamWriter.append(jsonStringWriter.toString());
@@ -49,7 +48,7 @@ public class JsonSerializer<T> implements Serializer<T> {
       // Remove the first 4 bytes which contain the length of the following data
       String data = new String(Arrays.copyOfRange(byteArray, 4, byteArray.length), StandardCharsets.UTF_16BE);
 
-      for (String stringToMask : getStringsToMask()) {
+      for (String stringToMask : message.getStringsToMask()) {
         data = data.replace("\"" + stringToMask + "\"", "\"" + CONFIDENTIAL_INFORMATION_MASK + "\"");
       }
 
@@ -100,15 +99,5 @@ public class JsonSerializer<T> implements Serializer<T> {
     } catch (NoSuchFieldException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  /**
-   * Returns a list of strings that should be masked when it's logged, like the password. It would be better to define
-   * the fields to mask but that implementation would be slightly more complex to do in a safe way (since you
-   *
-   * @return
-   */
-  protected Set<String> getStringsToMask() {
-    return Collections.emptySet();
   }
 }
