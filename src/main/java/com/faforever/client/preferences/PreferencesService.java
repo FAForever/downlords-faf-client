@@ -2,9 +2,9 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.DirectoryChooserAction;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.OperatingSystem;
@@ -12,7 +12,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
-import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +42,7 @@ public class PreferencesService {
   private static final String PREFS_FILE_NAME = "client.prefs";
   private static final String APP_DATA_SUB_FOLDER = "Forged Alliance Forever";
   private static final String USER_HOME_SUB_FOLDER = ".faforever";
-  private static final String REPLAY_DIRECTORY = "replays";
+  private static final String REPLAYS_SUB_FOLDER = "replays";
 
   private static final Collection<Path> USUAL_GAME_PATHS = Arrays.asList(
       Paths.get(System.getenv("ProgramFiles") + "\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
@@ -68,7 +67,6 @@ public class PreferencesService {
    */
   private final Timer timer;
   private TimerTask storeInBackgroundTask;
-  private Repository fafRepoDirectory;
   private Collection<PreferenceUpdateListener> updateListeners;
 
   public PreferencesService() {
@@ -266,6 +264,6 @@ public class PreferencesService {
   }
 
   public Path getReplayDirectory() {
-    return getPreferencesDirectory().resolve(REPLAY_DIRECTORY);
+    return getFafDataDirectory().resolve(REPLAYS_SUB_FOLDER);
   }
 }
