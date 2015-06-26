@@ -36,8 +36,9 @@ import java.util.TimerTask;
 
 public class PreferencesService {
 
-  private static final long STORE_DELAY = 1000;
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  private static final long STORE_DELAY = 1000;
   private static final Charset CHARSET = StandardCharsets.UTF_8;
   private static final String PREFS_FILE_NAME = "client.prefs";
   private static final String APP_DATA_SUB_FOLDER = "Forged Alliance Forever";
@@ -49,7 +50,6 @@ public class PreferencesService {
       Paths.get(System.getenv("ProgramFiles") + " (x86)\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
       Paths.get(System.getenv("ProgramFiles") + "\\Steam\\steamapps\\common\\supreme commander forged alliance"),
       Paths.get(System.getenv("ProgramFiles") + "\\Supreme Commander - Forged Alliance")
-
   );
 
   @Autowired
