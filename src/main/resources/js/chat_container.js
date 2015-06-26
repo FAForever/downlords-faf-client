@@ -1,10 +1,14 @@
+isScrolledToBottom = true;
+window.onscroll = function (e) {
+  isScrolledToBottom = window.scrollY+window.innerHeight + 20 >= document.documentElement.scrollHeight;
+}
+
 function link(input) {
   return Autolinker.link(input, {
       email: false,
       phone: false,
       twitter: false,
       replaceFn: function(autolinker, match) {
-        // channelTab is a reference to the java instance
         return new Autolinker.HtmlTag( {
           tagName: "a",
           attrs: {
@@ -17,4 +21,18 @@ function link(input) {
       }
     }
   );
+}
+
+function showPlayerInfo(node) {
+  chatTab.playerInfo(node.textContent);
+}
+
+function hidePlayerInfo(node) {
+  chatTab.hidePlayerInfo();
+}
+
+function scrollToBottomIfDesired() {
+  if (isScrolledToBottom) {
+    window.scrollTo(0, document.documentElement.scrollHeight);
+  }
 }

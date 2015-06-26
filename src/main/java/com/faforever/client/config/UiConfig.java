@@ -9,6 +9,7 @@ import com.faforever.client.chat.ChatUserControlFactory;
 import com.faforever.client.chat.ChatUserControlFactoryImpl;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.CountryFlagServiceImpl;
+import com.faforever.client.chat.PlayerInfoTooltipController;
 import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
@@ -96,6 +97,12 @@ public class UiConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   NewsListItemController newsTileController() {
     return loadController("news_list_item.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  PlayerInfoTooltipController playerInfoTooltipController() {
+    return loadController("player_info_tooltip.fxml");
   }
 
   @Bean

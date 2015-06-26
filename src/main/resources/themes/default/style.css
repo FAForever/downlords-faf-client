@@ -502,19 +502,10 @@
 }
 
 
-/***************** Create game *****************/
+/***************** Popup *****************/
 
-.create-game-popup {
+.popup {
   -fx-background-color: -fx-background;
-  -fx-background-radius: 5;
-  -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
-}
-
-/***************** Enter game password *****************/
-
-.enter-game-password {
-  -fx-background-color: -fx-background;
-  -fx-background-radius: 5;
   -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
 }
 

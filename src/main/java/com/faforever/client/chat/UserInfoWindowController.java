@@ -4,6 +4,7 @@ import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.util.Callback;
+import com.faforever.client.util.RatingUtil;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -42,7 +43,7 @@ public class UserInfoWindowController {
   NumberAxis rating90DaysXAxis;
 
   @FXML
-  LineChart<Long, Float> rating90DaysChart;
+  LineChart<Long, Integer> rating90DaysChart;
 
   @FXML
   Label usernameLabel;
@@ -93,14 +94,14 @@ public class UserInfoWindowController {
   }
 
   private void plotPlayerStatistics(PlayerStatistics result) {
-    XYChart.Series<Long, Float> series = new XYChart.Series<>();
+    XYChart.Series<Long, Integer> series = new XYChart.Series<>();
     // FIXME i18n
     series.setName("Player rating");
 
-    List<XYChart.Data<Long, Float>> values = new ArrayList<>();
+    List<XYChart.Data<Long, Integer>> values = new ArrayList<>();
 
     for (RatingInfo ratingInfo : result.values) {
-      float minRating = ratingInfo.mean - 3 * ratingInfo.dev;
+      int minRating = RatingUtil.getRating(ratingInfo);
       LocalDateTime dateTime = LocalDate.from(ratingInfo.date).atTime(ratingInfo.time);
       values.add(new XYChart.Data<>(dateTime.atZone(ZoneId.systemDefault()).toEpochSecond(), minRating));
     }

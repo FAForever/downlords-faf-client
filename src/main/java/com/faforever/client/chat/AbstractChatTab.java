@@ -114,6 +114,9 @@ public abstract class AbstractChatTab extends Tab {
   @Autowired
   PrettyTime prettyTime;
 
+  @Autowired
+  PlayerInfoTooltipController playerInfoTooltipController;
+
   private boolean isChatReady;
   private WebEngine engine;
   private List<ChatMessage> waitingMessages;
@@ -136,6 +139,7 @@ public abstract class AbstractChatTab extends Tab {
   private int nextAutoCompleteIndex;
   private String autoCompletePartialName;
   private Pattern mentionPattern;
+  private Popup playerInfoTooltip;
 
   public AbstractChatTab(String receiver, String fxmlFile) {
     this.receiver = receiver;
@@ -204,6 +208,34 @@ public abstract class AbstractChatTab extends Tab {
   }
 
   protected abstract WebView getMessagesWebView();
+
+  /**
+   * Called from JavaScript when user hovers over a user name.
+   */
+  public void playerInfo(String username) {
+    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(username);
+    if (playerInfoBean == null) {
+      return;
+    }
+
+    playerInfoTooltipController.setPlayerInfoBean(playerInfoBean);
+
+    playerInfoTooltip = new Popup();
+    playerInfoTooltip.getContent().setAll(playerInfoTooltipController.getRoot());
+    playerInfoTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
+    playerInfoTooltip.show(getTabPane(), lastMouseX, lastMouseY - 10);
+  }
+
+  /**
+   * Called from JavaScript when user no longer hovers over a user name.
+   */
+  public void hidePlayerInfo() {
+    if (playerInfoTooltip == null) {
+      return;
+    }
+    playerInfoTooltip.hide();
+    playerInfoTooltip = null;
+  }
 
   /**
    * Called from JavaScript when user clicked a URL.
@@ -398,11 +430,11 @@ public abstract class AbstractChatTab extends Tab {
   }
 
   private void scrollToBottomIfDesired() {
-    // TODO add the "if desired" part
     if (getMessagesWebView().getParent() == null) {
       return;
     }
-    engine.executeScript("window.scrollTo(0, document.body.scrollHeight);");
+
+    engine.executeScript("scrollToBottomIfDesired()");
   }
 
   private void removeTopmostMessages() {

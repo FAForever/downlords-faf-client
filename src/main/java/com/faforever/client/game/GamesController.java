@@ -16,12 +16,15 @@ import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -127,6 +130,7 @@ public class GamesController implements OnGameInfoListener {
   private Popup passwordPopup;
   private double lastMouseX;
   private double lastMouseY;
+  private FilteredList<GameInfoBean> filteredItems;
 
   public GamesController() {
     gameInfoBeans = FXCollections.observableHashMap();
@@ -168,15 +172,18 @@ public class GamesController implements OnGameInfoListener {
   }
 
   private void initializeGameTable() {
-    gamesTable.setEditable(false);
+    ObservableList<GameInfoBean> tableItems = FXCollections.observableArrayList();
+    filteredItems = new FilteredList<>(tableItems);
+    gamesTable.setItems(filteredItems);
+
     gameInfoBeans.addListener((MapChangeListener<Integer, GameInfoBean>) change -> {
       if (change.wasAdded()) {
-        gamesTable.getItems().add(change.getValueAdded());
+        tableItems.add(change.getValueAdded());
         if (gamesTable.getSelectionModel().getSelectedItem() == null) {
           gamesTable.getSelectionModel().select(0);
         }
       } else {
-        gamesTable.getItems().remove(change.getValueRemoved());
+        tableItems.remove(change.getValueRemoved());
       }
     });
 
@@ -200,7 +207,11 @@ public class GamesController implements OnGameInfoListener {
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
 
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      displayGameDetail(newValue);
+      if (newValue == null && !filteredItems.isEmpty()) {
+        gamesTable.getSelectionModel().select(filteredItems.get(0));
+      } else {
+        displayGameDetail(newValue);
+      }
     });
 
     accessColumn.setCellValueFactory(param -> param.getValue().accessProperty());
@@ -214,8 +225,16 @@ public class GamesController implements OnGameInfoListener {
     gameModeLabel.setText(gameInfoBean.getFeaturedMod());
   }
 
-  public void onShowPrivateGames(ActionEvent actionEvent) {
+  @FXML
+  void onShowPrivateGames(ActionEvent actionEvent) {
+    CheckBox checkBox = (CheckBox) actionEvent.getSource();
+    boolean selected = checkBox.isSelected();
 
+    if (selected) {
+      filteredItems.setPredicate(gameInfoBean -> true);
+    } else {
+      filteredItems.setPredicate(gameInfoBean -> gameInfoBean.getAccess() != GameAccess.PASSWORD);
+    }
   }
 
   private void joinSelectedGame(String password) {

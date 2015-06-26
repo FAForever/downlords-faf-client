@@ -7,7 +7,8 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<HBox fx:id="createGameRoot" styleClass="create-game-popup" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.CreateGameController">
+<HBox fx:id="createGameRoot" styleClass="popup" xmlns="http://javafx.com/javafx/8.0.40"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.CreateGameController">
   <children>
     <VBox spacing="10.0">
       <children>
