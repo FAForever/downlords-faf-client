@@ -12,6 +12,11 @@ public enum TaskGroup {
   NET_LIGHT,
 
   /**
+   * Tasks within this group operate on the disk.
+   */
+  DISK,
+
+  /**
    * Tasks within this group are not queued but executed immediately. This should only be used for tasks that spend most
    * of their time idling instead of doing anything resource-intensive.
    */

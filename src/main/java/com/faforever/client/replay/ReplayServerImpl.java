@@ -4,25 +4,15 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.OnGameStartedListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.OnGameInfoListener;
-import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.VictoryCondition;
-import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
-import com.faforever.client.legacy.gson.GameStateTypeAdapter;
-import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
-import com.faforever.client.legacy.io.QtCompress;
+import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
-import com.google.common.io.BaseEncoding;
 import com.google.common.primitives.Bytes;
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +21,6 @@ import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
 import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,17 +28,14 @@ import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Objects;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGameStartedListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   private static final int REPLAY_BUFFER_SIZE = 0x200;
 
   /**
@@ -67,26 +53,16 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGam
   I18n i18n;
 
   @Autowired
-  PreferencesService preferencesService;
-
-  @Autowired
   GameService gameService;
 
   @Autowired
   UserService userService;
 
-  private final Gson gson;
+  @Autowired
+  ReplayFileWriter replayFileWriter;
 
   private ReplayInfo replayInfo;
 
-  public ReplayServerImpl() {
-    gson = new GsonBuilder()
-        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-        .registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter())
-        .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
-        .registerTypeAdapter(VictoryCondition.class, new VictoryConditionTypeAdapter())
-        .create();
-  }
 
   @PostConstruct
   void postConstruct() {
@@ -103,21 +79,21 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGam
         String fafReplayServerHost = environment.getProperty("fafReplayServer.host");
         Integer fafReplayServerPort = environment.getProperty("fafReplayServer.port", Integer.class);
 
-        while (!isCancelled()) {
-          logger.debug("Opening local replay server on port {}", localReplayServerPort);
+        logger.debug("Opening local replay server on port {}", localReplayServerPort);
 
-          try (ServerSocket serverSocket = new ServerSocket(localReplayServerPort);
-               Socket fafReplayServerSocket = new Socket(fafReplayServerHost, fafReplayServerPort)) {
-            while (!serverSocket.isClosed() && !fafReplayServerSocket.isClosed()) {
-              recordAndRelay(serverSocket, new BufferedOutputStream(fafReplayServerSocket.getOutputStream()));
-            }
-          } catch (IOException e) {
-            logger.warn("Error while recording replay", e);
-            notificationService.addNotification(new PersistentNotification(
-                i18n.get("replayServer.listeningFailed", localReplayServerPort),
-                Severity.ERROR
-            ));
+        try (ServerSocket serverSocket = new ServerSocket(localReplayServerPort);
+             Socket fafReplayServerSocket = new Socket(fafReplayServerHost, fafReplayServerPort)) {
+          while (!serverSocket.isClosed() && !fafReplayServerSocket.isClosed()) {
+            recordAndRelay(serverSocket, new BufferedOutputStream(fafReplayServerSocket.getOutputStream()));
           }
+        } catch (IOException e) {
+          logger.warn("Error while recording replay", e);
+          notificationService.addNotification(new PersistentNotification(
+                  i18n.get("replayServer.listeningFailed", localReplayServerPort),
+                  Severity.WARN,
+                  Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> startInBackground()))
+              )
+          );
         }
         return null;
       }
@@ -148,27 +124,8 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGam
     }
 
     logger.debug("FAF has disconnected, writing replay data to file");
-    writeReplayDataToFile(replayData);
-  }
-
-  private void writeReplayDataToFile(ByteArrayOutputStream replayData) throws IOException {
     finishReplayInfo();
-
-    String fileName = String.format(environment.getProperty("replayFileFormat"), replayInfo.uid, replayInfo.recorder);
-    Path replayFile = preferencesService.getReplayDirectory().resolve(fileName);
-
-    logger.info("Writing replay file to {} ({} bytes)", replayFile, replayData.size());
-
-    Files.createDirectories(replayFile.getParent());
-
-    try (BufferedWriter writer = Files.newBufferedWriter(replayFile, UTF_8, CREATE_NEW)) {
-      byte[] compressedBytes = QtCompress.qCompress(replayData.toByteArray());
-      String base64ReplayData = BaseEncoding.base64().encode(compressedBytes);
-
-      gson.toJson(replayInfo, writer);
-      writer.write('\n');
-      writer.write(base64ReplayData);
-    }
+    replayFileWriter.writeReplayDataToFile(replayData, replayInfo);
   }
 
   @Override

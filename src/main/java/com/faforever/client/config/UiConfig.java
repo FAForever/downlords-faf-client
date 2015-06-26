@@ -20,13 +20,12 @@ import com.faforever.client.game.GamesController;
 import com.faforever.client.leaderboard.LadderController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
-import com.faforever.client.map.LegacyMapService;
-import com.faforever.client.map.MapService;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.news.NewsListItemController;
 import com.faforever.client.notification.NotificationNodeFactory;
 import com.faforever.client.notification.NotificationNodeFactoryImpl;
 import com.faforever.client.notification.PersistentNotificationsController;
+import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.vault.VaultController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -120,6 +119,11 @@ public class UiConfig {
   }
 
   @Bean
+  ReplayVaultController replayVaultController() {
+    return loadController("replay_vault.fxml");
+  }
+
+  @Bean
   ChatTabFactory chatTabFactory() {
     return new ChatTabFactoryImpl();
   }
@@ -137,11 +141,6 @@ public class UiConfig {
   @Bean
   CountryFlagService countryFlagService() {
     return new CountryFlagServiceImpl();
-  }
-
-  @Bean
-  MapService mapPreviewService() {
-    return new LegacyMapService();
   }
 
   @Bean

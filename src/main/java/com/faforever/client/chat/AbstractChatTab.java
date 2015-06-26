@@ -7,6 +7,7 @@ import com.faforever.client.sound.SoundService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
+import com.faforever.client.util.PrettyTime;
 import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
 import javafx.application.HostServices;
@@ -44,15 +45,11 @@ import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Instant;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -71,7 +68,6 @@ public abstract class AbstractChatTab extends Tab {
   private static final String CLAN_TAG_FORMAT = "[%s] ";
   private static final ClassPathResource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
   private static final Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
-  private static final DateTimeFormatter SHORT_TIME_FORMAT = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT);
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
   private static final String CSS_STYLE_SELF = "self";
@@ -114,6 +110,9 @@ public abstract class AbstractChatTab extends Tab {
 
   @Autowired
   SoundService soundService;
+
+  @Autowired
+  PrettyTime prettyTime;
 
   private boolean isChatReady;
   private WebEngine engine;
@@ -417,9 +416,7 @@ public abstract class AbstractChatTab extends Tab {
   }
 
   private void appendMessage(ChatMessage chatMessage) {
-    String timeString = SHORT_TIME_FORMAT.format(
-        ZonedDateTime.ofInstant(chatMessage.getTime(), TimeZone.getDefault().toZoneId())
-    );
+    String timeString = prettyTime.asShortTime(chatMessage.getTime());
 
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getUsername());
 

@@ -91,22 +91,26 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void onChatUserList(String channelName, Map<String, ChatUser> users) {
-    synchronized (chatUserLists) {
-      getChatUsersForChannel(channelName).putAll(users);
+    ObservableMap<String, ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
+    synchronized (chatUsersForChannel) {
+      chatUsersForChannel.putAll(users);
     }
   }
 
   @Override
   public void onUserJoinedChannel(String channelName, ChatUser chatUser) {
-    synchronized (chatUserLists) {
-      ObservableMap<String, ChatUser> chatUsers = getChatUsersForChannel(channelName);
+    ObservableMap<String, ChatUser> chatUsers = getChatUsersForChannel(channelName);
+    synchronized (chatUsers) {
       chatUsers.put(chatUser.getUsername(), chatUser);
     }
   }
 
   @Override
   public void onChatUserLeftChannel(String username, String channelName) {
-    getChatUsersForChannel(channelName).remove(username);
+    ObservableMap<String, ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
+    synchronized (chatUsersForChannel) {
+      chatUsersForChannel.remove(username);
+    }
   }
 
   @Override
@@ -310,7 +314,10 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener) {
-    getChatUsersForChannel(channelName).addListener(listener);
+    ObservableMap<String, ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
+    synchronized (chatUsersForChannel) {
+      chatUsersForChannel.addListener(listener);
+    }
   }
 
   @Override

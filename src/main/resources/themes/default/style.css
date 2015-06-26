@@ -390,21 +390,25 @@
   -fx-border-color: transparent;
 }
 
-/***************** Table *****************/
+/***************** Table and tree table *****************/
 
-.table-view {
+.table-view,
+.tree-table-view {
   -fx-background-color: transparent;
   -fx-control-inner-background: #FFFFFF00;
   -fx-control-inner-background-alt: #FFFFFF11;
 }
 
-.table-view > .virtual-flow {
+.table-view > .virtual-flow,
+.tree-table-view > .virtual-flow {
   -fx-color: transparent;
 }
 
-.table-view > .virtual-flow .scroll-bar > .thumb {
+.table-view > .virtual-flow .scroll-bar > .thumb,
+.tree-table-view > .virtual-flow .scroll-bar > .thumb {
   -fx-color: -fx-base;
 }
+
 /***************** Notification button *****************/
 
 .notification-button {

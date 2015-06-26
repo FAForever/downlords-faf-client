@@ -43,12 +43,7 @@
     </Tab>
     <Tab text="%vault.replays">
       <content>
-        <TreeTableView prefHeight="200.0" prefWidth="200.0">
-          <columns>
-            <TreeTableColumn prefWidth="75.0" text="C1" />
-            <TreeTableColumn prefWidth="75.0" text="C2" />
-          </columns>
-        </TreeTableView>
+        <AnchorPane fx:id="replayVaultContainer" prefHeight="200.0" prefWidth="200.0"/>
       </content>
     </Tab>
     <Tab text="%vault.tutorials">

@@ -3,6 +3,8 @@ package com.faforever.client.config;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.MockChatService;
 import com.faforever.client.chat.PircBotXChatService;
+import com.faforever.client.fa.ForgedAllianceService;
+import com.faforever.client.fa.ForgedAllianceServiceImpl;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameServiceImpl;
 import com.faforever.client.i18n.I18n;
@@ -27,6 +29,8 @@ import com.faforever.client.legacy.relay.LocalRelayServer;
 import com.faforever.client.legacy.relay.LocalRelayServerImpl;
 import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.lobby.LobbyServiceImpl;
+import com.faforever.client.map.LegacyMapService;
+import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModServiceImpl;
 import com.faforever.client.network.DownlordsPortCheckServiceImpl;
@@ -38,20 +42,26 @@ import com.faforever.client.patch.PatchService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.replay.ReplayFileReader;
+import com.faforever.client.replay.ReplayFileReaderImpl;
+import com.faforever.client.replay.ReplayFileWriter;
+import com.faforever.client.replay.ReplayFileWriterImpl;
 import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.replay.ReplayServerImpl;
+import com.faforever.client.replay.ReplayService;
+import com.faforever.client.replay.ReplayServiceImpl;
 import com.faforever.client.sound.SoundService;
 import com.faforever.client.sound.SoundServiceImpl;
 import com.faforever.client.stats.LegacyStatisticsService;
 import com.faforever.client.stats.StatisticsService;
-import com.faforever.client.fa.ForgedAllianceService;
-import com.faforever.client.fa.ForgedAllianceServiceImpl;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.task.TaskServiceImpl;
 import com.faforever.client.upnp.UpnpService;
 import com.faforever.client.upnp.WeUpnpServiceImpl;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
+import com.faforever.client.util.PrettyTime;
+import com.faforever.client.util.PrettyTimeImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -197,11 +207,17 @@ public class BaseConfig {
   }
 
   @Bean
+  ReplayFileWriter replayFileWriter() {
+    return new ReplayFileWriterImpl();
+  }
+
+  @Bean
+  ReplayFileReader replayFileReader() {
+    return new ReplayFileReaderImpl();
+  }
+
+  @Bean
   UpnpService upnpService() {
-//    if (environment.containsProperty("faf.testing")) {
-//      return port -> {
-//      };
-//    }
     return new WeUpnpServiceImpl();
   }
 
@@ -236,5 +252,20 @@ public class BaseConfig {
   @Bean
   StatisticsService statisticsService() {
     return new LegacyStatisticsService();
+  }
+
+  @Bean
+  ReplayService replayService() {
+    return new ReplayServiceImpl();
+  }
+
+  @Bean
+  MapService mapService() {
+    return new LegacyMapService();
+  }
+
+  @Bean
+  PrettyTime prettyTime() {
+    return new PrettyTimeImpl();
   }
 }
