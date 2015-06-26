@@ -158,12 +158,36 @@ public abstract class AbstractChatTab extends Tab {
     userToCssStyle.put(userService.getUsername(), CSS_STYLE_SELF);
     mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b");
 
+    addFocusListeners();
+  }
+
+  /**
+   * Registers listeners necessary to focus the message input field when changing to another message tab, changing from
+   * another tab to the "chat" tab or re-focusing the window.
+   */
+  private void addFocusListeners() {
     selectedProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue) {
         // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
         // So let's schedule the focus to be executed afterwards
         Platform.runLater(() -> getMessageTextField().requestFocus());
       }
+    });
+
+    tabPaneProperty().addListener((tabPane, oldTabPane, newTabPane) -> {
+      if (newTabPane == null) {
+        return;
+      }
+      newTabPane.getScene().getWindow().focusedProperty().addListener((window, windowFocusOld, windowFocusNew) -> {
+        if (newTabPane.isVisible()) {
+          getMessageTextField().requestFocus();
+        }
+      });
+      newTabPane.focusedProperty().addListener((focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
+        if (newTabPaneFocus) {
+          getMessageTextField().requestFocus();
+        }
+      });
     });
   }
 
