@@ -3,6 +3,7 @@ apply plugin: 'idea'
 apply plugin: 'application'
 apply plugin: 'jacoco'
 apply plugin: 'com.github.kt3k.coveralls'
+apply plugin: 'install4j'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
@@ -12,10 +13,19 @@ version = '0.4.2-alpha'
 mainClassName = "com.faforever.client.Main"
 applicationDefaultJvmArgs = ["-Djava.library.path=../lib"]
 
+if (!hasProperty('install4jHomeDir')) {
+  File propertiesFile = file("${System.getProperty('user.home')}/.gradle/gradle.properties")
+  throw new RuntimeException("Specify install4jHomeDir in $propertiesFile")
+}
+
 jacocoTestReport {
   reports {
     xml.enabled = true
   }
+}
+
+install4j {
+  installDir = file(install4jHomeDir)
 }
 
 idea {
@@ -42,12 +52,18 @@ task copyNativeLibs(type: Copy) {
   into "$buildDir/native"
 }
 
-task wrapper(type: Wrapper) {
-  gradleVersion = '2.4'
-}
-
 applicationDistribution.from(copyNativeLibs) {
   into "lib"
+}
+
+task buildInstaller(type: com.install4j.gradle.Install4jTask) {
+  dependsOn 'installDist'
+
+  projectFile = file('downlords-faf-client.install4j')
+  release = version
+}
+task wrapper(type: Wrapper) {
+  gradleVersion = '2.4'
 }
 
 repositories {
@@ -57,10 +73,14 @@ repositories {
 buildscript {
   repositories {
     mavenCentral()
+    maven {
+      url 'http://maven.ej-technologies.com/repository'
+    }
   }
 
   dependencies {
     classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.4.0'
+    classpath 'com.install4j:gradle-plugin:6.0'
   }
 }
 
