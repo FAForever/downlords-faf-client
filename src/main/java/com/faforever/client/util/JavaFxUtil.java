@@ -6,6 +6,8 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.web.WebEngine;
@@ -129,5 +131,17 @@ public class JavaFxUtil {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static boolean isVisibleRecursively(Node node) {
+    if (!node.isVisible()) {
+      return false;
+    }
+
+    Parent parent = node.getParent();
+    if (parent == null) {
+      return node.getScene() != null;
+    }
+    return isVisibleRecursively(parent);
   }
 }

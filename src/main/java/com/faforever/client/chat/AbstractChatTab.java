@@ -21,6 +21,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -181,10 +182,12 @@ public abstract class AbstractChatTab extends Tab {
       if (newTabPane == null) {
         return;
       }
-      newTabPane.getScene().getWindow().focusedProperty().addListener((window, windowFocusOld, windowFocusNew) -> {
-        if (newTabPane.isVisible()) {
-          getMessageTextField().requestFocus();
-        }
+      newTabPane.sceneProperty().addListener((tabPane1, oldScene, newScene) -> {
+        newScene.getWindow().focusedProperty().addListener((window, windowFocusOld, windowFocusNew) -> {
+          if (newTabPane.isVisible()) {
+            getMessageTextField().requestFocus();
+          }
+        });
       });
       newTabPane.focusedProperty().addListener((focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
         if (newTabPaneFocus) {
@@ -551,6 +554,14 @@ public abstract class AbstractChatTab extends Tab {
    * user is not in "chat" or if the window has no focus.
    */
   protected boolean hasFocus() {
-    return !isSelected() || !getTabPane().isVisible() || !getTabPane().getScene().getWindow().isFocused();
+    if (!isSelected()) {
+      return false;
+    }
+
+    TabPane tabPane = getTabPane();
+    return tabPane != null
+        && JavaFxUtil.isVisibleRecursively(tabPane)
+        && tabPane.getScene().getWindow().isFocused();
+
   }
 }
