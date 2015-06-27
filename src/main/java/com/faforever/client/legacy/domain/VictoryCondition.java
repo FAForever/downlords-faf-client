@@ -40,7 +40,7 @@ public enum VictoryCondition {
     this.number = number;
   }
 
-  public int getNumber() {
+  public Integer getNumber() {
     return number;
   }
 }
