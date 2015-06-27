@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.sound.SoundService;
@@ -65,7 +66,6 @@ public abstract class AbstractChatTab extends Tab {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private static final String CLAN_TAG_FORMAT = "[%s] ";
   private static final ClassPathResource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
   private static final Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
@@ -116,6 +116,9 @@ public abstract class AbstractChatTab extends Tab {
 
   @Autowired
   PlayerInfoTooltipController playerInfoTooltipController;
+
+  @Autowired
+  I18n i18n;
 
   private boolean isChatReady;
   private WebEngine engine;
@@ -486,7 +489,7 @@ public abstract class AbstractChatTab extends Tab {
         avatar = playerInfoBean.getAvatarUrl();
 
         if (StringUtils.isNotEmpty(playerInfoBean.getClan())) {
-          clanTag = String.format(CLAN_TAG_FORMAT, playerInfoBean.getClan());
+          clanTag = i18n.get("chat.clanTagFormag", playerInfoBean.getClan());
         }
       }
 
