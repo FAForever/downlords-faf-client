@@ -495,7 +495,9 @@ public abstract class AbstractChatTab extends Tab {
 
       if (mentionPattern.matcher(text).find()) {
         text = highlightOwnUsername(text);
-        soundService.playChatMentionSound();
+        if (!hasFocus()) {
+          soundService.playChatMentionSound();
+        }
       }
 
       html = html.replace("{time}", timeString)
@@ -539,5 +541,13 @@ public abstract class AbstractChatTab extends Tab {
   private void addToMessageContainer(String html) {
     ((JSObject) engine.executeScript("document.getElementById('" + MESSAGE_CONTAINER_ID + "')"))
         .call("insertAdjacentHTML", "beforeend", html);
+  }
+
+  /**
+   * Returns true if this chat tab is currently focused by the user. Returns false if a different tab is selected, the
+   * user is not in "chat" or if the window has no focus.
+   */
+  protected boolean hasFocus() {
+    return !isSelected() || !getTabPane().isVisible() || !getTabPane().getScene().getWindow().isFocused();
   }
 }
