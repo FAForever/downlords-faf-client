@@ -491,7 +491,7 @@ public abstract class AbstractChatTab extends Tab {
       }
 
       String text = htmlEscaper().escape(chatMessage.getMessage()).replace("\\", "\\\\");
-      text = convertUrlsIntoHyperlinks(text);
+      text = convertUrlsToHyperlinks(text);
 
       if (mentionPattern.matcher(text).find()) {
         text = highlightOwnUsername(text);
@@ -534,7 +534,7 @@ public abstract class AbstractChatTab extends Tab {
     );
   }
 
-  private String convertUrlsIntoHyperlinks(String text) {
+  private String convertUrlsToHyperlinks(String text) {
     return (String) engine.executeScript("link('" + text.replace("'", "\\'") + "')");
   }
 
