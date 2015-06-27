@@ -48,4 +48,6 @@ public interface LobbyServerAccessor {
   void setOnLobbyConnectedListener(OnLobbyConnectedListener onLobbyConnectedListener);
 
   void requestLadderInfoInBackground(Callback<List<LadderEntryBean>> callback);
+
+  void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener);
 }

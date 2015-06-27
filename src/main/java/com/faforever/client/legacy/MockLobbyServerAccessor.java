@@ -234,4 +234,9 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   public void requestLadderInfoInBackground(Callback<List<LadderEntryBean>> callback) {
 
   }
+
+  @Override
+  public void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener) {
+
+  }
 }

@@ -1,6 +1,8 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.legacy.OnJoinChannelsRequestListener;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
@@ -78,11 +80,15 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   TaskService taskService;
 
   @Autowired
+  LobbyServerAccessor lobbyServerAccessor;
+
+  @Autowired
   I18n i18n;
 
   private Configuration configuration;
   private PircBotX pircBotX;
   private boolean initialized;
+  private String defaultChannel;
 
   public PircBotXChatService() {
     eventListeners = new ConcurrentHashMap<>();
@@ -129,6 +135,8 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     addOnChatUserQuitListener(this);
     addOnChatDisconnectedListener(this);
     addOnModeratorSetListener(this);
+
+    defaultChannel = environment.getProperty("irc.defaultChannel");
   }
 
   private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
@@ -342,6 +350,16 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
+  public void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener) {
+    lobbyServerAccessor.addOnJoinChannelsRequestListener(listener);
+  }
+
+  @Override
+  public boolean isDefaultChannel(String channelName) {
+    return defaultChannel.equals(channelName);
+  }
+
+  @Override
   public void onEvent(Event event) throws Exception {
     if (!eventListeners.containsKey(event.getClass())) {
       return;
@@ -357,7 +375,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     sendMessageInBackground("NICKSERV", "IDENTIFY " + DigestUtils.md5Hex(userService.getPassword()), new Callback<String>() {
       @Override
       public void success(String message) {
-        pircBotX.sendIRC().joinChannel(environment.getProperty("irc.defaultChannel"));
+        pircBotX.sendIRC().joinChannel(defaultChannel);
       }
 
       @Override

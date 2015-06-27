@@ -157,10 +157,11 @@ public abstract class AbstractChatTab extends Tab {
 
   @PostConstruct
   void postConstruct() {
-    fxmlLoader.loadCustomControl(fxmlFile, this);
-    initChatView();
     userToCssStyle.put(userService.getUsername(), CSS_STYLE_SELF);
     mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b");
+
+    fxmlLoader.loadCustomControl(fxmlFile, this);
+    initChatView();
 
     addFocusListeners();
   }
@@ -453,9 +454,11 @@ public abstract class AbstractChatTab extends Tab {
     if (!isChatReady) {
       waitingMessages.add(chatMessage);
     } else {
-      appendMessage(chatMessage);
-      removeTopmostMessages();
-      scrollToBottomIfDesired();
+      Platform.runLater(() -> {
+        appendMessage(chatMessage);
+        removeTopmostMessages();
+        scrollToBottomIfDesired();
+      });
     }
   }
 

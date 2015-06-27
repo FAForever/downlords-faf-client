@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.legacy.OnJoinChannelsRequestListener;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ChatController implements
@@ -18,7 +20,8 @@ public class ChatController implements
     OnChatDisconnectedListener,
     OnPrivateChatMessageListener,
     OnChatUserJoinedChannelListener,
-    OnChatUserLeftChannelListener {
+    OnChatUserLeftChannelListener,
+    OnJoinChannelsRequestListener {
 
   @Autowired
   ChatService chatService;
@@ -51,6 +54,7 @@ public class ChatController implements
     chatService.addOnPrivateChatMessageListener(this);
     chatService.addOnChatUserJoinedChannelListener(this);
     chatService.addOnChatUserLeftChannelListener(this);
+    chatService.addOnJoinChannelsRequestListener(this);
   }
 
   @FXML
@@ -61,19 +65,23 @@ public class ChatController implements
   @Override
   public void onMessage(String channelName, ChatMessage chatMessage) {
     Platform.runLater(() -> {
-      addAndGetChatTab(channelName).onChatMessage(chatMessage);
+      addAndGetChannelTab(channelName).onChatMessage(chatMessage);
     });
   }
 
-  private AbstractChatTab addAndGetChatTab(String playerOrChanneLName) {
-    if (!nameToChatTab.containsKey(playerOrChanneLName)) {
-      AbstractChatTab tab = chatTabFactory.createChannelTab(playerOrChanneLName);
-      addTab(playerOrChanneLName, tab);
+  private AbstractChatTab addAndGetChannelTab(String playerOrChannelName) {
+    JavaFxUtil.assertApplicationThread();
+
+    if (!nameToChatTab.containsKey(playerOrChannelName)) {
+      AbstractChatTab tab = chatTabFactory.createChannelTab(playerOrChannelName);
+      addTab(playerOrChannelName, tab);
     }
-    return nameToChatTab.get(playerOrChanneLName);
+    return nameToChatTab.get(playerOrChannelName);
   }
 
   private AbstractChatTab addAndGetPrivateMessageTab(String username) {
+    JavaFxUtil.assertApplicationThread();
+
     if (!nameToChatTab.containsKey(username)) {
       AbstractChatTab tab = chatTabFactory.createPrivateMessageTab(username);
       addTab(username, tab);
@@ -84,8 +92,15 @@ public class ChatController implements
 
   private void addTab(String playerOrChannelName, AbstractChatTab tab) {
     nameToChatTab.put(playerOrChannelName, tab);
-    chatsTabPane.getTabs().add(tab);
     tab.setOnClosed(event -> nameToChatTab.remove(playerOrChannelName));
+
+    if (chatService.isDefaultChannel(tab.getId())) {
+      chatsTabPane.getTabs().add(0, tab);
+    } else {
+      chatsTabPane.getTabs().add(tab);
+    }
+
+    chatsTabPane.getSelectionModel().select(0);
   }
 
   @Override
@@ -97,7 +112,7 @@ public class ChatController implements
   @Override
   public void onUserJoinedChannel(String channelName, ChatUser chatUser) {
     Platform.runLater(() -> {
-      addAndGetChatTab(channelName);
+      addAndGetChannelTab(channelName);
 
       if (isCurrentUser(chatUser)) {
         connectingProgressPane.setVisible(false);
@@ -130,5 +145,10 @@ public class ChatController implements
     if (userService.getUsername().equals(username)) {
       chatsTabPane.getTabs().remove(nameToChatTab.get(channelName));
     }
+  }
+
+  @Override
+  public void onJoinChannelsRequest(List<String> channelNames) {
+    Platform.runLater(() -> channelNames.forEach(this::addAndGetChannelTab));
   }
 }

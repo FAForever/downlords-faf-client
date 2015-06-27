@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.legacy.OnJoinChannelsRequestListener;
 import com.faforever.client.util.Callback;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -43,4 +44,8 @@ public interface ChatService {
   void sendActionInBackground(String target, String action, Callback<String> callback);
 
   void joinChannel(String channelName);
+
+  void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener);
+
+  boolean isDefaultChannel(String channelName);
 }

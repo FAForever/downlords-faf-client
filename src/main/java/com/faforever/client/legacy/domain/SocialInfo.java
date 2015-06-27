@@ -18,4 +18,8 @@ public class SocialInfo extends ServerObject {
    */
   public List<String> foes;
 
+  /**
+   * List of channel names to join.
+   */
+  public List<String> autojoin;
 }

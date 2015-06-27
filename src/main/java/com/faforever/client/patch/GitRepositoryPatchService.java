@@ -312,6 +312,7 @@ public class GitRepositoryPatchService implements PatchService {
       @Override
       protected Boolean call() throws Exception {
         logger.info("Checking for FA update");
+        logger.debug("Checking for FA update");
 
         return initAndCheckDirectories() &&
             (Files.notExists(binaryPatchRepoDirectory)

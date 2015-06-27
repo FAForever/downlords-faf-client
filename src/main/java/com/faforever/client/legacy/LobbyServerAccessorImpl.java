@@ -10,7 +10,6 @@ import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameStatusMessage;
-import com.faforever.client.legacy.domain.VictoryCondition;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.domain.HostGameMessage;
 import com.faforever.client.legacy.domain.InitSessionMessage;
@@ -23,10 +22,11 @@ import com.faforever.client.legacy.domain.ServerObjectType;
 import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.legacy.domain.SocialInfo;
 import com.faforever.client.legacy.domain.StatisticsType;
+import com.faforever.client.legacy.domain.VictoryCondition;
 import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
-import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
+import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.ladder.LadderParser;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.LoginPrefs;
@@ -96,6 +96,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private Collection<OnGameInfoListener> onGameInfoListeners;
   private Collection<OnGameTypeInfoListener> onGameTypeInfoListeners;
   private Collection<OnFoeListListener> onFoeListListeners;
+  private Collection<OnJoinChannelsRequestListener> onJoinChannelsRequestListeners;
 
   // Yes I know, those aren't lists. They will become if it's necessary
   private OnLobbyConnectingListener onLobbyConnectingListener;
@@ -108,6 +109,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   public LobbyServerAccessorImpl() {
     onGameInfoListeners = new ArrayList<>();
     onGameTypeInfoListeners = new ArrayList<>();
+    onJoinChannelsRequestListeners = new ArrayList<>();
     sessionId = new SimpleStringProperty();
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
@@ -368,6 +370,11 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     }, callback);
   }
 
+  @Override
+  public void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener) {
+    onJoinChannelsRequestListeners.add(listener);
+  }
+
   public void onServerMessage(String message) throws IOException {
     ServerMessageType serverMessageType = ServerMessageType.fromString(message);
     if (serverMessageType != null) {
@@ -474,6 +481,8 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
       onFriendListListener.onFriendList(socialInfo.friends);
     } else if (socialInfo.foes != null) {
       onFoeListListener.onFoeList(socialInfo.foes);
+    } else if (socialInfo.autojoin != null) {
+      onJoinChannelsRequestListeners.forEach(listener -> listener.onJoinChannelsRequest(socialInfo.autojoin));
     }
   }
 }

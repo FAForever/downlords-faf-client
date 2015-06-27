@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.legacy.OnJoinChannelsRequestListener;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
@@ -117,7 +118,7 @@ public class MockChatService implements ChatService {
 
   private void simulateConnectionEstablished() {
     onChatConnectedListeners.forEach(OnChatConnectedListener::onConnected);
-    joinChannel("#aeolus");
+    joinChannel("#mockChannel");
   }
 
   @Override
@@ -194,5 +195,15 @@ public class MockChatService implements ChatService {
         }
       }
     }, 0, CHAT_MESSAGE_INTERVAL);
+  }
+
+  @Override
+  public void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener) {
+
+  }
+
+  @Override
+  public boolean isDefaultChannel(String channelName) {
+    return true;
   }
 }

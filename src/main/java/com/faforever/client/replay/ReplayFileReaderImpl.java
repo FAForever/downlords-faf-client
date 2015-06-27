@@ -1,12 +1,9 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.notification.NotificationService;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,11 +21,12 @@ public class ReplayFileReaderImpl implements ReplayFileReader {
 
   @Override
   public ReplayInfo readReplayFile(Path replayFile) {
+    logger.debug("Reading replay file {}", replayFile);
     try {
       List<String> lines = Files.readAllLines(replayFile);
 
       return gson.fromJson(lines.get(0), ReplayInfo.class);
-    } catch (IOException e) {
+    } catch (Exception e) {
       logger.warn("Replay file " + replayFile + " could not be read", e);
       return null;
     }
