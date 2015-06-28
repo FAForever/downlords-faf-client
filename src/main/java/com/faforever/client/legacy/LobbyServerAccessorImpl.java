@@ -4,6 +4,8 @@ import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LadderEntryBean;
+import com.faforever.client.legacy.domain.FoesMessage;
+import com.faforever.client.legacy.domain.FriendsMessage;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
@@ -373,6 +375,16 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   @Override
   public void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener) {
     onJoinChannelsRequestListeners.add(listener);
+  }
+
+  @Override
+  public void setFriends(Collection<String> friends) {
+    writeToServer(new FriendsMessage(friends));
+  }
+
+  @Override
+  public void setFoes(Collection<String> foes) {
+    writeToServer(new FoesMessage(foes));
   }
 
   public void onServerMessage(String message) throws IOException {

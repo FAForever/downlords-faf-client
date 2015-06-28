@@ -7,6 +7,7 @@ import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -50,4 +51,9 @@ public interface LobbyServerAccessor {
   void requestLadderInfoInBackground(Callback<List<LadderEntryBean>> callback);
 
   void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener);
+
+  void setFriends(Collection<String> friends);
+
+  void setFoes(Collection<String> foes);
+
 }

@@ -1,11 +1,10 @@
 package com.faforever.client.player;
 
-import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnFoeListListener;
 import com.faforever.client.legacy.OnFriendListListener;
 import com.faforever.client.legacy.OnPlayerInfoListener;
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -22,9 +21,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
 
-  @Autowired
-  ChatService chatService;
-
+  private PlayerInfoBean currentPlayer;
   private ObservableMap<String, PlayerInfoBean> players;
   private List<String> foeList;
   private List<String> friendList;
@@ -67,6 +64,42 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   }
 
   @Override
+  public void addFriend(String username) {
+    players.get(username).setFriend(true);
+    players.get(username).setFoe(false);
+    friendList.add(username);
+    foeList.remove(username);
+
+    lobbyServerAccessor.setFriends(friendList);
+  }
+
+  @Override
+  public void removeFriend(String username) {
+    players.get(username).setFriend(false);
+    friendList.remove(username);
+
+    lobbyServerAccessor.setFriends(friendList);
+  }
+
+  @Override
+  public void addFoe(String username) {
+    players.get(username).setFoe(true);
+    players.get(username).setFriend(false);
+    foeList.add(username);
+    friendList.remove(username);
+
+    lobbyServerAccessor.setFoes(foeList);
+  }
+
+  @Override
+  public void removeFoe(String username) {
+    players.get(username).setFoe(false);
+    foeList.remove(username);
+
+    lobbyServerAccessor.setFoes(foeList);
+  }
+
+  @Override
   public void onPlayerInfo(PlayerInfo playerInfo) {
     if (!players.containsKey(playerInfo.login)) {
       players.put(playerInfo.login, new PlayerInfoBean(playerInfo));
@@ -74,8 +107,13 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
     PlayerInfoBean playerInfoBean = players.get(playerInfo.login);
     playerInfoBean.updateFromPlayerInfo(playerInfo);
-    playerInfoBean.setFriend(friendList.contains(playerInfo.login));
-    playerInfoBean.setFoe(foeList.contains(playerInfo.login));
+
+    if (playerInfo.login.equals(playerInfoBean.getUsername())) {
+      this.currentPlayer = playerInfoBean;
+    } else {
+      playerInfoBean.setFriend(friendList.contains(playerInfo.login));
+      playerInfoBean.setFoe(foeList.contains(playerInfo.login));
+    }
   }
 
   @Override
@@ -100,5 +138,10 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
         playerInfoBean.setFriend(true);
       }
     }
+  }
+
+  @Override
+  public PlayerInfoBean getCurrentPlayer() {
+    return currentPlayer;
   }
 }

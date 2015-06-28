@@ -1,13 +1,10 @@
 package com.faforever.client.user;
 
-import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.PostConstruct;
 
 public class UserServiceImpl implements UserService {
 
@@ -22,21 +19,6 @@ public class UserServiceImpl implements UserService {
 
   private String username;
   private String password;
-  private PlayerInfoBean currentPlayer;
-
-  @PostConstruct
-  void init() {
-    playerService.addPlayerListener(change -> {
-      if (change.wasRemoved()) {
-        return;
-      }
-
-      PlayerInfoBean playerInfoBean = change.getValueAdded();
-      if (username.equals(playerInfoBean.getUsername())) {
-        this.currentPlayer = playerInfoBean;
-      }
-    });
-  }
 
   @Override
   public void login(final String username, final String password, final boolean autoLogin, final Callback<Void> callback) {
@@ -60,11 +42,6 @@ public class UserServiceImpl implements UserService {
   @Override
   public String getPassword() {
     return password;
-  }
-
-  @Override
-  public PlayerInfoBean getCurrentPlayer() {
-    return currentPlayer;
   }
 
 

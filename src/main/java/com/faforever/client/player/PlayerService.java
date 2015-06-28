@@ -17,4 +17,14 @@ public interface PlayerService {
   PlayerInfoBean registerAndGetPlayerForUsername(String username);
 
   Set<String> getPlayerNames();
+
+  void addFriend(String username);
+
+  void removeFriend(String username);
+
+  void addFoe(String username);
+
+  void removeFoe(String username);
+
+  PlayerInfoBean getCurrentPlayer();
 }

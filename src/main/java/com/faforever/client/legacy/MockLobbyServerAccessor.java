@@ -239,4 +239,14 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   public void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener) {
 
   }
+
+  @Override
+  public void setFriends(Collection<String> friends) {
+
+  }
+
+  @Override
+  public void setFoes(Collection<String> foes) {
+
+  }
 }

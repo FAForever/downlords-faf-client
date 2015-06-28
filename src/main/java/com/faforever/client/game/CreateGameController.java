@@ -14,6 +14,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.TextField;
@@ -21,6 +22,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.RangeSlider;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
@@ -196,7 +198,7 @@ public class CreateGameController {
     filteredMaps = new FilteredList<>(localMaps);
 
     mapListView.setItems(filteredMaps);
-    mapListView.setCellFactory(param -> new MapListCell());
+    mapListView.setCellFactory(mapListCellFactory());
     mapListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == null) {
         mapNameLabel.setText("");
@@ -285,5 +287,22 @@ public class CreateGameController {
 
   public Node getRoot() {
     return createGameRoot;
+  }
+
+  @NotNull
+  private javafx.util.Callback<ListView<MapInfoBean>, ListCell<MapInfoBean>> mapListCellFactory() {
+    return param -> new ListCell<MapInfoBean>() {
+      @Override
+      protected void updateItem(MapInfoBean item, boolean empty) {
+        super.updateItem(item, empty);
+
+        if (empty || item == null) {
+          setText(null);
+          setGraphic(null);
+        } else {
+          setText(item.getName());
+        }
+      }
+    };
   }
 }

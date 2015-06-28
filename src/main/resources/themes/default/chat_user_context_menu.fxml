@@ -3,21 +3,26 @@
 <?import java.lang.*?>
 <?import javafx.scene.control.*?>
 
-<ContextMenu xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
+<ContextMenu fx:id="contextMenu" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+             fx:controller="com.faforever.client.chat.ChatUserContextMenuController">
   <items>
     <MenuItem mnemonicParsing="false" text="%chat.userContext.userInfo" onAction="#onUserInfo"/>
-    <MenuItem mnemonicParsing="false" text="%chat.userContext.privateMessage"/>
+    <MenuItem mnemonicParsing="false" text="%chat.userContext.privateMessage" onAction="#onSendPrivateMessage"/>
     <SeparatorMenuItem mnemonicParsing="false"/>
-    <MenuItem mnemonicParsing="false" text="%chat.userContext.addFriend"/>
-    <MenuItem mnemonicParsing="false" text="%chat.userContext.removeFriend"/>
-    <MenuItem mnemonicParsing="false" text="%chat.userContext.addFoe"/>
-    <MenuItem mnemonicParsing="false" text="%chat.userContext.removeFoe"/>
+    <MenuItem fx:id="addFriendItem" mnemonicParsing="false" text="%chat.userContext.addFriend" onAction="#onAddFriend"/>
+    <MenuItem fx:id="removeFriendItem" mnemonicParsing="false" text="%chat.userContext.removeFriend"
+              onAction="#onRemoveFriend"/>
+    <MenuItem fx:id="addFoeItem" mnemonicParsing="false" text="%chat.userContext.addFoe" onAction="#onAddFoe"/>
+    <MenuItem fx:id="removeFoeItem" mnemonicParsing="false" text="%chat.userContext.removeFoe" onAction="#onRemoveFoe"/>
     <SeparatorMenuItem mnemonicParsing="false"/>
-    <MenuItem mnemonicParsing="false" text="%chat.userContext.viewLiveReplay"/>
-    <MenuItem mnemonicParsing="false" text="%chat.userContext.viewReplays"/>
-    <MenuItem mnemonicParsing="false" text="%chat.userContext.inviteToGame"/>
-    <SeparatorMenuItem mnemonicParsing="false"/>
-    <MenuItem mnemonicParsing="false" text="%chat.userContext.kick"/>
-    <MenuItem mnemonicParsing="false" text="%chat.userContext.ban"/>
+    <MenuItem fx:id="watchGameItem" mnemonicParsing="false" text="%chat.userContext.viewLiveReplay"
+              onAction="#onWatchGame"/>
+    <MenuItem fx:id="viewReplaysItem" mnemonicParsing="false" text="%chat.userContext.viewReplays"
+              onAction="#onViewReplays"/>
+    <MenuItem fx:id="inviteItem" mnemonicParsing="false" text="%chat.userContext.inviteToGame"
+              onAction="#onInviteToGame"/>
+    <SeparatorMenuItem fx:id="moderatorActionSeparator" mnemonicParsing="false"/>
+    <MenuItem fx:id="kickItem" mnemonicParsing="false" text="%chat.userContext.kick" onAction="#onKick"/>
+    <MenuItem fx:id="banItem" mnemonicParsing="false" text="%chat.userContext.ban" onAction="#onBan"/>
   </items>
 </ContextMenu>

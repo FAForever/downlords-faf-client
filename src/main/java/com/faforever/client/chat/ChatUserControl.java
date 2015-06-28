@@ -3,9 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fxml.FxmlLoader;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
@@ -13,10 +11,8 @@ import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
-import javafx.stage.Modality;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +21,6 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
-
-import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 
 public class ChatUserControl extends HBox {
 
@@ -78,8 +72,9 @@ public class ChatUserControl extends HBox {
 
   @FXML
   void onContextMenuRequested(ContextMenuEvent event) {
-    ContextMenu contextMenu = fxmlLoader.loadAndGetRoot("chat_user_context_menu.fxml", this);
-    contextMenu.show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    ChatUserContextMenuController contextMenuController = applicationContext.getBean(ChatUserContextMenuController.class);
+    contextMenuController.setPlayerInfoBean(playerInfoBean);
+    contextMenuController.getContextMenu().show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
   }
 
   @FXML
@@ -87,28 +82,6 @@ public class ChatUserControl extends HBox {
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
       onChatUserControlDoubleClickListener.onChatUserControlDoubleClicked(this);
     }
-  }
-
-  @FXML
-  void onUserInfo(ActionEvent actionEvent) {
-    if (userInfoWindow != null) {
-      return;
-    }
-
-    UserInfoWindowController userInfoWindowController = applicationContext.getBean(UserInfoWindowController.class);
-    userInfoWindowController.setPlayerInfoBean(playerInfoBean);
-
-    userInfoWindow = new Stage(StageStyle.TRANSPARENT);
-    userInfoWindow.initModality(Modality.NONE);
-    userInfoWindow.initOwner(getScene().getWindow());
-
-    sceneFactory.createScene(userInfoWindow, userInfoWindowController.getUserInfoRoot(), true, CLOSE);
-
-    userInfoWindow.setOnHiding(event -> {
-      userInfoWindow = null;
-    });
-
-    userInfoWindow.show();
   }
 
   private void configureClanLabel() {

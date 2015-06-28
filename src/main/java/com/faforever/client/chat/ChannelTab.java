@@ -138,18 +138,22 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
       }
     });
 
-    playerInfoBean.friendProperty().addListener((observable, oldValue, newValue) ->
-            addToOrRemoveFromPane(playerInfoBean, friendsPane, newValue)
-    );
-    playerInfoBean.foeProperty().addListener((observable, oldValue, newValue) ->
-            addToOrRemoveFromPane(playerInfoBean, foesPane, newValue)
-    );
-    playerInfoBean.chatOnlyProperty().addListener((observable, oldValue, newValue) ->
-            addToOrRemoveFromPane(playerInfoBean, chatOnlyPane, newValue)
-    );
-    playerInfoBean.getModeratorInChannels().addListener((SetChangeListener<String>) change ->
-            addToOrRemoveFromPane(playerInfoBean, moderatorsPane, change.wasAdded())
-    );
+    playerInfoBean.friendProperty().addListener((observable, oldValue, newValue) -> {
+      addToOrRemoveFromPane(playerInfoBean, friendsPane, newValue);
+      addToOrRemoveFromPane(playerInfoBean, othersPane, !newValue);
+    });
+    playerInfoBean.foeProperty().addListener((observable, oldValue, newValue) -> {
+      addToOrRemoveFromPane(playerInfoBean, foesPane, newValue);
+      addToOrRemoveFromPane(playerInfoBean, othersPane, !newValue);
+    });
+    playerInfoBean.chatOnlyProperty().addListener((observable, oldValue, newValue) -> {
+      addToOrRemoveFromPane(playerInfoBean, chatOnlyPane, newValue);
+      addToOrRemoveFromPane(playerInfoBean, othersPane, !newValue);
+    });
+    playerInfoBean.getModeratorInChannels().addListener((SetChangeListener<String>) change -> {
+      addToOrRemoveFromPane(playerInfoBean, moderatorsPane, change.wasAdded());
+      addToOrRemoveFromPane(playerInfoBean, othersPane, !change.wasAdded());
+    });
 
 
     Collection<Pane> targetPanesForUser = getTargetPanesForUser(playerInfoBean);
@@ -203,7 +207,7 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
         // User has not yet been added to this pane; no need to remove him
         return;
       }
-      Platform.runLater(() -> pane.getChildren().remove(paneChatUserControlMap.get(pane)));
+      Platform.runLater(() -> pane.getChildren().remove(paneChatUserControlMap.remove(pane)));
 //        });
     }
   }

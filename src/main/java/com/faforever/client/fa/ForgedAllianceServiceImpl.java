@@ -2,8 +2,8 @@ package com.faforever.client.fa;
 
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.legacy.relay.LocalRelayServer;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   PreferencesService preferencesService;
 
   @Autowired
-  UserService userService;
+  PlayerService playerService;
 
   @Autowired
   LocalRelayServer localRelayServer;
@@ -30,7 +30,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   public Process startGame(int uid, String mod, List<String> additionalArgs) throws IOException {
     Path executable = preferencesService.getFafBinDirectory().resolve("ForgedAlliance.exe");
 
-    PlayerInfoBean currentPlayer = userService.getCurrentPlayer();
+    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
 
     List<String> launchCommand = LaunchCommandBuilder.create()
         .executable(executable)

@@ -5,6 +5,7 @@ import com.faforever.client.chat.AvatarServiceImpl;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatTabFactory;
 import com.faforever.client.chat.ChatTabFactoryImpl;
+import com.faforever.client.chat.ChatUserContextMenuController;
 import com.faforever.client.chat.ChatUserControlFactory;
 import com.faforever.client.chat.ChatUserControlFactoryImpl;
 import com.faforever.client.chat.CountryFlagService;
@@ -100,9 +101,13 @@ public class UiConfig {
   }
 
   @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   PlayerInfoTooltipController playerInfoTooltipController() {
     return loadController("player_info_tooltip.fxml");
+  }
+
+  @Bean
+  ChatUserContextMenuController chatUserContextMenuController() {
+    return loadController("chat_user_context_menu.fxml");
   }
 
   @Bean

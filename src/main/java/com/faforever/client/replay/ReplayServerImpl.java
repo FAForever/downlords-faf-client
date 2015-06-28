@@ -100,7 +100,7 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGam
     });
   }
 
-  private void recordAndRelay(ServerSocket serverSocket, OutputStream fafRelayOutputStream) throws IOException {
+  private void recordAndRelay(ServerSocket serverSocket, OutputStream fafReplayOutputStream) throws IOException {
     Socket socket = serverSocket.accept();
     logger.debug("Accepted connection from {}", socket.getRemoteSocketAddress());
 
@@ -117,10 +117,17 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGam
           replayData.write(buffer, 0, bytesRead);
         }
 
-        fafRelayOutputStream.write(buffer, 0, bytesRead);
+        fafReplayOutputStream.write(buffer, 0, bytesRead);
       }
+    } catch (Exception e) {
+      logger.warn("Error while recording replay", e);
+      throw e;
     } finally {
-      fafRelayOutputStream.flush();
+      try {
+        fafReplayOutputStream.flush();
+      } catch (IOException e) {
+        logger.warn("Could not flus FAF replay output stream", e);
+      }
     }
 
     logger.debug("FAF has disconnected, writing replay data to file");

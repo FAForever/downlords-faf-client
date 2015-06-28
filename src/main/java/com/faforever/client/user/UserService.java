@@ -1,6 +1,5 @@
 package com.faforever.client.user;
 
-import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.util.Callback;
 
 public interface UserService {
@@ -10,8 +9,6 @@ public interface UserService {
   String getUsername();
 
   String getPassword();
-
-  PlayerInfoBean getCurrentPlayer();
 
   void cancelLogin();
 }
