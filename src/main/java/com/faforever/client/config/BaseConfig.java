@@ -29,7 +29,7 @@ import com.faforever.client.legacy.relay.LocalRelayServer;
 import com.faforever.client.legacy.relay.LocalRelayServerImpl;
 import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.lobby.LobbyServiceImpl;
-import com.faforever.client.map.LegacyMapService;
+import com.faforever.client.map.MapServiceImpl;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModServiceImpl;
@@ -261,7 +261,7 @@ public class BaseConfig {
 
   @Bean
   MapService mapService() {
-    return new LegacyMapService();
+    return new MapServiceImpl();
   }
 
   @Bean

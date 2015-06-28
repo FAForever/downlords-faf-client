@@ -35,7 +35,7 @@ import java.util.zip.ZipInputStream;
 
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
-public class LegacyMapService implements MapService {
+public class MapServiceImpl implements MapService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
