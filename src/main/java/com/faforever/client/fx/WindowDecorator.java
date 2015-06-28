@@ -33,14 +33,14 @@ public class WindowDecorator {
   public enum WindowButtonType {
     MINIMIZE,
     MAXIMIZE_RESTORE,
-    CLOSE;
+    CLOSE
   }
 
   private enum ResizeDirection {
     NORTH,
     EAST,
     SOUTH,
-    WEST,
+    WEST
   }
 
   public static final double RESIZE_BORDER_WIDTH = 7d;
@@ -315,7 +315,9 @@ public class WindowDecorator {
   }
 
   public void onMouseClicked(MouseEvent event) {
-    if (event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2 && resizable) {
+    if (event.getTarget() instanceof Pane
+        && event.getButton().equals(MouseButton.PRIMARY)
+        && event.getClickCount() == 2 && resizable) {
       if (stage.isMaximized()) {
         restore();
       } else {
