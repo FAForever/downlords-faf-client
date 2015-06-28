@@ -38,7 +38,7 @@ public class PrivateChatTab extends AbstractChatTab {
   public void onChatMessage(ChatMessage chatMessage) {
     super.onChatMessage(chatMessage);
 
-    if (hasFocus()) {
+    if (!hasFocus()) {
       soundService.playPrivateMessageSound();
     }
   }
