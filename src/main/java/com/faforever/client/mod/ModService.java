@@ -1,12 +1,13 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.game.GameTypeBean;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
-import javafx.collections.ObservableList;
+import com.faforever.client.util.Callback;
+
+import java.util.List;
 
 public interface ModService {
 
   void addOnModInfoListener(OnGameTypeInfoListener onGameTypeInfoListener);
 
-  ObservableList<GameTypeBean> getInstalledMods();
+  void getInstalledModsInBackground(Callback<List<ModInfoBean>> callback);
 }

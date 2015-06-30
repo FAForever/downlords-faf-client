@@ -1,5 +1,7 @@
 package com.faforever.client.preferences;
 
+import com.sun.jna.platform.win32.Shell32Util;
+import com.sun.jna.platform.win32.ShlObj;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -8,10 +10,16 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class ForgedAlliancePrefs {
 
+  public static final Path GPG_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
+  public static final Path FAF_GAME_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
+
   private final ObjectProperty<Path> path;
+  private final ObjectProperty<Path> mapsDirectory;
+  private final ObjectProperty<Path> modsDirectory;
   private final IntegerProperty port;
   private final BooleanProperty autoDownloadMaps;
 
@@ -19,6 +27,8 @@ public class ForgedAlliancePrefs {
   public ForgedAlliancePrefs() {
     port = new SimpleIntegerProperty(6112);
     path = new SimpleObjectProperty<>();
+    mapsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("maps"));
+    modsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("mods"));
     autoDownloadMaps = new SimpleBooleanProperty(true);
   }
 
@@ -56,5 +66,29 @@ public class ForgedAlliancePrefs {
 
   public void setAutoDownloadMaps(boolean autoDownloadMaps) {
     this.autoDownloadMaps.set(autoDownloadMaps);
+  }
+
+  public Path getModsDirectory() {
+    return modsDirectory.get();
+  }
+
+  public ObjectProperty<Path> modsDirectoryProperty() {
+    return modsDirectory;
+  }
+
+  public void setModsDirectory(Path modsDirectory) {
+    this.modsDirectory.set(modsDirectory);
+  }
+
+  public Path getMapsDirectory() {
+    return mapsDirectory.get();
+  }
+
+  public ObjectProperty<Path> mapsDirectoryProperty() {
+    return mapsDirectory;
+  }
+
+  public void setMapsDirectory(Path mapsDirectory) {
+    this.mapsDirectory.set(mapsDirectory);
   }
 }

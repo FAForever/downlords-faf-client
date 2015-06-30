@@ -207,10 +207,6 @@ public class PreferencesService {
     return getFafDataDirectory().resolve("gamedata");
   }
 
-  public Path getMapsDirectory() {
-    return Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance", "Maps");
-  }
-
   private void initDefaultPreferences() {
     if (preferences != null) {
       throw new IllegalStateException("Preferences have already been initialized");

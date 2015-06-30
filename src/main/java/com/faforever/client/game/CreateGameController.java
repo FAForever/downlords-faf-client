@@ -1,11 +1,12 @@
 package com.faforever.client.game;
 
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
+import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
 import com.google.common.base.Strings;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
@@ -23,15 +24,20 @@ import javafx.scene.input.KeyCode;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.RangeSlider;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.lang.invoke.MethodHandles;
+import java.util.List;
 import java.util.Objects;
 
 public class CreateGameController {
 
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String DEFAULT_MOD = "faf";
 
   @FXML
@@ -50,7 +56,7 @@ public class CreateGameController {
   TextField titleTextField;
 
   @FXML
-  CheckListView<GameTypeBean> modListView;
+  CheckListView<ModInfoBean> modListView;
 
   @FXML
   TextField passwordTextField;
@@ -84,9 +90,6 @@ public class CreateGameController {
 
   @Autowired
   PreferencesService preferencesService;
-
-  @Autowired
-  I18n i18n;
 
   @FXML
   Node createGameRoot;
@@ -124,8 +127,8 @@ public class CreateGameController {
       mapListView.scrollTo(newMapIndex);
     });
 
-    gameTypeComboBox.setCellFactory(param -> new ModListCell());
-    gameTypeComboBox.setButtonCell(new ModListCell());
+    gameTypeComboBox.setCellFactory(param -> gameTypeCell());
+    gameTypeComboBox.setButtonCell(gameTypeCell());
   }
 
   @PostConstruct
@@ -188,8 +191,55 @@ public class CreateGameController {
   }
 
   private void initModList() {
-    modListView.setItems(modService.getInstalledMods());
-    modListView.setCellFactory(param -> new ModListCell());
+    modListView.setCellFactory(param -> modListCell());
+
+    modService.getInstalledModsInBackground(new Callback<List<ModInfoBean>>() {
+      @Override
+      public void success(List<ModInfoBean> result) {
+        modListView.setItems(FXCollections.observableList(result));
+      }
+
+      @Override
+      public void error(Throwable e) {
+        logger.warn("Could not load mod list", e);
+      }
+    });
+  }
+
+  @NotNull
+  private ListCell<ModInfoBean> modListCell() {
+    return new ListCell<ModInfoBean>() {
+
+      @Override
+      protected void updateItem(ModInfoBean item, boolean empty) {
+        super.updateItem(item, empty);
+
+        if (empty || item == null) {
+          setText(null);
+          setGraphic(null);
+        } else {
+          setText(item.getName());
+        }
+      }
+    };
+  }
+
+  @NotNull
+  private ListCell<GameTypeBean> gameTypeCell() {
+    return new ListCell<GameTypeBean>() {
+
+      @Override
+      protected void updateItem(GameTypeBean item, boolean empty) {
+        super.updateItem(item, empty);
+
+        if (empty || item == null) {
+          setText(null);
+          setGraphic(null);
+        } else {
+          setText(item.getName());
+        }
+      }
+    };
   }
 
   private void initMapSelection() {
