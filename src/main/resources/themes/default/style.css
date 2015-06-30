@@ -201,6 +201,7 @@
 .tree-view,
 .table-view,
 .tree-table-view,
+.titled-pane,
 .html-editor {
   -fx-background: transparent;
   -fx-background-insets: 0;
@@ -612,4 +613,30 @@
 
 .web-view {
   -fx-background: transparent;
+}
+
+
+/***************** Settings window *****************/
+
+.settings-head {
+  -fx-font-size: 1.5em;
+  -fx-padding: 1em;
+}
+
+.settings .titled-pane > .title > .text {
+  -fx-font-size: 1.4em;
+}
+
+.settings .titled-pane > *.content {
+  -fx-padding: 0 0 0 0.5em;
+}
+
+.settings .tab {
+  /* Since the text is rotated 90°, these values are as well (right is top, width is height) */
+  -fx-pref-height: 20em;
+  -fx-vpos: top;
+}
+
+.settings-content {
+  -fx-padding: 1.5em;
 }

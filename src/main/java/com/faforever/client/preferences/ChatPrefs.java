@@ -1,33 +1,71 @@
 package com.faforever.client.preferences;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+
 public class ChatPrefs {
 
-  private Double zoom;
-  private boolean learnedAutoComplete;
+  private final DoubleProperty zoom;
+  private final BooleanProperty learnedAutoComplete;
+  private final BooleanProperty previewImageUrls;
+  private final IntegerProperty maxMessages;
 
   public ChatPrefs() {
-    this.maxItems = 500;
+    maxMessages = new SimpleIntegerProperty(500);
+    zoom = new SimpleDoubleProperty(1);
+    learnedAutoComplete = new SimpleBooleanProperty(false);
+    previewImageUrls = new SimpleBooleanProperty(true);
   }
 
-  private int maxItems;
-
-  public int getMaxItems() {
-    return maxItems;
+  public boolean getPreviewImageUrls() {
+    return previewImageUrls.get();
   }
 
-  public void setZoom(Double zoom) {
-    this.zoom = zoom;
+  public BooleanProperty previewImageUrlsProperty() {
+    return previewImageUrls;
   }
 
-  public Double getZoom() {
+  public void setPreviewImageUrls(boolean previewImageUrls) {
+    this.previewImageUrls.set(previewImageUrls);
+  }
+
+  public double getZoom() {
+    return zoom.get();
+  }
+
+  public DoubleProperty zoomProperty() {
     return zoom;
   }
 
-  public boolean hasLearnedAutoComplete() {
+  public void setZoom(double zoom) {
+    this.zoom.set(zoom);
+  }
+
+  public boolean getLearnedAutoComplete() {
+    return learnedAutoComplete.get();
+  }
+
+  public BooleanProperty learnedAutoCompleteProperty() {
     return learnedAutoComplete;
   }
 
   public void setLearnedAutoComplete(boolean learnedAutoComplete) {
-    this.learnedAutoComplete = learnedAutoComplete;
+    this.learnedAutoComplete.set(learnedAutoComplete);
+  }
+
+  public int getMaxMessages() {
+    return maxMessages.get();
+  }
+
+  public IntegerProperty maxMessagesProperty() {
+    return maxMessages;
+  }
+
+  public void setMaxMessages(int maxMessages) {
+    this.maxMessages.set(maxMessages);
   }
 }

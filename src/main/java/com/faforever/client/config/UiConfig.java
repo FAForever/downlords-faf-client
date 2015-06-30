@@ -27,6 +27,7 @@ import com.faforever.client.news.NewsListItemController;
 import com.faforever.client.notification.NotificationNodeFactory;
 import com.faforever.client.notification.NotificationNodeFactoryImpl;
 import com.faforever.client.notification.PersistentNotificationsController;
+import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.vault.VaultController;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,6 +159,11 @@ public class UiConfig {
   @Bean
   NotificationNodeFactory notificationPaneFactory() {
     return new NotificationNodeFactoryImpl();
+  }
+
+  @Bean
+  SettingsController settingsWindowController() {
+    return loadController("settings.fxml");
   }
 
   @Bean

@@ -15,6 +15,7 @@ import javafx.scene.web.WebView;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -22,6 +23,8 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Utility class to fix some annoying JavaFX shortcomings.
@@ -30,6 +33,24 @@ public class JavaFxUtil {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final double ZOOM_STEP = 0.2d;
+
+  public static final StringConverter<Path> PATH_STRING_CONVERTER = new StringConverter<Path>() {
+    @Override
+    public String toString(Path object) {
+      if (object == null) {
+        return null;
+      }
+      return object.toAbsolutePath().toString();
+    }
+
+    @Override
+    public Path fromString(String string) {
+      if (string == null) {
+        return null;
+      }
+      return Paths.get(string);
+    }
+  };
 
   private JavaFxUtil() {
     // Utility class

@@ -20,11 +20,12 @@
                <children>
                  <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
                    <items>
-                     <MenuItem mnemonicParsing="false" text="%menu.support" />
+                     <MenuItem text="%menu.support" onAction="#onSupportItemSelected"/>
+                     <MenuItem text="%menu.settings" onAction="#onSettingsItemSelected"/>
                      <SeparatorMenuItem mnemonicParsing="false" />
-                     <MenuItem mnemonicParsing="false" text="%menu.feedback" />
+                     <MenuItem text="%menu.feedback"/>
                      <SeparatorMenuItem mnemonicParsing="false" />
-                     <MenuItem mnemonicParsing="false" text="%menu.exit" />
+                     <MenuItem text="%menu.exit" onAction="#onExitItemSelected"/>
                    </items>
                    <HBox.margin>
                      <Insets left="20.0" right="10.0" />

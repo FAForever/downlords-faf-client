@@ -471,7 +471,7 @@ public abstract class AbstractChatTab extends Tab {
   }
 
   private void removeTopmostMessages() {
-    int maxMessageItems = preferencesService.getPreferences().getChat().getMaxItems();
+    int maxMessageItems = preferencesService.getPreferences().getChat().getMaxMessages();
 
     int numberOfMessages = (int) engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "').length");
     while (numberOfMessages > maxMessageItems) {

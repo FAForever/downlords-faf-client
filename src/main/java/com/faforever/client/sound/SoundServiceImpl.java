@@ -1,7 +1,7 @@
 package com.faforever.client.sound;
 
 import com.faforever.client.main.MainController;
-import com.faforever.client.preferences.NotificationPrefs;
+import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ThemeUtil;
 import javafx.scene.media.AudioClip;
@@ -31,17 +31,17 @@ public class SoundServiceImpl implements SoundService {
   private AudioClip privateMessageSound;
   private boolean playSounds;
   private boolean isUiLoaded;
-  private NotificationPrefs notificationPrefs;
+  private NotificationsPrefs notificationsPrefs;
 
   @PostConstruct
   void postConstruct() throws IOException {
     mainController.getRoot().sceneProperty().addListener((observable, oldValue, newValue) -> {
       playSounds = newValue != null
-          && preferencesService.getPreferences().getNotificationPrefs().isSoundsEnabled();
+          && preferencesService.getPreferences().getNotifications().getSoundsEnabled();
     });
     preferencesService.addUpdateListener(preferences -> {
       try {
-        notificationPrefs = preferences.getNotificationPrefs();
+        notificationsPrefs = preferences.getNotifications();
         loadSounds();
       } catch (IOException e) {
         logger.warn("Notification sounds could not be loaded", e);
@@ -49,7 +49,7 @@ public class SoundServiceImpl implements SoundService {
     });
 
 
-    notificationPrefs = preferencesService.getPreferences().getNotificationPrefs();
+    notificationsPrefs = preferencesService.getPreferences().getNotifications();
 
     loadSounds();
   }
@@ -70,7 +70,7 @@ public class SoundServiceImpl implements SoundService {
 
   @Override
   public void playChatMentionSound() {
-    if (!notificationPrefs.isMentionSoundEnabled()) {
+    if (!notificationsPrefs.getMentionSoundEnabled()) {
       return;
     }
     playSound(chatMentionSound);
@@ -78,7 +78,7 @@ public class SoundServiceImpl implements SoundService {
 
   @Override
   public void playPrivateMessageSound() {
-    if (!notificationPrefs.isPmSoundEnabled()) {
+    if (!notificationsPrefs.getPlayPmReceivedSound()) {
       return;
     }
     playSound(privateMessageSound);
@@ -86,7 +86,7 @@ public class SoundServiceImpl implements SoundService {
 
   @Override
   public void playInfoNotificationSound() {
-    if (!notificationPrefs.isInfoSoundEnabled()) {
+    if (!notificationsPrefs.getInfoSoundEnabled()) {
       return;
     }
     playSound(infoNotificationSound);
@@ -94,7 +94,7 @@ public class SoundServiceImpl implements SoundService {
 
   @Override
   public void playWarnNotificationSound() {
-    if (!notificationPrefs.isWarnSoundEnabled()) {
+    if (!notificationsPrefs.getWarnSoundEnabled()) {
       return;
     }
     playSound(warnNotificationSound);
@@ -102,7 +102,7 @@ public class SoundServiceImpl implements SoundService {
 
   @Override
   public void playErrorNotificationSound() {
-    if (!notificationPrefs.isErrorSoundEnabled()) {
+    if (!notificationsPrefs.getErrorSoundEnabled()) {
       return;
     }
     playSound(errorNotificationSound);

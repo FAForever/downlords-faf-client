@@ -196,7 +196,8 @@ public class WindowDecorator {
     return windowRoot;
   }
 
-  public void onMouseMoved(MouseEvent event) {
+  @FXML
+  void onMouseMoved(MouseEvent event) {
     if (!resizable || stage.isMaximized()) {
       return;
     }
@@ -234,7 +235,8 @@ public class WindowDecorator {
     windowRoot.setCursor(Cursor.cursor(cursorName.append("_RESIZE").toString()));
   }
 
-  public void onMousePressed(MouseEvent event) {
+  @FXML
+  void onMousePressed(MouseEvent event) {
     if (isOnResizeBorder(event)) {
       isResizing = true;
     }
@@ -250,7 +252,8 @@ public class WindowDecorator {
         || event.getX() < RESIZE_BORDER_WIDTH;
   }
 
-  public void onMouseDragged(MouseEvent event) {
+  @FXML
+  void onMouseDragged(MouseEvent event) {
     if (dragOffset == null) {
       // Somehow the drag event occurred without an initial press event
       onMousePressed(event);
@@ -314,7 +317,8 @@ public class WindowDecorator {
     event.consume();
   }
 
-  public void onMouseClicked(MouseEvent event) {
+  @FXML
+  void onMouseClicked(MouseEvent event) {
     if (event.getTarget() instanceof Pane
         && event.getButton().equals(MouseButton.PRIMARY)
         && event.getClickCount() == 2 && resizable) {
@@ -326,7 +330,8 @@ public class WindowDecorator {
     }
   }
 
-  public void onMouseReleased(Event event) {
+  @FXML
+  void onMouseReleased(Event event) {
     isResizing = false;
     dragOffset = null;
   }
@@ -348,4 +353,3 @@ public class WindowDecorator {
     ((WindowDecorator) stage.getProperties().get("windowDecorator")).maximize();
   }
 }
-

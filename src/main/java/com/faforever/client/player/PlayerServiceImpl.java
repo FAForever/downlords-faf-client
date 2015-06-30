@@ -6,6 +6,7 @@ import com.faforever.client.legacy.OnFoeListListener;
 import com.faforever.client.legacy.OnFriendListListener;
 import com.faforever.client.legacy.OnPlayerInfoListener;
 import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.user.UserService;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -20,6 +21,9 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
+
+  @Autowired
+  UserService userService;
 
   private PlayerInfoBean currentPlayer;
   private ObservableMap<String, PlayerInfoBean> players;
@@ -108,7 +112,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     PlayerInfoBean playerInfoBean = players.get(playerInfo.login);
     playerInfoBean.updateFromPlayerInfo(playerInfo);
 
-    if (playerInfo.login.equals(playerInfoBean.getUsername())) {
+    if (playerInfo.login.equals(userService.getUsername())) {
       this.currentPlayer = playerInfoBean;
     } else {
       playerInfoBean.setFriend(friendList.contains(playerInfo.login));

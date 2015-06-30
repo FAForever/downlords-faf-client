@@ -6,7 +6,6 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 
 import java.util.ArrayList;
@@ -52,7 +51,6 @@ public class PersistentNotificationController {
     ObservableList<String> styleClasses = iconLabel.getStyleClass();
     styleClasses.removeAll(CSS_STYLE_INFO, CSS_STYLE_WARN, CSS_STYLE_ERROR);
 
-    Image image;
     switch (severity) {
       case INFO:
         iconLabel.setText("\uf05a");

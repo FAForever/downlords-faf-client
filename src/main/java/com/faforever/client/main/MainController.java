@@ -18,16 +18,17 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.preferences.OnChoseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.vault.VaultController;
-import javafx.animation.PathTransition;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -45,16 +46,17 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import javafx.scene.shape.MoveTo;
-import javafx.scene.shape.Path;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
-import javafx.util.Duration;
+import javafx.stage.StageStyle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 
@@ -62,11 +64,12 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
-public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnFafDisconnectedListener, GamePortCheckListener {
+public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnFafDisconnectedListener, GamePortCheckListener, OnChoseGameDirectoryListener {
 
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_STATE = PseudoClass.getPseudoClass("info");
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_STATE = PseudoClass.getPseudoClass("warn");
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_STATE = PseudoClass.getPseudoClass("error");
+
 
   @FXML
   Pane mainHeaderPane;
@@ -167,6 +170,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Autowired
   NotificationService notificationService;
 
+  @Autowired
+  SettingsController settingsWindowController;
+
   private Popup notificationsPopup;
 
   @FXML
@@ -204,6 +210,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
         i18n.get("statusBar.portCheckTooltip", preferencesService.getPreferences().getForgedAlliance().getPort())
     );
     portCheckService.addGamePortCheckListener(this);
+
+    preferencesService.setOnChoseGameDirectoryListener(this);
   }
 
   /**
@@ -290,7 +298,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     stage.setWidth(mainWindowPrefs.getWidth());
     stage.setHeight(mainWindowPrefs.getHeight());
 
-    if (mainWindowPrefs.isMaximized()) {
+    if (mainWindowPrefs.getMaximized()) {
       WindowDecorator.maximize(stage);
     } else {
       if (mainWindowPrefs.getX() < 0 && mainWindowPrefs.getY() < 0) {
@@ -467,5 +475,42 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   public Pane getRoot() {
     return mainRoot;
+  }
+
+  @FXML
+  void onSupportItemSelected(ActionEvent event) {
+    // FIXME implement
+  }
+
+  @FXML
+  void onSettingsItemSelected(ActionEvent event) {
+    Stage stage = new Stage(StageStyle.UNDECORATED);
+    stage.initOwner(mainRoot.getScene().getWindow());
+
+    Region root = settingsWindowController.getRoot();
+    sceneFactory.createScene(stage, root, true, CLOSE);
+
+    stage.setTitle(i18n.get("settings.windowTitle"));
+    stage.show();
+  }
+
+  @FXML
+  void onExitItemSelected(ActionEvent event) {
+    Platform.exit();
+  }
+
+  @Override
+  public void onChoseGameDirectory(Callback<Path> callback) {
+    Platform.runLater(() -> {
+      DirectoryChooser directoryChooser = new DirectoryChooser();
+      directoryChooser.setTitle(i18n.get("missingGamePath.locate"));
+      File result = directoryChooser.showDialog(getRoot().getScene().getWindow());
+
+      if (result == null) {
+        callback.success(null);
+      } else {
+        callback.success(result.toPath());
+      }
+    });
   }
 }

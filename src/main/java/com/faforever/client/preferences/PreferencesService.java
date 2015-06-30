@@ -2,16 +2,19 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.DirectoryChooserAction;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.preferences.gson.PathTypeAdapter;
+import com.faforever.client.preferences.gson.PropertyTypeAdapter;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.OperatingSystem;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
+import javafx.beans.property.Property;
+import javafx.event.ActionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,10 +57,10 @@ public class PreferencesService {
   );
 
   @Autowired
-  NotificationService notificationService;
+  I18n i18n;
 
   @Autowired
-  I18n i18n;
+  NotificationService notificationService;
 
   private final Path preferencesFilePath;
   private final Gson gson;
@@ -69,6 +72,7 @@ public class PreferencesService {
   private final Timer timer;
   private TimerTask storeInBackgroundTask;
   private Collection<PreferenceUpdateListener> updateListeners;
+  private OnChoseGameDirectoryListener onChoseGameDirectoryListener;
 
   public PreferencesService() {
     updateListeners = new ArrayList<>();
@@ -76,6 +80,8 @@ public class PreferencesService {
     timer = new Timer("PrefTimer", true);
     gson = new GsonBuilder()
         .setPrettyPrinting()
+        .registerTypeHierarchyAdapter(Property.class, new PropertyTypeAdapter())
+        .registerTypeHierarchyAdapter(Path.class, new PathTypeAdapter())
         .create();
   }
 
@@ -102,28 +108,44 @@ public class PreferencesService {
       }
     }
 
+    logger.info("Game path could not be detected");
     notifyMissingGamePath();
   }
 
   private void notifyMissingGamePath() {
-    logger.info("Game path could not be detected");
     List<Action> actions = Collections.singletonList(
-        new DirectoryChooserAction(i18n.get("missingGamePath.locate"), i18n.get("missingGamePath.chooserTitle"), new Callback<Path>() {
+        new Action(i18n.get("missingGamePath.chooserTitle"), new Action.ActionCallback() {
           @Override
-          public void success(Path result) {
-            boolean isPathValid = storeGamePathIfValid(result);
-            if (!isPathValid) {
-              notifyMissingGamePath();
-            }
-          }
-
-          @Override
-          public void error(Throwable e) {
-            throw new IllegalStateException("DirectoryChooser was not expected to call callback.error()", e);
+          public void call(ActionEvent event) {
+            letUserChoseGameDirectory();
           }
         })
     );
+
     notificationService.addNotification(new PersistentNotification(i18n.get("missingGamePath.notification"), Severity.WARN, actions));
+  }
+
+  private void letUserChoseGameDirectory() {
+    if (onChoseGameDirectoryListener == null) {
+      throw new IllegalStateException("No listener has been specified");
+    }
+
+    onChoseGameDirectoryListener.onChoseGameDirectory(new Callback<Path>() {
+      @Override
+      public void success(Path result) {
+        boolean isPathValid = storeGamePathIfValid(result);
+
+        if (!isPathValid) {
+          logger.info("User specified game path does not seem to be valid: {}", result);
+          notifyMissingGamePath();
+        }
+      }
+
+      @Override
+      public void error(Throwable e) {
+        throw new IllegalStateException("Unexpected exception", e);
+      }
+    });
   }
 
   /**
@@ -270,5 +292,9 @@ public class PreferencesService {
 
   public Path getCorruptedReplaysDirectory() {
     return getReplaysDirectory().resolve(CORRUPTED_REPLAYS_SUB_FOLDER);
+  }
+
+  public void setOnChoseGameDirectoryListener(OnChoseGameDirectoryListener onChoseGameDirectoryListener) {
+    this.onChoseGameDirectoryListener = onChoseGameDirectoryListener;
   }
 }
