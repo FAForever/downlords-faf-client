@@ -14,6 +14,7 @@ import com.faforever.client.util.ConcurrentUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
+import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +76,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
   @Override
   public void hostGame(NewGameInfo newGameInfo, Callback<Void> callback) {
     cancelLadderSearch();
-    updateGameIfNecessary(newGameInfo.getMod(), new Callback<Void>() {
+    updateGameIfNecessary(newGameInfo.mod, new Callback<Void>() {
       @Override
       public void success(Void result) {
         lobbyServerAccessor.requestNewGame(newGameInfo, gameLaunchCallback(callback));
@@ -172,8 +173,8 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
     };
   }
 
-  private void waitForProcessTerminationInBackground(Process process) {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
+  Service<Void> waitForProcessTerminationInBackground(Process process) {
+    return ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
         int exitCode = process.waitFor();

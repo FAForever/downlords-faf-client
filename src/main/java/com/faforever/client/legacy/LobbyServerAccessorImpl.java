@@ -283,14 +283,14 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   @Override
   public void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchInfo> callback) {
     HostGameMessage hostGameMessage = new HostGameMessage(
-        StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
-        newGameInfo.getMap(),
-        newGameInfo.getTitle(),
+        StringUtils.isEmpty(newGameInfo.password) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
+        newGameInfo.map,
+        newGameInfo.title,
         preferencesService.getPreferences().getForgedAlliance().getPort(),
         new boolean[0],
-        newGameInfo.getMod(),
-        newGameInfo.getPassword(),
-        newGameInfo.getVersion()
+        newGameInfo.mod,
+        newGameInfo.password,
+        newGameInfo.version
     );
 
     gameLaunchCallback = callback;

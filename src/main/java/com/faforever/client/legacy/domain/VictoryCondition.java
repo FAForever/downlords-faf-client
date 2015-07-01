@@ -11,8 +11,7 @@ public enum VictoryCondition {
   DEMORALIZATION(0),
   DOMINATION(1),
   ERADICATION(2),
-  SANDBOX(3),
-  UNKNOWN(null);
+  SANDBOX(3);
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -21,12 +20,7 @@ public enum VictoryCondition {
   private static final Map<Integer, VictoryCondition> fromNumber;
 
   public static VictoryCondition fromNumber(Integer number) {
-    VictoryCondition victoryCondition = fromNumber.get(number);
-    if (victoryCondition == null) {
-      logger.warn("Unknown victory condition: {}", number);
-      return UNKNOWN;
-    }
-    return victoryCondition;
+    return fromNumber.get(number);
   }
 
   static {

@@ -12,7 +12,7 @@ public class VictoryConditionTypeAdapter extends TypeAdapter<VictoryCondition> {
   @Override
   public void write(JsonWriter out, VictoryCondition value) throws IOException {
     if (value == null) {
-      out.value("unknown");
+      out.nullValue();
     } else {
       out.value(value.getNumber());
     }
@@ -20,10 +20,6 @@ public class VictoryConditionTypeAdapter extends TypeAdapter<VictoryCondition> {
 
   @Override
   public VictoryCondition read(JsonReader in) throws IOException {
-    String gameType = in.nextString();
-    if ("unknown".equals(gameType)) {
-      return VictoryCondition.UNKNOWN;
-    }
-    return VictoryCondition.fromNumber(Integer.valueOf(gameType));
+    return VictoryCondition.fromNumber(in.nextInt());
   }
 }

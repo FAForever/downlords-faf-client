@@ -7,7 +7,7 @@ public final class SocketAddressUtil {
   private static final String TO_STRING_FORMAT = "%s:%s";
 
   private SocketAddressUtil() {
-    // Utility class
+    throw new AssertionError("Not instantiatable");
   }
 
   public static String toString(InetSocketAddress socketAddress) {

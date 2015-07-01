@@ -11,7 +11,11 @@ public class RelayServerActionTypeAdapter extends TypeAdapter<RelayServerAction>
 
   @Override
   public void write(JsonWriter out, RelayServerAction value) throws IOException {
-    out.value(value.getString());
+    if (value == null) {
+      out.nullValue();
+    } else {
+      out.value(value.getString());
+    }
   }
 
   @Override
