@@ -34,7 +34,7 @@ public class LaunchCommandBuilder {
     return this;
   }
 
-  public LaunchCommandBuilder uid(int uid) {
+  public LaunchCommandBuilder uid(Integer uid) {
     this.uid = uid;
     return this;
   }

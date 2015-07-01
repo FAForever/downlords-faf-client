@@ -31,6 +31,7 @@ public final class ConcurrentUtil {
       @Override
       public void error(Throwable e) {
         logger.error("Task failed", e);
+        throw new RuntimeException(e);
       }
     });
   }

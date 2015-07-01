@@ -3,7 +3,7 @@ package com.faforever.client.util;
 import java.time.Duration;
 import java.time.Instant;
 
-public interface PrettyTime {
+public interface TimeService {
 
   /**
    * A string as "10 minutes ago"

@@ -8,11 +8,9 @@ import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
-import com.faforever.client.patch.PatchService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -43,9 +41,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
   ForgedAllianceService forgedAllianceService;
 
   @Autowired
-  PatchService patchService;
-
-  @Autowired
   MapService mapService;
 
   @Autowired
@@ -68,6 +63,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
   @Override
   public void publishPotentialPlayer() {
     String username = userService.getUsername();
+    // FIXME implement
 //    serverAccessor.publishPotentialPlayer(username);
   }
 
@@ -162,9 +158,9 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
           lobbyServerAccessor.notifyGameStarted();
 
           waitForProcessTerminationInBackground(process);
-          Platform.runLater(() -> callback.success(null));
+          callback.success(null);
         } catch (Exception e) {
-          Platform.runLater(() -> callback.error(e));
+          callback.error(e);
         }
       }
 

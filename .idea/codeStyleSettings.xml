@@ -19,7 +19,9 @@
         <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="100" />
         <option name="NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" value="100" />
         <option name="PACKAGES_TO_USE_IMPORT_ON_DEMAND">
-          <value />
+          <value>
+            <package name="org.junit.Assert" withSubpackages="true" static="true" />
+          </value>
         </option>
         <option name="STATIC_FIELDS_ORDER_WEIGHT" value="3" />
         <option name="FIELDS_ORDER_WEIGHT" value="4" />

@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.TimeZone;
 
-public class PrettyTimeImpl implements PrettyTime {
+public class TimeServiceImpl implements TimeService {
 
   @Autowired
   I18n i18n;

@@ -1,7 +1,9 @@
 package com.faforever.client;
 
 import com.faforever.client.config.BaseConfig;
+import com.faforever.client.config.ServiceConfig;
 import com.faforever.client.config.UiConfig;
+import com.faforever.client.fx.JavaFxHostService;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.util.JavaFxUtil;
 import com.sun.jna.platform.win32.Shell32Util;
@@ -29,8 +31,8 @@ public class Main extends Application {
     JavaFxUtil.fixTooltipDuration();
 
     AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-    context.getBeanFactory().registerSingleton("hostServices", getHostServices());
-    context.register(BaseConfig.class, UiConfig.class);
+    context.getBeanFactory().registerSingleton("hostService", new JavaFxHostService(getHostServices()));
+    context.register(BaseConfig.class, UiConfig.class, ServiceConfig.class);
     context.refresh();
 
     stage.getIcons().add(new Image("/images/tray_icon.png"));
