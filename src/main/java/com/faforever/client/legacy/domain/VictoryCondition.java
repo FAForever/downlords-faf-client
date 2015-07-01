@@ -11,30 +11,36 @@ public enum VictoryCondition {
   DEMORALIZATION(0),
   DOMINATION(1),
   ERADICATION(2),
-  SANDBOX(3);
+  SANDBOX(3),
+  UNKNOWN("unknown");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private Integer number;
+  private Object value;
 
-  private static final Map<Integer, VictoryCondition> fromNumber;
+  private static final Map<Object, VictoryCondition> fromNumber;
 
-  public static VictoryCondition fromNumber(Integer number) {
-    return fromNumber.get(number);
+  public static VictoryCondition fromNumber(Object number) {
+    VictoryCondition victoryCondition = fromNumber.get(number);
+    if (victoryCondition == null) {
+      logger.warn("Unknown victory condition: {}", number);
+      return UNKNOWN;
+    }
+    return victoryCondition;
   }
 
   static {
     fromNumber = new HashMap<>();
     for (VictoryCondition victoryCondition : values()) {
-      fromNumber.put(victoryCondition.number, victoryCondition);
+      fromNumber.put(victoryCondition.value, victoryCondition);
     }
   }
 
-  VictoryCondition(Integer number) {
-    this.number = number;
+  VictoryCondition(Object value) {
+    this.value = value;
   }
 
-  public Integer getNumber() {
-    return number;
+  public Object getValue() {
+    return value;
   }
 }

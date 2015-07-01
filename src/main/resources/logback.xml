@@ -13,6 +13,7 @@
   <logger name="com.faforever.client.replay" level="info"/>
   <logger name="com.faforever.client.legacy.proxy" level="info"/>
   <logger name="com.faforever.client.legacy.map" level="info"/>
+  <logger name="com.faforever.client.legacy.relay" level="debug"/>
   <logger name="com.faforever.client.chat" level="info"/>
   <logger name="com.faforever.client.task" level="info"/>
   <logger name="com.faforever.client.preferences" level="info"/>

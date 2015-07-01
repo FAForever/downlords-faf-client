@@ -25,7 +25,7 @@ public class VictoryConditionTypeAdapterTest {
     JsonWriter out = mock(JsonWriter.class);
     instance.write(out, VictoryCondition.DEMORALIZATION);
 
-    verify(out).value(VictoryCondition.DEMORALIZATION.getNumber());
+    verify(out).value((int) VictoryCondition.DEMORALIZATION.getValue());
   }
 
   @Test
@@ -33,24 +33,26 @@ public class VictoryConditionTypeAdapterTest {
     JsonWriter out = mock(JsonWriter.class);
     instance.write(out, null);
 
-    verify(out).nullValue();
+    verify(out).value((String) VictoryCondition.UNKNOWN.getValue());
   }
 
   @Test
-  public void testRead() throws Exception {
+  public void testReadNormal() throws Exception {
     JsonReader in = mock(JsonReader.class);
-    when(in.nextInt()).thenReturn(VictoryCondition.DOMINATION.getNumber());
+    when(in.nextString()).thenReturn(String.valueOf(VictoryCondition.DOMINATION.getValue()));
 
     VictoryCondition victoryCondition = instance.read(in);
 
     assertEquals(VictoryCondition.DOMINATION, victoryCondition);
   }
 
-  @Test(expected = NumberFormatException.class)
-  public void testReadNotANumber() throws Exception {
+  @Test
+  public void testReadNullValue() throws Exception {
     JsonReader in = mock(JsonReader.class);
-    when(in.nextInt()).thenThrow(new NumberFormatException());
+    when(in.nextString()).thenReturn(null);
 
-    instance.read(in);
+    VictoryCondition victoryCondition = instance.read(in);
+
+    assertEquals(VictoryCondition.UNKNOWN, victoryCondition);
   }
 }

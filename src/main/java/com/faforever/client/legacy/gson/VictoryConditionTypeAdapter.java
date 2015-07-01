@@ -10,16 +10,25 @@ import java.io.IOException;
 public class VictoryConditionTypeAdapter extends TypeAdapter<VictoryCondition> {
 
   @Override
-  public void write(JsonWriter out, VictoryCondition value) throws IOException {
-    if (value == null) {
-      out.nullValue();
+  public void write(JsonWriter out, VictoryCondition victoryCondition) throws IOException {
+    if (victoryCondition == null) {
+      out.value("unknown");
     } else {
-      out.value(value.getNumber());
+      Object value = victoryCondition.getValue();
+      if (value instanceof Integer) {
+        out.value((int) value);
+      } else {
+        out.value((String) value);
+      }
     }
   }
 
   @Override
   public VictoryCondition read(JsonReader in) throws IOException {
-    return VictoryCondition.fromNumber(in.nextInt());
+    String victoryCondition = in.nextString();
+    if (victoryCondition == null || "unknown".equals(victoryCondition)) {
+      return VictoryCondition.UNKNOWN;
+    }
+    return VictoryCondition.fromNumber(Integer.valueOf(victoryCondition));
   }
 }
