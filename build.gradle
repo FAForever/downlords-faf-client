@@ -13,19 +13,10 @@ version = '0.4.2-alpha'
 mainClassName = "com.faforever.client.Main"
 applicationDefaultJvmArgs = ["-Djava.library.path=../lib"]
 
-if (!hasProperty('install4jHomeDir')) {
-  File propertiesFile = file("${System.getProperty('user.home')}/.gradle/gradle.properties")
-  throw new RuntimeException("Specify install4jHomeDir in $propertiesFile")
-}
-
 jacocoTestReport {
   reports {
     xml.enabled = true
   }
-}
-
-install4j {
-  installDir = file(install4jHomeDir)
 }
 
 idea {
