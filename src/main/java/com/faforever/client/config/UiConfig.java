@@ -29,6 +29,10 @@ import com.faforever.client.notification.NotificationNodeFactoryImpl;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.replay.ReplayVaultController;
+import com.faforever.client.sound.AudioClipPlayer;
+import com.faforever.client.sound.AudioClipPlayerImpl;
+import com.faforever.client.sound.SoundController;
+import com.faforever.client.sound.SoundControllerImpl;
 import com.faforever.client.vault.VaultController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -164,6 +168,16 @@ public class UiConfig {
   @Bean
   SettingsController settingsWindowController() {
     return loadController("settings.fxml");
+  }
+
+  @Bean
+  AudioClipPlayer audioClipPlayer() {
+    return new AudioClipPlayerImpl();
+  }
+
+  @Bean
+  SoundController soundService() {
+    return new SoundControllerImpl();
   }
 
   @Bean

@@ -9,13 +9,14 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane fx:id="userInfoRoot" minHeight="256.0" minWidth="256.0" xmlns="http://javafx.com/javafx/8.0.40"
-          xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.UserInfoWindowController">
+<GridPane fx:id="userInfoRoot" minHeight="256.0" minWidth="256.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.UserInfoWindowController">
    <columnConstraints>
       <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
-      <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+      <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+      <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
    </columnConstraints>
    <rowConstraints>
+      <RowConstraints minHeight="10.0" vgrow="NEVER" />
       <RowConstraints minHeight="10.0" vgrow="NEVER" />
       <RowConstraints minHeight="10.0" vgrow="NEVER" />
       <RowConstraints minHeight="10.0" vgrow="ALWAYS" />
@@ -25,6 +26,9 @@
          <font>
             <Font size="32.0" />
          </font>
+         <graphic>
+            <ImageView fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" />
+         </graphic>
       </Label>
       <Label fx:id="countryLabel" text="&lt;Country&gt;" GridPane.rowIndex="1">
          <GridPane.margin>
@@ -34,23 +38,38 @@
             <ImageView fx:id="countryImageView" pickOnBounds="true" preserveRatio="true" />
          </graphic>
       </Label>
-      <TabPane tabClosingPolicy="UNAVAILABLE" GridPane.columnSpan="2147483647" GridPane.rowIndex="2">
+      <Label text="&lt;Member since&gt;" GridPane.rowIndex="2" />
+      <TabPane tabClosingPolicy="UNAVAILABLE" GridPane.columnSpan="2147483647" GridPane.rowIndex="3">
          <tabs>
-            <Tab text="%playerInfo.rating90Days">
+            <Tab text="%playerInfo.ratingOverTime">
                <content>
-                  <LineChart fx:id="rating90DaysChart" createSymbols="false" legendVisible="false">
-                    <xAxis>
-                       <NumberAxis fx:id="rating90DaysXAxis" side="BOTTOM" />
-                    </xAxis>
-                    <yAxis>
-                       <NumberAxis fx:id="rating90DaysYAxis" side="LEFT" />
-                    </yAxis>
-                  </LineChart>
+                  <VBox>
+                     <children>
+                        <HBox alignment="TOP_RIGHT">
+                           <children>
+                              <ToggleButton fx:id="ratingOver365DaysButton" mnemonicParsing="false" onAction="#onRatingOver90DaysButtonClicked" selected="true" text="%playerInfo.ratingOverTime.last3Months">
+                                 <toggleGroup>
+                                    <ToggleGroup fx:id="timeRange" />
+                                 </toggleGroup>
+                              </ToggleButton>
+                              <ToggleButton fx:id="ratingOver90DaysButton" mnemonicParsing="false" onAction="#onRatingOver365DaysButtonClicked" text="%playerInfo.ratingOverTime.lastYear" toggleGroup="$timeRange" />
+                           </children>
+                        </HBox>
+                        <LineChart fx:id="rating90DaysChart" createSymbols="false" legendVisible="false">
+                          <xAxis>
+                             <NumberAxis fx:id="rating90DaysXAxis" side="BOTTOM" />
+                          </xAxis>
+                          <yAxis>
+                             <NumberAxis fx:id="rating90DaysYAxis" side="LEFT" />
+                          </yAxis>
+                        </LineChart>
+                     </children>
+                  </VBox>
                </content>
             </Tab>
          </tabs>
       </TabPane>
-      <Button mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="RIGHT">
+      <Button mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.valignment="TOP">
          <graphic>
             <ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
                <image>

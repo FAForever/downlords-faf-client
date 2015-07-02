@@ -7,7 +7,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.sound.SoundService;
+import com.faforever.client.sound.SoundController;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import org.springframework.context.annotation.Bean;
@@ -51,8 +51,8 @@ public class TestServiceConfiguration {
   }
 
   @Bean
-  SoundService soundService() {
-    return mock(SoundService.class);
+  SoundController soundService() {
+    return mock(SoundController.class);
   }
 
   @Bean

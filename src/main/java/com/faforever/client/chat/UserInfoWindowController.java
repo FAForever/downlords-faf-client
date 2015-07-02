@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.stats.StatisticsService;
@@ -8,11 +9,13 @@ import com.faforever.client.util.RatingUtil;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
 import javafx.util.StringConverter;
@@ -20,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -35,6 +39,12 @@ public class UserInfoWindowController {
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  @FXML
+  ToggleButton ratingOver365DaysButton;
+
+  @FXML
+  ToggleButton ratingOver90DaysButton;
 
   @FXML
   NumberAxis rating90DaysYAxis;
@@ -65,6 +75,11 @@ public class UserInfoWindowController {
 
   private PlayerInfoBean playerInfoBean;
 
+  @PostConstruct
+  void postConstruct() {
+    ratingOver90DaysButton.setSelected(true);
+  }
+
   public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
     this.playerInfoBean = playerInfoBean;
 
@@ -78,19 +93,6 @@ public class UserInfoWindowController {
     } else {
       countryLabel.setText(playerInfoBean.getCountry());
     }
-
-    statisticsService.getStatisticsForPlayer(playerInfoBean.getUsername(), new Callback<PlayerStatistics>() {
-      @Override
-      public void success(PlayerStatistics result) {
-        Platform.runLater(() -> plotPlayerStatistics(result));
-      }
-
-      @Override
-      public void error(Throwable e) {
-        // FIXME implement
-        logger.warn("Could not load player statistics", e);
-      }
-    });
   }
 
   private void plotPlayerStatistics(PlayerStatistics result) {
@@ -130,5 +132,30 @@ public class UserInfoWindowController {
 
   public Region getUserInfoRoot() {
     return userInfoRoot;
+  }
+
+  @FXML
+  void onRatingOver90DaysButtonClicked(ActionEvent event) {
+    loadStatistics(StatisticsType.GLOBAL_90_DAYS);
+  }
+
+  @FXML
+  void onRatingOver365DaysButtonClicked(ActionEvent event) {
+    loadStatistics(StatisticsType.GLOBAL_365_DAYS);
+  }
+
+  private void loadStatistics(StatisticsType type) {
+    statisticsService.getStatisticsForPlayer(StatisticsType.GLOBAL_365_DAYS, playerInfoBean.getUsername(), new Callback<PlayerStatistics>() {
+      @Override
+      public void success(PlayerStatistics result) {
+        Platform.runLater(() -> plotPlayerStatistics(result));
+      }
+
+      @Override
+      public void error(Throwable e) {
+        // FIXME display to user
+        logger.warn("Statistics could not be loaded", e);
+      }
+    });
   }
 }

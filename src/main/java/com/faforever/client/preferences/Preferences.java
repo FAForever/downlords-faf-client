@@ -16,7 +16,7 @@ public class Preferences {
   private final ForgedAlliancePrefs forgedAlliance;
   private final LoginPrefs login;
   private final ChatPrefs chat;
-  private final NotificationsPrefs notifications;
+  private final NotificationsPrefs notification;
 
   private final StringProperty theme;
   private final StringProperty lastGameType;
@@ -33,7 +33,7 @@ public class Preferences {
     theme = new SimpleStringProperty("default");
     lastGameType = new SimpleStringProperty("faf");
     ignoredNotifications = new SimpleListProperty<>(observableArrayList());
-    notifications = new NotificationsPrefs();
+    notification = new NotificationsPrefs();
     rememberLastTab = new SimpleBooleanProperty(false);
     lastGameTitle = new SimpleStringProperty();
     lastMap = new SimpleStringProperty();
@@ -55,8 +55,8 @@ public class Preferences {
     return chat;
   }
 
-  public NotificationsPrefs getNotifications() {
-    return notifications;
+  public NotificationsPrefs getNotification() {
+    return notification;
   }
 
   public String getTheme() {

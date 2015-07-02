@@ -5,7 +5,7 @@ import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.sound.SoundService;
+import com.faforever.client.sound.SoundController;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
@@ -115,7 +115,7 @@ public abstract class AbstractChatTab extends Tab {
   PlayerService playerService;
 
   @Autowired
-  SoundService soundService;
+  SoundController soundController;
 
   @Autowired
   TimeService timeService;
@@ -514,7 +514,7 @@ public abstract class AbstractChatTab extends Tab {
       if (mentionPattern.matcher(text).find()) {
         text = highlightOwnUsername(text);
         if (!hasFocus()) {
-          soundService.playChatMentionSound();
+          soundController.playChatMentionSound();
         }
       }
 
