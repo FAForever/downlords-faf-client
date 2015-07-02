@@ -107,20 +107,20 @@ public class SettingsController {
     rememberLastTabCheckBox.selectedProperty().bindBidirectional(preferences.rememberLastTabProperty());
     maxMessagesTextField.textProperty().bindBidirectional(preferences.getChat().maxMessagesProperty(), new NumberStringConverter(integerNumberFormat));
     imagePreviewCheckBox.selectedProperty().bindBidirectional(preferences.getChat().previewImageUrlsProperty());
-    enableToastsCheckBox.selectedProperty().bindBidirectional(preferences.getNotifications().toastsEnabledProperty());
+    enableToastsCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().toastsEnabledProperty());
 
-    displayFriendOnlineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotifications().displayFriendOnlineToastProperty());
-    displayFriendOfflineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotifications().displayFriendOfflineToastProperty());
-    displayFriendJoinsGameToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotifications().displayFriendJoinsGameToastProperty());
-    displayFriendPlaysGameToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotifications().displayFriendPlaysGameToastProperty());
-    displayPmReceivedToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotifications().displayPmReceivedToastProperty());
-    playFriendOnlineSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotifications().playFriendOnlineSoundProperty());
-    playFriendOfflineSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotifications().playFriendOfflineSoundProperty());
-    playFriendJoinsGameSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotifications().playFriendJoinsGameSoundProperty());
-    playFriendPlaysGameSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotifications().playFriendPlaysGameSoundProperty());
-    playPmReceivedSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotifications().playPmReceivedSoundProperty());
+    displayFriendOnlineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().displayFriendOnlineToastProperty());
+    displayFriendOfflineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().displayFriendOfflineToastProperty());
+    displayFriendJoinsGameToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendJoinsGameToastEnabledProperty());
+    displayFriendPlaysGameToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().displayFriendPlaysGameToastProperty());
+    displayPmReceivedToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().privateMessageToastEnabledProperty());
+    playFriendOnlineSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendOnlineSoundEnabledProperty());
+    playFriendOfflineSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendOfflineSoundEnabledProperty());
+    playFriendJoinsGameSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendJoinsGameSoundEnabledProperty());
+    playFriendPlaysGameSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendPlaysGameSoundEnabledProperty());
+    playPmReceivedSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().privateMessageSoundEnabledProperty());
 
-    enableSoundsCheckBox.selectedProperty().bindBidirectional(preferences.getNotifications().soundsEnabledProperty());
+    enableSoundsCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().soundsEnabledProperty());
     gamePortTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().portProperty(), new NumberStringConverter(integerNumberFormat));
     gameLocationTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().pathProperty(), JavaFxUtil.PATH_STRING_CONVERTER);
     autoDownloadMapsCheckBox.selectedProperty().bindBidirectional(preferences.getForgedAlliance().autoDownloadMapsProperty());

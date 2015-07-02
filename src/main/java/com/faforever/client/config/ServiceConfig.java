@@ -48,8 +48,8 @@ import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.replay.ReplayServerImpl;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.replay.ReplayServiceImpl;
-import com.faforever.client.sound.SoundService;
-import com.faforever.client.sound.SoundServiceImpl;
+import com.faforever.client.sound.SoundController;
+import com.faforever.client.sound.SoundControllerImpl;
 import com.faforever.client.stats.LegacyStatisticsService;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.task.TaskService;
@@ -163,10 +163,6 @@ public class ServiceConfig {
     return new LegacyMapVaultParser();
   }
 
-  @Bean
-  SoundService soundService() {
-    return new SoundServiceImpl();
-  }
 
   @Bean
   ReplayServer replayServer() {

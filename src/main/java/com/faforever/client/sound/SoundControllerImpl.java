@@ -4,6 +4,11 @@ import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ThemeUtil;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.media.AudioClip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +19,7 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
-public class SoundServiceImpl implements SoundService {
+public class SoundControllerImpl implements SoundController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -24,32 +29,31 @@ public class SoundServiceImpl implements SoundService {
   @Autowired
   MainController mainController;
 
+  @Autowired
+  AudioClipPlayer audioClipPlayer;
+
   private AudioClip chatMentionSound;
   private AudioClip errorNotificationSound;
   private AudioClip infoNotificationSound;
   private AudioClip warnNotificationSound;
   private AudioClip privateMessageSound;
+
   private boolean playSounds;
-  private boolean isUiLoaded;
   private NotificationsPrefs notificationsPrefs;
 
   @PostConstruct
   void postConstruct() throws IOException {
     mainController.getRoot().sceneProperty().addListener((observable, oldValue, newValue) -> {
-      playSounds = newValue != null
-          && preferencesService.getPreferences().getNotifications().getSoundsEnabled();
+      playSounds = newValue != null;
     });
-    preferencesService.addUpdateListener(preferences -> {
-      try {
-        notificationsPrefs = preferences.getNotifications();
-        loadSounds();
-      } catch (IOException e) {
-        logger.warn("Notification sounds could not be loaded", e);
+
+    notificationsPrefs = preferencesService.getPreferences().getNotification();
+    notificationsPrefs.soundsEnabledProperty().addListener(new ChangeListener<Boolean>() {
+      @Override
+      public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+        playSounds &= newValue;
       }
     });
-
-
-    notificationsPrefs = preferencesService.getPreferences().getNotifications();
 
     loadSounds();
   }
@@ -78,7 +82,7 @@ public class SoundServiceImpl implements SoundService {
 
   @Override
   public void playPrivateMessageSound() {
-    if (!notificationsPrefs.getPlayPmReceivedSound()) {
+    if (!notificationsPrefs.getPrivateMessageSoundEnabled()) {
       return;
     }
     playSound(privateMessageSound);
@@ -108,11 +112,11 @@ public class SoundServiceImpl implements SoundService {
     playSound(errorNotificationSound);
   }
 
-  private void playSound(AudioClip audioClip) {
+  void playSound(AudioClip audioClip) {
     if (!playSounds) {
       return;
     }
 
-    audioClip.play();
+    audioClipPlayer.playSound(audioClip);
   }
 }
