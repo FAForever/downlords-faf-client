@@ -7,6 +7,7 @@ public enum StatisticsType {
   LEAGUE_TABLE("league_table"),
   STATS("stats"),
   GLOBAL_90_DAYS("global_90_days"),
+  GLOBAL_365_DAYS("global_365_days"),
   UNKNOWN("unknown");
 
   private static final Map<String, StatisticsType> fromString;

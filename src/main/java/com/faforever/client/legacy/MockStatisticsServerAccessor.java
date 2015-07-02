@@ -19,7 +19,7 @@ public class MockStatisticsServerAccessor implements StatisticsServerAccessor {
   TaskService taskService;
 
   @Override
-  public void requestPlayerStatistics(String username, Callback<PlayerStatistics> callback) {
+  public void requestPlayerStatistics(String username, Callback<PlayerStatistics> callback, StatisticsType type) {
     taskService.submitTask(NET_LIGHT, new PrioritizedTask<PlayerStatistics>("Fetching player statistics") {
       @Override
       protected PlayerStatistics call() throws Exception {

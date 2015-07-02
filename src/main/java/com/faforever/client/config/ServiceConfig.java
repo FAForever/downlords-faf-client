@@ -48,9 +48,7 @@ import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.replay.ReplayServerImpl;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.replay.ReplayServiceImpl;
-import com.faforever.client.sound.SoundController;
-import com.faforever.client.sound.SoundControllerImpl;
-import com.faforever.client.stats.LegacyStatisticsService;
+import com.faforever.client.stats.StatisticsServiceImpl;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.task.TaskServiceImpl;
@@ -214,7 +212,7 @@ public class ServiceConfig {
 
   @Bean
   StatisticsService statisticsService() {
-    return new LegacyStatisticsService();
+    return new StatisticsServiceImpl();
   }
 
   @Bean

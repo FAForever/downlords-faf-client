@@ -1,6 +1,6 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.legacy.domain.AskPlayerStatsMessage;
+import com.faforever.client.legacy.domain.AskPlayerStatsDaysMessage;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
 import com.faforever.client.legacy.domain.ServerObject;
@@ -57,10 +57,10 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   }
 
   @Override
-  public void requestPlayerStatistics(String username, Callback<PlayerStatistics> callback) {
+  public void requestPlayerStatistics(String username, Callback<PlayerStatistics> callback, StatisticsType type) {
     // FIXME this is not safe (as well aren't similar implementations in other accessors)
     playerStatisticsCallback = callback;
-    writeToServer(new AskPlayerStatsMessage(username));
+    writeToServer(new AskPlayerStatsDaysMessage(username, type));
   }
 
   private void onPlayerStats(PlayerStatistics playerStatistics) {
