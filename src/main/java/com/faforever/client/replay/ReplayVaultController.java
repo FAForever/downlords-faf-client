@@ -20,6 +20,7 @@ import javafx.scene.Node;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableRow;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.control.cell.TextFieldTreeTableCell;
 import javafx.util.StringConverter;
@@ -93,6 +94,7 @@ public class ReplayVaultController {
     tableRoot.getChildren().addAll(localReplaysRoot, onlineReplaysRoot);
 
     replaysTable.setRoot(tableRoot);
+    replaysTable.setRowFactory(param -> replayRowFactory());
 
     idColumn.setCellValueFactory(param -> param.getValue().getValue().idProperty());
     idColumn.setCellFactory(this::idCellFactory);
@@ -109,6 +111,17 @@ public class ReplayVaultController {
 
     durationColumn.setCellValueFactory(this::durationCellValueFactory);
     durationColumn.setCellFactory(this::durationCellFactory);
+  }
+
+  @NotNull
+  private TreeTableRow<ReplayInfoBean> replayRowFactory() {
+    TreeTableRow<ReplayInfoBean> row = new TreeTableRow<>();
+    row.setOnMouseClicked(event -> {
+      if (event.getClickCount() == 2 && !row.isEmpty()) {
+        replayService.runReplay(row.getItem());
+      }
+    });
+    return row;
   }
 
   private ObservableValue<String> playersValueFactory(TreeTableColumn.CellDataFeatures<ReplayInfoBean, String> features) {

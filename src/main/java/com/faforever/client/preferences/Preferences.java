@@ -28,7 +28,7 @@ public class Preferences {
   public Preferences() {
     chat = new ChatPrefs();
     login = new LoginPrefs();
-    mainWindow = new WindowPrefs(800, 600);
+    mainWindow = new WindowPrefs();
     forgedAlliance = new ForgedAlliancePrefs();
     theme = new SimpleStringProperty("default");
     lastGameType = new SimpleStringProperty("faf");

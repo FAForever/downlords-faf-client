@@ -12,6 +12,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.apache.commons.lang3.StringEscapeUtils;
 
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class ReplayInfoBean {
   private final ObjectProperty<Instant> endTime;
   private final StringProperty gameType;
   private final StringProperty map;
+  private final ObjectProperty<Path> replayFile;
 
   public ReplayInfoBean(String title) {
     this();
@@ -38,19 +40,41 @@ public class ReplayInfoBean {
     endTime = new SimpleObjectProperty<>();
     gameType = new SimpleStringProperty();
     map = new SimpleStringProperty();
+    replayFile = new SimpleObjectProperty<>();
   }
 
-  public ReplayInfoBean(ReplayInfo replayInfo) {
+  public ReplayInfoBean(ReplayInfo replayInfo, Path replayFile) {
     this();
     id.set(replayInfo.uid);
     title.set(StringEscapeUtils.unescapeHtml4(replayInfo.title));
-    if (replayInfo.teams != null) {
-      teams.putAll(replayInfo.teams);
-    }
     startTime.set(fromPythonTime(replayInfo.gameTime));
     endTime.set(fromPythonTime(replayInfo.gameEnd));
     gameType.set(replayInfo.featuredMod);
     map.set(replayInfo.mapname);
+    this.replayFile.set(replayFile);
+    if (replayInfo.teams != null) {
+      teams.putAll(replayInfo.teams);
+    }
+  }
+
+  public void setTeams(ObservableMap<String, List<String>> teams) {
+    this.teams.set(teams);
+  }
+
+  public void setGameType(String gameType) {
+    this.gameType.set(gameType);
+  }
+
+  public Path getReplayFile() {
+    return replayFile.get();
+  }
+
+  public ObjectProperty<Path> replayFileProperty() {
+    return replayFile;
+  }
+
+  public void setReplayFile(Path replayFile) {
+    this.replayFile.set(replayFile);
   }
 
   public String getTitle() {

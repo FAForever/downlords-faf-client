@@ -131,7 +131,7 @@ public class MapServiceImpl implements MapService {
     taskService.submitTask(TaskGroup.NET_HEAVY, new PrioritizedTask<Void>(taskTitle) {
       @Override
       protected Void call() throws Exception {
-        String mapUrl = getMapUrl(mapName, getMapUrl(mapName, environment.getProperty("vault.mapDownloadUrl")));
+        String mapUrl = getMapUrl(mapName, environment.getProperty("vault.mapDownloadUrl"));
 
         logger.info("Downloading map {} from {}", mapName, mapUrl);
 

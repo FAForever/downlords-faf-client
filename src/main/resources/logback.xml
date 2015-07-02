@@ -1,17 +1,17 @@
 <configuration>
 
-  <logger name="org.pircbotx" level="info"/>
+  <logger name="org.pircbotx" level="warn"/>
   <logger name="com.faforever.client.preferences" level="info"/>
   <logger name="com.faforever.client.map" level="info"/>
   <logger name="com.faforever.client.patch" level="info"/>
-  <logger name="com.faforever.client.legacy" level="debug"/>
-  <logger name="com.faforever.client.legacy.io" level="trace"/>
+  <logger name="com.faforever.client.legacy" level="info"/>
+  <logger name="com.faforever.client.legacy.io" level="debug"/>
   <logger name="com.faforever.client.legacy.map" level="info"/>
   <logger name="com.faforever.client.legacy.htmlparser" level="info"/>
-  <logger name="com.faforever.client.legacy.writer" level="info"/>
-  <logger name="com.faforever.client.legacy.relay" level="info"/>
+  <logger name="com.faforever.client.legacy.writer" level="debug"/>
+  <logger name="com.faforever.client.legacy.relay" level="debug"/>
   <logger name="com.faforever.client.replay" level="info"/>
-  <logger name="com.faforever.client.legacy.proxy" level="info"/>
+  <logger name="com.faforever.client.legacy.proxy" level="debug"/>
   <logger name="com.faforever.client.legacy.map" level="info"/>
   <logger name="com.faforever.client.legacy.relay" level="debug"/>
   <logger name="com.faforever.client.chat" level="info"/>

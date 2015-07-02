@@ -18,9 +18,9 @@ public class WindowPrefs {
   private final DoubleProperty x;
   private final DoubleProperty y;
 
-  public WindowPrefs(int width, int height) {
-    this.width = new SimpleIntegerProperty(width);
-    this.height = new SimpleIntegerProperty(height);
+  public WindowPrefs() {
+    this.width = new SimpleIntegerProperty(800);
+    this.height = new SimpleIntegerProperty(600);
     x = new SimpleDoubleProperty(-1d);
     y = new SimpleDoubleProperty(-1d);
     maximized = new SimpleBooleanProperty();

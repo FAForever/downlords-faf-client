@@ -4,5 +4,13 @@ import java.nio.file.Path;
 
 public interface ReplayFileReader {
 
-  ReplayInfo readReplayFile(Path replayFile);
+  /**
+   * Returns the meta information about this replay.
+   */
+  ReplayInfo readReplayInfo(Path replayFile);
+
+  /**
+   * Returns the binary replay data.
+   */
+  byte[] readReplayData(Path replayFile);
 }

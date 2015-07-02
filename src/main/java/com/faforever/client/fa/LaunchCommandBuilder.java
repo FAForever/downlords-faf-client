@@ -2,6 +2,7 @@ package com.faforever.client.fa;
 
 import org.springframework.util.StringUtils;
 
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +20,9 @@ public class LaunchCommandBuilder {
   private List<String> additionalArgs;
   private Integer localGpgPort;
   private Path logFile;
+  private Path replayFile;
+  private Integer replayId;
+  private URL replayUrl;
 
   private LaunchCommandBuilder() {
     // Private
@@ -75,27 +79,24 @@ public class LaunchCommandBuilder {
     return this;
   }
 
+  public LaunchCommandBuilder replayId(Integer replayId) {
+    this.replayId = replayId;
+    return this;
+  }
+
+  public LaunchCommandBuilder replayFile(Path replayFile) {
+    this.replayFile = replayFile;
+    return this;
+  }
+
+  public LaunchCommandBuilder replayUrl(URL replayUrl) {
+    this.replayUrl = replayUrl;
+    return this;
+  }
+
   public List<String> build() {
     if (executable == null) {
       throw new IllegalStateException("executable has not been set");
-    }
-    if (mean == null) {
-      throw new IllegalStateException("mean has not been set");
-    }
-    if (deviation == null) {
-      throw new IllegalStateException("deviation has not been set");
-    }
-    if (country == null) {
-      throw new IllegalStateException("country has not been set");
-    }
-    if (uid == null) {
-      throw new IllegalStateException("uid has not been set");
-    }
-    if (username == null) {
-      throw new IllegalStateException("username has not been set");
-    }
-    if (localGpgPort == null) {
-      throw new IllegalStateException("localGpgPort has not been set");
     }
     if (logFile == null) {
       throw new IllegalStateException("logFile has not been set");
@@ -103,19 +104,53 @@ public class LaunchCommandBuilder {
 
     List<String> command = new ArrayList<>(Arrays.asList(
         executable.toAbsolutePath().toString(),
-        "/mean", String.valueOf(mean),
-        "/deviation", String.valueOf(deviation),
-        "/country", country,
         "/init", "init_faf.lua",
-        "/savereplay", "gpgnet://localhost/" + uid + "/" + username + ".SCFAreplay",
-        "/gpgnet", "127.0.0.1:" + localGpgPort,
-        "/log", logFile.toAbsolutePath().toString(),
         "/nobugreport"
     ));
+
+    if (logFile != null) {
+      command.add("/log");
+      command.add(logFile.toAbsolutePath().toString());
+    }
+
+    if (localGpgPort != null) {
+      command.add("/gpgnet");
+      command.add("127.0.0.1:" + localGpgPort);
+    }
+
+    if (mean != null) {
+      command.add("/mean");
+      command.add(String.valueOf(mean));
+    }
+
+    if (deviation != null) {
+      command.add("/deviation");
+      command.add(String.valueOf(deviation));
+    }
+
+    if (replayFile != null) {
+      command.add("/replay");
+      command.add(replayFile.toAbsolutePath().toString());
+    }
+
+    if (uid != null && username != null) {
+      command.add("/savereplay");
+      command.add("gpgnet://localhost/" + uid + "/" + username + ".SCFAreplay");
+    }
+
+    if (country != null) {
+      command.add("/country");
+      command.add(country);
+    }
 
     if (!StringUtils.isEmpty(clan)) {
       command.add("/clan");
       command.add(clan);
+    }
+
+    if (replayId == null) {
+      command.add("/replayid");
+      command.add(String.valueOf(replayId));
     }
 
     if (additionalArgs != null) {
