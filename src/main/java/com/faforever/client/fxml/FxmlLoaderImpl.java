@@ -1,25 +1,34 @@
 package com.faforever.client.fxml;
 
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ThemeUtil;
 import javafx.fxml.FXMLLoader;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.core.io.ClassPathResource;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Locale;
 
 public class FxmlLoaderImpl implements FxmlLoader {
 
-  private MessageSource messageSource;
-  private Locale locale;
-  private String theme;
+  @Autowired
+  MessageSource messageSource;
 
-  public FxmlLoaderImpl(MessageSource messageSource, Locale locale, String theme) {
-    this.messageSource = messageSource;
-    this.locale = locale;
-    this.theme = theme;
+  @Autowired
+  Locale locale;
+
+  @Autowired
+  PreferencesService preferencesService;
+
+  private MessageSourceResourceBundle resources;
+
+  @PostConstruct
+  void postConstruct() {
+    resources = new MessageSourceResourceBundle(messageSource, locale);
   }
 
   @Override
@@ -43,6 +52,7 @@ public class FxmlLoaderImpl implements FxmlLoader {
   }
 
   private URL buildResourceUrl(String file) throws IOException {
+    String theme = preferencesService.getPreferences().getTheme();
     return new ClassPathResource(ThemeUtil.themeFile(theme, file)).getURL();
   }
 
@@ -52,7 +62,7 @@ public class FxmlLoaderImpl implements FxmlLoader {
       loader.setController(controller);
       loader.setRoot(root);
       loader.setLocation(buildResourceUrl(file));
-      loader.setResources(new MessageSourceResourceBundle(messageSource, locale));
+      loader.setResources(resources);
       loader.load();
       return loader;
     } catch (IOException e) {

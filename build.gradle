@@ -13,19 +13,10 @@ version = '0.4.2-alpha'
 mainClassName = "com.faforever.client.Main"
 applicationDefaultJvmArgs = ["-Djava.library.path=../lib"]
 
-if (!hasProperty('install4jHomeDir')) {
-  File propertiesFile = file("${System.getProperty('user.home')}/.gradle/gradle.properties")
-  throw new RuntimeException("Specify install4jHomeDir in $propertiesFile")
-}
-
 jacocoTestReport {
   reports {
     xml.enabled = true
   }
-}
-
-install4j {
-  installDir = file(install4jHomeDir)
 }
 
 idea {
@@ -95,6 +86,7 @@ dependencies {
   compile 'org.springframework:spring-beans:4.0.5.RELEASE'
   compile 'org.springframework:spring-context:4.0.5.RELEASE'
   compile 'org.springframework:spring-core:4.0.5.RELEASE'
+  compile 'org.springframework:spring-test:4.0.5.RELEASE'
   compile 'org.pircbotx:pircbotx:2.0.1'
   compile 'ch.qos.logback:logback-classic:1.0.13'
   compile 'ch.qos.logback:logback-core:1.0.13'

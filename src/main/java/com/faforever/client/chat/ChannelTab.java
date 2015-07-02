@@ -14,20 +14,15 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebView;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoubleClickListener {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+public class ChannelTab extends AbstractChatTab {
 
   @FXML
   WebView messagesWebView;
@@ -186,16 +181,6 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
     userToChatUserControls.remove(username);
   }
 
-  @Override
-  public void onChatUserControlDoubleClicked(ChatUserControl chatUserControl) {
-    String targetUserName = chatUserControl.getPlayerInfoBean().getUsername();
-    if (targetUserName.equals(userService.getUsername())) {
-      return;
-    }
-
-    chatController.openPrivateMessageTabForUser(targetUserName);
-  }
-
   private void addToOrRemoveFromPane(PlayerInfoBean playerInfoBean, Pane pane, Boolean add) {
     if (add) {
       createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
@@ -230,7 +215,7 @@ public class ChannelTab extends AbstractChatTab implements OnChatUserControlDoub
       return;
     }
 
-    ChatUserControl chatUserControl = chatUserControlFactory.createChatUserControl(playerInfoBean, this);
+    ChatUserControl chatUserControl = chatUserControlFactory.createChatUserControl(playerInfoBean);
     paneToChatUserControlMap.put(pane, chatUserControl);
 
     Platform.runLater(() -> {

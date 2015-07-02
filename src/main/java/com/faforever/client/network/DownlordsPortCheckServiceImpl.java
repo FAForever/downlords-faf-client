@@ -1,5 +1,6 @@
 package com.faforever.client.network;
 
+import com.faforever.client.fx.HostService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
@@ -10,7 +11,6 @@ import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.upnp.UpnpService;
 import com.faforever.client.util.Callback;
-import javafx.application.HostServices;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +60,7 @@ public class DownlordsPortCheckServiceImpl implements PortCheckService {
   PreferencesService preferencesService;
 
   @Autowired
-  HostServices hostServices;
+  HostService hostService;
 
   @Autowired
   I18n i18n;
@@ -146,7 +146,7 @@ public class DownlordsPortCheckServiceImpl implements PortCheckService {
     List<Action> actions = Arrays.asList(
         new Action(
             i18n.get("portCheckTask.help"),
-            event -> hostServices.showDocument(environment.getProperty("portCheck.helpUrl"))
+            event -> hostService.showDocument(environment.getProperty("portCheck.helpUrl"))
         ),
         new Action(
             i18n.get("portCheckTask.neverShowAgain"),

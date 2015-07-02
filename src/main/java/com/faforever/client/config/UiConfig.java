@@ -168,12 +168,11 @@ public class UiConfig {
 
   @Bean
   FxmlLoader fxmlLoader() {
-    String theme = baseConfig.preferencesService().getPreferences().getTheme();
-    return new FxmlLoaderImpl(baseConfig.messageSource(), baseConfig.locale(), theme);
+    return new FxmlLoaderImpl();
   }
 
   @Bean
-  public CacheManager cacheManager() {
+  CacheManager cacheManager() {
     SimpleCacheManager cacheManager = new SimpleCacheManager();
     cacheManager.setCaches(Arrays.asList(
         new ConcurrentMapCache("avatars"),

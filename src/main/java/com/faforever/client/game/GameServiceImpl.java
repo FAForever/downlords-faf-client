@@ -8,14 +8,13 @@ import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
-import com.faforever.client.patch.PatchService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
+import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,9 +42,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
   ForgedAllianceService forgedAllianceService;
 
   @Autowired
-  PatchService patchService;
-
-  @Autowired
   MapService mapService;
 
   @Autowired
@@ -68,6 +64,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
   @Override
   public void publishPotentialPlayer() {
     String username = userService.getUsername();
+    // FIXME implement
 //    serverAccessor.publishPotentialPlayer(username);
   }
 
@@ -79,7 +76,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
   @Override
   public void hostGame(NewGameInfo newGameInfo, Callback<Void> callback) {
     cancelLadderSearch();
-    updateGameIfNecessary(newGameInfo.getMod(), new Callback<Void>() {
+    updateGameIfNecessary(newGameInfo.mod, new Callback<Void>() {
       @Override
       public void success(Void result) {
         lobbyServerAccessor.requestNewGame(newGameInfo, gameLaunchCallback(callback));
@@ -162,9 +159,9 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
           lobbyServerAccessor.notifyGameStarted();
 
           waitForProcessTerminationInBackground(process);
-          Platform.runLater(() -> callback.success(null));
+          callback.success(null);
         } catch (Exception e) {
-          Platform.runLater(() -> callback.error(e));
+          callback.error(e);
         }
       }
 
@@ -176,8 +173,8 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
     };
   }
 
-  private void waitForProcessTerminationInBackground(Process process) {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
+  Service<Void> waitForProcessTerminationInBackground(Process process) {
+    return ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
         int exitCode = process.waitFor();

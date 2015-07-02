@@ -6,7 +6,8 @@ import java.util.Map;
 public enum StatisticsType {
   LEAGUE_TABLE("league_table"),
   STATS("stats"),
-  GLOBAL_90_DAYS("global_90_days");
+  GLOBAL_90_DAYS("global_90_days"),
+  UNKNOWN("unknown");
 
   private static final Map<String, StatisticsType> fromString;
 

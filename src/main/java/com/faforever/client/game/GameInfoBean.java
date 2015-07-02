@@ -17,7 +17,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import org.apache.commons.lang3.StringEscapeUtils;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 public class GameInfoBean {
@@ -32,26 +31,31 @@ public class GameInfoBean {
   private ObjectProperty<Integer> maxPlayers;
   private ObjectProperty<GameState> status;
   private ObjectProperty<VictoryCondition> gameType;
-  private ObjectProperty<BigDecimal> gameTime;
   private ListProperty<Boolean> options;
   private MapProperty<String, String> simMods;
   private MapProperty<String, List<String>> teams;
   private MapProperty<String, Integer> featuredModVersions;
 
+  public GameInfoBean() {
+    uid = new SimpleObjectProperty<>();
+    host = new SimpleStringProperty();
+    title = new SimpleStringProperty();
+    mapName = new SimpleStringProperty();
+    featuredMod = new SimpleStringProperty();
+    access = new SimpleObjectProperty<>();
+    numPlayers = new SimpleObjectProperty<>();
+    maxPlayers = new SimpleObjectProperty<>();
+    gameType = new SimpleObjectProperty<>();
+    options = new SimpleListProperty<>(FXCollections.observableArrayList());
+    simMods = new SimpleMapProperty<>(FXCollections.observableHashMap());
+    teams = new SimpleMapProperty<>(FXCollections.observableHashMap());
+    featuredModVersions = new SimpleMapProperty<>(FXCollections.observableHashMap());
+    status = new SimpleObjectProperty<>();
+  }
+
   public GameInfoBean(GameInfo gameInfo) {
-    uid = new SimpleObjectProperty<>(gameInfo.uid);
-    host = new SimpleStringProperty(gameInfo.host);
-    title = new SimpleStringProperty(StringEscapeUtils.unescapeHtml4(gameInfo.title));
-    mapName = new SimpleStringProperty(gameInfo.mapname);
-    featuredMod = new SimpleStringProperty(gameInfo.featuredMod);
-    access = new SimpleObjectProperty<>(gameInfo.access);
-    numPlayers = new SimpleObjectProperty<>(gameInfo.numPlayers);
-    maxPlayers = new SimpleObjectProperty<>(gameInfo.maxPlayers);
-    gameType = new SimpleObjectProperty<>(gameInfo.gameType);
-    options = new SimpleListProperty<>(FXCollections.observableArrayList(gameInfo.options));
-    simMods = new SimpleMapProperty<>(FXCollections.observableMap(gameInfo.simMods));
-    teams = new SimpleMapProperty<>(FXCollections.observableMap(gameInfo.teams));
-    featuredModVersions = new SimpleMapProperty<>(FXCollections.observableMap(gameInfo.featuredModVersions));
+    this();
+    updateFromGameInfo(gameInfo);
   }
 
   public void updateFromGameInfo(GameInfo gameInfo) {
@@ -68,6 +72,7 @@ public class GameInfoBean {
     simMods.putAll(gameInfo.simMods);
     teams.putAll(gameInfo.teams);
     featuredModVersions.putAll(gameInfo.featuredModVersions);
+    status.set(gameInfo.state);
   }
 
   public int getUid() {
@@ -150,14 +155,6 @@ public class GameInfoBean {
     return gameType;
   }
 
-  public BigDecimal getGameTime() {
-    return gameTime.get();
-  }
-
-  public ObjectProperty<BigDecimal> gameTimeProperty() {
-    return gameTime;
-  }
-
   public ObservableList<Boolean> getOptions() {
     return options.get();
   }
@@ -188,5 +185,62 @@ public class GameInfoBean {
 
   public MapProperty<String, Integer> featuredModVersionsProperty() {
     return featuredModVersions;
+  }
+
+  public void setHost(String host) {
+    this.host.set(host);
+  }
+
+  public void setTitle(String title) {
+    this.title.set(title);
+  }
+
+  public void setMapName(String mapName) {
+    this.mapName.set(mapName);
+  }
+
+  public void setFeaturedMod(String featuredMod) {
+    this.featuredMod.set(featuredMod);
+  }
+
+  public void setAccess(GameAccess access) {
+    this.access.set(access);
+  }
+
+  public void setUid(Integer uid) {
+    this.uid.set(uid);
+  }
+
+  public void setNumPlayers(Integer numPlayers) {
+    this.numPlayers.set(numPlayers);
+  }
+
+  public void setMaxPlayers(Integer maxPlayers) {
+    this.maxPlayers.set(maxPlayers);
+  }
+
+  public void setStatus(GameState status) {
+    this.status.set(status);
+  }
+
+  public void setGameType(VictoryCondition gameType) {
+    this.gameType.set(gameType);
+  }
+
+
+  public void setOptions(ObservableList<Boolean> options) {
+    this.options.set(options);
+  }
+
+  public void setSimMods(ObservableMap<String, String> simMods) {
+    this.simMods.set(simMods);
+  }
+
+  public void setTeams(ObservableMap<String, List<String>> teams) {
+    this.teams.set(teams);
+  }
+
+  public void setFeaturedModVersions(ObservableMap<String, Integer> featuredModVersions) {
+    this.featuredModVersions.set(featuredModVersions);
   }
 }

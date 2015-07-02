@@ -33,13 +33,13 @@ public class ChatController implements
   UserService userService;
 
   @FXML
-  private Node chatRoot;
+  Node chatRoot;
 
   @FXML
-  private TabPane chatsTabPane;
+  TabPane chatsTabPane;
 
   @FXML
-  private Pane connectingProgressPane;
+  Pane connectingProgressPane;
 
   private final Map<String, AbstractChatTab> nameToChatTab;
 

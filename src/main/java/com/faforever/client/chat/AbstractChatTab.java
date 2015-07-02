@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.fx.HostService;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
@@ -8,10 +9,9 @@ import com.faforever.client.sound.SoundService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
-import com.faforever.client.util.PrettyTime;
+import com.faforever.client.util.TimeService;
 import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
-import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
@@ -106,7 +106,7 @@ public abstract class AbstractChatTab extends Tab {
   FxmlLoader fxmlLoader;
 
   @Autowired
-  HostServices hostServices;
+  HostService hostService;
 
   @Autowired
   PreferencesService preferencesService;
@@ -118,7 +118,7 @@ public abstract class AbstractChatTab extends Tab {
   SoundService soundService;
 
   @Autowired
-  PrettyTime prettyTime;
+  TimeService timeService;
 
   @Autowired
   PlayerInfoTooltipController playerInfoTooltipController;
@@ -281,7 +281,7 @@ public abstract class AbstractChatTab extends Tab {
    * Called from JavaScript when user clicked a URL.
    */
   public void openUrl(String url) {
-    hostServices.showDocument(url);
+    hostService.showDocument(url);
   }
 
   /**
@@ -490,7 +490,7 @@ public abstract class AbstractChatTab extends Tab {
   }
 
   private void appendMessage(ChatMessage chatMessage) {
-    String timeString = prettyTime.asShortTime(chatMessage.getTime());
+    String timeString = timeService.asShortTime(chatMessage.getTime());
 
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getUsername());
 

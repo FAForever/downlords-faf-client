@@ -11,11 +11,19 @@ public class StatisticsTypeTypeAdapter extends TypeAdapter<StatisticsType> {
 
   @Override
   public void write(JsonWriter out, StatisticsType value) throws IOException {
-    out.value(value.getString());
+    if (value == null) {
+      out.nullValue();
+    } else {
+      out.value(value.getString());
+    }
   }
 
   @Override
   public StatisticsType read(JsonReader in) throws IOException {
-    return StatisticsType.fromString(in.nextString());
+    StatisticsType statisticsType = StatisticsType.fromString(in.nextString());
+    if (statisticsType != null) {
+      return statisticsType;
+    }
+    return StatisticsType.UNKNOWN;
   }
 }

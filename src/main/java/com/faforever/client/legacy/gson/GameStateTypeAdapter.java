@@ -12,7 +12,7 @@ public class GameStateTypeAdapter extends TypeAdapter<GameState> {
   @Override
   public void write(JsonWriter out, GameState value) throws IOException {
     if (value == null) {
-      out.value("unknown");
+      out.value(GameState.UNKNOWN.getString());
     } else {
       out.value(value.getString());
     }

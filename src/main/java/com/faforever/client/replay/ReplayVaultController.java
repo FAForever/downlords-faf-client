@@ -8,7 +8,7 @@ import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
-import com.faforever.client.util.PrettyTime;
+import com.faforever.client.util.TimeService;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
@@ -73,7 +73,7 @@ public class ReplayVaultController {
   I18n i18n;
 
   @Autowired
-  PrettyTime prettyTime;
+  TimeService timeService;
 
   private TreeItem<ReplayInfoBean> localReplaysRoot;
 
@@ -138,7 +138,7 @@ public class ReplayVaultController {
     cell.setConverter(new StringConverter<Instant>() {
       @Override
       public String toString(Instant object) {
-        return prettyTime.lessThanOneDayAgo(object);
+        return timeService.lessThanOneDayAgo(object);
       }
 
       @Override
@@ -176,7 +176,7 @@ public class ReplayVaultController {
         if (object == null) {
           return "";
         }
-        return prettyTime.shortDuration(object);
+        return timeService.shortDuration(object);
       }
 
       @Override

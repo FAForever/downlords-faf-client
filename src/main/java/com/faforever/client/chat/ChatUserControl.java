@@ -12,7 +12,6 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.stage.PopupWindow;
-import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +41,9 @@ public class ChatUserControl extends HBox {
   @Autowired
   SceneFactory sceneFactory;
 
+  @Autowired
+  ChatController chatController;
+
   @FXML
   ImageView countryImageView;
 
@@ -55,12 +57,9 @@ public class ChatUserControl extends HBox {
   Label clanLabel;
 
   private final PlayerInfoBean playerInfoBean;
-  private final OnChatUserControlDoubleClickListener onChatUserControlDoubleClickListener;
-  private Stage userInfoWindow;
 
-  public ChatUserControl(PlayerInfoBean playerInfoBean, OnChatUserControlDoubleClickListener onChatUserControlDoubleClickListener) {
+  public ChatUserControl(PlayerInfoBean playerInfoBean) {
     this.playerInfoBean = playerInfoBean;
-    this.onChatUserControlDoubleClickListener = onChatUserControlDoubleClickListener;
   }
 
   @FXML
@@ -80,7 +79,7 @@ public class ChatUserControl extends HBox {
   @FXML
   void onUsernameClicked(MouseEvent mouseEvent) {
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
-      onChatUserControlDoubleClickListener.onChatUserControlDoubleClicked(this);
+      chatController.openPrivateMessageTabForUser(playerInfoBean.getUsername());
     }
   }
 
