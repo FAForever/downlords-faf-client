@@ -55,6 +55,8 @@ public class ReplayServiceImpl implements ReplayService {
   private static final String SUP_COM_REPLAY_FILE_ENDING = ".scfareplay";
   private static final String FAF_LIFE_PROTOCOL = "faflive";
   public static final String GPGNET_SCHEME = "gpgnet";
+  public static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
+  public static final String TEMP_FAF_REPLAY_FILE_NAME = "temp.fafreplay";
 
   @Autowired
   Environment environment;
@@ -180,7 +182,9 @@ public class ReplayServiceImpl implements ReplayService {
     String fileName = path.getFileName().toString();
     byte[] rawReplayBytes = replayFileReader.readReplayData(path);
 
-    Path tempSupComReplayFile = Files.createTempFile("scfareplay", null);
+    Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
+
+    Files.createDirectories(tempSupComReplayFile.getParent());
     Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
 
     ReplayInfo replayInfo = replayFileReader.readReplayInfo(path);
@@ -190,7 +194,7 @@ public class ReplayServiceImpl implements ReplayService {
 
     String version = parseSupComVersion(rawReplayBytes);
 
-    gameService.runWithReplay(path, replayId);
+    gameService.runWithReplay(tempSupComReplayFile, replayId);
   }
 
   private void runSupComReplayFile(Path path) throws IOException {
@@ -244,10 +248,12 @@ public class ReplayServiceImpl implements ReplayService {
         HttpURLConnection urlConnection = (HttpURLConnection) new URL(replayUrl).openConnection();
         int bytesToRead = urlConnection.getContentLength();
 
-        Path tempFile = Files.createTempFile("fafreplay_", null);
+        Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_FAF_REPLAY_FILE_NAME);
+
+        Files.createDirectories(tempSupComReplayFile.getParent());
 
         try (InputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
-             OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(tempFile))) {
+             OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(tempSupComReplayFile))) {
 
           ByteCopier.from(inputStream)
               .to(outputStream)
@@ -255,7 +261,7 @@ public class ReplayServiceImpl implements ReplayService {
               .listener(this::updateProgress)
               .copy();
 
-          return tempFile;
+          return tempSupComReplayFile;
         }
       }
     }, callback);

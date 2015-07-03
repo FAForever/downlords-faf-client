@@ -148,7 +148,7 @@ public class LaunchCommandBuilder {
       command.add(clan);
     }
 
-    if (replayId == null) {
+    if (replayId != null) {
       command.add("/replayid");
       command.add(String.valueOf(replayId));
     }
