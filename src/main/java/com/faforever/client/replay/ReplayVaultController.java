@@ -95,6 +95,7 @@ public class ReplayVaultController {
 
     replaysTable.setRoot(tableRoot);
     replaysTable.setRowFactory(param -> replayRowFactory());
+    replaysTable.getSortOrder().setAll(Collections.singletonList(timeColumn));
 
     idColumn.setCellValueFactory(param -> param.getValue().getValue().idProperty());
     idColumn.setCellFactory(this::idCellFactory);
@@ -103,6 +104,7 @@ public class ReplayVaultController {
 
     timeColumn.setCellValueFactory(param -> param.getValue().getValue().startTimeProperty());
     timeColumn.setCellFactory(this::timeCellFactory);
+    timeColumn.setSortType(TreeTableColumn.SortType.DESCENDING);
 
     gameTypeColumn.setCellValueFactory(param -> param.getValue().getValue().gameTypeProperty());
     mapColumn.setCellValueFactory(param -> param.getValue().getValue().mapProperty());
