@@ -48,6 +48,8 @@ import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.replay.ReplayServerImpl;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.replay.ReplayServiceImpl;
+import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.reporting.ReportingServiceImpl;
 import com.faforever.client.stats.StatisticsServiceImpl;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.task.TaskService;
@@ -228,5 +230,10 @@ public class ServiceConfig {
   @Bean
   TimeService prettyTime() {
     return new TimeServiceImpl();
+  }
+
+  @Bean
+  ReportingService reportingService() {
+    return new ReportingServiceImpl();
   }
 }

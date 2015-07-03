@@ -1,9 +1,13 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapService;
+import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
@@ -23,11 +27,15 @@ import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableRow;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.control.cell.TextFieldTreeTableCell;
+import javafx.scene.image.ImageView;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import java.lang.invoke.MethodHandles;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -36,6 +44,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class ReplayVaultController {
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
   TreeTableView<ReplayInfoBean> replaysTable;
@@ -68,6 +78,9 @@ public class ReplayVaultController {
   ReplayService replayService;
 
   @Autowired
+  MapService mapService;
+
+  @Autowired
   TaskService taskService;
 
   @Autowired
@@ -75,6 +88,12 @@ public class ReplayVaultController {
 
   @Autowired
   TimeService timeService;
+
+  @Autowired
+  ReportingService reportingService;
+
+  @Autowired
+  FxmlLoader fxmlLoader;
 
   private TreeItem<ReplayInfoBean> localReplaysRoot;
 
@@ -107,7 +126,9 @@ public class ReplayVaultController {
     timeColumn.setSortType(TreeTableColumn.SortType.DESCENDING);
 
     gameTypeColumn.setCellValueFactory(param -> param.getValue().getValue().gameTypeProperty());
+
     mapColumn.setCellValueFactory(param -> param.getValue().getValue().mapProperty());
+    mapColumn.setCellFactory(this::mapCellFactory);
 
     playersColumn.setCellValueFactory(this::playersValueFactory);
 
@@ -119,7 +140,8 @@ public class ReplayVaultController {
   private TreeTableRow<ReplayInfoBean> replayRowFactory() {
     TreeTableRow<ReplayInfoBean> row = new TreeTableRow<>();
     row.setOnMouseClicked(event -> {
-      if (event.getClickCount() == 2 && !row.isEmpty()) {
+      // If ID == 0, this isn't an entry but root node
+      if (event.getClickCount() == 2 && !row.isEmpty() && row.getItem().getId() != 0) {
         replayService.runReplay(row.getItem());
       }
     });
@@ -161,6 +183,30 @@ public class ReplayVaultController {
         return null;
       }
     });
+    return cell;
+  }
+
+  private TreeTableCell<ReplayInfoBean, String> mapCellFactory(TreeTableColumn<ReplayInfoBean, String> column) {
+    final ImageView imageVew = fxmlLoader.loadAndGetRoot("map_preview_table_cell.fxml", this);
+
+    TreeTableCell<ReplayInfoBean, String> cell = new TreeTableCell<ReplayInfoBean, String>() {
+
+      @Override
+      protected void updateItem(String mapName, boolean empty) {
+        super.updateItem(mapName, empty);
+
+        if (empty || mapName == null) {
+          setText(null);
+          setGraphic(null);
+        } else {
+          imageVew.setImage(mapService.loadSmallPreview(mapName));
+          setGraphic(imageVew);
+          setText(mapName);
+        }
+      }
+    };
+    cell.setGraphic(imageVew);
+
     return cell;
   }
 
@@ -229,9 +275,35 @@ public class ReplayVaultController {
 
       @Override
       public void error(Throwable e) {
+        logger.warn("Error while loading local replays", e);
         notificationService.addNotification(new PersistentNotification(
             i18n.get("replays.loadingLocalTask.failed"),
-            Severity.ERROR
+            Severity.ERROR,
+            Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(e)))
+        ));
+      }
+    });
+  }
+
+  public void loadOnlineReplaysInBackground() {
+    taskService.submitTask(TaskGroup.NET_LIGHT, new PrioritizedTask<Collection<ReplayInfoBean>>(i18n.get("replays.loadingOnlineTask.title")) {
+      @Override
+      protected Collection<ReplayInfoBean> call() throws Exception {
+        return replayService.getOnlineReplays();
+      }
+    }, new Callback<Collection<ReplayInfoBean>>() {
+      @Override
+      public void success(Collection<ReplayInfoBean> result) {
+        addOnlineReplays(result);
+      }
+
+      @Override
+      public void error(Throwable e) {
+        logger.warn("Error while loading online replays", e);
+        notificationService.addNotification(new PersistentNotification(
+            i18n.get("replays.loadingOnlineTask.failed"),
+            Severity.ERROR,
+            Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(e)))
         ));
       }
     });
@@ -245,6 +317,16 @@ public class ReplayVaultController {
     }
 
     Platform.runLater(() -> localReplaysRoot.getChildren().addAll(items));
+  }
+
+  private void addOnlineReplays(Collection<ReplayInfoBean> result) {
+    Collection<TreeItem<ReplayInfoBean>> items = new ArrayList<>();
+
+    for (ReplayInfoBean bean : result) {
+      items.add(new TreeItem<>(bean));
+    }
+
+    Platform.runLater(() -> onlineReplaysRoot.getChildren().addAll(items));
   }
 
   public Node getRoot() {

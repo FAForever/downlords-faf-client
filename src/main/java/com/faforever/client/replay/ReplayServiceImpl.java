@@ -8,6 +8,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
@@ -78,6 +79,9 @@ public class ReplayServiceImpl implements ReplayService {
 
   @Autowired
   I18n i18n;
+
+  @Autowired
+  ReportingService reportingService;
 
   @Override
   public Collection<ReplayInfoBean> getLocalReplays() throws IOException {
@@ -173,7 +177,8 @@ public class ReplayServiceImpl implements ReplayService {
       logger.warn("Replay could not be started", e);
       notificationService.addNotification(new PersistentNotification(
           i18n.get("replayCouldNotBeStarted", path.getFileName()),
-          Severity.ERROR
+          Severity.ERROR,
+          Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(e)))
       ));
     }
   }
@@ -214,7 +219,8 @@ public class ReplayServiceImpl implements ReplayService {
       public void error(Throwable e) {
         notificationService.addNotification(new PersistentNotification(
             i18n.get("replayCouldNotBeDownloaded", replayId),
-            Severity.ERROR
+            Severity.ERROR,
+            Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(e)))
         ));
       }
     });

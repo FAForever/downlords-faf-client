@@ -90,6 +90,7 @@ public class VaultController {
     placeInContainer(replayVaultController.getRoot(), replayVaultContainer);
 
     replayVaultController.loadLocalReplaysInBackground();
+    replayVaultController.loadOnlineReplaysInBackground();
   }
 
   public void setUpIfNecessary() {

@@ -14,7 +14,6 @@ import com.google.gson.GsonBuilder;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
 import javafx.beans.property.Property;
-import javafx.event.ActionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,12 +114,7 @@ public class PreferencesService {
 
   private void notifyMissingGamePath() {
     List<Action> actions = Collections.singletonList(
-        new Action(i18n.get("missingGamePath.chooserTitle"), new Action.ActionCallback() {
-          @Override
-          public void call(ActionEvent event) {
-            letUserChoseGameDirectory();
-          }
-        })
+        new Action(i18n.get("missingGamePath.chooserTitle"), event -> letUserChoseGameDirectory())
     );
 
     notificationService.addNotification(new PersistentNotification(i18n.get("missingGamePath.notification"), Severity.WARN, actions));
