@@ -3,7 +3,8 @@ package com.faforever.client.game;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
-import com.faforever.client.map.LegacyMapService;
+import com.faforever.client.map.MapService;
+import com.faforever.client.util.RatingUtil;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.collections.MapChangeListener;
@@ -49,7 +50,7 @@ public class GameTableController {
   FxmlLoader fxmlLoader;
 
   @Autowired
-  LegacyMapService mapService;
+  MapService mapService;
 
   @Autowired
   I18n i18n;

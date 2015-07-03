@@ -33,15 +33,21 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,6 +60,9 @@ public class GamesController implements OnGameInfoListener {
 
   @FXML
   Button createGameButton;
+
+  @FXML
+  Pane gameViewContainer;
 
   @FXML
   Node gamesRoot;
@@ -98,6 +107,9 @@ public class GamesController implements OnGameInfoListener {
   TableColumn<GameInfoBean, GameAccess> accessColumn;
 
   @Autowired
+  ApplicationContext applicationContext;
+
+  @Autowired
   PreferencesService preferenceService;
 
   @Autowired
@@ -138,7 +150,7 @@ public class GamesController implements OnGameInfoListener {
 
   @FXML
   void initialize() {
-    initializeGameTable();
+    //initializeGameTable();
   }
 
   @PostConstruct
@@ -257,6 +269,26 @@ public class GamesController implements OnGameInfoListener {
         }
       });
     }
+  }
+
+  //FIXME Labels aren't being instantiated, but it doesn't need to, what logic i need to use to implement this?
+  public void onTilesButtonPressed(ActionEvent actionEvent) {
+    Map<Integer, Node> uidToGameCard = new HashMap<>();
+    for (GameInfoBean gameInfoBean : gameInfoBeans.values()) {
+      GameCardController gameCardController = applicationContext.getBean(GameCardController.class);
+      gameCardController.setGameInfoBean(gameInfoBean);
+      gameViewContainer.getChildren().add(gameCardController.getRoot());
+      uidToGameCard.put(gameInfoBean.getUid(), gameCardController.getRoot());
+    }
+    gameInfoBeans.addListener((MapChangeListener<Integer, GameInfoBean>) change -> {
+      if (change.wasRemoved()) {
+        gameViewContainer.getChildren().remove(uidToGameCard.get(change.getValueRemoved().getUid()));
+      } else {
+        GameCardController gameCardController = applicationContext.getBean(GameCardController.class);
+        gameCardController.setGameInfoBean(change.getValueAdded());
+        gameViewContainer.getChildren().add(gameCardController.getRoot());
+      }
+    });
   }
 
   private static String extractRating(String title) {

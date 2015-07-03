@@ -18,6 +18,7 @@ import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.fxml.FxmlLoaderImpl;
 import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
+import com.faforever.client.game.GameCardController;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.leaderboard.LadderController;
 import com.faforever.client.login.LoginController;
@@ -97,6 +98,12 @@ public class UiConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   UserInfoWindowController userInfoWindowController() {
     return loadController("user_info_window.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  GameCardController gameCardController() {
+    return loadController("game_card.fxml");
   }
 
   @Bean

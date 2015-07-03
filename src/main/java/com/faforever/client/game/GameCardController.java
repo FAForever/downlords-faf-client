@@ -1,19 +1,28 @@
 package com.faforever.client.game;
 
+import com.faforever.client.chat.CountryFlagService;
+import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.map.MapService;
+import com.faforever.client.player.PlayerService;
 import com.google.common.base.Joiner;
 import javafx.collections.ObservableMap;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Popup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+
+import java.util.List;
+import java.util.Map;
 
 public class GameCardController {
 
@@ -45,6 +54,12 @@ public class GameCardController {
   MapService mapService;
 
   @Autowired
+  CountryFlagService countryFlagService;
+
+  @Autowired
+  PlayerService playerService;
+
+  @Autowired
   I18n i18n;
 
   @Autowired
@@ -54,10 +69,11 @@ public class GameCardController {
   private double lastMouseY;
   private OnGameJoinListener onGameJoinListener;
   private GameInfoBean gameInfoBean;
+  private PlayerInfoBean playerInfoBean;
+  Popup popup = new Popup();
 
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
     this.gameInfoBean = gameInfoBean;
-
     gameTitleLabel.setText(gameInfoBean.getTitle());
     hosterLabel.setText(gameInfoBean.getHost());
     if (gameInfoBean.getFeaturedMod().equals(environment.getProperty("defaultMod"))) {
@@ -74,10 +90,11 @@ public class GameCardController {
       );
     }));
 
-    // FIXME use i18n like above
-    numberOfPlayersLabel.setText(gameInfoBean.getNumPlayers() + "/" + gameInfoBean.getMaxPlayers());
+    numberOfPlayersLabel.setText(i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     gameInfoBean.numPlayersProperty().addListener(((observable3, oldValue3, newValue3) -> {
-      numberOfPlayersLabel.setText(gameInfoBean.getNumPlayers() + "/" + gameInfoBean.getMaxPlayers());
+      numberOfPlayersLabel.setText(
+          i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers())
+      );
     }));
 
     displaySimMods(gameInfoBean.getSimMods());
@@ -94,6 +111,8 @@ public class GameCardController {
 
   @FXML
   void onClick(MouseEvent mouseEvent) {
+    lastMouseX = mouseEvent.getSceneX();
+    lastMouseY = mouseEvent.getScreenY();
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
       mouseEvent.consume();
 
@@ -115,5 +134,16 @@ public class GameCardController {
 
   public void setOnGameJoinListener(OnGameJoinListener onGameJoinListener) {
     this.onGameJoinListener = onGameJoinListener;
+  }
+
+
+  public void onHover(Event event) {
+    gameInfoBean.teamsProperty().addListener((observable, oldValue, newValue) -> {
+      popup.getContent().set(0,new PopupGamePaneController().PopGamePaneController(gameInfoBean));
+    });
+  }
+
+  public void onLeave(Event event) {
+    popup.getContent().removeAll();
   }
 }
