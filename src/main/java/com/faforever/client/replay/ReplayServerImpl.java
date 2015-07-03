@@ -111,7 +111,7 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGam
       int bytesRead;
       while ((bytesRead = inputStream.read(buffer)) != -1) {
         if (replayData.size() == 0 && Bytes.indexOf(buffer, LIVE_REPLAY_PREFIX) != -1) {
-          int dataBeginIndex = Bytes.indexOf(buffer, (byte) 0x0000) + 1;
+          int dataBeginIndex = Bytes.indexOf(buffer, (byte) 0x00) + 1;
           replayData.write(buffer, dataBeginIndex, bytesRead - dataBeginIndex);
         } else {
           replayData.write(buffer, 0, bytesRead);

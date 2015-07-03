@@ -14,7 +14,6 @@ import com.google.gson.GsonBuilder;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
 import javafx.beans.property.Property;
-import javafx.event.ActionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +47,7 @@ public class PreferencesService {
   private static final String USER_HOME_SUB_FOLDER = ".faforever";
   private static final String REPLAYS_SUB_FOLDER = "replays";
   private static final String CORRUPTED_REPLAYS_SUB_FOLDER = "corrupted";
+  private static final String CACHE_SUB_FOLDER = "cache";
 
   private static final Collection<Path> USUAL_GAME_PATHS = Arrays.asList(
       Paths.get(System.getenv("ProgramFiles") + "\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
@@ -114,12 +114,7 @@ public class PreferencesService {
 
   private void notifyMissingGamePath() {
     List<Action> actions = Collections.singletonList(
-        new Action(i18n.get("missingGamePath.chooserTitle"), new Action.ActionCallback() {
-          @Override
-          public void call(ActionEvent event) {
-            letUserChoseGameDirectory();
-          }
-        })
+        new Action(i18n.get("missingGamePath.chooserTitle"), event -> letUserChoseGameDirectory())
     );
 
     notificationService.addNotification(new PersistentNotification(i18n.get("missingGamePath.notification"), Severity.WARN, actions));
@@ -292,5 +287,9 @@ public class PreferencesService {
 
   public void setOnChoseGameDirectoryListener(OnChoseGameDirectoryListener onChoseGameDirectoryListener) {
     this.onChoseGameDirectoryListener = onChoseGameDirectoryListener;
+  }
+
+  public Path getCacheDirectory() {
+    return getFafGameDataDirectory().resolve(CACHE_SUB_FOLDER);
   }
 }

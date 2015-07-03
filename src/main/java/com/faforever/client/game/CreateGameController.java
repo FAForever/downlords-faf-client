@@ -38,7 +38,6 @@ import java.util.Objects;
 public class CreateGameController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final String DEFAULT_MOD = "faf";
 
   @FXML
   Button createGameButton;
@@ -179,7 +178,7 @@ public class CreateGameController {
   private void selectLastOrDefaultGameType() {
     String lastGameMod = preferencesService.getPreferences().getLastGameType();
     if (lastGameMod == null) {
-      lastGameMod = DEFAULT_MOD;
+      lastGameMod = FeaturedMod.DEFAULT_MOD.getString();
     }
 
     for (GameTypeBean mod : gameTypeComboBox.getItems()) {

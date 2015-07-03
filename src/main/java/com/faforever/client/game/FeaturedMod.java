@@ -4,9 +4,15 @@ public enum FeaturedMod {
   FAF("faf"),
   LADDER_1V1("ladder1v1");
 
-  private String string;
+  public static FeaturedMod DEFAULT_MOD = FAF;
+
+  private final String string;
 
   FeaturedMod(String string) {
     this.string = string;
+  }
+
+  public String getString() {
+    return string;
   }
 }

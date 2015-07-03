@@ -31,6 +31,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -38,7 +39,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
-// FIXME implement disconnect events
 public class ProxyImpl implements Proxy {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -178,11 +178,18 @@ public class ProxyImpl implements Proxy {
   @Override
   public void close() {
     logger.info("Closing proxy sockets");
-    for (DatagramSocket datagramSocket : proxySockets.values()) {
-      logger.debug("Closing socket {}", datagramSocket.getLocalPort());
-      datagramSocket.close();
+
+    Iterator<Map.Entry<Integer, DatagramSocket>> iterator = proxySockets.entrySet().iterator();
+    while (iterator.hasNext()) {
+      Map.Entry<Integer, DatagramSocket> entry = iterator.next();
+      Integer playerNumber = entry.getKey();
+      DatagramSocket socket = entry.getValue();
+
+      logger.debug("Closing socket {} for player #{}", socket.getLocalPort(), playerNumber);
+
+      socket.close();
+      iterator.remove();
     }
-    // FIXME close/disconnect/free proxy sockets
   }
 
   /**
@@ -256,8 +263,8 @@ public class ProxyImpl implements Proxy {
   }
 
   /**
-   * Starts a reader in background that reads the FAF proxy forwards its data to the corresponding player. If the proxy
-   * connection fails, it won't reconnect as it expects to be
+   * Starts a reader in background that reads the FAF proxy and forwards that data to FA as if it was sent by a specific
+   * player. Yes, we're the man-in-the-middle.
    */
   private void startFafProxyReaderInBackground() {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
@@ -277,7 +284,7 @@ public class ProxyImpl implements Proxy {
 
             int payloadSize = fafProxyReader.readQByteArray(payloadBuffer);
 
-            logger.trace("Received {} bytes from FAF proxy, forwarding to FA", payloadSize);
+            logger.trace("Forwarding {} bytes from FAF proxy, sent by player #{}", payloadSize, playerNumber);
 
             datagramPacket.setData(payloadBuffer, 0, payloadSize);
 
@@ -416,15 +423,17 @@ public class ProxyImpl implements Proxy {
 
   @Override
   public InetSocketAddress bindAndGetProxySocketAddress(int playerNumber, int playerUid) throws IOException {
-    logger.debug("Opening proxy socket for player #{} with uid {}", playerNumber, playerUid);
+    DatagramSocket proxySocket = proxySockets.get(playerNumber);
 
-    DatagramSocket proxySocket = new DatagramSocket(new InetSocketAddress(localInetAddr, 0));
+    if (proxySocket == null) {
+      logger.debug("Opening new proxy socket for player #{} with uid {}", playerNumber, playerUid);
+
+      proxySocket = new DatagramSocket(new InetSocketAddress(localInetAddr, 0));
+      proxySockets.put(playerNumber, proxySocket);
+      getProxySocketLatchForPlayer(playerNumber).countDown();
+    }
+
     InetSocketAddress proxySocketAddress = (InetSocketAddress) proxySocket.getLocalSocketAddress();
-
-    logger.debug("Registering proxy socket for player #{}", playerNumber);
-    proxySockets.put(playerNumber, proxySocket);
-    getProxySocketLatchForPlayer(playerNumber).countDown();
-
     logger.debug("Player #{} with uid {} has been assigned to proxy socket {}",
         playerNumber, playerUid, SocketAddressUtil.toString(proxySocketAddress)
     );

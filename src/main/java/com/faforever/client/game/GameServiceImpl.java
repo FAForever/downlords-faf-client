@@ -16,12 +16,16 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.net.URL;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -213,5 +217,15 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
   @Override
   public void addOnGameStartedListener(OnGameStartedListener listener) {
     onGameLaunchingListeners.add(listener);
+  }
+
+  @Override
+  public void runWithReplay(Path path, @Nullable Integer replayId) throws IOException {
+    forgedAllianceService.startReplay(path, replayId);
+  }
+
+  @Override
+  public void runWithReplay(URL replayUrl, Integer replayId) throws IOException {
+    forgedAllianceService.startReplay(replayUrl, replayId);
   }
 }
