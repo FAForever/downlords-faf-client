@@ -69,8 +69,13 @@ public class GameInfoBean {
     maxPlayers.set(gameInfo.maxPlayers);
     gameType.set(gameInfo.gameType);
     options.setAll(gameInfo.options);
+
+    simMods.clear();
     simMods.putAll(gameInfo.simMods);
+
+    teams.clear();
     teams.putAll(gameInfo.teams);
+
     featuredModVersions.putAll(gameInfo.featuredModVersions);
     status.set(gameInfo.state);
   }

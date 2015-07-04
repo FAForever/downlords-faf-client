@@ -8,7 +8,7 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane fx:id="gameCardRoot" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseClicked="#onClick" onMouseDragEntered="#onHover" onMouseDragExited="#onLeave" styleClass="game-card-root" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GameCardController">
+<GridPane fx:id="gameCardRoot" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseClicked="#onClick" styleClass="game-card-root" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GameCardController">
   <columnConstraints>
       <ColumnConstraints hgrow="NEVER" minWidth="128.0" />
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="186.0" />

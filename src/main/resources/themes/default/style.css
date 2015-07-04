@@ -281,6 +281,11 @@
     -fx-background-insets: -0.2, 1, 2, -1.4, 2.6;
     -fx-background-radius: 3, 2, 1, 4, 1;
 }
+/***************** Tooltip *****************/
+
+.tooltip{
+  -fx-font-size: 1em;
+}
 
 /***************** Window *****************/
 

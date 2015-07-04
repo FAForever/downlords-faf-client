@@ -20,6 +20,10 @@ import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
 import com.faforever.client.game.GameCardController;
 import com.faforever.client.game.GamesController;
+import com.faforever.client.game.GamesTiledController;
+import com.faforever.client.game.PopupGamePaneController;
+import com.faforever.client.game.PopupPlayerCardController;
+import com.faforever.client.game.PopupTeamCardController;
 import com.faforever.client.leaderboard.LadderController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
@@ -92,6 +96,27 @@ public class UiConfig {
   @Bean
   LadderController leaderboardController() {
     return loadController("ladder.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  PopupPlayerCardController popupPlayerCardController(){return loadController("popup_player_card.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  PopupTeamCardController popupTeamCardController(){return loadController("popup_team_card.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  PopupGamePaneController popupGamePaneController() {return loadController("popup_game_pane.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  GamesTiledController gamesTiledController() {
+    return loadController("games_tiled.fxml");
   }
 
   @Bean

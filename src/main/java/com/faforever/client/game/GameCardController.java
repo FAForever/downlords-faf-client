@@ -6,6 +6,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.player.PlayerService;
 import com.google.common.base.Joiner;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -19,12 +20,18 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Popup;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class GameCardController {
+
+  private static final long POPUP_DELAY = 1000;
 
   @FXML
   Label gameType;
@@ -65,13 +72,17 @@ public class GameCardController {
   @Autowired
   Environment environment;
 
+  @Autowired
+  ApplicationContext applicationContext;
+
+  private Timer popupTimer;
   private double lastMouseX;
   private double lastMouseY;
   private OnGameJoinListener onGameJoinListener;
   private GameInfoBean gameInfoBean;
   private PlayerInfoBean playerInfoBean;
-  Popup popup = new Popup();
 
+  //FIXME change name of cards to tiles
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
     this.gameInfoBean = gameInfoBean;
     gameTitleLabel.setText(gameInfoBean.getTitle());
@@ -98,7 +109,11 @@ public class GameCardController {
     }));
 
     displaySimMods(gameInfoBean.getSimMods());
-    gameInfoBean.simModsProperty().addListener((observable, oldValue, newValue) -> {
+    gameInfoBean.getSimMods().addListener(new MapChangeListener<String, String>() {
+      @Override
+      public void onChanged(Change<? extends String, ? extends String> change) {
+        displaySimMods(change.getMap());
+      }
     });
 
     Image image = mapService.loadSmallPreview(gameInfoBean.getMapName());
@@ -107,6 +122,12 @@ public class GameCardController {
       Image newImage = mapService.loadSmallPreview(newValue);
       mapImageView.setImage(newImage);
     });
+
+    PopupGamePaneController popupGamePaneController = applicationContext.getBean(PopupGamePaneController.class);
+    popupGamePaneController.setGameInfoBean(gameInfoBean);
+    Tooltip tooltip = new Tooltip();
+    tooltip.setGraphic(popupGamePaneController.getRoot());
+    Tooltip.install(gameCardRoot,tooltip);
   }
 
   @FXML
@@ -123,8 +144,8 @@ public class GameCardController {
     }
   }
 
-  private void displaySimMods(ObservableMap<String, String> simMods) {
-    String stringSimMods = Joiner.on(", ").join(simMods.values());
+  private void displaySimMods(ObservableMap<? extends String, ? extends String> simMods) {
+    String stringSimMods = Joiner.on(i18n.get("textSeparator")).join(simMods.values());
     modsLabel.setText(stringSimMods);
   }
 
@@ -134,16 +155,5 @@ public class GameCardController {
 
   public void setOnGameJoinListener(OnGameJoinListener onGameJoinListener) {
     this.onGameJoinListener = onGameJoinListener;
-  }
-
-
-  public void onHover(Event event) {
-    gameInfoBean.teamsProperty().addListener((observable, oldValue, newValue) -> {
-      popup.getContent().set(0,new PopupGamePaneController().PopGamePaneController(gameInfoBean));
-    });
-  }
-
-  public void onLeave(Event event) {
-    popup.getContent().removeAll();
   }
 }

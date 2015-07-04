@@ -26,6 +26,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
@@ -33,6 +34,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
@@ -271,24 +273,17 @@ public class GamesController implements OnGameInfoListener {
     }
   }
 
-  //FIXME Labels aren't being instantiated, but it doesn't need to, what logic i need to use to implement this?
   public void onTilesButtonPressed(ActionEvent actionEvent) {
-    Map<Integer, Node> uidToGameCard = new HashMap<>();
-    for (GameInfoBean gameInfoBean : gameInfoBeans.values()) {
-      GameCardController gameCardController = applicationContext.getBean(GameCardController.class);
-      gameCardController.setGameInfoBean(gameInfoBean);
-      gameViewContainer.getChildren().add(gameCardController.getRoot());
-      uidToGameCard.put(gameInfoBean.getUid(), gameCardController.getRoot());
-    }
-    gameInfoBeans.addListener((MapChangeListener<Integer, GameInfoBean>) change -> {
-      if (change.wasRemoved()) {
-        gameViewContainer.getChildren().remove(uidToGameCard.get(change.getValueRemoved().getUid()));
-      } else {
-        GameCardController gameCardController = applicationContext.getBean(GameCardController.class);
-        gameCardController.setGameInfoBean(change.getValueAdded());
-        gameViewContainer.getChildren().add(gameCardController.getRoot());
-      }
-    });
+    GamesTiledController gamesTiledController = applicationContext.getBean(GamesTiledController.class);
+    gamesTiledController.createTiledFlowPane(gameInfoBeans);
+
+    ScrollPane root = gamesTiledController.getRoot();
+    gameViewContainer.getChildren().setAll(root);
+    AnchorPane.setBottomAnchor(root, 0d);
+    AnchorPane.setLeftAnchor(root, 0d);
+    AnchorPane.setRightAnchor(root, 0d);
+    AnchorPane.setTopAnchor(root, 0d);
+
   }
 
   private static String extractRating(String title) {
