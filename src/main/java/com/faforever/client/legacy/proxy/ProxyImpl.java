@@ -167,7 +167,7 @@ public class ProxyImpl implements Proxy {
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     logger.info("Closing proxy sockets");
 
     Iterator<Map.Entry<Integer, DatagramSocket>> iterator = proxySockets.entrySet().iterator();
@@ -181,6 +181,7 @@ public class ProxyImpl implements Proxy {
       socket.close();
       iterator.remove();
     }
+    fafProxySocket.close();
   }
 
   /**
