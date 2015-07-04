@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -75,39 +74,8 @@ public class UserInfoWindowController {
 
   private PlayerInfoBean playerInfoBean;
 
-  @PostConstruct
-  void postConstruct() {
-    ratingOver90DaysButton.setSelected(true);
-  }
-
-  public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
-    this.playerInfoBean = playerInfoBean;
-
-    usernameLabel.textProperty().bind(playerInfoBean.usernameProperty());
-    countryImageView.setImage(countryFlagService.loadCountryFlag(playerInfoBean.getCountry()));
-
-    CountryCode countryCode = CountryCode.getByCode(playerInfoBean.getCountry());
-    if (countryCode != null) {
-      // Country code is unknown to CountryCode, like A1 or A2 (from GeoIP)
-      countryLabel.setText(countryCode.getName());
-    } else {
-      countryLabel.setText(playerInfoBean.getCountry());
-    }
-  }
-
-  private void plotPlayerStatistics(PlayerStatistics result) {
-    XYChart.Series<Long, Integer> series = new XYChart.Series<>();
-    // FIXME i18n
-    series.setName("Player rating");
-
-    List<XYChart.Data<Long, Integer>> values = new ArrayList<>();
-
-    for (RatingInfo ratingInfo : result.values) {
-      int minRating = RatingUtil.getRating(ratingInfo);
-      LocalDateTime dateTime = LocalDate.from(ratingInfo.date).atTime(ratingInfo.time);
-      values.add(new XYChart.Data<>(dateTime.atZone(ZoneId.systemDefault()).toEpochSecond(), minRating));
-    }
-
+  @FXML
+  void initialize() {
     rating90DaysYAxis.setForceZeroInRange(false);
     rating90DaysYAxis.setAutoRanging(true);
 
@@ -125,12 +93,45 @@ public class UserInfoWindowController {
         return null;
       }
     });
-
-    series.getData().setAll(FXCollections.observableList(values));
-    rating90DaysChart.getData().add(series);
   }
 
-  public Region getUserInfoRoot() {
+  public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
+    this.playerInfoBean = playerInfoBean;
+
+    usernameLabel.textProperty().bind(playerInfoBean.usernameProperty());
+    countryImageView.setImage(countryFlagService.loadCountryFlag(playerInfoBean.getCountry()));
+
+    CountryCode countryCode = CountryCode.getByCode(playerInfoBean.getCountry());
+    if (countryCode != null) {
+      // Country code is unknown to CountryCode, like A1 or A2 (from GeoIP)
+      countryLabel.setText(countryCode.getName());
+    } else {
+      countryLabel.setText(playerInfoBean.getCountry());
+    }
+
+    ratingOver90DaysButton.setSelected(true);
+    ratingOver90DaysButton.fire();
+  }
+
+  @SuppressWarnings("unchecked")
+  private void plotPlayerStatistics(PlayerStatistics result) {
+    XYChart.Series<Long, Integer> series = new XYChart.Series<>();
+    // FIXME i18n
+    series.setName("Player rating");
+
+    List<XYChart.Data<Long, Integer>> values = new ArrayList<>();
+
+    for (RatingInfo ratingInfo : result.values) {
+      int minRating = RatingUtil.getRating(ratingInfo);
+      LocalDateTime dateTime = LocalDate.from(ratingInfo.date).atTime(ratingInfo.time);
+      values.add(new XYChart.Data<>(dateTime.atZone(ZoneId.systemDefault()).toEpochSecond(), minRating));
+    }
+
+    series.getData().setAll(FXCollections.observableList(values));
+    rating90DaysChart.getData().setAll(series);
+  }
+
+  public Region getRoot() {
     return userInfoRoot;
   }
 
@@ -145,7 +146,7 @@ public class UserInfoWindowController {
   }
 
   private void loadStatistics(StatisticsType type) {
-    statisticsService.getStatisticsForPlayer(StatisticsType.GLOBAL_365_DAYS, playerInfoBean.getUsername(), new Callback<PlayerStatistics>() {
+    statisticsService.getStatisticsForPlayer(type, playerInfoBean.getUsername(), new Callback<PlayerStatistics>() {
       @Override
       public void success(PlayerStatistics result) {
         Platform.runLater(() -> plotPlayerStatistics(result));
