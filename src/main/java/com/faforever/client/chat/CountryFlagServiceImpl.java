@@ -20,6 +20,10 @@ public class CountryFlagServiceImpl implements CountryFlagService {
   @Override
   @Cacheable("countryFlags")
   public Image loadCountryFlag(final String country) {
+    if (country == null) {
+      return null;
+    }
+
     String imageName;
     if (NON_COUNTRY_CODES.contains(country)) {
       imageName = "earth";

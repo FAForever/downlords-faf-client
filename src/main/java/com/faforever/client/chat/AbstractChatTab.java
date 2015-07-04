@@ -489,10 +489,10 @@ public abstract class AbstractChatTab extends Tab {
       String login = chatMessage.getUsername();
       String html = CharStreams.toString(reader);
 
-      String avatar = "";
+      String avatarUrl = "";
       String clanTag = "";
       if (playerInfoBean != null) {
-        avatar = playerInfoBean.getAvatarUrl();
+        avatarUrl = playerInfoBean.getAvatarUrl();
 
         if (StringUtils.isNotEmpty(playerInfoBean.getClan())) {
           clanTag = i18n.get("chat.clanTagFormag", playerInfoBean.getClan());
@@ -510,7 +510,7 @@ public abstract class AbstractChatTab extends Tab {
       }
 
       html = html.replace("{time}", timeString)
-          .replace("{avatar}", StringUtils.defaultString(avatar))
+          .replace("{avatar}", StringUtils.defaultString(avatarUrl))
           .replace("{username}", login)
           .replace("{clan-tag}", clanTag)
           .replace("{text}", text);

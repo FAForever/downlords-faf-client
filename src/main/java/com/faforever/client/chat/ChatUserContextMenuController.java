@@ -81,9 +81,9 @@ public class ChatUserContextMenuController {
 
     Stage userInfoWindow = new Stage(StageStyle.TRANSPARENT);
     userInfoWindow.initModality(Modality.NONE);
-    userInfoWindow.initOwner(contextMenu.getScene().getWindow());
+    userInfoWindow.initOwner(contextMenu.getOwnerWindow());
 
-    sceneFactory.createScene(userInfoWindow, userInfoWindowController.getUserInfoRoot(), true, CLOSE);
+    sceneFactory.createScene(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
 
     userInfoWindow.show();
   }

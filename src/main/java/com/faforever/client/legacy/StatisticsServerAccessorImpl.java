@@ -80,6 +80,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
         break;
 
       case GLOBAL_90_DAYS:
+      case GLOBAL_365_DAYS:
         PlayerStatistics playerStatistics = gson.fromJson(jsonString, PlayerStatistics.class);
         onPlayerStats(playerStatistics);
         break;
