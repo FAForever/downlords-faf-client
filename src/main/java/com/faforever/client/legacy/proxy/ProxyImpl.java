@@ -37,7 +37,6 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 
 public class ProxyImpl implements Proxy {
 
@@ -153,13 +152,6 @@ public class ProxyImpl implements Proxy {
    * Lock to synchronize multiple threads trying to (re)open a proxy connection
    */
   private final Object proxyLock;
-  /**
-   * Maps player numbers to CountDownLatches to synchronize 1. the FAF relay server telling us to open a proxy port for
-   * a user and 2. the FAF proxy server sending us data for a user. If the proxy server sends data before the request
-   * from the relay server has been received, there will be a mismatch. Using the latches, we can wait for the relay
-   * server request to be processed before forwarding data.
-   */
-  private final Map<Integer, CountDownLatch> proxySocketLatches;
 
   public ProxyImpl(ForgedAlliancePrefs forgedAlliancePrefs) {
     this.forgedAlliancePrefs = forgedAlliancePrefs;
@@ -172,7 +164,6 @@ public class ProxyImpl implements Proxy {
     testedLoopbackPorts = new HashSet<>();
     onProxyInitializedListeners = new HashSet<>();
     proxySockets = new ConcurrentHashMap<>();
-    proxySocketLatches = new HashMap<>();
   }
 
   @Override
@@ -263,8 +254,8 @@ public class ProxyImpl implements Proxy {
   }
 
   /**
-   * Starts a reader in background that reads the FAF proxy and forwards that data to FA as if it was sent by a specific
-   * player. Yes, we're the man-in-the-middle.
+   * Starts a reader in background that reads the FAF proxy data and forwards that data to FA as if it was sent by a
+   * specific player. Yes, we're the man-in-the-middle.
    */
   private void startFafProxyReaderInBackground() {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
@@ -288,13 +279,13 @@ public class ProxyImpl implements Proxy {
 
             datagramPacket.setData(payloadBuffer, 0, payloadSize);
 
-            getProxySocketLatchForPlayer(playerNumber).await();
             DatagramSocket proxySocket = proxySockets.get(playerNumber);
             if (proxySocket == null) {
-              logger.warn("Tried to start proxy reader for player #{} but no such socket has been opened", playerNumber);
-            } else {
-              proxySocket.send(datagramPacket);
+              logger.warn("Discarding proxy data for player #{} as its socket is not yet ready", playerNumber);
+              continue;
             }
+
+            proxySocket.send(datagramPacket);
           }
         } catch (SocketException | EOFException e) {
           logger.debug("Connection closed");
@@ -302,20 +293,6 @@ public class ProxyImpl implements Proxy {
         return null;
       }
     });
-  }
-
-  /**
-   * Ensures that a proxy socket latch is available for the given player.
-   *
-   * @see #proxySocketLatches
-   */
-  private CountDownLatch getProxySocketLatchForPlayer(int playerNumber) {
-    synchronized (proxySocketLatches) {
-      if (!proxySocketLatches.containsKey(playerNumber)) {
-        proxySocketLatches.put(playerNumber, new CountDownLatch(1));
-      }
-      return proxySocketLatches.get(playerNumber);
-    }
   }
 
   private void sendUid(int uid) throws IOException {
@@ -426,12 +403,10 @@ public class ProxyImpl implements Proxy {
     DatagramSocket proxySocket = proxySockets.get(playerNumber);
 
     if (proxySocket == null) {
-      logger.debug("Opening new proxy socket for player #{} with uid {}", playerNumber, playerUid);
-
       proxySocket = new DatagramSocket(new InetSocketAddress(localInetAddr, 0));
-      proxySockets.put(playerNumber, proxySocket);
-      getProxySocketLatchForPlayer(playerNumber).countDown();
     }
+
+    proxySockets.put(playerNumber, proxySocket);
 
     InetSocketAddress proxySocketAddress = (InetSocketAddress) proxySocket.getLocalSocketAddress();
     logger.debug("Player #{} with uid {} has been assigned to proxy socket {}",
