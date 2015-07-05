@@ -19,6 +19,7 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
@@ -31,8 +32,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
@@ -174,7 +173,10 @@ public class GamesController implements OnGameInfoListener {
   private void initializeGameTable() {
     ObservableList<GameInfoBean> tableItems = FXCollections.observableArrayList();
     filteredItems = new FilteredList<>(tableItems);
-    gamesTable.setItems(filteredItems);
+
+    SortedList<GameInfoBean> sortedList = new SortedList<>(filteredItems);
+    sortedList.comparatorProperty().bind(gamesTable.comparatorProperty());
+    gamesTable.setItems(sortedList);
 
     gameInfoBeans.addListener((MapChangeListener<Integer, GameInfoBean>) change -> {
       if (change.wasAdded()) {
@@ -288,14 +290,6 @@ public class GamesController implements OnGameInfoListener {
 
   public Node getRoot() {
     return gamesRoot;
-  }
-
-  public void onTableClicked(MouseEvent event) {
-    if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
-      lastMouseX = event.getScreenX();
-      lastMouseY = event.getScreenY();
-      joinSelectedGame(null);
-    }
   }
 
   public void onCreateGameButtonClicked(ActionEvent actionEvent) {
