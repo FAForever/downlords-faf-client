@@ -61,7 +61,7 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGam
   @Autowired
   ReplayFileWriter replayFileWriter;
 
-  private ReplayInfo replayInfo;
+  private LocalReplayInfo replayInfo;
 
 
   @PostConstruct
@@ -148,7 +148,7 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGam
 
   @Override
   public void onGameStarted(int uid) {
-    replayInfo = new ReplayInfo();
+    replayInfo = new LocalReplayInfo();
     replayInfo.uid = uid;
     replayInfo.gameTime = pythonTime();
     replayInfo.versionInfo = new HashMap<>();

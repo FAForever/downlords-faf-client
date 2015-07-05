@@ -7,7 +7,7 @@ public interface ReplayFileReader {
   /**
    * Returns the meta information about this replay.
    */
-  ReplayInfo readReplayInfo(Path replayFile);
+  LocalReplayInfo readReplayInfo(Path replayFile);
 
   /**
    * Returns the binary replay data.

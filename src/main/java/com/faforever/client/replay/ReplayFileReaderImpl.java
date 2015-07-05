@@ -22,12 +22,12 @@ public class ReplayFileReaderImpl implements ReplayFileReader {
   }
 
   @Override
-  public ReplayInfo readReplayInfo(Path replayFile) {
+  public LocalReplayInfo readReplayInfo(Path replayFile) {
     logger.debug("Reading replay file {}", replayFile);
     try {
       List<String> lines = Files.readAllLines(replayFile);
 
-      return gson.fromJson(lines.get(0), ReplayInfo.class);
+      return gson.fromJson(lines.get(0), LocalReplayInfo.class);
     } catch (Exception e) {
       logger.warn("Replay file " + replayFile + " could not be read", e);
       return null;

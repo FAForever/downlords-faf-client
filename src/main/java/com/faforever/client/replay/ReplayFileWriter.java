@@ -5,5 +5,5 @@ import java.io.IOException;
 
 public interface ReplayFileWriter {
 
-  void writeReplayDataToFile(ByteArrayOutputStream replayData, ReplayInfo replayInfo) throws IOException;
+  void writeReplayDataToFile(ByteArrayOutputStream replayData, LocalReplayInfo replayInfo) throws IOException;
 }

@@ -1,14 +1,33 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
+import com.faforever.client.legacy.domain.GameState;
+import com.faforever.client.legacy.domain.VictoryCondition;
 
+import java.util.List;
 import java.util.Map;
 
 /**
  * This class is meant to be serialized/deserialized from/to JSON.
  */
-public class ReplayInfo extends GameInfo {
+public class LocalReplayInfo {
 
+  public String host;
+  public Integer uid;
+  public String title;
+  public GameAccess access;
+  public String mapname;
+  public GameState state;
+  public Boolean[] options;
+  // FAF calls this "game_type" but it's actually the victory condition.
+  public VictoryCondition gameType;
+  public String featuredMod;
+  public Integer maxPlayers;
+  public Integer numPlayers;
+  public Map<String, String> simMods;
+  public Map<String, List<String>> teams;
+  public Map<String, Integer> featuredModVersions;
   public boolean complete;
   public String recorder;
   public Map<String, String> versionInfo;

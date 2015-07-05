@@ -45,13 +45,15 @@ import com.faforever.client.replay.ReplayFileReaderImpl;
 import com.faforever.client.replay.ReplayFileWriter;
 import com.faforever.client.replay.ReplayFileWriterImpl;
 import com.faforever.client.replay.ReplayServer;
+import com.faforever.client.replay.ReplayServerAccessor;
+import com.faforever.client.replay.ReplayServerAccessorImpl;
 import com.faforever.client.replay.ReplayServerImpl;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.replay.ReplayServiceImpl;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.reporting.ReportingServiceImpl;
-import com.faforever.client.stats.StatisticsServiceImpl;
 import com.faforever.client.stats.StatisticsService;
+import com.faforever.client.stats.StatisticsServiceImpl;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.task.TaskServiceImpl;
 import com.faforever.client.upnp.UpnpService;
@@ -98,6 +100,11 @@ public class ServiceConfig {
       return new MockStatisticsServerAccessor();
     }
     return new StatisticsServerAccessorImpl();
+  }
+
+  @Bean
+  ReplayServerAccessor replayServerAccessor() {
+    return new ReplayServerAccessorImpl();
   }
 
   @Bean

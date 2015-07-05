@@ -1,16 +1,18 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.util.Callback;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Collection;
+import java.util.List;
 
 public interface ReplayService {
 
   Collection<ReplayInfoBean> getLocalReplays() throws IOException;
 
-  Collection<ReplayInfoBean> getOnlineReplays();
+  void getOnlineReplays(Callback<List<ReplayInfoBean>> callback);
 
   void runReplay(ReplayInfoBean item);
 
