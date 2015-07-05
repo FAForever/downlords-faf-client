@@ -25,7 +25,7 @@
     </HBox>
     <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
       <children>
-        <TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" onMouseClicked="#onTableClicked" HBox.hgrow="ALWAYS">
+        <TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" HBox.hgrow="ALWAYS">
           <columns>
             <TableColumn fx:id="mapPreviewColumn" minWidth="2.0" text="%game.map" />
             <TableColumn fx:id="gameTitleColumn" minWidth="2.0" text="%game.title" />

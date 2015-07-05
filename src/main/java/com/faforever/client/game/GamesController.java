@@ -28,6 +28,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -35,6 +36,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -155,7 +157,7 @@ public class GamesController implements OnGameInfoListener {
     createGamePopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
     createGamePopup.getContent().setAll(createGameController.getRoot());
 
-    enterPasswordController.setOnPasswordEnteredListener(this::joinSelectedGame);
+    enterPasswordController.setOnPasswordEnteredListener(this::joinGame);
 
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
       createGameButton.setDisable(true);
@@ -177,6 +179,8 @@ public class GamesController implements OnGameInfoListener {
     SortedList<GameInfoBean> sortedList = new SortedList<>(filteredItems);
     sortedList.comparatorProperty().bind(gamesTable.comparatorProperty());
     gamesTable.setItems(sortedList);
+
+    gamesTable.setRowFactory(param -> gamesRowFactory());
 
     gameInfoBeans.addListener((MapChangeListener<Integer, GameInfoBean>) change -> {
       if (change.wasAdded()) {
@@ -219,6 +223,20 @@ public class GamesController implements OnGameInfoListener {
     accessColumn.setCellValueFactory(param -> param.getValue().accessProperty());
   }
 
+
+  @NotNull
+  private TableRow<GameInfoBean> gamesRowFactory() {
+    TableRow<GameInfoBean> row = new TableRow<>();
+    row.setOnMouseClicked(event -> {
+      if (event.getClickCount() == 2) {
+        lastMouseX = event.getScreenX();
+        lastMouseY = event.getScreenY();
+        joinGame(row.getItem(), null);
+      }
+    });
+    return row;
+  }
+
   private void displayGameDetail(GameInfoBean gameInfoBean) {
     mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapName()));
     gameTitleLabel.setText(gameInfoBean.getTitle());
@@ -239,11 +257,11 @@ public class GamesController implements OnGameInfoListener {
     }
   }
 
-  private void joinSelectedGame(String password) {
+  private void joinGame(GameInfoBean gameInfoBean, String password) {
     // FIXME check if game path is set
-    GameInfoBean gameInfoBean = gamesTable.getSelectionModel().getSelectedItem();
 
     if (gameInfoBean.getAccess() == GameAccess.PASSWORD && password == null) {
+      enterPasswordController.setGameInfoBean(gameInfoBean);
       passwordPopup.show(gamesRoot.getScene().getWindow(), lastMouseX, lastMouseY);
     } else {
       gameService.joinGame(gameInfoBean, password, new Callback<Void>() {

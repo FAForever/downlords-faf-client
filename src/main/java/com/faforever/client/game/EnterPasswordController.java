@@ -9,7 +9,7 @@ public class EnterPasswordController {
 
   public interface OnPasswordEnteredListener {
 
-    void onPasswordEntered(String password);
+    void onPasswordEntered(GameInfoBean gameInfoBean, String password);
   }
 
   private OnPasswordEnteredListener listener;
@@ -19,6 +19,8 @@ public class EnterPasswordController {
 
   @FXML
   TextField passwordTextField;
+
+  private GameInfoBean gameInfoBean;
 
   public Node getRoot() {
     return enterPasswordRoot;
@@ -36,6 +38,10 @@ public class EnterPasswordController {
     if (listener == null) {
       throw new IllegalStateException("No listener has been set");
     }
-    listener.onPasswordEntered(passwordTextField.getText());
+    listener.onPasswordEntered(gameInfoBean, passwordTextField.getText());
+  }
+
+  public void setGameInfoBean(GameInfoBean gameInfoBean) {
+    this.gameInfoBean = gameInfoBean;
   }
 }
