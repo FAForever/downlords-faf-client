@@ -6,6 +6,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.sound.SoundController;
+import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
@@ -23,6 +24,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.image.Image;
+import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -121,6 +124,9 @@ public abstract class AbstractChatTab extends Tab {
   @Autowired
   I18n i18n;
 
+  @Autowired
+  ImageUploadService imageUploadService;
+
   private boolean isChatReady;
   private WebEngine engine;
   private List<ChatMessage> waitingMessages;
@@ -164,6 +170,42 @@ public abstract class AbstractChatTab extends Tab {
     initChatView();
 
     addFocusListeners();
+    addImagePasteListener();
+  }
+
+  private void addImagePasteListener() {
+    TextInputControl messageTextField = getMessageTextField();
+    messageTextField.setOnKeyReleased(event -> {
+      if (event.getCode() == KeyCode.V && event.isControlDown()
+          || event.getCode() == KeyCode.INSERT && event.isShiftDown()
+          && Clipboard.getSystemClipboard().hasImage()) {
+        pasteImage();
+      }
+    });
+  }
+
+  private void pasteImage() {
+    TextInputControl messageTextField = getMessageTextField();
+    messageTextField.setDisable(true);
+
+    Clipboard clipboard = Clipboard.getSystemClipboard();
+    Image image = clipboard.getImage();
+
+    imageUploadService.uploadImage(image, new Callback<String>() {
+      @Override
+      public void success(String url) {
+        int currentCaretPosition = messageTextField.getCaretPosition();
+        messageTextField.insertText(currentCaretPosition, url);
+        sendMessage();
+
+        messageTextField.setDisable(false);
+      }
+
+      @Override
+      public void error(Throwable e) {
+        messageTextField.setDisable(false);
+      }
+    });
   }
 
   /**
@@ -322,7 +364,7 @@ public abstract class AbstractChatTab extends Tab {
     } else if (text.startsWith(JOIN_PREFIX)) {
       chatService.joinChannel(text.replaceFirst(Pattern.quote(JOIN_PREFIX), ""));
     } else {
-      sendMessage(messageTextField, text);
+      sendMessage();
     }
 
     resetAutoCompletion();
@@ -405,9 +447,11 @@ public abstract class AbstractChatTab extends Tab {
     return selectedText;
   }
 
-  private void sendMessage(final TextInputControl messageTextField, final String text) {
+  private void sendMessage() {
+    TextInputControl messageTextField = getMessageTextField();
     messageTextField.setDisable(true);
 
+    final String text = messageTextField.getText();
     chatService.sendMessageInBackground(receiver, text, new Callback<String>() {
       @Override
       public void success(String message) {

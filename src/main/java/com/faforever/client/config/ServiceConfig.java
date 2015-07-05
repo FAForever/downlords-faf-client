@@ -56,6 +56,8 @@ import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.stats.StatisticsServiceImpl;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.task.TaskServiceImpl;
+import com.faforever.client.uploader.ImageUploadService;
+import com.faforever.client.uploader.imgur.ImgurImageUploadService;
 import com.faforever.client.upnp.UpnpService;
 import com.faforever.client.upnp.WeUpnpServiceImpl;
 import com.faforever.client.user.UserService;
@@ -242,5 +244,10 @@ public class ServiceConfig {
   @Bean
   ReportingService reportingService() {
     return new ReportingServiceImpl();
+  }
+
+  @Bean
+  ImageUploadService imageUploadService() {
+    return new ImgurImageUploadService();
   }
 }
