@@ -37,7 +37,6 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 
 public class ProxyImpl implements Proxy {
 
@@ -150,16 +149,9 @@ public class ProxyImpl implements Proxy {
   private QDataReader fafProxyReader;
   private ForgedAlliancePrefs forgedAlliancePrefs;
   /**
-   * Lock to synchronize multiple threads trying to (re)open a proxy connection
+   * Lock to synchronize multiple threads trying to read/write/open a FAF proxy connection
    */
   private final Object proxyLock;
-  /**
-   * Maps player numbers to CountDownLatches to synchronize 1. the FAF relay server telling us to open a proxy port for
-   * a user and 2. the FAF proxy server sending us data for a user. If the proxy server sends data before the request
-   * from the relay server has been received, there will be a mismatch. Using the latches, we can wait for the relay
-   * server request to be processed before forwarding data.
-   */
-  private final Map<Integer, CountDownLatch> proxySocketLatches;
 
   public ProxyImpl(ForgedAlliancePrefs forgedAlliancePrefs) {
     this.forgedAlliancePrefs = forgedAlliancePrefs;
@@ -172,11 +164,10 @@ public class ProxyImpl implements Proxy {
     testedLoopbackPorts = new HashSet<>();
     onProxyInitializedListeners = new HashSet<>();
     proxySockets = new ConcurrentHashMap<>();
-    proxySocketLatches = new HashMap<>();
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     logger.info("Closing proxy sockets");
 
     Iterator<Map.Entry<Integer, DatagramSocket>> iterator = proxySockets.entrySet().iterator();
@@ -189,6 +180,10 @@ public class ProxyImpl implements Proxy {
 
       socket.close();
       iterator.remove();
+    }
+    if (fafProxySocket != null) {
+      logger.debug("Closing connection FAF proxy");
+      fafProxySocket.close();
     }
   }
 
@@ -209,16 +204,22 @@ public class ProxyImpl implements Proxy {
 
         int port = proxySocket.getLocalPort();
 
-        try {
-          while (!isCancelled()) {
+        while (!isCancelled()) {
+          try {
             proxySocket.receive(datagramPacket);
 
-            logger.trace("Received {} bytes from FA, forwarding to FAF proxy", datagramPacket.getLength(), port);
-
-            writeToFafProxyServer(playerNumber, playerUid, datagramPacket);
+            logger.trace("Received {} bytes from FA for player #{}, forwarding to FAF proxy", datagramPacket.getLength(), playerNumber, port);
+          } catch (SocketException | EOFException e) {
+            logger.info("Proxy socket for player #{} has been closed ({})", e.getMessage());
+            return null;
           }
-        } catch (SocketException | EOFException e) {
-          logger.info("Proxy connection closed");
+
+          try {
+            writeToFafProxyServer(playerNumber, playerUid, datagramPacket);
+          } catch (SocketException | EOFException e) {
+            // Sometimes the proxy disconnects for no apparent reason
+            ensureFafProxyConnection();
+          }
         }
 
         return null;
@@ -229,14 +230,15 @@ public class ProxyImpl implements Proxy {
   private void writeToFafProxyServer(int playerNumber, int uid, DatagramPacket datagramPacket) throws IOException {
     byte[] data = Arrays.copyOfRange(datagramPacket.getData(), datagramPacket.getOffset(), datagramPacket.getLength());
 
-    // Number of bytes for port, uid and QByteArray (prefix stuff plus data length)
-    fafProxyOutputStream.writeInt(Short.BYTES + Short.BYTES + Q_BYTE_ARRAY_PREFIX_LENGTH + data.length);
-    fafProxyOutputStream.writeShort(playerNumber);
-    // WTF: The UID can be larger than 65535 but who cares? Just cut it off, what can possibly happen? -.-
-    fafProxyOutputStream.writeShort(uid);
-    fafProxyOutputStream.writeQByteArray(data);
-
-    fafProxyOutputStream.flush();
+    synchronized (proxyLock) {
+      // Number of bytes for port, uid and QByteArray (prefix stuff plus data length)
+      fafProxyOutputStream.writeInt(Short.BYTES + Short.BYTES + Q_BYTE_ARRAY_PREFIX_LENGTH + data.length);
+      fafProxyOutputStream.writeShort(playerNumber);
+      // WTF: The UID can be larger than 65535 but who cares? Just cut it off, what can possibly happen? -.-
+      fafProxyOutputStream.writeShort(uid);
+      fafProxyOutputStream.writeQByteArray(data);
+      fafProxyOutputStream.flush();
+    }
   }
 
   private void ensureFafProxyConnection() throws IOException {
@@ -263,8 +265,8 @@ public class ProxyImpl implements Proxy {
   }
 
   /**
-   * Starts a reader in background that reads the FAF proxy and forwards that data to FA as if it was sent by a specific
-   * player. Yes, we're the man-in-the-middle.
+   * Starts a reader in background that reads the FAF proxy data and forwards that data to FA as if it was sent by a
+   * specific player. Yes, we're the man-in-the-middle.
    */
   private void startFafProxyReaderInBackground() {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
@@ -288,13 +290,13 @@ public class ProxyImpl implements Proxy {
 
             datagramPacket.setData(payloadBuffer, 0, payloadSize);
 
-            getProxySocketLatchForPlayer(playerNumber).await();
             DatagramSocket proxySocket = proxySockets.get(playerNumber);
             if (proxySocket == null) {
-              logger.warn("Tried to start proxy reader for player #{} but no such socket has been opened", playerNumber);
-            } else {
-              proxySocket.send(datagramPacket);
+              logger.warn("Discarding proxy data for player #{} as its socket is not yet ready", playerNumber);
+              continue;
             }
+
+            proxySocket.send(datagramPacket);
           }
         } catch (SocketException | EOFException e) {
           logger.debug("Connection closed");
@@ -304,26 +306,14 @@ public class ProxyImpl implements Proxy {
     });
   }
 
-  /**
-   * Ensures that a proxy socket latch is available for the given player.
-   *
-   * @see #proxySocketLatches
-   */
-  private CountDownLatch getProxySocketLatchForPlayer(int playerNumber) {
-    synchronized (proxySocketLatches) {
-      if (!proxySocketLatches.containsKey(playerNumber)) {
-        proxySocketLatches.put(playerNumber, new CountDownLatch(1));
-      }
-      return proxySocketLatches.get(playerNumber);
-    }
-  }
-
   private void sendUid(int uid) throws IOException {
     logger.debug("Sending UID to server: {}", uid);
 
-    fafProxyOutputStream.writeInt(Short.BYTES);
-    fafProxyOutputStream.writeShort(uid);
-    fafProxyOutputStream.flush();
+    synchronized (proxyLock) {
+      fafProxyOutputStream.writeInt(Short.BYTES);
+      fafProxyOutputStream.writeShort(uid);
+      fafProxyOutputStream.flush();
+    }
   }
 
   @Override
@@ -426,12 +416,10 @@ public class ProxyImpl implements Proxy {
     DatagramSocket proxySocket = proxySockets.get(playerNumber);
 
     if (proxySocket == null) {
-      logger.debug("Opening new proxy socket for player #{} with uid {}", playerNumber, playerUid);
-
       proxySocket = new DatagramSocket(new InetSocketAddress(localInetAddr, 0));
-      proxySockets.put(playerNumber, proxySocket);
-      getProxySocketLatchForPlayer(playerNumber).countDown();
     }
+
+    proxySockets.put(playerNumber, proxySocket);
 
     InetSocketAddress proxySocketAddress = (InetSocketAddress) proxySocket.getLocalSocketAddress();
     logger.debug("Player #{} with uid {} has been assigned to proxy socket {}",

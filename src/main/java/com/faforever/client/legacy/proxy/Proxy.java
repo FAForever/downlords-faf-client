@@ -14,7 +14,7 @@ public interface Proxy {
   /**
    * Closes all proxy connections.
    */
-  void close();
+  void close() throws IOException;
 
   void updateConnectedState(int uid, boolean connected);
 

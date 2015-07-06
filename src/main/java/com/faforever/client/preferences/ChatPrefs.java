@@ -33,15 +33,15 @@ public class ChatPrefs {
     this.previewImageUrls.set(previewImageUrls);
   }
 
-  public double getZoom() {
-    return zoom.get();
+  public Double getZoom() {
+    return zoom.getValue();
   }
 
   public DoubleProperty zoomProperty() {
     return zoom;
   }
 
-  public void setZoom(double zoom) {
+  public void setZoom(Double zoom) {
     this.zoom.set(zoom);
   }
 

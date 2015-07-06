@@ -286,14 +286,9 @@ public class ReplayVaultController {
   }
 
   public void loadOnlineReplaysInBackground() {
-    taskService.submitTask(TaskGroup.NET_LIGHT, new PrioritizedTask<Collection<ReplayInfoBean>>(i18n.get("replays.loadingOnlineTask.title")) {
+    replayService.getOnlineReplays(new Callback<List<ReplayInfoBean>>() {
       @Override
-      protected Collection<ReplayInfoBean> call() throws Exception {
-        return replayService.getOnlineReplays();
-      }
-    }, new Callback<Collection<ReplayInfoBean>>() {
-      @Override
-      public void success(Collection<ReplayInfoBean> result) {
+      public void success(List<ReplayInfoBean> result) {
         addOnlineReplays(result);
       }
 

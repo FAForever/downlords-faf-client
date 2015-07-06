@@ -43,7 +43,7 @@ public class ReplayInfoBean {
     replayFile = new SimpleObjectProperty<>();
   }
 
-  public ReplayInfoBean(ReplayInfo replayInfo, Path replayFile) {
+  public ReplayInfoBean(LocalReplayInfo replayInfo, Path replayFile) {
     this();
     id.set(replayInfo.uid);
     title.set(StringEscapeUtils.unescapeHtml4(replayInfo.title));
@@ -55,6 +55,15 @@ public class ReplayInfoBean {
     if (replayInfo.teams != null) {
       teams.putAll(replayInfo.teams);
     }
+  }
+
+  public ReplayInfoBean(ServerReplayInfo replayInfo) {
+    this();
+    id.setValue(replayInfo.id);
+    gameType.setValue(replayInfo.mod);
+    map.setValue(replayInfo.map);
+    startTime.setValue(Instant.ofEpochMilli(replayInfo.start * 1000));
+    endTime.setValue(Instant.ofEpochMilli(replayInfo.end * 1000));
   }
 
   public void setTeams(ObservableMap<String, List<String>> teams) {

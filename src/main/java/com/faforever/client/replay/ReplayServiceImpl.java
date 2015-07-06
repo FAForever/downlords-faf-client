@@ -42,6 +42,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class ReplayServiceImpl implements ReplayService {
@@ -49,15 +50,15 @@ public class ReplayServiceImpl implements ReplayService {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
-   * Byte offset at which the SupCom's version number starts.
+   * Byte offset at which a SupCom replay's version number starts.
    */
   private static final int VERSION_OFFSET = 0x18;
   private static final String FAF_REPLAY_FILE_ENDING = ".fafreplay";
   private static final String SUP_COM_REPLAY_FILE_ENDING = ".scfareplay";
   private static final String FAF_LIFE_PROTOCOL = "faflive";
-  public static final String GPGNET_SCHEME = "gpgnet";
-  public static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
-  public static final String TEMP_FAF_REPLAY_FILE_NAME = "temp.fafreplay";
+  private static final String GPGNET_SCHEME = "gpgnet";
+  private static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
+  private static final String TEMP_FAF_REPLAY_FILE_NAME = "temp.fafreplay";
 
   @Autowired
   Environment environment;
@@ -83,6 +84,9 @@ public class ReplayServiceImpl implements ReplayService {
   @Autowired
   ReportingService reportingService;
 
+  @Autowired
+  ReplayServerAccessor replayServerAccessor;
+
   @Override
   public Collection<ReplayInfoBean> getLocalReplays() throws IOException {
     Collection<ReplayInfoBean> replayInfos = new ArrayList<>();
@@ -92,7 +96,7 @@ public class ReplayServiceImpl implements ReplayService {
     Path replaysDirectory = preferencesService.getReplaysDirectory();
     try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(replaysDirectory, replayFileGlob)) {
       for (Path replayFile : directoryStream) {
-        ReplayInfo replayInfo = replayFileReader.readReplayInfo(replayFile);
+        LocalReplayInfo replayInfo = replayFileReader.readReplayInfo(replayFile);
         if (replayInfo == null) {
           moveCorruptedReplayFile(replayFile);
           continue;
@@ -132,8 +136,8 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public Collection<ReplayInfoBean> getOnlineReplays() {
-    return Collections.emptyList();
+  public void getOnlineReplays(Callback<List<ReplayInfoBean>> callback) {
+    replayServerAccessor.requestOnlineReplays(callback);
   }
 
   @Override
@@ -192,7 +196,7 @@ public class ReplayServiceImpl implements ReplayService {
     Files.createDirectories(tempSupComReplayFile.getParent());
     Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
 
-    ReplayInfo replayInfo = replayFileReader.readReplayInfo(path);
+    LocalReplayInfo replayInfo = replayFileReader.readReplayInfo(path);
     String featuredMod = replayInfo.featuredMod;
     Integer replayId = replayInfo.uid;
     Map<String, Integer> featuredModVersions = replayInfo.featuredModVersions;
