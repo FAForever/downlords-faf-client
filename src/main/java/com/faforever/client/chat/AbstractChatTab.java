@@ -196,8 +196,6 @@ public abstract class AbstractChatTab extends Tab {
       public void success(String url) {
         int currentCaretPosition = messageTextField.getCaretPosition();
         messageTextField.insertText(currentCaretPosition, url);
-        sendMessage();
-
         messageTextField.setDisable(false);
       }
 
