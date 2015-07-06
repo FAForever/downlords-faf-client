@@ -28,7 +28,7 @@ public class ModServiceImpl implements ModService {
   @Autowired
   PreferencesService preferencesService;
 
-  Path modsDirectory;
+  private Path modsDirectory;
 
   @PostConstruct
   void postConstruct() {
