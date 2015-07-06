@@ -27,6 +27,7 @@ public class ImgurImageUploadService implements ImageUploadService {
 
   private static final String IMGUR_CLIENT_ID = "141ee8a7030f16d";
   private static final String IMGUR_BASE_URL = "https://api.imgur.com/3/image";
+  private static final int MAX_UPLOAD_SIZE = 20 * 1024 * 1024;
   private final Gson gson;
 
   @Autowired
@@ -40,7 +41,7 @@ public class ImgurImageUploadService implements ImageUploadService {
   }
 
   @Override
-  public void uploadImage(Image image, Callback<String> callback) {
+  public void uploadImageInBackground(Image image, Callback<String> callback) {
     taskService.submitTask(TaskGroup.NET_LIGHT, new PrioritizedTask<String>(i18n.get("chat.imageUploadTask.title")) {
       @Override
       protected String call() throws Exception {
@@ -48,6 +49,10 @@ public class ImgurImageUploadService implements ImageUploadService {
 
         BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
         ImageIO.write(bufferedImage, "jpg", byteArrayOutputStream);
+
+        if (byteArrayOutputStream.size() > MAX_UPLOAD_SIZE) {
+          throw new IllegalArgumentException("Image exceeds max upload size of " + MAX_UPLOAD_SIZE / 1024 / 1024 + "MiB");
+        }
 
         String dataImage = BaseEncoding.base64().encode(byteArrayOutputStream.toByteArray());
         String data = URLEncoder.encode("image", "UTF-8") + "=" + URLEncoder.encode(dataImage, "UTF-8");
