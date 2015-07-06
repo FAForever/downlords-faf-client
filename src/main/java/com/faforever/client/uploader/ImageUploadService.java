@@ -5,5 +5,5 @@ import javafx.scene.image.Image;
 
 public interface ImageUploadService {
 
-  void uploadImage(Image image, Callback<String> callback);
+  void uploadImageInBackground(Image image, Callback<String> callback);
 }

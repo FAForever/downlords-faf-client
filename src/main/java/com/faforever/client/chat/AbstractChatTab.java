@@ -191,7 +191,7 @@ public abstract class AbstractChatTab extends Tab {
     Clipboard clipboard = Clipboard.getSystemClipboard();
     Image image = clipboard.getImage();
 
-    imageUploadService.uploadImage(image, new Callback<String>() {
+    imageUploadService.uploadImageInBackground(image, new Callback<String>() {
       @Override
       public void success(String url) {
         int currentCaretPosition = messageTextField.getCaretPosition();
