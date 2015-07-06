@@ -17,6 +17,8 @@ public interface MapService {
 
   ObservableList<MapInfoBean> getLocalMaps();
 
+  MapInfoBean getMapInfoBeanFromString(String mapName);
+
   /**
    * Returns {@code true} if the given map is available locally, {@code false} otherwise.
    */

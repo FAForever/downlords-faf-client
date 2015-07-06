@@ -19,6 +19,7 @@ import com.faforever.client.fxml.FxmlLoaderImpl;
 import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
 import com.faforever.client.game.GameCardController;
+import com.faforever.client.game.GameTableController;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.game.GamesTiledController;
 import com.faforever.client.game.PopupGamePaneController;
@@ -96,6 +97,11 @@ public class UiConfig {
   @Bean
   LadderController leaderboardController() {
     return loadController("ladder.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  GameTableController gameTableController(){return loadController("game_table.fxml");
   }
 
   @Bean

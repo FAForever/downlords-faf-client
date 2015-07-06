@@ -37,6 +37,9 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Paint;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import org.slf4j.Logger;
@@ -61,6 +64,15 @@ public class GamesController implements OnGameInfoListener {
   private static final Pattern RATING_PATTERN = Pattern.compile("([<>+~](?:\\d\\.?\\d?k|\\d{3,4})|(?:\\d\\.?\\d?k|\\d{3,4})[<>+]|(?:\\d\\.?\\d?k|\\d{1,4})\\s?-\\s?(?:\\d\\.?\\d?k|\\d{3,4}))");
 
   @FXML
+  Label gameModeDescriptionLabel;
+
+  @FXML
+  Label mapLabel;
+
+  @FXML
+  Label mapDescriptionLabel;
+
+  @FXML
   Button createGameButton;
 
   @FXML
@@ -73,7 +85,7 @@ public class GamesController implements OnGameInfoListener {
   ImageView mapImageView;
 
   @FXML
-  Label gameTitleLabel;
+  TextFlow gameTitleLabel;
 
   @FXML
   Label numberOfPlayersLabel;
@@ -86,27 +98,6 @@ public class GamesController implements OnGameInfoListener {
 
   @FXML
   VBox gamePreviewPanel;
-
-  @FXML
-  TableView<GameInfoBean> gamesTable;
-
-  @FXML
-  TableColumn<GameInfoBean, Image> mapPreviewColumn;
-
-  @FXML
-  TableColumn<GameInfoBean, String> gameTitleColumn;
-
-  @FXML
-  TableColumn<GameInfoBean, String> playersColumn;
-
-  @FXML
-  TableColumn<GameInfoBean, String> rankingColumn;
-
-  @FXML
-  TableColumn<GameInfoBean, String> hostColumn;
-
-  @FXML
-  TableColumn<GameInfoBean, GameAccess> accessColumn;
 
   @Autowired
   ApplicationContext applicationContext;
@@ -142,17 +133,17 @@ public class GamesController implements OnGameInfoListener {
 
   private Popup createGamePopup;
   private Popup passwordPopup;
-  private double lastMouseX;
-  private double lastMouseY;
   private FilteredList<GameInfoBean> filteredItems;
+  private boolean tilePaneSelected = false;
+  private boolean firstGeneratedPane = true;
 
   public GamesController() {
     gameInfoBeans = FXCollections.observableHashMap();
   }
 
+  //TODO ask downloard does initialize get called before the object constructor
   @FXML
   void initialize() {
-    //initializeGameTable();
   }
 
   @PostConstruct
@@ -185,77 +176,43 @@ public class GamesController implements OnGameInfoListener {
     }
   }
 
-  private void initializeGameTable() {
-    ObservableList<GameInfoBean> tableItems = FXCollections.observableArrayList();
-    filteredItems = new FilteredList<>(tableItems);
-    gamesTable.setItems(filteredItems);
-
-    gameInfoBeans.addListener((MapChangeListener<Integer, GameInfoBean>) change -> {
-      if (change.wasAdded()) {
-        tableItems.add(change.getValueAdded());
-        if (gamesTable.getSelectionModel().getSelectedItem() == null) {
-          gamesTable.getSelectionModel().select(0);
-        }
-      } else {
-        tableItems.remove(change.getValueRemoved());
-      }
-    });
-
-    mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(fxmlLoader));
-    mapPreviewColumn.setCellValueFactory(param -> new ObjectBinding<Image>() {
-      @Override
-      protected Image computeValue() {
-        return mapService.loadSmallPreview(param.getValue().getMapName());
-      }
-    });
-
-    gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
-    playersColumn.setCellValueFactory(param -> new NumberOfPlayersBinding(i18n, param.getValue().numPlayersProperty(), param.getValue().maxPlayersProperty()));
-    rankingColumn.setCellValueFactory(param -> new StringBinding() {
-      @Override
-      protected String computeValue() {
-        // TODO this is not bound to the title property, however, a game's title can't be changed anyway (atm).
-        return Strings.nullToEmpty(extractRating(param.getValue().getTitle()));
-      }
-    });
-    hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
-
-    gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue == null && !filteredItems.isEmpty()) {
-        gamesTable.getSelectionModel().select(filteredItems.get(0));
-      } else {
-        displayGameDetail(newValue);
-      }
-    });
-
-    accessColumn.setCellValueFactory(param -> param.getValue().accessProperty());
-  }
-
-  private void displayGameDetail(GameInfoBean gameInfoBean) {
+  //FIXME Text needs to wrap on long game titles
+  public void displayGameDetail(GameInfoBean gameInfoBean) {
     mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapName()));
-    gameTitleLabel.setText(gameInfoBean.getTitle());
+    Text gameTitle = new Text(gameInfoBean.getTitle());
+    gameTitle.setWrappingWidth(mapImageView.getFitWidth());
+    gameTitle.setFill(Paint.valueOf("#ffffff"));
+    gameTitleLabel.getChildren().setAll(gameTitle);
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     hosterLabel.setText(gameInfoBean.getHost());
     gameModeLabel.setText(gameInfoBean.getFeaturedMod());
+   // gameModeDescriptionLabel.setText(mapService.getMapInfoBeanFromString(gameInfoBean.getMapName()).getDescription());
   }
 
   @FXML
   void onShowPrivateGames(ActionEvent actionEvent) {
     CheckBox checkBox = (CheckBox) actionEvent.getSource();
     boolean selected = checkBox.isSelected();
-
-    if (selected) {
-      filteredItems.setPredicate(gameInfoBean -> true);
-    } else {
-      filteredItems.setPredicate(gameInfoBean -> gameInfoBean.getAccess() != GameAccess.PASSWORD);
+      if (selected) {
+        filteredItems.setPredicate(gameInfoBean -> true);
+      } else {
+        filteredItems.setPredicate(gameInfoBean -> gameInfoBean.getAccess() != GameAccess.PASSWORD);
+      }
     }
+
+  public void setFilteredList(FilteredList<GameInfoBean> filteredItems) {
+    this.filteredItems = filteredItems;
   }
 
-  private void joinSelectedGame(String password) {
-    // FIXME check if game path is set
-    GameInfoBean gameInfoBean = gamesTable.getSelectionModel().getSelectedItem();
+  public FilteredList<GameInfoBean> returnFilteredList(){
+    return filteredItems;
+  }
 
+  public void joinSelectedGame(String password, GameInfoBean gameInfoBean, MouseEvent event) {
+    // FIXME check if game path is set
     if (gameInfoBean.getAccess() == GameAccess.PASSWORD && password == null) {
+      double lastMouseX = event.getScreenX();
+      double lastMouseY = event.getScreenY();
       passwordPopup.show(gamesRoot.getScene().getWindow(), lastMouseX, lastMouseY);
     } else {
       gameService.joinGame(gameInfoBean, password, new Callback<Void>() {
@@ -266,32 +223,49 @@ public class GamesController implements OnGameInfoListener {
 
         @Override
         public void error(Throwable e) {
-          // FIXME implement
+            // FIXME implement
           logger.warn("Game could not be joined", e);
         }
       });
     }
   }
 
-  public void onTilesButtonPressed(ActionEvent actionEvent) {
-    GamesTiledController gamesTiledController = applicationContext.getBean(GamesTiledController.class);
-    gamesTiledController.createTiledFlowPane(gameInfoBeans);
+  public boolean isFirstGeneratedPane() {
+    return firstGeneratedPane;
+  }
 
-    ScrollPane root = gamesTiledController.getRoot();
+  @FXML
+  void onTilesButtonPressed() {
+    if (!tilePaneSelected || isFirstGeneratedPane()) {
+      GamesTiledController gamesTiledController = applicationContext.getBean(GamesTiledController.class);
+      gamesTiledController.createTiledFlowPane(gameInfoBeans);
+
+      Node root = gamesTiledController.getRoot();
+      populateContainer(root);
+      firstGeneratedPane = false;
+      tilePaneSelected = true;
+    }
+  }
+
+  @FXML
+  void onDetailsButtonPressed() {
+    if (tilePaneSelected || isFirstGeneratedPane()) {
+      GameTableController gameTableController = applicationContext.getBean(GameTableController.class);
+      gameTableController.initializeGameTable(gameInfoBeans);
+
+      Node root = gameTableController.getRoot();
+      populateContainer(root);
+      firstGeneratedPane = false;
+      tilePaneSelected = false;
+    }
+  }
+
+  private void populateContainer(Node root) {
     gameViewContainer.getChildren().setAll(root);
     AnchorPane.setBottomAnchor(root, 0d);
     AnchorPane.setLeftAnchor(root, 0d);
     AnchorPane.setRightAnchor(root, 0d);
     AnchorPane.setTopAnchor(root, 0d);
-
-  }
-
-  private static String extractRating(String title) {
-    Matcher matcher = RATING_PATTERN.matcher(title);
-    if (matcher.find()) {
-      return matcher.group(1);
-    }
-    return null;
   }
 
   @Override
@@ -317,13 +291,6 @@ public class GamesController implements OnGameInfoListener {
     return gamesRoot;
   }
 
-  public void onTableClicked(MouseEvent event) {
-    if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
-      lastMouseX = event.getScreenX();
-      lastMouseY = event.getScreenY();
-      joinSelectedGame(null);
-    }
-  }
 
   public void onCreateGameButtonClicked(ActionEvent actionEvent) {
     Button button = (Button) actionEvent.getSource();

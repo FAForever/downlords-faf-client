@@ -531,15 +531,61 @@
 /***************** Progress bar *****************/
 
 .progress-bar {
-    -fx-indeterminate-bar-length: 40;
-    -fx-indeterminate-bar-animation-time: 1.5;
+  -fx-indeterminate-bar-length: 40;
+  -fx-indeterminate-bar-animation-time: 1.5;
 }
 .progress-bar > .bar {
-    -fx-padding: 0;
+  -fx-padding: 0;
 }
 .progress-bar:indeterminate > .bar {
-    -fx-background-color: linear-gradient(to left, transparent, -fx-accent);
+  -fx-background-color: linear-gradient(to left, transparent, -fx-accent);
 }
+
+/***************** Games Tiled *****************/
+
+.games-tiled {
+  -fx-background: transparent;
+}
+
+/***************** Game Card *****************/
+
+.game-card-root:focused {
+  -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
+}
+
+.game-card-root .label {
+  -fx-font-size: 0.88em;
+}
+
+.game-card-root:hover {
+  -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
+}
+
+.game-detail-title {
+  -fx-font-weight: bold;
+  -fx-font-size: 1.5em;
+}
+
+.game-card-root .game-card-title {
+  -fx-font-weight: bold;
+  -fx-font-size: 1.3em;
+}
+
+.game-card-root .featured-mod-prefix {
+  -fx-text-fill: #F44336;
+  -fx-font-style: italic;
+}
+
+.game-card-root .mods-prefix {
+  -fx-text-fill: #4CAF50;
+  -fx-font-style: italic;
+}
+
+.game-card-root .prefix {
+  -fx-text-fill: -fx-dark-text-color;
+  -fx-font-style: italic;
+}
+
 
 /***************** Game detail *****************/
 

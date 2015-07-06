@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+
+
+
+<TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" onMouseClicked="#onTableClicked" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GameTableController">
+   <columns>
+      <TableColumn fx:id="mapPreviewColumn" minWidth="2.0" text="%game.map" />
+      <TableColumn fx:id="gameTitleColumn" minWidth="2.0" text="%game.title" />
+      <TableColumn fx:id="playersColumn" minWidth="2.0" text="%game.players" />
+      <TableColumn fx:id="rankingColumn" minWidth="2.0" text="%game.ranking" />
+      <TableColumn fx:id="modsColumn" minWidth="2.0" text="%game.mods" />
+      <TableColumn fx:id="hostColumn" minWidth="2.0" text="%game.host" />
+      <TableColumn fx:id="accessColumn" minWidth="2.0" text="%game.access" />
+   </columns>
+   <columnResizePolicy>
+      <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+   </columnResizePolicy>
+</TableView>

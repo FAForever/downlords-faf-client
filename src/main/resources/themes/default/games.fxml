@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.text.*?>
 <?import org.controlsfx.control.*?>
 <?import java.lang.*?>
 <?import javafx.geometry.*?>
@@ -27,7 +28,7 @@
                   <MenuButton layoutX="727.0" layoutY="2.0" mnemonicParsing="false" text="View" AnchorPane.bottomAnchor="7.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="7.0">
                     <items>
                       <MenuItem fx:id="tiledButton" mnemonicParsing="false" onAction="#onTilesButtonPressed" text="Tiled" />
-                      <MenuItem fx:id="detailsButton" mnemonicParsing="false" text="Details" />
+                      <MenuItem fx:id="detailsButton" mnemonicParsing="false" onAction="#onDetailsButtonPressed" text="Details" />
                     </items>
                   </MenuButton>
                </children>
@@ -51,7 +52,12 @@
               <VBox fx:id="gamePreviewPanel" maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="0.0">
                 <children>
                   <ImageView fx:id="mapImageView" fitWidth="256.0" pickOnBounds="true" preserveRatio="true" styleClass="map-preview" />
-                  <Label fx:id="gameTitleLabel" maxHeight="1.7976931348623157E308" styleClass="game-detail-title" text="&lt;Game title&gt;">
+                        <TextFlow fx:id="gameTitleLabel" styleClass="game-detail-title">
+                           <padding>
+                              <Insets left="10.0" />
+                           </padding>
+                        </TextFlow>
+                  <Label maxHeight="1.7976931348623157E308" styleClass="game-detail-title" text="&lt;Game title&gt;" wrapText="true">
                     <padding>
                       <Insets left="10.0" />
                     </padding>
@@ -63,7 +69,7 @@
                   </Label>
                   <Label fx:id="hosterLabel" maxHeight="1.7976931348623157E308" text="&lt;Hoster&gt;">
                     <VBox.margin>
-                      <Insets top="10.0" />
+                      <Insets />
                     </VBox.margin>
                     <padding>
                       <Insets left="10.0" />
@@ -77,6 +83,24 @@
                       <Insets left="10.0" />
                     </padding>
                   </Label>
+                        <Label fx:id="gameModeDescriptionLabel" maxHeight="1.7976931348623157E308" text="&lt;Game mode description&gt;">
+                           <padding>
+                              <Insets left="10.0" />
+                           </padding>
+                        </Label>
+                        <Label fx:id="mapLabel" maxHeight="1.7976931348623157E308" text="&lt;Map&gt;">
+                           <padding>
+                              <Insets left="10.0" />
+                           </padding>
+                           <VBox.margin>
+                              <Insets top="10.0" />
+                           </VBox.margin>
+                        </Label>
+                        <Label fx:id="mapDescriptionLabel" maxHeight="1.7976931348623157E308" text="&lt;Map description&gt;">
+                           <padding>
+                              <Insets left="10.0" />
+                           </padding>
+                        </Label>
                 </children>
                 <padding>
                   <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
