@@ -27,7 +27,7 @@ import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 public class MockChatService implements ChatService {
 
   private static final long CONNECTION_DELAY = 1000;
-  public static final int CHAT_MESSAGE_INTERVAL = 3000;
+  public static final int CHAT_MESSAGE_INTERVAL = 5000;
   private final Timer timer;
 
   @Autowired
@@ -186,7 +186,8 @@ public class MockChatService implements ChatService {
         for (OnChatMessageListener onChatMessageListener : onChatMessageListeners) {
           ChatMessage chatMessage = new ChatMessage(Instant.now(), "Mock User",
               String.format(
-                  "%1$s Lorem ipsum dolor sit amet, consetetur %1$s sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam %1$s",
+                  "%1$s Lorem ipsum dolor sit amet, consetetur %1$s sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam %1$s " +
+                      "http://www.faforever.com/wp-content/uploads/2013/07/cropped-backForum41.jpg",
                   userService.getUsername()
               )
           );

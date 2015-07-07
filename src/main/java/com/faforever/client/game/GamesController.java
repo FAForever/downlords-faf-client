@@ -223,7 +223,6 @@ public class GamesController implements OnGameInfoListener {
     accessColumn.setCellValueFactory(param -> param.getValue().accessProperty());
   }
 
-
   @NotNull
   private TableRow<GameInfoBean> gamesRowFactory() {
     TableRow<GameInfoBean> row = new TableRow<>();

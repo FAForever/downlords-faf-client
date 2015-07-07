@@ -11,6 +11,8 @@ import com.faforever.client.chat.ChatUserControlFactoryImpl;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.CountryFlagServiceImpl;
 import com.faforever.client.chat.PlayerInfoTooltipController;
+import com.faforever.client.chat.UrlPreviewResolver;
+import com.faforever.client.chat.UrlPreviewResolverImpl;
 import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
@@ -46,6 +48,12 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 
 import java.util.Arrays;
+
+import static com.faforever.client.config.CacheKeys.AVATARS;
+import static com.faforever.client.config.CacheKeys.COUNTRY_FLAGS;
+import static com.faforever.client.config.CacheKeys.LARGE_MAP_PREVIEW;
+import static com.faforever.client.config.CacheKeys.SMALL_MAP_PREVIEW;
+import static com.faforever.client.config.CacheKeys.URL_PREVIEW;
 
 @org.springframework.context.annotation.Configuration
 @Import(BaseConfig.class)
@@ -181,6 +189,11 @@ public class UiConfig {
   }
 
   @Bean
+  UrlPreviewResolver urlPreviewResolver() {
+    return new UrlPreviewResolverImpl();
+  }
+
+  @Bean
   FxmlLoader fxmlLoader() {
     return new FxmlLoaderImpl();
   }
@@ -189,11 +202,13 @@ public class UiConfig {
   CacheManager cacheManager() {
     SimpleCacheManager cacheManager = new SimpleCacheManager();
     cacheManager.setCaches(Arrays.asList(
-        new ConcurrentMapCache("avatars"),
-        new ConcurrentMapCache("countryFlags"),
-        new ConcurrentMapCache("smallMapPreview"),
-        new ConcurrentMapCache("largeMapPreview")
+        new ConcurrentMapCache(AVATARS),
+        new ConcurrentMapCache(COUNTRY_FLAGS),
+        new ConcurrentMapCache(SMALL_MAP_PREVIEW),
+        new ConcurrentMapCache(LARGE_MAP_PREVIEW),
+        new ConcurrentMapCache(URL_PREVIEW)
     ));
+
     return cacheManager;
   }
 

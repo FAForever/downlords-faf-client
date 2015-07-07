@@ -11,6 +11,8 @@ import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import java.util.Collection;
 
+import static com.faforever.client.config.CacheKeys.COUNTRY_FLAGS;
+
 public class CountryFlagServiceImpl implements CountryFlagService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -18,7 +20,7 @@ public class CountryFlagServiceImpl implements CountryFlagService {
   private static final Collection<String> NON_COUNTRY_CODES = Arrays.asList("A1", "A2", "");
 
   @Override
-  @Cacheable("countryFlags")
+  @Cacheable(COUNTRY_FLAGS)
   public Image loadCountryFlag(final String country) {
     if (country == null) {
       return null;
