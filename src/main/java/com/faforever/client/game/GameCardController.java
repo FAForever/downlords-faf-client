@@ -1,15 +1,11 @@
 package com.faforever.client.game;
 
-import com.faforever.client.chat.CountryFlagService;
-import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.map.MapService;
-import com.faforever.client.player.PlayerService;
 import com.google.common.base.Joiner;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -18,20 +14,13 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.shape.Rectangle;
-import javafx.stage.Popup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
-import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class GameCardController {
 
@@ -85,9 +74,6 @@ public class GameCardController {
   @Autowired
   GamesController gamesController;
 
-  private double lastMouseX;
-  private double lastMouseY;
-  private OnGameJoinListener onGameJoinListener;
   private GameInfoBean gameInfoBean;
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -146,16 +132,12 @@ public class GameCardController {
     Tooltip.install(gameCardRoot, tooltip);
   }
 
-  //FIXME hacky kind of way in setting up joinSelectedGame
   @FXML
   void onClick(MouseEvent mouseEvent) {
-    lastMouseX = mouseEvent.getSceneX();
-    lastMouseY = mouseEvent.getScreenY();
     gamesController.displayGameDetail(gameInfoBean);
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
       mouseEvent.consume();
-      gamesController.joinSelectedGame(null,gameInfoBean, mouseEvent);
-      //onGameJoinListener.joinGame(gameInfoBean, lastMouseX, lastMouseY);
+      gamesController.joinGame(gameInfoBean, null,  mouseEvent.getScreenX(), mouseEvent.getScreenY());
     }
   }
 
@@ -171,7 +153,4 @@ public class GameCardController {
     return gameCardRoot;
   }
 
-  public void setOnGameJoinListener(OnGameJoinListener onGameJoinListener) {
-    this.onGameJoinListener = onGameJoinListener;
-  }
 }

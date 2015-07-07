@@ -8,25 +8,17 @@ import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Strings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
-import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
-import javafx.collections.transformation.FilteredList;
-import javafx.event.Event;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-import org.apache.commons.lang3.StringUtils;
-import org.controlsfx.control.Rating;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Observable;
 
 public class GameTableController {
 
@@ -58,34 +50,27 @@ public class GameTableController {
   @Autowired
   MapService mapService;
 
+  //FIXME replace with gamecontroller listener
   @Autowired
   GamesController gamesController;
 
   @Autowired
   I18n i18n;
 
-  private FilteredList<GameInfoBean> filteredItems;
+  private double lastMouseX;
+  private double lastMouseY;
 
-  public void initializeGameTable(ObservableMap<Integer, GameInfoBean> gameInfoBeans) {
-    ObservableList<GameInfoBean> tableItems = FXCollections.observableArrayList();
-    if (gamesController.isFirstGeneratedPane()) {
-      filteredItems = new FilteredList<>(tableItems);
-      gamesController.setFilteredList(filteredItems);
-    } else {
-      filteredItems = gamesController.returnFilteredList();
-    }
-    gamesTable.setItems(filteredItems);
-    //FIXME possible bug may not update password protected games
-    tableItems.addAll(gameInfoBeans.values());
+  public void initializeGameTable(ObservableList<GameInfoBean> gameInfoBeans) {
+    SortedList<GameInfoBean> sortedList = new SortedList<>(gameInfoBeans);
+    sortedList.comparatorProperty().bind(gamesTable.comparatorProperty());
+    gamesTable.setItems(sortedList);
+    gamesTable.setRowFactory(param1 -> gamesRowFactory());
 
-    gameInfoBeans.addListener((MapChangeListener<Integer, GameInfoBean>) change -> {
-      if (change.wasAdded()) {
-        tableItems.add(change.getValueAdded());
-        if (gamesTable.getSelectionModel().getSelectedItem() == null) {
+    gameInfoBeans.addListener((ListChangeListener<GameInfoBean>) change -> {
+      while (change.next()) {
+        if (change.wasAdded() && gamesTable.getSelectionModel().getSelectedItem() == null) {
           gamesTable.getSelectionModel().select(0);
         }
-      } else {
-        tableItems.remove(change.getValueRemoved());
       }
     });
 
@@ -108,9 +93,10 @@ public class GameTableController {
     });
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
 
+    //TODO fix null newValues while gameInfoBean isEmpty
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue == null && !filteredItems.isEmpty()) {
-        gamesTable.getSelectionModel().select(filteredItems.get(0));
+      if (newValue == null && !gameInfoBeans.isEmpty()) {
+        gamesTable.getSelectionModel().select(gameInfoBeans.get(0));
       } else {
         gamesController.displayGameDetail(newValue);
       }
@@ -119,12 +105,17 @@ public class GameTableController {
     accessColumn.setCellValueFactory(param -> param.getValue().accessProperty());
   }
 
-  @FXML
-  void onTableClicked(MouseEvent event) {
-    if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
-      GameInfoBean gameInfoBean = gamesTable.getSelectionModel().getSelectedItem();
-      gamesController.joinSelectedGame(null, gameInfoBean, event);
-    }
+  @NotNull
+  private TableRow<GameInfoBean> gamesRowFactory() {
+    TableRow<GameInfoBean> row = new TableRow<>();
+    row.setOnMouseClicked(event -> {
+      if (event.getClickCount() == 2) {
+        lastMouseX = event.getScreenX();
+        lastMouseY = event.getScreenY();
+        gamesController.joinGame(row.getItem(), null, lastMouseX, lastMouseY);
+      }
+    });
+    return row;
   }
 
   public Node getRoot() {

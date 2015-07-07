@@ -4,13 +4,13 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.input.KeyEvent;
 
 public class EnterPasswordController {
 
   public interface OnPasswordEnteredListener {
 
-    void onPasswordEntered(String password, GameInfoBean gameInfoBean, MouseEvent event);
+    void onPasswordEntered(GameInfoBean gameInfoBean, String password, double screenX, double screenY);
   }
 
   private OnPasswordEnteredListener listener;
@@ -20,6 +20,8 @@ public class EnterPasswordController {
 
   @FXML
   TextField passwordTextField;
+
+  private GameInfoBean gameInfoBean;
 
   public Node getRoot() {
     return enterPasswordRoot;
@@ -33,11 +35,14 @@ public class EnterPasswordController {
   }
 
   @FXML
-  void onPasswordEntered(MouseEvent event, GameInfoBean gameInfoBean) {
+  void onPasswordEntered(KeyEvent event) {
     if (listener == null) {
       throw new IllegalStateException("No listener has been set");
     }
-    listener.onPasswordEntered(passwordTextField.getText(), gameInfoBean, event);
+    listener.onPasswordEntered(gameInfoBean, passwordTextField.getText(), 0 ,0);
   }
 
+  public void setGameInfoBean(GameInfoBean gameInfoBean) {
+    this.gameInfoBean = gameInfoBean;
+  }
 }

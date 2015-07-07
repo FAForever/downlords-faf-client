@@ -44,20 +44,15 @@
     <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
       <children>
             <AnchorPane fx:id="gameViewContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
-            <ScrollPane minWidth="300.0">
+            <ScrollPane maxWidth="300.0" minWidth="300.0">
                <HBox.margin>
                   <Insets />
                </HBox.margin>
                <content>
-              <VBox fx:id="gamePreviewPanel" maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="0.0">
+              <VBox fx:id="gamePreviewPanel" maxHeight="1.7976931348623157E308" maxWidth="300.0" minHeight="0.0" minWidth="0.0">
                 <children>
                   <ImageView fx:id="mapImageView" fitWidth="256.0" pickOnBounds="true" preserveRatio="true" styleClass="map-preview" />
-                        <TextFlow fx:id="gameTitleLabel" styleClass="game-detail-title">
-                           <padding>
-                              <Insets left="10.0" />
-                           </padding>
-                        </TextFlow>
-                  <Label maxHeight="1.7976931348623157E308" styleClass="game-detail-title" text="&lt;Game title&gt;" wrapText="true">
+                  <Label fx:id="gameTitleLabel" maxHeight="1.7976931348623157E308" styleClass="game-detail-title" text="&lt;Game title&gt;" wrapText="true">
                     <padding>
                       <Insets left="10.0" />
                     </padding>
@@ -77,17 +72,12 @@
                   </Label>
                   <Label fx:id="gameModeLabel" maxHeight="1.7976931348623157E308" text="&lt;Game mode&gt;">
                     <VBox.margin>
-                      <Insets top="10.0" />
+                      <Insets />
                     </VBox.margin>
                     <padding>
                       <Insets left="10.0" />
                     </padding>
                   </Label>
-                        <Label fx:id="gameModeDescriptionLabel" maxHeight="1.7976931348623157E308" text="&lt;Game mode description&gt;">
-                           <padding>
-                              <Insets left="10.0" />
-                           </padding>
-                        </Label>
                         <Label fx:id="mapLabel" maxHeight="1.7976931348623157E308" text="&lt;Map&gt;">
                            <padding>
                               <Insets left="10.0" />

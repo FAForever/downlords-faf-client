@@ -30,57 +30,21 @@ public class GamesTiledController {
   public ScrollPane tiledScrollPane;
 
   @Autowired
-  GamesController gamesController;
-
-  @Autowired
   ApplicationContext applicationContext;
 
-  private FilteredList<GameInfoBean> filteredItems;
   private Map<Integer, Node> uidToGameCard;
 
   //FIXME if password checkbox is clicked as a passworded game is added possible bug
-  public void createTiledFlowPane(ObservableMap<Integer, GameInfoBean> gameInfoBeans) {
-    ObservableList<GameInfoBean> tilePaneItems = FXCollections.observableArrayList();
-    if (gamesController.isFirstGeneratedPane()) {
-      filteredItems = new FilteredList<>(tilePaneItems);
-      gamesController.setFilteredList(filteredItems);
-    } else {
-      filteredItems = gamesController.returnFilteredList();
-    }
-    tilePaneItems.addAll(gameInfoBeans.values());
-
+  public void createTiledFlowPane(ObservableList<GameInfoBean> gameInfoBeans) {
     uidToGameCard = new HashMap<>();
-    for (GameInfoBean gameInfoBean : filteredItems) {
-      addGameCard(gameInfoBean);
-    }
+    gameInfoBeans.forEach(this::addGameCard);
+
     //FIXME gameTiles passworded games don't get restored when unchecked
     //FIXME Exception in thread "JavaFX Application Thread" java.util.NoSuchElementException
-    filteredItems.addListener((ListChangeListener<GameInfoBean>) change -> {
+    gameInfoBeans.addListener((ListChangeListener<GameInfoBean>) change -> {
       while (change.next()) {
-        if (change.wasRemoved()) {
-          tilePaneItems.removeAll(change.getList());
-          for (GameInfoBean gameInfoBean : change.getList()) {
-            tiledFlowPane.getChildren().remove(uidToGameCard.get(gameInfoBean.getUid()));
-          }
-        } else {
-          tilePaneItems.addAll(change.getList());
-          //FIXME isEmpty is workaround for errors
-          if(!change.getList().isEmpty()) {
-            for (GameInfoBean gameInfoBean : change.getList()) {
-              addGameCard(gameInfoBean);
-            }
-          }
-        }
-      }
-    });
-
-    gameInfoBeans.addListener((MapChangeListener<Integer, GameInfoBean>) change -> {
-      if (change.wasRemoved()) {
-        tilePaneItems.remove(change.getValueRemoved());
-        tiledFlowPane.getChildren().remove(uidToGameCard.get(change.getValueRemoved().getUid()));
-      } else {
-        tilePaneItems.add(change.getValueAdded());
-        addGameCard(change.getValueAdded());
+        change.getRemoved().forEach(gameInfoBean -> tiledFlowPane.getChildren().remove(uidToGameCard.get(gameInfoBean.getUid())));
+        change.getAddedSubList().forEach(this::addGameCard);
       }
     });
   }

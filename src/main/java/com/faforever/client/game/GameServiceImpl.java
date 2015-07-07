@@ -4,15 +4,20 @@ import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
+import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
@@ -32,7 +37,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
-public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
+public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnGameInfoListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -53,16 +58,25 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
 
   private Collection<OnGameStartedListener> onGameLaunchingListeners;
 
-  private ObservableMap<String, GameTypeBean> gameTypeBeans;
+  private final ObservableMap<String, GameTypeBean> gameTypeBeans;
+
+  private final ObservableList<GameInfoBean> gameInfoBeans;
 
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
     onGameLaunchingListeners = new HashSet<>();
+    gameInfoBeans = FXCollections.observableArrayList();
+  }
+
+  @Override
+  public void addOnGameInfoBeanListener(ListChangeListener<GameInfoBean> listener) {
+    gameInfoBeans.addListener(listener);
   }
 
   @PostConstruct
   void postConstruct() {
     lobbyServerAccessor.addOnGameTypeInfoListener(this);
+    lobbyServerAccessor.addOnGameInfoListener(this);
   }
 
   @Override
@@ -70,11 +84,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
     String username = userService.getUsername();
     // FIXME implement
 //    serverAccessor.publishPotentialPlayer(username);
-  }
-
-  @Override
-  public void addOnGameInfoListener(OnGameInfoListener listener) {
-    lobbyServerAccessor.addOnGameInfoListener(listener);
   }
 
   @Override
@@ -227,5 +236,28 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener {
   @Override
   public void runWithReplay(URL replayUrl, Integer replayId) throws IOException {
     forgedAllianceService.startReplay(replayUrl, replayId);
+  }
+
+  @Override
+  public ObservableList<GameInfoBean> getGameInfoBeans() {
+    return FXCollections.unmodifiableObservableList(gameInfoBeans);
+  }
+
+  @Override
+  public void onGameInfo(GameInfo gameInfo) {
+    Platform.runLater(() -> {
+      GameInfoBean gameInfoBean = new GameInfoBean(gameInfo);
+
+      if (!GameState.OPEN.equals(gameInfo.state)) {
+        gameInfoBeans.remove(gameInfoBean);
+        return;
+      }
+
+      logger.debug("Adding game info bean: {}", gameInfoBean);
+
+      if (!gameInfoBeans.contains(gameInfoBean)) {
+        gameInfoBeans.add(gameInfoBean);
+      }
+    });
   }
 }

@@ -2,7 +2,9 @@ package com.faforever.client.game;
 
 import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.util.Callback;
+import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -15,9 +17,9 @@ import java.util.List;
  */
 public interface GameService {
 
-  void publishPotentialPlayer();
+  void addOnGameInfoBeanListener(ListChangeListener<GameInfoBean> listener);
 
-  void addOnGameInfoListener(OnGameInfoListener listener);
+  void publishPotentialPlayer();
 
   void hostGame(NewGameInfo name, Callback<Void> callback);
 
@@ -37,4 +39,6 @@ public interface GameService {
   void runWithReplay(Path path, @Nullable Integer replayId) throws IOException;
 
   void runWithReplay(URL url, Integer replayId) throws IOException;
+
+  ObservableList<GameInfoBean> getGameInfoBeans();
 }

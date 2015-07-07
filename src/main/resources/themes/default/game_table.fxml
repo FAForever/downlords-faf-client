@@ -4,7 +4,7 @@
 
 
 
-<TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" onMouseClicked="#onTableClicked" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GameTableController">
+<TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GameTableController">
    <columns>
       <TableColumn fx:id="mapPreviewColumn" minWidth="2.0" text="%game.map" />
       <TableColumn fx:id="gameTitleColumn" minWidth="2.0" text="%game.title" />

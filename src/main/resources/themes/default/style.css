@@ -541,24 +541,16 @@
   -fx-background-color: linear-gradient(to left, transparent, -fx-accent);
 }
 
-/***************** Games Tiled *****************/
-
-.games-tiled {
-  -fx-background: transparent;
-}
-
 /***************** Game Card *****************/
 
+.game-card-root:hover,
 .game-card-root:focused {
-  -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
+
+  -fx-background-color: -fx-control-inner-background;
 }
 
 .game-card-root .label {
   -fx-font-size: 0.88em;
-}
-
-.game-card-root:hover {
-  -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
 }
 
 .game-detail-title {
