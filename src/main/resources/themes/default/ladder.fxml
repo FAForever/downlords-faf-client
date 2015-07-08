@@ -7,7 +7,9 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<TabPane fx:id="ladderRoot" minHeight="0.0" minWidth="0.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.leaderboard.LadderController">
+<TabPane fx:id="ladderRoot" minHeight="0.0" minWidth="0.0" tabClosingPolicy="UNAVAILABLE"
+         xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+         fx:controller="com.faforever.client.leaderboard.LeaderboardController">
   <tabs>
     <Tab fx:id="ladderByRatingTab" closable="false" styleClass="mimiktab" text="%ladder.byRating">
       <content>

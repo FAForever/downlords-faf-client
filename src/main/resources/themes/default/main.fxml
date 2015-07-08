@@ -41,7 +41,9 @@
                        <ToggleButton fx:id="chatButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.chat" toggleGroup="$mainNavigationToggleGroup" />
                        <ToggleButton fx:id="gamesButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.games" toggleGroup="$mainNavigationToggleGroup" />
                        <ToggleButton fx:id="vaultButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.vault" toggleGroup="$mainNavigationToggleGroup" />
-                       <ToggleButton fx:id="ladderButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.ladder" toggleGroup="$mainNavigationToggleGroup" />
+                       <ToggleButton fx:id="leaderboardButton" focusTraversable="false" mnemonicParsing="false"
+                                     onAction="#onNavigationButton" text="%main.leaderboard"
+                                     toggleGroup="$mainNavigationToggleGroup"/>
                      </children>
                   </HBox>
                  <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />

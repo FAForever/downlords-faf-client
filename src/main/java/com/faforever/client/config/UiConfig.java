@@ -21,7 +21,7 @@ import com.faforever.client.fxml.FxmlLoaderImpl;
 import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
 import com.faforever.client.game.GamesController;
-import com.faforever.client.leaderboard.LadderController;
+import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
 import com.faforever.client.news.NewsController;
@@ -84,7 +84,7 @@ public class UiConfig {
   }
 
   @Bean
-  LadderController leaderboardController() {
+  LeaderboardController leaderboardController() {
     return loadController("ladder.fxml");
   }
 

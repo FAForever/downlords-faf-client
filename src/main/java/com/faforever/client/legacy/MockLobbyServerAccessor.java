@@ -3,7 +3,7 @@ package com.faforever.client.legacy;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.LadderEntryBean;
+import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
@@ -231,7 +231,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void requestLadderInfoInBackground(Callback<List<LadderEntryBean>> callback) {
+  public void requestLadderInfoInBackground(Callback<List<LeaderboardEntryBean>> callback) {
 
   }
 

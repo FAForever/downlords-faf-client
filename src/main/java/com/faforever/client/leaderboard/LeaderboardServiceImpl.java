@@ -6,13 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-public class LadderServiceImpl implements LadderService {
+public class LeaderboardServiceImpl implements LeaderboardService {
 
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
 
   @Override
-  public void getLadderInfo(Callback<List<LadderEntryBean>> callback) {
+  public void getLadderInfo(Callback<List<LeaderboardEntryBean>> callback) {
     lobbyServerAccessor.requestLadderInfoInBackground(callback);
   }
 }

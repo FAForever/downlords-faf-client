@@ -7,9 +7,9 @@ import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.ForgedAllianceServiceImpl;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameServiceImpl;
-import com.faforever.client.leaderboard.LadderService;
-import com.faforever.client.leaderboard.LadderServiceImpl;
-import com.faforever.client.leaderboard.MockLadderService;
+import com.faforever.client.leaderboard.LeaderboardService;
+import com.faforever.client.leaderboard.LeaderboardServiceImpl;
+import com.faforever.client.leaderboard.MockLeaderboardService;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.LobbyServerAccessorImpl;
 import com.faforever.client.legacy.MockLobbyServerAccessor;
@@ -17,8 +17,8 @@ import com.faforever.client.legacy.MockStatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessorImpl;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
-import com.faforever.client.legacy.ladder.LadderParser;
-import com.faforever.client.legacy.ladder.LegacyLadderParser;
+import com.faforever.client.legacy.ladder.LeaderParser;
+import com.faforever.client.legacy.ladder.LegacyLeaderParser;
 import com.faforever.client.legacy.map.LegacyMapVaultParser;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.legacy.proxy.Proxy;
@@ -163,8 +163,8 @@ public class ServiceConfig {
   }
 
   @Bean
-  LadderParser ladderParser() {
-    return new LegacyLadderParser();
+  LeaderParser ladderParser() {
+    return new LegacyLeaderParser();
   }
 
   @Bean
@@ -194,11 +194,11 @@ public class ServiceConfig {
   }
 
   @Bean
-  LadderService leaderboardService() {
+  LeaderboardService leaderboardService() {
     if (environment.containsProperty("faf.testing")) {
-      return new MockLadderService();
+      return new MockLeaderboardService();
     }
-    return new LadderServiceImpl();
+    return new LeaderboardServiceImpl();
   }
 
   @Bean

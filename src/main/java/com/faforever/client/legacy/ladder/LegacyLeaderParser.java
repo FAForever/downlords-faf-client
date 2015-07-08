@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.ladder;
 
-import com.faforever.client.leaderboard.LadderEntryBean;
+import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.util.JavaFxUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -23,13 +23,13 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static java.util.Collections.enumeration;
 
-public class LegacyLadderParser implements LadderParser {
+public class LegacyLeaderParser implements LeaderParser {
 
   @Autowired
   Environment environment;
 
   @Override
-  public List<LadderEntryBean> parseLadder() throws IOException {
+  public List<LeaderboardEntryBean> parseLadder() throws IOException {
     JavaFxUtil.assertBackgroundThread();
 
     String urlParameters = environment.getProperty("ladder.params");
@@ -59,13 +59,13 @@ public class LegacyLadderParser implements LadderParser {
     }
   }
 
-  private static List<LadderEntryBean> parseData(BufferedInputStream inputStream) throws IOException, SAXException {
-    LadderContentHandler ladderContentHandler = new LadderContentHandler();
+  private static List<LeaderboardEntryBean> parseData(BufferedInputStream inputStream) throws IOException, SAXException {
+    LeaderboardContentHandler leaderboardContentHandler = new LeaderboardContentHandler();
 
     XMLReader xmlReader = XMLReaderFactory.createXMLReader();
-    xmlReader.setContentHandler(ladderContentHandler);
+    xmlReader.setContentHandler(leaderboardContentHandler);
     xmlReader.parse(new InputSource(inputStream));
 
-    return ladderContentHandler.getResult();
+    return leaderboardContentHandler.getResult();
   }
 }
