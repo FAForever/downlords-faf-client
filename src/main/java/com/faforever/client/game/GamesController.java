@@ -153,7 +153,6 @@ public class GamesController  {
     filteredItems = new FilteredList<>(gameService.getGameInfoBeans());
   }
 
-  //FIXME Text needs to wrap on long game titles
   public void displayGameDetail(GameInfoBean gameInfoBean) {
     mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapName()));
     gameTitleLabel.setText(gameInfoBean.getTitle());

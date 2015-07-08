@@ -23,24 +23,21 @@ public class GamesTiledController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @FXML
-  public FlowPane tiledFlowPane;
+    @FXML
+    public FlowPane tiledFlowPane;
 
-  @FXML
-  public ScrollPane tiledScrollPane;
+    @FXML
+    public ScrollPane tiledScrollPane;
 
-  @Autowired
-  ApplicationContext applicationContext;
+    @Autowired
+    ApplicationContext applicationContext;
 
-  private Map<Integer, Node> uidToGameCard;
+    private Map<Integer, Node> uidToGameCard;
 
-  //FIXME if password checkbox is clicked as a passworded game is added possible bug
   public void createTiledFlowPane(ObservableList<GameInfoBean> gameInfoBeans) {
     uidToGameCard = new HashMap<>();
     gameInfoBeans.forEach(this::addGameCard);
 
-    //FIXME gameTiles passworded games don't get restored when unchecked
-    //FIXME Exception in thread "JavaFX Application Thread" java.util.NoSuchElementException
     gameInfoBeans.addListener((ListChangeListener<GameInfoBean>) change -> {
       while (change.next()) {
         change.getRemoved().forEach(gameInfoBean -> tiledFlowPane.getChildren().remove(uidToGameCard.get(gameInfoBean.getUid())));

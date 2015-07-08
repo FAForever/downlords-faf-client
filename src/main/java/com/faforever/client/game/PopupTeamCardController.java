@@ -41,7 +41,6 @@ public class PopupTeamCardController {
    * @param teamNumber
    * @return whether playerInfoBean is a null parameter
    */
-  //TODO remove boolean type when running into null playerInfoBean
   public boolean setTeam(List<String> playerList, int teamNumber) {
 
     String localizedTeamTile;

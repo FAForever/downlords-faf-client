@@ -152,5 +152,4 @@ public class GameCardController {
   public Node getRoot() {
     return gameCardRoot;
   }
-
 }
