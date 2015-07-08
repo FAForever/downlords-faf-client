@@ -38,26 +38,13 @@ import com.faforever.client.sound.SoundControllerImpl;
 import com.faforever.client.vault.VaultController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.concurrent.ConcurrentMapCache;
-import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 
-import java.util.Arrays;
-
-import static com.faforever.client.config.CacheKeys.AVATARS;
-import static com.faforever.client.config.CacheKeys.COUNTRY_FLAGS;
-import static com.faforever.client.config.CacheKeys.LARGE_MAP_PREVIEW;
-import static com.faforever.client.config.CacheKeys.SMALL_MAP_PREVIEW;
-import static com.faforever.client.config.CacheKeys.URL_PREVIEW;
-
 @org.springframework.context.annotation.Configuration
 @Import(BaseConfig.class)
-@EnableCaching
 public class UiConfig {
 
   @Autowired
@@ -196,20 +183,6 @@ public class UiConfig {
   @Bean
   FxmlLoader fxmlLoader() {
     return new FxmlLoaderImpl();
-  }
-
-  @Bean
-  CacheManager cacheManager() {
-    SimpleCacheManager cacheManager = new SimpleCacheManager();
-    cacheManager.setCaches(Arrays.asList(
-        new ConcurrentMapCache(AVATARS),
-        new ConcurrentMapCache(COUNTRY_FLAGS),
-        new ConcurrentMapCache(SMALL_MAP_PREVIEW),
-        new ConcurrentMapCache(LARGE_MAP_PREVIEW),
-        new ConcurrentMapCache(URL_PREVIEW)
-    ));
-
-    return cacheManager;
   }
 
   private <T> T loadController(String fxml) {
