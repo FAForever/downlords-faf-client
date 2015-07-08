@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
@@ -20,10 +21,11 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
@@ -47,8 +49,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.invoke.MethodHandles;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -132,6 +132,9 @@ public abstract class AbstractChatTab extends Tab {
   @Autowired
   ImageUploadService imageUploadService;
 
+  @Autowired
+  UrlPreviewResolver urlPreviewResolver;
+
   private boolean isChatReady;
   private WebEngine engine;
   private List<ChatMessage> waitingMessages;
@@ -159,6 +162,7 @@ public abstract class AbstractChatTab extends Tab {
   private String autoCompletePartialName;
   private Pattern mentionPattern;
   private Popup playerInfoTooltip;
+  private Tooltip linkPreviewTooltip;
 
   public AbstractChatTab(String receiver, String fxmlFile) {
     this.receiver = receiver;
@@ -185,8 +189,7 @@ public abstract class AbstractChatTab extends Tab {
   private void addImagePasteListener() {
     TextInputControl messageTextField = getMessageTextField();
     messageTextField.setOnKeyReleased(event -> {
-      if (event.getCode() == KeyCode.V && event.isControlDown()
-          || event.getCode() == KeyCode.INSERT && event.isShiftDown()
+      if ((event.getCode() == KeyCode.V && event.isControlDown() || event.getCode() == KeyCode.INSERT && event.isShiftDown())
           && Clipboard.getSystemClipboard().hasImage()) {
         pasteImage();
       }
@@ -205,8 +208,6 @@ public abstract class AbstractChatTab extends Tab {
       public void success(String url) {
         int currentCaretPosition = messageTextField.getCaretPosition();
         messageTextField.insertText(currentCaretPosition, url);
-        sendMessage();
-
         messageTextField.setDisable(false);
       }
 
@@ -330,27 +331,23 @@ public abstract class AbstractChatTab extends Tab {
    * Called from JavaScript when user hovers over a URL.
    */
   public void previewUrl(String urlString) {
-    try {
-      URL url = new URL(urlString);
-      String protocol = url.getProtocol();
+    Preview preview = urlPreviewResolver.resolvePreview(urlString);
+    if (preview == null) {
+      return;
+    }
 
-      if (!"http".equals(protocol) && !"https".equals(protocol)) {
-        // TODO log unhandled protocol
-        return;
-      }
+    linkPreviewTooltip = new Tooltip(preview.description);
+    linkPreviewTooltip.setAutoHide(true);
+    linkPreviewTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
+    linkPreviewTooltip.setGraphic(preview.node);
+    linkPreviewTooltip.setContentDisplay(ContentDisplay.TOP);
+    linkPreviewTooltip.show(getTabPane(), lastMouseX + 20, lastMouseY);
+  }
 
-      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-      connection.setInstanceFollowRedirects(true);
-
-      long contentLength = connection.getContentLengthLong();
-      String contentType = connection.getContentType();
-
-      Popup popup = new Popup();
-      popup.getContent().setAll(new Label(contentType));
-      popup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
-      // popup.show(getTabPane(), lastMouseX, lastMouseY);
-    } catch (IOException e) {
-      // TODO log
+  public void hideUrlPreview() {
+    if (linkPreviewTooltip != null) {
+      linkPreviewTooltip.hide();
+      linkPreviewTooltip = null;
     }
   }
 

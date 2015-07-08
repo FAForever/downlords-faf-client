@@ -2,7 +2,7 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
-import com.faforever.client.leaderboard.LadderEntryBean;
+import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
@@ -48,7 +48,7 @@ public interface LobbyServerAccessor {
 
   void setOnLobbyConnectedListener(OnLobbyConnectedListener onLobbyConnectedListener);
 
-  void requestLadderInfoInBackground(Callback<List<LadderEntryBean>> callback);
+  void requestLadderInfoInBackground(Callback<List<LeaderboardEntryBean>> callback);
 
   void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener);
 

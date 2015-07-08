@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.ladder;
 
-import com.faforever.client.leaderboard.LadderEntryBean;
+import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.htmlparser.HtmlContentHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -11,17 +11,17 @@ import java.util.List;
 /**
  * Parses the FAF ladder web view and generates a list of LadderEntryBean.
  */
-public class LadderContentHandler extends HtmlContentHandler<List<LadderEntryBean>> {
+public class LeaderboardContentHandler extends HtmlContentHandler<List<LeaderboardEntryBean>> {
 
   private String currentValue;
-  private LadderEntryBean currentBean;
+  private LeaderboardEntryBean currentBean;
   private String currentElement;
-  private List<LadderEntryBean> result;
+  private List<LeaderboardEntryBean> result;
 
   @Override
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
     if (localName.equals("tr")) {
-      currentBean = new LadderEntryBean();
+      currentBean = new LeaderboardEntryBean();
       currentElement = null;
     } else if (localName.equals("td")) {
       currentElement = atts.getValue("class");
@@ -57,7 +57,7 @@ public class LadderContentHandler extends HtmlContentHandler<List<LadderEntryBea
   }
 
   @Override
-  protected List<LadderEntryBean> getResult() {
+  protected List<LeaderboardEntryBean> getResult() {
     return result;
   }
 

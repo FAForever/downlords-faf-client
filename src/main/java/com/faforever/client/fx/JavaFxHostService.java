@@ -12,6 +12,6 @@ public class JavaFxHostService implements HostService {
 
   @Override
   public void showDocument(String url) {
-
+    hostServices.showDocument(url);
   }
 }

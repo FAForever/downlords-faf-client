@@ -3,7 +3,7 @@ package com.faforever.client.legacy;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.LadderEntryBean;
+import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.domain.FoesMessage;
 import com.faforever.client.legacy.domain.FriendsMessage;
 import com.faforever.client.legacy.domain.ClientMessage;
@@ -29,7 +29,7 @@ import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
-import com.faforever.client.legacy.ladder.LadderParser;
+import com.faforever.client.legacy.ladder.LeaderParser;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -79,7 +79,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   PreferencesService preferencesService;
 
   @Autowired
-  LadderParser ladderParser;
+  LeaderParser leaderParser;
 
   @Autowired
   TaskService taskService;
@@ -363,11 +363,11 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void requestLadderInfoInBackground(Callback<List<LadderEntryBean>> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LadderEntryBean>>(i18n.get("readLadderTask.title")) {
+  public void requestLadderInfoInBackground(Callback<List<LeaderboardEntryBean>> callback) {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LeaderboardEntryBean>>(i18n.get("readLadderTask.title")) {
       @Override
-      protected List<LadderEntryBean> call() throws Exception {
-        return ladderParser.parseLadder();
+      protected List<LeaderboardEntryBean> call() throws Exception {
+        return leaderParser.parseLadder();
       }
     }, callback);
   }

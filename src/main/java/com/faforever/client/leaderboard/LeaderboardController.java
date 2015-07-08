@@ -17,7 +17,7 @@ import java.util.List;
 import static javafx.collections.FXCollections.observableArrayList;
 
 
-public class LadderController {
+public class LeaderboardController {
 
   private static final Integer ROWS_PER_PAGE = 1000;
 
@@ -34,32 +34,32 @@ public class LadderController {
   Tab ladderByRankTab;
 
   @FXML
-  TableColumn<LadderEntryBean, Number> rankColumn;
+  TableColumn<LeaderboardEntryBean, Number> rankColumn;
 
   @FXML
-  TableColumn<LadderEntryBean, String> nameColumn;
+  TableColumn<LeaderboardEntryBean, String> nameColumn;
 
   @FXML
-  TableColumn<LadderEntryBean, Number> winLossColumn;
+  TableColumn<LeaderboardEntryBean, Number> winLossColumn;
 
   @FXML
-  TableColumn<LadderEntryBean, Number> gamesPlayedColumn;
+  TableColumn<LeaderboardEntryBean, Number> gamesPlayedColumn;
 
   @FXML
-  TableColumn<LadderEntryBean, Number> ratingColumn;
+  TableColumn<LeaderboardEntryBean, Number> ratingColumn;
 
   @FXML
-  TableView<LadderEntryBean> ratingTable;
+  TableView<LeaderboardEntryBean> ratingTable;
 
   @FXML
   TextField searchTextField;
 
   @Autowired
-  LadderService ladderService;
+  LeaderboardService leaderboardService;
 
-  private List<LadderEntryBean> ladderEntryBeans;
+  private List<LeaderboardEntryBean> leaderboardEntryBeans;
 
-  private FilteredList<LadderEntryBean> filteredList;
+  private FilteredList<LeaderboardEntryBean> filteredList;
 
   @FXML
   public void initialize() {
@@ -73,17 +73,17 @@ public class LadderController {
       if (Validator.isInt(newValue)) {
         ratingTable.scrollTo(Integer.parseInt(newValue) - 1);
       } else {
-        LadderEntryBean foundPlayer = null;
-        for (LadderEntryBean ladderEntryBean : ladderEntryBeans) {
-          if (ladderEntryBean.getUsername().toLowerCase().startsWith(newValue.toLowerCase())) {
-            foundPlayer = ladderEntryBean;
+        LeaderboardEntryBean foundPlayer = null;
+        for (LeaderboardEntryBean leaderboardEntryBean : leaderboardEntryBeans) {
+          if (leaderboardEntryBean.getUsername().toLowerCase().startsWith(newValue.toLowerCase())) {
+            foundPlayer = leaderboardEntryBean;
             break;
           }
         }
         if (foundPlayer == null) {
-          for (LadderEntryBean ladderEntryBean : ladderEntryBeans) {
-            if (ladderEntryBean.getUsername().toLowerCase().contains(newValue.toLowerCase())) {
-              foundPlayer = ladderEntryBean;
+          for (LeaderboardEntryBean leaderboardEntryBean : leaderboardEntryBeans) {
+            if (leaderboardEntryBean.getUsername().toLowerCase().contains(newValue.toLowerCase())) {
+              foundPlayer = leaderboardEntryBean;
               break;
             }
           }
@@ -99,14 +99,14 @@ public class LadderController {
   }
 
   public void setUpIfNecessary() {
-    if (ladderEntryBeans != null) {
+    if (leaderboardEntryBeans != null) {
       return;
     }
 
-    ladderService.getLadderInfo(new Callback<List<LadderEntryBean>>() {
+    leaderboardService.getLadderInfo(new Callback<List<LeaderboardEntryBean>>() {
       @Override
-      public void success(List<LadderEntryBean> result) {
-        ladderEntryBeans = result;
+      public void success(List<LeaderboardEntryBean> result) {
+        leaderboardEntryBeans = result;
         filteredList = new FilteredList<>(observableArrayList(result));
         ratingTable.setItems(filteredList);
       }

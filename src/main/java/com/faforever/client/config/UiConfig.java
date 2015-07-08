@@ -18,13 +18,7 @@ import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.fxml.FxmlLoaderImpl;
 import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
-import com.faforever.client.game.GameCardController;
-import com.faforever.client.game.GameTableController;
 import com.faforever.client.game.GamesController;
-import com.faforever.client.game.GamesTiledController;
-import com.faforever.client.game.PopupGamePaneController;
-import com.faforever.client.game.PopupPlayerCardController;
-import com.faforever.client.game.PopupTeamCardController;
 import com.faforever.client.leaderboard.LadderController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
@@ -42,20 +36,13 @@ import com.faforever.client.sound.SoundControllerImpl;
 import com.faforever.client.vault.VaultController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.concurrent.ConcurrentMapCache;
-import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 
-import java.util.Arrays;
-
 @org.springframework.context.annotation.Configuration
 @Import(BaseConfig.class)
-@EnableCaching
 public class UiConfig {
 
   @Autowired
@@ -95,7 +82,7 @@ public class UiConfig {
   }
 
   @Bean
-  LadderController leaderboardController() {
+  LeaderboardController leaderboardController() {
     return loadController("ladder.fxml");
   }
 
@@ -219,20 +206,13 @@ public class UiConfig {
   }
 
   @Bean
-  FxmlLoader fxmlLoader() {
-    return new FxmlLoaderImpl();
+  UrlPreviewResolver urlPreviewResolver() {
+    return new UrlPreviewResolverImpl();
   }
 
   @Bean
-  CacheManager cacheManager() {
-    SimpleCacheManager cacheManager = new SimpleCacheManager();
-    cacheManager.setCaches(Arrays.asList(
-        new ConcurrentMapCache("avatars"),
-        new ConcurrentMapCache("countryFlags"),
-        new ConcurrentMapCache("smallMapPreview"),
-        new ConcurrentMapCache("largeMapPreview")
-    ));
-    return cacheManager;
+  FxmlLoader fxmlLoader() {
+    return new FxmlLoaderImpl();
   }
 
   private <T> T loadController(String fxml) {

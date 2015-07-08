@@ -20,12 +20,12 @@
                <children>
                  <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
                    <items>
-                     <MenuItem text="%menu.support" onAction="#onSupportItemSelected"/>
-                     <MenuItem text="%menu.settings" onAction="#onSettingsItemSelected"/>
+                     <MenuItem onAction="#onSupportItemSelected" text="%menu.support"/>
+                     <MenuItem onAction="#onSettingsItemSelected" text="%menu.settings"/>
                      <SeparatorMenuItem mnemonicParsing="false" />
                      <MenuItem text="%menu.feedback"/>
                      <SeparatorMenuItem mnemonicParsing="false" />
-                     <MenuItem text="%menu.exit" onAction="#onExitItemSelected"/>
+                     <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
                    </items>
                    <HBox.margin>
                      <Insets left="20.0" right="10.0" />
@@ -41,7 +41,9 @@
                        <ToggleButton fx:id="chatButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.chat" toggleGroup="$mainNavigationToggleGroup" />
                        <ToggleButton fx:id="gamesButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.games" toggleGroup="$mainNavigationToggleGroup" />
                        <ToggleButton fx:id="vaultButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.vault" toggleGroup="$mainNavigationToggleGroup" />
-                       <ToggleButton fx:id="ladderButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.ladder" toggleGroup="$mainNavigationToggleGroup" />
+                       <ToggleButton fx:id="leaderboardButton" focusTraversable="false" mnemonicParsing="false"
+                                     onAction="#onNavigationButton" text="%main.leaderboard"
+                                     toggleGroup="$mainNavigationToggleGroup"/>
                      </children>
                   </HBox>
                  <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
@@ -52,11 +54,10 @@
                  </Button>
                  <MenuButton fx:id="usernameButton" focusTraversable="false" minWidth="10.0" mnemonicParsing="false" prefWidth="100.0" styleClass="username-button" text="Username">
                    <items>
-                     <MenuItem mnemonicParsing="false" text="%menu.logOut" />
+                     <MenuItem mnemonicParsing="false" onAction="#onShowUserInfoClicked"
+                               text="%chat.userContext.userInfo"/>
+                     <MenuItem mnemonicParsing="false" text="%menu.logOut"/>
                    </items>
-                   <HBox.margin>
-                     <Insets />
-                   </HBox.margin>
                  </MenuButton>
                </children>
             <padding>

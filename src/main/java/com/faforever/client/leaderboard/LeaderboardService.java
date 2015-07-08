@@ -4,8 +4,8 @@ import com.faforever.client.util.Callback;
 
 import java.util.List;
 
-public interface LadderService {
+public interface LeaderboardService {
 
-  void getLadderInfo(Callback<List<LadderEntryBean>> callback);
+  void getLadderInfo(Callback<List<LeaderboardEntryBean>> callback);
 
 }

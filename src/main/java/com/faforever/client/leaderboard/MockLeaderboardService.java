@@ -13,7 +13,7 @@ import java.util.List;
 import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
-public class MockLadderService implements LadderService {
+public class MockLeaderboardService implements LeaderboardService {
 
   @Autowired
   TaskService taskService;
@@ -22,11 +22,11 @@ public class MockLadderService implements LadderService {
   I18n i18n;
 
   @Override
-  public void getLadderInfo(Callback<List<LadderEntryBean>> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LadderEntryBean>>(i18n.get("readLadderTask.title"), HIGH) {
+  public void getLadderInfo(Callback<List<LeaderboardEntryBean>> callback) {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LeaderboardEntryBean>>(i18n.get("readLadderTask.title"), HIGH) {
       @Override
-      protected List<LadderEntryBean> call() throws Exception {
-        ArrayList<LadderEntryBean> list = new ArrayList<LadderEntryBean>();
+      protected List<LeaderboardEntryBean> call() throws Exception {
+        ArrayList<LeaderboardEntryBean> list = new ArrayList<LeaderboardEntryBean>();
         for (int i = 1; i <= 10000; i++) {
           String name = RandomStringUtils.random(10);
           int rank = i;
@@ -45,16 +45,16 @@ public class MockLadderService implements LadderService {
   }
 
 
-  private LadderEntryBean createLadderInfoBean(String name, int rank, int rating, int gamesPlayed, int score, float winLossRatio, String division) {
-    LadderEntryBean ladderEntryBean = new LadderEntryBean();
-    ladderEntryBean.setUsername(name);
-    ladderEntryBean.setRank(rank);
-    ladderEntryBean.setRating(rating);
-    ladderEntryBean.setGamesPlayed(gamesPlayed);
-    ladderEntryBean.setScore(score);
-    ladderEntryBean.setWinLossRatio(winLossRatio);
-    ladderEntryBean.setDivision(division);
+  private LeaderboardEntryBean createLadderInfoBean(String name, int rank, int rating, int gamesPlayed, int score, float winLossRatio, String division) {
+    LeaderboardEntryBean leaderboardEntryBean = new LeaderboardEntryBean();
+    leaderboardEntryBean.setUsername(name);
+    leaderboardEntryBean.setRank(rank);
+    leaderboardEntryBean.setRating(rating);
+    leaderboardEntryBean.setGamesPlayed(gamesPlayed);
+    leaderboardEntryBean.setScore(score);
+    leaderboardEntryBean.setWinLossRatio(winLossRatio);
+    leaderboardEntryBean.setDivision(division);
 
-    return ladderEntryBean;
+    return leaderboardEntryBean;
   }
 }

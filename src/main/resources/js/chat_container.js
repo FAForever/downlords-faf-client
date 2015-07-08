@@ -15,6 +15,7 @@ function link(input) {
             "href": "javascript:void(0);",
             "onClick": "chatTab.openUrl('"+match.getUrl()+"')",
             "onMouseOver": "chatTab.previewUrl('"+match.getUrl()+"')",
+            "onMouseOut": "chatTab.hideUrlPreview()"
           },
           innerHtml: match.getAnchorText()
         } );

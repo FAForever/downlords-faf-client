@@ -2,11 +2,12 @@ package com.faforever.client.main;
 
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
+import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.LadderController;
+import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.legacy.OnFafDisconnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
@@ -18,6 +19,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.OnChoseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.SettingsController;
@@ -47,11 +49,13 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
@@ -96,7 +100,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   ButtonBase vaultButton;
 
   @FXML
-  ButtonBase ladderButton;
+  ButtonBase leaderboardButton;
 
   @FXML
   ProgressBar taskProgressBar;
@@ -138,7 +142,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   VaultController vaultController;
 
   @Autowired
-  LadderController ladderController;
+  LeaderboardController leaderboardController;
 
   @Autowired
   PersistentNotificationsController persistentNotificationsController;
@@ -172,6 +176,12 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @Autowired
   SettingsController settingsWindowController;
+
+  @Autowired
+  ApplicationContext applicationContext;
+
+  @Autowired
+  PlayerService playerService;
 
   private Popup notificationsPopup;
 
@@ -348,9 +358,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     } else if (button == vaultButton) {
       vaultController.setUpIfNecessary();
       setContent(vaultController.getRoot());
-    } else if (button == ladderButton) {
-      ladderController.setUpIfNecessary();
-      setContent(ladderController.getRoot());
+    } else if (button == leaderboardButton) {
+      leaderboardController.setUpIfNecessary();
+      setContent(leaderboardController.getRoot());
     }
   }
 
@@ -512,5 +522,19 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
         callback.success(result.toPath());
       }
     });
+  }
+
+  @FXML
+  void onShowUserInfoClicked(ActionEvent event) {
+    UserInfoWindowController userInfoWindowController = applicationContext.getBean(UserInfoWindowController.class);
+    userInfoWindowController.setPlayerInfoBean(playerService.getCurrentPlayer());
+
+    Stage userInfoWindow = new Stage(StageStyle.TRANSPARENT);
+    userInfoWindow.initModality(Modality.NONE);
+    userInfoWindow.initOwner(getRoot().getScene().getWindow());
+
+    sceneFactory.createScene(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
+
+    userInfoWindow.show();
   }
 }

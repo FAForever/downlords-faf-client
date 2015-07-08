@@ -165,4 +165,5 @@ public class JavaFxUtil {
     }
     return isVisibleRecursively(parent);
   }
+
 }

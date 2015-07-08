@@ -10,19 +10,19 @@ import java.util.List;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-public class LadderServiceImplTest {
+public class LeaderboardServiceImplTest {
 
-  private LadderServiceImpl instance;
+  private LeaderboardServiceImpl instance;
 
   @Before
   public void setUp() throws Exception {
-    instance = new LadderServiceImpl();
+    instance = new LeaderboardServiceImpl();
     instance.lobbyServerAccessor = mock(LobbyServerAccessor.class);
   }
 
   @Test
   public void testGetLadderInfo() throws Exception {
-    Callback<List<LadderEntryBean>> callback = mock(Callback.class);
+    Callback<List<LeaderboardEntryBean>> callback = mock(Callback.class);
 
     instance.getLadderInfo(callback);
 
