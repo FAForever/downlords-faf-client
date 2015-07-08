@@ -20,12 +20,12 @@
                <children>
                  <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
                    <items>
-                     <MenuItem text="%menu.support" onAction="#onSupportItemSelected"/>
-                     <MenuItem text="%menu.settings" onAction="#onSettingsItemSelected"/>
+                     <MenuItem onAction="#onSupportItemSelected" text="%menu.support"/>
+                     <MenuItem onAction="#onSettingsItemSelected" text="%menu.settings"/>
                      <SeparatorMenuItem mnemonicParsing="false" />
                      <MenuItem text="%menu.feedback"/>
                      <SeparatorMenuItem mnemonicParsing="false" />
-                     <MenuItem text="%menu.exit" onAction="#onExitItemSelected"/>
+                     <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
                    </items>
                    <HBox.margin>
                      <Insets left="20.0" right="10.0" />
@@ -54,11 +54,10 @@
                  </Button>
                  <MenuButton fx:id="usernameButton" focusTraversable="false" minWidth="10.0" mnemonicParsing="false" prefWidth="100.0" styleClass="username-button" text="Username">
                    <items>
-                     <MenuItem mnemonicParsing="false" text="%menu.logOut" />
+                     <MenuItem mnemonicParsing="false" onAction="#onShowUserInfoClicked"
+                               text="%chat.userContext.userInfo"/>
+                     <MenuItem mnemonicParsing="false" text="%menu.logOut"/>
                    </items>
-                   <HBox.margin>
-                     <Insets />
-                   </HBox.margin>
                  </MenuButton>
                </children>
             <padding>
