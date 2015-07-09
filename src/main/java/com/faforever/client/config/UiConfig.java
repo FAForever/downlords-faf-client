@@ -26,7 +26,7 @@ import com.faforever.client.game.GamesController;
 import com.faforever.client.game.GamesTiledController;
 import com.faforever.client.game.PopupGamePaneController;
 import com.faforever.client.game.PopupPlayerCardController;
-import com.faforever.client.game.PopupTeamCardController;
+import com.faforever.client.game.TeamCardController;
 import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
@@ -106,7 +106,7 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  PopupTeamCardController popupTeamCardController(){return loadController("popup_team_card.fxml");
+  TeamCardController popupTeamCardController(){return loadController("team_card.fxml");
   }
 
   @Bean

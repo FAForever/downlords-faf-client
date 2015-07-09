@@ -80,17 +80,13 @@
                         </Label>
                   <Label fx:id="gameModeLabel" maxHeight="1.7976931348623157E308" text="&lt;Game mode&gt;">
                     <VBox.margin>
-                      <Insets top="10.0" />
+                      <Insets />
                     </VBox.margin>
                     <padding>
                       <Insets left="10.0" />
                     </padding>
                   </Label>
-                        <Label fx:id="gameModeDescriptionLabel" maxHeight="1.7976931348623157E308" text="&lt;Game Mode description&gt;" wrapText="true">
-                           <padding>
-                              <Insets left="10.0" />
-                           </padding>
-                        </Label>
+                        <VBox fx:id="teamListPane" />
                 </children>
                 <padding>
                   <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />

@@ -16,7 +16,7 @@ import org.springframework.context.ApplicationContext;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 
-public class PopupTeamCardController {
+public class TeamCardController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

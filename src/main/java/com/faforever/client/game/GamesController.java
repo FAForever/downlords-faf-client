@@ -9,6 +9,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -34,6 +35,8 @@ import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 // TODO rename all Game* things to "Play" to be consistent with the menu
@@ -44,7 +47,7 @@ public class GamesController  {
   private static final Pattern RATING_PATTERN = Pattern.compile("([<>+~](?:\\d\\.?\\d?k|\\d{3,4})|(?:\\d\\.?\\d?k|\\d{3,4})[<>+]|(?:\\d\\.?\\d?k|\\d{1,4})\\s?-\\s?(?:\\d\\.?\\d?k|\\d{3,4}))");
 
   @FXML
-  Label gameModeDescriptionLabel;
+  VBox teamListPane;
 
   @FXML
   Label mapLabel;
@@ -148,7 +151,18 @@ public class GamesController  {
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     hosterLabel.setText(gameInfoBean.getHost());
     gameModeLabel.setText(gameInfoBean.getFeaturedMod());
-    gameModeDescriptionLabel.setText(gameService.getGameTypeBeanFromString(gameInfoBean.getFeaturedMod()).getDescription());
+    createTeam(gameInfoBean.getTeams());
+  }
+
+  private void createTeam(ObservableMap<? extends String, ? extends List<String>> teamsList) {
+    teamListPane.getChildren().clear();
+    for (Map.Entry<? extends String, ? extends List<String>> entry : teamsList.entrySet()) {
+      TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
+      boolean teamCardSuccess = teamCardController.setTeam(entry.getValue(), Integer.parseInt(entry.getKey()));
+      if (teamCardSuccess) {
+        teamListPane.getChildren().add(teamCardController.getRoot());
+      }
+    }
   }
 
   @FXML
