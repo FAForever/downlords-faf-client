@@ -55,6 +55,8 @@ public class PreferencesService {
       Paths.get(System.getenv("ProgramFiles") + "\\Steam\\steamapps\\common\\supreme commander forged alliance"),
       Paths.get(System.getenv("ProgramFiles") + "\\Supreme Commander - Forged Alliance")
   );
+  private static final String FORGED_ALLIANCE_EXE = "ForgedAlliance.exe";
+  private static final String SUPREME_COMMANDER_EXE = "SupremeCommander.exe";
 
   @Autowired
   I18n i18n;
@@ -154,7 +156,7 @@ public class PreferencesService {
       return false;
     }
 
-    if (!Files.isRegularFile(path.resolve("ForgedAlliance.exe"))) {
+    if (!Files.isRegularFile(path.resolve(FORGED_ALLIANCE_EXE)) && !Files.isRegularFile(path.resolve(SUPREME_COMMANDER_EXE))) {
       return storeGamePathIfValid(path.resolve("bin"));
     }
 
