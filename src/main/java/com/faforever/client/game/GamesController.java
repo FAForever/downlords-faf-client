@@ -50,9 +50,6 @@ public class GamesController  {
   Label mapLabel;
 
   @FXML
-  Label mapDescriptionLabel;
-
-  @FXML
   Button createGameButton;
 
   @FXML
@@ -83,22 +80,14 @@ public class GamesController  {
   ApplicationContext applicationContext;
 
   @Autowired
-  PreferencesService preferenceService;
-
-  @Autowired
   I18n i18n;
 
   @Autowired
   GameService gameService;
 
-  @Autowired
-  ModService modService;
 
   @Autowired
   MapService mapService;
-
-  @Autowired
-  FxmlLoader fxmlLoader;
 
   @Autowired
   CreateGameController createGameController;
@@ -159,6 +148,7 @@ public class GamesController  {
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     hosterLabel.setText(gameInfoBean.getHost());
     gameModeLabel.setText(gameInfoBean.getFeaturedMod());
+    gameModeDescriptionLabel.setText(gameService.getGameTypeBeanFromString(gameInfoBean.getFeaturedMod()).getDescription());
   }
 
   @FXML

@@ -41,4 +41,6 @@ public interface GameService {
   void runWithReplay(URL url, Integer replayId) throws IOException;
 
   ObservableList<GameInfoBean> getGameInfoBeans();
+
+  GameTypeBean getGameTypeBeanFromString(String gameTypeBeanName);
 }

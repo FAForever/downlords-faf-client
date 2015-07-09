@@ -244,6 +244,11 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
+  public GameTypeBean getGameTypeBeanFromString(String gameTypeBeanName) {
+    return gameTypeBeans.get(gameTypeBeanName);
+  }
+
+  @Override
   public void onGameInfo(GameInfo gameInfo) {
     Platform.runLater(() -> {
       GameInfoBean gameInfoBean = new GameInfoBean(gameInfo);
