@@ -137,7 +137,7 @@ public class GameCardController {
     gamesController.displayGameDetail(gameInfoBean);
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
       mouseEvent.consume();
-      gamesController.joinGame(gameInfoBean, null,  mouseEvent.getScreenX(), mouseEvent.getScreenY());
+      gamesController.onJoinGame(gameInfoBean, null, mouseEvent.getScreenX(), mouseEvent.getScreenY());
     }
   }
 

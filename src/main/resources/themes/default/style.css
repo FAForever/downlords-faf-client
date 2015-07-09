@@ -684,4 +684,27 @@
   -fx-padding: 1.5em;
 }
 
-/***************** Chat (WebView has own CSS file) *****************/
+/***************** Dialogs *****************/
+
+
+.dialog-pane:header .header-panel {
+  -fx-background-color: transparent;
+}
+
+.alert.confirmation.dialog-pane,
+.text-input-dialog.dialog-pane,
+.choice-dialog.dialog-pane {
+  -fx-graphic: null;
+}
+
+.alert.information.dialog-pane {
+  -fx-graphic: null;
+}
+
+.alert.error.dialog-pane {
+  -fx-graphic: null;
+}
+
+.alert.warning.dialog-pane {
+  -fx-graphic: null;
+}

@@ -11,15 +11,25 @@ import com.faforever.client.chat.ChatUserControlFactoryImpl;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.CountryFlagServiceImpl;
 import com.faforever.client.chat.PlayerInfoTooltipController;
+import com.faforever.client.chat.UrlPreviewResolver;
+import com.faforever.client.chat.UrlPreviewResolverImpl;
 import com.faforever.client.chat.UserInfoWindowController;
+import com.faforever.client.fx.DialogFactory;
+import com.faforever.client.fx.DialogFactoryImpl;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.fxml.FxmlLoaderImpl;
 import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
+import com.faforever.client.game.GameCardController;
+import com.faforever.client.game.GameTableController;
 import com.faforever.client.game.GamesController;
-import com.faforever.client.leaderboard.LadderController;
+import com.faforever.client.game.GamesTiledController;
+import com.faforever.client.game.PopupGamePaneController;
+import com.faforever.client.game.PopupPlayerCardController;
+import com.faforever.client.game.PopupTeamCardController;
+import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
 import com.faforever.client.news.NewsController;
@@ -54,6 +64,11 @@ public class UiConfig {
   @Bean
   SceneFactory sceneFactory() {
     return new SceneFactoryImpl();
+  }
+
+  @Bean
+  DialogFactory dialogFactory() {
+    return new DialogFactoryImpl();
   }
 
   @Bean

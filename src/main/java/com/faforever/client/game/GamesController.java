@@ -1,20 +1,22 @@
 package com.faforever.client.game;
 
-import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.fx.DialogFactory;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.map.MapService;
-import com.faforever.client.mod.ModService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import com.faforever.client.util.RatingUtil;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -22,9 +24,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Paint;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import org.slf4j.Logger;
@@ -34,10 +33,10 @@ import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
-// TODO rename all Game* things to "Play" to be consistent with the menu
-public class GamesController  {
+public class GamesController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -83,22 +82,16 @@ public class GamesController  {
   ApplicationContext applicationContext;
 
   @Autowired
-  PreferencesService preferenceService;
+  I18n i18n;
 
   @Autowired
-  I18n i18n;
+  DialogFactory dialogFactory;
 
   @Autowired
   GameService gameService;
 
   @Autowired
-  ModService modService;
-
-  @Autowired
   MapService mapService;
-
-  @Autowired
-  FxmlLoader fxmlLoader;
 
   @Autowired
   CreateGameController createGameController;
@@ -109,7 +102,8 @@ public class GamesController  {
   @Autowired
   PreferencesService preferencesService;
 
-  private ObservableList<GameInfoBean> gameInfoBeans;
+  @Autowired
+  PlayerService playerService;
 
   private Popup createGamePopup;
   private Popup passwordPopup;
@@ -118,10 +112,6 @@ public class GamesController  {
   //TODO Implement into options menu
   private boolean tilePaneSelected = false;
   private boolean firstGeneratedPane = true;
-
-  public GamesController() {
-    gameInfoBeans = FXCollections.observableArrayList();
-  }
 
   @PostConstruct
   void postConstruct() {
@@ -136,7 +126,7 @@ public class GamesController  {
     createGamePopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
     createGamePopup.getContent().setAll(createGameController.getRoot());
 
-    enterPasswordController.setOnPasswordEnteredListener(this::joinGame);
+    enterPasswordController.setOnPasswordEnteredListener(this::doJoinGame);
 
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
       createGameButton.setDisable(true);
@@ -172,7 +162,33 @@ public class GamesController  {
     }
   }
 
-  public void joinGame(GameInfoBean gameInfoBean, String password, double screenX, double screenY) {
+  public void onJoinGame(GameInfoBean gameInfoBean, String password, double screenX, double screenY) {
+    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
+    int playerRating = RatingUtil.getRating(currentPlayer);
+
+    if ((playerRating < gameInfoBean.getMinRating() || playerRating > gameInfoBean.getMaxRating())
+        && !showRatingOutOfBoundsConfirmation(playerRating, gameInfoBean, screenX, screenY)) {
+      return;
+    }
+
+    doJoinGame(gameInfoBean, password, screenX, screenY);
+  }
+
+  private boolean showRatingOutOfBoundsConfirmation(int playerRating, GameInfoBean gameInfoBean, double screenX, double screenY) {
+    ButtonType joinButton = new ButtonType(i18n.get("game.join"));
+
+    Alert alert = dialogFactory.createAlert(
+        Alert.AlertType.CONFIRMATION,
+        i18n.get("game.joinGameRatingConfirmation.text", gameInfoBean.getMinRating(), gameInfoBean.getMaxRating(), playerRating),
+        joinButton, ButtonType.CANCEL
+    );
+    alert.setHeaderText(i18n.get("game.joinGameRatingConfirmation.title"));
+
+    Optional<ButtonType> result = alert.showAndWait();
+    return result.isPresent() && result.get() == joinButton;
+  }
+
+  private void doJoinGame(GameInfoBean gameInfoBean, String password, double screenX, double screenY) {
     // FIXME check if game path is set
 
     if (gameInfoBean.getAccess() == GameAccess.PASSWORD && password == null) {
@@ -238,7 +254,6 @@ public class GamesController  {
   public Node getRoot() {
     return gamesRoot;
   }
-
 
   public void onCreateGameButtonClicked(ActionEvent actionEvent) {
     Button button = (Button) actionEvent.getSource();

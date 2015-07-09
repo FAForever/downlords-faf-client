@@ -84,7 +84,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
         }
 
         for (OnGameInfoListener onGameInfoListener : onGameInfoListeners) {
-          onGameInfoListener.onGameInfo(createGameInfo(1, "Mock game 1", PUBLIC, "faf", "scmp_010", 3, 6, "Mock user"));
+          onGameInfoListener.onGameInfo(createGameInfo(1, "Mock game 1 500 - 800", PUBLIC, "faf", "scmp_010", 3, 6, "Mock user"));
           onGameInfoListener.onGameInfo(createGameInfo(1, "Mock game 2", PUBLIC, "faf", "scmp_011", 3, 6, "Mock user"));
           onGameInfoListener.onGameInfo(createGameInfo(1, "Mock game 3", PUBLIC, "faf", "scmp_012", 3, 6, "Mock user"));
           onGameInfoListener.onGameInfo(createGameInfo(1, "Mock game 4", PUBLIC, "faf", "scmp_013", 3, 6, "Mock user"));

@@ -19,7 +19,7 @@
             <Insets left="2.0" right="2.0" top="2.0" />
           </padding>
         </Separator>
-        <Label text="%game.create.ranking" />
+        <Label text="%game.create.rating"/>
         <HBox maxWidth="1.7976931348623157E308" spacing="10.0">
           <children>
             <TextField fx:id="minRankingTextField" minWidth="30.0" prefWidth="60.0" HBox.hgrow="NEVER" />
