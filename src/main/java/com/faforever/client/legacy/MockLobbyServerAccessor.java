@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.faforever.client.legacy.domain.GameAccess.PUBLIC;
 import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
@@ -83,38 +84,13 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
         }
 
         for (OnGameInfoListener onGameInfoListener : onGameInfoListeners) {
-          GameInfo gameInfo = new GameInfo();
-          gameInfo.uid = 1;
-          gameInfo.title = "Mock game";
-          gameInfo.access = GameAccess.PUBLIC;
-          gameInfo.featuredMod = "faf";
-          gameInfo.mapname = "scmp_015";
-          gameInfo.numPlayers = 3;
-          gameInfo.maxPlayers = 6;
-          gameInfo.host = "Mock user";
-          gameInfo.state = GameState.OPEN;
-          gameInfo.options = new Boolean[0];
-          gameInfo.simMods = Collections.emptyMap();
-          gameInfo.teams = Collections.emptyMap();
-          gameInfo.featuredModVersions = Collections.emptyMap();
-
-          onGameInfoListener.onGameInfo(gameInfo);
-          gameInfo = new GameInfo();
-          gameInfo.uid = 2;
-          gameInfo.title = "Protected mock game";
-          gameInfo.access = GameAccess.PASSWORD;
-          gameInfo.featuredMod = "faf";
-          gameInfo.mapname = "scmp_016";
-          gameInfo.numPlayers = 1;
-          gameInfo.maxPlayers = 6;
-          gameInfo.host = "Mock user";
-          gameInfo.state = GameState.OPEN;
-          gameInfo.options = new Boolean[0];
-          gameInfo.simMods = Collections.emptyMap();
-          gameInfo.teams = Collections.emptyMap();
-          gameInfo.featuredModVersions = Collections.emptyMap();
-
-          onGameInfoListener.onGameInfo(gameInfo);
+          onGameInfoListener.onGameInfo(createGameInfo(1, "Mock game 1", PUBLIC, "faf", "scmp_010", 3, 6, "Mock user"));
+          onGameInfoListener.onGameInfo(createGameInfo(1, "Mock game 2", PUBLIC, "faf", "scmp_011", 3, 6, "Mock user"));
+          onGameInfoListener.onGameInfo(createGameInfo(1, "Mock game 3", PUBLIC, "faf", "scmp_012", 3, 6, "Mock user"));
+          onGameInfoListener.onGameInfo(createGameInfo(1, "Mock game 4", PUBLIC, "faf", "scmp_013", 3, 6, "Mock user"));
+          onGameInfoListener.onGameInfo(createGameInfo(1, "Mock game 5", PUBLIC, "faf", "scmp_014", 3, 6, "Mock user"));
+          onGameInfoListener.onGameInfo(createGameInfo(1, "Mock game 6", PUBLIC, "faf", "scmp_015", 3, 6, "Mock user"));
+          onGameInfoListener.onGameInfo(createGameInfo(1, "Mock game 7", PUBLIC, "faf", "scmp_016", 3, 6, "Mock user"));
         }
 
         notificationService.addNotification(
@@ -143,6 +119,25 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
         return null;
       }
     }, callback);
+  }
+
+  private GameInfo createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
+    GameInfo gameInfo = new GameInfo();
+    gameInfo.uid = uid;
+    gameInfo.title = title;
+    gameInfo.access = access;
+    gameInfo.featuredMod = featuredMod;
+    gameInfo.mapname = mapName;
+    gameInfo.numPlayers = numPlayers;
+    gameInfo.maxPlayers = maxPlayers;
+    gameInfo.host = host;
+    gameInfo.state = GameState.OPEN;
+    gameInfo.options = new Boolean[0];
+    gameInfo.simMods = Collections.emptyMap();
+    gameInfo.teams = Collections.emptyMap();
+    gameInfo.featuredModVersions = Collections.emptyMap();
+
+    return gameInfo;
   }
 
   @Override

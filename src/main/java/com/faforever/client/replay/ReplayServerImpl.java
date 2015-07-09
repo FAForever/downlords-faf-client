@@ -66,7 +66,6 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGam
 
   @PostConstruct
   void postConstruct() {
-    gameService.addOnGameInfoListener(this);
     gameService.addOnGameStartedListener(this);
     startInBackground();
   }

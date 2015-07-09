@@ -47,7 +47,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAddOnGameInfoListener() throws Exception {
     OnGameInfoListener listener = mock(OnGameInfoListener.class);
-    instance.addOnGameInfoListener(listener);
 
     verify(instance.lobbyServerAccessor).addOnGameInfoListener(listener);
   }

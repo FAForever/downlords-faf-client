@@ -11,8 +11,6 @@ import com.faforever.client.chat.ChatUserControlFactoryImpl;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.CountryFlagServiceImpl;
 import com.faforever.client.chat.PlayerInfoTooltipController;
-import com.faforever.client.chat.UrlPreviewResolver;
-import com.faforever.client.chat.UrlPreviewResolverImpl;
 import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
@@ -21,7 +19,7 @@ import com.faforever.client.fxml.FxmlLoaderImpl;
 import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
 import com.faforever.client.game.GamesController;
-import com.faforever.client.leaderboard.LeaderboardController;
+import com.faforever.client.leaderboard.LadderController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
 import com.faforever.client.news.NewsController;
@@ -90,8 +88,40 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  GameTableController gameTableController(){return loadController("game_table.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  PopupPlayerCardController popupPlayerCardController(){return loadController("popup_player_card.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  PopupTeamCardController popupTeamCardController(){return loadController("popup_team_card.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  PopupGamePaneController popupGamePaneController() {return loadController("popup_game_pane.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  GamesTiledController gamesTiledController() {
+    return loadController("games_tiled.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   UserInfoWindowController userInfoWindowController() {
     return loadController("user_info_window.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  GameCardController gameCardController() {
+    return loadController("game_card.fxml");
   }
 
   @Bean

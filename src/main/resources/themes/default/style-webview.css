@@ -87,6 +87,10 @@ a {
   color: orange;
 }
 
+.chat-message .time {
+  white-space: nowrap;
+}
+
 /***************** News (WebView) *****************/
 
 html.news-detail {

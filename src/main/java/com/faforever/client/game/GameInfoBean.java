@@ -69,8 +69,13 @@ public class GameInfoBean {
     maxPlayers.set(gameInfo.maxPlayers);
     gameType.set(gameInfo.gameType);
     options.setAll(gameInfo.options);
+
+    simMods.clear();
     simMods.putAll(gameInfo.simMods);
+
+    teams.clear();
     teams.putAll(gameInfo.teams);
+
     featuredModVersions.putAll(gameInfo.featuredModVersions);
     status.set(gameInfo.state);
   }
@@ -242,5 +247,24 @@ public class GameInfoBean {
 
   public void setFeaturedModVersions(ObservableMap<String, Integer> featuredModVersions) {
     this.featuredModVersions.set(featuredModVersions);
+  }
+
+  @Override
+  public int hashCode() {
+    return uid.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof GameInfoBean
+        && uid.get().equals(((GameInfoBean) obj).uid.get());
+  }
+
+  @Override
+  public String toString() {
+    return "GameInfoBean{" +
+        "title=" + title +
+        ", uid=" + uid +
+        '}';
   }
 }
