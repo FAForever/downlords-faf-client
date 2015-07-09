@@ -507,6 +507,13 @@
   -fx-text-fill : #cb3d3d;
 }
 
+.immediate-notification {
+  -fx-padding: 1.6em;
+}
+
+.immediate-notification > *.header {
+  -fx-font-size: 1.5em;
+}
 
 /***************** Popup *****************/
 
@@ -675,36 +682,11 @@
 }
 
 .settings .tab {
-  /* Since the text is rotated 90°, these values are as well (right is top, width is height) */
+  /* Since the text is rotated 90ï¿½, these values are as well (right is top, width is height) */
   -fx-pref-height: 20em;
   -fx-vpos: top;
 }
 
 .settings-content {
   -fx-padding: 1.5em;
-}
-
-/***************** Dialogs *****************/
-
-
-.dialog-pane:header .header-panel {
-  -fx-background-color: transparent;
-}
-
-.alert.confirmation.dialog-pane,
-.text-input-dialog.dialog-pane,
-.choice-dialog.dialog-pane {
-  -fx-graphic: null;
-}
-
-.alert.information.dialog-pane {
-  -fx-graphic: null;
-}
-
-.alert.error.dialog-pane {
-  -fx-graphic: null;
-}
-
-.alert.warning.dialog-pane {
-  -fx-graphic: null;
 }

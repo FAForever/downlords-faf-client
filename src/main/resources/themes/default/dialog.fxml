@@ -13,7 +13,4 @@
       </children>
     </AnchorPane>
   </header>
-  <content>
-    <AnchorPane minHeight="0.0" minWidth="0.0"/>
-  </content>
 </DialogPane>

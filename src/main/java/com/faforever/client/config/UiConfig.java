@@ -34,6 +34,7 @@ import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.news.NewsListItemController;
+import com.faforever.client.notification.ImmediateNotificationController;
 import com.faforever.client.notification.NotificationNodeFactory;
 import com.faforever.client.notification.NotificationNodeFactoryImpl;
 import com.faforever.client.notification.PersistentNotificationsController;
@@ -103,22 +104,32 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  GameTableController gameTableController(){return loadController("game_table.fxml");
+  GameTableController gameTableController() {
+    return loadController("game_table.fxml");
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  PopupPlayerCardController popupPlayerCardController(){return loadController("popup_player_card.fxml");
+  ImmediateNotificationController immediateNotificationController() {
+    return loadController("immediate_notification.fxml");
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  PopupTeamCardController popupTeamCardController(){return loadController("popup_team_card.fxml");
+  PopupPlayerCardController popupPlayerCardController() {
+    return loadController("popup_player_card.fxml");
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  PopupGamePaneController popupGamePaneController() {return loadController("popup_game_pane.fxml");
+  PopupTeamCardController popupTeamCardController() {
+    return loadController("popup_team_card.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  PopupGamePaneController popupGamePaneController() {
+    return loadController("popup_game_pane.fxml");
   }
 
   @Bean

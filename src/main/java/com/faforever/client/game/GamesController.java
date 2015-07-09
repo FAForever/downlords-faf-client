@@ -2,9 +2,14 @@ package com.faforever.client.game;
 
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.fx.DialogFactory;
+import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.map.MapService;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
@@ -33,6 +38,7 @@ import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -105,6 +111,9 @@ public class GamesController {
   @Autowired
   PlayerService playerService;
 
+  @Autowired
+  NotificationService notificationService;
+
   private Popup createGamePopup;
   private Popup passwordPopup;
   private FilteredList<GameInfoBean> filteredItems;
@@ -112,6 +121,7 @@ public class GamesController {
   //TODO Implement into options menu
   private boolean tilePaneSelected = false;
   private boolean firstGeneratedPane = true;
+  private FxmlLoader fxmlLoader;
 
   @PostConstruct
   void postConstruct() {
@@ -166,26 +176,23 @@ public class GamesController {
     PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
     int playerRating = RatingUtil.getRating(currentPlayer);
 
-    if ((playerRating < gameInfoBean.getMinRating() || playerRating > gameInfoBean.getMaxRating())
-        && !showRatingOutOfBoundsConfirmation(playerRating, gameInfoBean, screenX, screenY)) {
-      return;
+    if ((playerRating < gameInfoBean.getMinRating() || playerRating > gameInfoBean.getMaxRating())) {
+      showRatingOutOfBoundsConfirmation(playerRating, gameInfoBean, screenX, screenY);
+    } else {
+      doJoinGame(gameInfoBean, password, screenX, screenY);
     }
-
-    doJoinGame(gameInfoBean, password, screenX, screenY);
   }
 
-  private boolean showRatingOutOfBoundsConfirmation(int playerRating, GameInfoBean gameInfoBean, double screenX, double screenY) {
-    ButtonType joinButton = new ButtonType(i18n.get("game.join"));
-
-    Alert alert = dialogFactory.createAlert(
-        Alert.AlertType.CONFIRMATION,
+  private void showRatingOutOfBoundsConfirmation(int playerRating, GameInfoBean gameInfoBean, double screenX, double screenY) {
+    notificationService.addNotification(new ImmediateNotification(
+        i18n.get("game.joinGameRatingConfirmation.title"),
         i18n.get("game.joinGameRatingConfirmation.text", gameInfoBean.getMinRating(), gameInfoBean.getMaxRating(), playerRating),
-        joinButton, ButtonType.CANCEL
-    );
-    alert.setHeaderText(i18n.get("game.joinGameRatingConfirmation.title"));
-
-    Optional<ButtonType> result = alert.showAndWait();
-    return result.isPresent() && result.get() == joinButton;
+        Severity.INFO,
+        Arrays.asList(
+            new Action(i18n.get("game.join"), event -> doJoinGame(gameInfoBean, null, screenX, screenY)),
+            new Action(i18n.get("game.cancel"))
+        )
+    ));
   }
 
   private void doJoinGame(GameInfoBean gameInfoBean, String password, double screenX, double screenY) {

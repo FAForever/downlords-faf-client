@@ -79,7 +79,8 @@ public class MapServiceImpl implements MapService {
       String theme = preferencesService.getPreferences().getTheme();
       return new Image(ThemeUtil.themeFile(theme, "images/map_background.png"));
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      logger.warn("Could not fetch map preview", e);
+      return null;
     }
   }
 

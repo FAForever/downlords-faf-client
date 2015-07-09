@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="notificationRoot" styleClass="immediate-notification" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.notification.ImmediateNotificationController">
+   <children>
+      <HBox styleClass="header">
+         <children>
+            <Label fx:id="titleLabel" text="&lt;Title&gt;" />
+         </children>
+      </HBox>
+      <Label fx:id="messageLabel" text="&lt;message&gt;" />
+      <ButtonBar fx:id="buttonBar">
+      </ButtonBar>
+   </children>
+</VBox>
