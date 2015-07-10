@@ -292,6 +292,6 @@ public class PreferencesService {
   }
 
   public Path getCacheDirectory() {
-    return getFafGameDataDirectory().resolve(CACHE_SUB_FOLDER);
+    return getFafDataDirectory().resolve(CACHE_SUB_FOLDER);
   }
 }
