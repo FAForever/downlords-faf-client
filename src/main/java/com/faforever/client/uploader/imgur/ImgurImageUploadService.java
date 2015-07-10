@@ -42,7 +42,7 @@ public class ImgurImageUploadService implements ImageUploadService {
 
   @Override
   public void uploadImageInBackground(Image image, Callback<String> callback) {
-    taskService.submitTask(TaskGroup.NET_LIGHT, new PrioritizedTask<String>(i18n.get("chat.imageUploadTask.title")) {
+    taskService.submitTask(TaskGroup.NET_UPLOAD, new PrioritizedTask<String>(i18n.get("chat.imageUploadTask.title")) {
       @Override
       protected String call() throws Exception {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();

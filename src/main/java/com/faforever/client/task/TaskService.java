@@ -32,5 +32,5 @@ public interface TaskService {
    */
   <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task);
 
-  void addChangeListener(TaskGroup taskGroup, ListChangeListener<PrioritizedTask<?>> listener);
+  void addChangeListener(ListChangeListener<PrioritizedTask<?>> listener, TaskGroup... taskGroups);
 }

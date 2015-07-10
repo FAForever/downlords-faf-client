@@ -18,7 +18,6 @@ import com.faforever.client.news.NewsController;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.ImmediateNotificationController;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.OnImmediateNotificationListener;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
@@ -35,7 +34,6 @@ import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.vault.VaultController;
 import javafx.application.Platform;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
@@ -67,7 +65,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Consumer;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
@@ -213,7 +210,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
       Platform.runLater(() -> displayImmediateNotification(notification));
     });
 
-    taskService.addChangeListener(TaskGroup.NET_HEAVY, change -> {
+    taskService.addChangeListener(change -> {
       while (change.next()) {
         if (change.wasAdded()) {
           addTasks(change.getAddedSubList());
@@ -222,7 +219,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
           removeTasks(change.getRemoved());
         }
       }
-    });
+    }, TaskGroup.NET_HEAVY, TaskGroup.NET_UPLOAD);
+
     portCheckStatusButton.getTooltip().setText(
         i18n.get("statusBar.portCheckTooltip", preferencesService.getPreferences().getForgedAlliance().getPort())
     );
