@@ -25,8 +25,8 @@ import java.util.regex.Pattern;
 
 public class GameInfoBean {
 
-  private static final Pattern MIN_RATING_PATTERN = Pattern.compile("<\\s?(\\d+)\\s?[-+]?");
-  private static final Pattern MAX_RATING_PATTERN = Pattern.compile("[<-]\\s?(\\d+)?");
+  private static final Pattern MIN_RATING_PATTERN = Pattern.compile(">?\\s?(\\d+)\\s?\\+?");
+  private static final Pattern MAX_RATING_PATTERN = Pattern.compile("<\\s?(\\d+)?");
   private static final Pattern ABOUT_RATING_PATTERN = Pattern.compile("~?(\\d+)");
   private static final Pattern BETWEEN_RATING_PATTERN = Pattern.compile("(\\d+)\\s?-\\s?(\\d+)");
   private static final Pattern RATING_PATTERN = Pattern.compile("([<>+~](?:\\d\\.?\\d?k|\\d{3,4})|(?:\\d\\.?\\d?k|\\d{3,4})[<>+]|(?:\\d\\.?\\d?k|\\d{1,4})\\s?-\\s?(?:\\d\\.?\\d?k|\\d{3,4}))");
@@ -105,6 +105,7 @@ public class GameInfoBean {
         matcher = MIN_RATING_PATTERN.matcher(ratingString);
         if (matcher.find()) {
           minRating.set(Integer.parseInt(matcher.group(1)));
+          maxRating.set(2500);
         } else {
           matcher = MAX_RATING_PATTERN.matcher(ratingString);
           if (matcher.find()) {
@@ -112,6 +113,8 @@ public class GameInfoBean {
           }
         }
       }
+    } else {
+      maxRating.set(2500);
     }
   }
 
