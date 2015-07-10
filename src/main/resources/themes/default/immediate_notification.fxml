@@ -12,7 +12,12 @@
             <Label fx:id="titleLabel" text="&lt;Title&gt;" />
          </children>
       </HBox>
-      <Label fx:id="messageLabel" text="&lt;message&gt;" />
+      <Separator/>
+      <VBox styleClass="content">
+         <children>
+            <Label fx:id="messageLabel" text="&lt;message&gt;"/>
+         </children>
+      </VBox>
       <ButtonBar fx:id="buttonBar">
       </ButtonBar>
    </children>

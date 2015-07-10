@@ -282,6 +282,14 @@
     -fx-background-insets: -0.2, 1, 2, -1.4, 2.6;
     -fx-background-radius: 3, 2, 1, 4, 1;
 }
+
+/***************** Popup *****************/
+
+.popup {
+  -fx-background-color: -fx-background;
+  -fx-effect: -fx-drop-shadow;
+}
+
 /***************** Tooltip *****************/
 
 .tooltip {
@@ -289,7 +297,7 @@
   -fx-background-color: -fx-background;
   -fx-border-width: 1;
   -fx-border-color: -fx-box-border;
-  -fx-effect: -fx-drop-shadow;
+  -fx-effect: null;
 }
 
 /***************** Window *****************/
@@ -513,17 +521,20 @@
 }
 
 .immediate-notification {
+  -fx-background-image: url('images/background.png');
+}
+
+.immediate-notification > *.header,
+.immediate-notification > *.content {
   -fx-padding: 1.6em;
+}
+
+.immediate-notification > *.button-bar{
+  -fx-padding: 0 1.6em 1.6em 1.6em;
 }
 
 .immediate-notification > *.header {
   -fx-font-size: 1.5em;
-}
-
-/***************** Popup *****************/
-
-.popup {
-  -fx-background-color: -fx-background;
 }
 
 /***************** Tabs *****************/
