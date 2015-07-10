@@ -25,7 +25,8 @@
                <children>
               <CheckBox layoutX="110.0" layoutY="6.0" mnemonicParsing="false" onAction="#onShowPrivateGames" selected="true" text="%games.showPrivateGames" AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="124.0" AnchorPane.topAnchor="7.0" />
               <Button fx:id="createGameButton" layoutX="14.0" layoutY="3.0" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" text="%games.create" AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="7.0" />
-                  <MenuButton layoutX="727.0" layoutY="2.0" mnemonicParsing="false" text="View" AnchorPane.bottomAnchor="7.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="7.0">
+                 <MenuButton fx:id="switchViewButton" mnemonicParsing="false" text="View" AnchorPane.bottomAnchor="7.0"
+                             AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="7.0">
                     <items>
                       <MenuItem fx:id="tiledButton" mnemonicParsing="false" onAction="#onTilesButtonPressed" text="Tiled" />
                       <MenuItem fx:id="detailsButton" mnemonicParsing="false" onAction="#onDetailsButtonPressed" text="Details" />
@@ -35,9 +36,6 @@
                <HBox.margin>
                   <Insets />
                </HBox.margin>
-               <padding>
-                  <Insets bottom="-9.0" />
-               </padding>
             </AnchorPane>
       </children>
     </HBox>

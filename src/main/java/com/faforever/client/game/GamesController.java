@@ -1,7 +1,6 @@
 package com.faforever.client.game;
 
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.fx.DialogFactory;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
@@ -19,11 +18,10 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -39,17 +37,10 @@ import org.springframework.context.ApplicationContext;
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
-import java.util.Optional;
-import java.util.regex.Pattern;
 
 public class GamesController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  private static final Pattern RATING_PATTERN = Pattern.compile("([<>+~](?:\\d\\.?\\d?k|\\d{3,4})|(?:\\d\\.?\\d?k|\\d{3,4})[<>+]|(?:\\d\\.?\\d?k|\\d{1,4})\\s?-\\s?(?:\\d\\.?\\d?k|\\d{3,4}))");
-
-  @FXML
-  Label gameModeDescriptionLabel;
 
   @FXML
   Label mapLabel;
@@ -84,14 +75,14 @@ public class GamesController {
   @FXML
   VBox gamePreviewPanel;
 
+  @FXML
+  MenuButton switchViewButton;
+
   @Autowired
   ApplicationContext applicationContext;
 
   @Autowired
   I18n i18n;
-
-  @Autowired
-  DialogFactory dialogFactory;
 
   @Autowired
   GameService gameService;
@@ -151,6 +142,11 @@ public class GamesController {
     }
 
     filteredItems = new FilteredList<>(gameService.getGameInfoBeans());
+
+    // FIXME remove after switching between tiles/tables is implemented
+    onDetailsButtonPressed();
+    switchViewButton.setVisible(false);
+    switchViewButton.setManaged(false);
   }
 
   public void displayGameDetail(GameInfoBean gameInfoBean) {
