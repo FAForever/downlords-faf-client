@@ -61,7 +61,7 @@ public final class ByteCopier {
     int bytesDone = 0;
 
     int length;
-    while ((length = inputStream.read()) != -1) {
+    while ((length = inputStream.read(buffer)) != -1) {
       outputStream.write(buffer, 0, length);
       bytesDone += length;
 
