@@ -19,12 +19,14 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
   private final IntegerProperty players;
   private final ObjectProperty<MapSize> size;
   private final IntegerProperty version;
+  private final IntegerProperty id;
 
   public MapInfoBean() {
     this(null);
   }
 
   public MapInfoBean(String name) {
+    this.id = new SimpleIntegerProperty();
     this.name = new SimpleStringProperty(name);
     this.description = new SimpleStringProperty();
     this.plays = new SimpleIntegerProperty();

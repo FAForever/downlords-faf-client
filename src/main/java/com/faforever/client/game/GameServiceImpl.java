@@ -258,8 +258,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
         return;
       }
 
-      logger.debug("Adding game info bean: {}", gameInfoBean);
-
       if (!gameInfoBeans.contains(gameInfoBean)) {
         gameInfoBeans.add(gameInfoBean);
       }

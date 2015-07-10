@@ -151,6 +151,7 @@ public class GamesController  {
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     hosterLabel.setText(gameInfoBean.getHost());
     gameModeLabel.setText(gameInfoBean.getFeaturedMod());
+    mapLabel.setText(gameInfoBean.getMapName());
     createTeam(gameInfoBean.getTeams());
   }
 
