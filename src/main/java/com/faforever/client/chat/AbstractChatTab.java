@@ -198,6 +198,8 @@ public abstract class AbstractChatTab extends Tab {
 
   private void pasteImage() {
     TextInputControl messageTextField = getMessageTextField();
+    int currentCaretPosition = messageTextField.getCaretPosition();
+
     messageTextField.setDisable(true);
 
     Clipboard clipboard = Clipboard.getSystemClipboard();
@@ -206,9 +208,9 @@ public abstract class AbstractChatTab extends Tab {
     imageUploadService.uploadImageInBackground(image, new Callback<String>() {
       @Override
       public void success(String url) {
-        int currentCaretPosition = messageTextField.getCaretPosition();
         messageTextField.insertText(currentCaretPosition, url);
         messageTextField.setDisable(false);
+        messageTextField.requestFocus();
       }
 
       @Override

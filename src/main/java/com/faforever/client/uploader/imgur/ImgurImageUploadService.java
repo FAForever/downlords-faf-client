@@ -48,7 +48,7 @@ public class ImgurImageUploadService implements ImageUploadService {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
         BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
-        ImageIO.write(bufferedImage, "jpg", byteArrayOutputStream);
+        ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
 
         if (byteArrayOutputStream.size() > MAX_UPLOAD_SIZE) {
           throw new IllegalArgumentException("Image exceeds max upload size of " + MAX_UPLOAD_SIZE / 1024 / 1024 + "MiB");
