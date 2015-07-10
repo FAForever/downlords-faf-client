@@ -1,7 +1,6 @@
 language: java
 
 sudo: required
-script: ./gradlew build jacocoTestReport
 
 jdk:
   - oraclejdk8
@@ -11,6 +10,7 @@ install: true
 script:
   - sudo apt-get update && sudo apt-get install oracle-java8-installer
   - java -version
+  - ./gradlew build jacocoTestReport
 
 after_success:
 - ./gradlew jacocoTestReport coveralls
