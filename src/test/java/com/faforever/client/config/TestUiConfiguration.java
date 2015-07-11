@@ -5,6 +5,7 @@ import com.faforever.client.chat.ChatTabFactory;
 import com.faforever.client.chat.ChatUserControlFactory;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.PlayerInfoTooltipController;
+import com.faforever.client.chat.UrlPreviewResolver;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.fxml.FxmlLoaderImpl;
 import org.springframework.context.annotation.Bean;
@@ -45,5 +46,10 @@ public class TestUiConfiguration {
   @Bean
   ChatUserControlFactory chatUserControlFactory() {
     return mock(ChatUserControlFactory.class);
+  }
+
+  @Bean
+  UrlPreviewResolver urlPreviewResolver() {
+    return mock(UrlPreviewResolver.class);
   }
 }

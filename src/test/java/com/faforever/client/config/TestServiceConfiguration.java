@@ -8,6 +8,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.sound.SoundController;
+import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import org.springframework.context.annotation.Bean;
@@ -58,6 +59,11 @@ public class TestServiceConfiguration {
   @Bean
   TimeService timeService() {
     return mock(TimeService.class);
+  }
+
+  @Bean
+  ImageUploadService imageUploadService() {
+    return mock(ImageUploadService.class);
   }
 
   @Bean

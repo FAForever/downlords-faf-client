@@ -316,7 +316,7 @@ public class GameInfoBean {
 
   @Override
   public int hashCode() {
-    return uid.hashCode();
+    return uid.getValue().hashCode();
   }
 
   @Override

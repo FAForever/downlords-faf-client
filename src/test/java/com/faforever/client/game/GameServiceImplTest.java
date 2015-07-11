@@ -2,7 +2,6 @@ package com.faforever.client.game;
 
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
@@ -43,14 +42,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.forgedAllianceService = mock(ForgedAllianceService.class);
     instance.proxy = mock(Proxy.class);
   }
-
-  @Test
-  public void testAddOnGameInfoListener() throws Exception {
-    OnGameInfoListener listener = mock(OnGameInfoListener.class);
-
-    verify(instance.lobbyServerAccessor).addOnGameInfoListener(listener);
-  }
-
 
   @Test
   public void testJoinGameMapIsAvailable() throws Exception {
