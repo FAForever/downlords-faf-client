@@ -10,7 +10,6 @@ install: true
 script:
   - sudo apt-get update && sudo apt-get install oracle-java8-installer
   - java -version
-  - ./gradlew build jacocoTestReport
 
 after_success:
-- ./gradlew jacocoTestReport coveralls
+- ./gradlew test jacocoTestReport coveralls
