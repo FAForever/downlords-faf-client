@@ -47,9 +47,10 @@ applicationDistribution.from(copyNativeLibs) {
   into "lib"
 }
 
-install4j {
-  installDir = file(install4jHomeDir)
-}
+// Uncomment when doing a release build. I have yet to find out how to make an install4j installation optional
+//install4j {
+//  installDir = file(install4jHomeDir)
+//}
 
 task buildInstaller(type: com.install4j.gradle.Install4jTask) {
   dependsOn 'installDist'
