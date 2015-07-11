@@ -61,6 +61,10 @@ repositories {
   mavenCentral()
 }
 
+jacoco {
+  toolVersion = "0.7.2.201409121644"
+}
+
 buildscript {
   repositories {
     mavenCentral()
