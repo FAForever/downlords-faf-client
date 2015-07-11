@@ -69,8 +69,8 @@ public class ChatUserContextMenuController {
     this.playerInfoBean = playerInfoBean;
 
     addFriendItem.visibleProperty().bind(playerInfoBean.friendProperty().not());
-    addFoeItem.visibleProperty().bind(playerInfoBean.foeProperty().not());
     removeFriendItem.visibleProperty().bind(playerInfoBean.friendProperty());
+    addFoeItem.visibleProperty().bind(playerInfoBean.foeProperty().not());
     removeFoeItem.visibleProperty().bind(playerInfoBean.foeProperty());
   }
 
