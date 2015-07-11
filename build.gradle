@@ -47,6 +47,10 @@ applicationDistribution.from(copyNativeLibs) {
   into "lib"
 }
 
+install4j {
+  installDir = file(install4jHomeDir)
+}
+
 task buildInstaller(type: com.install4j.gradle.Install4jTask) {
   dependsOn 'installDist'
 
@@ -62,7 +66,7 @@ repositories {
 }
 
 jacoco {
-  toolVersion = "0.7.2.201409121644"
+  toolVersion = "0.7.5"
 }
 
 buildscript {
