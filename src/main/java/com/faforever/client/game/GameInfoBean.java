@@ -105,7 +105,7 @@ public class GameInfoBean {
         matcher = MIN_RATING_PATTERN.matcher(ratingString);
         if (matcher.find()) {
           minRating.set(Integer.parseInt(matcher.group(1)));
-          maxRating.set(2500);
+          maxRating.set(3000);
         } else {
           matcher = MAX_RATING_PATTERN.matcher(ratingString);
           if (matcher.find()) {
