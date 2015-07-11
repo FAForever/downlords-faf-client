@@ -67,7 +67,7 @@ repositories {
 }
 
 jacoco {
-  toolVersion = "0.7.5"
+  toolVersion = "0.7.5.201505241946"
 }
 
 buildscript {
