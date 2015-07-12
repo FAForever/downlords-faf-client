@@ -1,5 +1,6 @@
 package com.faforever.client.main;
 
+import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.UserInfoWindowController;
@@ -12,6 +13,7 @@ import com.faforever.client.legacy.OnFafDisconnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
 import com.faforever.client.lobby.LobbyService;
+import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.network.GamePortCheckListener;
 import com.faforever.client.network.PortCheckService;
 import com.faforever.client.news.NewsController;
@@ -26,13 +28,14 @@ import com.faforever.client.preferences.OnChoseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.preferences.WindowPrefs;
+import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
-import com.faforever.client.vault.VaultController;
+import com.faforever.client.map.MapVaultController;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -45,9 +48,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.SplitMenuButton;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.DirectoryChooser;
@@ -72,9 +75,13 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
 public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnFafDisconnectedListener, GamePortCheckListener, OnChoseGameDirectoryListener {
 
-  private static final PseudoClass NOTIFICATION_INFO_PSEUDO_STATE = PseudoClass.getPseudoClass("info");
-  private static final PseudoClass NOTIFICATION_WARN_PSEUDO_STATE = PseudoClass.getPseudoClass("warn");
-  private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_STATE = PseudoClass.getPseudoClass("error");
+  private static final PseudoClass NOTIFICATION_INFO_PSEUDO_CLASS = PseudoClass.getPseudoClass("info");
+  private static final PseudoClass NOTIFICATION_WARN_PSEUDO_CLASS = PseudoClass.getPseudoClass("warn");
+  private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_CLASS = PseudoClass.getPseudoClass("error");
+  private static final PseudoClass NAVIGATION_ACTIVE_PSEUDO_CLASS = PseudoClass.getPseudoClass("active");
+
+  @FXML
+  HBox mainNavigation;
 
   @FXML
   Pane mainHeaderPane;
@@ -86,22 +93,19 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   Pane contentPane;
 
   @FXML
-  ToggleGroup mainNavigationToggleGroup;
+  SplitMenuButton newsButton;
 
   @FXML
-  ButtonBase newsButton;
+  SplitMenuButton chatButton;
 
   @FXML
-  ButtonBase chatButton;
+  SplitMenuButton playButton;
 
   @FXML
-  ButtonBase gamesButton;
+  SplitMenuButton vaultButton;
 
   @FXML
-  ButtonBase vaultButton;
-
-  @FXML
-  ButtonBase leaderboardButton;
+  SplitMenuButton leaderboardButton;
 
   @FXML
   ProgressBar taskProgressBar;
@@ -140,10 +144,13 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   GamesController gamesController;
 
   @Autowired
-  VaultController vaultController;
+  MapVaultController vaultController;
 
   @Autowired
   LeaderboardController leaderboardController;
+
+  @Autowired
+  ReplayVaultController replayVaultController;
 
   @Autowired
   PersistentNotificationsController persistentNotificationsController;
@@ -184,6 +191,15 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Autowired
   PlayerService playerService;
 
+  @Autowired
+  ModVaultController modVaultController;
+
+  @Autowired
+  com.faforever.client.map.MapVaultController mapMapVaultController;
+
+  @Autowired
+  CastsController castsController;
+
   private Popup notificationsPopup;
 
   @FXML
@@ -192,8 +208,30 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     taskProgressBar.managedProperty().bind(taskProgressBar.visibleProperty());
     taskProgressLabel.managedProperty().bind(taskProgressLabel.visibleProperty());
 
+    addHoverListener(playButton);
+    addHoverListener(newsButton);
+    addHoverListener(playButton);
+    addHoverListener(vaultButton);
+    addHoverListener(leaderboardButton);
+
     setCurrentTaskInStatusBar(null);
   }
+
+  private void addHoverListener(SplitMenuButton button) {
+    button.hoverProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        showContextMenu(button);
+      }
+    });
+  }
+
+  private void showContextMenu(SplitMenuButton button) {
+    mainNavigation.getChildren().stream()
+        .filter(item -> item instanceof SplitMenuButton && item != button)
+        .forEach(item -> ((SplitMenuButton) item).hide());
+    button.show();
+  }
+
 
   @PostConstruct
   void postConstruct() {
@@ -239,7 +277,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     popup.getContent().setAll(controller.getRoot());
     popup.centerOnScreen();
-    popup.show(mainRoot.getScene().getWindow() );
+    popup.show(mainRoot.getScene().getWindow());
   }
 
   /**
@@ -259,9 +297,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
       }
     }
 
-    notificationsButton.pseudoClassStateChanged(NOTIFICATION_INFO_PSEUDO_STATE, highestSeverity == Severity.INFO);
-    notificationsButton.pseudoClassStateChanged(NOTIFICATION_WARN_PSEUDO_STATE, highestSeverity == Severity.WARN);
-    notificationsButton.pseudoClassStateChanged(NOTIFICATION_ERROR_PSEUDO_STATE, highestSeverity == Severity.ERROR);
+    notificationsButton.pseudoClassStateChanged(NOTIFICATION_INFO_PSEUDO_CLASS, highestSeverity == Severity.INFO);
+    notificationsButton.pseudoClassStateChanged(NOTIFICATION_WARN_PSEUDO_CLASS, highestSeverity == Severity.WARN);
+    notificationsButton.pseudoClassStateChanged(NOTIFICATION_ERROR_PSEUDO_CLASS, highestSeverity == Severity.ERROR);
   }
 
   private void removeTasks(List<? extends PrioritizedTask<?>> removed) {
@@ -340,45 +378,12 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     String lastView = mainWindowPrefs.getLastView();
     if (lastView != null) {
-      mainNavigationToggleGroup.getToggles().stream()
-          .filter(button -> button instanceof ToggleButton)
-          .filter(navigationItem -> lastView.equals(((Node) navigationItem).getId()))
-          .forEach(navigationItem -> {
-            ((ToggleButton) navigationItem).fire();
-          });
+      mainNavigation.getChildren().stream()
+          .filter(button -> button instanceof ButtonBase)
+          .filter(button -> lastView.equals(button.getId()))
+          .forEach(button -> ((ButtonBase) button).fire());
     } else {
       newsButton.fire();
-    }
-  }
-
-  @FXML
-  void onNavigationButton(ActionEvent event) {
-    ToggleButton button = (ToggleButton) event.getSource();
-    preferencesService.getPreferences().getMainWindow().setLastView(button.getId());
-    preferencesService.storeInBackground();
-
-    if (!button.isSelected()) {
-      button.setSelected(true);
-    }
-
-    Bounds boundsInLocal = button.getBoundsInLocal();
-    Bounds buttonBoundsInScene = button.localToScene(boundsInLocal);
-
-    // TODO let the component initialize themselves instead of calling a setUp method
-    if (button == newsButton) {
-      newsController.setUpIfNecessary();
-      setContent(newsController.getRoot());
-    } else if (button == chatButton) {
-      setContent(chatController.getRoot());
-    } else if (button == gamesButton) {
-      gamesController.setUpIfNecessary();
-      setContent(gamesController.getRoot());
-    } else if (button == vaultButton) {
-      vaultController.setUpIfNecessary();
-      setContent(vaultController.getRoot());
-    } else if (button == leaderboardButton) {
-      leaderboardController.setUpIfNecessary();
-      setContent(leaderboardController.getRoot());
     }
   }
 
@@ -432,23 +437,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Override
   public void onFafDisconnected() {
     fafConnectionButton.setText(i18n.get("statusBar.fafDisconnected"));
-  }
-
-  private void setContent(Node node) {
-    ObservableList<Node> children = contentPane.getChildren();
-
-    if (!children.contains(node)) {
-      children.add(node);
-
-      AnchorPane.setTopAnchor(node, 0d);
-      AnchorPane.setRightAnchor(node, 0d);
-      AnchorPane.setBottomAnchor(node, 0d);
-      AnchorPane.setLeftAnchor(node, 0d);
-    }
-
-    for (Node child : children) {
-      child.setVisible(child == node);
-    }
   }
 
   @FXML
@@ -554,5 +542,109 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     sceneFactory.createScene(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
 
     userInfoWindow.show();
+  }
+
+  @FXML
+  void onCommunitySelected(ActionEvent event) {
+    setActiveNavigationButton((ButtonBase) event.getSource());
+    // FIXME implement
+  }
+
+  @FXML
+  void onVaultSelected(ActionEvent event) {
+    setActiveNavigationButton((ButtonBase) event.getSource());
+    // FIXME implement
+  }
+
+  @FXML
+  void onLeaderboardSelected(ActionEvent event) {
+    setActiveNavigationButton((ButtonBase) event.getSource());
+    // FIXME implement
+  }
+
+  @FXML
+  void onPlaySelected(ActionEvent event) {
+    setActiveNavigationButton((ButtonBase) event.getSource());
+    // FIXME implement
+  }
+
+  @FXML
+  void onChatSelected(ActionEvent event) {
+    setActiveNavigationButton((ButtonBase) event.getSource());
+    setContent(chatController.getRoot());
+  }
+
+  @FXML
+  void onNewsSelected(ActionEvent event) {
+    newsController.setUpIfNecessary();
+    setContent(newsController.getRoot());
+  }
+
+  @FXML
+  void onCastsSelected(ActionEvent event) {
+    setContent(castsController.getRoot());
+  }
+
+  @FXML
+  void onPlayCustomSelected(ActionEvent event) {
+    gamesController.setUpIfNecessary();
+    setContent(gamesController.getRoot());
+  }
+
+  @FXML
+  void onPlayRanked1v1Selected(ActionEvent event) {
+    setContent(gamesController.getRoot());
+  }
+
+  @FXML
+  void onMapsSelected(ActionEvent event) {
+    setContent(mapMapVaultController.getRoot());
+  }
+
+  @FXML
+  void onModsSelected(ActionEvent event) {
+    setContent(modVaultController.getRoot());
+  }
+
+  @FXML
+  void onReplaysSelected(ActionEvent event) {
+    // FIXME don't load every time?
+    replayVaultController.loadLocalReplaysInBackground();
+    replayVaultController.loadOnlineReplaysInBackground();
+
+    setContent(replayVaultController.getRoot());
+  }
+
+  @FXML
+  void onLeaderboardRanked1v1Selected(ActionEvent event) {
+    leaderboardController.setUpIfNecessary();
+    setContent(leaderboardController.getRoot());
+  }
+
+  private void setContent(Node node) {
+    ObservableList<Node> children = contentPane.getChildren();
+
+    if (!children.contains(node)) {
+      children.add(node);
+
+      AnchorPane.setTopAnchor(node, 0d);
+      AnchorPane.setRightAnchor(node, 0d);
+      AnchorPane.setBottomAnchor(node, 0d);
+      AnchorPane.setLeftAnchor(node, 0d);
+    }
+
+    for (Node child : children) {
+      child.setVisible(child == node);
+    }
+  }
+
+  private void setActiveNavigationButton(ButtonBase button) {
+    mainNavigation.getChildren().stream()
+        .filter(navigationButton -> navigationButton instanceof ButtonBase && navigationButton != button)
+        .forEach(navigationItem -> navigationItem.pseudoClassStateChanged(NAVIGATION_ACTIVE_PSEUDO_CLASS, false));
+    button.pseudoClassStateChanged(NAVIGATION_ACTIVE_PSEUDO_CLASS, true);
+
+    preferencesService.getPreferences().getMainWindow().setLastView(button.getId());
+    preferencesService.storeInBackground();
   }
 }

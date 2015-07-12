@@ -354,22 +354,39 @@
   -fx-border-color: -fx-box-border;
 }
 
-.main-navigation > .toggle-button {
+.main-navigation > .split-menu-button > .arrow-button > .arrow {
+  -fx-background-color: transparent;
+  -fx-padding: 0;
+  -fx-shape: null;
+}
+
+.main-navigation > .split-menu-button {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+}
+
+.main-navigation > .split-menu-button > .label {
   -fx-font-size: 1.5em;
   -fx-text-fill: -fx-dark-text-color;
   -fx-background-color: transparent;
 }
 
-.main-navigation > .toggle-button:hover {
+.split-menu-button > .arrow-button {
+  -fx-background-color: transparent;
+  -fx-background-insets: 0;
+  -fx-background-radius: 0;
+  -fx-padding: 0;
+}
+
+.main-navigation > .split-menu-button:hover > .label {
   -fx-text-fill: -fx-mid-text-color;
   -fx-effect: -fx-drop-shadow;
 }
 
-.main-navigation > .toggle-button:selected {
+.main-navigation > .split-menu-button:active > .label {
   -fx-text-fill: -fx-light-text-color;
   -fx-effect: -fx-drop-shadow;
 }
-
 
 /***************** Status bar *****************/
 
