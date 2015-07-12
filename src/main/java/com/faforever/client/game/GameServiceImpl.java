@@ -252,14 +252,15 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   @Override
   public void onGameInfo(GameInfo gameInfo) {
     Platform.runLater(() -> {
-      GameInfoBean gameInfoBean = new GameInfoBean(gameInfo);
 
       if (!GameState.OPEN.equals(gameInfo.state)) {
-        gameInfoBeans.remove(gameInfoBean);
+        gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfo.uid));
         return;
       }
 
       if (!uidToGameInfoBean.containsKey(gameInfo.uid)) {
+        GameInfoBean gameInfoBean = new GameInfoBean(gameInfo);
+
         gameInfoBeans.add(gameInfoBean);
         uidToGameInfoBean.put(gameInfo.uid, gameInfoBean);
       } else {
