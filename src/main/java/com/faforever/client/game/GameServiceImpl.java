@@ -34,8 +34,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnGameInfoListener {
 
@@ -60,12 +62,16 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   private final ObservableMap<String, GameTypeBean> gameTypeBeans;
 
+  // It is indeed ugly to keep references in both, a list and a map, however I don't see how I can populate the map
+  // values as an observable list (in order to display it in the games table)
   private final ObservableList<GameInfoBean> gameInfoBeans;
+  private final Map<Integer, GameInfoBean> uidToGameInfoBean;
 
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
     onGameLaunchingListeners = new HashSet<>();
     gameInfoBeans = FXCollections.observableArrayList();
+    uidToGameInfoBean = new HashMap<>();
   }
 
   @Override
@@ -253,10 +259,11 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
         return;
       }
 
-      logger.debug("Adding game info bean: {}", gameInfoBean);
-
-      if (!gameInfoBeans.contains(gameInfoBean)) {
+      if (!uidToGameInfoBean.containsKey(gameInfo.uid)) {
         gameInfoBeans.add(gameInfoBean);
+        uidToGameInfoBean.put(gameInfo.uid, gameInfoBean);
+      } else {
+        uidToGameInfoBean.get(gameInfo.uid).updateFromGameInfo(gameInfo);
       }
     });
   }
