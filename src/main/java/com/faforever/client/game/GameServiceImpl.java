@@ -13,7 +13,6 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
@@ -251,21 +250,18 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   @Override
   public void onGameInfo(GameInfo gameInfo) {
-    Platform.runLater(() -> {
+    if (!GameState.OPEN.equals(gameInfo.state)) {
+      gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfo.uid));
+      return;
+    }
 
-      if (!GameState.OPEN.equals(gameInfo.state)) {
-        gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfo.uid));
-        return;
-      }
+    if (!uidToGameInfoBean.containsKey(gameInfo.uid)) {
+      GameInfoBean gameInfoBean = new GameInfoBean(gameInfo);
 
-      if (!uidToGameInfoBean.containsKey(gameInfo.uid)) {
-        GameInfoBean gameInfoBean = new GameInfoBean(gameInfo);
-
-        gameInfoBeans.add(gameInfoBean);
-        uidToGameInfoBean.put(gameInfo.uid, gameInfoBean);
-      } else {
-        uidToGameInfoBean.get(gameInfo.uid).updateFromGameInfo(gameInfo);
-      }
-    });
+      gameInfoBeans.add(gameInfoBean);
+      uidToGameInfoBean.put(gameInfo.uid, gameInfoBean);
+    } else {
+      uidToGameInfoBean.get(gameInfo.uid).updateFromGameInfo(gameInfo);
+    }
   }
 }
