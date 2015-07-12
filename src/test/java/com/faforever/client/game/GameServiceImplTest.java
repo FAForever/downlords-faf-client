@@ -2,7 +2,9 @@ package com.faforever.client.game;
 
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
@@ -21,8 +23,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsEmptyCollection.emptyCollectionOf;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -156,5 +161,65 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     verify(process).waitFor();
     verify(instance.proxy).close();
     verify(instance.lobbyServerAccessor).notifyGameTerminated();
+  }
+
+  @Test
+  public void testOnGameInfoAdd() {
+    assertThat(instance.getGameInfoBeans(), empty());
+
+    GameInfo gameInfo1 = new GameInfo();
+    gameInfo1.uid = 1;
+    gameInfo1.title = "Game 1";
+    gameInfo1.state = GameState.OPEN;
+    instance.onGameInfo(gameInfo1);
+
+    GameInfo gameInfo2 = new GameInfo();
+    gameInfo2.uid = 2;
+    gameInfo2.title = "Game 2";
+    gameInfo2.state = GameState.OPEN;
+    instance.onGameInfo(gameInfo2);
+
+    GameInfoBean gameInfoBean1 = new GameInfoBean(gameInfo1);
+    GameInfoBean gameInfoBean2 = new GameInfoBean(gameInfo2);
+
+    assertThat(instance.getGameInfoBeans(), containsInAnyOrder(gameInfoBean1, gameInfoBean2));
+  }
+
+  @Test
+  public void testOnGameInfoModify() {
+    assertThat(instance.getGameInfoBeans(), empty());
+
+    GameInfo gameInfo = new GameInfo();
+    gameInfo.uid = 1;
+    gameInfo.title = "Game 1";
+    gameInfo.state = GameState.OPEN;
+    instance.onGameInfo(gameInfo);
+
+    gameInfo = new GameInfo();
+    gameInfo.uid = 1;
+    gameInfo.title = "Game 1 modified";
+    gameInfo.state = GameState.OPEN;
+    instance.onGameInfo(gameInfo);
+
+    assertEquals(gameInfo.title, instance.getGameInfoBeans().iterator().next().getTitle());
+  }
+
+  @Test
+  public void testOnGameInfoRemove() {
+    assertThat(instance.getGameInfoBeans(), empty());
+
+    GameInfo gameInfo = new GameInfo();
+    gameInfo.uid = 1;
+    gameInfo.title = "Game 1";
+    gameInfo.state = GameState.OPEN;
+    instance.onGameInfo(gameInfo);
+
+    gameInfo = new GameInfo();
+    gameInfo.uid = 1;
+    gameInfo.title = "Game 1 modified";
+    gameInfo.state = GameState.PLAYING;
+    instance.onGameInfo(gameInfo);
+
+    assertThat(instance.getGameInfoBeans(), empty());
   }
 }

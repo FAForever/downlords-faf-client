@@ -79,19 +79,29 @@ public class GameInfoBean {
     access.set(gameInfo.access);
     mapName.set(gameInfo.mapname);
     featuredMod.set(gameInfo.featuredMod);
-    numPlayers.set(gameInfo.numPlayers);
-    maxPlayers.set(gameInfo.maxPlayers);
+    numPlayers.setValue(gameInfo.numPlayers);
+    maxPlayers.setValue(gameInfo.maxPlayers);
     gameType.set(gameInfo.gameType);
-    options.setAll(gameInfo.options);
+    status.set(gameInfo.state);
+
+    if (gameInfo.options != null) {
+      options.setAll(gameInfo.options);
+    }
 
     simMods.clear();
-    simMods.putAll(gameInfo.simMods);
+    if (gameInfo.simMods != null) {
+      simMods.putAll(gameInfo.simMods);
+    }
 
     teams.clear();
-    teams.putAll(gameInfo.teams);
+    if (gameInfo.teams != null) {
+      teams.putAll(gameInfo.teams);
+    }
 
-    featuredModVersions.putAll(gameInfo.featuredModVersions);
-    status.set(gameInfo.state);
+    featuredModVersions.clear();
+    if (gameInfo.featuredModVersions != null) {
+      featuredModVersions.putAll(gameInfo.featuredModVersions);
+    }
 
     // TODO as this can be removed as soon as we get server side support. Until then, let's be hacky
     Matcher matcher = RATING_PATTERN.matcher(title.get());
