@@ -96,13 +96,18 @@ public class ReplayServiceImpl implements ReplayService {
     Path replaysDirectory = preferencesService.getReplaysDirectory();
     try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(replaysDirectory, replayFileGlob)) {
       for (Path replayFile : directoryStream) {
-        LocalReplayInfo replayInfo = replayFileReader.readReplayInfo(replayFile);
-        if (replayInfo == null) {
+        LocalReplayInfo replayInfo = null;
+        try {
+          replayInfo = replayFileReader.readReplayInfo(replayFile);
+          if (replayInfo == null) {
+            moveCorruptedReplayFile(replayFile);
+            continue;
+          }
+          replayInfos.add(new ReplayInfoBean(replayInfo, replayFile));
+        } catch (Exception e) {
+          logger.warn("Could not read replay file {}", replayFile);
           moveCorruptedReplayFile(replayFile);
-          continue;
         }
-
-        replayInfos.add(new ReplayInfoBean(replayInfo, replayFile));
       }
     }
 
