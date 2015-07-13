@@ -4,6 +4,7 @@ import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
+import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
@@ -37,10 +38,12 @@ import org.springframework.context.ApplicationContext;
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 public class GamesController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final Predicate<GameInfoBean> OPEN_GAMES_PREDICATE = gameInfoBean -> gameInfoBean.getStatus() == GameState.OPEN;
 
   @FXML
   Label mapLabel;
@@ -142,6 +145,7 @@ public class GamesController {
     }
 
     filteredItems = new FilteredList<>(gameService.getGameInfoBeans());
+    filteredItems.setPredicate(OPEN_GAMES_PREDICATE);
 
     // FIXME remove after switching between tiles/tables is implemented
     onDetailsButtonPressed();
@@ -162,9 +166,12 @@ public class GamesController {
     CheckBox checkBox = (CheckBox) actionEvent.getSource();
     boolean selected = checkBox.isSelected();
     if (selected) {
-      filteredItems.setPredicate(gameInfoBean -> true);
+      filteredItems.setPredicate(OPEN_GAMES_PREDICATE);
     } else {
-      filteredItems.setPredicate(gameInfoBean -> gameInfoBean.getAccess() != GameAccess.PASSWORD);
+      filteredItems.setPredicate(
+          OPEN_GAMES_PREDICATE.and(
+              gameInfoBean -> gameInfoBean.getAccess() != GameAccess.PASSWORD)
+      );
     }
   }
 

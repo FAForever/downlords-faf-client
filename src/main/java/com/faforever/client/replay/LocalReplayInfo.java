@@ -1,9 +1,10 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.legacy.domain.GameAccess;
-import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.VictoryCondition;
+import javafx.collections.ObservableList;
 
 import java.util.List;
 import java.util.Map;
@@ -34,20 +35,22 @@ public class LocalReplayInfo {
   public double gameEnd;
   public double gameTime;
 
-  public void updateFromGameInfo(GameInfo gameInfo) {
-    host = gameInfo.host;
-    uid = gameInfo.uid;
-    title = gameInfo.title;
-    access = gameInfo.access;
-    mapname = gameInfo.mapname;
-    state = gameInfo.state;
-    options = gameInfo.options;
-    gameType = gameInfo.gameType;
-    featuredMod = gameInfo.featuredMod;
-    maxPlayers = gameInfo.maxPlayers;
-    numPlayers = gameInfo.numPlayers;
-    simMods = gameInfo.simMods;
-    teams = gameInfo.teams;
-    featuredModVersions = gameInfo.featuredModVersions;
+  public void updateFromGameInfoBean(GameInfoBean gameInfoBean) {
+    host = gameInfoBean.getHost();
+    uid = gameInfoBean.getUid();
+    title = gameInfoBean.getTitle();
+    access = gameInfoBean.getAccess();
+    mapname = gameInfoBean.getMapName();
+    state = gameInfoBean.getStatus();
+    gameType = gameInfoBean.getGameType();
+    featuredMod = gameInfoBean.getFeaturedMod();
+    maxPlayers = gameInfoBean.getMaxPlayers();
+    numPlayers = gameInfoBean.getNumPlayers();
+    simMods = gameInfoBean.getSimMods();
+    teams = gameInfoBean.getTeams();
+    featuredModVersions = gameInfoBean.getFeaturedModVersions();
+
+    ObservableList<Boolean> options = gameInfoBean.getOptions();
+    this.options = options.toArray(new Boolean[options.size()]);
   }
 }

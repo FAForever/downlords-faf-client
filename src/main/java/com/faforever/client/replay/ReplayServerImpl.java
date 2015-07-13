@@ -1,10 +1,9 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.OnGameStartedListener;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.OnGameInfoListener;
-import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
@@ -30,9 +29,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Objects;
 
-public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGameStartedListener {
+public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -62,7 +60,7 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGam
   ReplayFileWriter replayFileWriter;
 
   private LocalReplayInfo replayInfo;
-
+  private GameInfoBean gameInfoBean;
 
   @PostConstruct
   void postConstruct() {
@@ -135,17 +133,6 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGam
   }
 
   @Override
-  public void onGameInfo(GameInfo gameInfo) {
-    // As the game information can still change while the players are in the in-game lobby, we need to listen for any
-    // changes and remember them in order to store the game information along with the replay file.
-    if (replayInfo == null || !Objects.equals(gameInfo.uid, replayInfo.uid)) {
-      return;
-    }
-
-    replayInfo.updateFromGameInfo(gameInfo);
-  }
-
-  @Override
   public void onGameStarted(int uid) {
     replayInfo = new LocalReplayInfo();
     replayInfo.uid = uid;
@@ -155,10 +142,15 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGam
   }
 
   private void finishReplayInfo() {
+    gameInfoBean = gameService.getByUid(replayInfo.uid);
+
     replayInfo.gameEnd = pythonTime();
     replayInfo.recorder = userService.getUsername();
     replayInfo.complete = true;
     replayInfo.state = GameState.CLOSED;
+    replayInfo.updateFromGameInfoBean(gameInfoBean);
+
+    gameInfoBean = null;
   }
 
   /**

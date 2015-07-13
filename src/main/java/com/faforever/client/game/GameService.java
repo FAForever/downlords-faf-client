@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.util.Callback;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
@@ -41,4 +40,6 @@ public interface GameService {
   void runWithReplay(URL url, Integer replayId) throws IOException;
 
   ObservableList<GameInfoBean> getGameInfoBeans();
+
+  GameInfoBean getByUid(int uid);
 }

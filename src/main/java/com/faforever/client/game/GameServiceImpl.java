@@ -249,8 +249,14 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
+  public GameInfoBean getByUid(int uid) {
+    return uidToGameInfoBean.get(uid);
+  }
+
+  @Override
   public void onGameInfo(GameInfo gameInfo) {
-    if (!GameState.OPEN.equals(gameInfo.state)) {
+    logger.debug("Received game info from server: {}", gameInfo);
+    if (GameState.CLOSED.equals(gameInfo.state)) {
       gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfo.uid));
       return;
     }
