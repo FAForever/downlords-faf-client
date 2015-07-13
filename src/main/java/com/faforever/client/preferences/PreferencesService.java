@@ -57,21 +57,17 @@ public class PreferencesService {
   );
   private static final String FORGED_ALLIANCE_EXE = "ForgedAlliance.exe";
   private static final String SUPREME_COMMANDER_EXE = "SupremeCommander.exe";
-
-  @Autowired
-  I18n i18n;
-
-  @Autowired
-  NotificationService notificationService;
-
   private final Path preferencesFilePath;
   private final Gson gson;
-  private Preferences preferences;
-
   /**
    * @see #storeInBackground()
    */
   private final Timer timer;
+  @Autowired
+  I18n i18n;
+  @Autowired
+  NotificationService notificationService;
+  private Preferences preferences;
   private TimerTask storeInBackgroundTask;
   private Collection<PreferenceUpdateListener> updateListeners;
   private OnChoseGameDirectoryListener onChoseGameDirectoryListener;
@@ -85,6 +81,16 @@ public class PreferencesService {
         .registerTypeHierarchyAdapter(Property.class, new PropertyTypeAdapter())
         .registerTypeHierarchyAdapter(Path.class, new PathTypeAdapter())
         .create();
+  }
+
+  public static Path getPreferencesDirectory() {
+    switch (OperatingSystem.current()) {
+      case WINDOWS:
+        return Paths.get(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER);
+
+      default:
+        return Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
+    }
   }
 
   @PostConstruct
@@ -178,22 +184,22 @@ public class PreferencesService {
     }
   }
 
-  public Path getPreferencesDirectory() {
+  public Path getFafBinDirectory() {
+    return getFafDataDirectory().resolve("bin");
+  }
+
+  public static Path getFafDataDirectory() {
     switch (OperatingSystem.current()) {
       case WINDOWS:
-        return Paths.get(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER);
+        return Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
 
       default:
-        return Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
+        return getPreferencesDirectory();
     }
   }
 
-  public Path getFafDataDirectory() {
-    return Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
-  }
-
-  public Path getFafBinDirectory() {
-    return getFafDataDirectory().resolve("bin");
+  public static Path getLogDirectory() {
+    return getFafDataDirectory().resolve("logs");
   }
 
   public Path getFafReposDirectory() {
@@ -279,12 +285,12 @@ public class PreferencesService {
     updateListeners.add(listener);
   }
 
-  public Path getReplaysDirectory() {
-    return getFafDataDirectory().resolve(REPLAYS_SUB_FOLDER);
-  }
-
   public Path getCorruptedReplaysDirectory() {
     return getReplaysDirectory().resolve(CORRUPTED_REPLAYS_SUB_FOLDER);
+  }
+
+  public Path getReplaysDirectory() {
+    return getFafDataDirectory().resolve(REPLAYS_SUB_FOLDER);
   }
 
   public void setOnChoseGameDirectoryListener(OnChoseGameDirectoryListener onChoseGameDirectoryListener) {

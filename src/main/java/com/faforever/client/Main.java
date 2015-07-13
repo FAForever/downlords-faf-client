@@ -6,9 +6,8 @@ import com.faforever.client.config.ServiceConfig;
 import com.faforever.client.config.UiConfig;
 import com.faforever.client.fx.JavaFxHostService;
 import com.faforever.client.login.LoginController;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.JavaFxUtil;
-import com.sun.jna.platform.win32.Shell32Util;
-import com.sun.jna.platform.win32.ShlObj;
 import javafx.application.Application;
 import javafx.scene.image.Image;
 import javafx.scene.text.Font;
@@ -48,7 +47,7 @@ public class Main extends Application {
   }
 
   private void configureLogging() {
-    System.setProperty("logDirectory", Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA) + "\\FAForever\\logs");
+    System.setProperty("logDirectory", PreferencesService.getLogDirectory().toString());
 
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
