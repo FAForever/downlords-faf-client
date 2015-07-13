@@ -21,7 +21,7 @@ public class UserServiceImpl implements UserService {
   private String password;
 
   @Override
-  public void login(final String username, final String password, final boolean autoLogin, final Callback<Void> callback) {
+  public void login(String username, String password, boolean autoLogin, Callback<Void> callback) {
     preferencesService.getPreferences().getLogin()
         .setUsername(username)
         .setPassword(password)
