@@ -1,7 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'application'
-apply plugin: 'jacoco'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'install4j'
 
@@ -12,12 +11,6 @@ version = '0.4.4-alpha'
 
 mainClassName = "com.faforever.client.Main"
 applicationDefaultJvmArgs = ["-Djava.library.path=../lib"]
-
-jacocoTestReport {
-  reports {
-    xml.enabled = true
-  }
-}
 
 idea {
   project {
@@ -66,9 +59,9 @@ repositories {
   mavenCentral()
 }
 
-jacoco {
-  toolVersion = "0.7.5.201505241946"
-}
+//jacoco {
+//  toolVersion = "0.7.5.201505241946"
+//}
 
 buildscript {
   repositories {
