@@ -5,7 +5,9 @@ import com.faforever.client.util.Callback;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public interface MapService {
 
@@ -25,4 +27,6 @@ public interface MapService {
   boolean isAvailable(String mapName);
 
   void download(String mapName, Callback<Void> callback);
+
+  List<Map<String,String>> getComments(String name) throws IOException;
 }

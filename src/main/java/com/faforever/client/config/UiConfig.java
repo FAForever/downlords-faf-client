@@ -18,6 +18,7 @@ import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.fxml.FxmlLoaderImpl;
+import com.faforever.client.game.CommentCardController;
 import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
 import com.faforever.client.game.GameCardController;
@@ -27,6 +28,7 @@ import com.faforever.client.game.GamesTiledController;
 import com.faforever.client.game.PopupGamePaneController;
 import com.faforever.client.game.PopupPlayerCardController;
 import com.faforever.client.game.TeamCardController;
+import com.faforever.client.game.MapPreviewLargeController;
 import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
@@ -96,6 +98,16 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  CommentCardController commentCardController(){return loadController("comment_card.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  MapPreviewLargeController mapPreviewLargeController(){return loadController("map_preview_large.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   GameTableController gameTableController(){return loadController("game_table.fxml");
   }
 
@@ -106,7 +118,7 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  TeamCardController popupTeamCardController(){return loadController("team_card.fxml");
+  TeamCardController teamCardController(){return loadController("team_card.fxml");
   }
 
   @Bean

@@ -21,10 +21,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 import java.lang.invoke.MethodHandles;
+import java.util.Map;
 
 public class GameCardController {
-
-  private static final long POPUP_DELAY = 1000;
 
   @FXML
   Label modsPrefix;
@@ -99,6 +98,11 @@ public class GameCardController {
           i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers())
       );
     }));
+    //FIXME comment fetcher returns null
+    try{
+    for(Map<String,String> comment: mapService.getComments(gameInfoBean.getMapName())) {
+      logger.debug(comment.get("Comment"));
+    }}catch(Exception e){logger.debug(e.getMessage() + gameInfoBean.getMapName());}
 
     numberOfPlayersLabel.setText(i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     gameInfoBean.numPlayersProperty().addListener(((observable3, oldValue3, newValue3) -> {
@@ -130,6 +134,7 @@ public class GameCardController {
     Tooltip tooltip = new Tooltip();
     tooltip.setGraphic(popupGamePaneController.getRoot());
     Tooltip.install(gameCardRoot, tooltip);
+
   }
 
   @FXML

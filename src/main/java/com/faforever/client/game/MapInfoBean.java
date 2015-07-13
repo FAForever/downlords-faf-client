@@ -138,4 +138,12 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
   public int compareTo(@NotNull MapInfoBean o) {
     return getName().compareTo(o.getName());
   }
+
+  public void setId(int id) {
+    this.id.set(id);
+  }
+
+  public IntegerProperty idProperty() {return id;}
+
+  public int getId(){ return id.get();}
 }

@@ -19,7 +19,7 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
     NAME,
     DESCRIPTION,
     MAP_MISC,
-    RATING
+    RATING,
   }
 
   /**
@@ -47,6 +47,7 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
     if (localName.equals("td") && "map".equals(atts.getValue("class"))) {
       // Start of table cell is start of map
       currentBean = new MapInfoBean();
+      currentBean.setId(Integer.parseInt(atts.getValue("id")));
       return;
     }
 

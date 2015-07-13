@@ -3,6 +3,7 @@ package com.faforever.client.map;
 import com.faforever.client.config.CacheKeys;
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.legacy.map.CommentVaultParser;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
@@ -30,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.zip.ZipInputStream;
 
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
@@ -49,6 +51,9 @@ public class MapServiceImpl implements MapService {
 
   @Autowired
   MapVaultParser mapVaultParser;
+
+  @Autowired
+  CommentVaultParser commentVaultParser;
 
   @Autowired
   I18n i18n;
@@ -164,6 +169,12 @@ public class MapServiceImpl implements MapService {
         return null;
       }
     }, callback);
+  }
+
+  @Override
+  public List<Map<String,String>> getComments(String name) throws IOException {
+    int id = getMapInfoBeanFromString(name).getId();
+    return commentVaultParser.parseCommentVault(id);
   }
 
   private static String getMapUrl(String mapName, String baseUrl) {
