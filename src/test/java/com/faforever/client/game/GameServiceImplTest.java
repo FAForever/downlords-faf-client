@@ -217,7 +217,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfo = new GameInfo();
     gameInfo.uid = 1;
     gameInfo.title = "Game 1 modified";
-    gameInfo.state = GameState.PLAYING;
+    gameInfo.state = GameState.CLOSED;
     instance.onGameInfo(gameInfo);
 
     assertThat(instance.getGameInfoBeans(), empty());
