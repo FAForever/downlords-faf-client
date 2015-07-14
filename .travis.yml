@@ -16,4 +16,4 @@ script:
   - java -version
 
 after_success:
-- ./gradlew --stacktrace -info test
+- ./gradlew test jacocoTestReport coveralls
