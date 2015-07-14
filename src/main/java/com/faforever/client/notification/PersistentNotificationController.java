@@ -7,6 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,10 +33,14 @@ public class PersistentNotificationController {
   @FXML
   HBox actionButtonsContainer;
 
-  private String theme;
-  private NotificationService notificationService;
+  @Autowired
+  NotificationService notificationService;
+
   private PersistentNotification notification;
 
+  /**
+   * Sets the notification to display. Populates corresponding UI elements.
+   */
   public void setNotification(PersistentNotification notification) {
     this.notification = notification;
     messageLabel.setText(notification.getText());
@@ -44,10 +49,6 @@ public class PersistentNotificationController {
   }
 
   private void setImageBasedOnSeverity(Severity severity) {
-    if (theme == null) {
-      throw new IllegalStateException("Theme must be set first");
-    }
-
     ObservableList<String> styleClasses = iconLabel.getStyleClass();
     styleClasses.removeAll(CSS_STYLE_INFO, CSS_STYLE_WARN, CSS_STYLE_ERROR);
 
@@ -98,15 +99,7 @@ public class PersistentNotificationController {
     return notificationRoot;
   }
 
-  public void setTheme(String theme) {
-    this.theme = theme;
-  }
-
   public void onCloseButtonClicked(ActionEvent event) {
     dismiss();
-  }
-
-  public void setNotificationService(NotificationService notificationService) {
-    this.notificationService = notificationService;
   }
 }

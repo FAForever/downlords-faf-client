@@ -35,8 +35,7 @@ import com.faforever.client.main.MainController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.news.NewsListItemController;
 import com.faforever.client.notification.ImmediateNotificationController;
-import com.faforever.client.notification.NotificationNodeFactory;
-import com.faforever.client.notification.NotificationNodeFactoryImpl;
+import com.faforever.client.notification.PersistentNotificationController;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.replay.ReplayVaultController;
@@ -157,6 +156,12 @@ public class UiConfig {
   }
 
   @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  PersistentNotificationController persistentNotificationController() {
+    return loadController("persistent_notification.fxml");
+  }
+
+  @Bean
   PlayerInfoTooltipController playerInfoTooltipController() {
     return loadController("player_info_tooltip.fxml");
   }
@@ -209,11 +214,6 @@ public class UiConfig {
   @Bean
   CountryFlagService countryFlagService() {
     return new CountryFlagServiceImpl();
-  }
-
-  @Bean
-  NotificationNodeFactory notificationPaneFactory() {
-    return new NotificationNodeFactoryImpl();
   }
 
   @Bean

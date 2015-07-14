@@ -8,6 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
@@ -19,6 +20,9 @@ import java.util.Set;
  */
 public class PersistentNotificationsController {
 
+  @Autowired
+  ApplicationContext applicationContext;
+
   @FXML
   Label noNotificationsLabel;
 
@@ -27,9 +31,6 @@ public class PersistentNotificationsController {
 
   @Autowired
   NotificationService notificationService;
-
-  @Autowired
-  NotificationNodeFactory notificationNodeFactory;
 
   @Autowired
   SoundController soundController;
@@ -69,13 +70,15 @@ public class PersistentNotificationsController {
   }
 
   private void addNotification(PersistentNotification notification) {
-    Node node = notificationNodeFactory.createPersistentNotificationNode(notification);
-    notificationsToNode.put(notification, node);
+    PersistentNotificationController controller = applicationContext.getBean(PersistentNotificationController.class);
+    controller.setNotification(notification);
+
+    notificationsToNode.put(notification, controller.getRoot());
 
     Platform.runLater(() -> {
       ObservableList<Node> children = persistentNotificationsRoot.getChildren();
       children.remove(noNotificationsLabel);
-      children.add(node);
+      children.add(controller.getRoot());
 
       playNotificationSound(notification);
     });

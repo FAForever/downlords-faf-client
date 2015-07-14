@@ -149,14 +149,14 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     Service<Void> service = instance.waitForProcessTerminationInBackground(process);
 
-    WaitForAsyncUtils.waitForAsyncFx(500, () -> service.stateProperty().addListener((observable, oldValue, newValue) -> {
+    WaitForAsyncUtils.waitForAsyncFx(200, () -> service.stateProperty().addListener((observable, oldValue, newValue) -> {
       serviceStateDoneFuture.complete(null);
     }));
 
 
     // It may happen that the listener above is added after the background task finished; for now we just gamble until
     // it really needs to be fixed.
-    serviceStateDoneFuture.get(3, TimeUnit.SECONDS);
+    serviceStateDoneFuture.get(500, TimeUnit.MILLISECONDS);
 
     verify(process).waitFor();
     verify(instance.proxy).close();

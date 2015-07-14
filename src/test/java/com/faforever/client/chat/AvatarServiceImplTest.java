@@ -1,18 +1,20 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import org.junit.Before;
 import org.junit.Test;
 
 public class AvatarServiceImplTest extends AbstractPlainJavaFxTest {
 
-  private final AvatarServiceImpl avatarService;
+  private AvatarServiceImpl instance;
 
-  public AvatarServiceImplTest() {
-    avatarService = new AvatarServiceImpl();
+  @Before
+  public void setUp() throws Exception {
+    instance = new AvatarServiceImpl();
   }
 
   @Test
   public void testLoadAvatar() throws Exception {
-    avatarService.loadAvatar(getClass().getResource("/images/tray_icon.png").toURI().toURL().toString());
+    instance.loadAvatar(getClass().getResource("/images/tray_icon.png").toURI().toURL().toString());
   }
 }
