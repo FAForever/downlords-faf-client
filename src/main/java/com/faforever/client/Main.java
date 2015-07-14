@@ -47,7 +47,7 @@ public class Main extends Application {
   }
 
   private void configureLogging() {
-    System.setProperty("logDirectory", PreferencesService.getLogDirectory().toString());
+    System.setProperty("logDirectory", PreferencesService.FAF_DATA_DIRECTORY.resolve("logs").toString());
 
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
