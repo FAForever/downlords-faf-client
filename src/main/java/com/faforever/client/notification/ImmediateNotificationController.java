@@ -1,12 +1,10 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.i18n.I18n;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Label;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class ImmediateNotificationController {
 
@@ -26,8 +24,10 @@ public class ImmediateNotificationController {
     titleLabel.setText(notification.getTitle());
     messageLabel.setText(notification.getText());
 
-    for (Action action : notification.getActions()) {
-      buttonBar.getButtons().add(createButton(action));
+    if (notification.getActions() != null) {
+      for (Action action : notification.getActions()) {
+        buttonBar.getButtons().add(createButton(action));
+      }
     }
   }
 
@@ -35,7 +35,7 @@ public class ImmediateNotificationController {
     Button button = new Button(action.getTitle());
     button.setOnAction(event -> {
       action.call(event);
-      if(action.getType() == Action.Type.OK_DONE) {
+      if (action.getType() == Action.Type.OK_DONE) {
         dismiss();
       }
     });

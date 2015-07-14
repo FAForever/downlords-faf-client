@@ -1,6 +1,5 @@
 package com.faforever.client.notification;
 
-import javafx.collections.ListChangeListener;
 import javafx.collections.SetChangeListener;
 
 import java.util.Set;

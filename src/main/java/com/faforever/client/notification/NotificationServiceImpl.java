@@ -1,8 +1,5 @@
 package com.faforever.client.notification;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
 
@@ -19,12 +16,12 @@ public class NotificationServiceImpl implements NotificationService {
 
   private ObservableSet<PersistentNotification> persistentNotifications;
   private List<OnTransientNotificationListener> onTransientNotificationListeners;
-  private ObservableList<OnImmediateNotificationListener> onImmediateNotificationListeners;
+  private List<OnImmediateNotificationListener> onImmediateNotificationListeners;
 
   public NotificationServiceImpl() {
     persistentNotifications = synchronizedObservableSet(observableSet(new TreeSet<>()));
     onTransientNotificationListeners = new ArrayList<>();
-    onImmediateNotificationListeners = FXCollections.observableArrayList();
+    onImmediateNotificationListeners = new ArrayList<>();
   }
 
   @Override

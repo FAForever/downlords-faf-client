@@ -20,9 +20,6 @@ import java.util.Set;
  */
 public class PersistentNotificationsController {
 
-  @Autowired
-  ApplicationContext applicationContext;
-
   @FXML
   Label noNotificationsLabel;
 
@@ -34,6 +31,9 @@ public class PersistentNotificationsController {
 
   @Autowired
   SoundController soundController;
+
+  @Autowired
+  ApplicationContext applicationContext;
 
   private Map<PersistentNotification, Node> notificationsToNode;
 
