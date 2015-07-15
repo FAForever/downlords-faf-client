@@ -7,8 +7,8 @@ import com.faforever.client.legacy.OnFriendListListener;
 import com.faforever.client.legacy.OnPlayerInfoListener;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.Assert;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,12 +49,9 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   }
 
   @Override
-  public void addPlayerListener(MapChangeListener<String, PlayerInfoBean> listener) {
-    players.addListener(listener);
-  }
-
-  @Override
   public PlayerInfoBean registerAndGetPlayerForUsername(String username) {
+    Assert.checkNull(username, "username must not be null");
+
     if (!players.containsKey(username)) {
       players.put(username, new PlayerInfoBean(username));
     }
@@ -105,11 +102,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   @Override
   public void onPlayerInfo(PlayerInfo playerInfo) {
-    if (!players.containsKey(playerInfo.login)) {
-      players.put(playerInfo.login, new PlayerInfoBean(playerInfo));
-    }
-
-    PlayerInfoBean playerInfoBean = players.get(playerInfo.login);
+    PlayerInfoBean playerInfoBean = registerAndGetPlayerForUsername(playerInfo.login);
     playerInfoBean.updateFromPlayerInfo(playerInfo);
 
     if (playerInfo.login.equals(userService.getUsername())) {

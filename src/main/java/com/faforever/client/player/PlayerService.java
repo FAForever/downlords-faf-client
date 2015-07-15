@@ -1,7 +1,8 @@
 package com.faforever.client.player;
 
 import com.faforever.client.chat.PlayerInfoBean;
-import javafx.collections.MapChangeListener;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
@@ -10,11 +11,12 @@ public interface PlayerService {
   /**
    * Returns the PlayerInfoBean for the specified username. Returns null if no such player is known.
    */
-  PlayerInfoBean getPlayerForUsername(String username);
+  PlayerInfoBean getPlayerForUsername(@Nullable String username);
 
-  void addPlayerListener(MapChangeListener<String, PlayerInfoBean> stringPlayerInfoBeanMapChangeListener);
-
-  PlayerInfoBean registerAndGetPlayerForUsername(String username);
+  /**
+   * Gets a player for the given username. A new user is created and registered if it does not yet exist.
+   */
+  PlayerInfoBean registerAndGetPlayerForUsername(@NotNull String username);
 
   Set<String> getPlayerNames();
 
