@@ -190,15 +190,9 @@ public class ChannelTab extends AbstractChatTab {
     }
   }
 
-  private void onUserLeft(String login) {
+  private void onUserLeft(String username) {
     JavaFxUtil.assertBackgroundThread();
 
-    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(login);
-    if (playerInfoBean == null) {
-      return;
-    }
-
-    String username = playerInfoBean.getUsername();
     Map<Pane, ChatUserControl> paneToChatUserControlMap = userToChatUserControls.get(username);
     if (paneToChatUserControlMap == null) {
       return;
