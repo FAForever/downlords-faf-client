@@ -6,8 +6,7 @@ import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatTabFactory;
 import com.faforever.client.chat.ChatTabFactoryImpl;
 import com.faforever.client.chat.ChatUserContextMenuController;
-import com.faforever.client.chat.ChatUserControlFactory;
-import com.faforever.client.chat.ChatUserControlFactoryImpl;
+import com.faforever.client.chat.ChatUserControl;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.CountryFlagServiceImpl;
 import com.faforever.client.chat.PlayerInfoTooltipController;
@@ -202,8 +201,8 @@ public class UiConfig {
   }
 
   @Bean
-  ChatUserControlFactory userEntryFactory() {
-    return new ChatUserControlFactoryImpl();
+  ChatUserControl chatUserControl() {
+    return new ChatUserControl();
   }
 
   @Bean

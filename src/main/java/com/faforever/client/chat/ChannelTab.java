@@ -15,6 +15,7 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,7 +53,7 @@ public class ChannelTab extends AbstractChatTab {
   ChatController chatController;
 
   @Autowired
-  ChatUserControlFactory chatUserControlFactory;
+  ApplicationContext applicationContext;
 
   private final String channelName;
 
@@ -217,7 +218,10 @@ public class ChannelTab extends AbstractChatTab {
       // User has not yet been added to this pane; no need to remove him
       return;
     }
-    Platform.runLater(() -> pane.getChildren().remove(paneChatUserControlMap.remove(pane)));
+    Platform.runLater(() -> {
+      ChatUserControl chatUserControl = paneChatUserControlMap.remove(pane);
+      pane.getChildren().remove(chatUserControl);
+    });
 //        });
   }
 
@@ -239,7 +243,8 @@ public class ChannelTab extends AbstractChatTab {
       return;
     }
 
-    ChatUserControl chatUserControl = chatUserControlFactory.createChatUserControl(playerInfoBean);
+    ChatUserControl chatUserControl = applicationContext.getBean(ChatUserControl.class);
+    chatUserControl.setPlayerInfoBean(playerInfoBean);
     paneToChatUserControlMap.put(pane, chatUserControl);
 
     Platform.runLater(() -> {

@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fxml.FxmlLoader;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -35,9 +34,6 @@ public class ChatUserControl extends HBox {
   CountryFlagService countryFlagService;
 
   @Autowired
-  SceneFactory sceneFactory;
-
-  @Autowired
   ChatController chatController;
 
   @FXML
@@ -52,14 +48,11 @@ public class ChatUserControl extends HBox {
   @FXML
   Label clanLabel;
 
-  private final PlayerInfoBean playerInfoBean;
+  private PlayerInfoBean playerInfoBean;
 
-  public ChatUserControl(PlayerInfoBean playerInfoBean) {
+  public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
     this.playerInfoBean = playerInfoBean;
-  }
 
-  @FXML
-  void initialize() {
     configureCountryImageView();
     configureAvatarImageView();
     configureClanLabel();
