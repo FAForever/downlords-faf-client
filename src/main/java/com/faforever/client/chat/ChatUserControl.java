@@ -56,6 +56,8 @@ public class ChatUserControl extends HBox {
     configureCountryImageView();
     configureAvatarImageView();
     configureClanLabel();
+
+    usernameLabel.setText(playerInfoBean.getUsername());
   }
 
   @FXML
@@ -73,6 +75,7 @@ public class ChatUserControl extends HBox {
   }
 
   private void configureClanLabel() {
+    setClanTag(playerInfoBean.getClan());
     playerInfoBean.clanProperty().addListener((observable, oldValue, newValue) -> {
       Platform.runLater(() -> {
         setClanTag(newValue);
@@ -135,8 +138,6 @@ public class ChatUserControl extends HBox {
   @PostConstruct
   void init() {
     fxmlLoader.loadCustomControl("chat_user_control.fxml", this);
-    usernameLabel.setText(playerInfoBean.getUsername());
-    setClanTag(playerInfoBean.getClan());
   }
 
   public PlayerInfoBean getPlayerInfoBean() {

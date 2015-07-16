@@ -161,6 +161,12 @@ public class UiConfig {
   }
 
   @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  ChatUserControl chatUserControl() {
+    return new ChatUserControl();
+  }
+
+  @Bean
   PlayerInfoTooltipController playerInfoTooltipController() {
     return loadController("player_info_tooltip.fxml");
   }
@@ -198,11 +204,6 @@ public class UiConfig {
   @Bean
   ChatTabFactory chatTabFactory() {
     return new ChatTabFactoryImpl();
-  }
-
-  @Bean
-  ChatUserControl chatUserControl() {
-    return new ChatUserControl();
   }
 
   @Bean

@@ -2,7 +2,6 @@ package com.faforever.client.config;
 
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatTabFactory;
-import com.faforever.client.chat.ChatUserControlFactory;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.PlayerInfoTooltipController;
 import com.faforever.client.chat.UrlPreviewResolver;
@@ -41,11 +40,6 @@ public class TestUiConfiguration {
   @Bean
   ChatTabFactory chatTabFactory() {
     return mock(ChatTabFactory.class);
-  }
-
-  @Bean
-  ChatUserControlFactory chatUserControlFactory() {
-    return mock(ChatUserControlFactory.class);
   }
 
   @Bean
