@@ -4,6 +4,7 @@ import com.faforever.client.game.MapInfoBean;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public interface MapVaultParser {
 
@@ -12,4 +13,9 @@ public interface MapVaultParser {
    * stable and this code breaks whenever the returned HTML changes.
    */
   List<MapInfoBean> parseMapVault(int page, int maxEntries) throws IOException;
+
+  //FIXME change map to string
+  List<Comment> parseComments(int id) throws IOException;
+
+  MapInfoBean parseSingleMap(String name) throws IOException;
 }

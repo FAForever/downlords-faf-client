@@ -87,6 +87,9 @@ public class UiConfig {
   }
 
   @Bean
+  MapPreviewLargeController mapPreviewLargeController(){return loadController("map_preview_large.fxml");}
+
+  @Bean
   ChatController chatController() {
     return loadController("chat.fxml");
   }
@@ -101,10 +104,7 @@ public class UiConfig {
   CommentCardController commentCardController(){return loadController("comment_card.fxml");
   }
 
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  MapPreviewLargeController mapPreviewLargeController(){return loadController("map_preview_large.fxml");
-  }
+
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)

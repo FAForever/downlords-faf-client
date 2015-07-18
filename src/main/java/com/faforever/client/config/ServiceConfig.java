@@ -19,8 +19,6 @@ import com.faforever.client.legacy.StatisticsServerAccessorImpl;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
 import com.faforever.client.legacy.ladder.LeaderParser;
 import com.faforever.client.legacy.ladder.LegacyLeaderParser;
-import com.faforever.client.legacy.map.CommentVaultParser;
-import com.faforever.client.legacy.map.LegacyCommentVaultParser;
 import com.faforever.client.legacy.map.LegacyMapVaultParser;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.legacy.proxy.Proxy;
@@ -120,6 +118,9 @@ public class ServiceConfig {
   }
 
   @Bean
+  MapVaultParser mapVaultParser(){ return new LegacyMapVaultParser();}
+
+  @Bean
   GameService gameService() {
     return new GameServiceImpl();
   }
@@ -168,14 +169,6 @@ public class ServiceConfig {
   LeaderParser ladderParser() {
     return new LegacyLeaderParser();
   }
-
-  @Bean
-  MapVaultParser mapVaultParser() {
-    return new LegacyMapVaultParser();
-  }
-
-  @Bean
-  CommentVaultParser commentVaultParser(){ return new LegacyCommentVaultParser();}
 
   @Bean
   ReplayServer replayServer() {

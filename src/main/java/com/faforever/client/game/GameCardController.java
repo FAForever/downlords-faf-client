@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
+import com.faforever.client.legacy.map.Comment;
 import com.faforever.client.map.MapService;
 import com.google.common.base.Joiner;
 import javafx.collections.MapChangeListener;
@@ -21,6 +22,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 import java.lang.invoke.MethodHandles;
+import java.util.List;
 import java.util.Map;
 
 public class GameCardController {
@@ -98,11 +100,6 @@ public class GameCardController {
           i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers())
       );
     }));
-    //FIXME comment fetcher returns null
-    try{
-    for(Map<String,String> comment: mapService.getComments(gameInfoBean.getMapName())) {
-      logger.debug(comment.get("Comment"));
-    }}catch(Exception e){logger.debug(e.getMessage() + gameInfoBean.getMapName());}
 
     numberOfPlayersLabel.setText(i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     gameInfoBean.numPlayersProperty().addListener(((observable3, oldValue3, newValue3) -> {
@@ -142,7 +139,7 @@ public class GameCardController {
     gamesController.displayGameDetail(gameInfoBean);
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
       mouseEvent.consume();
-      gamesController.joinGame(gameInfoBean, null,  mouseEvent.getScreenX(), mouseEvent.getScreenY());
+      gamesController.joinGame(gameInfoBean, null, mouseEvent.getScreenX(), mouseEvent.getScreenY());
     }
   }
 

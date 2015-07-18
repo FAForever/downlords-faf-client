@@ -1,8 +1,11 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fx.SceneFactory;
+import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
+import com.faforever.client.legacy.io.QDataOutputStream;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
@@ -12,6 +15,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -26,8 +30,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,11 +108,16 @@ public class GamesController  {
   @Autowired
   PreferencesService preferencesService;
 
+  @Autowired
+  SceneFactory sceneFactory;
+
+
   private ObservableList<GameInfoBean> gameInfoBeans;
 
   private Popup createGamePopup;
   private Popup passwordPopup;
   private FilteredList<GameInfoBean> filteredItems;
+  Stage largePreview;
 
   //TODO Implement into options menu
   private boolean tilePaneSelected = false;
@@ -250,5 +262,23 @@ public class GamesController  {
 
     Bounds screenBounds = createGameButton.localToScreen(createGameButton.getBoundsInLocal());
     createGamePopup.show(button.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());
+  }
+  //TODO do we want to create new pane or repopulate the same pane
+  public void onMapLargePreview(Event event) {
+
+    //FIXME official maps need to be checked TEMPORARY
+    if(mapService.isOfficialMap(mapLabel.getText()))
+      return;
+    largePreview = new Stage(StageStyle.TRANSPARENT);
+    largePreview.initModality(Modality.NONE);
+    largePreview.initOwner(getRoot().getScene().getWindow());
+
+    MapPreviewLargeController mapPreviewLargeController = applicationContext.getBean(MapPreviewLargeController.class);
+
+    mapPreviewLargeController.createPreview(mapLabel.getText());
+
+    sceneFactory.createScene(largePreview, mapPreviewLargeController.getRoot(), true, WindowDecorator.WindowButtonType.CLOSE);
+    largePreview.show();
+    largePreview.toFront();
   }
 }
