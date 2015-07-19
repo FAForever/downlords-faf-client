@@ -5,7 +5,6 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-
 <GridPane fx:id="root" styleClass="comment-card" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.CommentCardController">
    <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
@@ -24,4 +23,7 @@
       <Label fx:id="dateLabel" styleClass="comment-date-label" text="&lt;Comment Date&gt;" GridPane.columnIndex="1" />
       <Label fx:id="commentLabel" styleClass="comment-label" text="&lt;Comment&gt;" wrapText="true" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
    </children>
+   <opaqueInsets>
+      <Insets />
+   </opaqueInsets>
 </GridPane>

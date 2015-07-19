@@ -277,7 +277,7 @@ public class GamesController  {
 
     mapPreviewLargeController.createPreview(mapLabel.getText());
 
-    sceneFactory.createScene(largePreview, mapPreviewLargeController.getRoot(), true, WindowDecorator.WindowButtonType.CLOSE);
+    sceneFactory.createScene(largePreview, mapPreviewLargeController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
     largePreview.show();
     largePreview.toFront();
   }
