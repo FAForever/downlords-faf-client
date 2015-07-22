@@ -98,10 +98,10 @@ public class LegacyMapVaultParser implements MapVaultParser {
   }
 
     @Override
-    public MapInfoBean parseSingleMap(String name) throws IOException {
+    public MapInfoBean parseSingleMap(String mapName) throws IOException {
       MapVaultHtmlContentHandler mapVaultHtmlContentHandler = new MapVaultHtmlContentHandler();
 
-      URL url = new URL(String.format(environment.getProperty("vault.singleMapUrl"), name));
+      URL url = new URL(String.format(environment.getProperty("vault.singleMapUrl"), mapName));
 
       HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 
@@ -118,7 +118,10 @@ public class LegacyMapVaultParser implements MapVaultParser {
 
           String layout = jsonReader.nextString();
 
-          return htmlParser.parse(layout, mapVaultHtmlContentHandler).get(0);
+          List<MapInfoBean> mapInfoBeans = htmlParser.parse(layout, mapVaultHtmlContentHandler);
+          if(!mapInfoBeans.isEmpty()) {
+            return mapInfoBeans.get(0);
+          }
         }
 
         jsonReader.endObject();

@@ -143,8 +143,8 @@ public class MapServiceImpl implements MapService {
       return mapVaultParser.parseSingleMap(mapName);
     } catch (IOException e) {
       logger.error("Error in parsing {} from vault", mapName);
+      return new MapInfoBean();
     }
-    return null;
   }
 
   @Override

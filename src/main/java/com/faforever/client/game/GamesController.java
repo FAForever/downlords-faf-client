@@ -6,6 +6,7 @@ import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.io.QDataOutputStream;
+import com.faforever.client.map.MapPreviewLargeController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
@@ -274,8 +275,8 @@ public class GamesController  {
     largePreview.initOwner(getRoot().getScene().getWindow());
 
     MapPreviewLargeController mapPreviewLargeController = applicationContext.getBean(MapPreviewLargeController.class);
-
-    mapPreviewLargeController.createPreview(mapLabel.getText());
+    MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultFromName(mapLabel.getText());
+    mapPreviewLargeController.createPreview(mapInfoBean);
 
     sceneFactory.createScene(largePreview, mapPreviewLargeController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
     largePreview.show();
