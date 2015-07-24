@@ -15,6 +15,7 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,7 +53,7 @@ public class ChannelTab extends AbstractChatTab {
   ChatController chatController;
 
   @Autowired
-  ChatUserControlFactory chatUserControlFactory;
+  ApplicationContext applicationContext;
 
   private final String channelName;
 
@@ -134,20 +135,50 @@ public class ChannelTab extends AbstractChatTab {
     });
 
     playerInfoBean.friendProperty().addListener((observable, oldValue, newValue) -> {
-      addToOrRemoveFromPane(playerInfoBean, friendsPane, newValue);
-      addToOrRemoveFromPane(playerInfoBean, othersPane, !newValue);
+      if (newValue) {
+        addToPane(playerInfoBean, friendsPane);
+        removeFromPane(playerInfoBean, foesPane);
+        removeFromPane(playerInfoBean, othersPane);
+      } else {
+        removeFromPane(playerInfoBean, friendsPane);
+        if (!playerInfoBean.isFoe()) {
+          addToPane(playerInfoBean, othersPane);
+        }
+      }
     });
     playerInfoBean.foeProperty().addListener((observable, oldValue, newValue) -> {
-      addToOrRemoveFromPane(playerInfoBean, foesPane, newValue);
-      addToOrRemoveFromPane(playerInfoBean, othersPane, !newValue);
+      if (newValue) {
+        addToPane(playerInfoBean, foesPane);
+        removeFromPane(playerInfoBean, friendsPane);
+        removeFromPane(playerInfoBean, othersPane);
+      } else {
+        removeFromPane(playerInfoBean, foesPane);
+        if (!playerInfoBean.isFriend()) {
+          addToPane(playerInfoBean, othersPane);
+        }
+      }
     });
     playerInfoBean.chatOnlyProperty().addListener((observable, oldValue, newValue) -> {
-      addToOrRemoveFromPane(playerInfoBean, chatOnlyPane, newValue);
-      addToOrRemoveFromPane(playerInfoBean, othersPane, !newValue);
+      if (newValue) {
+        addToPane(playerInfoBean, chatOnlyPane);
+        removeFromPane(playerInfoBean, othersPane);
+      } else {
+        removeFromPane(playerInfoBean, chatOnlyPane);
+        if (!playerInfoBean.isFoe() && !playerInfoBean.isFriend() && !playerInfoBean.getModeratorInChannels().contains(channelName)) {
+          addToPane(playerInfoBean, othersPane);
+        }
+      }
     });
     playerInfoBean.getModeratorInChannels().addListener((SetChangeListener<String>) change -> {
-      addToOrRemoveFromPane(playerInfoBean, moderatorsPane, change.wasAdded());
-      addToOrRemoveFromPane(playerInfoBean, othersPane, !change.wasAdded());
+      if (change.wasAdded()) {
+        addToPane(playerInfoBean, moderatorsPane);
+        removeFromPane(playerInfoBean, othersPane);
+      } else {
+        removeFromPane(playerInfoBean, moderatorsPane);
+        if (!playerInfoBean.isFoe() && !playerInfoBean.isFriend()) {
+          addToPane(playerInfoBean, othersPane);
+        }
+      }
     });
 
 
@@ -160,15 +191,9 @@ public class ChannelTab extends AbstractChatTab {
     }
   }
 
-  private void onUserLeft(String login) {
+  private void onUserLeft(String username) {
     JavaFxUtil.assertBackgroundThread();
 
-    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(login);
-    if (playerInfoBean == null) {
-      return;
-    }
-
-    String username = playerInfoBean.getUsername();
     Map<Pane, ChatUserControl> paneToChatUserControlMap = userToChatUserControls.get(username);
     if (paneToChatUserControlMap == null) {
       return;
@@ -181,20 +206,23 @@ public class ChannelTab extends AbstractChatTab {
     userToChatUserControls.remove(username);
   }
 
-  private void addToOrRemoveFromPane(PlayerInfoBean playerInfoBean, Pane pane, Boolean add) {
-    if (add) {
-      createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
-    } else {
-      // Re-add Plateform.runLater() as soon as RT-40417 is fixed
+  private void addToPane(PlayerInfoBean playerInfoBean, Pane pane) {
+    createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
+  }
+
+  private void removeFromPane(PlayerInfoBean playerInfoBean, Pane pane) {
+    // Re-add Plateform.runLater() as soon as RT-40417 is fixed
 //        Platform.runLater(() -> {
-      Map<Pane, ChatUserControl> paneChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
-      if (paneChatUserControlMap == null) {
-        // User has not yet been added to this pane; no need to remove him
-        return;
-      }
-      Platform.runLater(() -> pane.getChildren().remove(paneChatUserControlMap.remove(pane)));
-//        });
+    Map<Pane, ChatUserControl> paneChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
+    if (paneChatUserControlMap == null) {
+      // User has not yet been added to this pane; no need to remove him
+      return;
     }
+    Platform.runLater(() -> {
+      ChatUserControl chatUserControl = paneChatUserControlMap.remove(pane);
+      pane.getChildren().remove(chatUserControl);
+    });
+//        });
   }
 
   /**
@@ -215,7 +243,8 @@ public class ChannelTab extends AbstractChatTab {
       return;
     }
 
-    ChatUserControl chatUserControl = chatUserControlFactory.createChatUserControl(playerInfoBean);
+    ChatUserControl chatUserControl = applicationContext.getBean(ChatUserControl.class);
+    chatUserControl.setPlayerInfoBean(playerInfoBean);
     paneToChatUserControlMap.put(pane, chatUserControl);
 
     Platform.runLater(() -> {

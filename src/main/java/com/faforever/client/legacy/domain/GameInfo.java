@@ -1,6 +1,5 @@
 package com.faforever.client.legacy.domain;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -22,4 +21,12 @@ public class GameInfo extends ServerObject {
   public Map<String, List<String>> teams;
   public Map<String, Integer> featuredModVersions;
 
+  @Override
+  public String toString() {
+    return "GameInfo{" +
+        "uid=" + uid +
+        ", title='" + title + '\'' +
+        ", state=" + state +
+        '}';
+  }
 }

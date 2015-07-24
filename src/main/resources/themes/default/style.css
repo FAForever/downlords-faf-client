@@ -154,8 +154,9 @@
 
   /* These are NOT from modena. */
   -fx-context-menu-background: rgba(0, 0, 0, .8);
-  -fx-tile-background:  rgba(50, 50, 50, .9);
-  -fx-transparent-hover:  rgba(255, 255, 255, .1);
+  -fx-tile-background: rgba(50, 50, 50, .9);
+  -fx-transparent-hover: rgba(255, 255, 255, .1);
+  -fx-drop-shadow: dropshadow(gaussian, #ffffff66, 5, 0.5, 0, 0);
 }
 
 .scroll-bar > .increment-button > .increment-arrow,
@@ -281,10 +282,22 @@
     -fx-background-insets: -0.2, 1, 2, -1.4, 2.6;
     -fx-background-radius: 3, 2, 1, 4, 1;
 }
+
+/***************** Popup *****************/
+
+.popup {
+  -fx-background-color: -fx-background;
+  -fx-effect: -fx-drop-shadow;
+}
+
 /***************** Tooltip *****************/
 
-.tooltip{
-  -fx-font-size: 1em;
+.tooltip {
+  -fx-background-radius: 0;
+  -fx-background-color: -fx-background;
+  -fx-border-width: 1;
+  -fx-border-color: -fx-box-border;
+  -fx-effect: null;
 }
 
 /***************** Window *****************/
@@ -313,7 +326,7 @@
 }
 
 .main-menu-button:hover {
-  -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
+  -fx-effect: -fx-drop-shadow;
 }
 
 .username-button {
@@ -323,7 +336,7 @@
 }
 
 .username-button:hover {
-  -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
+  -fx-effect: -fx-drop-shadow;
 }
 
 .username-button > .label {
@@ -349,12 +362,12 @@
 
 .main-navigation > .toggle-button:hover {
   -fx-text-fill: -fx-mid-text-color;
-  -fx-effect: dropshadow(gaussian, rgba(255,255,255,.2), 5, 0.8, 0, 0);
+  -fx-effect: -fx-drop-shadow;
 }
 
 .main-navigation > .toggle-button:selected {
   -fx-text-fill: -fx-light-text-color;
-  -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
+  -fx-effect: -fx-drop-shadow;
 }
 
 
@@ -471,7 +484,7 @@
 .persistent-notifications {
   -fx-background-color: -fx-background;
   -fx-background-radius: 5;
-  -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
+  -fx-effect: -fx-drop-shadow;
 }
 
 .no-notifications {
@@ -507,12 +520,21 @@
   -fx-text-fill : #cb3d3d;
 }
 
+.immediate-notification {
+  -fx-background-image: url('images/background.png');
+}
 
-/***************** Popup *****************/
+.immediate-notification > *.header,
+.immediate-notification > *.content {
+  -fx-padding: 1.6em;
+}
 
-.popup {
-  -fx-background-color: -fx-background;
-  -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
+.immediate-notification > *.button-bar{
+  -fx-padding: 0 1.6em 1.6em 1.6em;
+}
+
+.immediate-notification > *.header {
+  -fx-font-size: 1.5em;
 }
 
 /***************** Tabs *****************/
@@ -566,7 +588,6 @@
 
 .game-card-root:hover,
 .game-card-root:focused {
-
   -fx-background-color: -fx-control-inner-background;
 }
 
@@ -603,7 +624,7 @@
 /***************** Game detail *****************/
 
 .map-preview {
-  -fx-effect: dropshadow(gaussian, #ffffff66, 5, 0.8, 0, 0);
+  -fx-effect: -fx-drop-shadow;
 }
 
 /***************** Window decoration *****************/
@@ -670,7 +691,7 @@
 }
 
 .login-icon {
- -fx-effect: dropshadow(gaussian, rgba(255,255,255,.2), 15, 0.8, 0, 0);
+ -fx-effect: -fx-drop-shadow;
 }
 
 /***************** Web view *****************/
@@ -696,7 +717,7 @@
 }
 
 .settings .tab {
-  /* Since the text is rotated 90°, these values are as well (right is top, width is height) */
+  /* Since the text is rotated 90ï¿½, these values are as well (right is top, width is height) */
   -fx-pref-height: 20em;
   -fx-vpos: top;
 }
@@ -704,5 +725,3 @@
 .settings-content {
   -fx-padding: 1.5em;
 }
-
-/***************** Chat (WebView has own CSS file) *****************/

@@ -37,7 +37,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class PreferencesService {
-
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final long STORE_DELAY = 1000;
@@ -55,8 +54,35 @@ public class PreferencesService {
       Paths.get(System.getenv("ProgramFiles") + "\\Steam\\steamapps\\common\\supreme commander forged alliance"),
       Paths.get(System.getenv("ProgramFiles") + "\\Supreme Commander - Forged Alliance")
   );
+
   private static final String FORGED_ALLIANCE_EXE = "ForgedAlliance.exe";
   private static final String SUPREME_COMMANDER_EXE = "SupremeCommander.exe";
+
+  /**
+   * Points to the FAF data directory where log files, config files and others are held. The returned value varies
+   * depending on the operating system. This field is only public in order to set the log directory within the Main
+   * class. All other class should always access {@link #getFafDataDirectory()} instead.
+   */
+  public static final Path FAF_DATA_DIRECTORY;
+
+  static {
+    switch (OperatingSystem.current()) {
+      case WINDOWS:
+        FAF_DATA_DIRECTORY = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
+        break;
+
+      default:
+        FAF_DATA_DIRECTORY = Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
+    }
+  }
+
+  private final Path preferencesFilePath;
+  private final Gson gson;
+
+  /**
+   * @see #storeInBackground()
+   */
+  private final Timer timer;
 
   @Autowired
   I18n i18n;
@@ -64,14 +90,7 @@ public class PreferencesService {
   @Autowired
   NotificationService notificationService;
 
-  private final Path preferencesFilePath;
-  private final Gson gson;
   private Preferences preferences;
-
-  /**
-   * @see #storeInBackground()
-   */
-  private final Timer timer;
   private TimerTask storeInBackgroundTask;
   private Collection<PreferenceUpdateListener> updateListeners;
   private OnChoseGameDirectoryListener onChoseGameDirectoryListener;
@@ -85,6 +104,16 @@ public class PreferencesService {
         .registerTypeHierarchyAdapter(Property.class, new PropertyTypeAdapter())
         .registerTypeHierarchyAdapter(Path.class, new PathTypeAdapter())
         .create();
+  }
+
+  public Path getPreferencesDirectory() {
+    switch (OperatingSystem.current()) {
+      case WINDOWS:
+        return Paths.get(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER);
+
+      default:
+        return Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
+    }
   }
 
   @PostConstruct
@@ -178,22 +207,12 @@ public class PreferencesService {
     }
   }
 
-  public Path getPreferencesDirectory() {
-    switch (OperatingSystem.current()) {
-      case WINDOWS:
-        return Paths.get(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER);
-
-      default:
-        return Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
-    }
+  public Path getFafBinDirectory() {
+    return getFafDataDirectory().resolve("bin");
   }
 
   public Path getFafDataDirectory() {
-    return Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
-  }
-
-  public Path getFafBinDirectory() {
-    return getFafDataDirectory().resolve("bin");
+    return FAF_DATA_DIRECTORY;
   }
 
   public Path getFafReposDirectory() {
@@ -279,12 +298,12 @@ public class PreferencesService {
     updateListeners.add(listener);
   }
 
-  public Path getReplaysDirectory() {
-    return getFafDataDirectory().resolve(REPLAYS_SUB_FOLDER);
-  }
-
   public Path getCorruptedReplaysDirectory() {
     return getReplaysDirectory().resolve(CORRUPTED_REPLAYS_SUB_FOLDER);
+  }
+
+  public Path getReplaysDirectory() {
+    return getFafDataDirectory().resolve(REPLAYS_SUB_FOLDER);
   }
 
   public void setOnChoseGameDirectoryListener(OnChoseGameDirectoryListener onChoseGameDirectoryListener) {
@@ -292,6 +311,6 @@ public class PreferencesService {
   }
 
   public Path getCacheDirectory() {
-    return getFafGameDataDirectory().resolve(CACHE_SUB_FOLDER);
+    return getFafDataDirectory().resolve(CACHE_SUB_FOLDER);
   }
 }

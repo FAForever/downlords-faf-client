@@ -16,6 +16,8 @@ public interface NotificationService {
    */
   void addNotification(TransientNotification notification);
 
+  void addNotification(ImmediateNotification notification);
+
   /**
    * Adds a listener to be notified about added/removed {@link PersistentNotification}s
    */
@@ -29,4 +31,6 @@ public interface NotificationService {
   Set<PersistentNotification> getPersistentNotifications();
 
   void removeNotification(PersistentNotification notification);
+
+  void addImmediateNotificationListener(OnImmediateNotificationListener listener);
 }

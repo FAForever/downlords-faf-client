@@ -15,6 +15,8 @@ import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.network.GamePortCheckListener;
 import com.faforever.client.network.PortCheckService;
 import com.faforever.client.news.NewsController;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.ImmediateNotificationController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
@@ -73,7 +75,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_STATE = PseudoClass.getPseudoClass("info");
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_STATE = PseudoClass.getPseudoClass("warn");
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_STATE = PseudoClass.getPseudoClass("error");
-
 
   @FXML
   Pane mainHeaderPane;
@@ -205,8 +206,11 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     notificationService.addPersistentNotificationListener(change -> {
       Platform.runLater(() -> updateNotificationsButton(change.getSet()));
     });
+    notificationService.addImmediateNotificationListener(notification -> {
+      Platform.runLater(() -> displayImmediateNotification(notification));
+    });
 
-    taskService.addChangeListener(TaskGroup.NET_HEAVY, change -> {
+    taskService.addChangeListener(change -> {
       while (change.next()) {
         if (change.wasAdded()) {
           addTasks(change.getAddedSubList());
@@ -215,13 +219,27 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
           removeTasks(change.getRemoved());
         }
       }
-    });
+    }, TaskGroup.NET_HEAVY, TaskGroup.NET_UPLOAD);
+
     portCheckStatusButton.getTooltip().setText(
         i18n.get("statusBar.portCheckTooltip", preferencesService.getPreferences().getForgedAlliance().getPort())
     );
     portCheckService.addGamePortCheckListener(this);
 
     preferencesService.setOnChoseGameDirectoryListener(this);
+  }
+
+  private void displayImmediateNotification(ImmediateNotification notification) {
+    Popup popup = new Popup();
+    popup.setAutoFix(true);
+    popup.setAutoHide(true);
+
+    ImmediateNotificationController controller = applicationContext.getBean(ImmediateNotificationController.class);
+    controller.setNotification(notification);
+
+    popup.getContent().setAll(controller.getRoot());
+    popup.centerOnScreen();
+    popup.show(mainRoot.getScene().getWindow() );
   }
 
   /**

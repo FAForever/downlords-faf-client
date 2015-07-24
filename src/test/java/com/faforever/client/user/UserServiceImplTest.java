@@ -7,8 +7,8 @@ import com.faforever.client.util.Callback;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.faforever.client.test.AbstractPlainJavaTest.assertEquals;
-import static com.faforever.client.test.AbstractPlainJavaTest.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

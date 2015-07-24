@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,16 +23,10 @@ public class ReplayFileReaderImpl implements ReplayFileReader {
   }
 
   @Override
-  public LocalReplayInfo readReplayInfo(Path replayFile) {
+  public LocalReplayInfo readReplayInfo(Path replayFile) throws IOException {
     logger.debug("Reading replay file {}", replayFile);
-    try {
       List<String> lines = Files.readAllLines(replayFile);
-
       return gson.fromJson(lines.get(0), LocalReplayInfo.class);
-    } catch (Exception e) {
-      logger.warn("Replay file " + replayFile + " could not be read", e);
-      return null;
-    }
   }
 
   @Override

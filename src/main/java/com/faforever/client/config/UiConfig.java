@@ -6,14 +6,15 @@ import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatTabFactory;
 import com.faforever.client.chat.ChatTabFactoryImpl;
 import com.faforever.client.chat.ChatUserContextMenuController;
-import com.faforever.client.chat.ChatUserControlFactory;
-import com.faforever.client.chat.ChatUserControlFactoryImpl;
+import com.faforever.client.chat.ChatUserControl;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.CountryFlagServiceImpl;
 import com.faforever.client.chat.PlayerInfoTooltipController;
 import com.faforever.client.chat.UrlPreviewResolver;
 import com.faforever.client.chat.UrlPreviewResolverImpl;
 import com.faforever.client.chat.UserInfoWindowController;
+import com.faforever.client.fx.DialogFactory;
+import com.faforever.client.fx.DialogFactoryImpl;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
 import com.faforever.client.fxml.FxmlLoader;
@@ -34,8 +35,8 @@ import com.faforever.client.map.CommentCardController;
 import com.faforever.client.map.MapPreviewLargeController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.news.NewsListItemController;
-import com.faforever.client.notification.NotificationNodeFactory;
-import com.faforever.client.notification.NotificationNodeFactoryImpl;
+import com.faforever.client.notification.ImmediateNotificationController;
+import com.faforever.client.notification.PersistentNotificationController;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.replay.ReplayVaultController;
@@ -64,6 +65,11 @@ public class UiConfig {
   @Bean
   SceneFactory sceneFactory() {
     return new SceneFactoryImpl();
+  }
+
+  @Bean
+  DialogFactory dialogFactory() {
+    return new DialogFactoryImpl();
   }
 
   @Bean
@@ -103,9 +109,7 @@ public class UiConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   CommentCardController commentCardController(){return loadController("comment_card.fxml");
   }
-
-
-
+  
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   GameTableController gameTableController(){return loadController("game_table.fxml");
@@ -113,7 +117,8 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  PopupPlayerCardController popupPlayerCardController(){return loadController("popup_player_card.fxml");
+  ImmediateNotificationController immediateNotificationController() {
+    return loadController("immediate_notification.fxml");
   }
 
   @Bean
@@ -123,7 +128,14 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  PopupGamePaneController popupGamePaneController() {return loadController("popup_game_pane.fxml");
+  PopupTeamCardController popupTeamCardController() {
+    return loadController("popup_team_card.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  PopupGamePaneController popupGamePaneController() {
+    return loadController("popup_game_pane.fxml");
   }
 
   @Bean
@@ -148,6 +160,18 @@ public class UiConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   NewsListItemController newsTileController() {
     return loadController("news_list_item.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  PersistentNotificationController persistentNotificationController() {
+    return loadController("persistent_notification.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  ChatUserControl chatUserControl() {
+    return new ChatUserControl();
   }
 
   @Bean
@@ -191,11 +215,6 @@ public class UiConfig {
   }
 
   @Bean
-  ChatUserControlFactory userEntryFactory() {
-    return new ChatUserControlFactoryImpl();
-  }
-
-  @Bean
   AvatarService avatarService() {
     return new AvatarServiceImpl();
   }
@@ -203,11 +222,6 @@ public class UiConfig {
   @Bean
   CountryFlagService countryFlagService() {
     return new CountryFlagServiceImpl();
-  }
-
-  @Bean
-  NotificationNodeFactory notificationPaneFactory() {
-    return new NotificationNodeFactoryImpl();
   }
 
   @Bean

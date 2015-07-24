@@ -4,15 +4,15 @@ import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.map.MapService;
-import com.faforever.client.util.RatingUtil;
-import com.google.common.base.Strings;
+import com.faforever.client.player.PlayerService;
 import javafx.beans.binding.ObjectBinding;
-import javafx.beans.binding.StringBinding;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
@@ -36,7 +36,7 @@ public class GameTableController {
   TableColumn<GameInfoBean, String> playersColumn;
 
   @FXML
-  TableColumn<GameInfoBean, String> rankingColumn;
+  TableColumn<GameInfoBean, RatingRange> ratingColumn;
 
   @FXML
   TableColumn<GameInfoBean, String> hostColumn;
@@ -55,10 +55,10 @@ public class GameTableController {
   GamesController gamesController;
 
   @Autowired
-  I18n i18n;
+  PlayerService playerService;
 
-  private double lastMouseX;
-  private double lastMouseY;
+  @Autowired
+  I18n i18n;
 
   public void initializeGameTable(ObservableList<GameInfoBean> gameInfoBeans) {
     SortedList<GameInfoBean> sortedList = new SortedList<>(gameInfoBeans);
@@ -84,13 +84,8 @@ public class GameTableController {
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
     playersColumn.setCellValueFactory(param -> new NumberOfPlayersBinding(i18n, param.getValue().numPlayersProperty(), param.getValue().maxPlayersProperty()));
-    rankingColumn.setCellValueFactory(param -> new StringBinding() {
-      @Override
-      protected String computeValue() {
-        // TODO this is not bound to the title property, however, a game's title can't be changed anyway (atm).
-        return Strings.nullToEmpty(RatingUtil.extractRating(param.getValue().getTitle()));
-      }
-    });
+    ratingColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(new RatingRange(param.getValue().getMinRating(), param.getValue().getMaxRating())));
+    ratingColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
 
     //TODO fix null newValues while gameInfoBean isEmpty
@@ -105,18 +100,49 @@ public class GameTableController {
     accessColumn.setCellValueFactory(param -> param.getValue().accessProperty());
   }
 
+  private TableCell<GameInfoBean, RatingRange> ratingTableCell() {
+    return new TableCell<GameInfoBean, RatingRange>() {
+      @Override
+      protected void updateItem(RatingRange item, boolean empty) {
+        super.updateItem(item, empty);
+
+        if (empty || item == null) {
+          setText(null);
+          setGraphic(null);
+        } else {
+          if (item.min == null && item.max == null) {
+            setText("");
+            return;
+          }
+
+          if (item.min != null && item.max != null) {
+            setText(i18n.get("game.ratingFormat.minMax", item.min, item.max));
+            return;
+          }
+
+          if (item.min != null) {
+            setText(i18n.get("game.ratingFormat.minOnly", item.min));
+            return;
+          }
+
+          setText(i18n.get("game.ratingFormat.maxOnly", item.max));
+        }
+      }
+    };
+  }
+
   @NotNull
   private TableRow<GameInfoBean> gamesRowFactory() {
     TableRow<GameInfoBean> row = new TableRow<>();
     row.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
-        lastMouseX = event.getScreenX();
-        lastMouseY = event.getScreenY();
-        gamesController.joinGame(row.getItem(), null, lastMouseX, lastMouseY);
+        GameInfoBean gameInfoBean = row.getItem();
+        gamesController.onJoinGame(gameInfoBean, null, event.getScreenX(), event.getScreenY());
       }
     });
     return row;
   }
+
 
   public Node getRoot() {
     return gamesTable;

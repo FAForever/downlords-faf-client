@@ -1,19 +1,18 @@
 package com.faforever.client.game;
 
-import com.faforever.client.fx.SceneFactory;
-import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
-import com.faforever.client.legacy.io.QDataOutputStream;
-import com.faforever.client.map.MapPreviewLargeController;
 import com.faforever.client.map.MapService;
-import com.faforever.client.mod.ModService;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.Severity;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -23,6 +22,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -31,7 +31,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
-import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
@@ -43,16 +42,13 @@ import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
-import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 // TODO rename all Game* things to "Play" to be consistent with the menu
 public class GamesController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  private static final Pattern RATING_PATTERN = Pattern.compile("([<>+~](?:\\d\\.?\\d?k|\\d{3,4})|(?:\\d\\.?\\d?k|\\d{3,4})[<>+]|(?:\\d\\.?\\d?k|\\d{1,4})\\s?-\\s?(?:\\d\\.?\\d?k|\\d{3,4}))");
+  private static final Predicate<GameInfoBean> OPEN_GAMES_PREDICATE = gameInfoBean -> gameInfoBean.getStatus() == GameState.OPEN;
 
   @FXML
   VBox teamListPane;
@@ -87,6 +83,9 @@ public class GamesController {
   @FXML
   VBox gamePreviewPanel;
 
+  @FXML
+  MenuButton switchViewButton;
+
   @Autowired
   ApplicationContext applicationContext;
 
@@ -95,8 +94,7 @@ public class GamesController {
 
   @Autowired
   GameService gameService;
-
-
+  
   @Autowired
   MapService mapService;
 
@@ -112,8 +110,8 @@ public class GamesController {
   @Autowired
   SceneFactory sceneFactory;
 
-
-  private ObservableList<GameInfoBean> gameInfoBeans;
+  @Autowired
+  NotificationService notificationService;
 
   private Popup createGamePopup;
   private Popup passwordPopup;
@@ -124,10 +122,6 @@ public class GamesController {
   private boolean tilePaneSelected = false;
   private boolean firstGeneratedPane = true;
   private GameInfoBean currentGameInfoBean;
-
-  public GamesController() {
-    gameInfoBeans = FXCollections.observableArrayList();
-  }
 
   @PostConstruct
   void postConstruct() {
@@ -142,7 +136,7 @@ public class GamesController {
     createGamePopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
     createGamePopup.getContent().setAll(createGameController.getRoot());
 
-    enterPasswordController.setOnPasswordEnteredListener(this::joinGame);
+    enterPasswordController.setOnPasswordEnteredListener(this::doJoinGame);
 
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
       createGameButton.setDisable(true);
@@ -157,6 +151,12 @@ public class GamesController {
     }
 
     filteredItems = new FilteredList<>(gameService.getGameInfoBeans());
+    filteredItems.setPredicate(OPEN_GAMES_PREDICATE);
+
+    // FIXME remove after switching between tiles/tables is implemented
+    onDetailsButtonPressed();
+    switchViewButton.setVisible(false);
+    switchViewButton.setManaged(false);
   }
 
   public void displayGameDetail(GameInfoBean gameInfoBean) {
@@ -186,13 +186,39 @@ public class GamesController {
     CheckBox checkBox = (CheckBox) actionEvent.getSource();
     boolean selected = checkBox.isSelected();
     if (selected) {
-      filteredItems.setPredicate(gameInfoBean -> true);
+      filteredItems.setPredicate(OPEN_GAMES_PREDICATE);
     } else {
-      filteredItems.setPredicate(gameInfoBean -> gameInfoBean.getAccess() != GameAccess.PASSWORD);
+      filteredItems.setPredicate(
+          OPEN_GAMES_PREDICATE.and(
+              gameInfoBean -> gameInfoBean.getAccess() != GameAccess.PASSWORD)
+      );
     }
   }
 
-  public void joinGame(GameInfoBean gameInfoBean, String password, double screenX, double screenY) {
+  public void onJoinGame(GameInfoBean gameInfoBean, String password, double screenX, double screenY) {
+    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
+    int playerRating = RatingUtil.getRating(currentPlayer);
+
+    if ((playerRating < gameInfoBean.getMinRating() || playerRating > gameInfoBean.getMaxRating())) {
+      showRatingOutOfBoundsConfirmation(playerRating, gameInfoBean, screenX, screenY);
+    } else {
+      doJoinGame(gameInfoBean, password, screenX, screenY);
+    }
+  }
+
+  private void showRatingOutOfBoundsConfirmation(int playerRating, GameInfoBean gameInfoBean, double screenX, double screenY) {
+    notificationService.addNotification(new ImmediateNotification(
+        i18n.get("game.joinGameRatingConfirmation.title"),
+        i18n.get("game.joinGameRatingConfirmation.text", gameInfoBean.getMinRating(), gameInfoBean.getMaxRating(), playerRating),
+        Severity.INFO,
+        Arrays.asList(
+            new Action(i18n.get("game.join"), event -> doJoinGame(gameInfoBean, null, screenX, screenY)),
+            new Action(i18n.get("game.cancel"))
+        )
+    ));
+  }
+
+  private void doJoinGame(GameInfoBean gameInfoBean, String password, double screenX, double screenY) {
     // FIXME check if game path is set
 
     if (gameInfoBean.getAccess() == GameAccess.PASSWORD && password == null) {
@@ -258,7 +284,6 @@ public class GamesController {
   public Node getRoot() {
     return gamesRoot;
   }
-
 
   public void onCreateGameButtonClicked(ActionEvent actionEvent) {
     Button button = (Button) actionEvent.getSource();

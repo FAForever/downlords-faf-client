@@ -8,7 +8,7 @@ apply plugin: 'install4j'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-version = '0.4.2-alpha'
+version = '0.4.4-alpha'
 
 mainClassName = "com.faforever.client.Main"
 applicationDefaultJvmArgs = ["-Djava.library.path=../lib"]
@@ -47,6 +47,11 @@ applicationDistribution.from(copyNativeLibs) {
   into "lib"
 }
 
+// Uncomment when doing a release build. I have yet to find out how to make an install4j installation optional
+//install4j {
+//  installDir = file(install4jHomeDir)
+//}
+
 task buildInstaller(type: com.install4j.gradle.Install4jTask) {
   dependsOn 'installDist'
 
@@ -59,6 +64,10 @@ task wrapper(type: Wrapper) {
 
 repositories {
   mavenCentral()
+}
+
+jacoco {
+  toolVersion = "0.7.5.201505241946"
 }
 
 buildscript {
@@ -96,7 +105,9 @@ dependencies {
   compile 'org.apache.httpcomponents:httpclient:4.4.1'
   compile 'net.java.dev.jna:jna:4.1.0'
   compile 'net.java.dev.jna:jna-platform:4.1.0'
-  compile 'org.controlsfx:controlsfx:8.40.9'
+  compile('org.controlsfx:controlsfx:8.40.9') {
+    exclude module: 'openjfx-dialogs'
+  }
   compile 'org.eclipse.jgit:org.eclipse.jgit:4.0.0.201505260635-rc2'
   compile 'org.jetbrains:annotations:13.0'
   compile 'net.sf.jtidy:jtidy:r938'

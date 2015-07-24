@@ -10,6 +10,7 @@ public class AbstractPlainJavaFxTest extends ApplicationTest {
 
   private Scene scene;
   private Pane root;
+  private Stage stage;
 
   public AbstractPlainJavaFxTest() {
     root = new Pane();
@@ -17,6 +18,7 @@ public class AbstractPlainJavaFxTest extends ApplicationTest {
 
   @Override
   public void start(Stage stage) throws Exception {
+    this.stage = stage;
     Thread.setDefaultUncaughtExceptionHandler(this::uncaughtException);
 
     scene = new Scene(getRoot(), 1, 1);
@@ -35,5 +37,9 @@ public class AbstractPlainJavaFxTest extends ApplicationTest {
 
   protected Scene getScene() {
     return scene;
+  }
+
+  protected Stage getStage() {
+    return stage;
   }
 }

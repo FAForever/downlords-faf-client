@@ -33,28 +33,23 @@ public class LaunchCommandBuilderTest {
     defaultBuilder().executable(null).build();
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testUidNullThrowsException() throws Exception {
+  public void testUidNullAllowed() throws Exception {
     defaultBuilder().uid(null).build();
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testMeanNullThrowsException() throws Exception {
+  public void testMeanNullAllowed() throws Exception {
     defaultBuilder().mean(null).build();
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testDeviationNullThrowsException() throws Exception {
+  public void testDeviationNullAllowed() throws Exception {
     defaultBuilder().deviation(null).build();
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testCountryNullThrowsException() throws Exception {
+  public void testCountryNullAllowed() throws Exception {
     defaultBuilder().country(null).build();
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testUsernameNullThrowsException() throws Exception {
+  public void testUsernameNullAllowed() throws Exception {
     defaultBuilder().username(null).build();
   }
 

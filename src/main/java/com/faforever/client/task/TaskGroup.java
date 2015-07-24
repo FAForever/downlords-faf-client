@@ -17,6 +17,11 @@ public enum TaskGroup {
   DISK,
 
   /**
+   * Tasks within this group operate on the network for uploading data.
+   */
+  NET_UPLOAD,
+
+  /**
    * Tasks within this group are not queued but executed immediately. This should only be used for tasks that spend most
    * of their time idling instead of doing anything resource-intensive.
    */

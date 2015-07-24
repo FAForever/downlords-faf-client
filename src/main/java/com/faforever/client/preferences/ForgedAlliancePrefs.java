@@ -1,5 +1,6 @@
 package com.faforever.client.preferences;
 
+import com.faforever.client.util.OperatingSystem;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
 import javafx.beans.property.BooleanProperty;
@@ -14,8 +15,21 @@ import java.nio.file.Paths;
 
 public class ForgedAlliancePrefs {
 
-  public static final Path GPG_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
-  public static final Path FAF_GAME_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
+  public static final Path GPG_FA_PATH;
+  public static final Path FAF_GAME_PATH;
+
+  static {
+    switch (OperatingSystem.current()) {
+      case WINDOWS:
+        GPG_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
+        FAF_GAME_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
+        break;
+
+      default:
+        GPG_FA_PATH = Paths.get(".");
+        FAF_GAME_PATH = Paths.get(".");
+    }
+  }
 
   private final ObjectProperty<Path> path;
   private final ObjectProperty<Path> mapsDirectory;

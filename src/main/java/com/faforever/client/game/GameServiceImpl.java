@@ -13,7 +13,6 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
@@ -34,8 +33,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnGameInfoListener {
 
@@ -60,12 +61,16 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   private final ObservableMap<String, GameTypeBean> gameTypeBeans;
 
+  // It is indeed ugly to keep references in both, a list and a map, however I don't see how I can populate the map
+  // values as an observable list (in order to display it in the games table)
   private final ObservableList<GameInfoBean> gameInfoBeans;
+  private final Map<Integer, GameInfoBean> uidToGameInfoBean;
 
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
     onGameLaunchingListeners = new HashSet<>();
     gameInfoBeans = FXCollections.observableArrayList();
+    uidToGameInfoBean = new HashMap<>();
   }
 
   @Override
@@ -242,25 +247,27 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   public ObservableList<GameInfoBean> getGameInfoBeans() {
     return FXCollections.unmodifiableObservableList(gameInfoBeans);
   }
-
+  
   @Override
   public GameTypeBean getGameTypeBeanFromString(String gameTypeBeanName) {
     return gameTypeBeans.get(gameTypeBeanName);
   }
-
+  
   @Override
   public void onGameInfo(GameInfo gameInfo) {
-    Platform.runLater(() -> {
+    logger.debug("Received game info from server: {}", gameInfo);
+    if (GameState.CLOSED.equals(gameInfo.state)) {
+      gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfo.uid));
+      return;
+    }
+
+    if (!uidToGameInfoBean.containsKey(gameInfo.uid)) {
       GameInfoBean gameInfoBean = new GameInfoBean(gameInfo);
 
-      if (!GameState.OPEN.equals(gameInfo.state)) {
-        gameInfoBeans.remove(gameInfoBean);
-        return;
-      }
-
-      if (!gameInfoBeans.contains(gameInfoBean)) {
-        gameInfoBeans.add(gameInfoBean);
-      }
-    });
+      gameInfoBeans.add(gameInfoBean);
+      uidToGameInfoBean.put(gameInfo.uid, gameInfoBean);
+    } else {
+      uidToGameInfoBean.get(gameInfo.uid).updateFromGameInfo(gameInfo);
+    }
   }
 }

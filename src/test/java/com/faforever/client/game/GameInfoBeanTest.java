@@ -35,15 +35,23 @@ public class GameInfoBeanTest {
     one.setUid(1);
     two.setUid(1);
 
-    assertEquals(one,two);
+    assertEquals(one, two);
   }
 
   @Test
-  public void testHashCode() {
+  public void testHashCodeEquals() {
+    one.setUid(1);
+    two.setUid(1);
+
+    assertEquals(one.hashCode(),two.hashCode());
+  }
+
+  @Test
+  public void testHashCodeNotEquals() {
     one.setUid(1);
     two.setUid(2);
 
-    assertEquals(one.hashCode(),two.hashCode());
+    assertNotEquals(one.hashCode(), two.hashCode());
   }
 
 }

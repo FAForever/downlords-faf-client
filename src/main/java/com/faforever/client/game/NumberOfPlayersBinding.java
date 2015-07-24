@@ -2,15 +2,15 @@ package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
 import javafx.beans.binding.StringBinding;
-import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.IntegerProperty;
 
 public class NumberOfPlayersBinding extends StringBinding {
 
   private I18n i18n;
-  private ObjectProperty<Integer> numPlayers;
-  private ObjectProperty<Integer> maxPlayers;
+  private IntegerProperty numPlayers;
+  private IntegerProperty maxPlayers;
 
-  public NumberOfPlayersBinding(I18n i18n, ObjectProperty<Integer> numPlayers, ObjectProperty<Integer> maxPlayers) {
+  public NumberOfPlayersBinding(I18n i18n, IntegerProperty numPlayers, IntegerProperty maxPlayers) {
     this.i18n = i18n;
     this.numPlayers = numPlayers;
     this.maxPlayers = maxPlayers;

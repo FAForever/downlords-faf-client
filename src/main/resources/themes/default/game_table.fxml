@@ -9,7 +9,7 @@
       <TableColumn fx:id="mapPreviewColumn" minWidth="2.0" text="%game.map" />
       <TableColumn fx:id="gameTitleColumn" minWidth="2.0" text="%game.title" />
       <TableColumn fx:id="playersColumn" minWidth="2.0" text="%game.players" />
-      <TableColumn fx:id="rankingColumn" minWidth="2.0" text="%game.ranking" />
+      <TableColumn fx:id="ratingColumn" minWidth="2.0" text="%game.rating"/>
       <TableColumn fx:id="modsColumn" minWidth="2.0" text="%game.mods" />
       <TableColumn fx:id="hostColumn" minWidth="2.0" text="%game.host" />
       <TableColumn fx:id="accessColumn" minWidth="2.0" text="%game.access" />

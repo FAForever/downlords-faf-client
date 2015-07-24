@@ -42,13 +42,13 @@ public class ImgurImageUploadService implements ImageUploadService {
 
   @Override
   public void uploadImageInBackground(Image image, Callback<String> callback) {
-    taskService.submitTask(TaskGroup.NET_LIGHT, new PrioritizedTask<String>(i18n.get("chat.imageUploadTask.title")) {
+    taskService.submitTask(TaskGroup.NET_UPLOAD, new PrioritizedTask<String>(i18n.get("chat.imageUploadTask.title")) {
       @Override
       protected String call() throws Exception {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
         BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
-        ImageIO.write(bufferedImage, "jpg", byteArrayOutputStream);
+        ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
 
         if (byteArrayOutputStream.size() > MAX_UPLOAD_SIZE) {
           throw new IllegalArgumentException("Image exceeds max upload size of " + MAX_UPLOAD_SIZE / 1024 / 1024 + "MiB");
