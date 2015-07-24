@@ -3,12 +3,10 @@ package com.faforever.client.map;
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.legacy.map.Comment;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,18 +34,16 @@ public class MapPreviewLargeController {
 
   public void createPreview(MapInfoBean mapInfoBean) {
     //TODO implement official map parser to remove this
-    if(!mapService.isOfficialMap(mapInfoBean.getName())) {
-        logger.error("{}",mapInfoBean.getName());
-        Image mapPreview = mapService.loadLargePreview(mapInfoBean.getName());
-        largeImagePreview.setFitWidth(2 * mapPreview.getWidth());
-        largeImagePreview.setImage(mapPreview);
+    if(!mapService.isOfficialMap(mapInfoBean.getDisplayName())) {
+        logger.error("{}", mapInfoBean.getDisplayName());
+        largeImagePreview.setImage(mapService.loadLargePreview(mapInfoBean.getDisplayName()));
 
-        mapNameLabel.setText(mapInfoBean.getName());
+        mapNameLabel.setText(mapInfoBean.getDisplayName());
         maxPlayerLabel.setText(Integer.toString(mapInfoBean.getPlayers()));
         mapSizeLabel.setText(mapInfoBean.getSize().toString());
         mapDescriptionLabel.setText(mapInfoBean.getDescription());
 
-        for (Comment comment : mapService.getComments(mapInfoBean.getName())) {
+        for (Comment comment : mapService.getComments(mapInfoBean.getDisplayName())) {
           CommentCardController commentCardController = applicationContext.getBean(CommentCardController.class);
           commentCardController.createComment(comment);
           commentContainer.getChildren().add(commentCardController.getRoot());

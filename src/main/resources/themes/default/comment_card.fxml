@@ -15,7 +15,7 @@
       <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
    </rowConstraints>
    <children>
-      <Label fx:id="authorLabel" styleClass="player-name-label" text="&lt;Player Name&gt;">
+      <Label fx:id="authorLabel" styleClass="player-displayName-label" text="&lt;Player Name&gt;">
          <GridPane.margin>
             <Insets />
          </GridPane.margin>

@@ -11,7 +11,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class MapInfoBean implements Comparable<MapInfoBean> {
 
-  private final StringProperty name;
+  private final StringProperty technicalName;
+  private final StringProperty displayName;
   private final SimpleFloatProperty rating;
   private final IntegerProperty plays;
   private final StringProperty description;
@@ -25,9 +26,12 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
     this(null);
   }
 
-  public MapInfoBean(String name) {
+  public MapInfoBean(String technicalName) {
     this.id = new SimpleIntegerProperty();
-    this.name = new SimpleStringProperty(name);
+
+    // FIXME
+    this.displayName = new SimpleStringProperty(technicalName);
+    this.technicalName = new SimpleStringProperty(technicalName);
     this.description = new SimpleStringProperty();
     this.plays = new SimpleIntegerProperty();
     this.downloads = new SimpleIntegerProperty();
@@ -38,16 +42,16 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
 
   }
 
-  public String getName() {
-    return name.get();
+  public String getDisplayName() {
+    return displayName.get();
   }
 
-  public void setName(String name) {
-    this.name.set(name);
+  public void setDisplayName(String displayName) {
+    this.displayName.set(displayName);
   }
 
-  public StringProperty nameProperty() {
-    return name;
+  public StringProperty displayNameProperty() {
+    return displayName;
   }
 
   public String getDescription() {
@@ -136,7 +140,7 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
 
   @Override
   public int compareTo(@NotNull MapInfoBean o) {
-    return getName().compareTo(o.getName());
+    return getDisplayName().compareTo(o.getDisplayName());
   }
 
   public void setId(int id) {
@@ -146,4 +150,5 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
   public IntegerProperty idProperty() {return id;}
 
   public int getId(){ return id.get();}
+
 }

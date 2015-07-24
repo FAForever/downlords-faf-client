@@ -125,7 +125,7 @@ public class MapServiceImpl implements MapService {
   public MapInfoBean getMapInfoBeanLocallyFromName(String mapName){
     logger.debug("Trying to return {} mapInfoBean locally", mapName);
     for (MapInfoBean mapInfoBean : getLocalMaps()) {
-      if (mapName.equalsIgnoreCase(mapInfoBean.getName())) {
+      if (mapName.equalsIgnoreCase(mapInfoBean.getDisplayName())) {
         logger.debug("Found map {} locally", mapName);
         return mapInfoBean;
       }
@@ -136,6 +136,7 @@ public class MapServiceImpl implements MapService {
   @Override
   public MapInfoBean getMapInfoBeanFromVaultFromName(String mapName) {
     logger.debug("Trying to return {} mapInfoBean from vault", mapName);
+    //TODO implement official map vault parser
     if (isOfficialMap(mapName)) {
       return new MapInfoBean();
     }
@@ -165,7 +166,7 @@ public class MapServiceImpl implements MapService {
     logger.debug("Trying to find map {} mapName locally", mapName);
 
     for (MapInfoBean mapInfoBean : getLocalMaps()) {
-      if (mapName.equalsIgnoreCase(mapInfoBean.getName())) {
+      if (mapName.equalsIgnoreCase(mapInfoBean.getDisplayName())) {
         logger.debug("Found map {} locally", mapName);
         return true;
       }

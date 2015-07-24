@@ -48,7 +48,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 // TODO rename all Game* things to "Play" to be consistent with the menu
-public class GamesController  {
+public class GamesController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -123,6 +123,7 @@ public class GamesController  {
   //TODO Implement into options menu
   private boolean tilePaneSelected = false;
   private boolean firstGeneratedPane = true;
+  private GameInfoBean currentGameInfoBean;
 
   public GamesController() {
     gameInfoBeans = FXCollections.observableArrayList();
@@ -159,6 +160,7 @@ public class GamesController  {
   }
 
   public void displayGameDetail(GameInfoBean gameInfoBean) {
+    currentGameInfoBean = gameInfoBean;
     mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapName()));
     gameTitleLabel.setText(gameInfoBean.getTitle());
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
@@ -264,18 +266,22 @@ public class GamesController  {
     Bounds screenBounds = createGameButton.localToScreen(createGameButton.getBoundsInLocal());
     createGamePopup.show(button.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());
   }
+
   //TODO do we want to create new pane or repopulate the same pane
   public void onMapLargePreview(Event event) {
-
-    //FIXME official maps need to be checked TEMPORARY
-    if(mapService.isOfficialMap(mapLabel.getText()))
+    if (currentGameInfoBean == null) {
       return;
+    }
+    //FIXME official maps need to be checked TEMPORARY
+    if (mapService.isOfficialMap(currentGameInfoBean.getMapName())) {
+      return;
+    }
     largePreview = new Stage(StageStyle.TRANSPARENT);
     largePreview.initModality(Modality.NONE);
     largePreview.initOwner(getRoot().getScene().getWindow());
 
     MapPreviewLargeController mapPreviewLargeController = applicationContext.getBean(MapPreviewLargeController.class);
-    MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultFromName(mapLabel.getText());
+    MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultFromName(currentGameInfoBean.getMapName());
     mapPreviewLargeController.createPreview(mapInfoBean);
 
     sceneFactory.createScene(largePreview, mapPreviewLargeController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);

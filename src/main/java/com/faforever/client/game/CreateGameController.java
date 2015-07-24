@@ -101,7 +101,7 @@ public class CreateGameController {
       if (newValue.isEmpty()) {
         filteredMaps.setPredicate(mapInfoBean -> true);
       } else {
-        filteredMaps.setPredicate(mapInfoBean -> mapInfoBean.getName().toLowerCase().contains(newValue.toLowerCase()));
+        filteredMaps.setPredicate(mapInfoBean -> mapInfoBean.getDisplayName().toLowerCase().contains(newValue.toLowerCase()));
       }
       if (!filteredMaps.isEmpty()) {
         mapListView.getSelectionModel().select(0);
@@ -159,7 +159,7 @@ public class CreateGameController {
   private void selectLastMap() {
     String lastMap = preferencesService.getPreferences().getLastMap();
     for (MapInfoBean mapInfoBean : mapListView.getItems()) {
-      if (mapInfoBean.getName().equals(lastMap)) {
+      if (mapInfoBean.getDisplayName().equals(lastMap)) {
         mapListView.getSelectionModel().select(mapInfoBean);
         break;
       }
@@ -253,7 +253,7 @@ public class CreateGameController {
         mapNameLabel.setText("");
         return;
       }
-      String mapName = newValue.getName();
+      String mapName = newValue.getDisplayName();
 
       mapNameLabel.setText(mapName);
       mapImageView.setImage(mapService.loadLargePreview(mapName));
@@ -317,7 +317,7 @@ public class CreateGameController {
         titleTextField.getText(),
         Strings.emptyToNull(passwordTextField.getText()),
         gameTypeComboBox.getSelectionModel().getSelectedItem().getName(),
-        mapListView.getSelectionModel().getSelectedItem().getName(),
+        mapListView.getSelectionModel().getSelectedItem().getDisplayName(),
         0);
 
     gameService.hostGame(newGameInfo, new Callback<Void>() {
@@ -349,7 +349,7 @@ public class CreateGameController {
           setText(null);
           setGraphic(null);
         } else {
-          setText(item.getName());
+          setText(item.getDisplayName());
         }
       }
     };

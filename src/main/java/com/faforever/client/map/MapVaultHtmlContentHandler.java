@@ -102,7 +102,7 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
         currentBean.setDownloads(Integer.parseInt(currentValue));
         return;
       case NAME:
-        currentBean.setName(currentValue.replaceAll("[\\s\\n]+", "\\s"));
+        currentBean.setDisplayName(currentValue.trim().replaceAll("[\\s\\n]+", " "));
         return;
       case DESCRIPTION:
         currentBean.setDescription(currentValue.replaceAll("[\\s\\n]+", " "));
