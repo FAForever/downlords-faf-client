@@ -16,6 +16,7 @@ import com.sun.jna.platform.win32.ShlObj;
 import javafx.beans.property.Property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -37,7 +38,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class PreferencesService {
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final long STORE_DELAY = 1000;
   private static final Charset CHARSET = StandardCharsets.UTF_8;
@@ -58,10 +58,10 @@ public class PreferencesService {
   private static final String FORGED_ALLIANCE_EXE = "ForgedAlliance.exe";
   private static final String SUPREME_COMMANDER_EXE = "SupremeCommander.exe";
 
+
   /**
    * Points to the FAF data directory where log files, config files and others are held. The returned value varies
-   * depending on the operating system. This field is only public in order to set the log directory within the Main
-   * class. All other class should always access {@link #getFafDataDirectory()} instead.
+   * depending on the operating system.
    */
   public static final Path FAF_DATA_DIRECTORY;
 
@@ -74,6 +74,18 @@ public class PreferencesService {
       default:
         FAF_DATA_DIRECTORY = Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
     }
+  }
+
+  private static final Logger logger;
+
+  static {
+    System.setProperty("logDirectory", PreferencesService.FAF_DATA_DIRECTORY.resolve("logs").toString());
+
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install();
+
+    logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    logger.debug("Logger initialized");
   }
 
   private final Path preferencesFilePath;
@@ -312,5 +324,9 @@ public class PreferencesService {
 
   public Path getCacheDirectory() {
     return getFafDataDirectory().resolve(CACHE_SUB_FOLDER);
+  }
+
+  public static void configureLogging() {
+    // This method call causes the class to be initialized (static initializers) which in turn causes the logger to initialize.
   }
 }
