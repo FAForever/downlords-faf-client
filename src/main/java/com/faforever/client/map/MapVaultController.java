@@ -1,35 +1,27 @@
-package com.faforever.client.vault;
+package com.faforever.client.map;
 
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.game.MapSize;
-import com.faforever.client.map.MapService;
-import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.util.Callback;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 
-public class VaultController {
+public class MapVaultController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
-  TabPane vaultRoot;
-
-  @FXML
-  Pane replayVaultContainer;
+  Pane mapVaultRoot;
 
   @FXML
   TableView<MapInfoBean> mapTableView;
@@ -62,13 +54,10 @@ public class VaultController {
   TableColumn<MapInfoBean, Number> versionColumn;
 
   @Autowired
-  ReplayVaultController replayVaultController;
-
-  @Autowired
   MapService mapService;
 
   public Node getRoot() {
-    return vaultRoot;
+    return mapVaultRoot;
   }
 
   @FXML
@@ -84,15 +73,6 @@ public class VaultController {
     versionColumn.setCellValueFactory(param -> param.getValue().versionProperty());
   }
 
-  @PostConstruct
-  void postConstruct() {
-    replayVaultContainer.getChildren().setAll(replayVaultController.getRoot());
-    placeInContainer(replayVaultController.getRoot(), replayVaultContainer);
-
-    replayVaultController.loadLocalReplaysInBackground();
-    replayVaultController.loadOnlineReplaysInBackground();
-  }
-
   public void setUpIfNecessary() {
     // FIXME test code so far
     mapService.readMapVaultInBackground(0, 100, new Callback<List<MapInfoBean>>() {
@@ -106,12 +86,5 @@ public class VaultController {
         logger.warn("Failed", e);
       }
     });
-  }
-
-  private static void placeInContainer(Node node, Node container) {
-    AnchorPane.setTopAnchor(node, 0d);
-    AnchorPane.setRightAnchor(node, 0d);
-    AnchorPane.setBottomAnchor(node, 0d);
-    AnchorPane.setLeftAnchor(node, 0d);
   }
 }

@@ -1,5 +1,6 @@
 package com.faforever.client.config;
 
+import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.AvatarService;
 import com.faforever.client.chat.AvatarServiceImpl;
 import com.faforever.client.chat.ChatController;
@@ -31,6 +32,7 @@ import com.faforever.client.game.PopupTeamCardController;
 import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
+import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.news.NewsListItemController;
 import com.faforever.client.notification.ImmediateNotificationController;
@@ -42,7 +44,7 @@ import com.faforever.client.sound.AudioClipPlayer;
 import com.faforever.client.sound.AudioClipPlayerImpl;
 import com.faforever.client.sound.SoundController;
 import com.faforever.client.sound.SoundControllerImpl;
-import com.faforever.client.vault.VaultController;
+import com.faforever.client.map.MapVaultController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -192,13 +194,24 @@ public class UiConfig {
   }
 
   @Bean
-  VaultController vaultController() {
-    return loadController("vault.fxml");
+  ReplayVaultController replayVaultController() {
+    return loadController("replay_vault.fxml");
   }
 
   @Bean
-  ReplayVaultController replayVaultController() {
-    return loadController("replay_vault.fxml");
+  ModVaultController modVaultController() {
+    return loadController("mod_vault.fxml");
+  }
+
+
+  @Bean
+  MapVaultController mapVaultController() {
+    return loadController("map_vault.fxml");
+  }
+
+  @Bean
+  CastsController castsController() {
+    return loadController("casts.fxml");
   }
 
   @Bean
