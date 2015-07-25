@@ -3,11 +3,15 @@ package com.faforever.client.preferences;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.MapProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
 
 public class WindowPrefs {
 
@@ -15,6 +19,7 @@ public class WindowPrefs {
   private final IntegerProperty height;
   private final BooleanProperty maximized;
   private final StringProperty lastView;
+  private final MapProperty<String, String> lastChildViews;
   private final DoubleProperty x;
   private final DoubleProperty y;
 
@@ -25,6 +30,7 @@ public class WindowPrefs {
     y = new SimpleDoubleProperty(-1d);
     maximized = new SimpleBooleanProperty();
     lastView = new SimpleStringProperty();
+    lastChildViews = new SimpleMapProperty<>(FXCollections.observableHashMap());
   }
 
   public int getWidth() {
@@ -97,5 +103,17 @@ public class WindowPrefs {
 
   public void setY(double y) {
     this.y.set(y);
+  }
+
+  public ObservableMap<String, String> getLastChildViews() {
+    return lastChildViews.get();
+  }
+
+  public MapProperty<String, String> lastChildViewsProperty() {
+    return lastChildViews;
+  }
+
+  public void setLastChildViews(ObservableMap<String, String> lastChildViews) {
+    this.lastChildViews.set(lastChildViews);
   }
 }

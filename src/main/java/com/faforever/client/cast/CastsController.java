@@ -6,9 +6,9 @@ import javafx.scene.Node;
 public class CastsController {
 
   @FXML
-  Node castsController;
+  Node castsRoot;
 
   public Node getRoot() {
-    return castsController;
+    return castsRoot;
   }
 }

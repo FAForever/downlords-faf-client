@@ -13,6 +13,7 @@ import com.faforever.client.legacy.OnFafDisconnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
 import com.faforever.client.lobby.LobbyService;
+import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.network.GamePortCheckListener;
 import com.faforever.client.network.PortCheckService;
@@ -35,7 +36,6 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
-import com.faforever.client.map.MapVaultController;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -47,6 +47,7 @@ import javafx.scene.control.ButtonBase;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SplitMenuButton;
 import javafx.scene.layout.AnchorPane;
@@ -93,7 +94,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   Pane contentPane;
 
   @FXML
-  SplitMenuButton newsButton;
+  SplitMenuButton communityButton;
 
   @FXML
   SplitMenuButton chatButton;
@@ -209,8 +210,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     taskProgressLabel.managedProperty().bind(taskProgressLabel.visibleProperty());
 
     addHoverListener(playButton);
-    addHoverListener(newsButton);
-    addHoverListener(playButton);
+    addHoverListener(communityButton);
+    addHoverListener(chatButton);
     addHoverListener(vaultButton);
     addHoverListener(leaderboardButton);
 
@@ -220,12 +221,12 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   private void addHoverListener(SplitMenuButton button) {
     button.hoverProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue) {
-        showContextMenu(button);
+        showMenuDropdown(button);
       }
     });
   }
 
-  private void showContextMenu(SplitMenuButton button) {
+  private void showMenuDropdown(SplitMenuButton button) {
     mainNavigation.getChildren().stream()
         .filter(item -> item instanceof SplitMenuButton && item != button)
         .forEach(item -> ((SplitMenuButton) item).hide());
@@ -375,7 +376,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
       }
     }
 
-
     String lastView = mainWindowPrefs.getLastView();
     if (lastView != null) {
       mainNavigation.getChildren().stream()
@@ -383,7 +383,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
           .filter(button -> lastView.equals(button.getId()))
           .forEach(button -> ((ButtonBase) button).fire());
     } else {
-      newsButton.fire();
+      communityButton.fire();
     }
   }
 
@@ -547,25 +547,25 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @FXML
   void onCommunitySelected(ActionEvent event) {
     setActiveNavigationButton((ButtonBase) event.getSource());
-    // FIXME implement
+    selectLastChildOrFirstItem(communityButton);
   }
 
   @FXML
   void onVaultSelected(ActionEvent event) {
     setActiveNavigationButton((ButtonBase) event.getSource());
-    // FIXME implement
+    selectLastChildOrFirstItem(vaultButton);
   }
 
   @FXML
   void onLeaderboardSelected(ActionEvent event) {
     setActiveNavigationButton((ButtonBase) event.getSource());
-    // FIXME implement
+    selectLastChildOrFirstItem(leaderboardButton);
   }
 
   @FXML
   void onPlaySelected(ActionEvent event) {
     setActiveNavigationButton((ButtonBase) event.getSource());
-    // FIXME implement
+    selectLastChildOrFirstItem(playButton);
   }
 
   @FXML
@@ -578,32 +578,38 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   void onNewsSelected(ActionEvent event) {
     newsController.setUpIfNecessary();
     setContent(newsController.getRoot());
+    setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
 
   @FXML
   void onCastsSelected(ActionEvent event) {
     setContent(castsController.getRoot());
+    setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
 
   @FXML
   void onPlayCustomSelected(ActionEvent event) {
     gamesController.setUpIfNecessary();
     setContent(gamesController.getRoot());
+    setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
 
   @FXML
   void onPlayRanked1v1Selected(ActionEvent event) {
     setContent(gamesController.getRoot());
+    setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
 
   @FXML
   void onMapsSelected(ActionEvent event) {
     setContent(mapMapVaultController.getRoot());
+    setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
 
   @FXML
   void onModsSelected(ActionEvent event) {
     setContent(modVaultController.getRoot());
+    setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
 
   @FXML
@@ -611,14 +617,15 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     // FIXME don't load every time?
     replayVaultController.loadLocalReplaysInBackground();
     replayVaultController.loadOnlineReplaysInBackground();
-
     setContent(replayVaultController.getRoot());
+    setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
 
   @FXML
   void onLeaderboardRanked1v1Selected(ActionEvent event) {
     leaderboardController.setUpIfNecessary();
     setContent(leaderboardController.getRoot());
+    setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
 
   private void setContent(Node node) {
@@ -638,6 +645,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     }
   }
 
+  /**
+   * Sets the specified button to active state.
+   */
   private void setActiveNavigationButton(ButtonBase button) {
     mainNavigation.getChildren().stream()
         .filter(navigationButton -> navigationButton instanceof ButtonBase && navigationButton != button)
@@ -646,5 +656,36 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     preferencesService.getPreferences().getMainWindow().setLastView(button.getId());
     preferencesService.storeInBackground();
+  }
+
+  /**
+   * Sets the parent navigation button of the specified menu item as active. This only works of the child item was
+   * selected manually by the user using the dropdown menu.
+   */
+  private void setActiveNavigationButtonFromChild(MenuItem menuItem) {
+    ButtonBase navigationButton = (ButtonBase) menuItem.getParentPopup().getOwnerNode();
+    if (navigationButton == null) {
+      return;
+    }
+    setActiveNavigationButton((ButtonBase) menuItem.getParentPopup().getOwnerNode());
+    preferencesService.getPreferences().getMainWindow().getLastChildViews().put(navigationButton.getId(), menuItem.getId());
+    preferencesService.storeInBackground();
+  }
+
+  /**
+   * Selects the previously selected child view for the given button. If no match was found (or there hasn't been any
+   * previous selected view), the first item is selected.
+   */
+  private void selectLastChildOrFirstItem(SplitMenuButton button) {
+    String lastChildView = preferencesService.getPreferences().getMainWindow().getLastChildViews().get(button.getId());
+
+    if (lastChildView == null) {
+      button.getItems().get(0).fire();
+      return;
+    }
+
+    button.getItems().stream()
+        .filter(item -> item.getId().equals(lastChildView))
+        .forEach(MenuItem::fire);
   }
 }
