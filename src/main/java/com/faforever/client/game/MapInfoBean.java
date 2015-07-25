@@ -151,4 +151,15 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
 
   public int getId(){ return id.get();}
 
+  public String getTechnicalName() {
+    return technicalName.get();
+  }
+
+  public StringProperty technicalNameProperty() {
+    return technicalName;
+  }
+
+  public void setTechnicalName(String technicalName) {
+    this.technicalName.set(technicalName);
+  }
 }

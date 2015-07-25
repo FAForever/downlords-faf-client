@@ -93,7 +93,9 @@ public class UiConfig {
   }
 
   @Bean
-  MapPreviewLargeController mapPreviewLargeController(){return loadController("map_preview_large.fxml");}
+  MapPreviewLargeController mapPreviewLargeController() {
+    return loadController("map_preview_large.fxml");
+  }
 
   @Bean
   ChatController chatController() {
@@ -107,12 +109,14 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  CommentCardController commentCardController(){return loadController("comment_card.fxml");
+  CommentCardController commentCardController() {
+    return loadController("comment_card.fxml");
   }
-  
+
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  GameTableController gameTableController(){return loadController("game_table.fxml");
+  GameTableController gameTableController() {
+    return loadController("game_table.fxml");
   }
 
   @Bean
@@ -123,13 +127,15 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  TeamCardController teamCardController(){return loadController("team_card.fxml");
+  PopupPlayerCardController popupPlayerCardController() {
+    return loadController("popup_player_card.fxml");
   }
+
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  PopupTeamCardController popupTeamCardController() {
-    return loadController("popup_team_card.fxml");
+  TeamCardController teamCardController() {
+    return loadController("team_card.fxml");
   }
 
   @Bean

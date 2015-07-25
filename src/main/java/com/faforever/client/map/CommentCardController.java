@@ -2,6 +2,7 @@ package com.faforever.client.map;
 
 
 import com.faforever.client.legacy.map.Comment;
+import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 
@@ -10,10 +11,14 @@ import java.util.Locale;
 
 public class CommentCardController {
 
-  public Label authorLabel;
-  public Label dateLabel;
-  public Label commentLabel;
-  public GridPane root;
+  @FXML
+  Label authorLabel;
+  @FXML
+  Label dateLabel;
+  @FXML
+  Label commentLabel;
+  @FXML
+  GridPane root;
 
   public GridPane getRoot() {
     return root;

@@ -30,7 +30,7 @@
          </GridPane.margin></Label>
       <Label fx:id="mapSizeLabel" styleClass="map-size-label" text="&lt;Map Size&gt;" GridPane.columnIndex="2" GridPane.vgrow="NEVER" />
       <Label fx:id="mapDescriptionLabel" styleClass="map-description-label" text="&lt;Map Description&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="TOP" />
-      <ScrollPane GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="2">
+      <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="comment-container-scroll-pane" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="2">
          <content>
             <VBox fx:id="commentContainer" styleClass="comment-container" />
          </content>

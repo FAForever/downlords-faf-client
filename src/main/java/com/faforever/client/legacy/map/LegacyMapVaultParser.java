@@ -17,6 +17,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class LegacyMapVaultParser implements MapVaultParser {
@@ -88,7 +89,7 @@ public class LegacyMapVaultParser implements MapVaultParser {
 
         String comments = jsonReader.nextString();
 
-        return htmlParser.parse(comments,commentVaultHtmlContentHandler);
+        return htmlParser.parse(comments, commentVaultHtmlContentHandler);
       }
 
       jsonReader.endObject();
@@ -97,36 +98,41 @@ public class LegacyMapVaultParser implements MapVaultParser {
     throw new IllegalStateException("Comment vault could not be read from " + url);
   }
 
-    @Override
-    public MapInfoBean parseSingleMap(String mapName) throws IOException {
-      MapVaultHtmlContentHandler mapVaultHtmlContentHandler = new MapVaultHtmlContentHandler();
+  @Override
+  public MapInfoBean parseSingleMap(String mapName) throws IOException {
+    MapVaultHtmlContentHandler mapVaultHtmlContentHandler = new MapVaultHtmlContentHandler();
 
-      URL url = new URL(String.format(environment.getProperty("vault.singleMapUrl"), mapName));
+    URL url = new URL(String.format(environment.getProperty("vault.singleMapUrl"), mapName));
 
-      HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
-        JsonReader jsonReader = new JsonReader(reader);
-        jsonReader.beginObject();
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
+      JsonReader jsonReader = new JsonReader(reader);
+      jsonReader.beginObject();
 
-        while (jsonReader.hasNext()) {
-          String key = jsonReader.nextName();
-          if (!"layout".equals(key)) {
-            jsonReader.skipValue();
-            continue;
-          }
-
-          String layout = jsonReader.nextString();
-
-          List<MapInfoBean> mapInfoBeans = htmlParser.parse(layout, mapVaultHtmlContentHandler);
-          if(!mapInfoBeans.isEmpty()) {
-            return mapInfoBeans.get(0);
-          }
+      while (jsonReader.hasNext()) {
+        String key = jsonReader.nextName();
+        if (!"layout".equals(key)) {
+          jsonReader.skipValue();
+          continue;
         }
 
-        jsonReader.endObject();
+        String layout = jsonReader.nextString();
+
+        List<MapInfoBean> mapInfoBeans = htmlParser.parse(layout, mapVaultHtmlContentHandler);
+        if (!mapInfoBeans.isEmpty()) {
+          for (MapInfoBean mapInfoBean : mapInfoBeans) {
+            if (mapInfoBean.getDisplayName().equalsIgnoreCase(mapName)) {
+              return mapInfoBean;
+            }
+          }
+        }
       }
 
-      throw new IllegalStateException("Map vault could not be read from " + url);
+      jsonReader.endObject();
+    }
+
+    logger.warn("Map vault could not be read from {}", url);
+    throw new IOException("Map vault could not be read from" + url);
   }
 }

@@ -1,8 +1,12 @@
 package com.faforever.client.game;
 
-import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.fx.SceneFactory;
+import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
+import com.faforever.client.legacy.domain.GameState;
+import com.faforever.client.map.MapPreviewLargeController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
@@ -11,8 +15,10 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import com.faforever.client.util.RatingUtil;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableMap;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -28,9 +34,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Paint;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
+import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
@@ -42,7 +46,10 @@ import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
-import java.util.regex.Pattern;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
 // TODO rename all Game* things to "Play" to be consistent with the menu
 public class GamesController {
@@ -93,8 +100,11 @@ public class GamesController {
   I18n i18n;
 
   @Autowired
+  PlayerService playerService;
+
+  @Autowired
   GameService gameService;
-  
+
   @Autowired
   MapService mapService;
 
@@ -116,12 +126,13 @@ public class GamesController {
   private Popup createGamePopup;
   private Popup passwordPopup;
   private FilteredList<GameInfoBean> filteredItems;
-  Stage largePreview;
+  Stage mapDetailPopup;
 
   //TODO Implement into options menu
   private boolean tilePaneSelected = false;
   private boolean firstGeneratedPane = true;
   private GameInfoBean currentGameInfoBean;
+
 
   @PostConstruct
   void postConstruct() {
@@ -153,24 +164,27 @@ public class GamesController {
     filteredItems = new FilteredList<>(gameService.getGameInfoBeans());
     filteredItems.setPredicate(OPEN_GAMES_PREDICATE);
 
-    // FIXME remove after switching between tiles/tables is implemented
     onDetailsButtonPressed();
-    switchViewButton.setVisible(false);
-    switchViewButton.setManaged(false);
   }
 
   public void displayGameDetail(GameInfoBean gameInfoBean) {
     currentGameInfoBean = gameInfoBean;
-    mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapName()));
     gameTitleLabel.setText(gameInfoBean.getTitle());
+    mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapName()));
+
+    gameInfoBean.mapNameProperty().addListener((observable, oldValue, newValue) -> {
+      gameTitleLabel.setText(newValue);
+      mapImageView.setImage(mapService.loadLargePreview(newValue));
+    });
+
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
-    hosterLabel.setText(gameInfoBean.getHost());
-    gameModeLabel.setText(gameInfoBean.getFeaturedMod());
-    mapLabel.setText(gameInfoBean.getMapName());
-    createTeam(gameInfoBean.getTeams());
+    hosterLabel.textProperty().bind(gameInfoBean.hostProperty());
+    gameModeLabel.textProperty().bind(gameInfoBean.featuredModProperty());
+    mapLabel.textProperty().bind(gameInfoBean.mapNameProperty());
+    createTeams(gameInfoBean.getTeams());
   }
 
-  private void createTeam(ObservableMap<? extends String, ? extends List<String>> teamsList) {
+  private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList) {
     teamListPane.getChildren().clear();
     for (Map.Entry<? extends String, ? extends List<String>> entry : teamsList.entrySet()) {
       TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
@@ -301,16 +315,26 @@ public class GamesController {
     if (mapService.isOfficialMap(currentGameInfoBean.getMapName())) {
       return;
     }
-    largePreview = new Stage(StageStyle.TRANSPARENT);
-    largePreview.initModality(Modality.NONE);
-    largePreview.initOwner(getRoot().getScene().getWindow());
-
+    mapDetailPopup = getMapDetailPopup();
     MapPreviewLargeController mapPreviewLargeController = applicationContext.getBean(MapPreviewLargeController.class);
     MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultFromName(currentGameInfoBean.getMapName());
+    //FIXME ugly fix
+    if (mapInfoBean.getTechnicalName() == null) {
+      return;
+    }
     mapPreviewLargeController.createPreview(mapInfoBean);
 
-    sceneFactory.createScene(largePreview, mapPreviewLargeController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
-    largePreview.show();
-    largePreview.toFront();
+    sceneFactory.createScene(mapDetailPopup, mapPreviewLargeController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
+    mapDetailPopup.show();
+    mapDetailPopup.toFront();
+  }
+
+  public Stage getMapDetailPopup() {
+    if (mapDetailPopup == null) {
+      mapDetailPopup = new Stage(StageStyle.TRANSPARENT);
+      mapDetailPopup.initModality(Modality.NONE);
+      mapDetailPopup.initOwner(getRoot().getScene().getWindow());
+    }
+    return mapDetailPopup;
   }
 }

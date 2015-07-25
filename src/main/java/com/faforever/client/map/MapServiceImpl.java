@@ -136,14 +136,14 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public MapInfoBean getMapInfoBeanFromVaultFromName(String mapName) {
-    logger.debug("Trying to return {} mapInfoBean from vault", mapName);
+    logger.info("Trying to return {} mapInfoBean from vault", mapName);
     //TODO implement official map vault parser
     if (isOfficialMap(mapName)) {
-      return new MapInfoBean();
+      return null;
     }
     try {
       return mapVaultParser.parseSingleMap(mapName);
-    } catch (IOException e) {
+    } catch (IOException | IllegalStateException e) {
       logger.error("Error in parsing {} from vault", mapName);
       return new MapInfoBean();
     }

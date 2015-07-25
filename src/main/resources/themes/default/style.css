@@ -568,8 +568,9 @@
   -fx-padding: 10px,5px,5px,5px;
 }
 
-.map-preview-large .comment-container-scrollpane{
+.map-preview-large .comment-container-scroll-pane{
   -fx-padding: 5px,5px,5px,5px;
+  -fx-max-height: 500px;
 }
 
 .map-preview-large .comment-container{
@@ -578,7 +579,7 @@
 }
 /*FIXME can't seem to get the padding correctly */
 .map-preview-large .large-image-preview{
-  -fx-padding: 0,30,0,0;
+  -fx-padding: 0,30px,0,0;
 }
 
 .comment-card{
