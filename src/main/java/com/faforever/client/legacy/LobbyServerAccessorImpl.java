@@ -67,8 +67,8 @@ import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 public class LobbyServerAccessorImpl extends AbstractServerAccessor implements LobbyServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final int VERSION = Integer.MAX_VALUE;
 
-  private static final int VERSION = 125;
   private static final long RECONNECT_DELAY = 3000;
   private final Gson gson;
 
