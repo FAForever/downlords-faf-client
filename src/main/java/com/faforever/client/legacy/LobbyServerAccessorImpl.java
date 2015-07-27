@@ -93,7 +93,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private String localIp;
   private StringProperty sessionId;
   private ServerWriter serverWriter;
-  private Callback<Void> loginCallback;
+  private Callback<SessionInfo> loginCallback;
   private Callback<GameLaunchInfo> gameLaunchCallback;
   private Collection<OnGameInfoListener> onGameInfoListeners;
   private Collection<OnGameTypeInfoListener> onGameTypeInfoListeners;
@@ -123,7 +123,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void connectAndLogInInBackground(Callback<Void> callback) {
+  public void connectAndLogInInBackground(Callback<SessionInfo> callback) {
     loginCallback = callback;
 
     LoginPrefs login = preferencesService.getPreferences().getLogin();
@@ -222,12 +222,12 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     writeToServer(new PongMessage());
   }
 
-  private void onFafLoginSucceeded() {
+  private void onFafLoginSucceeded(SessionInfo sessionInfo) {
     logger.info("FAF login succeeded");
 
     Platform.runLater(() -> {
       if (loginCallback != null) {
-        loginCallback.success(null);
+        loginCallback.success(sessionInfo);
         loginCallback = null;
       }
     });
@@ -247,25 +247,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
     for (OnGameTypeInfoListener listener : onGameTypeInfoListeners) {
       Platform.runLater(() -> listener.onGameTypeInfo(gameTypeInfo));
-    }
-  }
-
-  private void onPlayerInfo(PlayerInfo playerInfo) {
-    if (onPlayerInfoListener != null) {
-      onPlayerInfoListener.onPlayerInfo(playerInfo);
-    }
-  }
-
-
-  private void onFriendList(List<String> friends) {
-    if (onFriendListListener != null) {
-      onFriendListListener.onFriendList(friends);
-    }
-  }
-
-  private void onFoeList(List<String> foes) {
-    if (onFoeListListener != null) {
-      onFoeListListener.onFoeList(foes);
     }
   }
 
@@ -444,7 +425,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           if (sessionInfo.session != null) {
             onSessionInitiated(sessionInfo);
           } else if (sessionInfo.email != null) {
-            onFafLoginSucceeded();
+            onFafLoginSucceeded(sessionInfo);
           }
           break;
 

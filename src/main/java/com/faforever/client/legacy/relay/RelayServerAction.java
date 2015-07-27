@@ -17,6 +17,7 @@ public enum RelayServerAction {
   CHAT("Chat"),
   GAME_RESULT("GameResult"),
   STATS("Stats"),
+  AUTHENTICATE("Authenticate"),
   // Yes, these are the only lower-cased in the protocol. Because fuck you.
   CONNECTED_TO_HOST("connectedToHost"),
   PONG("pong");

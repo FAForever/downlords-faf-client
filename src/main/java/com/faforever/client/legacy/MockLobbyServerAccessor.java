@@ -10,6 +10,7 @@ import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -19,11 +20,8 @@ import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,9 +33,6 @@ import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 public class MockLobbyServerAccessor implements LobbyServerAccessor {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final int ONE_DAY = 86_400_000;
 
   private Collection<OnGameTypeInfoListener> onModInfoMessageListeners;
   private OnPlayerInfoListener onPlayerInfoListener;
@@ -61,10 +56,10 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void connectAndLogInInBackground(Callback<Void> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<Void>(i18n.get("login.progress.message")) {
+  public void connectAndLogInInBackground(Callback<SessionInfo> callback) {
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<SessionInfo>(i18n.get("login.progress.message")) {
       @Override
-      protected Void call() throws Exception {
+      protected SessionInfo call() throws Exception {
         for (OnGameTypeInfoListener onModInfoMessageListener : onModInfoMessageListeners) {
           GameTypeInfo gameTypeInfo = new GameTypeInfo();
           gameTypeInfo.fullname = "Forged Alliance Forever";

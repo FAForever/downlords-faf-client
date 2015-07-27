@@ -10,5 +10,9 @@ public interface UserService {
 
   String getPassword();
 
+  int getUid();
+
+  int getSessionId();
+
   void cancelLogin();
 }

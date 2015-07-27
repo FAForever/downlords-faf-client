@@ -182,7 +182,7 @@ public class PortCheckServiceImpl implements PortCheckService {
         try {
           try (Socket socket = new Socket(remoteHost, remotePort);
                ServerWriter serverWriter = createServerWriter(socket)) {
-            serverWriter.write(new RelayClientMessage(RelayServerAction.GAME_STATE, Collections.singletonList("idle")));
+            serverWriter.write(new RelayClientMessage(RelayServerAction.GAME_STATE, Collections.singletonList("Idle")));
           }
         } catch (ConnectException e) {
           logger.warn("Port check server is not reachable");
