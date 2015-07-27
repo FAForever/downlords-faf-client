@@ -68,7 +68,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private static final int VERSION = 123;
+  private static final int VERSION = 0;
   private static final long RECONNECT_DELAY = 3000;
   private final Gson gson;
 
