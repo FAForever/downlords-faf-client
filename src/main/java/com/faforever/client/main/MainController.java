@@ -13,6 +13,7 @@ import com.faforever.client.legacy.OnFafDisconnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
 import com.faforever.client.lobby.LobbyService;
+import com.faforever.client.main.hub.CommunityHubController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.network.GamePortCheckListener;
@@ -145,9 +146,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   GamesController gamesController;
 
   @Autowired
-  MapVaultController vaultController;
-
-  @Autowired
   LeaderboardController leaderboardController;
 
   @Autowired
@@ -196,10 +194,13 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   ModVaultController modVaultController;
 
   @Autowired
-  com.faforever.client.map.MapVaultController mapMapVaultController;
+  MapVaultController mapMapVaultController;
 
   @Autowired
   CastsController castsController;
+
+  @Autowired
+  CommunityHubController communityHubController;
 
   private Popup notificationsPopup;
 
@@ -572,6 +573,13 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   void onChatSelected(ActionEvent event) {
     setActiveNavigationButton((ButtonBase) event.getSource());
     setContent(chatController.getRoot());
+  }
+
+  @FXML
+  void onCommunityHubSelected(ActionEvent event) {
+    communityHubController.setUpIfNecessary();
+    setContent(communityHubController.getRoot());
+    setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
 
   @FXML

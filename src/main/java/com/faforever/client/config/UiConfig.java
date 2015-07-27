@@ -32,6 +32,8 @@ import com.faforever.client.game.PopupTeamCardController;
 import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
+import com.faforever.client.main.hub.CommunityHubController;
+import com.faforever.client.main.hub.ConcurrentUsersController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.news.NewsListItemController;
@@ -100,6 +102,16 @@ public class UiConfig {
   @Bean
   LeaderboardController leaderboardController() {
     return loadController("ladder.fxml");
+  }
+
+  @Bean
+  CommunityHubController communityHubController() {
+    return loadController("community_hub.fxml");
+  }
+
+  @Bean
+  ConcurrentUsersController concurrentUsersController() {
+    return loadController("concurrent_users.fxml");
   }
 
   @Bean

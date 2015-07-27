@@ -1,5 +1,6 @@
 .root {
-  -fx-font-size: 1.2em;
+  -fx-font-size: 14px;
+  -fx-font-smoothing-type: gray;
 
   /***************************************************************************
    *                                                                         *
@@ -720,4 +721,10 @@
 
 .settings-content {
   -fx-padding: 1.5em;
+}
+
+/***************** Axis (chart) *****************/
+
+.axis {
+    -fx-tick-label-font-size: 1em;
 }

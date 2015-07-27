@@ -38,6 +38,8 @@
                 <SplitMenuButton fx:id="communityButton" focusTraversable="false" mnemonicParsing="false"
                                  onAction="#onCommunitySelected" text="%main.community">
                   <items>
+                    <MenuItem fx:id="communityHubButton" mnemonicParsing="false" text="%main.community.hub"
+                              onAction="#onCommunityHubSelected"/>
                     <MenuItem fx:id="newsButton" mnemonicParsing="false" text="%main.community.news"
                               onAction="#onNewsSelected"/>
                     <MenuItem fx:id="castsButton" mnemonicParsing="false" text="%main.community.casts"
