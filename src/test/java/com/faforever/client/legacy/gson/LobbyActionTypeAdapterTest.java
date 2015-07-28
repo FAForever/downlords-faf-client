@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.gson;
 
-import com.faforever.client.legacy.relay.RelayServerAction;
+import com.faforever.client.legacy.relay.LobbyAction;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.junit.Before;
@@ -11,7 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class RelayServerActionTypeAdapterTest {
+public class LobbyActionTypeAdapterTest {
 
   private RelayServerActionTypeAdapter instance;
 
@@ -23,9 +23,9 @@ public class RelayServerActionTypeAdapterTest {
   @Test
   public void testWrite() throws Exception {
     JsonWriter out = mock(JsonWriter.class);
-    instance.write(out, RelayServerAction.CONNECTED);
+    instance.write(out, LobbyAction.CONNECTED);
 
-    verify(out).value(RelayServerAction.CONNECTED.getString());
+    verify(out).value(LobbyAction.CONNECTED.getString());
   }
 
   @Test
@@ -39,11 +39,11 @@ public class RelayServerActionTypeAdapterTest {
   @Test
   public void testRead() throws Exception {
     JsonReader in = mock(JsonReader.class);
-    when(in.nextString()).thenReturn(RelayServerAction.CHAT.getString());
+    when(in.nextString()).thenReturn(LobbyAction.CHAT.getString());
 
-    RelayServerAction relayServerAction = instance.read(in);
+    LobbyAction lobbyAction = instance.read(in);
 
-    assertEquals(RelayServerAction.CHAT, relayServerAction);
+    assertEquals(LobbyAction.CHAT, lobbyAction);
   }
 
   @Test(expected = IllegalArgumentException.class)

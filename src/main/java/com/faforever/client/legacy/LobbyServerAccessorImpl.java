@@ -4,9 +4,9 @@ import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
+import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.FoesMessage;
 import com.faforever.client.legacy.domain.FriendsMessage;
-import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
@@ -67,7 +67,7 @@ import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 public class LobbyServerAccessorImpl extends AbstractServerAccessor implements LobbyServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final int VERSION = Integer.MAX_VALUE;
+  private static final int VERSION = 0;
 
   private static final long RECONNECT_DELAY = 3000;
   private final Gson gson;
@@ -97,8 +97,8 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private Callback<GameLaunchInfo> gameLaunchCallback;
   private Collection<OnGameInfoListener> onGameInfoListeners;
   private Collection<OnGameTypeInfoListener> onGameTypeInfoListeners;
-  private Collection<OnFoeListListener> onFoeListListeners;
   private Collection<OnJoinChannelsRequestListener> onJoinChannelsRequestListeners;
+  private Collection<OnGameLaunchInfoListener> onGameLaunchListeners;
 
   // Yes I know, those aren't lists. They will become if it's necessary
   private OnLobbyConnectingListener onLobbyConnectingListener;
@@ -112,6 +112,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     onGameInfoListeners = new ArrayList<>();
     onGameTypeInfoListeners = new ArrayList<>();
     onJoinChannelsRequestListeners = new ArrayList<>();
+    onGameLaunchListeners = new ArrayList<>();
     sessionId = new SimpleStringProperty();
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
@@ -300,6 +301,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   private void onGameLaunchInfo(GameLaunchInfo gameLaunchInfo) {
+    onGameLaunchListeners.forEach(listener -> listener.onGameLaunchInfo(gameLaunchInfo));
     gameLaunchCallback.success(gameLaunchInfo);
   }
 
@@ -368,6 +370,11 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     writeToServer(new FoesMessage(foes));
   }
 
+  @Override
+  public void addOnGameLaunchListener(OnGameLaunchInfoListener listener) {
+    onGameLaunchListeners.add(listener);
+  }
+
   public void onServerMessage(String message) throws IOException {
     ServerMessageType serverMessageType = ServerMessageType.fromString(message);
     if (serverMessageType != null) {
@@ -425,6 +432,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           if (sessionInfo.session != null) {
             onSessionInitiated(sessionInfo);
           } else if (sessionInfo.email != null) {
+            sessionInfo.session = sessionId.get();
             onFafLoginSucceeded(sessionInfo);
           }
           break;

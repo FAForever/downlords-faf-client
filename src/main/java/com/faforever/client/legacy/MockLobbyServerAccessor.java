@@ -239,4 +239,9 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   public void setFoes(Collection<String> foes) {
 
   }
+
+  @Override
+  public void addOnGameLaunchListener(OnGameLaunchInfoListener listener) {
+
+  }
 }

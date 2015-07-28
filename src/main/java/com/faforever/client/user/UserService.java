@@ -12,7 +12,7 @@ public interface UserService {
 
   int getUid();
 
-  int getSessionId();
+  String getSessionId();
 
   void cancelLogin();
 }

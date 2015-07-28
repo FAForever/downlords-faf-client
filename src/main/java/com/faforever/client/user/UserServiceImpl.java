@@ -21,7 +21,7 @@ public class UserServiceImpl implements UserService {
   private String username;
   private String password;
   private int uid;
-  private int sessionId;
+  private String sessionId;
 
   @Override
   public void login(final String username, final String password, final boolean autoLogin, final Callback<Void> callback) {
@@ -39,6 +39,7 @@ public class UserServiceImpl implements UserService {
       @Override
       public void success(SessionInfo result) {
         UserServiceImpl.this.uid = result.id;
+        UserServiceImpl.this.sessionId = result.session;
         callback.success(null);
       }
 
@@ -65,7 +66,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public int getSessionId() {
+  public String getSessionId() {
     return sessionId;
   }
 

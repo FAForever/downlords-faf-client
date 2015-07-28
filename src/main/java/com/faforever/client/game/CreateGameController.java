@@ -256,13 +256,6 @@ public class CreateGameController {
       preferencesService.getPreferences().setLastMap(mapName);
       preferencesService.storeInBackground();
     });
-
-    String lastMap = preferencesService.getPreferences().getLastMap();
-    if (lastMap != null) {
-      for (MapInfoBean map : localMaps) {
-        mapListView.getSelectionModel().select(map);
-      }
-    }
   }
 
   private void initRankingSlider() {

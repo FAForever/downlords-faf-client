@@ -58,4 +58,5 @@ public interface LobbyServerAccessor {
 
   void setFoes(Collection<String> foes);
 
+  void addOnGameLaunchListener(OnGameLaunchInfoListener listener);
 }

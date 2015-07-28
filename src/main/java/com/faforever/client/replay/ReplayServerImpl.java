@@ -12,6 +12,7 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
+import com.faforever.client.util.VersionUtil;
 import com.google.common.primitives.Bytes;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
@@ -151,7 +152,7 @@ public class ReplayServerImpl implements ReplayServer, OnGameInfoListener, OnGam
     replayInfo.uid = uid;
     replayInfo.gameTime = pythonTime();
     replayInfo.versionInfo = new HashMap<>();
-    replayInfo.versionInfo.put("lobby", String.format("dfaf-%s", getClass().getPackage().getImplementationVersion()));
+    replayInfo.versionInfo.put("lobby", VersionUtil.getVersion(getClass()));
   }
 
   private void finishReplayInfo() {
