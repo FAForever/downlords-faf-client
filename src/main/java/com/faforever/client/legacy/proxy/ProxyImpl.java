@@ -139,7 +139,7 @@ public class ProxyImpl implements Proxy {
   private long lastProxyDataTimestamp;
   private boolean p2pProxyEnabled;
   private Set<Integer> testedLoopbackPorts;
-  private Set<OnProxyInitializedListener> onProxyInitializedListeners;
+  private Set<OnP2pProxyInitializedListener> onP2pProxyInitializedListeners;
 
   /**
    * Holds UDP sockets that represent other players. Key is the player's number (0 - 11).
@@ -162,7 +162,7 @@ public class ProxyImpl implements Proxy {
     peersByAddress = new HashMap<>();
     localInetAddr = InetAddress.getLoopbackAddress();
     testedLoopbackPorts = new HashSet<>();
-    onProxyInitializedListeners = new HashSet<>();
+    onP2pProxyInitializedListeners = new HashSet<>();
     proxySockets = new ConcurrentHashMap<>();
   }
 
@@ -384,7 +384,7 @@ public class ProxyImpl implements Proxy {
     publicSocket = new DatagramSocket(forgedAlliancePrefs.getPort());
     readPublicSocketInBackground(publicSocket);
 
-    onProxyInitializedListeners.forEach(Proxy.OnProxyInitializedListener::onProxyInitialized);
+    onP2pProxyInitializedListeners.forEach(OnP2pProxyInitializedListener::onP2pProxyInitialized);
   }
 
   @Override
@@ -432,8 +432,8 @@ public class ProxyImpl implements Proxy {
   }
 
   @Override
-  public void addOnProxyInitializedListener(OnProxyInitializedListener listener) {
-    this.onProxyInitializedListeners.add(listener);
+  public void addOnProxyInitializedListener(OnP2pProxyInitializedListener listener) {
+    this.onP2pProxyInitializedListeners.add(listener);
   }
 
   private void readPublicSocketInBackground(DatagramSocket publicSocket) {

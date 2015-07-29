@@ -6,9 +6,9 @@ import java.net.SocketException;
 
 public interface Proxy {
 
-  interface OnProxyInitializedListener {
+  interface OnP2pProxyInitializedListener {
 
-    void onProxyInitialized();
+    void onP2pProxyInitialized();
   }
 
   /**
@@ -45,5 +45,5 @@ public interface Proxy {
    */
   InetSocketAddress bindAndGetProxySocketAddress(int playerNumber, int uid) throws IOException;
 
-  void addOnProxyInitializedListener(OnProxyInitializedListener listener);
+  void addOnProxyInitializedListener(OnP2pProxyInitializedListener listener);
 }

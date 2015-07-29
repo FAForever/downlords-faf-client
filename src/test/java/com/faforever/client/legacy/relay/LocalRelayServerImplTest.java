@@ -310,6 +310,13 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     assertThat(instance.isP2pProxyEnabled(), is(true));
   }
 
+  @Test
+  public void testOnProxyInitialized() {
+    assertThat(instance.isP2pProxyEnabled(), is(false));
+    instance.onP2pProxyInitialized();
+    assertThat(instance.isP2pProxyEnabled(), is(true));
+  }
+
   /**
    * Writes the specified message to the local relay server as if it was sent by the game.
    */

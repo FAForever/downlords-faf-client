@@ -43,7 +43,7 @@ import java.util.List;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
-public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInitializedListener {
+public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyInitializedListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -470,7 +470,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
   }
 
   @Override
-  public void onProxyInitialized() {
+  public void onP2pProxyInitialized() {
     p2pProxyEnabled.set(true);
   }
 
