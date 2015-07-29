@@ -10,9 +10,13 @@ import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.SocketAddressUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +62,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
 
-  private boolean p2pProxyEnabled;
+  private BooleanProperty p2pProxyEnabled;
   private int port;
   private final Gson gson;
   private FaDataOutputStream faOutputStream;
@@ -76,6 +80,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
         .create();
     onReadyListeners = new ArrayList<>();
     onConnectionAcceptedListeners = new ArrayList<>();
+    p2pProxyEnabled = new SimpleBooleanProperty(false);
   }
 
   @Override
@@ -231,7 +236,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
       List<Object> chunks = faInputStream.readChunks();
       LobbyMessage lobbyMessage = new LobbyMessage(action, chunks);
 
-      if (p2pProxyEnabled) {
+      if (p2pProxyEnabled.get()) {
         updateProxyState(lobbyMessage);
       }
 
@@ -355,7 +360,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
   }
 
   private void handleSendNatPacket(SendNatPacketMessage sendNatPacketMessage) throws IOException {
-    if (p2pProxyEnabled) {
+    if (p2pProxyEnabled.get()) {
       String publicAddress = sendNatPacketMessage.getPublicAddress();
 
       proxy.registerPeerIfNecessary(publicAddress);
@@ -368,11 +373,11 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
 
   private void handleP2pReconnect() throws SocketException {
     proxy.initializeP2pProxy();
-    p2pProxyEnabled = true;
+    p2pProxyEnabled.set(true);
   }
 
   private void handleConnectToPeer(ConnectToPeerMessage connectToPeerMessage) throws IOException {
-    if (p2pProxyEnabled) {
+    if (p2pProxyEnabled.get()) {
       String peerAddress = connectToPeerMessage.getPeerAddress();
       int peerUid = connectToPeerMessage.getPeerUid();
 
@@ -386,7 +391,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
   }
 
   private void handleJoinGame(JoinGameMessage joinGameMessage) throws IOException {
-    if (p2pProxyEnabled) {
+    if (p2pProxyEnabled.get()) {
       String peerAddress = joinGameMessage.getPeerAddress();
       int peerUid = joinGameMessage.getPeerUid();
 
@@ -403,7 +408,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
     int peerUid = createRelayServerMessage.getUid();
     proxy.setUid(peerUid);
 
-    if (p2pProxyEnabled) {
+    if (p2pProxyEnabled.get()) {
       createRelayServerMessage.setPort(ProxyUtils.translateToProxyPort(proxy.getPort()));
     }
 
@@ -466,6 +471,16 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
 
   @Override
   public void onProxyInitialized() {
-    p2pProxyEnabled = true;
+    p2pProxyEnabled.set(true);
+  }
+
+  @VisibleForTesting
+  boolean isP2pProxyEnabled() {
+    return p2pProxyEnabled.get();
+  }
+
+  @VisibleForTesting
+  void addOnP2pProxyEnabledChangeListener(ChangeListener<Boolean> listener) {
+    p2pProxyEnabled.addListener(listener);
   }
 }
