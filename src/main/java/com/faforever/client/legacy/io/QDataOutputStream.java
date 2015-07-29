@@ -23,7 +23,7 @@ public class QDataOutputStream extends DataOutputStream {
     writeByte(0);
 
     if (data == null) {
-      writeInt(Integer.MAX_VALUE);
+      writeInt(-1);
     } else {
       writeInt(data.length);
       write(data);
