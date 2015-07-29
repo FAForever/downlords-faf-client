@@ -11,6 +11,7 @@ public class LoginMessage extends ClientMessage {
   public String uniqueId;
   public String localIp;
   public Integer version;
+  public String userAgent;
 
   public LoginMessage(String username, String password, String session, String uniqueId, String localIp, int version) {
     this.command = "hello";
@@ -20,6 +21,7 @@ public class LoginMessage extends ClientMessage {
     this.uniqueId = uniqueId;
     this.localIp = localIp;
     this.version = version;
+    userAgent = "downlords-faf-client";
   }
 
   @Override

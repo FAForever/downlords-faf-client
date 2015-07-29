@@ -9,6 +9,10 @@ import java.io.IOException;
 // TODO this isn't yet the legacy part, move it to an outside package
 public interface LocalRelayServer {
 
+  void addOnReadyListener(OnReadyListener listener);
+
+  void addOnConnectionAcceptedListener(OnConnectionAcceptedListener listener);
+
   int getPort();
 
   void startInBackground() throws IOException;

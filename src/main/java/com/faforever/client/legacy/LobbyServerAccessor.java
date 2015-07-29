@@ -4,6 +4,7 @@ import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
 
@@ -19,8 +20,9 @@ public interface LobbyServerAccessor {
   /**
    * Connects to the FAF server and logs in using the credentials from {@link PreferencesService}. This method runs in
    * background, the callback however is called on the FX application thread.
+   * @param callback
    */
-  void connectAndLogInInBackground(Callback<Void> callback);
+  void connectAndLogInInBackground(Callback<SessionInfo> callback);
 
   void addOnGameTypeInfoListener(OnGameTypeInfoListener listener);
 
@@ -56,4 +58,5 @@ public interface LobbyServerAccessor {
 
   void setFoes(Collection<String> foes);
 
+  void addOnGameLaunchListener(OnGameLaunchInfoListener listener);
 }

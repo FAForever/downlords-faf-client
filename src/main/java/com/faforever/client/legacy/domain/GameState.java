@@ -12,7 +12,7 @@ public enum GameState {
   UNKNOWN("unknown"),
   PLAYING("playing"),
   OPEN("open"),
-  CLOSED("closed"), ;
+  CLOSED("closed");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

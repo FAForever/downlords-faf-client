@@ -3,7 +3,7 @@ package com.faforever.client.legacy.relay;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum RelayServerAction {
+public enum LobbyAction {
   PROCESS_NAT_PACKET("ProcessNatPacket"),
   DISCONNECTED("Disconnected"),
   CONNECTED("Connected"),
@@ -17,20 +17,21 @@ public enum RelayServerAction {
   CHAT("Chat"),
   GAME_RESULT("GameResult"),
   STATS("Stats"),
+  AUTHENTICATE("Authenticate"),
   // Yes, these are the only lower-cased in the protocol. Because fuck you.
   CONNECTED_TO_HOST("connectedToHost"),
   PONG("pong");
 
-  private static final Map<String, RelayServerAction> fromString;
+  private static final Map<String, LobbyAction> fromString;
   static {
     fromString = new HashMap<>();
-    for (RelayServerAction action : values()) {
+    for (LobbyAction action : values()) {
       fromString.put(action.string, action);
     }
   }
 
-  public static RelayServerAction fromString(String string) {
-    RelayServerAction action = fromString.get(string);
+  public static LobbyAction fromString(String string) {
+    LobbyAction action = fromString.get(string);
     if (action == null) {
       throw new IllegalArgumentException("Unknown relay server action: " + string);
     }
@@ -39,7 +40,7 @@ public enum RelayServerAction {
 
   private String string;
 
-  RelayServerAction(String string) {
+  LobbyAction(String string) {
     this.string = string;
   }
 

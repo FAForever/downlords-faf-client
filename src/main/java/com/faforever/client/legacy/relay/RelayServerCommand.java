@@ -13,7 +13,7 @@ enum RelayServerCommand {
   P2P_RECONNECT("P2pReconnect", 0),
   JOIN_GAME("JoinGame", 3),
   CONNECT_TO_PEER("ConnectToPeer", 3),
-  CREATE_LOBBY("CreateLobby", 4),
+  CREATE_LOBBY("CreateLobby", 5),
   DISCONNECT_FROM_PEER("DisconnectFromPeer", 0),
   CONNECT_TO_PROXY("ConnectToProxy", 4),
   JOIN_PROXY("JoinProxy", 4);

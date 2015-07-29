@@ -4,10 +4,11 @@
   <logger name="com.faforever.client.preferences" level="info"/>
   <logger name="com.faforever.client.map" level="info"/>
   <logger name="com.faforever.client.patch" level="info"/>
-  <logger name="com.faforever.client.legacy" level="info"/>
+  <logger name="com.faforever.client.legacy" level="debug"/>
   <logger name="com.faforever.client.legacy.io" level="debug"/>
   <logger name="com.faforever.client.legacy.map" level="info"/>
   <logger name="com.faforever.client.legacy.htmlparser" level="info"/>
+  <logger name="com.faforever.client.legacy.writer" level="debug"/>
   <logger name="com.faforever.client.legacy.writer" level="debug"/>
   <logger name="com.faforever.client.legacy.relay" level="debug"/>
   <logger name="com.faforever.client.replay" level="info"/>

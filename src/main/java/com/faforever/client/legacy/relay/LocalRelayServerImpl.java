@@ -1,7 +1,18 @@
 package com.faforever.client.legacy.relay;
 
+import com.faforever.client.game.FeaturedMod;
+import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.io.QDataReader;
 import com.faforever.client.legacy.proxy.Proxy;
+import com.faforever.client.legacy.proxy.ProxyUtils;
 import com.faforever.client.legacy.writer.ServerWriter;
+import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.user.UserService;
+import com.faforever.client.util.SocketAddressUtil;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,15 +20,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
@@ -27,13 +44,49 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Autowired
-  Proxy proxyServer;
+  Proxy proxy;
 
   @Autowired
   Environment environment;
 
+  @Autowired
+  UserService userService;
+
+  @Autowired
+  PreferencesService preferencesService;
+
+  @Autowired
+  LobbyServerAccessor lobbyServerAccessor;
+
   private boolean p2pProxyEnabled;
   private int port;
+  private final Gson gson;
+  private FaDataOutputStream faOutputStream;
+  private FaDataInputStream faInputStream;
+  private ServerWriter serverWriter;
+  private InputStream fafInputStream;
+  private LobbyMode lobbyMode;
+  private Collection<OnReadyListener> onReadyListeners;
+  private Collection<OnConnectionAcceptedListener> onConnectionAcceptedListeners;
+
+  public LocalRelayServerImpl() {
+    gson = new GsonBuilder()
+        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+        .registerTypeAdapter(RelayServerCommand.class, new RelayServerCommandTypeAdapter())
+        .create();
+    onReadyListeners = new ArrayList<>();
+    onConnectionAcceptedListeners = new ArrayList<>();
+  }
+
+  @Override
+  public void addOnReadyListener(OnReadyListener listener) {
+    onReadyListeners.add(listener);
+  }
+
+  @Override
+  public void addOnConnectionAcceptedListener(OnConnectionAcceptedListener listener) {
+    onConnectionAcceptedListeners.add(listener);
+  }
 
   @Override
   public int getPort() {
@@ -43,6 +96,20 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
   @PostConstruct
   void postConstruct() {
     startInBackground();
+    lobbyServerAccessor.addOnGameLaunchListener(this::updateLobbyModeFromGameInfo);
+  }
+
+  private void updateLobbyModeFromGameInfo(GameLaunchInfo gameLaunchInfo) {
+    FeaturedMod featuredMod = FeaturedMod.fromString(gameLaunchInfo.mod);
+    switch (featuredMod) {
+      case FAF:
+      case BALANCE_TESTING:
+        lobbyMode = LobbyMode.DEFAULT_LOBBY;
+        break;
+      case LADDER_1V1:
+        lobbyMode = LobbyMode.NO_LOBBY;
+        break;
+    }
   }
 
   /**
@@ -51,7 +118,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
    */
   @Override
   public void startInBackground() {
-    proxyServer.addOnProxyInitializedListener(this);
+    proxy.addOnProxyInitializedListener(this);
 
     executeInBackground(new Task<Void>() {
       @Override
@@ -64,24 +131,30 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
 
   private void start() throws IOException {
     try (ServerSocket serverSocket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
-
       port = serverSocket.getLocalPort();
 
       logger.info("Relay server listening on port {}", port);
+
+      onReadyListeners.forEach(OnReadyListener::onReady);
 
       while (!isCancelled()) {
         try (Socket faSocket = serverSocket.accept()) {
           logger.debug("Forged Alliance connected to relay server from {}:{}", faSocket.getInetAddress(), faSocket.getPort());
 
-          try (Socket fafSocket = new Socket(environment.getProperty("relay.host"), environment.getProperty("relay.port", int.class));
-               FaDataInputStream supComInput = createFaInputStream(faSocket.getInputStream());
-               FaDataOutputStream faOutputStream = createFaOutputStream(faSocket.getOutputStream());
-               ServerWriter serverWriter = createServerWriter(fafSocket);
-               Relayer relayer = new Relayer(fafSocket.getInputStream(), proxyServer, faOutputStream, serverWriter)) {
+          onConnectionAcceptedListeners.forEach(OnConnectionAcceptedListener::onConnectionAccepted);
 
-            startFaReader(supComInput, serverWriter);
+          try (Socket fafSocket = new Socket(environment.getProperty("relay.host"), environment.getProperty("relay.port", int.class))) {
+            logger.info("Connected to FAF relay server at {}", SocketAddressUtil.toString((InetSocketAddress) fafSocket.getRemoteSocketAddress()));
 
-            relayer.blockingRead();
+            this.faInputStream = createFaInputStream(faSocket.getInputStream());
+            this.faOutputStream = createFaOutputStream(faSocket.getOutputStream());
+            this.fafInputStream = fafSocket.getInputStream();
+            this.serverWriter = createServerWriter(fafSocket.getOutputStream());
+
+            serverWriter.write(new LobbyMessage(LobbyAction.AUTHENTICATE, Collections.singletonList(userService.getSessionId())));
+
+            startFaReader();
+            redirectFafToFa();
           }
         } catch (SocketException | EOFException e) {
           logger.debug("Forged Alliance disconnected from relay server");
@@ -90,9 +163,9 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
     }
   }
 
-  private ServerWriter createServerWriter(Socket fafSocket) throws IOException {
-    ServerWriter serverWriter = new ServerWriter(fafSocket.getOutputStream());
-    serverWriter.registerMessageSerializer(new RelayClientMessageSerializer(), RelayClientMessage.class);
+  private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
+    ServerWriter serverWriter = new ServerWriter(outputStream);
+    serverWriter.registerMessageSerializer(new RelayClientMessageSerializer(), LobbyMessage.class);
     return serverWriter;
   }
 
@@ -109,14 +182,14 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
   }
 
   /**
-   * Starts a background task that reads data from SupCom and redirects it to the given ServerWriter.
+   * Starts a background task that reads data from FA and redirects it to the given ServerWriter.
    */
-  private void startFaReader(final FaDataInputStream faInputStream, ServerWriter serverWriter) {
+  private void startFaReader() {
     executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
         try {
-          redirectFaToFaf(faInputStream, serverWriter);
+          redirectFaToFaf(faInputStream, serverWriter, this);
         } catch (EOFException | SocketException e) {
           logger.info("Forged Alliance disconnected from local relay server (EOF)");
         }
@@ -126,64 +199,269 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnProxyInit
   }
 
   /**
+   * Reads data from the FAF server and redirects it to FA.
+   */
+  private void redirectFafToFa() throws IOException {
+    try (QDataReader dataInput = new QDataReader(new DataInputStream(new BufferedInputStream(fafInputStream)))) {
+      while (!isCancelled()) {
+        dataInput.skipBlockSize();
+        String message = dataInput.readQString();
+
+        logger.debug("Message from FAF relay server: {}", message);
+
+        RelayServerMessage relayServerMessage = gson.fromJson(message, RelayServerMessage.class);
+
+        dispatchServerCommand(relayServerMessage.getCommand(), message);
+      }
+    } catch (EOFException e) {
+      logger.info("Disconnected from FAF relay server (EOF)");
+    }
+  }
+
+  /**
    * Redirects any data read from the #faInputStream to the specified #serverWriter.
    *
    * @param faInputStream game input stream
    * @param serverWriter FAF relay server writer
-   *
    * @throws IOException
    */
-  private void redirectFaToFaf(FaDataInputStream faInputStream, ServerWriter serverWriter) throws IOException {
-
-    while (!isCancelled()) {
-      RelayServerAction action = RelayServerAction.fromString(faInputStream.readString());
+  private void redirectFaToFaf(FaDataInputStream faInputStream, ServerWriter serverWriter, Task<Void> task) throws IOException {
+    while (!task.isCancelled()) {
+      LobbyAction action = LobbyAction.fromString(faInputStream.readString());
       List<Object> chunks = faInputStream.readChunks();
-      RelayClientMessage relayClientMessage = new RelayClientMessage(action, chunks);
+      LobbyMessage lobbyMessage = new LobbyMessage(action, chunks);
 
       if (p2pProxyEnabled) {
-        updateProxyState(relayClientMessage);
+        updateProxyState(lobbyMessage);
       }
 
-      serverWriter.write(relayClientMessage);
+      handleDataFromFa(lobbyMessage);
     }
   }
 
-  private void updateProxyState(RelayClientMessage relayClientMessage) {
-    RelayServerAction action = relayClientMessage.getAction();
-    List<Object> chunks = relayClientMessage.getChunks();
+  private void handleDataFromFa(LobbyMessage lobbyMessage) throws IOException {
+    if (isHostGameMessage(lobbyMessage)) {
+      int gamePort = preferencesService.getPreferences().getForgedAlliance().getPort();
+      String username = userService.getUsername();
+      if (lobbyMode == null) {
+        throw new IllegalStateException("lobbyMode has not been set");
+      }
+
+      handleCreateLobby(new CreateRelayServerMessage(lobbyMode, gamePort, username, userService.getUid(), 1));
+    }
+
+    serverWriter.write(lobbyMessage);
+  }
+
+  private boolean isHostGameMessage(LobbyMessage lobbyMessage) {
+    return lobbyMessage.getAction() == LobbyAction.GAME_STATE
+        && lobbyMessage.getChunks().get(0).equals("Idle");
+  }
+
+  private void updateProxyState(LobbyMessage lobbyMessage) {
+    LobbyAction action = lobbyMessage.getAction();
+    List<Object> chunks = lobbyMessage.getChunks();
 
     logger.debug("Received '{}' with chunks: {}", action.getString(), chunks);
 
     switch (action) {
       case PROCESS_NAT_PACKET:
-        chunks.set(0, proxyServer.translateToPublic((String) chunks.get(0)));
+        chunks.set(0, proxy.translateToPublic((String) chunks.get(0)));
         break;
       case DISCONNECTED:
-        proxyServer.updateConnectedState((Integer) chunks.get(0), false);
+        proxy.updateConnectedState((Integer) chunks.get(0), false);
         break;
       case CONNECTED:
-        proxyServer.updateConnectedState((Integer) chunks.get(0), true);
+        proxy.updateConnectedState((Integer) chunks.get(0), true);
         break;
       case GAME_STATE:
         switch ((String) chunks.get(0)) {
           case "Launching":
-            proxyServer.setGameLaunched(true);
+            proxy.setGameLaunched(true);
             break;
           case "Lobby":
-            proxyServer.setGameLaunched(false);
+            proxy.setGameLaunched(false);
             break;
         }
         break;
       case BOTTLENECK:
-        proxyServer.setBottleneck(true);
+        proxy.setBottleneck(true);
         break;
       case BOTTLENECK_CLEARED:
-        proxyServer.setBottleneck(false);
+        proxy.setBottleneck(false);
         break;
 
       default:
         // Do nothing
     }
+  }
+
+  private void dispatchServerCommand(RelayServerCommand command, String jsonString) throws IOException {
+    switch (command) {
+      case PING:
+        handlePing();
+        break;
+      case HOST_GAME:
+        HostGameMessage hostGameMessage = gson.fromJson(jsonString, HostGameMessage.class);
+        handleHostGame(hostGameMessage);
+        break;
+      case SEND_NAT_PACKET:
+        SendNatPacketMessage sendNatPacketMessage = gson.fromJson(jsonString, SendNatPacketMessage.class);
+        handleSendNatPacket(sendNatPacketMessage);
+        break;
+      case P2P_RECONNECT:
+        handleP2pReconnect();
+        break;
+      case JOIN_GAME:
+        JoinGameMessage joinGameMessage = gson.fromJson(jsonString, JoinGameMessage.class);
+        handleJoinGame(joinGameMessage);
+        break;
+      case CONNECT_TO_PEER:
+        ConnectToPeerMessage connectToPeerMessage = gson.fromJson(jsonString, ConnectToPeerMessage.class);
+        handleConnectToPeer(connectToPeerMessage);
+        break;
+      case CREATE_LOBBY:
+        // CreateLobby was already sent to FAF by this relayer, so the server message is discarded
+        logger.debug("Discarding message from server: {}", jsonString);
+        break;
+      case DISCONNECT_FROM_PEER:
+        DisconnectFromPeerMessage disconnectFromPeerMessage = gson.fromJson(jsonString, DisconnectFromPeerMessage.class);
+        handleDisconnectFromPeer(disconnectFromPeerMessage);
+        break;
+      case CONNECT_TO_PROXY:
+        ConnectToProxyMessage connectToProxyMessage = gson.fromJson(jsonString, ConnectToProxyMessage.class);
+        handleConnectToProxy(connectToProxyMessage);
+        break;
+      case JOIN_PROXY:
+        JoinProxyMessage joinProxyMessage = gson.fromJson(jsonString, JoinProxyMessage.class);
+        handleJoinProxy(joinProxyMessage);
+        break;
+
+      default:
+        throw new IllegalStateException("Unhandled relay server command: " + command);
+    }
+  }
+
+  private void handleDisconnectFromPeer(DisconnectFromPeerMessage disconnectFromPeerMessage) throws IOException {
+    writeToFa(disconnectFromPeerMessage);
+  }
+
+  private void handleHostGame(HostGameMessage hostGameMessage) throws IOException {
+    writeToFa(hostGameMessage);
+  }
+
+  private void handlePing() {
+    serverWriter.write(LobbyMessage.pong());
+  }
+
+  private void handleSendNatPacket(SendNatPacketMessage sendNatPacketMessage) throws IOException {
+    if (p2pProxyEnabled) {
+      String publicAddress = sendNatPacketMessage.getPublicAddress();
+
+      proxy.registerPeerIfNecessary(publicAddress);
+
+      sendNatPacketMessage.setPublicAddress(proxy.translateToLocal(publicAddress));
+    }
+
+    writeToFaUdp(sendNatPacketMessage);
+  }
+
+  private void handleP2pReconnect() throws SocketException {
+    proxy.initializeP2pProxy();
+    p2pProxyEnabled = true;
+  }
+
+  private void handleConnectToPeer(ConnectToPeerMessage connectToPeerMessage) throws IOException {
+    if (p2pProxyEnabled) {
+      String peerAddress = connectToPeerMessage.getPeerAddress();
+      int peerUid = connectToPeerMessage.getPeerUid();
+
+      proxy.registerPeerIfNecessary(peerAddress);
+
+      connectToPeerMessage.setPeerAddress(proxy.translateToLocal(peerAddress));
+      proxy.setUidForPeer(peerAddress, peerUid);
+    }
+
+    writeToFa(connectToPeerMessage);
+  }
+
+  private void handleJoinGame(JoinGameMessage joinGameMessage) throws IOException {
+    if (p2pProxyEnabled) {
+      String peerAddress = joinGameMessage.getPeerAddress();
+      int peerUid = joinGameMessage.getPeerUid();
+
+      proxy.registerPeerIfNecessary(peerAddress);
+
+      joinGameMessage.setPeerAddress(proxy.translateToLocal(peerAddress));
+      proxy.setUidForPeer(peerAddress, peerUid);
+    }
+
+    writeToFa(joinGameMessage);
+  }
+
+  private void handleCreateLobby(CreateRelayServerMessage createRelayServerMessage) throws IOException {
+    int peerUid = createRelayServerMessage.getUid();
+    proxy.setUid(peerUid);
+
+    if (p2pProxyEnabled) {
+      createRelayServerMessage.setPort(ProxyUtils.translateToProxyPort(proxy.getPort()));
+    }
+
+    writeToFa(createRelayServerMessage);
+  }
+
+  private void handleConnectToProxy(ConnectToProxyMessage connectToProxyMessage) throws IOException {
+    int playerNumber = connectToProxyMessage.getPlayerNumber();
+    int peerUid = connectToProxyMessage.getPeerUid();
+
+    InetSocketAddress proxySocket = proxy.bindAndGetProxySocketAddress(playerNumber, peerUid);
+
+    // Ask FA to connect to the other player via the local proxy port
+    ConnectToPeerMessage connectToPeerMessage = new ConnectToPeerMessage();
+    connectToPeerMessage.setPeerAddress(SocketAddressUtil.toString(proxySocket));
+    connectToPeerMessage.setUsername(connectToProxyMessage.getUsername());
+    connectToPeerMessage.setPeerUid(connectToProxyMessage.getPeerUid());
+
+    writeToFa(connectToPeerMessage);
+  }
+
+  private void handleJoinProxy(JoinProxyMessage joinProxyMessage) throws IOException {
+    int playerNumber = joinProxyMessage.getPlayerNumber();
+    int peerUid = joinProxyMessage.getPeerUid();
+
+    InetSocketAddress proxySocket = proxy.bindAndGetProxySocketAddress(playerNumber, peerUid);
+
+    // Ask FA to join the game via the local proxy port
+    JoinGameMessage joinGameMessage = new JoinGameMessage();
+    joinGameMessage.setPeerAddress(SocketAddressUtil.toString(proxySocket));
+    joinGameMessage.setUsername(joinProxyMessage.getUsername());
+    joinGameMessage.setPeerUid(joinProxyMessage.getPeerUid());
+
+    writeToFa(joinGameMessage);
+  }
+
+  private void writeToFaUdp(RelayServerMessage relayServerMessage) throws IOException {
+    writeHeader(relayServerMessage);
+    faOutputStream.writeUdpArgs(relayServerMessage.getArgs());
+    faOutputStream.flush();
+  }
+
+  private void writeToFa(RelayServerMessage relayServerMessage) throws IOException {
+    writeHeader(relayServerMessage);
+    faOutputStream.writeArgs(relayServerMessage.getArgs());
+    faOutputStream.flush();
+  }
+
+  private void writeHeader(RelayServerMessage relayServerMessage) throws IOException {
+    String commandString = relayServerMessage.getCommand().getString();
+
+    int headerSize = commandString.length();
+    String headerField = commandString.replace("\t", "/t").replace("\n", "/n");
+
+    logger.debug("Writing data to FA, command: {}, args: {}", commandString, relayServerMessage.getArgs());
+
+    faOutputStream.writeInt(headerSize);
+    faOutputStream.writeString(headerField);
   }
 
   @Override

@@ -53,7 +53,7 @@ public class FaDataOutputStream extends OutputStream {
       } else if (arg instanceof Integer) {
         writeByte(FIELD_TYPE_INT);
         writeInt((int) arg);
-      } else {
+      } else if (arg instanceof String) {
         String value = (String) arg;
         writeByte(FIELD_TYPE_STRING);
         writeInt(value.length());

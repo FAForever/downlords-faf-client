@@ -13,22 +13,22 @@ public class ConnectToPeerMessage extends RelayServerMessage {
   }
 
   public void setPeerUid(int uid) {
-    getArgs().set(PEER_UID_INDEX, uid);
+    setValue(PEER_UID_INDEX, uid);
   }
 
   public void setUsername(String username) {
-    getArgs().set(USERNAME_INDEX, username);
+    setValue(USERNAME_INDEX, username);
   }
 
   public String getPeerAddress() {
-    return (String) getArgs().get(PEER_ADDRESS_INDEX);
+    return getString(PEER_ADDRESS_INDEX);
   }
 
   public int getPeerUid() {
-    return asInt(getArgs().get(PEER_UID_INDEX));
+    return getInt(PEER_UID_INDEX);
   }
 
   public void setPeerAddress(String peerAddress) {
-    getArgs().set(PEER_ADDRESS_INDEX, peerAddress);
+    setValue(PEER_ADDRESS_INDEX, peerAddress);
   }
 }

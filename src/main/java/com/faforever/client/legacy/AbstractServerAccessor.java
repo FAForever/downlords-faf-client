@@ -13,8 +13,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 
 /**
- * Reads data from the FAF lobby server, like player information, open games, friends, foes and so on. Classes should
- * not use the server reader directly, but {@link LobbyServerAccessor} instead.
+ * Super class for all server accessors.
  */
 public abstract class AbstractServerAccessor {
 
