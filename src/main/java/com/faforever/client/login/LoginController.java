@@ -112,6 +112,12 @@ public class LoginController {
     }
   }
 
+  public void displayAfterLogOut() {
+    //reset components
+    setShowLoginProgress(false);
+    display(stage);
+  }
+
   @FXML
   void loginButtonClicked(ActionEvent actionEvent) {
     String username = usernameInput.getText();
@@ -141,7 +147,8 @@ public class LoginController {
   }
 
   private void onLoginSucceeded() {
-    mainController.display(stage);
+    stage.hide();
+    mainController.display();
   }
 
   private void onLoginFailed(Throwable e) {

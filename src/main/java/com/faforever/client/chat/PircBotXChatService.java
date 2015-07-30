@@ -60,6 +60,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     void onEvent(T event);
   }
 
+
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int RECONNECT_DELAY = 3000;
   private static final int SOCKET_TIMEOUT = 10000;
@@ -86,9 +87,10 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   I18n i18n;
 
   private Configuration configuration;
-  private PircBotX pircBotX;
+  private MyPircBotX pircBotX;
   private boolean initialized;
   private String defaultChannel;
+  private Task<Void> connectionTask;
 
   public PircBotXChatService() {
     eventListeners = new ConcurrentHashMap<>();
@@ -260,7 +262,8 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       init();
     }
 
-    executeInBackground(new Task<Void>() {
+    //TODO should an exception really be propagated on FX thread so that it kills the app?
+    connectionTask = new Task<Void>() {
       @Override
       protected Void call() throws Exception {
         while (!isCancelled()) {
@@ -274,7 +277,17 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
         }
         return null;
       }
-    });
+    };
+    executeInBackground(connectionTask);
+  }
+
+  @Override
+  public void disconnect() {
+    logger.info("Disconnecting from IRC");
+    if (connectionTask != null) {
+      connectionTask.cancel();
+    }
+    pircBotX.shutdown();
   }
 
   private void init() {
@@ -295,7 +308,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
     addOnChatConnectedListener(this);
 
-    pircBotX = new PircBotX(configuration);
+    pircBotX = new MyPircBotX(PircBotXChatService.this.configuration);
     initialized = true;
   }
 
@@ -395,5 +408,17 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   @Override
   public void onModeratorSet(String channelName, String username) {
     chatUserLists.get(channelName).get(username).getModeratorInChannels().add(channelName);
+  }
+
+  private class MyPircBotX extends PircBotX {
+
+    public MyPircBotX(Configuration configuration) {
+      super(configuration);
+    }
+
+    @Override
+    public void shutdown() {
+      super.shutdown();
+    }
   }
 }

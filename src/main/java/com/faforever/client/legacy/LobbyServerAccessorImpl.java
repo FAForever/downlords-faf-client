@@ -170,8 +170,10 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
-            if (isCancelled()) {
+            if (isCancelled() && loginCallback != null) {
               logger.debug("Login has been cancelled");
+            } else if (isCancelled()) {
+              logger.debug("Log out");
             } else {
               logger.warn("Lost connection to FAF server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
               if (onFafDisconnectedListener != null) {

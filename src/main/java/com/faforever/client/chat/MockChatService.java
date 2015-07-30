@@ -116,6 +116,11 @@ public class MockChatService implements ChatService {
     }, CONNECTION_DELAY);
   }
 
+  @Override
+  public void disconnect() {
+    timer.cancel();
+  }
+
   private void simulateConnectionEstablished() {
     onChatConnectedListeners.forEach(OnChatConnectedListener::onConnected);
     joinChannel("#mockChannel");

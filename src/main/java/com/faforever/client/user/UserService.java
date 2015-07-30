@@ -15,4 +15,6 @@ public interface UserService {
   String getSessionId();
 
   void cancelLogin();
+
+  void logOut();
 }

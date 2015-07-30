@@ -27,6 +27,8 @@ public interface ChatService {
 
   void connect();
 
+  void disconnect();
+
   void sendMessageInBackground(String target, String message, Callback<String> callback);
 
   /**

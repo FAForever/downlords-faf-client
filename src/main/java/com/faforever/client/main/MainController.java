@@ -13,6 +13,7 @@ import com.faforever.client.legacy.OnFafDisconnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
 import com.faforever.client.lobby.LobbyService;
+import com.faforever.client.login.LoginController;
 import com.faforever.client.main.hub.CommunityHubController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
@@ -45,6 +46,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonBase;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuButton;
@@ -137,6 +139,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   Environment environment;
 
   @Autowired
+  LoginController loginController;
+
+  @Autowired
   NewsController newsController;
 
   @Autowired
@@ -203,6 +208,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   CommunityHubController communityHubController;
 
   private Popup notificationsPopup;
+
+  private Stage stage;
 
   @FXML
   void initialize() {
@@ -340,21 +347,35 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     taskProgressLabel.setText(task.getTitle());
   }
 
-  public void display(Stage stage) {
+  public void display() {
+    chatService.connect();
+
+    if (stage != null) {
+      stage.show();
+      return;
+    }
+
+    this.stage = new Stage(StageStyle.UNDECORATED);
     lobbyService.setOnFafConnectedListener(this);
     lobbyService.setOnLobbyConnectingListener(this);
     lobbyService.setOnFafDisconnectedListener(this);
 
-    chatService.connect();
 
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
 
     sceneFactory.createScene(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
+    
+    /*TODO Exception in thread "JavaFX Application Thread" java.lang.StackOverflowError
+      at javafx.scene.Scene.getNodeOrientation(Unknown Source)
+    	at javafx.scene.Scene.calcEffectiveNodeOrientation(Unknown Source)*/
+//    stage.initOwner(mainRoot.getScene().getWindow());
+
+    restoreSize(mainWindowPrefs, stage);
 
     stage.setTitle(environment.getProperty("mainWindowTitle"));
-    restoreState(mainWindowPrefs, stage);
     stage.show();
 
+    restoreView(mainWindowPrefs);
     registerWindowListeners(stage, mainWindowPrefs);
 
     usernameButton.setText(userService.getUsername());
@@ -362,7 +383,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     portCheckService.checkGamePortInBackground();
   }
 
-  private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {
+  private void restoreSize(WindowPrefs mainWindowPrefs, Stage stage) {
     stage.setWidth(mainWindowPrefs.getWidth());
     stage.setHeight(mainWindowPrefs.getHeight());
 
@@ -376,7 +397,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
         stage.setY(mainWindowPrefs.getY());
       }
     }
+  }
 
+  private void restoreView(WindowPrefs mainWindowPrefs) {
     String lastView = mainWindowPrefs.getLastView();
     if (lastView != null) {
       mainNavigation.getChildren().stream()
@@ -546,6 +569,15 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   @FXML
+  public void onLogOutClicked(ActionEvent actionEvent) {
+    userService.logOut();
+    chatService.disconnect();
+
+    stage.hide();
+    loginController.displayAfterLogOut();
+  }
+
+  @FXML
   void onCommunitySelected(ActionEvent event) {
     setActiveNavigationButton((ButtonBase) event.getSource());
     selectLastChildOrFirstItem(communityButton);
@@ -671,11 +703,12 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
    * selected manually by the user using the dropdown menu.
    */
   private void setActiveNavigationButtonFromChild(MenuItem menuItem) {
-    ButtonBase navigationButton = (ButtonBase) menuItem.getParentPopup().getOwnerNode();
+    ContextMenu parentPopup = menuItem.getParentPopup();
+    ButtonBase navigationButton = (ButtonBase) parentPopup.getOwnerNode();
     if (navigationButton == null) {
       return;
     }
-    setActiveNavigationButton((ButtonBase) menuItem.getParentPopup().getOwnerNode());
+    setActiveNavigationButton(navigationButton);
     preferencesService.getPreferences().getMainWindow().getLastChildViews().put(navigationButton.getId(), menuItem.getId());
     preferencesService.storeInBackground();
   }
