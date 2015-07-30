@@ -17,6 +17,7 @@ import com.faforever.client.legacy.domain.HostGameMessage;
 import com.faforever.client.legacy.domain.InitSessionMessage;
 import com.faforever.client.legacy.domain.JoinGameMessage;
 import com.faforever.client.legacy.domain.LoginMessage;
+import com.faforever.client.legacy.domain.NoticeInfo;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.legacy.domain.ServerMessageType;
 import com.faforever.client.legacy.domain.ServerObject;
@@ -31,6 +32,7 @@ import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.ladder.LeaderParser;
 import com.faforever.client.legacy.writer.ServerWriter;
+import com.faforever.client.login.LoginFailedException;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
@@ -93,7 +95,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private String localIp;
   private StringProperty sessionId;
   private ServerWriter serverWriter;
-  private Callback<SessionInfo> loginCallback;
+  private volatile Callback<SessionInfo> loginCallback;
   private Callback<GameLaunchInfo> gameLaunchCallback;
   private Collection<OnGameInfoListener> onGameInfoListeners;
   private Collection<OnGameTypeInfoListener> onGameTypeInfoListeners;
@@ -221,17 +223,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   private void onServerPing() {
     writeToServer(new PongMessage());
-  }
-
-  private void onFafLoginSucceeded(SessionInfo sessionInfo) {
-    logger.info("FAF login succeeded");
-
-    Platform.runLater(() -> {
-      if (loginCallback != null) {
-        loginCallback.success(sessionInfo);
-        loginCallback = null;
-      }
-    });
   }
 
   @Override
@@ -469,12 +460,50 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           SocialInfo socialInfo = gson.fromJson(jsonString, SocialInfo.class);
           dispatchSocialInfo(socialInfo);
           break;
+
+        case NOTICE:
+          NoticeInfo noticeInfo = gson.fromJson(jsonString, NoticeInfo.class);
+          dispatchNotice(noticeInfo);
+          break;
+
         default:
           logger.warn("Missing case for server object type: " + serverObjectType);
       }
     } catch (JsonSyntaxException e) {
       logger.warn("Could not deserialize message: " + jsonString, e);
     }
+  }
+
+  private void dispatchNotice(NoticeInfo noticeInfo) {
+    if (loginCallback != null) {
+      onFafLoginFailed(noticeInfo);
+    } else {
+      logger.warn("Unhandled notice: " + noticeInfo);
+    }
+  }
+
+  private void onFafLoginFailed(NoticeInfo noticeInfo) {
+    logger.info("FAF login failed");
+
+    Platform.runLater(() -> {
+      if (loginCallback != null) {
+        disconnect();
+        /**should end up in {@link com.faforever.client.login.LoginController#onLoginFailed}  */
+        loginCallback.error(new LoginFailedException(noticeInfo));
+        loginCallback = null;
+      }
+    });
+  }
+
+  private void onFafLoginSucceeded(SessionInfo sessionInfo) {
+    logger.info("FAF login succeeded");
+
+    Platform.runLater(() -> {
+      if (loginCallback != null) {
+        loginCallback.success(sessionInfo);
+        loginCallback = null;
+      }
+    });
   }
 
   private void dispatchSocialInfo(SocialInfo socialInfo) {

@@ -13,20 +13,26 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+
+import java.lang.invoke.MethodHandles;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class LoginController {
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
   Pane loginFormPane;
@@ -45,6 +51,9 @@ public class LoginController {
 
   @FXML
   Button loginButton;
+
+  @FXML
+  Label loginErrorLabel;
 
   @FXML
   Region loginRoot;
@@ -136,11 +145,15 @@ public class LoginController {
   }
 
   private void onLoginFailed(Throwable e) {
-    Dialog<Void> loginFailedDialog = new Dialog<>();
-    loginFailedDialog.setTitle(i18n.get("login.failed.title"));
-    loginFailedDialog.setContentText(i18n.get("login.failed.message"));
-    loginFailedDialog.show();
+    if (e instanceof LoginFailedException) {
+      logger.debug("Login failed: {}", e.getMessage());
+      loginErrorLabel.setText(i18n.get("login.failed.message"));
+    } else {
+      logger.warn("Login failed on unexpected exception", e);
+      loginErrorLabel.setText(String.valueOf(e));
+    }
 
+    loginErrorLabel.setVisible(true);
     loginFormPane.setVisible(true);
     loginProgressPane.setVisible(false);
     loginButton.setDisable(false);
@@ -154,6 +167,7 @@ public class LoginController {
     loginFormPane.setVisible(!b);
     loginProgressPane.setVisible(b);
     loginButton.setDisable(b);
+    loginErrorLabel.setVisible(b);
   }
 
   @FXML

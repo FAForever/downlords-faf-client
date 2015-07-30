@@ -13,6 +13,7 @@ public enum ServerObjectType {
   TUTORIALS_INFO("tutorials_info"),
   MATCHMAKER_INFO("matchmaker_info"),
   SOCIAL("social"),
+  NOTICE("notice"),
   STATS("stats");
 
   private static final Map<String, ServerObjectType> fromString;
