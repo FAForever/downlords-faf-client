@@ -17,7 +17,7 @@ import com.faforever.client.legacy.domain.HostGameMessage;
 import com.faforever.client.legacy.domain.InitSessionMessage;
 import com.faforever.client.legacy.domain.JoinGameMessage;
 import com.faforever.client.legacy.domain.LoginMessage;
-import com.faforever.client.legacy.domain.NoticeInfo;
+import com.faforever.client.legacy.domain.Notice;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.legacy.domain.ServerMessageType;
 import com.faforever.client.legacy.domain.ServerObject;
@@ -464,8 +464,8 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           break;
 
         case NOTICE:
-          NoticeInfo noticeInfo = gson.fromJson(jsonString, NoticeInfo.class);
-          dispatchNotice(noticeInfo);
+          Notice notice = gson.fromJson(jsonString, Notice.class);
+          dispatchNotice(notice);
           break;
 
         default:
@@ -476,22 +476,22 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     }
   }
 
-  private void dispatchNotice(NoticeInfo noticeInfo) {
+  private void dispatchNotice(Notice notice) {
     if (loginCallback != null) {
-      onFafLoginFailed(noticeInfo);
+      onFafLoginFailed(notice);
     } else {
-      logger.warn("Unhandled notice: " + noticeInfo);
+      logger.warn("Unhandled notice: " + notice);
     }
   }
 
-  private void onFafLoginFailed(NoticeInfo noticeInfo) {
+  private void onFafLoginFailed(Notice notice) {
     logger.info("FAF login failed");
 
     Platform.runLater(() -> {
       if (loginCallback != null) {
         disconnect();
         /**should end up in {@link com.faforever.client.login.LoginController#onLoginFailed}  */
-        loginCallback.error(new LoginFailedException(noticeInfo));
+        loginCallback.error(new LoginFailedException(notice));
         loginCallback = null;
       }
     });

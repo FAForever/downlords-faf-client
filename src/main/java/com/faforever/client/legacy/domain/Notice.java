@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.domain;
 
-public class NoticeInfo extends ServerObject {
+public class Notice extends ServerObject {
 
   public String text;
   public String style;
