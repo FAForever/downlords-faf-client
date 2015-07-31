@@ -486,7 +486,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   private void dispatchNotice(Notice notice) {
-    if (loginCallback != null) {
+    if (loginCallback != null && notice.isError()) {
       onFafLoginFailed(new LoginFailedException(notice));
     } else {
       logger.warn("Unhandled notice: " + notice);
