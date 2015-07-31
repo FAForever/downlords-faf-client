@@ -131,7 +131,6 @@ public class LoginController {
       login(username, password, autoLogin);
     } catch (Throwable e) {
       onLoginFailed(e);
-      throw new RuntimeException(e);
     }
   }
 
@@ -164,10 +163,8 @@ public class LoginController {
       logger.warn("Login failed on unexpected exception", e);
       loginErrorLabel.setText(e.getMessage() == null ? String.valueOf(e) : e.getMessage());
     }
+    setShowLoginProgress(false);
     loginErrorLabel.setVisible(true);
-    loginFormPane.setVisible(true);
-    loginProgressPane.setVisible(false);
-    loginButton.setDisable(false);
   }
 
   private void onLoginProgress() {
@@ -178,7 +175,7 @@ public class LoginController {
     loginFormPane.setVisible(!b);
     loginProgressPane.setVisible(b);
     loginButton.setDisable(b);
-    loginErrorLabel.setVisible(b);
+    loginErrorLabel.setVisible(false);
   }
 
   @FXML
