@@ -8,12 +8,9 @@ import java.nio.file.Path;
 public class UID {
 
   static {
-    try {
       // FIXME bundle and reference properly
       System.loadLibrary("uid");
-    } catch (UnsatisfiedLinkError e) {
-      throw new RuntimeException(e);
-    }
+    //throwing RuntimeException here results in ExceptionInInitializerError - which has no message
   }
 
   public interface UidLibrary extends StdCallLibrary {

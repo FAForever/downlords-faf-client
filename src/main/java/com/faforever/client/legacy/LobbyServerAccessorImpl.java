@@ -199,7 +199,16 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
         }
       }
     };
-    executeInBackground(fafConnectionTask);
+    executeInBackground(fafConnectionTask, new Callback<Void>() {
+      @Override
+      public void success(Void result) {
+      }
+
+      @Override
+      public void error(Throwable e) {
+        onFafLoginFailed(e);
+      }
+    });
   }
 
   private void writeToServer(Object object) {
@@ -478,20 +487,20 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   private void dispatchNotice(Notice notice) {
     if (loginCallback != null) {
-      onFafLoginFailed(notice);
+      onFafLoginFailed(new LoginFailedException(notice));
     } else {
       logger.warn("Unhandled notice: " + notice);
     }
   }
 
-  private void onFafLoginFailed(Notice notice) {
-    logger.info("FAF login failed: {}", notice.text);
+  private void onFafLoginFailed(Throwable e) {
+    logger.info("FAF login failed: {}", e.getMessage());
 
     Platform.runLater(() -> {
       if (loginCallback != null) {
         disconnect();
         /**should end up in {@link com.faforever.client.login.LoginController#onLoginFailed}  */
-        loginCallback.error(new LoginFailedException(notice));
+        loginCallback.error(e);
         loginCallback = null;
       }
     });

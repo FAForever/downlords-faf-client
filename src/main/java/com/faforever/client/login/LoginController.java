@@ -120,14 +120,19 @@ public class LoginController {
 
   @FXML
   void loginButtonClicked(ActionEvent actionEvent) {
-    String username = usernameInput.getText();
-    String password = passwordInput.getText();
+    try {
+      String username = usernameInput.getText();
+      String password = passwordInput.getText();
 
-    password = DigestUtils.sha256Hex(password);
+      password = DigestUtils.sha256Hex(password);
 
-    boolean autoLogin = autoLoginCheckBox.isSelected();
+      boolean autoLogin = autoLoginCheckBox.isSelected();
 
-    login(username, password, autoLogin);
+      login(username, password, autoLogin);
+    } catch (Throwable e) {
+      onLoginFailed(e);
+      throw new RuntimeException(e);
+    }
   }
 
   private void login(String username, String password, boolean autoLogin) {
@@ -157,9 +162,8 @@ public class LoginController {
       loginErrorLabel.setText(i18n.get("login.failed.message"));
     } else {
       logger.warn("Login failed on unexpected exception", e);
-      loginErrorLabel.setText(String.valueOf(e));
+      loginErrorLabel.setText(e.getMessage() == null ? String.valueOf(e) : e.getMessage());
     }
-
     loginErrorLabel.setVisible(true);
     loginFormPane.setVisible(true);
     loginProgressPane.setVisible(false);

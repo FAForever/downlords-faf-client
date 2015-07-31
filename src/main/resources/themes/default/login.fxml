@@ -7,7 +7,6 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
-
 <VBox fx:id="loginRoot" alignment="TOP_CENTER" prefWidth="360.0" styleClass="login" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.login.LoginController">
   <children>
     <ImageView fitHeight="160.0" fitWidth="180.0" pickOnBounds="true" preserveRatio="true" styleClass="login-icon">
@@ -45,8 +44,7 @@
                 <Insets bottom="10.0" top="10.0" />
               </VBox.margin>
             </CheckBox>
-              <Label fx:id="loginErrorLabel" maxWidth="1.7976931348623157E308" minHeight="0" maxHeight="60.0"
-                     textFill="#c60d0d" visible="false" wrapText="true"/>
+              <Label fx:id="loginErrorLabel" maxWidth="1.7976931348623157E308" textFill="#c60d0d" visible="false"/>
             <Button fx:id="loginButton" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#loginButtonClicked" text="%login.button.login" />
             <HBox alignment="CENTER" spacing="10.0">
               <children>
