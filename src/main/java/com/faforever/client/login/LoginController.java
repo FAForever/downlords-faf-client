@@ -113,9 +113,9 @@ public class LoginController {
   }
 
   public void displayAfterLogOut() {
-    //reset components
     setShowLoginProgress(false);
-    display(stage);
+    stage.show();
+    JavaFxUtil.centerOnScreen(stage);
   }
 
   @FXML
