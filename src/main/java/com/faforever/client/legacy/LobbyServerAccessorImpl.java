@@ -485,7 +485,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   private void onFafLoginFailed(Notice notice) {
-    logger.info("FAF login failed");
+    logger.info("FAF login failed: {}", notice.text);
 
     Platform.runLater(() -> {
       if (loginCallback != null) {
