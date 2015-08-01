@@ -10,6 +10,9 @@ public final class SocketAddressUtil {
     throw new AssertionError("Not instantiatable");
   }
 
+  /**
+   * Returns &lt;host&gt;:&lt;port&gt;
+   */
   public static String toString(InetSocketAddress socketAddress) {
     return String.format(TO_STRING_FORMAT, socketAddress.getAddress().getHostAddress(), socketAddress.getPort());
   }

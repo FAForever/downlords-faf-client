@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+
+
+<VBox fx:id="mapVaultRoot" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.faforever.client.map.MapVaultController">
+  <children>
+    <TableView fx:id="mapTableView" VBox.vgrow="ALWAYS">
+      <columns>
+        <TableColumn fx:id="nameColumn" minWidth="0.0" prefWidth="-1.0" text="%map.name"/>
+        <TableColumn fx:id="descriptionColumn" minWidth="0.0" prefWidth="-1.0" text="%map.description"/>
+        <TableColumn fx:id="playersColumn" minWidth="0.0" prefWidth="-1.0" text="%map.players"/>
+        <TableColumn fx:id="sizeColumn" minWidth="0.0" prefWidth="-1.0" text="%map.size"/>
+        <TableColumn fx:id="creatorColumn" minWidth="0.0" prefWidth="-1.0" text="%map.creator"/>
+        <TableColumn fx:id="ratingColumn" minWidth="0.0" prefWidth="-1.0" text="%map.rating"/>
+        <TableColumn fx:id="downloadsColumn" minWidth="0.0" prefWidth="-1.0" text="%map.downloads"/>
+        <TableColumn fx:id="playsColumn" minWidth="0.0" prefWidth="-1.0" text="%map.plays"/>
+        <TableColumn fx:id="versionColumn" minWidth="0.0" prefWidth="-1.0" text="%map.version"/>
+      </columns>
+      <columnResizePolicy>
+        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+      </columnResizePolicy>
+    </TableView>
+    <Pagination/>
+  </children>
+</VBox>

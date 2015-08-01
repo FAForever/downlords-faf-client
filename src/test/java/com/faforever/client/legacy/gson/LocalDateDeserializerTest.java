@@ -30,7 +30,6 @@ public class LocalDateDeserializerTest {
 
   @Test
   public void testDeserialize() throws Exception {
-
     when(json.getAsString()).thenReturn("01.07.2015");
 
     LocalDate localDate = instance.deserialize(json, typeOfT, context);

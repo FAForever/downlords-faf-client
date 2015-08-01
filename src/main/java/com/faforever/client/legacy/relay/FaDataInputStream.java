@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class FaDataInputStream extends InputStream {
 
-  private static final int MAX_CHUNK_SIZE = 100;
+  private static final int MAX_CHUNK_SIZE = 10;
   private static final int FIELD_TYPE_INT = 0;
 
   private final LittleEndianDataInputStream inputStream;

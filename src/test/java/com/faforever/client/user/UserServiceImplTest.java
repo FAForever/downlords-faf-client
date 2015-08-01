@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,11 +28,12 @@ public class UserServiceImplTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testLogin() throws Exception {
     Callback<Void> callback = mock(Callback.class);
     userService.login("junit", "junitPw", true, callback);
 
-    verify(userService.lobbyServerAccessor).connectAndLogInInBackground(callback);
+    verify(userService.lobbyServerAccessor).connectAndLogInInBackground(any(Callback.class));
     verify(userService.preferencesService).storeInBackground();
 
     assertEquals("junit", userService.getUsername());

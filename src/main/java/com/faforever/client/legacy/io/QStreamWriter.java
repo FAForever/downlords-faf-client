@@ -17,13 +17,13 @@ public class QStreamWriter extends Writer {
 
   @Override
   public void write(char[] cbuf, int off, int len) throws IOException {
-    out.write(new String(cbuf).substring(off, len).getBytes(CHARSET));
+    out.write(new String(cbuf).substring(off, off + len).getBytes(CHARSET));
   }
 
   @Override
   public Writer append(CharSequence csq) throws IOException {
     if (csq == null) {
-      appendWithSize(new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,});
+      writeInt32(-1);
       return this;
     }
 
@@ -50,7 +50,7 @@ public class QStreamWriter extends Writer {
     return this;
   }
 
-  public final void writeInt32(int v) throws IOException {
+  private void writeInt32(int v) throws IOException {
     out.write((v >>> 24) & 0xFF);
     out.write((v >>> 16) & 0xFF);
     out.write((v >>> 8) & 0xFF);

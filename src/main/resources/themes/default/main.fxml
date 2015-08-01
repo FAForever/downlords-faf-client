@@ -11,99 +11,135 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox fx:id="mainRoot" minHeight="500.0" minWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
-   <children>
-      <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
-        <children>
-          <HBox fx:id="mainHeaderPane" alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308"
-                minHeight="-Infinity" minWidth="-Infinity">
-               <children>
-                 <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
-                   <items>
-                     <MenuItem onAction="#onSupportItemSelected" text="%menu.support"/>
-                     <MenuItem onAction="#onSettingsItemSelected" text="%menu.settings"/>
-                     <SeparatorMenuItem mnemonicParsing="false" />
-                     <MenuItem text="%menu.feedback"/>
-                     <SeparatorMenuItem mnemonicParsing="false" />
-                     <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
-                   </items>
-                   <HBox.margin>
-                     <Insets left="20.0" right="10.0" />
-                   </HBox.margin>
-                 </MenuButton>
-                 <HBox styleClass="main-navigation">
-                     <children>
-                       <ToggleButton fx:id="newsButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" selected="true" text="%main.news">
-                         <toggleGroup>
-                           <ToggleGroup fx:id="mainNavigationToggleGroup" />
-                         </toggleGroup>
-                       </ToggleButton>
-                       <ToggleButton fx:id="chatButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.chat" toggleGroup="$mainNavigationToggleGroup" />
-                       <ToggleButton fx:id="gamesButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.games" toggleGroup="$mainNavigationToggleGroup" />
-                       <ToggleButton fx:id="vaultButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNavigationButton" text="%main.vault" toggleGroup="$mainNavigationToggleGroup" />
-                       <ToggleButton fx:id="leaderboardButton" focusTraversable="false" mnemonicParsing="false"
-                                     onAction="#onNavigationButton" text="%main.leaderboard"
-                                     toggleGroup="$mainNavigationToggleGroup"/>
-                     </children>
-                  </HBox>
-                 <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
-                 <Button fx:id="notificationsButton" focusTraversable="false" mnemonicParsing="false" onAction="#onNotificationsButtonClicked" styleClass="notification-button" text="0">
-                   <HBox.margin>
-                     <Insets right="10.0" />
-                   </HBox.margin>
-                 </Button>
-                 <MenuButton fx:id="usernameButton" focusTraversable="false" minWidth="10.0" mnemonicParsing="false" prefWidth="100.0" styleClass="username-button" text="Username">
-                   <items>
-                     <MenuItem mnemonicParsing="false" onAction="#onShowUserInfoClicked"
-                               text="%chat.userContext.userInfo"/>
-                     <MenuItem mnemonicParsing="false" text="%menu.logOut"/>
-                   </items>
-                 </MenuButton>
-               </children>
-            <padding>
-              <Insets bottom="12.0" top="12.0" />
-            </padding>
-          </HBox>
-          <Separator prefWidth="200.0"/>
-            <AnchorPane fx:id="contentPane" VBox.vgrow="ALWAYS" />
-        </children>
-      </VBox>
+<VBox fx:id="mainRoot" minHeight="500.0" minWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
+  <children>
+    <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
+          VBox.vgrow="ALWAYS">
+      <children>
+        <HBox fx:id="mainHeaderPane" alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308"
+              minHeight="-Infinity" minWidth="-Infinity">
+          <children>
+            <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
+              <items>
+                <MenuItem onAction="#onSupportItemSelected" text="%menu.support"/>
+                <MenuItem onAction="#onSettingsItemSelected" text="%menu.settings"/>
+                <SeparatorMenuItem mnemonicParsing="false"/>
+                <MenuItem text="%menu.feedback"/>
+                <SeparatorMenuItem mnemonicParsing="false"/>
+                <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
+              </items>
+              <HBox.margin>
+                <Insets left="20.0" right="10.0"/>
+              </HBox.margin>
+            </MenuButton>
+            <HBox fx:id="mainNavigation" styleClass="main-navigation">
+              <children>
+                <SplitMenuButton fx:id="communityButton" focusTraversable="false" mnemonicParsing="false"
+                                 onAction="#onCommunitySelected" text="%main.community">
+                  <items>
+                    <MenuItem fx:id="communityHubButton" mnemonicParsing="false" text="%main.community.hub"
+                              onAction="#onCommunityHubSelected"/>
+                    <MenuItem fx:id="newsButton" mnemonicParsing="false" text="%main.community.news"
+                              onAction="#onNewsSelected"/>
+                    <MenuItem fx:id="castsButton" mnemonicParsing="false" text="%main.community.casts"
+                              onAction="#onCastsSelected"/>
+                  </items>
+                </SplitMenuButton>
+                <SplitMenuButton fx:id="chatButton" focusTraversable="false" mnemonicParsing="false"
+                                 onAction="#onChatSelected" text="%main.chat"/>
+                <SplitMenuButton fx:id="playButton" focusTraversable="false" mnemonicParsing="false"
+                                 onAction="#onPlaySelected" text="%main.play">
+                  <items>
+                    <MenuItem fx:id="playCustomButton" mnemonicParsing="false" text="%main.play.custom"
+                              onAction="#onPlayCustomSelected"/>
+                    <MenuItem fx:id="playRanked1v1Button" mnemonicParsing="false" text="%main.play.ranked1v1"
+                              onAction="#onPlayRanked1v1Selected"/>
+                  </items>
+                </SplitMenuButton>
+                <SplitMenuButton fx:id="vaultButton" focusTraversable="false" mnemonicParsing="false"
+                                 onAction="#onVaultSelected" text="%main.vault">
+                  <items>
+                    <MenuItem fx:id="mapVaultButton" mnemonicParsing="false" text="%main.vault.maps"
+                              onAction="#onMapsSelected"/>
+                    <MenuItem fx:id="modVaultButton" mnemonicParsing="false" text="%main.vault.mods"
+                              onAction="#onModsSelected"/>
+                    <MenuItem fx:id="replayVaultButton" mnemonicParsing="false" text="%main.vault.replays"
+                              onAction="#onReplaysSelected"/>
+                  </items>
+                </SplitMenuButton>
+                <SplitMenuButton fx:id="leaderboardButton" focusTraversable="false" mnemonicParsing="false"
+                                 onAction="#onLeaderboardSelected" text="%main.leaderboard">
+                  <items>
+                    <MenuItem fx:id="leaderboardRanked1v1Button" mnemonicParsing="false"
+                              text="%main.leaderboard.ranked1v1"
+                              onAction="#onLeaderboardRanked1v1Selected"/>
+                  </items>
+                </SplitMenuButton>
+              </children>
+            </HBox>
+            <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="notificationsButton" focusTraversable="false" mnemonicParsing="false"
+                    onAction="#onNotificationsButtonClicked" styleClass="notification-button" text="0">
+              <HBox.margin>
+                <Insets right="10.0"/>
+              </HBox.margin>
+            </Button>
+            <MenuButton fx:id="usernameButton" focusTraversable="false" minWidth="10.0" mnemonicParsing="false"
+                        prefWidth="100.0" styleClass="username-button" text="Username">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#onShowUserInfoClicked" text="%chat.userContext.userInfo"/>
+                <MenuItem mnemonicParsing="false" text="%menu.logOut"/>
+              </items>
+            </MenuButton>
+          </children>
+          <padding>
+            <Insets bottom="12.0" top="12.0"/>
+          </padding>
+        </HBox>
+        <Separator prefWidth="200.0"/>
+        <AnchorPane fx:id="contentPane" VBox.vgrow="ALWAYS"/>
+      </children>
+    </VBox>
     <HBox alignment="CENTER_LEFT" minHeight="22.0" styleClass="status-bar" VBox.vgrow="NEVER">
-         <children>
-           <HBox fx:id="taskPane" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-             <children>
-               <Label fx:id="taskProgressLabel" text="Label" />
-               <Pane HBox.hgrow="ALWAYS" />
-               <ProgressBar fx:id="taskProgressBar" maxHeight="1.7976931348623157E308" minWidth="20.0" prefWidth="150.0" />
-             </children>
-           </HBox>
-            <Separator focusTraversable="false" orientation="VERTICAL" />
-           <MenuButton fx:id="portCheckStatusButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.portReachable">
-             <tooltip>
-               <Tooltip text="&lt;Tooltip text inserted by code&gt;" />
-             </tooltip>
-               <items>
-                 <MenuItem mnemonicParsing="false" onAction="#onPortCheckHelpClicked" text="%statusBar.help" />
-                 <MenuItem mnemonicParsing="false" onAction="#onChangePortClicked" text="%statusBar.changePort" />
-                 <MenuItem mnemonicParsing="false" onAction="#onPortCheckRetryClicked" text="%statusBar.retry" />
-               </items>
-            </MenuButton>
-            <Separator focusTraversable="false" orientation="VERTICAL" />
-           <MenuButton fx:id="fafConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.fafConnected">
-               <items>
-                 <MenuItem mnemonicParsing="false" onAction="#onFafReconnectClicked" text="%statusBar.reconnect" />
-               </items>
-            </MenuButton>
-            <Separator focusTraversable="false" orientation="VERTICAL" />
-           <MenuButton fx:id="ircConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.ircConnected">
-               <items>
-                 <MenuItem mnemonicParsing="false" onAction="#onIrcReconnectClicked" text="%statusBar.reconnect" />
-               </items>
-            </MenuButton>
-         </children>
-         <padding>
-            <Insets left="5.0" right="5.0" />
-         </padding>
-      </HBox>
-   </children>
+      <children>
+        <HBox fx:id="taskPane" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+          <children>
+            <Label fx:id="taskProgressLabel" text="Label"/>
+            <Pane HBox.hgrow="ALWAYS"/>
+            <ProgressBar fx:id="taskProgressBar" maxHeight="1.7976931348623157E308" minWidth="20.0" prefWidth="150.0"/>
+          </children>
+        </HBox>
+        <Separator focusTraversable="false" orientation="VERTICAL"/>
+        <MenuButton fx:id="portCheckStatusButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
+                    styleClass="status-bar-menu-button" text="%statusBar.portReachable">
+          <tooltip>
+            <Tooltip text="&lt;Tooltip text inserted by code&gt;"/>
+          </tooltip>
+          <items>
+            <MenuItem mnemonicParsing="false" onAction="#onPortCheckHelpClicked" text="%statusBar.help"/>
+            <MenuItem mnemonicParsing="false" onAction="#onChangePortClicked" text="%statusBar.changePort"/>
+            <MenuItem mnemonicParsing="false" onAction="#onPortCheckRetryClicked" text="%statusBar.retry"/>
+          </items>
+        </MenuButton>
+        <Separator focusTraversable="false" orientation="VERTICAL"/>
+        <MenuButton fx:id="fafConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
+                    styleClass="status-bar-menu-button" text="%statusBar.fafConnected">
+          <items>
+            <MenuItem mnemonicParsing="false" onAction="#onFafReconnectClicked" text="%statusBar.reconnect"/>
+          </items>
+        </MenuButton>
+        <Separator focusTraversable="false" orientation="VERTICAL"/>
+        <MenuButton fx:id="ircConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
+                    styleClass="status-bar-menu-button" text="%statusBar.ircConnected">
+          <items>
+            <MenuItem mnemonicParsing="false" onAction="#onIrcReconnectClicked" text="%statusBar.reconnect"/>
+          </items>
+        </MenuButton>
+      </children>
+      <padding>
+        <Insets left="5.0" right="5.0"/>
+      </padding>
+    </HBox>
+  </children>
 </VBox>

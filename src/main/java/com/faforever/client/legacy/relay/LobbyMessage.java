@@ -7,15 +7,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.faforever.client.legacy.relay.RelayServerAction.PONG;
+import static com.faforever.client.legacy.relay.LobbyAction.PONG;
 
-public class RelayClientMessage implements SerializableMessage {
+public class LobbyMessage implements SerializableMessage {
 
-  private RelayServerAction action;
+  private LobbyAction action;
   // Because typos in protocols are cool (this class is JSON serialized).
   private List<Object> chuncks;
 
-  public RelayClientMessage(RelayServerAction action, List<Object> chunks) {
+  public LobbyMessage(LobbyAction action, List<Object> chunks) {
     this.action = action;
     this.chuncks = chunks;
   }
@@ -24,12 +24,12 @@ public class RelayClientMessage implements SerializableMessage {
     return chuncks;
   }
 
-  public RelayServerAction getAction() {
+  public LobbyAction getAction() {
     return action;
   }
 
-  public static RelayClientMessage pong() {
-    return new RelayClientMessage(PONG, Collections.emptyList());
+  public static LobbyMessage pong() {
+    return new LobbyMessage(PONG, Collections.emptyList());
   }
 
   public Collection<String> getStringsToMask() {

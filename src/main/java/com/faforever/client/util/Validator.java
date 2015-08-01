@@ -10,6 +10,12 @@ public final class Validator {
     // Utility class
   }
 
+  public static void notNull(Object object, String message) {
+    if (object == null) {
+      throw new NullPointerException(message);
+    }
+  }
+
   public static boolean isInt(String string) {
     return INT_PATTERN.matcher(string).matches();
   }

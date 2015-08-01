@@ -2,9 +2,9 @@ package com.faforever.client.network;
 
 import com.faforever.client.fx.HostService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.relay.RelayClientMessage;
+import com.faforever.client.legacy.relay.LobbyMessage;
 import com.faforever.client.legacy.relay.RelayClientMessageSerializer;
-import com.faforever.client.legacy.relay.RelayServerAction;
+import com.faforever.client.legacy.relay.LobbyAction;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
@@ -182,7 +182,7 @@ public class PortCheckServiceImpl implements PortCheckService {
         try {
           try (Socket socket = new Socket(remoteHost, remotePort);
                ServerWriter serverWriter = createServerWriter(socket)) {
-            serverWriter.write(new RelayClientMessage(RelayServerAction.GAME_STATE, Collections.singletonList("idle")));
+            serverWriter.write(new LobbyMessage(LobbyAction.GAME_STATE, Collections.singletonList("Idle")));
           }
         } catch (ConnectException e) {
           logger.warn("Port check server is not reachable");
@@ -197,7 +197,7 @@ public class PortCheckServiceImpl implements PortCheckService {
 
   private ServerWriter createServerWriter(Socket fafSocket) throws IOException {
     ServerWriter serverWriter = new ServerWriter(fafSocket.getOutputStream());
-    serverWriter.registerMessageSerializer(new RelayClientMessageSerializer(), RelayClientMessage.class);
+    serverWriter.registerMessageSerializer(new RelayClientMessageSerializer(), LobbyMessage.class);
     return serverWriter;
   }
 }

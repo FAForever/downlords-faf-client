@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="concurrentUsersRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0"
+      minWidth="0.0" prefHeight="300.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.hub.ConcurrentUsersController">
+  <children>
+    <AreaChart fx:id="chart" createSymbols="false" legendVisible="false" maxHeight="1.7976931348623157E308"
+               maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" title="%hub.concurrentFafUsers48h"
+               VBox.vgrow="ALWAYS">
+      <xAxis>
+        <NumberAxis autoRanging="false" forceZeroInRange="false" minorTickCount="2" side="BOTTOM" tickLabelGap="5.0"
+                    tickLabelRotation="-90.0" tickUnit="1.08E7" fx:id="xAxis"/>
+      </xAxis>
+      <yAxis>
+        <NumberAxis fx:id="yAxis" side="LEFT"/>
+      </yAxis>
+    </AreaChart>
+  </children>
+</VBox>
