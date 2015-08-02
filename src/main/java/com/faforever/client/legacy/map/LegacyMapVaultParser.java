@@ -122,7 +122,7 @@ public class LegacyMapVaultParser implements MapVaultParser {
         List<MapInfoBean> mapInfoBeans = htmlParser.parse(layout, mapVaultHtmlContentHandler);
         if (!mapInfoBeans.isEmpty()) {
           for (MapInfoBean mapInfoBean : mapInfoBeans) {
-            if (mapInfoBean.getDisplayName().equalsIgnoreCase(mapName)) {
+            if (mapInfoBean.getTechnicalName().equalsIgnoreCase(mapName)) {
               return mapInfoBean;
             }
           }

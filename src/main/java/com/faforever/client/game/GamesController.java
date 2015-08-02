@@ -321,9 +321,9 @@ public class GamesController {
     MapPreviewLargeController mapPreviewLargeController = applicationContext.getBean(MapPreviewLargeController.class);
     MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultFromName(currentGameInfoBean.getMapName());
     //FIXME ugly fix
-    if (mapInfoBean.getTechnicalName() == null) {
+/*    if (mapInfoBean.getTechnicalName() == null) {
       return;
-    }
+    }*/
     mapPreviewLargeController.createPreview(mapInfoBean);
 
     sceneFactory.createScene(mapDetailPopup, mapPreviewLargeController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);

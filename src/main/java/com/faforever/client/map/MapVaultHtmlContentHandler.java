@@ -48,6 +48,7 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
       // Start of table cell is start of map
       currentBean = new MapInfoBean();
       currentBean.setId(Integer.parseInt(atts.getValue("id")));
+      currentBean.setTechnicalName(atts.getValue("folder"));
       return;
     }
 
@@ -102,7 +103,7 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
         currentBean.setDownloads(Integer.parseInt(currentValue));
         return;
       case NAME:
-        currentBean.setDisplayName(currentValue.trim().replaceAll("[\\s\\n]+", " "));
+        currentBean.setDisplayName(currentValue.trim().replaceAll("[\\s\\n]+", " ").replace("_"," "));
         return;
       case DESCRIPTION:
         currentBean.setDescription(currentValue.replaceAll("[\\s\\n]+", " "));
