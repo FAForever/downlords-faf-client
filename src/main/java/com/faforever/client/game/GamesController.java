@@ -126,7 +126,7 @@ public class GamesController {
   private Popup createGamePopup;
   private Popup passwordPopup;
   private FilteredList<GameInfoBean> filteredItems;
-  Stage mapDetailPopup;
+  private Stage mapDetailPopup;
 
   //TODO Implement into options menu
   private boolean tilePaneSelected = false;
@@ -184,9 +184,9 @@ public class GamesController {
     createTeams(gameInfoBean.getTeams());
   }
 
-  private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList) {
+  private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber) {
     teamListPane.getChildren().clear();
-    for (Map.Entry<? extends String, ? extends List<String>> entry : teamsList.entrySet()) {
+    for (Map.Entry<? extends String, ? extends List<String>> entry : playersByTeamNumber.entrySet()) {
       TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
       boolean teamCardSuccess = teamCardController.setTeam(entry.getValue(), Integer.parseInt(entry.getKey()));
       if (teamCardSuccess) {
@@ -299,7 +299,8 @@ public class GamesController {
     return gamesRoot;
   }
 
-  public void onCreateGameButtonClicked(ActionEvent actionEvent) {
+  @FXML
+  void onCreateGameButtonClicked(ActionEvent actionEvent) {
     Button button = (Button) actionEvent.getSource();
 
     Bounds screenBounds = createGameButton.localToScreen(createGameButton.getBoundsInLocal());
@@ -307,7 +308,8 @@ public class GamesController {
   }
 
   //TODO do we want to create new pane or repopulate the same pane
-  public void onMapLargePreview(Event event) {
+  @FXML
+  void onMapLargePreview(Event event) {
     if (currentGameInfoBean == null) {
       return;
     }
@@ -326,10 +328,9 @@ public class GamesController {
 
     sceneFactory.createScene(mapDetailPopup, mapPreviewLargeController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
     mapDetailPopup.show();
-    mapDetailPopup.toFront();
   }
 
-  public Stage getMapDetailPopup() {
+  private Stage getMapDetailPopup() {
     if (mapDetailPopup == null) {
       mapDetailPopup = new Stage(StageStyle.TRANSPARENT);
       mapDetailPopup.initModality(Modality.NONE);

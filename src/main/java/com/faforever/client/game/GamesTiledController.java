@@ -23,16 +23,16 @@ public class GamesTiledController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    @FXML
-    public FlowPane tiledFlowPane;
+  @FXML
+  public FlowPane tiledFlowPane;
 
-    @FXML
-    public ScrollPane tiledScrollPane;
+  @FXML
+  public ScrollPane tiledScrollPane;
 
-    @Autowired
-    ApplicationContext applicationContext;
+  @Autowired
+  ApplicationContext applicationContext;
 
-    private Map<Integer, Node> uidToGameCard;
+  private Map<Integer, Node> uidToGameCard;
 
   public void createTiledFlowPane(ObservableList<GameInfoBean> gameInfoBeans) {
     uidToGameCard = new HashMap<>();

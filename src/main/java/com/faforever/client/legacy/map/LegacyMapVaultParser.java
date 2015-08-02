@@ -132,7 +132,6 @@ public class LegacyMapVaultParser implements MapVaultParser {
       jsonReader.endObject();
     }
 
-    logger.warn("Map vault could not be read from {}", url);
-    throw new IOException("Map vault could not be read from" + url);
+    throw new IOException("Map vault could not be read from " + url);
   }
 }

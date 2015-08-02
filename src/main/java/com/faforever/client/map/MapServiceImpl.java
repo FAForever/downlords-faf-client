@@ -30,6 +30,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.zip.ZipInputStream;
@@ -207,12 +208,12 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public List<Comment> getComments(String mapName) {
-    int id = getMapInfoBeanFromVaultFromName(mapName).getId();
-    if(id == 0){
-      return new ArrayList<>();
+    int mapId = getMapInfoBeanFromVaultFromName(mapName).getId();
+    if(mapId == 0){
+      return Collections.emptyList();
     }
     try {
-      return mapVaultParser.parseComments(id);
+      return mapVaultParser.parseComments(mapId);
     } catch (IOException e) {
       logger.error("Error in parsing comment for {}", mapName);
     }

@@ -17,6 +17,8 @@ import java.lang.invoke.MethodHandles;
 
 public class MapPreviewLargeController {
 
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   @FXML
   ImageView largeImagePreview;
   @FXML
@@ -31,8 +33,6 @@ public class MapPreviewLargeController {
   Pane commentContainer;
   @FXML
   GridPane root;
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Autowired
   MapService mapService;
@@ -59,7 +59,7 @@ public class MapPreviewLargeController {
     commentContainer.getChildren().clear();
     for (Comment comment : mapService.getComments(mapInfoBean.getTechnicalName())) {
       CommentCardController commentCardController = applicationContext.getBean(CommentCardController.class);
-      commentCardController.createComment(comment);
+      commentCardController.addComment(comment);
       commentContainer.getChildren().add(commentCardController.getRoot());
     }
   }

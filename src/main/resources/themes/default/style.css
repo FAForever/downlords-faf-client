@@ -582,25 +582,25 @@
 }
 
 /***************** Large Map Preview *****************/
-.map-preview-large{
+.map-preview-large {
   -fx-padding: 10px,5px,5px,5px;
 }
 
-.map-preview-large .comment-container-scroll-pane{
+.map-preview-large .comment-container-scroll-pane {
   -fx-padding: 5px,5px,5px,5px;
   -fx-max-height: 500px;
 }
 
-.map-preview-large .comment-container{
+.map-preview-large .comment-container {
   -fx-spacing:10;
   -fx-background-color: derive(-fx-base,-50%);
 }
 /*FIXME can't seem to get the padding correctly */
-.map-preview-large .large-image-preview{
+.map-preview-large .large-image-preview {
   -fx-padding: 0,30px,0,0;
 }
 
-.comment-card{
+.comment-card {
   -fx-background-color: -fx-control-inner-background-alt;
 }
 /***************** Game Card *****************/

@@ -9,10 +9,6 @@ public class Comment {
   private String text;
   private LocalDate date;
 
-  public Comment() {
-  }
-
-
   public void setAuthor(String author) {
     this.author = author;
   }

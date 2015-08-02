@@ -15,7 +15,7 @@ public interface MapVaultParser {
   List<MapInfoBean> parseMapVault(int page, int maxEntries) throws IOException;
 
   //FIXME change map to string
-  List<Comment> parseComments(int id) throws IOException;
+  List<Comment> parseComments(int mapId) throws IOException;
 
   MapInfoBean parseSingleMap(String name) throws IOException;
 }

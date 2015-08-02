@@ -124,7 +124,7 @@ public class GameInfoBean {
         }
       }
     } else {
-      maxRating.set(2500);
+      maxRating.set(3000);
     }
   }
 
