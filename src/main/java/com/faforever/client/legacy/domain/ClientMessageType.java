@@ -3,22 +3,22 @@ package com.faforever.client.legacy.domain;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum ClientObjectType {
+public enum ClientMessageType {
   ASK_SESSION("ask_session"),
   // TODO fix the naming
-  ACCEPT_1V1_MATCH("game_matchmaking");
+  GAME_MATCH_MAKING("game_matchmaking");
 
-  private static final Map<String, ClientObjectType> fromString;
+  private static final Map<String, ClientMessageType> fromString;
   private String string;
 
-  ClientObjectType(String string) {
+  ClientMessageType(String string) {
     this.string = string;
   }
 
   static {
     fromString = new HashMap<>(values().length, 1);
-    for (ClientObjectType clientObjectType : values()) {
-      fromString.put(clientObjectType.string, clientObjectType);
+    for (ClientMessageType clientMessageType : values()) {
+      fromString.put(clientMessageType.string, clientMessageType);
     }
   }
 
@@ -26,7 +26,7 @@ public enum ClientObjectType {
     return string;
   }
 
-  public static ClientObjectType fromString(String string) {
+  public static ClientMessageType fromString(String string) {
     return fromString.get(string);
   }
 

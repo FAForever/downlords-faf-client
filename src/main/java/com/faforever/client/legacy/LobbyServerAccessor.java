@@ -65,4 +65,6 @@ public interface LobbyServerAccessor {
   void accept1v1Match(Faction faction);
 
   void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener);
+
+  void startSearchRanked1v1(Faction faction, Callback<GameLaunchInfo> callback);
 }

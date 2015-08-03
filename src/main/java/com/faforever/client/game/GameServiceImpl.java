@@ -265,6 +265,11 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
+  public void startSearchRanked1v1(Faction faction, Callback<GameLaunchInfo> callback) {
+    lobbyServerAccessor.startSearchRanked1v1(faction, callback);
+  }
+
+  @Override
   public void onGameInfo(GameInfo gameInfo) {
     logger.debug("Received game info from server: {}", gameInfo);
     if (GameState.CLOSED.equals(gameInfo.state)) {

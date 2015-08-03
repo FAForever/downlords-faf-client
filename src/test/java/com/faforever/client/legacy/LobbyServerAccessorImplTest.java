@@ -2,7 +2,7 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.game.Faction;
 import com.faforever.client.legacy.domain.ClientMessage;
-import com.faforever.client.legacy.domain.ClientObjectType;
+import com.faforever.client.legacy.domain.ClientMessageType;
 import com.faforever.client.legacy.domain.InitSessionMessage;
 import com.faforever.client.legacy.domain.ServerObject;
 import com.faforever.client.legacy.io.QDataReader;
@@ -10,11 +10,14 @@ import com.faforever.client.legacy.relay.LobbyAction;
 import com.faforever.client.legacy.relay.RelayServerActionDeserializer;
 import com.faforever.client.legacy.relay.RelayServerMessageSerializer;
 import com.faforever.client.legacy.writer.ServerWriter;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.rankedmatch.Accept1v1Match;
+import com.faforever.client.rankedmatch.Accept1v1MatchMessage;
+import com.faforever.client.rankedmatch.MatchMakerMessage;
 import com.faforever.client.rankedmatch.RankedMatchNotification;
+import com.faforever.client.rankedmatch.SearchRanked1v1Message;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -64,9 +67,12 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     instance.preferencesService = mock(PreferencesService.class);
     Preferences preferences = mock(Preferences.class);
     LoginPrefs loginPrefs = mock(LoginPrefs.class);
+    ForgedAlliancePrefs forgedAlliancePrefs = mock(ForgedAlliancePrefs.class);
 
     when(instance.preferencesService.getPreferences()).thenReturn(preferences);
+    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(preferences.getLogin()).thenReturn(loginPrefs);
+    when(forgedAlliancePrefs.getPort()).thenReturn(6112);
     when(loginPrefs.getUsername()).thenReturn("junit");
     when(loginPrefs.getPassword()).thenReturn("password");
 
@@ -90,8 +96,8 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     instance.accept1v1Match(Faction.AEON);
 
     clientMessage = messagesReceivedByFafServer.poll(RECEIVE_TIMEOUT, RECEIVE_TIMEOUT_UNIT);
-    assertThat(clientMessage, instanceOf(Accept1v1Match.class));
-    assertEquals(((Accept1v1Match) clientMessage).factionchosen, Faction.AEON);
+    assertThat(clientMessage, instanceOf(Accept1v1MatchMessage.class));
+    assertEquals(((Accept1v1MatchMessage) clientMessage).factionchosen, Faction.AEON);
   }
 
   @Test
@@ -109,6 +115,19 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     RankedMatchNotification rankedMatchNotification = serviceStateDoneFuture.get();
 
     assertThat(rankedMatchNotification.potential, is(true));
+  }
+
+  @Test
+  public void startSearchRanked1v1WithAeon() throws Exception {
+    ClientMessage clientMessage = messagesReceivedByFafServer.poll(RECEIVE_TIMEOUT, RECEIVE_TIMEOUT_UNIT);
+    assertThat(clientMessage, instanceOf(InitSessionMessage.class));
+
+    instance.startSearchRanked1v1(Faction.AEON, null);
+
+    clientMessage = messagesReceivedByFafServer.poll(RECEIVE_TIMEOUT, RECEIVE_TIMEOUT_UNIT);
+
+    assertThat(clientMessage, instanceOf(SearchRanked1v1Message.class));
+    assertEquals(((SearchRanked1v1Message) clientMessage).faction, Faction.AEON);
   }
 
   private void startFakeLobbyServer() throws IOException {
@@ -134,9 +153,9 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
           ClientMessage clientMessage = gson.fromJson(json, ClientMessage.class);
 
-          ClientObjectType clientObjectType = ClientObjectType.fromString(clientMessage.command);
+          ClientMessageType clientMessageType = ClientMessageType.fromString(clientMessage.command);
 
-          dispatchClientMessage(clientObjectType, json, gson);
+          dispatchClientMessage(clientMessageType, json, gson);
         }
       } catch (IOException e) {
         throw new RuntimeException(e);
@@ -144,16 +163,22 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     });
   }
 
-  private void dispatchClientMessage(ClientObjectType clientObjectType, String json, Gson gson) {
-    switch (clientObjectType) {
+  private void dispatchClientMessage(ClientMessageType clientMessageType, String json, Gson gson) {
+    switch (clientMessageType) {
       case ASK_SESSION:
         InitSessionMessage initSessionMessage = gson.fromJson(json, InitSessionMessage.class);
         messagesReceivedByFafServer.add(initSessionMessage);
         break;
 
-      case ACCEPT_1V1_MATCH:
-        Accept1v1Match accept1v1Match = gson.fromJson(json, Accept1v1Match.class);
-        messagesReceivedByFafServer.add(accept1v1Match);
+      case GAME_MATCH_MAKING:
+        MatchMakerMessage matchMakerMessage = gson.fromJson(json, MatchMakerMessage.class);
+        if (matchMakerMessage.mod.equals("matchmaker")) {
+          matchMakerMessage = gson.fromJson(json, Accept1v1MatchMessage.class);
+        } else {
+          matchMakerMessage = gson.fromJson(json, SearchRanked1v1Message.class);
+        }
+        messagesReceivedByFafServer.add(matchMakerMessage);
+
         break;
     }
   }

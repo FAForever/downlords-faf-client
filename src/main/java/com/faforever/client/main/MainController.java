@@ -33,6 +33,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
+import com.faforever.client.rankedmatch.Ranked1v1Controller;
 import com.faforever.client.rankedmatch.RankedMatchNotification;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.PrioritizedTask;
@@ -155,6 +156,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @Autowired
   GamesController gamesController;
+
+  @Autowired
+  Ranked1v1Controller ranked1v1Controller;
 
   @Autowired
   LeaderboardController leaderboardController;
@@ -620,7 +624,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   void onPlayRanked1v1Selected(ActionEvent event) {
-    setContent(gamesController.getRoot());
+    setContent(ranked1v1Controller.getRoot());
     setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
 

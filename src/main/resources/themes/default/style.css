@@ -418,10 +418,7 @@
 
 /***************** 1v1 match buttons *****************/
 
-.aeon-button,
-.uef-button,
-.cybran-button,
-.seraphim-button {
+.small-faction-button {
   -fx-background-size: 16px, 16px;
   -fx-background-position: center;
   -fx-background-repeat: no-repeat;
@@ -429,6 +426,16 @@
   -fx-max-width: 16px;
   -fx-min-height: 16px;
   -fx-max-height: 16px;
+}
+
+.large-faction-button {
+  -fx-background-size: 48px, 48px;
+  -fx-background-position: center;
+  -fx-background-repeat: no-repeat;
+  -fx-min-width: 48px;
+  -fx-max-width: 48px;
+  -fx-min-height: 48px;
+  -fx-max-height: 48px;
 }
 
 .aeon-button {

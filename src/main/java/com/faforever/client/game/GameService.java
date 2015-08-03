@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 import com.faforever.client.util.Callback;
 import javafx.collections.ListChangeListener;
@@ -47,4 +48,6 @@ public interface GameService {
   void accept1v1Match(Faction faction);
 
   void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener);
+
+  void startSearchRanked1v1(Faction faction, Callback<GameLaunchInfo> callback);
 }

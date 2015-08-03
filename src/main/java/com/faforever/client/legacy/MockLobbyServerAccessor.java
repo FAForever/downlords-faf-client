@@ -66,7 +66,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
     onModInfoMessageListeners = new ArrayList<>();
     onRankedMatchNotificationListeners = new ArrayList<>();
     onGameInfoListeners = new ArrayList<>();
-    timer = new Timer();
+    timer = new Timer("LobbyServerAccessorTimer", true);
   }
 
   @Override
@@ -281,5 +281,10 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   @Override
   public void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener) {
     onRankedMatchNotificationListeners.add(listener);
+  }
+
+  @Override
+  public void startSearchRanked1v1(Faction faction, Callback<GameLaunchInfo> callback) {
+    logger.debug("Searching 1v1 match with faction: {}", faction);
   }
 }

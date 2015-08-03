@@ -168,7 +168,7 @@ public class DownlordsPortCheckServiceImpl implements PortCheckService {
    * sent with a short delay to allow the UDP port to be opened.
    */
   private void sendDelayedPackageRequest(final String remoteHost, final Integer remotePort, final int port) {
-    new Timer().schedule(new TimerTask() {
+    new Timer("PortCheckTimer").schedule(new TimerTask() {
       @Override
       public void run() {
         try {
