@@ -1,5 +1,6 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -15,18 +16,25 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
+import com.faforever.client.rankedmatch.RankedMatchNotification;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static com.faforever.client.legacy.domain.GameAccess.PUBLIC;
 import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
@@ -34,9 +42,13 @@ import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private final Timer timer;
+
   private Collection<OnGameTypeInfoListener> onModInfoMessageListeners;
   private OnPlayerInfoListener onPlayerInfoListener;
   private Collection<OnGameInfoListener> onGameInfoListeners;
+  private Collection<OnRankedMatchNotificationListener> onRankedMatchNotificationListeners;
 
   @Autowired
   UserService userService;
@@ -52,7 +64,9 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
   public MockLobbyServerAccessor() {
     onModInfoMessageListeners = new ArrayList<>();
+    onRankedMatchNotificationListeners = new ArrayList<>();
     onGameInfoListeners = new ArrayList<>();
+    timer = new Timer();
   }
 
   @Override
@@ -77,6 +91,15 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
           playerInfo.country = "A1";
           onPlayerInfoListener.onPlayerInfo(playerInfo);
         }
+
+        timer.schedule(new TimerTask() {
+          @Override
+          public void run() {
+            RankedMatchNotification rankedMatchNotification = new RankedMatchNotification(true);
+            onRankedMatchNotificationListeners.forEach(listener -> listener.onRankedMatchInfo(rankedMatchNotification));
+          }
+        }, 7000);
+
 
         for (OnGameInfoListener onGameInfoListener : onGameInfoListeners) {
           onGameInfoListener.onGameInfo(createGameInfo(1, "Mock game 1 500 - 800", PUBLIC, "faf", "scmp_010", 3, 6, "Mock user"));
@@ -111,7 +134,12 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
             )
         );
 
-        return null;
+        SessionInfo sessionInfo = new SessionInfo();
+        sessionInfo.id = 1234;
+        sessionInfo.session = "5678";
+        sessionInfo.email = "junit@example.com";
+
+        return sessionInfo;
       }
     }, callback);
   }
@@ -243,5 +271,15 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   @Override
   public void addOnGameLaunchListener(OnGameLaunchInfoListener listener) {
 
+  }
+
+  @Override
+  public void accept1v1Match(Faction faction) {
+    logger.debug("Accepting 1v1 match with faction: {}", faction);
+  }
+
+  @Override
+  public void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener) {
+    onRankedMatchNotificationListeners.add(listener);
   }
 }

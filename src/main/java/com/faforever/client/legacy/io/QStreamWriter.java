@@ -6,6 +6,7 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+// TODO rename to be consistent with QDataReader
 public class QStreamWriter extends Writer {
 
   public static final Charset CHARSET = StandardCharsets.UTF_16BE;

@@ -6,6 +6,8 @@ import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
+import com.faforever.client.game.Faction;
+import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardController;
@@ -30,6 +32,8 @@ import com.faforever.client.preferences.OnChoseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.preferences.WindowPrefs;
+import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
+import com.faforever.client.rankedmatch.RankedMatchNotification;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskGroup;
@@ -75,7 +79,8 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
-public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnFafDisconnectedListener, GamePortCheckListener, OnChoseGameDirectoryListener {
+public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnFafDisconnectedListener,
+    GamePortCheckListener, OnChoseGameDirectoryListener, OnRankedMatchNotificationListener {
 
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_CLASS = PseudoClass.getPseudoClass("info");
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_CLASS = PseudoClass.getPseudoClass("warn");
@@ -132,6 +137,12 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   Label taskProgressLabel;
+
+  @FXML
+  Pane rankedMatchNotificationContainer;
+
+  @FXML
+  Pane rankedMatchNotificationPane;
 
   @Autowired
   Environment environment;
@@ -202,6 +213,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Autowired
   CommunityHubController communityHubController;
 
+  @Autowired
+  GameService gameService;
+
   private Popup notificationsPopup;
 
   @FXML
@@ -209,6 +223,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     taskPane.managedProperty().bind(taskPane.visibleProperty());
     taskProgressBar.managedProperty().bind(taskProgressBar.visibleProperty());
     taskProgressLabel.managedProperty().bind(taskProgressLabel.visibleProperty());
+    rankedMatchNotificationPane.managedProperty().bind(rankedMatchNotificationPane.visibleProperty());
+
+    rankedMatchNotificationPane.setVisible(false);
 
     addHoverListener(playButton);
     addHoverListener(communityButton);
@@ -218,23 +235,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     setCurrentTaskInStatusBar(null);
   }
-
-  private void addHoverListener(SplitMenuButton button) {
-    button.hoverProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
-        showMenuDropdown(button);
-      }
-    });
-  }
-
-  private void showMenuDropdown(SplitMenuButton button) {
-    mainNavigation.getChildren().stream()
-        .filter(item -> item instanceof SplitMenuButton && item != button)
-        .forEach(item -> ((SplitMenuButton) item).hide());
-    button.show();
-  }
-
-
   @PostConstruct
   void postConstruct() {
     notificationsPopup = new Popup();
@@ -267,6 +267,22 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     portCheckService.addGamePortCheckListener(this);
 
     preferencesService.setOnChoseGameDirectoryListener(this);
+    gameService.addOnRankedMatchNotificationListener(this);
+  }
+
+  private void addHoverListener(SplitMenuButton button) {
+    button.hoverProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        showMenuDropdown(button);
+      }
+    });
+  }
+
+  private void showMenuDropdown(SplitMenuButton button) {
+    mainNavigation.getChildren().stream()
+        .filter(item -> item instanceof SplitMenuButton && item != button)
+        .forEach(item -> ((SplitMenuButton) item).hide());
+    button.show();
   }
 
   private void displayImmediateNotification(ImmediateNotification notification) {
@@ -695,5 +711,30 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     button.getItems().stream()
         .filter(item -> item.getId().equals(lastChildView))
         .forEach(MenuItem::fire);
+  }
+
+  @Override
+  public void onRankedMatchInfo(RankedMatchNotification rankedMatchNotification) {
+    rankedMatchNotificationPane.setVisible(rankedMatchNotification.potential);
+  }
+
+  @FXML
+  void onAeonButtonClicked(ActionEvent event) {
+    gameService.accept1v1Match(Faction.AEON);
+  }
+
+  @FXML
+  void onUefButtonClicked(ActionEvent event) {
+    gameService.accept1v1Match(Faction.UEF);
+  }
+
+  @FXML
+  void onCybranButtonClicked(ActionEvent event) {
+    gameService.accept1v1Match(Faction.CYBRAN);
+  }
+
+  @FXML
+  void onSeraphimButtonClicked(ActionEvent event) {
+    gameService.accept1v1Match(Faction.SERAPHIM);
   }
 }

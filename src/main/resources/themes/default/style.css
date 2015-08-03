@@ -415,6 +415,38 @@
   -fx-shape: "M0 1 L1 1 L.5 0 Z";
 }
 
+
+/***************** 1v1 match buttons *****************/
+
+.aeon-button,
+.uef-button,
+.cybran-button,
+.seraphim-button {
+  -fx-background-size: 16px, 16px;
+  -fx-background-position: center;
+  -fx-background-repeat: no-repeat;
+  -fx-min-width: 16px;
+  -fx-max-width: 16px;
+  -fx-min-height: 16px;
+  -fx-max-height: 16px;
+}
+
+.aeon-button {
+  -fx-background-image: url('images/aeon.png');
+}
+
+.uef-button {
+  -fx-background-image: url('images/uef.png');
+}
+
+.cybran-button {
+  -fx-background-image: url('images/cybran.png');
+}
+
+.seraphim-button {
+  -fx-background-image: url('images/seraphim.png');
+}
+
 /***************** Titled pane *****************/
 
 .titled-pane > *.title {

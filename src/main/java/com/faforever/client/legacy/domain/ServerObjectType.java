@@ -33,4 +33,7 @@ public enum ServerObjectType {
     return fromString.get(string);
   }
 
+  public String getString() {
+    return string;
+  }
 }

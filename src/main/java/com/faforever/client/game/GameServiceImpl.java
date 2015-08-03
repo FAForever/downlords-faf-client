@@ -10,6 +10,7 @@ import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
+import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
@@ -251,6 +252,16 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   @Override
   public GameInfoBean getByUid(int uid) {
     return uidToGameInfoBean.get(uid);
+  }
+
+  @Override
+  public void accept1v1Match(Faction faction) {
+    lobbyServerAccessor.accept1v1Match(faction);
+  }
+
+  @Override
+  public void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener) {
+    lobbyServerAccessor.addOnRankedMatchNotificationListener(listener);
   }
 
   @Override

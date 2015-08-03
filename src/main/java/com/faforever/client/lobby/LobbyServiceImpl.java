@@ -6,6 +6,7 @@ import com.faforever.client.legacy.OnFafDisconnectedListener;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 
+// TODO check if this is really of any use, remove otherwise
 public class LobbyServiceImpl implements LobbyService {
 
   @Autowired

@@ -29,6 +29,10 @@ public class QDataReader extends Reader {
 
   public String readQString() throws IOException {
     int stringSize = dataInput.readInt();
+    if (stringSize == -1) {
+      return null;
+    }
+
     byte[] buffer = new byte[stringSize];
     dataInput.readFully(buffer);
     return new String(buffer, charset);

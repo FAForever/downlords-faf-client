@@ -1,9 +1,11 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.game.Faction;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.VictoryCondition;
+import com.faforever.client.legacy.gson.FactionSerializer;
 import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
@@ -58,5 +60,6 @@ public class ClientMessageSerializer extends JsonMessageSerializer<ClientMessage
     gsonBuilder.registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter());
     gsonBuilder.registerTypeAdapter(GameState.class, new GameStateTypeAdapter());
     gsonBuilder.registerTypeAdapter(VictoryCondition.class, new VictoryConditionTypeAdapter());
+    gsonBuilder.registerTypeAdapter(Faction.class, new FactionSerializer());
   }
 }

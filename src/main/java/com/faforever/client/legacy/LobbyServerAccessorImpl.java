@@ -1,5 +1,6 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -33,6 +34,9 @@ import com.faforever.client.legacy.ladder.LeaderParser;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.rankedmatch.Accept1v1Match;
+import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
+import com.faforever.client.rankedmatch.RankedMatchNotification;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
@@ -99,6 +103,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private Collection<OnGameTypeInfoListener> onGameTypeInfoListeners;
   private Collection<OnJoinChannelsRequestListener> onJoinChannelsRequestListeners;
   private Collection<OnGameLaunchInfoListener> onGameLaunchListeners;
+  private Collection<OnRankedMatchNotificationListener> onRankedMatchNotificationListeners;
 
   // Yes I know, those aren't lists. They will become if it's necessary
   private OnLobbyConnectingListener onLobbyConnectingListener;
@@ -113,6 +118,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     onGameTypeInfoListeners = new ArrayList<>();
     onJoinChannelsRequestListeners = new ArrayList<>();
     onGameLaunchListeners = new ArrayList<>();
+    onRankedMatchNotificationListeners = new ArrayList<>();
     sessionId = new SimpleStringProperty();
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
@@ -155,16 +161,16 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
             fafServerSocket.setKeepAlive(true);
 
-            logger.info("FAF server connection established");
-            if (onLobbyConnectedListener != null) {
-              Platform.runLater(onLobbyConnectedListener::onFaConnected);
-            }
-
             localIp = fafServerSocket.getLocalAddress().getHostAddress();
 
             serverWriter = createServerWriter(outputStream);
 
             writeToServer(new InitSessionMessage());
+
+            logger.info("FAF server connection established");
+            if (onLobbyConnectedListener != null) {
+              Platform.runLater(onLobbyConnectedListener::onFaConnected);
+            }
 
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
@@ -240,15 +246,15 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   private void onGameInfo(GameInfo gameInfo) {
-    for (OnGameInfoListener listener : onGameInfoListeners) {
-      Platform.runLater(() -> listener.onGameInfo(gameInfo));
-    }
+    onGameInfoListeners.forEach(listener -> listener.onGameInfo(gameInfo));
   }
 
   private void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
-    for (OnGameTypeInfoListener listener : onGameTypeInfoListeners) {
-      Platform.runLater(() -> listener.onGameTypeInfo(gameTypeInfo));
-    }
+    onGameTypeInfoListeners.forEach(listener -> listener.onGameTypeInfo(gameTypeInfo));
+  }
+
+  private void onRankedMatchInfo(RankedMatchNotification gameTypeInfo) {
+    onRankedMatchNotificationListeners.forEach(listener -> listener.onRankedMatchInfo(gameTypeInfo));
   }
 
   @Override
@@ -375,6 +381,16 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     onGameLaunchListeners.add(listener);
   }
 
+  @Override
+  public void accept1v1Match(Faction faction) {
+    writeToServer(new Accept1v1Match(faction));
+  }
+
+  @Override
+  public void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener) {
+    onRankedMatchNotificationListeners.add(listener);
+  }
+
   public void onServerMessage(String message) throws IOException {
     ServerMessageType serverMessageType = ServerMessageType.fromString(message);
     if (serverMessageType != null) {
@@ -462,7 +478,8 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           break;
 
         case MATCHMAKER_INFO:
-          logger.warn("Matchmaker info still unhandled: " + jsonString);
+          RankedMatchNotification rankedMatchNotification = gson.fromJson(jsonString, RankedMatchNotification.class);
+          onRankedMatchInfo(rankedMatchNotification);
           break;
 
         case SOCIAL:

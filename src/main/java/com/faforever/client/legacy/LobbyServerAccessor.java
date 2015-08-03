@@ -1,11 +1,13 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 import com.faforever.client.util.Callback;
 
 import java.util.Collection;
@@ -59,4 +61,8 @@ public interface LobbyServerAccessor {
   void setFoes(Collection<String> foes);
 
   void addOnGameLaunchListener(OnGameLaunchInfoListener listener);
+
+  void accept1v1Match(Faction faction);
+
+  void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener);
 }

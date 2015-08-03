@@ -49,8 +49,8 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final String SESSION_ID = "1234";
   private static final int GAME_PORT = 6112;
-  public static final int RECEIVE_TIMEOUT = 200000;
-  public static final TimeUnit RECEIVE_TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
+  private static final int RECEIVE_TIMEOUT = 1000;
+  private static final TimeUnit RECEIVE_TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
 
   private int relayServerPort;
   private BlockingQueue<LobbyMessage> messagesReceivedByFafServer;

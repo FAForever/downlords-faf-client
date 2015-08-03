@@ -38,12 +38,12 @@
                 <SplitMenuButton fx:id="communityButton" focusTraversable="false" mnemonicParsing="false"
                                  onAction="#onCommunitySelected" text="%main.community">
                   <items>
-                    <MenuItem fx:id="communityHubButton" mnemonicParsing="false" text="%main.community.hub"
-                              onAction="#onCommunityHubSelected"/>
-                    <MenuItem fx:id="newsButton" mnemonicParsing="false" text="%main.community.news"
-                              onAction="#onNewsSelected"/>
-                    <MenuItem fx:id="castsButton" mnemonicParsing="false" text="%main.community.casts"
-                              onAction="#onCastsSelected"/>
+                    <MenuItem fx:id="communityHubButton" mnemonicParsing="false" onAction="#onCommunityHubSelected"
+                              text="%main.community.hub"/>
+                    <MenuItem fx:id="newsButton" mnemonicParsing="false" onAction="#onNewsSelected"
+                              text="%main.community.news"/>
+                    <MenuItem fx:id="castsButton" mnemonicParsing="false" onAction="#onCastsSelected"
+                              text="%main.community.casts"/>
                   </items>
                 </SplitMenuButton>
                 <SplitMenuButton fx:id="chatButton" focusTraversable="false" mnemonicParsing="false"
@@ -51,29 +51,28 @@
                 <SplitMenuButton fx:id="playButton" focusTraversable="false" mnemonicParsing="false"
                                  onAction="#onPlaySelected" text="%main.play">
                   <items>
-                    <MenuItem fx:id="playCustomButton" mnemonicParsing="false" text="%main.play.custom"
-                              onAction="#onPlayCustomSelected"/>
-                    <MenuItem fx:id="playRanked1v1Button" mnemonicParsing="false" text="%main.play.ranked1v1"
-                              onAction="#onPlayRanked1v1Selected"/>
+                    <MenuItem fx:id="playCustomButton" mnemonicParsing="false" onAction="#onPlayCustomSelected"
+                              text="%main.play.custom"/>
+                    <MenuItem fx:id="playRanked1v1Button" mnemonicParsing="false" onAction="#onPlayRanked1v1Selected"
+                              text="%main.play.ranked1v1"/>
                   </items>
                 </SplitMenuButton>
                 <SplitMenuButton fx:id="vaultButton" focusTraversable="false" mnemonicParsing="false"
                                  onAction="#onVaultSelected" text="%main.vault">
                   <items>
-                    <MenuItem fx:id="mapVaultButton" mnemonicParsing="false" text="%main.vault.maps"
-                              onAction="#onMapsSelected"/>
-                    <MenuItem fx:id="modVaultButton" mnemonicParsing="false" text="%main.vault.mods"
-                              onAction="#onModsSelected"/>
-                    <MenuItem fx:id="replayVaultButton" mnemonicParsing="false" text="%main.vault.replays"
-                              onAction="#onReplaysSelected"/>
+                    <MenuItem fx:id="mapVaultButton" mnemonicParsing="false" onAction="#onMapsSelected"
+                              text="%main.vault.maps"/>
+                    <MenuItem fx:id="modVaultButton" mnemonicParsing="false" onAction="#onModsSelected"
+                              text="%main.vault.mods"/>
+                    <MenuItem fx:id="replayVaultButton" mnemonicParsing="false" onAction="#onReplaysSelected"
+                              text="%main.vault.replays"/>
                   </items>
                 </SplitMenuButton>
                 <SplitMenuButton fx:id="leaderboardButton" focusTraversable="false" mnemonicParsing="false"
                                  onAction="#onLeaderboardSelected" text="%main.leaderboard">
                   <items>
                     <MenuItem fx:id="leaderboardRanked1v1Button" mnemonicParsing="false"
-                              text="%main.leaderboard.ranked1v1"
-                              onAction="#onLeaderboardRanked1v1Selected"/>
+                              onAction="#onLeaderboardRanked1v1Selected" text="%main.leaderboard.ranked1v1"/>
                   </items>
                 </SplitMenuButton>
               </children>
@@ -108,6 +107,15 @@
             <Label fx:id="taskProgressLabel" text="Label"/>
             <Pane HBox.hgrow="ALWAYS"/>
             <ProgressBar fx:id="taskProgressBar" maxHeight="1.7976931348623157E308" minWidth="20.0" prefWidth="150.0"/>
+          </children>
+        </HBox>
+        <HBox fx:id="rankedMatchNotificationPane" alignment="CENTER">
+          <children>
+            <Separator focusTraversable="false" orientation="VERTICAL"/>
+            <Button mnemonicParsing="false" onAction="#onAeonButtonClicked" styleClass="aeon-button"/>
+            <Button mnemonicParsing="false" onAction="#onUefButtonClicked" styleClass="uef-button"/>
+            <Button mnemonicParsing="false" onAction="#onCybranButtonClicked" styleClass="cybran-button"/>
+            <Button mnemonicParsing="false" onAction="#onSeraphimButtonClicked" styleClass="seraphim-button"/>
           </children>
         </HBox>
         <Separator focusTraversable="false" orientation="VERTICAL"/>
