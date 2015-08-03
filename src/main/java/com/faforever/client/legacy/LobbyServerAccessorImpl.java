@@ -38,6 +38,7 @@ import com.faforever.client.rankedmatch.Accept1v1MatchMessage;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 import com.faforever.client.rankedmatch.RankedMatchNotification;
 import com.faforever.client.rankedmatch.SearchRanked1v1Message;
+import com.faforever.client.rankedmatch.StopSearchRanked1v1Message;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
@@ -394,6 +395,8 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   @Override
   public void startSearchRanked1v1(Faction faction, Callback<GameLaunchInfo> callback) {
+    writeToServer(new StopSearchRanked1v1Message());
+
     int port = preferencesService.getPreferences().getForgedAlliance().getPort();
     writeToServer(new SearchRanked1v1Message(port, faction));
 

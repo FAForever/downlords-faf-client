@@ -18,6 +18,7 @@ import com.faforever.client.rankedmatch.Accept1v1MatchMessage;
 import com.faforever.client.rankedmatch.MatchMakerMessage;
 import com.faforever.client.rankedmatch.RankedMatchNotification;
 import com.faforever.client.rankedmatch.SearchRanked1v1Message;
+import com.faforever.client.rankedmatch.StopSearchRanked1v1Message;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -49,6 +50,7 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   private static final int RECEIVE_TIMEOUT = 1000000;
   private static final TimeUnit RECEIVE_TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
+  public static final int GAME_PORT = 6112;
 
   private LobbyServerAccessorImpl instance;
   private int lobbyServerPort;
@@ -72,7 +74,7 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     when(instance.preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(preferences.getLogin()).thenReturn(loginPrefs);
-    when(forgedAlliancePrefs.getPort()).thenReturn(6112);
+    when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
     when(loginPrefs.getUsername()).thenReturn("junit");
     when(loginPrefs.getPassword()).thenReturn("password");
 
@@ -125,9 +127,12 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     instance.startSearchRanked1v1(Faction.AEON, null);
 
     clientMessage = messagesReceivedByFafServer.poll(RECEIVE_TIMEOUT, RECEIVE_TIMEOUT_UNIT);
+    assertThat(clientMessage, instanceOf(StopSearchRanked1v1Message.class));
 
+    clientMessage = messagesReceivedByFafServer.poll(RECEIVE_TIMEOUT, RECEIVE_TIMEOUT_UNIT);
     assertThat(clientMessage, instanceOf(SearchRanked1v1Message.class));
-    assertEquals(((SearchRanked1v1Message) clientMessage).faction, Faction.AEON);
+    assertEquals(((SearchRanked1v1Message) clientMessage).faction, "/aeon");
+    assertEquals(((SearchRanked1v1Message) clientMessage).gameport, GAME_PORT);
   }
 
   private void startFakeLobbyServer() throws IOException {
@@ -173,8 +178,12 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
       case GAME_MATCH_MAKING:
         MatchMakerMessage matchMakerMessage = gson.fromJson(json, MatchMakerMessage.class);
         if (matchMakerMessage.mod.equals("matchmaker")) {
-          matchMakerMessage = gson.fromJson(json, Accept1v1MatchMessage.class);
-        } else {
+          if (matchMakerMessage.state.equals("askingtostop")) {
+            matchMakerMessage = gson.fromJson(json, StopSearchRanked1v1Message.class);
+          } else if (matchMakerMessage.state.equals("faction")) {
+            matchMakerMessage = gson.fromJson(json, Accept1v1MatchMessage.class);
+          }
+        } else if (matchMakerMessage.state.equals("start")) {
           matchMakerMessage = gson.fromJson(json, SearchRanked1v1Message.class);
         }
         messagesReceivedByFafServer.add(matchMakerMessage);
