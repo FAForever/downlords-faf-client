@@ -9,17 +9,14 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jbsdiff.InvalidHeaderException;
 import jbsdiff.Patch;
 import org.apache.commons.compress.compressors.CompressorException;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Ref;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +44,8 @@ import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 public class GitRepositoryPatchService implements PatchService {
 
-  private enum InstallType {
+  @VisibleForTesting
+  enum InstallType {
     RETAIL("retail.json"),
     STEAM("steam.json");
 
@@ -58,9 +56,12 @@ public class GitRepositoryPatchService implements PatchService {
     }
   }
 
+  @VisibleForTesting
+  static final String REPO_NAME = "binary-patch";
+  @VisibleForTesting
+  static final String STEAM_API_DLL = "steam_api.dll";
+
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final String REPO_NAME = "binary-patch";
-  private static final String STEAM_API_DLL = "steam_api.dll";
   private static final String BINARY_PATCH_DIRECTORY = "bsdiff4";
   private static final long UPDATE_CHECK_PERIOD = 3600_000;
 
@@ -80,6 +81,9 @@ public class GitRepositoryPatchService implements PatchService {
 
   @Autowired
   I18n i18n;
+
+  @Autowired
+  GitWrapper gitWrapper;
 
   /**
    * Path containing the FAF "bin" directory (e. g. "%PROGRAMDATA\FAForever\bin")
@@ -105,7 +109,6 @@ public class GitRepositoryPatchService implements PatchService {
   @PostConstruct
   void postConstruct() {
     patchRepositoryUri = environment.getProperty("patch.git.url");
-    checkForUpdatesInBackground();
   }
 
   @Override
@@ -192,6 +195,8 @@ public class GitRepositoryPatchService implements PatchService {
   /**
    * Since it's possible that the user has changed or never specified the game path, this method needs to be called
    * every time before any work is done.
+   *
+   * @return {@code true} if directories are set up correctly
    */
   private boolean initAndCheckDirectories() {
     fafBinDirectory = preferencesService.getFafBinDirectory();
@@ -206,14 +211,7 @@ public class GitRepositoryPatchService implements PatchService {
   }
 
   private void clonePatchRepository() {
-    try {
-      Git.cloneRepository()
-          .setURI(patchRepositoryUri)
-          .setDirectory(binaryPatchRepoDirectory.toFile())
-          .call();
-    } catch (GitAPIException e) {
-      throw new RuntimeException(e);
-    }
+    gitWrapper.clone(patchRepositoryUri, binaryPatchRepoDirectory);
   }
 
   private Path getMigrationDataFile() {
@@ -234,6 +232,7 @@ public class GitRepositoryPatchService implements PatchService {
       logger.debug("Copying file '{}' to '{}'", source, destination);
 
       Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+      // FIXME I expect this to fail on non-windows
       Files.setAttribute(destination, "dos:readonly", false);
     }
   }
@@ -265,7 +264,8 @@ public class GitRepositoryPatchService implements PatchService {
     }
   }
 
-  public InstallType guessInstallType() {
+  @VisibleForTesting
+  InstallType guessInstallType() {
     if (Files.exists(faBinDirectory.resolve(STEAM_API_DLL))) {
       return InstallType.STEAM;
     } else {
@@ -312,7 +312,6 @@ public class GitRepositoryPatchService implements PatchService {
       @Override
       protected Boolean call() throws Exception {
         logger.info("Checking for FA update");
-        logger.debug("Checking for FA update");
 
         return initAndCheckDirectories() &&
             (Files.notExists(binaryPatchRepoDirectory)
@@ -322,25 +321,14 @@ public class GitRepositoryPatchService implements PatchService {
     }, callback);
   }
 
+  /**
+   * Checks whether the remote GIT repository has newer patch files available then the local repsitory.
+   */
   private boolean areNewPatchFilesAvailable() throws IOException, GitAPIException {
-    boolean needsPatching;
-    Git git = Git.open(binaryPatchRepoDirectory.toFile());
+    String remoteHead = gitWrapper.getRemoteHead(binaryPatchRepoDirectory);
+    String localHead = gitWrapper.getLocalHead(binaryPatchRepoDirectory);
 
-    ObjectId head = git.getRepository().resolve(Constants.HEAD);
-    if (head == null) {
-      return true;
-    }
-
-    String localHead = head.name();
-
-    String remoteHead = null;
-    for (Ref ref : git.lsRemote().call()) {
-      if (Constants.HEAD.equals(ref.getName())) {
-        remoteHead = ref.getObjectId().name();
-        break;
-      }
-    }
-    needsPatching = !localHead.equals(remoteHead);
+    boolean needsPatching = !localHead.equals(remoteHead);
 
     if (needsPatching) {
       logger.info("New patch files are available ({})", remoteHead);
