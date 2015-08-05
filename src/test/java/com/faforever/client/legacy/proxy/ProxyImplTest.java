@@ -56,7 +56,7 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
   }
 
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
-  public static final int TIMEOUT = 2000000;
+  public static final int TIMEOUT = 1000;
   public static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final int OTHER_UID_1 = 111;
   private static final int GAME_PORT = 6112;
