@@ -16,8 +16,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.RatingUtil;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableMap;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
@@ -123,6 +121,7 @@ public class GamesController {
   @Autowired
   NotificationService notificationService;
 
+
   private Popup createGamePopup;
   private Popup passwordPopup;
   private FilteredList<GameInfoBean> filteredItems;
@@ -170,9 +169,9 @@ public class GamesController {
   public void displayGameDetail(GameInfoBean gameInfoBean) {
     currentGameInfoBean = gameInfoBean;
     gameTitleLabel.setText(gameInfoBean.getTitle());
-    mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapName()));
+    mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getTechnicalName()));
 
-    gameInfoBean.mapNameProperty().addListener((observable, oldValue, newValue) -> {
+    gameInfoBean.technicalNameProperty().addListener((observable, oldValue, newValue) -> {
       gameTitleLabel.setText(newValue);
       mapImageView.setImage(mapService.loadLargePreview(newValue));
     });
@@ -180,7 +179,7 @@ public class GamesController {
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     hosterLabel.textProperty().bind(gameInfoBean.hostProperty());
     gameModeLabel.textProperty().bind(gameInfoBean.featuredModProperty());
-    mapLabel.textProperty().bind(gameInfoBean.mapNameProperty());
+    mapLabel.textProperty().bind(gameInfoBean.technicalNameProperty());
     createTeams(gameInfoBean.getTeams());
   }
 
@@ -313,17 +312,14 @@ public class GamesController {
     if (currentGameInfoBean == null) {
       return;
     }
-    //FIXME official maps need to be checked TEMPORARY
-    if (mapService.isOfficialMap(currentGameInfoBean.getMapName())) {
-      return;
-    }
     mapDetailPopup = getMapDetailPopup();
     MapPreviewLargeController mapPreviewLargeController = applicationContext.getBean(MapPreviewLargeController.class);
-    MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultFromName(currentGameInfoBean.getMapName());
-    //FIXME ugly fix
-/*    if (mapInfoBean.getTechnicalName() == null) {
-      return;
-    }*/
+    MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultFromName(currentGameInfoBean.getTechnicalName());
+    if (mapInfoBean == null) {
+      String title = i18n.get("mapPreview.loadFailure.title");
+      String message = i18n.get("mapPreview.loadFailure.message");
+      notificationService.addNotification(new ImmediateNotification(title, message, Severity.ERROR));
+    }
     mapPreviewLargeController.createPreview(mapInfoBean);
 
     sceneFactory.createScene(mapDetailPopup, mapPreviewLargeController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
