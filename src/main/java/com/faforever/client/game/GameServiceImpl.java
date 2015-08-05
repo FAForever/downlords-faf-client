@@ -13,6 +13,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
@@ -191,6 +192,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     };
   }
 
+  @VisibleForTesting
   Service<Void> waitForProcessTerminationInBackground(Process process) {
     return ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
