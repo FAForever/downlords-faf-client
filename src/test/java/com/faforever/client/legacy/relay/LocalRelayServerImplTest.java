@@ -4,7 +4,7 @@ import com.faforever.client.game.FeaturedMod;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameLaunchInfoListener;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
-import com.faforever.client.legacy.io.QDataReader;
+import com.faforever.client.legacy.io.QDataInputStream;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -71,7 +71,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     startFakeFafRelayServer();
 
-    CountDownLatch relayLocalServerReadyLatch = new CountDownLatch(1);
+    CountDownLatch localRelayServerReadyLatch = new CountDownLatch(1);
     CountDownLatch gameConnectedLatch = new CountDownLatch(1);
 
     instance = new LocalRelayServerImpl();
@@ -84,7 +84,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     ForgedAlliancePrefs forgedAlliancePrefs = mock(ForgedAlliancePrefs.class);
     Preferences preferences = mock(Preferences.class);
 
-    instance.addOnReadyListener(relayLocalServerReadyLatch::countDown);
+    instance.addOnReadyListener(localRelayServerReadyLatch::countDown);
     instance.addOnConnectionAcceptedListener(gameConnectedLatch::countDown);
 
     when(instance.environment.getProperty("relay.host")).thenReturn(LOOPBACK_ADDRESS.getHostAddress());
@@ -105,7 +105,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     gameLaunchInfo.mod = FeaturedMod.DEFAULT_MOD.getString();
     captor.getValue().onGameLaunchInfo(gameLaunchInfo);
 
-    relayLocalServerReadyLatch.await();
+    localRelayServerReadyLatch.await();
 
     startFakeGameProcess();
     gameConnectedLatch.await();
@@ -369,13 +369,13 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
           .create();
 
       try (Socket socket = fafRelayServerSocket.accept()) {
-        QDataReader qDataReader = new QDataReader(new DataInputStream(socket.getInputStream()));
+        QDataInputStream qDataInputStream = new QDataInputStream(new DataInputStream(socket.getInputStream()));
         serverToRelayWriter = new ServerWriter(socket.getOutputStream());
         serverToRelayWriter.registerMessageSerializer(new RelayServerMessageSerializer(), RelayServerMessage.class);
 
         while (!stopped) {
-          qDataReader.skipBlockSize();
-          String json = qDataReader.readQString();
+          qDataInputStream.skipBlockSize();
+          String json = qDataInputStream.readQString();
 
           LobbyMessage lobbyMessage = gson.fromJson(json, LobbyMessage.class);
 
@@ -385,6 +385,5 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
         throw new RuntimeException(e);
       }
     });
-
   }
 }

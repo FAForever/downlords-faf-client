@@ -205,7 +205,7 @@ public class ServiceConfig {
 
   @Bean
   Proxy proxy() {
-    return new ProxyImpl(preferencesService().getPreferences().getForgedAlliance());
+    return new ProxyImpl();
   }
 
   @Bean
