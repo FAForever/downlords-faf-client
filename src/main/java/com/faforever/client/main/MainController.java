@@ -27,6 +27,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.patch.PatchService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.OnChoseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
@@ -218,6 +219,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   CommunityHubController communityHubController;
 
   @Autowired
+  PatchService patchService;
+
+  @Autowired
   GameService gameService;
 
   private Popup notificationsPopup;
@@ -380,6 +384,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     usernameButton.setText(userService.getUsername());
 
     portCheckService.checkGamePortInBackground();
+    patchService.checkForUpdatesInBackground();
   }
 
   private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {

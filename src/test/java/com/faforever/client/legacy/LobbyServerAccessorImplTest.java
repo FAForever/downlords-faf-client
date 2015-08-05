@@ -5,7 +5,7 @@ import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.ClientMessageType;
 import com.faforever.client.legacy.domain.InitSessionMessage;
 import com.faforever.client.legacy.domain.ServerObject;
-import com.faforever.client.legacy.io.QDataReader;
+import com.faforever.client.legacy.io.QDataInputStream;
 import com.faforever.client.legacy.relay.LobbyAction;
 import com.faforever.client.legacy.relay.RelayServerActionDeserializer;
 import com.faforever.client.legacy.relay.RelayServerMessageSerializer;
@@ -146,15 +146,15 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
           .create();
 
       try (Socket socket = lobbyServerSocket.accept()) {
-        QDataReader qDataReader = new QDataReader(new DataInputStream(socket.getInputStream()));
+        QDataInputStream qDataInputStream = new QDataInputStream(new DataInputStream(socket.getInputStream()));
         serverToClientWriter = new ServerWriter(socket.getOutputStream());
         serverToClientWriter.registerMessageSerializer(new RelayServerMessageSerializer(), ServerObject.class);
 
         while (!stopped) {
-          qDataReader.skipBlockSize();
-          String json = qDataReader.readQString();
-          String username = qDataReader.readQString();
-          String sessionId = qDataReader.readQString();
+          qDataInputStream.skipBlockSize();
+          String json = qDataInputStream.readQString();
+          String username = qDataInputStream.readQString();
+          String sessionId = qDataInputStream.readQString();
 
           ClientMessage clientMessage = gson.fromJson(json, ClientMessage.class);
 

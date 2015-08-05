@@ -3,7 +3,7 @@ package com.faforever.client.legacy.relay;
 import com.faforever.client.game.FeaturedMod;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
-import com.faforever.client.legacy.io.QDataReader;
+import com.faforever.client.legacy.io.QDataInputStream;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.legacy.proxy.ProxyUtils;
 import com.faforever.client.legacy.writer.ServerWriter;
@@ -123,7 +123,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
    */
   @Override
   public void startInBackground() {
-    proxy.addOnProxyInitializedListener(this);
+    proxy.addOnP2pProxyInitializedListener(this);
 
     executeInBackground(new Task<Void>() {
       @Override
@@ -207,7 +207,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
    * Reads data from the FAF server and redirects it to FA.
    */
   private void redirectFafToFa() throws IOException {
-    try (QDataReader dataInput = new QDataReader(new DataInputStream(new BufferedInputStream(fafInputStream)))) {
+    try (QDataInputStream dataInput = new QDataInputStream(new DataInputStream(new BufferedInputStream(fafInputStream)))) {
       while (!isCancelled()) {
         dataInput.skipBlockSize();
         String message = dataInput.readQString();
@@ -363,7 +363,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
     if (p2pProxyEnabled.get()) {
       String publicAddress = sendNatPacketMessage.getPublicAddress();
 
-      proxy.registerPeerIfNecessary(publicAddress);
+      proxy.registerP2pPeerIfNecessary(publicAddress);
 
       sendNatPacketMessage.setPublicAddress(proxy.translateToLocal(publicAddress));
     }
@@ -381,7 +381,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
       String peerAddress = connectToPeerMessage.getPeerAddress();
       int peerUid = connectToPeerMessage.getPeerUid();
 
-      proxy.registerPeerIfNecessary(peerAddress);
+      proxy.registerP2pPeerIfNecessary(peerAddress);
 
       connectToPeerMessage.setPeerAddress(proxy.translateToLocal(peerAddress));
       proxy.setUidForPeer(peerAddress, peerUid);
@@ -395,7 +395,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
       String peerAddress = joinGameMessage.getPeerAddress();
       int peerUid = joinGameMessage.getPeerUid();
 
-      proxy.registerPeerIfNecessary(peerAddress);
+      proxy.registerP2pPeerIfNecessary(peerAddress);
 
       joinGameMessage.setPeerAddress(proxy.translateToLocal(peerAddress));
       proxy.setUidForPeer(peerAddress, peerUid);
