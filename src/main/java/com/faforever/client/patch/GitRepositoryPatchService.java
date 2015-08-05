@@ -9,6 +9,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
+import com.faforever.client.util.OperatingSystem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -232,8 +233,10 @@ public class GitRepositoryPatchService implements PatchService {
       logger.debug("Copying file '{}' to '{}'", source, destination);
 
       Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
-      // FIXME I expect this to fail on non-windows
-      Files.setAttribute(destination, "dos:readonly", false);
+
+      if (OperatingSystem.current() == OperatingSystem.WINDOWS) {
+        Files.setAttribute(destination, "dos:readonly", false);
+      }
     }
   }
 
