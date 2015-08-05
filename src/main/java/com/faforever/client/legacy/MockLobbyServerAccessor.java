@@ -111,7 +111,12 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
             )
         );
 
-        return null;
+        SessionInfo sessionInfo = new SessionInfo();
+        sessionInfo.id = 1234;
+        sessionInfo.session = "5678";
+        sessionInfo.email = "junit@example.com";
+
+        return sessionInfo;
       }
     }, callback);
   }
