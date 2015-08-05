@@ -6,7 +6,7 @@
   },
   "post_patch_verify": {
     "GDFBinary.dll": "6f57f59c2e705d7a5a02d49e3915cb26",
-    "testFile1.txt": "b026324c6904b2a9cb4b88d6d61c81d1",
-    "fooBar.exe": "26ab0db90d72e28ad0ba1e22ee510510"
+    "testFile1.txt": "a5ea0ad9260b1550a14cc58d2c39b03d",
+    "fooBar.exe": "10400c6faf166902b52fb97042f1e0eb"
   }
 }
