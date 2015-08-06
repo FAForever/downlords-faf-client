@@ -390,6 +390,8 @@ public class ProxyImpl implements Proxy {
 
   @Override
   public void initializeP2pProxy() throws SocketException {
+    logger.debug("Initializing P2P proxy");
+
     int port = preferencesService.getPreferences().getForgedAlliance().getPort();
     publicSocket = new DatagramSocket(port);
     readPublicSocketInBackground(publicSocket);
