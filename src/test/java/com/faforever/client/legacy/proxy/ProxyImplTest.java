@@ -2,8 +2,6 @@ package com.faforever.client.legacy.proxy;
 
 import com.faforever.client.legacy.io.QDataInputStream;
 import com.faforever.client.legacy.io.QDataOutputStream;
-import com.faforever.client.legacy.relay.FaDataInputStream;
-import com.faforever.client.legacy.relay.FaDataOutputStream;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -56,7 +54,7 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
   }
 
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
-  public static final int TIMEOUT = 2000000;
+  public static final int TIMEOUT = 1000;
   public static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final int OTHER_UID_1 = 111;
   private static final int GAME_PORT = 6112;
@@ -68,8 +66,6 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
   private BlockingQueue<ProxyPackage> packagesReceivedByFafProxyServer;
   private BlockingQueue<byte[]> dataReceivedByGame;
   private Socket gameToLocalProxySocket;
-  private FaDataOutputStream gameToLocalProxyOutputStream;
-  private FaDataInputStream gameFromLocalProxyInputStream;
   private CountDownLatch fafProxyConnectedLatch;
   private CountDownLatch fakeGameTerminatedLatch;
   private CountDownLatch fakeFafProxyTerminatedLatch;

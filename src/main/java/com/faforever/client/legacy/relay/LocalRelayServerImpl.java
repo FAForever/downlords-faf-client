@@ -17,7 +17,9 @@ import com.google.gson.GsonBuilder;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,12 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  @VisibleForTesting
+  static final String GAME_STATE_LAUNCHING = "Launching";
+
+  @VisibleForTesting
+  static final String GAME_STATE_LOBBY = "Lobby";
+
   @Autowired
   Proxy proxy;
 
@@ -72,6 +80,11 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   private LobbyMode lobbyMode;
   private Collection<OnReadyListener> onReadyListeners;
   private Collection<OnConnectionAcceptedListener> onConnectionAcceptedListeners;
+  private ServerSocket serverSocket;
+  private Service<Void> service;
+  private boolean stopped;
+  private Socket fafSocket;
+  private Socket faSocket;
 
   public LocalRelayServerImpl() {
     gson = new GsonBuilder()
@@ -81,6 +94,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
     onReadyListeners = new ArrayList<>();
     onConnectionAcceptedListeners = new ArrayList<>();
     p2pProxyEnabled = new SimpleBooleanProperty(false);
+    lobbyMode = LobbyMode.DEFAULT_LOBBY;
   }
 
   @Override
@@ -107,13 +121,11 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   private void updateLobbyModeFromGameInfo(GameLaunchInfo gameLaunchInfo) {
     FeaturedMod featuredMod = FeaturedMod.fromString(gameLaunchInfo.mod);
     switch (featuredMod) {
-      case FAF:
-      case BALANCE_TESTING:
-        lobbyMode = LobbyMode.DEFAULT_LOBBY;
-        break;
       case LADDER_1V1:
         lobbyMode = LobbyMode.NO_LOBBY;
         break;
+      default:
+        lobbyMode = LobbyMode.DEFAULT_LOBBY;
     }
   }
 
@@ -125,7 +137,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   public void startInBackground() {
     proxy.addOnP2pProxyInitializedListener(this);
 
-    executeInBackground(new Task<Void>() {
+    service = executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
         start();
@@ -135,20 +147,23 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   }
 
   private void start() throws IOException {
-    try (ServerSocket serverSocket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
+    try (ServerSocket serverSocket = new ServerSocket(0, 0, InetAddress.getLoopbackAddress())) {
+      this.serverSocket = serverSocket;
       port = serverSocket.getLocalPort();
 
       logger.info("Relay server listening on port {}", port);
 
       onReadyListeners.forEach(OnReadyListener::onReady);
 
-      while (!isCancelled()) {
+      while (!stopped) {
         try (Socket faSocket = serverSocket.accept()) {
+          this.faSocket = faSocket;
           logger.debug("Forged Alliance connected to relay server from {}:{}", faSocket.getInetAddress(), faSocket.getPort());
 
           onConnectionAcceptedListeners.forEach(OnConnectionAcceptedListener::onConnectionAccepted);
 
           try (Socket fafSocket = new Socket(environment.getProperty("relay.host"), environment.getProperty("relay.port", int.class))) {
+            this.fafSocket = fafSocket;
             logger.info("Connected to FAF relay server at {}", SocketAddressUtil.toString((InetSocketAddress) fafSocket.getRemoteSocketAddress()));
 
             this.faInputStream = createFaInputStream(faSocket.getInputStream());
@@ -162,7 +177,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
             redirectFafToFa();
           }
         } catch (SocketException | EOFException e) {
-          logger.debug("Forged Alliance disconnected from relay server");
+          logger.debug("Forged Alliance disconnected from relay server", e);
         }
       }
     }
@@ -172,10 +187,6 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
     ServerWriter serverWriter = new ServerWriter(outputStream);
     serverWriter.registerMessageSerializer(new RelayClientMessageSerializer(), LobbyMessage.class);
     return serverWriter;
-  }
-
-  private boolean isCancelled() {
-    return false;
   }
 
   private FaDataInputStream createFaInputStream(InputStream inputStream) throws IOException {
@@ -208,7 +219,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
    */
   private void redirectFafToFa() throws IOException {
     try (QDataInputStream dataInput = new QDataInputStream(new DataInputStream(new BufferedInputStream(fafInputStream)))) {
-      while (!isCancelled()) {
+      while (!stopped) {
         dataInput.skipBlockSize();
         String message = dataInput.readQString();
 
@@ -228,6 +239,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
    *
    * @param faInputStream game input stream
    * @param serverWriter FAF relay server writer
+   *
    * @throws IOException
    */
   private void redirectFaToFaf(FaDataInputStream faInputStream, ServerWriter serverWriter, Task<Void> task) throws IOException {
@@ -252,7 +264,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
         throw new IllegalStateException("lobbyMode has not been set");
       }
 
-      handleCreateLobby(new CreateRelayServerMessage(lobbyMode, gamePort, username, userService.getUid(), 1));
+      handleCreateLobby(new CreateLobbyServerMessage(lobbyMode, gamePort, username, userService.getUid(), 1));
     }
 
     serverWriter.write(lobbyMessage);
@@ -263,6 +275,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
         && lobbyMessage.getChunks().get(0).equals("Idle");
   }
 
+  // TODO find a better name
   private void updateProxyState(LobbyMessage lobbyMessage) {
     LobbyAction action = lobbyMessage.getAction();
     List<Object> chunks = lobbyMessage.getChunks();
@@ -281,10 +294,10 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
         break;
       case GAME_STATE:
         switch ((String) chunks.get(0)) {
-          case "Launching":
+          case GAME_STATE_LAUNCHING:
             proxy.setGameLaunched(true);
             break;
-          case "Lobby":
+          case GAME_STATE_LOBBY:
             proxy.setGameLaunched(false);
             break;
         }
@@ -404,15 +417,15 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
     writeToFa(joinGameMessage);
   }
 
-  private void handleCreateLobby(CreateRelayServerMessage createRelayServerMessage) throws IOException {
-    int peerUid = createRelayServerMessage.getUid();
+  private void handleCreateLobby(CreateLobbyServerMessage createLobbyServerMessage) throws IOException {
+    int peerUid = createLobbyServerMessage.getUid();
     proxy.setUid(peerUid);
 
     if (p2pProxyEnabled.get()) {
-      createRelayServerMessage.setPort(ProxyUtils.translateToProxyPort(proxy.getPort()));
+      createLobbyServerMessage.setPort(ProxyUtils.translateToProxyPort(proxy.getPort()));
     }
 
-    writeToFa(createRelayServerMessage);
+    writeToFa(createLobbyServerMessage);
   }
 
   private void handleConnectToProxy(ConnectToProxyMessage connectToProxyMessage) throws IOException {
@@ -482,5 +495,13 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   @VisibleForTesting
   void addOnP2pProxyEnabledChangeListener(ChangeListener<Boolean> listener) {
     p2pProxyEnabled.addListener(listener);
+  }
+
+  @Override
+  public void close() {
+    stopped = true;
+    IOUtils.closeQuietly(serverSocket);
+    IOUtils.closeQuietly(fafSocket);
+    IOUtils.closeQuietly(faSocket);
   }
 }
