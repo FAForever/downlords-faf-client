@@ -260,10 +260,10 @@ public class GamesController {
   @FXML
   void onTilesButtonPressed() {
     if (!tilePaneSelected || isFirstGeneratedPane()) {
-      GamesTiledController gamesTiledController = applicationContext.getBean(GamesTiledController.class);
-      gamesTiledController.createTiledFlowPane(filteredItems);
+      GameTiledController gameTiledController = applicationContext.getBean(GameTiledController.class);
+      gameTiledController.createTiledFlowPane(filteredItems);
 
-      Node root = gamesTiledController.getRoot();
+      Node root = gameTiledController.getRoot();
       populateContainer(root);
       firstGeneratedPane = false;
       tilePaneSelected = true;

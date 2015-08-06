@@ -2,6 +2,9 @@ package com.faforever.client.config;
 
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.fx.HostService;
+import com.faforever.client.game.GameService;
+import com.faforever.client.map.MapService;
+import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
@@ -16,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.mockito.Mockito.mock;
@@ -67,6 +71,21 @@ public class TestServiceConfiguration {
   }
 
   @Bean
+  GameService gameService() {
+    return mock(GameService.class);
+  }
+
+  @Bean
+  MapService mapService() {
+    return mock(MapService.class);
+  }
+
+  @Bean
+  ModService modService() {
+    return mock(ModService.class);
+  }
+
+  @Bean
   PreferencesService preferencesService() throws IOException {
     PreferencesService preferencesService = mock(PreferencesService.class);
 
@@ -77,7 +96,9 @@ public class TestServiceConfiguration {
     when(preferences.getTheme()).thenReturn("default");
     when(preferences.getChat()).thenReturn(chatPrefs);
 
-    when(preferencesService.getPreferencesDirectory()).thenReturn(Files.createTempDirectory(Paths.get("build/tmp"), null));
+    Path tmpDir = Paths.get("build/tmp");
+    Files.createDirectories(tmpDir);
+    when(preferencesService.getPreferencesDirectory()).thenReturn(Files.createTempDirectory(tmpDir, null));
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
     return preferencesService;

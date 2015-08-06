@@ -25,7 +25,7 @@ import com.faforever.client.game.EnterPasswordController;
 import com.faforever.client.game.GameCardController;
 import com.faforever.client.game.GameTableController;
 import com.faforever.client.game.GamesController;
-import com.faforever.client.game.GamesTiledController;
+import com.faforever.client.game.GameTiledController;
 import com.faforever.client.game.PopupGamePaneController;
 import com.faforever.client.game.PopupPlayerCardController;
 import com.faforever.client.game.TeamCardController;
@@ -160,7 +160,7 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  GamesTiledController gamesTiledController() {
+  GameTiledController gamesTiledController() {
     return loadController("games_tiled.fxml");
   }
 
