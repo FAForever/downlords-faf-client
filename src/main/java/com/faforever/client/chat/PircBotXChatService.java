@@ -61,7 +61,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final int RECONNECT_DELAY = 3000;
   private static final int SOCKET_TIMEOUT = 10000;
   private final Map<Class<? extends Event>, ArrayList<ChatEventListener>> eventListeners;
 
@@ -84,6 +83,9 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Autowired
   I18n i18n;
+
+  @Autowired
+  PircBotXFactory pircBotXFactory;
 
   private Configuration configuration;
   private PircBotX pircBotX;
@@ -268,8 +270,9 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
             logger.info("Connecting to IRC at {}:{}", configuration.getServerHostname(), configuration.getServerPort());
             pircBotX.startBot();
           } catch (IOException e) {
-            logger.warn("Lost connection to IRC server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s");
-            Thread.sleep(RECONNECT_DELAY);
+            int reconnectDelay = environment.getProperty("irc.reconnectDelay", int.class);
+            logger.warn("Lost connection to IRC server, trying to reconnect in " + reconnectDelay / 1000 + "s");
+            Thread.sleep(reconnectDelay);
           }
         }
         return null;
@@ -284,7 +287,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
         .setName(username)
         .setLogin(username)
         .setRealName(username)
-        .setServer(environment.getProperty("irc.host"), environment.getProperty("irc.port", Integer.class))
+        .setServer(environment.getProperty("irc.host"), environment.getProperty("irc.port", int.class))
         .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
         .setAutoSplitMessage(true)
         .setEncoding(StandardCharsets.UTF_8)
@@ -295,7 +298,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
     addOnChatConnectedListener(this);
 
-    pircBotX = new PircBotX(configuration);
+    pircBotX = pircBotXFactory.createPircBotX(configuration);
     initialized = true;
   }
 
@@ -394,6 +397,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void onModeratorSet(String channelName, String username) {
-    chatUserLists.get(channelName).get(username).getModeratorInChannels().add(channelName);
+    getChatUsersForChannel(channelName).get(username).getModeratorInChannels().add(channelName);
   }
 }
