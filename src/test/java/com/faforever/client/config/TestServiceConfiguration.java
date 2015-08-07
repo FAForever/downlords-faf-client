@@ -8,6 +8,7 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.sound.SoundController;
@@ -95,6 +96,7 @@ public class TestServiceConfiguration {
     Preferences preferences = mock(Preferences.class);
     when(preferences.getTheme()).thenReturn("default");
     when(preferences.getChat()).thenReturn(chatPrefs);
+    when(preferences.getForgedAlliance()).thenReturn(mock(ForgedAlliancePrefs.class));
 
     Path tmpDir = Paths.get("build/tmp");
     Files.createDirectories(tmpDir);

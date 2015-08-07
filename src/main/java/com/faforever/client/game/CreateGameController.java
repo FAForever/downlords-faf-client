@@ -5,6 +5,7 @@ import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -89,7 +90,8 @@ public class CreateGameController {
   @FXML
   Node createGameRoot;
 
-  private FilteredList<MapInfoBean> filteredMaps;
+  @VisibleForTesting
+  FilteredList<MapInfoBean> filteredMaps;
 
   @FXML
   void initialize() {

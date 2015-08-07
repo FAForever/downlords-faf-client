@@ -66,6 +66,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
           gameTypeInfo.name = "faf";
           gameTypeInfo.live = true;
           gameTypeInfo.host = true;
+          gameTypeInfo.desc = "Description";
 
           onModInfoMessageListener.onGameTypeInfo(gameTypeInfo);
         }
