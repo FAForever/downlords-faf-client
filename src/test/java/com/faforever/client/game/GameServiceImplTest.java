@@ -16,6 +16,7 @@ import javafx.collections.MapChangeListener;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.util.Arrays;
@@ -45,6 +46,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
+    MockitoAnnotations.initMocks(this);
+
     instance = new GameServiceImpl();
     instance.lobbyServerAccessor = mock(LobbyServerAccessor.class);
     instance.mapService = mock(MapService.class);
@@ -134,8 +137,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameLaunchInfo.args = Arrays.asList("/foo bar", "/bar foo");
 
     doAnswer((InvocationOnMock invocation) -> {
-      Callback<GameLaunchInfo> callback1 = (Callback<GameLaunchInfo>) invocation.getArguments()[1];
-      callback1.success(gameLaunchInfo);
+      Callback<GameLaunchInfo> callback = (Callback<GameLaunchInfo>) invocation.getArguments()[1];
+      callback.success(gameLaunchInfo);
       return null;
     }).when(instance.lobbyServerAccessor).requestNewGame(eq(newGameInfo), any(Callback.class));
 

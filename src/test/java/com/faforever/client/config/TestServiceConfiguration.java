@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.mockito.Mockito.mock;
@@ -77,7 +78,9 @@ public class TestServiceConfiguration {
     when(preferences.getTheme()).thenReturn("default");
     when(preferences.getChat()).thenReturn(chatPrefs);
 
-    when(preferencesService.getPreferencesDirectory()).thenReturn(Files.createTempDirectory(Paths.get("build/tmp"), null));
+    Path tempDir = Paths.get("build/tmp");
+    Files.createDirectories(tempDir);
+    when(preferencesService.getPreferencesDirectory()).thenReturn(Files.createTempDirectory(tempDir, null));
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
     return preferencesService;

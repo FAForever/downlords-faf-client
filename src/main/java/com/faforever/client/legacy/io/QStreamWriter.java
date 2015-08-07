@@ -1,7 +1,5 @@
 package com.faforever.client.legacy.io;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
@@ -18,7 +16,7 @@ public class QStreamWriter extends Writer {
   }
 
   @Override
-  public void write(@NotNull char[] cbuf, int off, int len) throws IOException {
+  public void write(char[] cbuf, int off, int len) throws IOException {
     out.write(new String(cbuf).substring(off, off + len).getBytes(CHARSET));
   }
 
