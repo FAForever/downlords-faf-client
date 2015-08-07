@@ -61,7 +61,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     GameInfoBean gameInfoBean = mock(GameInfoBean.class);
     Callback<Void> callback = mock(Callback.class);
 
-    when(gameInfoBean.getMapName()).thenReturn("map");
+    when(gameInfoBean.getTechnicalName()).thenReturn("map");
 
     when(instance.mapService.isAvailable("map")).thenReturn(true);
 

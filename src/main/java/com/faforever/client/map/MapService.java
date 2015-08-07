@@ -33,5 +33,5 @@ public interface MapService {
 
   void download(String mapName, Callback<Void> callback);
 
-  List<Comment> getComments(String mapName);
+  List<Comment> getComments(int mapId);
 }

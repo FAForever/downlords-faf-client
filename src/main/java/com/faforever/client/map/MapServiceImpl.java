@@ -146,7 +146,7 @@ public class MapServiceImpl implements MapService {
       return mapVaultParser.parseSingleMap(mapName);
     } catch (IOException | IllegalStateException e) {
       logger.error("Error in parsing {} from vault", mapName);
-      return new MapInfoBean();
+      return null;
     }
   }
 
@@ -155,7 +155,6 @@ public class MapServiceImpl implements MapService {
     for(officialMaps map : officialMaps.values()){
       if(map.name().equals(mapName.toUpperCase())){
         logger.debug("{} is an official map", mapName);
-        //return getMapInfoBeanLocallyFromName(mapName);
         return true;
       }
     }
@@ -207,15 +206,15 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public List<Comment> getComments(String mapName) {
-    int mapId = getMapInfoBeanFromVaultFromName(mapName).getId();
+  public List<Comment> getComments(int mapId) {
+    //int mapId = getMapInfoBeanFromVaultFromName(mapName).getId();
     if(mapId == 0){
       return Collections.emptyList();
     }
     try {
       return mapVaultParser.parseComments(mapId);
     } catch (IOException e) {
-      logger.error("Error in parsing comment for {}", mapName);
+      logger.error("Error in parsing comment for {}", mapId);
     }
     return null;
   }

@@ -2,7 +2,6 @@ package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
-import com.faforever.client.legacy.map.Comment;
 import com.faforever.client.map.MapService;
 import com.google.common.base.Joiner;
 import javafx.collections.MapChangeListener;
@@ -22,8 +21,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 import java.lang.invoke.MethodHandles;
-import java.util.List;
-import java.util.Map;
 
 public class GameCardController {
 
@@ -93,9 +90,9 @@ public class GameCardController {
       }
     }
 
-    gameMapLabel.setText(gameInfoBean.getMapName());
-    gameInfoBean.mapNameProperty().addListener(((observable3, oldValue3, newValue3) -> {
-      gameMapLabel.setText(gameInfoBean.getMapName());
+    gameMapLabel.setText(gameInfoBean.getTechnicalName());
+    gameInfoBean.technicalNameProperty().addListener(((observable3, oldValue3, newValue3) -> {
+      gameMapLabel.setText(gameInfoBean.getTechnicalName());
       numberOfPlayersLabel.setText(
           i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers())
       );
@@ -113,9 +110,9 @@ public class GameCardController {
       displaySimMods(change.getMap());
     });
 
-    Image image = mapService.loadSmallPreview(gameInfoBean.getMapName());
+    Image image = mapService.loadSmallPreview(gameInfoBean.getTechnicalName());
     mapImageView.setImage(image);
-    gameInfoBean.mapNameProperty().addListener((observable, oldValue, newValue) -> {
+    gameInfoBean.technicalNameProperty().addListener((observable, oldValue, newValue) -> {
       Image newImage = mapService.loadSmallPreview(newValue);
       mapImageView.setImage(newImage);
     });

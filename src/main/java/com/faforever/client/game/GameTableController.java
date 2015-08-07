@@ -78,7 +78,7 @@ public class GameTableController {
     mapPreviewColumn.setCellValueFactory(param -> new ObjectBinding<Image>() {
       @Override
       protected Image computeValue() {
-        return mapService.loadSmallPreview(param.getValue().getMapName());
+        return mapService.loadSmallPreview(param.getValue().getTechnicalName());
       }
     });
 

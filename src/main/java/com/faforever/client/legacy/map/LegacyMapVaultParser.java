@@ -73,7 +73,7 @@ public class LegacyMapVaultParser implements MapVaultParser {
 
     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 
-    logger.info("Fetching comments from {}", url);
+    logger.debug("Fetching comments from {}", url);
 
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
       JsonReader jsonReader = new JsonReader(reader);

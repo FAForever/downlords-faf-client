@@ -586,6 +586,10 @@
   -fx-padding: 10px,5px,5px,5px;
 }
 
+.map-preview-large .max-player-label {
+  -fx-padding: 0, 0, 0, 10px;
+}
+
 .map-preview-large .comment-container-scroll-pane {
   -fx-padding: 5px,5px,5px,5px;
   -fx-max-height: 500px;

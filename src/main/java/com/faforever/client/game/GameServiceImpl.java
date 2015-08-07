@@ -138,7 +138,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     updateGameIfNecessary(gameInfoBean.getFeaturedMod(), new Callback<Void>() {
       @Override
       public void success(Void result) {
-        downloadMapIfNecessary(gameInfoBean.getMapName(), mapDownloadCallback);
+        downloadMapIfNecessary(gameInfoBean.getTechnicalName(), mapDownloadCallback);
       }
 
       @Override

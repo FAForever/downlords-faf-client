@@ -1,6 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.game.MapInfoBean;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.map.Comment;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -40,6 +41,9 @@ public class MapPreviewLargeController {
   @Autowired
   ApplicationContext applicationContext;
 
+  @Autowired
+  I18n i18n;
+
   public void createPreview(MapInfoBean mapInfoBean) {
     if (mapInfoBean.getTechnicalName() == null) {
       return;
@@ -51,13 +55,13 @@ public class MapPreviewLargeController {
 
     largeImagePreview.setImage(mapService.loadLargePreview(mapInfoBean.getTechnicalName()));
 
-    mapNameLabel.setText(mapInfoBean.getDisplayName());
-    maxPlayerLabel.setText(Integer.toString(mapInfoBean.getPlayers()));
-    mapSizeLabel.setText(mapInfoBean.getSize().toString());
+    mapNameLabel.setText(i18n.get("mapPreview.name", mapInfoBean.getDisplayName()));
+    maxPlayerLabel.setText(i18n.get("mapPreview.maxPlayers", mapInfoBean.getPlayers()));
+    mapSizeLabel.setText(i18n.get("mapPreview.size", mapInfoBean.getSize().toString()));
     mapDescriptionLabel.setText(mapInfoBean.getDescription());
 
     commentContainer.getChildren().clear();
-    for (Comment comment : mapService.getComments(mapInfoBean.getTechnicalName())) {
+    for (Comment comment : mapService.getComments(mapInfoBean.getId())) {
       CommentCardController commentCardController = applicationContext.getBean(CommentCardController.class);
       commentCardController.addComment(comment);
       commentContainer.getChildren().add(commentCardController.getRoot());
