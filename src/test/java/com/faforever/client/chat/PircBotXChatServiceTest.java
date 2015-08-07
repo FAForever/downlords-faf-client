@@ -1,14 +1,18 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.legacy.OnJoinChannelsRequestListener;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.google.common.collect.ImmutableSortedSet;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -19,6 +23,7 @@ import org.pircbotx.Channel;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
+import org.pircbotx.UserChannelDao;
 import org.pircbotx.UserLevel;
 import org.pircbotx.hooks.events.ActionEvent;
 import org.pircbotx.hooks.events.ConnectEvent;
@@ -30,6 +35,7 @@ import org.pircbotx.hooks.events.PrivateMessageEvent;
 import org.pircbotx.hooks.events.QuitEvent;
 import org.pircbotx.hooks.events.UserListEvent;
 import org.pircbotx.hooks.managers.ListenerManager;
+import org.pircbotx.output.OutputChannel;
 import org.pircbotx.output.OutputIRC;
 import org.pircbotx.snapshot.ChannelSnapshot;
 import org.pircbotx.snapshot.UserChannelDaoSnapshot;
@@ -46,6 +52,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
@@ -62,15 +70,17 @@ import static org.mockito.Mockito.when;
 public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
-  private static final ChatUser CHAT_USER_1 = new ChatUser("chatUser1");
-  private static final ChatUser CHAT_USER_2 = new ChatUser("chatUser2");
   private static final long TIMEOUT = 100000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final String DEFAULT_CHANNEL_NAME = "#defaultChannel";
+  private static final String OTHER_CHANNEL_NAME = "#otherChannel";
   public static final String CHAT_USER_NAME = "junit";
   private static final int IRC_SERVER_PORT = 123;
 
   private PircBotXChatService instance;
+
+  private ChatUser chatUser1;
+  private ChatUser chatUser2;
 
   @Mock
   private User user1;
@@ -117,30 +127,41 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private PircBotXFactory pircBotXFactory;
 
+  @Mock
+  private UserChannelDao<User, Channel> userChannelDao;
+
+  @Mock
+  private LobbyServerAccessor lobbyServerAccessor;
+
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
     instance = new PircBotXChatService();
+    instance.lobbyServerAccessor = lobbyServerAccessor;
     instance.environment = environment;
     instance.userService = userService;
     instance.taskService = taskService;
     instance.i18n = i18n;
     instance.pircBotXFactory = pircBotXFactory;
 
+    chatUser1 = new ChatUser("chatUser1");
+    chatUser2 = new ChatUser("chatUser2");
+
     when(userService.getUsername()).thenReturn(CHAT_USER_NAME);
 
-    when(user1.getNick()).thenReturn(CHAT_USER_1.getUsername());
+    when(user1.getNick()).thenReturn(chatUser1.getUsername());
     when(user1.getChannels()).thenReturn(ImmutableSortedSet.of(defaultChannel));
     when(user1.getUserLevels(defaultChannel)).thenReturn(ImmutableSortedSet.of(UserLevel.VOICE));
 
-    when(user2.getNick()).thenReturn(CHAT_USER_2.getUsername());
+    when(user2.getNick()).thenReturn(chatUser2.getUsername());
     when(user2.getChannels()).thenReturn(ImmutableSortedSet.of(defaultChannel));
     when(user2.getUserLevels(defaultChannel)).thenReturn(ImmutableSortedSet.of(UserLevel.VOICE));
 
     when(defaultChannel.getName()).thenReturn(DEFAULT_CHANNEL_NAME);
     when(pircBotX.getConfiguration()).thenReturn(configuration);
     when(pircBotX.sendIRC()).thenReturn(outputIrc);
+    when(pircBotX.getUserChannelDao()).thenReturn(userChannelDao);
 
     when(pircBotXFactory.createPircBotX(any())).thenReturn(pircBotX);
 
@@ -154,20 +175,25 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.postConstruct();
   }
 
+  @After
+  public void tearDown() {
+    instance.close();
+  }
+
   @Test
   public void testOnChatUserList() throws Exception {
     ObservableMap<String, ChatUser> usersForChannel = instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME);
     assertThat(usersForChannel.values(), empty());
 
     Map<String, ChatUser> users = new HashMap<>();
-    users.put(CHAT_USER_1.getUsername(), CHAT_USER_1);
-    users.put(CHAT_USER_2.getUsername(), CHAT_USER_2);
+    users.put(chatUser1.getUsername(), chatUser1);
+    users.put(chatUser2.getUsername(), chatUser2);
 
     instance.onChatUserList(DEFAULT_CHANNEL_NAME, users);
 
     assertThat(usersForChannel.values(), hasSize(2));
-    assertThat(usersForChannel.get(CHAT_USER_1.getUsername()), sameInstance(CHAT_USER_1));
-    assertThat(usersForChannel.get(CHAT_USER_2.getUsername()), sameInstance(CHAT_USER_2));
+    assertThat(usersForChannel.get(chatUser1.getUsername()), sameInstance(chatUser1));
+    assertThat(usersForChannel.get(chatUser2.getUsername()), sameInstance(chatUser2));
   }
 
   @Test
@@ -175,12 +201,12 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     ObservableMap<String, ChatUser> usersForChannel = instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME);
     assertThat(usersForChannel.values(), empty());
 
-    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, CHAT_USER_1);
-    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, CHAT_USER_2);
+    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser1);
+    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser2);
 
     assertThat(usersForChannel.values(), hasSize(2));
-    assertThat(usersForChannel.get(CHAT_USER_1.getUsername()), sameInstance(CHAT_USER_1));
-    assertThat(usersForChannel.get(CHAT_USER_2.getUsername()), sameInstance(CHAT_USER_2));
+    assertThat(usersForChannel.get(chatUser1.getUsername()), sameInstance(chatUser1));
+    assertThat(usersForChannel.get(chatUser2.getUsername()), sameInstance(chatUser2));
   }
 
   @Test
@@ -188,12 +214,12 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     ObservableMap<String, ChatUser> usersForChannel = instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME);
     assertThat(usersForChannel.values(), empty());
 
-    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, CHAT_USER_1);
-    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, CHAT_USER_2);
-    instance.onChatUserLeftChannel(CHAT_USER_1.getUsername(), DEFAULT_CHANNEL_NAME);
+    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser1);
+    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser2);
+    instance.onChatUserLeftChannel(chatUser1.getUsername(), DEFAULT_CHANNEL_NAME);
 
     assertThat(usersForChannel.values(), hasSize(1));
-    assertThat(usersForChannel.get(CHAT_USER_2.getUsername()), sameInstance(CHAT_USER_2));
+    assertThat(usersForChannel.get(chatUser2.getUsername()), sameInstance(chatUser2));
   }
 
   @Test
@@ -201,12 +227,12 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     ObservableMap<String, ChatUser> usersForChannel = instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME);
     assertThat(usersForChannel.values(), empty());
 
-    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, CHAT_USER_1);
-    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, CHAT_USER_2);
-    instance.onChatUserQuit(CHAT_USER_1.getUsername());
+    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser1);
+    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser2);
+    instance.onChatUserQuit(chatUser1.getUsername());
 
     assertThat(usersForChannel.values(), hasSize(1));
-    assertThat(usersForChannel.get(CHAT_USER_2.getUsername()), sameInstance(CHAT_USER_2));
+    assertThat(usersForChannel.get(chatUser2.getUsername()), sameInstance(chatUser2));
   }
 
   @Test
@@ -221,7 +247,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     String message = "chat message";
 
     User user = mock(User.class);
-    when(user.getNick()).thenReturn(CHAT_USER_1.getUsername());
+    when(user.getNick()).thenReturn(chatUser1.getUsername());
 
     Channel channel = mock(Channel.class);
     when(channel.getName()).thenReturn(DEFAULT_CHANNEL_NAME);
@@ -230,7 +256,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     assertThat(channelNameFuture.get(), is(DEFAULT_CHANNEL_NAME));
     assertThat(chatMessageFuture.get().getMessage(), is(message));
-    assertThat(chatMessageFuture.get().getUsername(), is(CHAT_USER_1.getUsername()));
+    assertThat(chatMessageFuture.get().getUsername(), is(chatUser1.getUsername()));
     assertThat(chatMessageFuture.get().getTime(), is(greaterThan(Instant.ofEpochMilli(System.currentTimeMillis() - 1000))));
     assertThat(chatMessageFuture.get().isAction(), is(false));
   }
@@ -247,7 +273,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     String action = "chat action";
 
     User user = mock(User.class);
-    when(user.getNick()).thenReturn(CHAT_USER_1.getUsername());
+    when(user.getNick()).thenReturn(chatUser1.getUsername());
 
     Channel channel = mock(Channel.class);
     when(channel.getName()).thenReturn(DEFAULT_CHANNEL_NAME);
@@ -256,7 +282,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     assertThat(channelNameFuture.get(), is(DEFAULT_CHANNEL_NAME));
     assertThat(chatMessageFuture.get().getMessage(), is(action));
-    assertThat(chatMessageFuture.get().getUsername(), is(CHAT_USER_1.getUsername()));
+    assertThat(chatMessageFuture.get().getUsername(), is(chatUser1.getUsername()));
     assertThat(chatMessageFuture.get().getTime(), is(greaterThan(Instant.ofEpochMilli(System.currentTimeMillis() - 1000))));
     assertThat(chatMessageFuture.get().isAction(), is(true));
   }
@@ -273,7 +299,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     String message = "private message";
 
     User user = mock(User.class);
-    when(user.getNick()).thenReturn(CHAT_USER_1.getUsername());
+    when(user.getNick()).thenReturn(chatUser1.getUsername());
 
     Channel channel = mock(Channel.class);
     when(channel.getName()).thenReturn(DEFAULT_CHANNEL_NAME);
@@ -281,7 +307,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.onEvent(new PrivateMessageEvent<>(pircBotX, user, message));
 
     assertThat(chatMessageFuture.get().getMessage(), is(message));
-    assertThat(chatMessageFuture.get().getUsername(), is(CHAT_USER_1.getUsername()));
+    assertThat(chatMessageFuture.get().getUsername(), is(chatUser1.getUsername()));
     assertThat(chatMessageFuture.get().getTime(), is(greaterThan(Instant.ofEpochMilli(System.currentTimeMillis() - 1000))));
     assertThat(chatMessageFuture.get().isAction(), is(false));
   }
@@ -310,8 +336,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     assertThat(channelNameFuture.get(TIMEOUT, TIMEOUT_UNIT), is(DEFAULT_CHANNEL_NAME));
     assertThat(usersFuture.get(TIMEOUT, TIMEOUT_UNIT).values(), hasSize(2));
-    assertThat(usersFuture.get(TIMEOUT, TIMEOUT_UNIT).get(CHAT_USER_1.getUsername()), is(CHAT_USER_1));
-    assertThat(usersFuture.get(TIMEOUT, TIMEOUT_UNIT).get(CHAT_USER_2.getUsername()), is(CHAT_USER_2));
+    assertThat(usersFuture.get(TIMEOUT, TIMEOUT_UNIT).get(chatUser1.getUsername()), is(chatUser1));
+    assertThat(usersFuture.get(TIMEOUT, TIMEOUT_UNIT).get(chatUser2.getUsername()), is(chatUser2));
   }
 
   @Test
@@ -337,7 +363,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.onEvent(new JoinEvent<>(pircBotX, defaultChannel, user1));
 
     assertThat(channelNameFuture.get(TIMEOUT, TIMEOUT_UNIT), is(DEFAULT_CHANNEL_NAME));
-    assertThat(userFuture.get(TIMEOUT, TIMEOUT_UNIT), is(CHAT_USER_1));
+    assertThat(userFuture.get(TIMEOUT, TIMEOUT_UNIT), is(chatUser1));
   }
 
   @Test
@@ -350,24 +376,24 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     });
 
     when(channelSnapshot.getName()).thenReturn(DEFAULT_CHANNEL_NAME);
-    when(userSnapshot.getNick()).thenReturn(CHAT_USER_1.getUsername());
+    when(userSnapshot.getNick()).thenReturn(chatUser1.getUsername());
 
     String reason = "Part reason";
     instance.onEvent(new PartEvent<>(pircBotX, daoSnapshot, channelSnapshot, userSnapshot, reason));
 
     assertThat(channelNameFuture.get(TIMEOUT, TIMEOUT_UNIT), is(DEFAULT_CHANNEL_NAME));
-    assertThat(usernameFuture.get(TIMEOUT, TIMEOUT_UNIT), is(CHAT_USER_1.getUsername()));
+    assertThat(usernameFuture.get(TIMEOUT, TIMEOUT_UNIT), is(chatUser1.getUsername()));
   }
 
   @Test
   public void testAddOnModeratorSetListener() throws Exception {
-    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, CHAT_USER_1);
+    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser1);
 
-    ObservableSet<String> moderatorInChannels = instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME).get(CHAT_USER_1.getUsername()).getModeratorInChannels();
+    ObservableSet<String> moderatorInChannels = instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME).get(chatUser1.getUsername()).getModeratorInChannels();
 
     assertThat(moderatorInChannels, empty());
 
-    instance.onModeratorSet(DEFAULT_CHANNEL_NAME, CHAT_USER_1.getUsername());
+    instance.onModeratorSet(DEFAULT_CHANNEL_NAME, chatUser1.getUsername());
 
     assertThat(moderatorInChannels, hasSize(1));
     assertThat(moderatorInChannels.iterator().next(), is(DEFAULT_CHANNEL_NAME));
@@ -446,58 +472,134 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testGetChatUsersForChannel() throws Exception {
+  public void testGetChatUsersForChannelEmpty() throws Exception {
+    ObservableMap<String, ChatUser> chatUsersForChannel = instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME);
+    assertThat(chatUsersForChannel.values(), empty());
+  }
 
+  @Test
+  public void testGetChatUsersForChannelTwoUsersInDifferentChannel() throws Exception {
+    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser1);
+    instance.onUserJoinedChannel(OTHER_CHANNEL_NAME, chatUser2);
+
+    ObservableMap<String, ChatUser> chatUsersForDefaultChannel = instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME);
+    ObservableMap<String, ChatUser> chatUsersForOtherChannel = instance.getChatUsersForChannel(OTHER_CHANNEL_NAME);
+
+    assertThat(chatUsersForDefaultChannel.values(), hasSize(1));
+    assertThat(chatUsersForDefaultChannel.values().iterator().next(), sameInstance(chatUser1));
+    assertThat(chatUsersForOtherChannel.values(), hasSize(1));
+    assertThat(chatUsersForOtherChannel.values().iterator().next(), sameInstance(chatUser2));
+  }
+
+  @Test
+  public void testGetChatUsersForChannelTwoUsersInSameChannel() throws Exception {
+    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser1);
+    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser2);
+
+    ObservableMap<String, ChatUser> chatUsersForDefaultChannel = instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME);
+
+    assertThat(chatUsersForDefaultChannel.values(), hasSize(2));
+    assertThat(chatUsersForDefaultChannel.values(), containsInAnyOrder(chatUser1, chatUser2));
   }
 
   @Test
   public void testAddChannelUserListListener() throws Exception {
+    MapChangeListener<String, ChatUser> listener = mock(MapChangeListener.class);
 
+    instance.addChannelUserListListener(DEFAULT_CHANNEL_NAME, listener);
+    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser1);
+    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser2);
+
+    verify(listener, times(2)).onChanged(any());
   }
 
   @Test
   public void testLeaveChannel() throws Exception {
+    OutputChannel outputChannel = mock(OutputChannel.class);
 
+    when(userChannelDao.getChannel(DEFAULT_CHANNEL_NAME)).thenReturn(defaultChannel);
+    when(defaultChannel.send()).thenReturn(outputChannel);
+
+    instance.connect();
+    instance.leaveChannel(DEFAULT_CHANNEL_NAME);
+
+    verify(outputChannel).part();
   }
 
   @Test
   public void testSendActionInBackground() throws Exception {
+    mockTaskService();
+    instance.connect();
 
+    String action = "test action";
+    Callback<String> callback = mock(Callback.class);
+
+    instance.sendActionInBackground(DEFAULT_CHANNEL_NAME, action, callback);
+
+    verify(pircBotX).sendIRC();
+    verify(outputIrc).action(DEFAULT_CHANNEL_NAME, action);
   }
 
   @Test
   public void testJoinChannel() throws Exception {
+    instance.connect();
+    instance.joinChannel(DEFAULT_CHANNEL_NAME);
 
+    verify(outputIrc).joinChannel(DEFAULT_CHANNEL_NAME);
   }
 
   @Test
   public void testAddOnJoinChannelsRequestListener() throws Exception {
+    OnJoinChannelsRequestListener listener = mock(OnJoinChannelsRequestListener.class);
 
+    instance.addOnJoinChannelsRequestListener(listener);
+
+    verify(lobbyServerAccessor).addOnJoinChannelsRequestListener(listener);
   }
 
   @Test
   public void testIsDefaultChannel() throws Exception {
-
-  }
-
-  @Test
-  public void testOnEvent() throws Exception {
-
+    assertTrue(instance.isDefaultChannel(DEFAULT_CHANNEL_NAME));
   }
 
   @Test
   public void testOnConnected() throws Exception {
-
+    when(userService.getPassword()).thenReturn("password");
+    instance.onConnected();
   }
 
   @Test
   public void testOnDisconnected() throws Exception {
+    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser1);
+    assertThat(instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME).values(), hasSize(1));
 
+    instance.onDisconnected(new Exception("test exception"));
+
+    assertThat(instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME).values(), empty());
   }
 
   @Test
   public void testOnModeratorSet() throws Exception {
+    instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser1);
+    ObservableSet<String> moderatorInChannels = instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME)
+        .get(chatUser1.getUsername())
+        .getModeratorInChannels();
 
+    assertThat(moderatorInChannels, empty());
+
+    instance.onModeratorSet(DEFAULT_CHANNEL_NAME, chatUser1.getUsername());
+
+    assertThat(moderatorInChannels, contains(DEFAULT_CHANNEL_NAME));
+  }
+
+  @Test
+  public void testOnModeratorSetUserNotInChannelDoesntThrowException() throws Exception {
+    instance.onModeratorSet(DEFAULT_CHANNEL_NAME, chatUser1.getUsername());
+  }
+
+  @Test
+  public void testClose() {
+    instance.close();
   }
 
   @SuppressWarnings("unchecked")

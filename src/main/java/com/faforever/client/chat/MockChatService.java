@@ -207,4 +207,9 @@ public class MockChatService implements ChatService {
   public boolean isDefaultChannel(String channelName) {
     return true;
   }
+
+  @Override
+  public void close() {
+
+  }
 }

@@ -5,6 +5,8 @@ import com.faforever.client.util.Callback;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 
+import java.util.List;
+
 public interface ChatService {
 
   void addOnMessageListener(OnChatMessageListener listener);
@@ -45,7 +47,12 @@ public interface ChatService {
 
   void joinChannel(String channelName);
 
+  /**
+   * @see OnJoinChannelsRequestListener#onJoinChannelsRequest(List)
+   */
   void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener);
 
   boolean isDefaultChannel(String channelName);
+
+  void close();
 }

@@ -8,8 +8,10 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.google.common.collect.ImmutableSortedSet;
+import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
+import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.pircbotx.Configuration;
@@ -90,7 +92,8 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   private Configuration configuration;
   private PircBotX pircBotX;
   private boolean initialized;
-  private String defaultChannel;
+  private String defaultChannelName;
+  private Service<Void> connectionService;
 
   public PircBotXChatService() {
     eventListeners = new ConcurrentHashMap<>();
@@ -138,7 +141,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     addOnChatDisconnectedListener(this);
     addOnModeratorSetListener(this);
 
-    defaultChannel = environment.getProperty("irc.defaultChannel");
+    defaultChannelName = environment.getProperty("irc.defaultChannel");
   }
 
   private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
@@ -262,7 +265,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       init();
     }
 
-    executeInBackground(new Task<Void>() {
+    connectionService = executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
         while (!isCancelled()) {
@@ -359,7 +362,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public boolean isDefaultChannel(String channelName) {
-    return defaultChannel.equals(channelName);
+    return defaultChannelName.equals(channelName);
   }
 
   @Override
@@ -378,7 +381,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     sendMessageInBackground("NICKSERV", "IDENTIFY " + DigestUtils.md5Hex(userService.getPassword()), new Callback<String>() {
       @Override
       public void success(String message) {
-        pircBotX.sendIRC().joinChannel(defaultChannel);
+        pircBotX.sendIRC().joinChannel(defaultChannelName);
       }
 
       @Override
@@ -397,6 +400,17 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void onModeratorSet(String channelName, String username) {
-    getChatUsersForChannel(channelName).get(username).getModeratorInChannels().add(channelName);
+    ChatUser chatUser = getChatUsersForChannel(channelName).get(username);
+    if (chatUser == null) {
+      return;
+    }
+    chatUser.getModeratorInChannels().add(channelName);
+  }
+
+  @Override
+  public void close() {
+    if (connectionService != null) {
+      Platform.runLater(connectionService::cancel);
+    }
   }
 }
