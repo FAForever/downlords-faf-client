@@ -2,11 +2,15 @@ package com.faforever.client.chat;
 
 import com.faforever.client.sound.SoundController;
 import javafx.fxml.FXML;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class PrivateChatTab extends AbstractChatTab {
+public class PrivateChatTabController extends AbstractChatTabController {
+
+  @FXML
+  Tab privateChatTabRoot;
 
   @FXML
   WebView messagesWebView;
@@ -17,11 +21,10 @@ public class PrivateChatTab extends AbstractChatTab {
   @Autowired
   SoundController soundController;
 
-  public PrivateChatTab(String username) {
-    super(username, "private_chat_tab.fxml");
-
-    setId(username);
-    setText(username);
+  public void setUsername(String username) {
+    super.setReceiver(username);
+    privateChatTabRoot.setId(username);
+    privateChatTabRoot.setText(username);
   }
 
   @Override
@@ -41,5 +44,10 @@ public class PrivateChatTab extends AbstractChatTab {
     if (!hasFocus()) {
       soundController.playPrivateMessageSound();
     }
+  }
+
+  @Override
+  public Tab getRoot() {
+    return privateChatTabRoot;
   }
 }

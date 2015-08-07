@@ -2,8 +2,6 @@ package com.faforever.client.legacy.proxy;
 
 import com.faforever.client.legacy.io.QDataInputStream;
 import com.faforever.client.legacy.io.QDataOutputStream;
-import com.faforever.client.legacy.relay.FaDataInputStream;
-import com.faforever.client.legacy.relay.FaDataOutputStream;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -68,8 +66,6 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
   private BlockingQueue<ProxyPackage> packagesReceivedByFafProxyServer;
   private BlockingQueue<byte[]> dataReceivedByGame;
   private Socket gameToLocalProxySocket;
-  private FaDataOutputStream gameToLocalProxyOutputStream;
-  private FaDataInputStream gameFromLocalProxyInputStream;
   private CountDownLatch fafProxyConnectedLatch;
   private CountDownLatch fakeGameTerminatedLatch;
   private CountDownLatch fakeFafProxyTerminatedLatch;

@@ -6,7 +6,8 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.web.WebView?>
 
-<fx:root type="Tab" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
+<Tab fx:id="channelTabRoot" fx:controller="com.faforever.client.chat.ChannelTabController"
+     xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0">
     <children>
       <SplitPane dividerPositions="0.9" focusTraversable="false" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
@@ -55,4 +56,4 @@
       <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage" onKeyPressed="#onKeyPressed" promptText="%chat.messagePrompt" />
     </children>
   </VBox>
-</fx:root>
+</Tab>

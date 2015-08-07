@@ -3,14 +3,14 @@ package com.faforever.client.config;
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.AvatarService;
 import com.faforever.client.chat.AvatarServiceImpl;
+import com.faforever.client.chat.ChannelTabController;
 import com.faforever.client.chat.ChatController;
-import com.faforever.client.chat.ChatTabFactory;
-import com.faforever.client.chat.ChatTabFactoryImpl;
 import com.faforever.client.chat.ChatUserContextMenuController;
 import com.faforever.client.chat.ChatUserControl;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.CountryFlagServiceImpl;
 import com.faforever.client.chat.PlayerInfoTooltipController;
+import com.faforever.client.chat.PrivateChatTabController;
 import com.faforever.client.chat.UrlPreviewResolver;
 import com.faforever.client.chat.UrlPreviewResolverImpl;
 import com.faforever.client.chat.UserInfoWindowController;
@@ -34,6 +34,7 @@ import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
 import com.faforever.client.main.hub.CommunityHubController;
 import com.faforever.client.main.hub.ConcurrentUsersController;
+import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.news.NewsListItemController;
@@ -46,7 +47,6 @@ import com.faforever.client.sound.AudioClipPlayer;
 import com.faforever.client.sound.AudioClipPlayerImpl;
 import com.faforever.client.sound.SoundController;
 import com.faforever.client.sound.SoundControllerImpl;
-import com.faforever.client.map.MapVaultController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -227,8 +227,15 @@ public class UiConfig {
   }
 
   @Bean
-  ChatTabFactory chatTabFactory() {
-    return new ChatTabFactoryImpl();
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  ChannelTabController channelTab() {
+    return loadController("channel_tab.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  PrivateChatTabController privateChatTab() {
+    return loadController("private_chat_tab.fxml");
   }
 
   @Bean

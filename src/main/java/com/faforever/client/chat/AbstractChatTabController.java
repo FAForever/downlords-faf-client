@@ -2,7 +2,6 @@ package com.faforever.client.chat;
 
 import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.HostService;
-import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -65,8 +64,7 @@ import static com.google.common.html.HtmlEscapers.htmlEscaper;
  * selectable, but text within a WebView is. This comes with some ugly implications; some of the logic has to be
  * performed in interaction with JavaScript, like when the user clicks a link.
  */
-// TODO create a ChatTabController that does not extend Tab but encapsulate it
-public abstract class AbstractChatTab extends Tab {
+public abstract class AbstractChatTabController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -90,10 +88,6 @@ public abstract class AbstractChatTab extends Tab {
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
 
-  private static final Integer GENERAL = 0;
-  private static final Integer FRIEND = 1;
-  private static final Integer FOE = 0;
-
   private EventHandler<MouseEvent> MOVE_HANDLER = (MouseEvent event) -> {
     lastMouseX = event.getScreenX();
     lastMouseY = event.getScreenY();
@@ -104,9 +98,6 @@ public abstract class AbstractChatTab extends Tab {
 
   @Autowired
   ChatService chatService;
-
-  @Autowired
-  FxmlLoader fxmlLoader;
 
   @Autowired
   HostService hostService;
@@ -164,14 +155,13 @@ public abstract class AbstractChatTab extends Tab {
   private Popup playerInfoTooltip;
   private Tooltip linkPreviewTooltip;
 
-  public AbstractChatTab(String receiver, String fxmlFile) {
-    this.receiver = receiver;
-    this.fxmlFile = fxmlFile;
-
+  public AbstractChatTabController() {
     userToCssStyle = new HashMap<>();
     waitingMessages = new ArrayList<>();
+  }
 
-    setClosable(true);
+  public void setReceiver(String receiver) {
+    this.receiver = receiver;
   }
 
   @PostConstruct
@@ -179,7 +169,6 @@ public abstract class AbstractChatTab extends Tab {
     userToCssStyle.put(userService.getUsername(), CSS_STYLE_SELF);
     mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b");
 
-    fxmlLoader.loadCustomControl(fxmlFile, this);
     initChatView();
 
     addFocusListeners();
@@ -225,7 +214,7 @@ public abstract class AbstractChatTab extends Tab {
    * another tab to the "chat" tab or re-focusing the window.
    */
   private void addFocusListeners() {
-    selectedProperty().addListener((observable, oldValue, newValue) -> {
+    getRoot().selectedProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue) {
         // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
         // So let's schedule the focus to be executed afterwards
@@ -233,7 +222,7 @@ public abstract class AbstractChatTab extends Tab {
       }
     });
 
-    tabPaneProperty().addListener((tabPane, oldTabPane, newTabPane) -> {
+    getRoot().tabPaneProperty().addListener((tabPane, oldTabPane, newTabPane) -> {
       if (newTabPane == null) {
         return;
       }
@@ -308,7 +297,7 @@ public abstract class AbstractChatTab extends Tab {
     playerInfoTooltip = new Popup();
     playerInfoTooltip.getContent().setAll(playerInfoTooltipController.getRoot());
     playerInfoTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
-    playerInfoTooltip.show(getTabPane(), lastMouseX, lastMouseY - 10);
+    playerInfoTooltip.show(getRoot().getTabPane(), lastMouseX, lastMouseY - 10);
   }
 
   /**
@@ -343,7 +332,7 @@ public abstract class AbstractChatTab extends Tab {
     linkPreviewTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
     linkPreviewTooltip.setGraphic(preview.node);
     linkPreviewTooltip.setContentDisplay(ContentDisplay.TOP);
-    linkPreviewTooltip.show(getTabPane(), lastMouseX + 20, lastMouseY);
+    linkPreviewTooltip.show(getRoot().getTabPane(), lastMouseX + 20, lastMouseY);
   }
 
   public void hideUrlPreview() {
@@ -614,14 +603,16 @@ public abstract class AbstractChatTab extends Tab {
    * user is not in "chat" or if the window has no focus.
    */
   protected boolean hasFocus() {
-    if (!isSelected()) {
+    if (!getRoot().isSelected()) {
       return false;
     }
 
-    TabPane tabPane = getTabPane();
+    TabPane tabPane = getRoot().getTabPane();
     return tabPane != null
         && JavaFxUtil.isVisibleRecursively(tabPane)
         && tabPane.getScene().getWindow().isFocused();
 
   }
+
+  public abstract Tab getRoot();
 }

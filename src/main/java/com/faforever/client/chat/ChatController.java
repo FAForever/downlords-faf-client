@@ -6,9 +6,11 @@ import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.Pane;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
@@ -27,7 +29,7 @@ public class ChatController implements
   ChatService chatService;
 
   @Autowired
-  ChatTabFactory chatTabFactory;
+  ApplicationContext applicationContext;
 
   @Autowired
   UserService userService;
@@ -41,10 +43,10 @@ public class ChatController implements
   @FXML
   Pane connectingProgressPane;
 
-  private final Map<String, AbstractChatTab> nameToChatTab;
+  private final Map<String, AbstractChatTabController> nameToChatTabController;
 
   public ChatController() {
-    nameToChatTab = new HashMap<>();
+    nameToChatTabController = new HashMap<>();
   }
 
   @PostConstruct
@@ -69,30 +71,33 @@ public class ChatController implements
     });
   }
 
-  private AbstractChatTab addAndGetChannelTab(String playerOrChannelName) {
+  private AbstractChatTabController addAndGetChannelTab(String channelName) {
     JavaFxUtil.assertApplicationThread();
 
-    if (!nameToChatTab.containsKey(playerOrChannelName)) {
-      AbstractChatTab tab = chatTabFactory.createChannelTab(playerOrChannelName);
-      addTab(playerOrChannelName, tab);
+    if (!nameToChatTabController.containsKey(channelName)) {
+      ChannelTabController tab = applicationContext.getBean(ChannelTabController.class);
+      tab.setChannelName(channelName);
+      addTab(channelName, tab);
     }
-    return nameToChatTab.get(playerOrChannelName);
+    return nameToChatTabController.get(channelName);
   }
 
-  private AbstractChatTab addAndGetPrivateMessageTab(String username) {
+  private AbstractChatTabController addAndGetPrivateMessageTab(String username) {
     JavaFxUtil.assertApplicationThread();
 
-    if (!nameToChatTab.containsKey(username)) {
-      AbstractChatTab tab = chatTabFactory.createPrivateMessageTab(username);
+    if (!nameToChatTabController.containsKey(username)) {
+      PrivateChatTabController tab = applicationContext.getBean(PrivateChatTabController.class);
+      tab.setUsername(username);
       addTab(username, tab);
     }
 
-    return nameToChatTab.get(username);
+    return nameToChatTabController.get(username);
   }
 
-  private void addTab(String playerOrChannelName, AbstractChatTab tab) {
-    nameToChatTab.put(playerOrChannelName, tab);
-    tab.setOnClosed(event -> nameToChatTab.remove(playerOrChannelName));
+  private void addTab(String playerOrChannelName, AbstractChatTabController tabController) {
+    nameToChatTabController.put(playerOrChannelName, tabController);
+    Tab tab = tabController.getRoot();
+    tab.setOnClosed(event -> nameToChatTabController.remove(playerOrChannelName));
 
     if (chatService.isDefaultChannel(tab.getId())) {
       chatsTabPane.getTabs().add(0, tab);
@@ -136,14 +141,14 @@ public class ChatController implements
   }
 
   public void openPrivateMessageTabForUser(String username) {
-    AbstractChatTab tab = addAndGetPrivateMessageTab(username);
-    chatsTabPane.getSelectionModel().select(tab);
+    AbstractChatTabController controller = addAndGetPrivateMessageTab(username);
+    chatsTabPane.getSelectionModel().select(controller.getRoot());
   }
 
   @Override
   public void onChatUserLeftChannel(String username, String channelName) {
     if (userService.getUsername().equals(username)) {
-      chatsTabPane.getTabs().remove(nameToChatTab.get(channelName));
+      chatsTabPane.getTabs().remove(nameToChatTabController.get(channelName));
     }
   }
 
