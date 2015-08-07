@@ -1,21 +1,37 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.test.AbstractSpringJavaFxTest;
+import javafx.scene.Node;
+import javafx.scene.control.Tab;
 import javafx.stage.Stage;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.time.Instant;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+// TODO those unit tests need to be improved (missing verifications)
 public class ChatControllerTest extends AbstractSpringJavaFxTest {
 
+  private static final long TIMEOUT = 1000;
+  private static final TimeUnit TIMEOUT_UNITS = TimeUnit.MILLISECONDS;
+  public static final String TEST_CHANNEL_NAME = "#testChannel";
+
   @Autowired
-  ChatTabFactory chatTabFactory;
+  ChannelTabController channelTabController;
+
+  @Autowired
+  PrivateChatTabController privateChatTabController;
 
   private ChatController chatController;
 
@@ -27,9 +43,20 @@ public class ChatControllerTest extends AbstractSpringJavaFxTest {
   }
 
   @Test
-  public void testOnMessage() throws Exception {
-    ChatMessage chatMessage = mock(ChatMessage.class);
-    chatController.onMessage("#testChannel", chatMessage);
+  public void testOnMessageForChannel() throws Exception {
+    when(channelTabController.getRoot()).thenReturn(new Tab());
+    ChatMessage chatMessage = new ChatMessage(Instant.now(), "junit", "message");
+
+    CompletableFuture<ChatMessage> chatMessageCompletableFuture = new CompletableFuture<>();
+    doAnswer(invocation -> {
+      chatMessageCompletableFuture.complete((ChatMessage) invocation.getArguments()[0]);
+      return null;
+    }).when(channelTabController).onChatMessage(chatMessage);
+
+    chatController.onMessage(TEST_CHANNEL_NAME, chatMessage);
+    chatMessageCompletableFuture.get(TIMEOUT, TIMEOUT_UNITS);
+
+    verify(channelTabController).onChatMessage(chatMessage);
   }
 
   @Test
@@ -40,7 +67,7 @@ public class ChatControllerTest extends AbstractSpringJavaFxTest {
   @Test
   public void testOnUserJoinedChannel() throws Exception {
     ChatUser chatUser = mock(ChatUser.class);
-    chatController.onUserJoinedChannel("#testChannel", chatUser);
+    chatController.onUserJoinedChannel(TEST_CHANNEL_NAME, chatUser);
   }
 
   @Test
@@ -51,7 +78,7 @@ public class ChatControllerTest extends AbstractSpringJavaFxTest {
 
   @Test
   public void testGetRoot() throws Exception {
-    assertNotNull(chatController.getRoot());
+    assertThat(chatController.getRoot(), instanceOf(Node.class));
   }
 
   @Test(expected = IllegalStateException.class)
@@ -60,18 +87,19 @@ public class ChatControllerTest extends AbstractSpringJavaFxTest {
   }
 
   @Test
-  public void testOpenPrivateMessageTabForUserOnApplicationThread() throws Exception {
-    when(chatTabFactory.createPrivateMessageTab("user")).thenReturn(new PrivateChatTab("user"));
+  public void testOpenPrivateMessageTabForUser() throws Exception {
+    when(privateChatTabController.getRoot()).thenReturn(new Tab());
     WaitForAsyncUtils.waitForAsyncFx(10, () -> chatController.openPrivateMessageTabForUser("user"));
   }
 
   @Test
   public void testOnChatUserLeftChannel() throws Exception {
-    chatController.onChatUserLeftChannel("testUser", "#testChannel");
+    chatController.onChatUserLeftChannel("testUser", TEST_CHANNEL_NAME);
   }
 
   @Test
   public void testOnJoinChannelsRequest() throws Exception {
-    chatController.onJoinChannelsRequest(Arrays.asList("#testChannel", "#clanChannel"));
+    when(channelTabController.getRoot()).thenReturn(new Tab());
+    chatController.onJoinChannelsRequest(Arrays.asList(TEST_CHANNEL_NAME, TEST_CHANNEL_NAME));
   }
 }
