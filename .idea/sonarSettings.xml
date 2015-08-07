@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="projectSettings">
+    <option name="alternativeWorkingDirPath" value="" />
+    <option name="localAnalysisScripName" value="&lt;NO LOCAL ANALYSIS&gt;" />
+    <option name="resources">
+      <list>
+        <Resource>
+          <option name="creationDate" value="1438780499000" />
+          <option name="date" value="1438978008000" />
+          <option name="description" value="" />
+          <option name="id" value="1" />
+          <option name="key" value="downlords-faf-client" />
+          <option name="longName" value="downlords-faf-client" />
+          <option name="name" value="downlords-faf-client" />
+          <option name="qualifier" value="TRK" />
+          <option name="scope" value="PRJ" />
+          <option name="version" value="0.4.5-alpha" />
+        </Resource>
+      </list>
+    </option>
+    <option name="serverName" value="home" />
+    <option name="useAlternativeWorkingDir" value="false" />
+    <option name="workingDirSelection" value="&lt;PROJECT&gt;" />
+  </component>
+</project>
