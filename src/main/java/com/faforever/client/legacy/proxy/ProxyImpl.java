@@ -1,11 +1,11 @@
 package com.faforever.client.legacy.proxy;
 
+import com.faforever.client.legacy.io.QDataInputStream;
 import com.faforever.client.legacy.io.QDataOutputStream;
-import com.faforever.client.legacy.io.QDataReader;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.SocketAddressUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.net.InetAddresses;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
@@ -121,56 +121,59 @@ public class ProxyImpl implements Proxy {
   @Autowired
   PreferencesService preferencesService;
 
-  private Map<Integer, Peer> peersByUid;
-  private Map<String, Peer> peersByAddress;
-  private boolean gameLaunched;
-  private boolean bottleneck;
+  @VisibleForTesting
+  Map<Integer, Peer> peersByUid;
+
+  /**
+   * Maps peer addresses (local and public) to peers.
+   */
+  @VisibleForTesting
+  Map<String, Peer> peersByAddress;
+
+  @VisibleForTesting
+  boolean gameLaunched;
+  boolean bottleneck;
   private InetAddress localInetAddr;
   /**
    * Public UDP socket that receives game data if p2p proxy is enabled (default port 6112).
    */
   private DatagramSocket publicSocket;
   private final Random random;
-  private int uid;
+  int uid;
   /**
    * Socket to the FAF proxy server.
    */
   private Socket fafProxySocket;
-  private long lastProxyDataTimestamp;
-  private boolean p2pProxyEnabled;
-  private Set<Integer> testedLoopbackPorts;
   private Set<OnP2pProxyInitializedListener> onP2pProxyInitializedListeners;
 
   /**
    * Holds UDP sockets that represent other players. Key is the player's number (0 - 11).
    */
-  private final Map<Integer, DatagramSocket> proxySockets;
+  @VisibleForTesting
+  final Map<Integer, DatagramSocket> proxySocketsByPlayerNumber;
   private QDataOutputStream fafProxyOutputStream;
-  private QDataReader fafProxyReader;
-  private ForgedAlliancePrefs forgedAlliancePrefs;
+  private QDataInputStream fafProxyReader;
+
   /**
    * Lock to synchronize multiple threads trying to read/write/open a FAF proxy connection
    */
   private final Object proxyLock;
 
-  public ProxyImpl(ForgedAlliancePrefs forgedAlliancePrefs) {
-    this.forgedAlliancePrefs = forgedAlliancePrefs;
-
+  public ProxyImpl() {
     proxyLock = new Object();
     random = new Random();
     peersByUid = new HashMap<>();
     peersByAddress = new HashMap<>();
     localInetAddr = InetAddress.getLoopbackAddress();
-    testedLoopbackPorts = new HashSet<>();
     onP2pProxyInitializedListeners = new HashSet<>();
-    proxySockets = new ConcurrentHashMap<>();
+    proxySocketsByPlayerNumber = new ConcurrentHashMap<>();
   }
 
   @Override
   public void close() throws IOException {
     logger.info("Closing proxy sockets");
 
-    Iterator<Map.Entry<Integer, DatagramSocket>> iterator = proxySockets.entrySet().iterator();
+    Iterator<Map.Entry<Integer, DatagramSocket>> iterator = proxySocketsByPlayerNumber.entrySet().iterator();
     while (iterator.hasNext()) {
       Map.Entry<Integer, DatagramSocket> entry = iterator.next();
       Integer playerNumber = entry.getKey();
@@ -193,7 +196,7 @@ public class ProxyImpl implements Proxy {
    *
    * @param proxySocket a local UDP socket representing another player
    */
-  private void startProxyReaderInBackground(int playerNumber, int playerUid, final DatagramSocket proxySocket) throws IOException {
+  private void startFaReaderInBackground(int playerNumber, int playerUid, final DatagramSocket proxySocket) throws IOException {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
@@ -202,13 +205,11 @@ public class ProxyImpl implements Proxy {
         byte[] buffer = new byte[1024];
         DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
 
-        int port = proxySocket.getLocalPort();
-
         while (!isCancelled()) {
           try {
             proxySocket.receive(datagramPacket);
 
-            logger.trace("Received {} bytes from FA for player #{}, forwarding to FAF proxy", datagramPacket.getLength(), playerNumber, port);
+            logger.trace("Received {} bytes from FA for player #{}, forwarding to FAF proxy", datagramPacket.getLength(), playerNumber);
           } catch (SocketException | EOFException e) {
             logger.info("Proxy socket for player #{} has been closed ({})", e.getMessage());
             return null;
@@ -248,7 +249,7 @@ public class ProxyImpl implements Proxy {
       }
 
       String proxyHost = environment.getProperty("proxy.host");
-      Integer proxyPort = environment.getProperty("proxy.port", Integer.class);
+      int proxyPort = environment.getProperty("proxy.port", int.class);
 
       logger.info("Connecting to FAF proxy at {}:{}", proxyHost, proxyPort);
 
@@ -257,7 +258,7 @@ public class ProxyImpl implements Proxy {
       fafProxySocket.connect(new InetSocketAddress(proxyHost, proxyPort), PROXY_CONNECTION_TIMEOUT);
 
       fafProxyOutputStream = new QDataOutputStream(new BufferedOutputStream(fafProxySocket.getOutputStream()));
-      fafProxyReader = new QDataReader(new DataInputStream(new BufferedInputStream(fafProxySocket.getInputStream())));
+      fafProxyReader = new QDataInputStream(new DataInputStream(new BufferedInputStream(fafProxySocket.getInputStream())));
 
       sendUid(uid);
       startFafProxyReaderInBackground();
@@ -266,31 +267,32 @@ public class ProxyImpl implements Proxy {
 
   /**
    * Starts a reader in background that reads the FAF proxy data and forwards that data to FA as if it was sent by a
-   * specific player. Yes, we're the man-in-the-middle.
+   * specific player. We're the man-in-the-middle.
    */
   private void startFafProxyReaderInBackground() {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
+        int port = preferencesService.getPreferences().getForgedAlliance().getPort();
+
         byte[] payloadBuffer = new byte[1024];
         byte[] datagramBuffer = new byte[1024];
         DatagramPacket datagramPacket = new DatagramPacket(datagramBuffer, datagramBuffer.length);
-        datagramPacket.setSocketAddress(new InetSocketAddress(localInetAddr, forgedAlliancePrefs.getPort()));
+        datagramPacket.setSocketAddress(new InetSocketAddress(localInetAddr, port));
 
         try {
           while (!isCancelled()) {
             // Skip block size bytes, we have no use for it
-            fafProxyReader.readInt32();
+            fafProxyReader.readInt();
 
             int playerNumber = fafProxyReader.readShort();
-
             int payloadSize = fafProxyReader.readQByteArray(payloadBuffer);
 
             logger.trace("Forwarding {} bytes from FAF proxy, sent by player #{}", payloadSize, playerNumber);
 
             datagramPacket.setData(payloadBuffer, 0, payloadSize);
 
-            DatagramSocket proxySocket = proxySockets.get(playerNumber);
+            DatagramSocket proxySocket = proxySocketsByPlayerNumber.get(playerNumber);
             if (proxySocket == null) {
               logger.warn("Discarding proxy data for player #{} as its socket is not yet ready", playerNumber);
               continue;
@@ -319,10 +321,14 @@ public class ProxyImpl implements Proxy {
   @Override
   public void updateConnectedState(int uid, boolean connected) {
     Peer peer = peersByUid.get(uid);
-    if (!connected && peer.connected) {
-      peersByUid.remove(uid);
-      peer.connected = false;
+    if (peer == null) {
+      logger.warn("Can't update connected state for unknown peer: {}", uid);
+      return;
     }
+    if (!connected) {
+      peersByUid.remove(uid);
+    }
+    peer.connected = connected;
   }
 
   @Override
@@ -352,17 +358,17 @@ public class ProxyImpl implements Proxy {
   public String translateToLocal(String publicAddress) {
     Peer peer = peersByAddress.get(publicAddress);
 
-    return SocketAddressUtil.toString(new InetSocketAddress(localInetAddr, peer.localSocket.getLocalPort()));
+    return SocketAddressUtil.toString((InetSocketAddress) peer.localSocket.getLocalSocketAddress());
   }
 
   @Override
-  public void registerPeerIfNecessary(String publicAddress) {
+  public void registerP2pPeerIfNecessary(String publicAddress) {
     if (peersByAddress.containsKey(publicAddress)) {
-      logger.debug("Peer '{}' is already registered", publicAddress);
+      logger.debug("P2P peer '{}' is already registered", publicAddress);
       return;
     }
 
-    logger.debug("Registering peer '{}'", publicAddress);
+    logger.debug("Registering P2P peer '{}'", publicAddress);
 
     try {
       DatagramSocket localSocket = new DatagramSocket(new InetSocketAddress(localInetAddr, 0));
@@ -373,7 +379,10 @@ public class ProxyImpl implements Proxy {
 
       redirectLocalToRemote(peer);
 
+      String localAddress = SocketAddressUtil.toString((InetSocketAddress) peer.localSocket.getLocalSocketAddress());
+
       peersByAddress.put(publicAddress, peer);
+      peersByAddress.put(localAddress, peer);
     } catch (SocketException e) {
       logger.warn("Could not create a local UDP socket", e);
     }
@@ -381,18 +390,21 @@ public class ProxyImpl implements Proxy {
 
   @Override
   public void initializeP2pProxy() throws SocketException {
-    publicSocket = new DatagramSocket(forgedAlliancePrefs.getPort());
+    logger.debug("Initializing P2P proxy");
+
+    int port = preferencesService.getPreferences().getForgedAlliance().getPort();
+    publicSocket = new DatagramSocket(port);
     readPublicSocketInBackground(publicSocket);
 
     onP2pProxyInitializedListeners.forEach(OnP2pProxyInitializedListener::onP2pProxyInitialized);
   }
 
   @Override
-  public void setUidForPeer(String peerAddress, int peerUid) {
-    Peer peer = peersByAddress.get(peerAddress);
+  public void setUidForPeer(String publicAddress, int peerUid) {
+    Peer peer = peersByAddress.get(publicAddress);
 
     if (peer == null) {
-      logger.warn("Got UID for unknown peer: {}", peerAddress);
+      logger.warn("Got UID for unknown peer: {}", publicAddress);
       return;
     }
 
@@ -413,26 +425,26 @@ public class ProxyImpl implements Proxy {
 
   @Override
   public InetSocketAddress bindAndGetProxySocketAddress(int playerNumber, int playerUid) throws IOException {
-    DatagramSocket proxySocket = proxySockets.get(playerNumber);
+    DatagramSocket proxySocket = proxySocketsByPlayerNumber.get(playerNumber);
 
     if (proxySocket == null) {
       proxySocket = new DatagramSocket(new InetSocketAddress(localInetAddr, 0));
     }
 
-    proxySockets.put(playerNumber, proxySocket);
+    proxySocketsByPlayerNumber.put(playerNumber, proxySocket);
 
     InetSocketAddress proxySocketAddress = (InetSocketAddress) proxySocket.getLocalSocketAddress();
     logger.debug("Player #{} with uid {} has been assigned to proxy socket {}",
         playerNumber, playerUid, SocketAddressUtil.toString(proxySocketAddress)
     );
 
-    startProxyReaderInBackground(playerNumber, playerUid, proxySocket);
+    startFaReaderInBackground(playerNumber, playerUid, proxySocket);
 
     return proxySocketAddress;
   }
 
   @Override
-  public void addOnProxyInitializedListener(OnP2pProxyInitializedListener listener) {
+  public void addOnP2pProxyInitializedListener(OnP2pProxyInitializedListener listener) {
     this.onP2pProxyInitializedListeners.add(listener);
   }
 
@@ -446,12 +458,12 @@ public class ProxyImpl implements Proxy {
 
           publicSocket.receive(datagramPacket);
 
-          InetSocketAddress socketAddress = (InetSocketAddress) datagramPacket.getSocketAddress();
+          InetSocketAddress publicAddress = (InetSocketAddress) datagramPacket.getSocketAddress();
 
-          String socketAddressString = SocketAddressUtil.toString(socketAddress);
+          String publicAddressString = SocketAddressUtil.toString(publicAddress);
 
-          Peer peer = peersByAddress.get(socketAddressString);
-          registerPeerIfNecessary(socketAddressString);
+          Peer peer = peersByAddress.get(publicAddressString);
+          registerP2pPeerIfNecessary(publicAddressString);
 
           dispatchPublicSocketData(datagramPacket, peer);
         }
@@ -731,7 +743,8 @@ public class ProxyImpl implements Proxy {
     return new InetSocketAddress(InetAddresses.forString(host), port);
   }
 
-  public static boolean isReconnectionSequence(byte[] data) {
+  @VisibleForTesting
+  static boolean isReconnectionSequence(byte[] data) {
     if (data.length < RECONNECTION_ESCAPE_PREFIX.length) {
       return false;
     }

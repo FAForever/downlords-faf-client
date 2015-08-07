@@ -8,7 +8,8 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.web.WebView?>
 
-<fx:root type="Tab" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
+<Tab fx:id="privateChatTabRoot" fx:controller="com.faforever.client.chat.PrivateChatTabController"
+     xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
    <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
       <children>
         <WebView fx:id="messagesWebView" blendMode="ADD" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0"
@@ -17,4 +18,4 @@
                    promptText="%chat.messagePrompt"/>
       </children>
    </VBox>
-</fx:root>
+</Tab>

@@ -36,6 +36,8 @@ import com.faforever.client.network.PortCheckService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.patch.GitRepositoryPatchService;
+import com.faforever.client.patch.GitWrapper;
+import com.faforever.client.patch.JGitWrapper;
 import com.faforever.client.patch.PatchService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
@@ -200,7 +202,7 @@ public class ServiceConfig {
 
   @Bean
   Proxy proxy() {
-    return new ProxyImpl(preferencesService().getPreferences().getForgedAlliance());
+    return new ProxyImpl();
   }
 
   @Bean
@@ -246,5 +248,10 @@ public class ServiceConfig {
   @Bean
   ImageUploadService imageUploadService() {
     return new ImgurImageUploadService();
+  }
+
+  @Bean
+  GitWrapper gitWrapper() {
+    return new JGitWrapper();
   }
 }

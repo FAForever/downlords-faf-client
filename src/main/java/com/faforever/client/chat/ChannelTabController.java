@@ -10,6 +10,7 @@ import javafx.collections.SetChangeListener;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.Pane;
@@ -23,7 +24,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ChannelTab extends AbstractChatTab {
+public class ChannelTabController extends AbstractChatTabController {
+
+  @FXML
+  Tab channelTabRoot;
 
   @FXML
   WebView messagesWebView;
@@ -50,31 +54,24 @@ public class ChannelTab extends AbstractChatTab {
   TextField messageTextField;
 
   @Autowired
-  ChatController chatController;
-
-  @Autowired
   ApplicationContext applicationContext;
-
-  private final String channelName;
 
   /**
    * Keeps track of which ChatUserControl in which pane belongs to which user.
    */
   private final Map<String, Map<Pane, ChatUserControl>> userToChatUserControls;
+  private String channelName;
 
-  public ChannelTab(String channelName) {
-    super(channelName, "channel_tab.fxml");
-    this.channelName = channelName;
-
+  public ChannelTabController() {
     userToChatUserControls = FXCollections.observableMap(new ConcurrentHashMap<>());
-
-    setId(channelName);
-    setText(channelName);
   }
 
-  @Override
-  void postConstruct() {
-    super.postConstruct();
+  public void setChannelName(String channelName) {
+    super.setReceiver(channelName);
+    this.channelName = channelName;
+
+    channelTabRoot.setId(channelName);
+    channelTabRoot.setText(channelName);
 
     chatService.addChannelUserListListener(channelName, change -> {
       if (change.wasAdded()) {
@@ -90,11 +87,13 @@ public class ChannelTab extends AbstractChatTab {
       protected Void call() throws Exception {
         ObservableMap<String, ChatUser> chatUsersForChannel = chatService.getChatUsersForChannel(channelName);
         synchronized (chatUsersForChannel) {
-          chatUsersForChannel.values().forEach(ChannelTab.this::onUserJoinedChannel);
+          chatUsersForChannel.values().forEach(ChannelTabController.this::onUserJoinedChannel);
         }
         return null;
       }
     });
+
+    channelTabRoot.setOnCloseRequest(event -> chatService.leaveChannel(channelName));
   }
 
   @Override
@@ -107,13 +106,16 @@ public class ChannelTab extends AbstractChatTab {
     return messageTextField;
   }
 
+  @Override
+  public Tab getRoot() {
+    return channelTabRoot;
+  }
+
   @FXML
   void initialize() {
     userSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       filterChatUserControlsBySearchString();
     });
-
-    setOnCloseRequest(event -> chatService.leaveChannel(channelName));
   }
 
   private void onUserJoinedChannel(ChatUser chatUser) {
@@ -186,7 +188,7 @@ public class ChannelTab extends AbstractChatTab {
     userToChatUserControls.putIfAbsent(username, new HashMap<>(targetPanesForUser.size(), 1));
 
     for (Pane pane : targetPanesForUser) {
-      // Remove Plateform.runLater() as soon as RT-40417 is fixed
+      // Remove Platform.runLater() as soon as JDK-8097541 is fixed
       Platform.runLater(() -> createChatUserControlForPlayerIfNecessary(pane, playerInfoBean));
     }
   }
