@@ -66,7 +66,7 @@ class Header {
 
         headerIn.read(buf);
         magic = new String(buf);
-        if (!magic.equals("BSDIFF40")) {
+        if (!"BSDIFF40".equals(magic)) {
             throw new InvalidHeaderException("Header missing magic number");
         }
 

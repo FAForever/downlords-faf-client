@@ -4,11 +4,6 @@ import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ThemeUtil;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.media.AudioClip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,11 +43,8 @@ public class SoundControllerImpl implements SoundController {
     });
 
     notificationsPrefs = preferencesService.getPreferences().getNotification();
-    notificationsPrefs.soundsEnabledProperty().addListener(new ChangeListener<Boolean>() {
-      @Override
-      public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-        playSounds &= newValue;
-      }
+    notificationsPrefs.soundsEnabledProperty().addListener((observable, oldValue, newValue) -> {
+      playSounds &= newValue;
     });
 
     loadSounds();

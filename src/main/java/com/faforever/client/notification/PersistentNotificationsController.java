@@ -64,9 +64,7 @@ public class PersistentNotificationsController {
   }
 
   private void addNotifications(Set<PersistentNotification> persistentNotifications) {
-    for (PersistentNotification persistentNotification : persistentNotifications) {
-      addNotification(persistentNotification);
-    }
+    persistentNotifications.forEach(this::addNotification);
   }
 
   private void addNotification(PersistentNotification notification) {

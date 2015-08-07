@@ -5,7 +5,7 @@ import org.junit.Test;
 import java.nio.file.Paths;
 import java.util.Collections;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class LaunchCommandBuilderTest {
 

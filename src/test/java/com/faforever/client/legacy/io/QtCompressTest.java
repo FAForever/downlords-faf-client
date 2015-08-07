@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 
 import static com.faforever.client.test.IsUtilityClassMatcher.isUtilityClass;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.*;
 
 public class QtCompressTest {
 

@@ -15,6 +15,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ConcurrentUsersController {
 
@@ -77,11 +78,7 @@ public class ConcurrentUsersController {
     xAxis.setUpperBound(now);
 
     XYChart.Series<Long, Integer> series = new XYChart.Series<>();
-    List<XYChart.Data<Long, Integer>> values = new ArrayList<>();
-
-    for (DummyData data : dummyData) {
-      values.add(new XYChart.Data<>(data.time, data.value));
-    }
+    List<XYChart.Data<Long, Integer>> values = dummyData.stream().map(data -> new XYChart.Data<>(data.time, data.value)).collect(Collectors.toList());
 
     series.getData().setAll(FXCollections.observableList(values));
     chart.getData().setAll(series);

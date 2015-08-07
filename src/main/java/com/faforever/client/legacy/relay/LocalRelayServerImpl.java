@@ -17,7 +17,6 @@ import com.google.gson.GsonBuilder;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
@@ -81,7 +80,6 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   private Collection<OnReadyListener> onReadyListeners;
   private Collection<OnConnectionAcceptedListener> onConnectionAcceptedListeners;
   private ServerSocket serverSocket;
-  private Service<Void> service;
   private boolean stopped;
   private Socket fafSocket;
   private Socket faSocket;
@@ -137,7 +135,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   public void startInBackground() {
     proxy.addOnP2pProxyInitializedListener(this);
 
-    service = executeInBackground(new Task<Void>() {
+    executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
         start();

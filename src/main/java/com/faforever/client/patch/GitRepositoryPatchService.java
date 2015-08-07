@@ -303,7 +303,7 @@ public class GitRepositoryPatchService implements PatchService {
             new PersistentNotification(
                 i18n.get("updateCheckFailed.notification"),
                 Severity.WARN,
-                Arrays.asList(
+                Collections.singletonList(
                     new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdatesInBackground())
                 )
             )

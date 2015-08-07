@@ -12,7 +12,6 @@ public abstract class PrioritizedTask<V> extends Task<V> implements Comparable<P
   }
 
   private final Priority priority;
-  private final long creationTime;
 
   public PrioritizedTask(String title) {
     this(title, Priority.MEDIUM);
@@ -20,7 +19,6 @@ public abstract class PrioritizedTask<V> extends Task<V> implements Comparable<P
 
   public PrioritizedTask(String title, Priority priority) {
     this.priority = priority;
-    creationTime = System.currentTimeMillis();
     updateTitle(title);
   }
 

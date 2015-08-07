@@ -8,7 +8,7 @@ public enum ReplayAction {
   private static final HashMap<String, ReplayAction> fromString;
 
   static {
-    fromString = new HashMap<String, ReplayAction>();
+    fromString = new HashMap<>();
     for (ReplayAction replayAction : values()) {
       fromString.put(replayAction.string, replayAction);
     }

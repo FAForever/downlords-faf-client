@@ -11,7 +11,6 @@ import javafx.scene.media.AudioClip;
 import javafx.stage.Stage;
 import org.junit.Test;
 
-
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -20,8 +19,6 @@ import static org.mockito.Mockito.when;
 
 public class SoundControllerImplTest extends AbstractPlainJavaFxTest {
   private SoundControllerImpl instance;
-  private Preferences preferences;
-  private ChatPrefs chatPrefs;
   private NotificationsPrefs notificationsPrefs;
 
   @Override
@@ -31,8 +28,8 @@ public class SoundControllerImplTest extends AbstractPlainJavaFxTest {
     instance.preferencesService = mock(PreferencesService.class);
     instance.audioClipPlayer = mock(AudioClipPlayer.class);
 
-    preferences = mock(Preferences.class);
-    chatPrefs = mock(ChatPrefs.class);
+    Preferences preferences = mock(Preferences.class);
+    ChatPrefs chatPrefs = mock(ChatPrefs.class);
     notificationsPrefs = mock(NotificationsPrefs.class);
 
 

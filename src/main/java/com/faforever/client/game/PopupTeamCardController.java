@@ -36,9 +36,6 @@ public class PopupTeamCardController {
   I18n i18n;
 
   /**
-   *
-   * @param playerList
-   * @param teamNumber
    * @return whether playerInfoBean is a null parameter
    */
   public boolean setTeam(List<String> playerList, int teamNumber) {

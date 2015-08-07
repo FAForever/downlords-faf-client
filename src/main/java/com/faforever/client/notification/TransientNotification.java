@@ -20,18 +20,26 @@ public class TransientNotification {
     this(title, text, null, null);
   }
 
-  public TransientNotification(String title, String text, Image image) {
-    this(title, text, image, null);
-  }
-
-  public TransientNotification(String title, String text, List<Action> actions) {
-    this(title, text, null, actions);
-  }
-
   public TransientNotification(String title, String text, Image image, List<Action> actions) {
     this.title = title;
     this.text = text;
     this.image = image;
     this.actions = actions;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public String getText() {
+    return text;
+  }
+
+  public Image getImage() {
+    return image;
+  }
+
+  public List<Action> getActions() {
+    return actions;
   }
 }

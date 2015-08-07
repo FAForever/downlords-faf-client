@@ -66,9 +66,7 @@ public class ChatController implements
 
   @Override
   public void onMessage(String channelName, ChatMessage chatMessage) {
-    Platform.runLater(() -> {
-      addAndGetChannelTab(channelName).onChatMessage(chatMessage);
-    });
+    Platform.runLater(() -> addAndGetChannelTab(channelName).onChatMessage(chatMessage));
   }
 
   private AbstractChatTabController addAndGetChannelTab(String channelName) {
@@ -148,7 +146,7 @@ public class ChatController implements
   @Override
   public void onChatUserLeftChannel(String username, String channelName) {
     if (userService.getUsername().equals(username)) {
-      chatsTabPane.getTabs().remove(nameToChatTabController.get(channelName));
+      chatsTabPane.getTabs().remove(nameToChatTabController.get(channelName).getRoot());
     }
   }
 

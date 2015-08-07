@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.effect.*?>
-<?import org.controlsfx.control.*?>
-<?import org.controlsfx.control.cell.*?>
-<?import java.lang.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
-
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
 <ScrollPane fx:id="tiledScrollPane" fitToWidth="true" hbarPolicy="NEVER" styleClass="games-tiled" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GamesTiledController">
    <content>
       <FlowPane fx:id="tiledFlowPane" nodeOrientation="LEFT_TO_RIGHT" prefWrapLength="0.0" vgap="10.0" />

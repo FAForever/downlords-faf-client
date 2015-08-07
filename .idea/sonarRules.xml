@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="rules">
+    <option name="sonarRulesByRuleKey">
+      <map>
+        <entry key="squid:HiddenFieldCheck">
+          <value>
+            <Rule>
+              <option name="htmlDesc" value="&lt;p&gt;Shadowing fields with a local variable or with a method parameter is a bad practice reducing code readability: It makes it confusing to know whether the field or the variable is and should be accessed.&lt;/p&gt;&#10;&lt;h2&gt;Noncompliant Code Example&lt;/h2&gt;&#10;&#10;&lt;pre&gt;&#10;class Foo {&#10;  public int myField;&#10;&#10;  public void doSomething() {&#10;    int myField = 0;&#10;    ...&#10;  }&#10;&#10;  public void doSomethingElse(int myField) {&#10;    ...&#10;  }&#10;}&#10;&lt;/pre&gt;&#10;&lt;h2&gt;Exceptions&lt;/h2&gt;&#10;&#10;&lt;p&gt;Constructors and setters are exceptions; it is common practice to name arguments for the fields the values will be assigned to. Static methods are also excepted.&lt;/p&gt;&#10;&lt;pre&gt;&#10;class Foo {&#10;  public int myField;&#10;&#10;  public Foo(int myField) {&#10;    this.myField = myField;&#10;  }&#10;&#10;  public static Foo build(int myField) {&#10;    ...&#10;  }&#10;&#10;  public void setMyField(int myField){&#10;    this.myField = myField;&#10;  } &#10;}&#10;&lt;/pre&gt;" />
+              <option name="key" value="squid:HiddenFieldCheck" />
+              <option name="langName" value="Java" />
+              <option name="name" value="Local variables should not shadow class fields" />
+              <option name="severity" value="MAJOR" />
+            </Rule>
+          </value>
+        </entry>
+        <entry key="squid:S1132">
+          <value>
+            <Rule>
+              <option name="htmlDesc" value="&lt;p&gt;&#10;It is preferable to place string literals on the left-hand side of an &lt;code&gt;equals()&lt;/code&gt; or &lt;code&gt;equalsIgnoreCase()&lt;/code&gt; method call.&#10;This prevents null pointer exceptions from being raised, as a string literal can never be null by definition.&#10;&lt;/p&gt;&#10;&#10;&lt;p&gt;The following code:&lt;/p&gt;&#10;&#10;&lt;pre&gt;&#10;String myString = null;&#10;&#10;System.out.println(&quot;Equal? &quot; + myString.equals(&quot;foo&quot;));                        // Non-Compliant - will raise a NPE&#10;System.out.println(&quot;Equal? &quot; + (myString != null &amp;&amp; myString.equals(&quot;foo&quot;)));  // Non-Compliant - null check could be removed&#10;&lt;/pre&gt;&#10;&#10;&lt;p&gt;should be refactored into:&lt;/p&gt;&#10;&#10;&lt;pre&gt;&#10;System.out.println(&quot;Equal?&quot; + &quot;foo&quot;.equals(myString));                         // Compliant - properly deals with the null case&#10;&lt;/pre&gt;" />
+              <option name="key" value="squid:S1132" />
+              <option name="langName" value="Java" />
+              <option name="name" value="Strings literals should be placed on the left side when checking for equality" />
+              <option name="severity" value="MAJOR" />
+            </Rule>
+          </value>
+        </entry>
+        <entry key="squid:S1210">
+          <value>
+            <Rule>
+              <option name="htmlDesc" value="&lt;p&gt;&#10;According to the Java &lt;code&gt;Comparable.compareTo(T o)&lt;/code&gt; documentation:&#10;&lt;/p&gt;&#10;&#10;&lt;blockquote&gt;&#10;It is strongly recommended, but not strictly required that &lt;code&gt;(x.compareTo(y)==0) == (x.equals(y))&lt;/code&gt;.&#10;Generally speaking, any class that implements the Comparable interface and violates this condition should clearly indicate this fact.&#10;The recommended language is &quot;Note: this class has a natural ordering that is inconsistent with equals.&quot;&#10;&lt;/blockquote&gt;&#10;&#10;&lt;p&gt;&#10;If this rule is violated, weird and unpredictable failures can occur.&#10;For example, in Java 5 the &lt;code&gt;PriorityQueue.remove()&lt;/code&gt; method relied on &lt;code&gt;compareTo()&lt;/code&gt;, but since Java 6 it relies on &lt;code&gt;equals()&lt;/code&gt;.&#10;&lt;/p&gt;&#10;&#10;&lt;h2&gt;Noncompliant Code Example&lt;/h2&gt;&#10;&#10;&lt;pre&gt;&#10;public class Foo implements Comparable&amp;lt;Foo&amp;gt; {&#10;  @Override&#10;  public int compareTo(Foo foo) { /* ... */ }      // Noncompliant as the equals(Object obj) method is not overridden&#10;}&#10;&lt;/pre&gt;&#10;&#10;&lt;h2&gt;Compliant Solution&lt;/h2&gt;&#10;&#10;&lt;pre&gt;&#10;public class Foo implements Comparable&amp;lt;Foo&amp;gt; {&#10;  @Override&#10;  public int compareTo(Foo foo) { /* ... */ }      // Compliant&#10;&#10;  @Override&#10;  public boolean equals(Object obj) { /* ... */ }&#10;}&#10;&lt;/pre&gt;" />
+              <option name="key" value="squid:S1210" />
+              <option name="langName" value="Java" />
+              <option name="name" value="&quot;equals(Object obj)&quot; should be overridden along with the &quot;compareTo(T obj)&quot; method" />
+              <option name="severity" value="CRITICAL" />
+            </Rule>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

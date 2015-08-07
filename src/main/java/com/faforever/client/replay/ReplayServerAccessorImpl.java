@@ -2,7 +2,6 @@ package com.faforever.client.replay;
 
 import com.faforever.client.legacy.AbstractServerAccessor;
 import com.faforever.client.legacy.ClientMessageSerializer;
-import com.faforever.client.legacy.OnPlayerStatsListener;
 import com.faforever.client.legacy.StringSerializer;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
@@ -36,7 +35,6 @@ public class ReplayServerAccessorImpl extends AbstractServerAccessor implements 
   Environment environment;
 
   private final Gson gson;
-  private OnPlayerStatsListener onPlayerStatsListener;
   private Task<Void> connectionTask;
   private ServerWriter serverWriter;
   private Callback<List<ReplayInfoBean>> replayListCallback;

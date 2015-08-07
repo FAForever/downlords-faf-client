@@ -247,12 +247,12 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     notificationsPopup.setAutoFix(false);
     notificationsPopup.setAutoHide(true);
 
-    notificationService.addPersistentNotificationListener(change -> {
-      Platform.runLater(() -> updateNotificationsButton(change.getSet()));
-    });
-    notificationService.addImmediateNotificationListener(notification -> {
-      Platform.runLater(() -> displayImmediateNotification(notification));
-    });
+    notificationService.addPersistentNotificationListener(
+        change -> Platform.runLater(() -> updateNotificationsButton(change.getSet()))
+    );
+    notificationService.addImmediateNotificationListener(
+        notification -> Platform.runLater(() -> displayImmediateNotification(notification))
+    );
 
     taskService.addChangeListener(change -> {
       while (change.next()) {

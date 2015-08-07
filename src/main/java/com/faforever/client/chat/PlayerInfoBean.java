@@ -1,23 +1,21 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.legacy.domain.PlayerInfo;
-import javafx.beans.property.*;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.FloatProperty;
+import javafx.beans.property.SetProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleFloatProperty;
+import javafx.beans.property.SimpleSetProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableSet;
-
-import java.util.Comparator;
 
 /**
  * Represents a player with username, clan, country, friend/foe flag and so on. Can also be a chat-only user. This
  * represents the combination of a PlayerInfo (from the FAF server) and a ChatUser (from IRC).
  */
 public class PlayerInfoBean {
-
-  public static final Comparator<PlayerInfoBean> SORT_BY_NAME_COMPARATOR = new Comparator<PlayerInfoBean>() {
-    @Override
-    public int compare(PlayerInfoBean o1, PlayerInfoBean o2) {
-      return o1.getUsername().compareTo(o2.getUsername());
-    }
-  };
 
   private StringProperty username;
   private StringProperty clan;

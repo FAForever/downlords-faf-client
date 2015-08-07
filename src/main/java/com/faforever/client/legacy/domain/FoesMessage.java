@@ -10,4 +10,5 @@ public class FoesMessage extends ClientMessage {
     this.command = "social";
     this.foes = foes;
   }
+
 }

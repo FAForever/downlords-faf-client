@@ -2,9 +2,9 @@ package com.faforever.client.network;
 
 import com.faforever.client.fx.HostService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.legacy.relay.LobbyAction;
 import com.faforever.client.legacy.relay.LobbyMessage;
 import com.faforever.client.legacy.relay.RelayClientMessageSerializer;
-import com.faforever.client.legacy.relay.LobbyAction;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;

@@ -77,9 +77,7 @@ public class ChatUserControl extends HBox {
   private void configureClanLabel() {
     setClanTag(playerInfoBean.getClan());
     playerInfoBean.clanProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> {
-        setClanTag(newValue);
-      });
+      Platform.runLater(() -> setClanTag(newValue));
     });
   }
 

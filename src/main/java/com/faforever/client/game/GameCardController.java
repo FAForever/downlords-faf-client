@@ -108,9 +108,7 @@ public class GameCardController {
     }));
 
     displaySimMods(gameInfoBean.getSimMods());
-    gameInfoBean.getSimMods().addListener((MapChangeListener<String, String>) change -> {
-      displaySimMods(change.getMap());
-    });
+    gameInfoBean.getSimMods().addListener((MapChangeListener<String, String>) change -> displaySimMods(change.getMap()));
 
     Image image = mapService.loadSmallPreview(gameInfoBean.getMapName());
     mapImageView.setImage(image);

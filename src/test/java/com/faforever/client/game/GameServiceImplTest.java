@@ -15,6 +15,7 @@ import com.faforever.client.util.Callback;
 import javafx.collections.MapChangeListener;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.util.Arrays;
@@ -39,6 +40,9 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
   private GameServiceImpl instance;
 
+  @Mock
+  private Callback<Void> callback;
+
   @Before
   public void setUp() throws Exception {
     instance = new GameServiceImpl();
@@ -57,9 +61,9 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testJoinGameMapIsAvailable() throws Exception {
     GameInfoBean gameInfoBean = mock(GameInfoBean.class);
-    Callback<Void> callback = mock(Callback.class);
 
     when(gameInfoBean.getMapName()).thenReturn("map");
 
@@ -112,16 +116,17 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAddOnGameTypeInfoListener() throws Exception {
-    MapChangeListener listener = mock(MapChangeListener.class);
+    @SuppressWarnings("unchecked")
+    MapChangeListener<String, GameTypeBean> listener = mock(MapChangeListener.class);
     instance.addOnGameTypeInfoListener(listener);
 
     instance.onGameTypeInfo(GameTypeInfoBuilder.create().defaultValues().get());
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testAddOnGameStartedListener() throws Exception {
     OnGameStartedListener listener = mock(OnGameStartedListener.class);
-    Callback<Void> callback = mock(Callback.class);
     Process process = mock(Process.class);
 
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();

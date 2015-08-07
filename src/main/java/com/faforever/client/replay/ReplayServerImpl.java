@@ -61,7 +61,6 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
   ReplayFileWriter replayFileWriter;
 
   private LocalReplayInfo replayInfo;
-  private GameInfoBean gameInfoBean;
 
   @PostConstruct
   void postConstruct() {
@@ -143,7 +142,7 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
   }
 
   private void finishReplayInfo() {
-    gameInfoBean = gameService.getByUid(replayInfo.uid);
+    GameInfoBean gameInfoBean = gameService.getByUid(replayInfo.uid);
 
     replayInfo.gameEnd = pythonTime();
     replayInfo.recorder = userService.getUsername();
