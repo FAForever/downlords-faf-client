@@ -1,21 +1,32 @@
 package com.faforever.client.game;
 
+import com.faforever.client.legacy.OnGameTypeInfoListener;
+import com.faforever.client.legacy.domain.GameTypeInfo;
+import javafx.collections.MapChangeListener.Change;
 import com.faforever.client.map.MapService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractSpringJavaFxTest;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.file.Paths;
 
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class CreateGameControllerTest extends AbstractSpringJavaFxTest {
@@ -28,6 +39,9 @@ public class CreateGameControllerTest extends AbstractSpringJavaFxTest {
 
   @Autowired
   MapService mapService;
+
+  @Autowired
+  GameService gameService;
 
   private ObservableList<MapInfoBean> mapList;
   private static KeyEvent keyUpPressed = new KeyEvent(KeyEvent.KEY_PRESSED, "0", "", KeyCode.UP, false, false, false, false);
@@ -124,10 +138,81 @@ public class CreateGameControllerTest extends AbstractSpringJavaFxTest {
     MapInfoBean lastMap = new MapInfoBean("foo");
     when(preferencesService.getPreferences().getLastMap()).thenReturn("foo");
 
+    mapList.add(new MapInfoBean("Test1"));
+    mapList.add(lastMap);
     instance = loadController("create_game.fxml");
 
     assertThat(instance.mapListView.getSelectionModel().getSelectedItem(), is(lastMap));
   }
+
+  @Test
+  public void testInitGameTypeComboBoxEmpty() throws Exception {
+    instance = loadController("create_game.fxml");
+
+    assertThat(instance.gameTypeComboBox.getItems(), empty());
+  }
+
+  @Test
+  public void testInitGameTypeComboBoxPostPopulated() throws Exception {
+    instance = loadController("create_game.fxml");
+
+    GameTypeBean gameTypeBean = mock(GameTypeBean.class);
+    onGameTypeAdded(gameTypeBean);
+
+    assertThat(instance.gameTypeComboBox.getItems(), hasSize(1));
+    assertThat(instance.gameTypeComboBox.getItems().get(0), is(gameTypeBean));
+  }
+
+  //TODO implement
+  @Test
+  public void testInitGameTypeComboBoxPrePopulated() throws Exception {
+  }
+
+  //FIXME fix this
+  @Test
+  public void testSelectLastOrDefaultSelectDefault() throws Exception {
+    GameTypeBean gameTypeBean = mock(GameTypeBean.class);
+    GameTypeBean gameTypeBean2 = mock(GameTypeBean.class);
+    when(preferencesService.getPreferences().getLastGameType()).thenReturn(null);
+    when(gameTypeBean.getName()).thenReturn(FeaturedMod.DEFAULT_MOD.getString());
+
+    instance = loadController("create_game.fxml");
+
+    onGameTypeAdded(gameTypeBean);
+    onGameTypeAdded(gameTypeBean2);
+
+    assertThat(instance.gameTypeComboBox.getSelectionModel().getSelectedItem(), is(gameTypeBean));
+  }
+
+  @Test
+  public void testSelectLastOrDefaultSelectLast() throws Exception {
+    GameTypeBean gameTypeBean = mock(GameTypeBean.class);
+    GameTypeBean gameTypeBean2 = mock(GameTypeBean.class);
+    when(preferencesService.getPreferences().getLastGameType()).thenReturn("last");
+    when(gameTypeBean.getName()).thenReturn("last");
+
+    instance = loadController("create_game.fxml");
+
+    onGameTypeAdded(gameTypeBean);
+    onGameTypeAdded(gameTypeBean2);
+
+    assertThat(instance.gameTypeComboBox.getSelectionModel().getSelectedItem(), is(gameTypeBean2));
+  }
+
+  private void onGameTypeAdded(GameTypeBean gameTypeBean) {
+    ArgumentCaptor<MapChangeListener<String, GameTypeBean>> argument = ArgumentCaptor.forClass(MapChangeListener.class);
+    verify(instance.gameService, atLeastOnce()).addOnGameTypeInfoListener(argument.capture());
+
+    MapChangeListener<String, GameTypeBean> listener = argument.getValue();
+
+    Change change = mock(Change.class);
+    when(change.wasAdded()).thenReturn(true);
+    when(change.getValueAdded()).thenReturn(gameTypeBean);
+
+    listener.onChanged(change);
+  }
+
+
 
   @Test
   public void testPostConstruct() throws Exception {

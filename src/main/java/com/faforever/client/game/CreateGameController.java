@@ -8,6 +8,7 @@ import com.faforever.client.util.Callback;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
@@ -169,7 +170,7 @@ public class CreateGameController {
       change.getValueAdded();
 
       gameTypeComboBox.getItems().add(change.getValueAdded());
-      selectLastOrDefaultGameType();
+      CreateGameController.this.selectLastOrDefaultGameType();
     });
   }
 

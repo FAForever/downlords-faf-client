@@ -226,7 +226,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     }
 
     gameTypeBeans.put(gameTypeInfo.name, new GameTypeBean(gameTypeInfo));
-  }
+    }
 
   @Override
   public void addOnGameStartedListener(OnGameStartedListener listener) {
