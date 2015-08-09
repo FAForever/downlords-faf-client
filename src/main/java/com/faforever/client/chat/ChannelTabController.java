@@ -92,13 +92,13 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @Override
-  protected TextInputControl getMessageTextField() {
-    return messageTextField;
+  public Tab getRoot() {
+    return channelTabRoot;
   }
 
   @Override
-  public Tab getRoot() {
-    return channelTabRoot;
+  protected TextInputControl getMessageTextField() {
+    return messageTextField;
   }
 
   @FXML

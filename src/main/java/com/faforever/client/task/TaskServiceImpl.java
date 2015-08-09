@@ -46,17 +46,6 @@ public class TaskServiceImpl implements TaskService {
     }
   }
 
-  @Override
-  public <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task, Callback<T> callback) {
-    ConcurrentUtil.setCallbackOnTask(task, callback);
-
-    queuesByGroup.get(taskGroup).add(task);
-
-    ObservableList<PrioritizedTask<?>> tasks = queueListsByGroup.get(taskGroup);
-    tasks.add(task);
-    FXCollections.sort(tasks);
-  }
-
   private void startWorker(TaskGroup taskGroup) {
     logger.debug("Starting worker for task group {}", taskGroup);
 
@@ -78,6 +67,18 @@ public class TaskServiceImpl implements TaskService {
   }
 
   @Override
+  public <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task, Callback<T> callback) {
+    ConcurrentUtil.setCallbackOnTask(task, callback);
+
+    queuesByGroup.get(taskGroup).add(task);
+
+    ObservableList<PrioritizedTask<?>> tasks = queueListsByGroup.get(taskGroup);
+    tasks.add(task);
+    FXCollections.sort(tasks);
+  }
+
+
+  @Override
   public <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task) {
     submitTask(taskGroup, task, null);
   }
@@ -88,8 +89,6 @@ public class TaskServiceImpl implements TaskService {
       queueListsByGroup.get(taskGroup).addListener(listener);
     }
   }
-
-
 
 
 }

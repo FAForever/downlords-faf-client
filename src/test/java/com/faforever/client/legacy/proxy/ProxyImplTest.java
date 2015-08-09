@@ -52,6 +52,7 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
       this.dataLength = dataLength;
     }
   }
+
   public static final int TIMEOUT = 1000;
   public static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();

@@ -33,6 +33,11 @@ public class PrivateChatTabController extends AbstractChatTabController {
   }
 
   @Override
+  public Tab getRoot() {
+    return privateChatTabRoot;
+  }
+
+  @Override
   protected TextInputControl getMessageTextField() {
     return messageTextField;
   }
@@ -44,10 +49,5 @@ public class PrivateChatTabController extends AbstractChatTabController {
     if (!hasFocus()) {
       audioController.playPrivateMessageSound();
     }
-  }
-
-  @Override
-  public Tab getRoot() {
-    return privateChatTabRoot;
   }
 }
