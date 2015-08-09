@@ -16,7 +16,7 @@ public enum GameState {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private String string;
+  private final String string;
 
   private static final Map<String, GameState> fromString;
 

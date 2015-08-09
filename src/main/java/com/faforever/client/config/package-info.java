@@ -1,4 +1,4 @@
 /**
- * Contains spring configuration files. This has nothing to to with user settings.
+ * Spring configuration files. These have nothing to do with user settings.
  */
 package com.faforever.client.config;

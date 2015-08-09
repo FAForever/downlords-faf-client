@@ -250,9 +250,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
   private void enableP2pProxy() throws IOException, InterruptedException {
     CountDownLatch p2pProxyEnabledLatch = new CountDownLatch(1);
-    instance.addOnP2pProxyEnabledChangeListener((observable, oldValue, newValue) -> {
-      p2pProxyEnabledLatch.countDown();
-    });
+    instance.addOnP2pProxyEnabledChangeListener((observable, oldValue, newValue) -> p2pProxyEnabledLatch.countDown());
     sendFromServer(new RelayServerMessage(RelayServerCommand.P2P_RECONNECT));
     p2pProxyEnabledLatch.await();
   }
@@ -423,9 +421,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     verifyAuthenticateMessage();
 
     CountDownLatch latch = new CountDownLatch(1);
-    instance.addOnP2pProxyEnabledChangeListener((observable, oldValue, newValue) -> {
-      latch.countDown();
-    });
+    instance.addOnP2pProxyEnabledChangeListener((observable, oldValue, newValue) -> latch.countDown());
 
     RelayServerMessage relayServerMessage = new RelayServerMessage(RelayServerCommand.P2P_RECONNECT);
     sendFromServer(relayServerMessage);
@@ -550,7 +546,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   /**
    * Writes the specified message to the local relay server as if it was sent by the FAF server.
    */
-  private void sendFromServer(RelayServerMessage relayServerMessage) throws IOException {
+  private void sendFromServer(RelayServerMessage relayServerMessage) {
     serverToRelayWriter.write(relayServerMessage);
   }
 

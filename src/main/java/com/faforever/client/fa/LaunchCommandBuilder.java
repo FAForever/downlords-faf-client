@@ -133,6 +133,11 @@ public class LaunchCommandBuilder {
       command.add(replayFile.toAbsolutePath().toString());
     }
 
+    if (replayUrl != null) {
+      command.add("/replay");
+      command.add(replayUrl.toExternalForm());
+    }
+
     if (uid != null && username != null) {
       command.add("/savereplay");
       command.add("gpgnet://localhost/" + uid + "/" + username + ".SCFAreplay");

@@ -1,11 +1,11 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.audio.AudioController;
 import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.sound.SoundController;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
@@ -18,8 +18,6 @@ import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -34,7 +32,6 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
-import javafx.stage.Window;
 import netscape.javascript.JSObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -88,7 +85,7 @@ public abstract class AbstractChatTabController {
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
 
-  private EventHandler<MouseEvent> MOVE_HANDLER = (MouseEvent event) -> {
+  private final EventHandler<MouseEvent> moveHandler = (MouseEvent event) -> {
     lastMouseX = event.getScreenX();
     lastMouseY = event.getScreenY();
   };
@@ -109,7 +106,7 @@ public abstract class AbstractChatTabController {
   PlayerService playerService;
 
   @Autowired
-  SoundController soundController;
+  AudioController audioController;
 
   @Autowired
   TimeService timeService;
@@ -141,14 +138,13 @@ public abstract class AbstractChatTabController {
    * Either a channel like "#aeolus" or a user like "Visionik".
    */
   private String receiver;
-  private String fxmlFile;
 
   /**
    * Stores possible values for autocompletion (when strted typing a name, then pressing TAB). This value needs to be
    * set to {@code null} after the message has been sent or the caret has been moved in order to restart the
    * autocompletion on next TAB press.
    */
-  private ArrayList<String> possibleAutoCompletions;
+  private List<String> possibleAutoCompletions;
   private int nextAutoCompleteIndex;
   private String autoCompletePartialName;
   private Pattern mentionPattern;
@@ -218,7 +214,7 @@ public abstract class AbstractChatTabController {
       if (newValue) {
         // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
         // So let's schedule the focus to be executed afterwards
-        Platform.runLater(() -> getMessageTextField().requestFocus());
+        Platform.runLater(getMessageTextField()::requestFocus);
       }
     });
 
@@ -247,11 +243,11 @@ public abstract class AbstractChatTabController {
     autoCompletePartialName = null;
   }
 
-  private WebEngine initChatView() {
+  private void initChatView() {
     WebView messagesWebView = getMessagesWebView();
     JavaFxUtil.configureWebView(messagesWebView, preferencesService);
 
-    messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, MOVE_HANDLER);
+    messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
     messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
       preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
       preferencesService.storeInBackground();
@@ -277,8 +273,6 @@ public abstract class AbstractChatTabController {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-
-    return engine;
   }
 
   protected abstract WebView getMessagesWebView();
@@ -319,7 +313,7 @@ public abstract class AbstractChatTabController {
   }
 
   /**
-   * Called from JavaScript when user hovers over a URL.
+   * Called from JavaScript when user hovers over an URL.
    */
   public void previewUrl(String urlString) {
     Preview preview = urlPreviewResolver.resolvePreview(urlString);
@@ -335,16 +329,14 @@ public abstract class AbstractChatTabController {
     linkPreviewTooltip.show(getRoot().getTabPane(), lastMouseX + 20, lastMouseY);
   }
 
+  /**
+   * Called from JavaScript when user no longer hovers over an URL.
+   */
   public void hideUrlPreview() {
     if (linkPreviewTooltip != null) {
       linkPreviewTooltip.hide();
       linkPreviewTooltip = null;
     }
-  }
-
-  private Window getWindow(final Node node) {
-    final Scene scene = node == null ? null : node.getScene();
-    return scene == null ? null : scene.getWindow();
   }
 
   @FXML
@@ -546,7 +538,7 @@ public abstract class AbstractChatTabController {
       if (mentionPattern.matcher(text).find()) {
         text = highlightOwnUsername(text);
         if (!hasFocus()) {
-          soundController.playChatMentionSound();
+          audioController.playChatMentionSound();
         }
       }
 

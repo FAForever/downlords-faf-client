@@ -24,6 +24,7 @@ import java.util.TimerTask;
 
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
+// NOSONAR
 public class MockChatService implements ChatService {
 
   private static final long CONNECTION_DELAY = 1000;
@@ -39,14 +40,14 @@ public class MockChatService implements ChatService {
   @Autowired
   I18n i18n;
 
-  private Collection<OnChatMessageListener> onChatMessageListeners;
-  private Collection<OnChatConnectedListener> onChatConnectedListeners;
-  private Collection<OnChatUserListListener> onUserListListeners;
-  private Collection<OnChatDisconnectedListener> onDisconnectedListeners;
-  private Collection<OnPrivateChatMessageListener> onPrivateChatMessageListeners;
-  private Collection<OnChatUserJoinedChannelListener> onChannelJoinedListeners;
-  private Collection<OnChatUserQuitListener> onChatUserQuitListeners;
-  private Map<String, ObservableMap<String, ChatUser>> channelUserListListeners;
+  private final Collection<OnChatMessageListener> onChatMessageListeners;
+  private final Collection<OnChatConnectedListener> onChatConnectedListeners;
+  private final Collection<OnChatUserListListener> onUserListListeners;
+  private final Collection<OnChatDisconnectedListener> onDisconnectedListeners;
+  private final Collection<OnPrivateChatMessageListener> onPrivateChatMessageListeners;
+  private final Collection<OnChatUserJoinedChannelListener> onChannelJoinedListeners;
+  private final Collection<OnChatUserQuitListener> onChatUserQuitListeners;
+  private final Map<String, ObservableMap<String, ChatUser>> channelUserListListeners;
 
   public MockChatService() {
     onChatMessageListeners = new ArrayList<>();

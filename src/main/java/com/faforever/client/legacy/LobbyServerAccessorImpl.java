@@ -4,6 +4,7 @@ import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
+import com.faforever.client.leaderboard.LeaderboardParser;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.FoesMessage;
 import com.faforever.client.legacy.domain.FriendsMessage;
@@ -29,7 +30,6 @@ import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
-import com.faforever.client.legacy.ladder.LeaderParser;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -79,7 +79,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   PreferencesService preferencesService;
 
   @Autowired
-  LeaderParser leaderParser;
+  LeaderboardParser leaderboardParser;
 
   @Autowired
   TaskService taskService;
@@ -91,14 +91,14 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private String username;
   private String password;
   private String localIp;
-  private StringProperty sessionId;
+  private final StringProperty sessionId;
   private ServerWriter serverWriter;
   private Callback<SessionInfo> loginCallback;
   private Callback<GameLaunchInfo> gameLaunchCallback;
-  private Collection<OnGameInfoListener> onGameInfoListeners;
-  private Collection<OnGameTypeInfoListener> onGameTypeInfoListeners;
-  private Collection<OnJoinChannelsRequestListener> onJoinChannelsRequestListeners;
-  private Collection<OnGameLaunchInfoListener> onGameLaunchListeners;
+  private final Collection<OnGameInfoListener> onGameInfoListeners;
+  private final Collection<OnGameTypeInfoListener> onGameTypeInfoListeners;
+  private final Collection<OnJoinChannelsRequestListener> onJoinChannelsRequestListeners;
+  private final Collection<OnGameLaunchInfoListener> onGameLaunchListeners;
 
   // Yes I know, those aren't lists. They will become if it's necessary
   private OnLobbyConnectingListener onLobbyConnectingListener;
@@ -350,7 +350,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LeaderboardEntryBean>>(i18n.get("readLadderTask.title")) {
       @Override
       protected List<LeaderboardEntryBean> call() throws Exception {
-        return leaderParser.parseLadder();
+        return leaderboardParser.parseLadder();
       }
     }, callback);
   }

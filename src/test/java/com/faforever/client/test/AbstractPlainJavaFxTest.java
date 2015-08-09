@@ -8,8 +8,8 @@ import org.testfx.framework.junit.ApplicationTest;
 
 public class AbstractPlainJavaFxTest extends ApplicationTest {
 
+  private final Pane root;
   private Scene scene;
-  private Pane root;
   private Stage stage;
 
   public AbstractPlainJavaFxTest() {

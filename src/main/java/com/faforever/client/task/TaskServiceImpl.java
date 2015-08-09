@@ -22,12 +22,12 @@ public class TaskServiceImpl implements TaskService {
   /**
    * Holds one queue for each TaskGroup.
    */
-  private Map<TaskGroup, PriorityBlockingQueue<PrioritizedTask<?>>> queuesByGroup;
+  private final Map<TaskGroup, PriorityBlockingQueue<PrioritizedTask<?>>> queuesByGroup;
 
   /**
    * Since there is no observable queue in JavaFX, these lists serve as target for queue listeners.
    */
-  private Map<TaskGroup, ObservableList<PrioritizedTask<?>>> queueListsByGroup;
+  private final Map<TaskGroup, ObservableList<PrioritizedTask<?>>> queueListsByGroup;
 
   public TaskServiceImpl() {
     queuesByGroup = new HashMap<>();

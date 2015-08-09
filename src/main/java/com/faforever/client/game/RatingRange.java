@@ -1,5 +1,7 @@
 package com.faforever.client.game;
 
+import org.jetbrains.annotations.NotNull;
+
 public class RatingRange implements Comparable<RatingRange> {
 
   public final Integer min;
@@ -11,7 +13,7 @@ public class RatingRange implements Comparable<RatingRange> {
   }
 
   @Override
-  public int compareTo(RatingRange o) {
+  public int compareTo(@NotNull RatingRange o) {
     return Integer.compare(min, o.min);
   }
 }

@@ -122,18 +122,18 @@ public class ProxyImpl implements Proxy {
   PreferencesService preferencesService;
 
   @VisibleForTesting
-  Map<Integer, Peer> peersByUid;
+  final Map<Integer, Peer> peersByUid;
 
   /**
    * Maps peer addresses (local and public) to peers.
    */
   @VisibleForTesting
-  Map<String, Peer> peersByAddress;
+  final Map<String, Peer> peersByAddress;
 
   @VisibleForTesting
   boolean gameLaunched;
   boolean bottleneck;
-  private InetAddress localInetAddr;
+  final private InetAddress localInetAddr;
   /**
    * Public UDP socket that receives game data if p2p proxy is enabled (default port 6112).
    */
@@ -144,7 +144,7 @@ public class ProxyImpl implements Proxy {
    * Socket to the FAF proxy server.
    */
   private Socket fafProxySocket;
-  private Set<OnP2pProxyInitializedListener> onP2pProxyInitializedListeners;
+  final private Set<OnP2pProxyInitializedListener> onP2pProxyInitializedListeners;
 
   /**
    * Holds UDP sockets that represent other players. Key is the player's number (0 - 11).
@@ -196,7 +196,7 @@ public class ProxyImpl implements Proxy {
    *
    * @param proxySocket a local UDP socket representing another player
    */
-  private void startFaReaderInBackground(int playerNumber, int playerUid, final DatagramSocket proxySocket) throws IOException {
+  private void startFaReaderInBackground(int playerNumber, int playerUid, final DatagramSocket proxySocket) {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {

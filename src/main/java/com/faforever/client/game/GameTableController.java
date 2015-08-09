@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.map.MapService;

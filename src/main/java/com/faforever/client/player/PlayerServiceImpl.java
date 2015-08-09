@@ -10,6 +10,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -25,10 +26,10 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   @Autowired
   UserService userService;
 
-  private PlayerInfoBean currentPlayer;
-  private ObservableMap<String, PlayerInfoBean> players;
+  private final ObservableMap<String, PlayerInfoBean> players;
   private List<String> foeList;
   private List<String> friendList;
+  private PlayerInfoBean currentPlayer;
 
   public PlayerServiceImpl() {
     players = FXCollections.observableHashMap();
@@ -49,7 +50,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   }
 
   @Override
-  public PlayerInfoBean registerAndGetPlayerForUsername(String username) {
+  public PlayerInfoBean registerAndGetPlayerForUsername(@NotNull String username) {
     Assert.checkNull(username, "username must not be null");
 
     if (!players.containsKey(username)) {

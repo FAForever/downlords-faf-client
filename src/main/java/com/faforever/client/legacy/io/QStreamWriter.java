@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 public class QStreamWriter extends Writer {
 
   public static final Charset CHARSET = StandardCharsets.UTF_16BE;
-  private OutputStream out;
+  private final OutputStream out;
 
   public QStreamWriter(OutputStream out) {
     this.out = out;

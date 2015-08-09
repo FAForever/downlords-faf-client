@@ -1,11 +1,11 @@
 package com.faforever.client.test;
 
-import java.math.BigDecimal;
-
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+
+import java.math.BigDecimal;
 
 
 /**

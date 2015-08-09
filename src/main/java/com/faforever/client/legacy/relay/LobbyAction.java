@@ -30,15 +30,7 @@ public enum LobbyAction {
     }
   }
 
-  public static LobbyAction fromString(String string) {
-    LobbyAction action = fromString.get(string);
-    if (action == null) {
-      throw new IllegalArgumentException("Unknown relay server action: " + string);
-    }
-    return action;
-  }
-
-  private String string;
+  private final String string;
 
   LobbyAction(String string) {
     this.string = string;
@@ -46,5 +38,13 @@ public enum LobbyAction {
 
   public String getString() {
     return string;
+  }
+
+  public static LobbyAction fromString(String string) {
+    LobbyAction action = fromString.get(string);
+    if (action == null) {
+      throw new IllegalArgumentException("Unknown relay server action: " + string);
+    }
+    return action;
   }
 }

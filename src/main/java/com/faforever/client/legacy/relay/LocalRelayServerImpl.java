@@ -17,7 +17,6 @@ import com.google.gson.GsonBuilder;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
@@ -70,18 +69,18 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
 
-  private BooleanProperty p2pProxyEnabled;
-  private int port;
+  private final BooleanProperty p2pProxyEnabled;
   private final Gson gson;
+  private final Collection<OnReadyListener> onReadyListeners;
+  private final Collection<OnConnectionAcceptedListener> onConnectionAcceptedListeners;
+
+  private int port;
   private FaDataOutputStream faOutputStream;
   private FaDataInputStream faInputStream;
   private ServerWriter serverWriter;
   private InputStream fafInputStream;
   private LobbyMode lobbyMode;
-  private Collection<OnReadyListener> onReadyListeners;
-  private Collection<OnConnectionAcceptedListener> onConnectionAcceptedListeners;
   private ServerSocket serverSocket;
-  private Service<Void> service;
   private boolean stopped;
   private Socket fafSocket;
   private Socket faSocket;
@@ -137,7 +136,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   public void startInBackground() {
     proxy.addOnP2pProxyInitializedListener(this);
 
-    service = executeInBackground(new Task<Void>() {
+    executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
         start();
@@ -189,7 +188,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
     return serverWriter;
   }
 
-  private FaDataInputStream createFaInputStream(InputStream inputStream) throws IOException {
+  private FaDataInputStream createFaInputStream(InputStream inputStream) {
     return new FaDataInputStream(inputStream);
   }
 

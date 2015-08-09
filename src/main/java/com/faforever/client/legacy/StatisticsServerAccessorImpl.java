@@ -42,9 +42,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   Environment environment;
 
   private final Gson gson;
-  private OnPlayerStatsListener onPlayerStatsListener;
   private Callback<PlayerStatistics> playerStatisticsCallback;
-  private Task<Void> connectionTask;
   private ServerWriter serverWriter;
 
   public StatisticsServerAccessorImpl() {
@@ -114,7 +112,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   }
 
   private void writeToServer(ClientMessage clientMessage) {
-    connectionTask = new Task<Void>() {
+    Task<Void> connectionTask = new Task<Void>() {
       Socket serverSocket;
 
       @Override

@@ -343,7 +343,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAddOnChatDisconnectedListener() throws Exception {
     CompletableFuture<Exception> onChatDisconnectedFuture = new CompletableFuture<>();
-    instance.addOnChatDisconnectedListener((exception) -> onChatDisconnectedFuture.complete(exception));
+    instance.addOnChatDisconnectedListener(onChatDisconnectedFuture::complete);
 
     Exception disconnectException = new Exception();
     instance.onEvent(new DisconnectEvent<>(pircBotX, daoSnapshot, disconnectException));
@@ -410,6 +410,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testConnect() throws Exception {
     ArgumentCaptor<Configuration> captor = ArgumentCaptor.forClass(Configuration.class);
 
@@ -504,6 +505,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAddChannelUserListListener() throws Exception {
+    @SuppressWarnings("unchecked")
     MapChangeListener<String, ChatUser> listener = mock(MapChangeListener.class);
 
     instance.addChannelUserListListener(DEFAULT_CHANNEL_NAME, listener);
@@ -532,6 +534,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.connect();
 
     String action = "test action";
+
+    @SuppressWarnings("unchecked")
     Callback<String> callback = mock(Callback.class);
 
     instance.sendActionInBackground(DEFAULT_CHANNEL_NAME, action, callback);
@@ -603,7 +607,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @SuppressWarnings("unchecked")
-  private void mockTaskService() throws Exception {
+  private void mockTaskService() {
     doAnswer((InvocationOnMock invocation) -> {
       PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(1, PrioritizedTask.class);
       prioritizedTask.run();

@@ -1,7 +1,6 @@
 package com.faforever.client.notification;
 
 import javafx.event.ActionEvent;
-import javafx.scene.control.ButtonBar;
 
 /**
  * Notifications have actions associated with it. This class represents such an action, which is usually displayed to

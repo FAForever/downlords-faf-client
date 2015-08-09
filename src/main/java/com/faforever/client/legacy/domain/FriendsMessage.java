@@ -4,7 +4,7 @@ import java.util.Collection;
 
 public class FriendsMessage extends ClientMessage {
 
-  private final Collection<String> friends;
+  public Collection<String> friends;
 
   public FriendsMessage(Collection<String> friends) {
     command = "social";

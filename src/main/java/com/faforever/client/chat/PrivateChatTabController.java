@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.sound.SoundController;
+import com.faforever.client.audio.AudioController;
 import javafx.fxml.FXML;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
@@ -19,7 +19,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
   TextInputControl messageTextField;
 
   @Autowired
-  SoundController soundController;
+  AudioController audioController;
 
   public void setUsername(String username) {
     super.setReceiver(username);
@@ -42,7 +42,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
     super.onChatMessage(chatMessage);
 
     if (!hasFocus()) {
-      soundController.playPrivateMessageSound();
+      audioController.playPrivateMessageSound();
     }
   }
 

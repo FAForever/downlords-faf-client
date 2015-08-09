@@ -25,7 +25,7 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
   /**
    * Extracts data out of "8 players, 10x10 km, v.25".
    */
-  private static Pattern MAP_MISC_PATTERN = Pattern.compile("(\\d+)\\s+players,\\s+(\\d+)x(\\d+)\\s+km,\\s+v.(\\d+)");
+  private static final Pattern MAP_MISC_PATTERN = Pattern.compile("(\\d+)\\s+players,\\s+(\\d+)x(\\d+)\\s+km,\\s+v.(\\d+)");
 
   private MapProperty currentProperty;
   private List<MapInfoBean> result;

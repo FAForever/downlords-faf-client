@@ -16,7 +16,7 @@ public final class Unzipper {
     void updateBytesWritten(long written, long total);
   }
 
-  private ZipInputStream zipInputStream;
+  private final ZipInputStream zipInputStream;
   private ByteCountListener byteCountListener;
   private int byteCountInterval;
   private int bufferSize;

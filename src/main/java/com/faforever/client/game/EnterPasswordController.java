@@ -1,10 +1,8 @@
 package com.faforever.client.game;
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyEvent;
 
 public class EnterPasswordController {
 
@@ -35,7 +33,7 @@ public class EnterPasswordController {
   }
 
   @FXML
-  void onPasswordEntered(KeyEvent event) {
+  void onPasswordEntered() {
     if (listener == null) {
       throw new IllegalStateException("No listener has been set");
     }

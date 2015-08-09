@@ -20,7 +20,6 @@ public interface LobbyServerAccessor {
   /**
    * Connects to the FAF server and logs in using the credentials from {@link PreferencesService}. This method runs in
    * background, the callback however is called on the FX application thread.
-   * @param callback
    */
   void connectAndLogInInBackground(Callback<SessionInfo> callback);
 

@@ -7,13 +7,12 @@ import com.faforever.client.legacy.domain.VictoryCondition;
 import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
-import com.faforever.client.legacy.writer.JsonMessageSerializer;
 import com.faforever.client.legacy.io.QStreamWriter;
+import com.faforever.client.legacy.writer.JsonMessageSerializer;
 import com.google.gson.GsonBuilder;
 import javafx.beans.property.StringProperty;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 public class ClientMessageSerializer extends JsonMessageSerializer<ClientMessage> {
 
@@ -36,11 +35,6 @@ public class ClientMessageSerializer extends JsonMessageSerializer<ClientMessage
   public ClientMessageSerializer(String username, StringProperty sessionIdProperty) {
     this.username = username;
     this.sessionIdProperty = sessionIdProperty;
-  }
-
-  @Override
-  public void serialize(ClientMessage object, OutputStream outputStream) throws IOException {
-    super.serialize(object, outputStream);
   }
 
   @Override

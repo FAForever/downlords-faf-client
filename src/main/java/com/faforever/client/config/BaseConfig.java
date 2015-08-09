@@ -43,7 +43,6 @@ public class BaseConfig {
 
   @Bean
   I18n i18n() {
-    return new I18nImpl(messageSource(), locale());
+    return new I18nImpl();
   }
-
 }

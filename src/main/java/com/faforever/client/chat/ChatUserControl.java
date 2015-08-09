@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.fx.FxmlLoader;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -77,9 +77,7 @@ public class ChatUserControl extends HBox {
   private void configureClanLabel() {
     setClanTag(playerInfoBean.getClan());
     playerInfoBean.clanProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> {
-        setClanTag(newValue);
-      });
+      Platform.runLater(() -> setClanTag(newValue));
     });
   }
 

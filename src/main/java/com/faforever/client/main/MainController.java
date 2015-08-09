@@ -7,17 +7,15 @@ import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.GamesController;
+import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.legacy.OnFafDisconnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
 import com.faforever.client.lobby.LobbyService;
-import com.faforever.client.main.hub.CommunityHubController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
-import com.faforever.client.network.GamePortCheckListener;
-import com.faforever.client.network.PortCheckService;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.ImmediateNotificationController;
@@ -27,6 +25,8 @@ import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.PatchService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.portcheck.GamePortCheckListener;
+import com.faforever.client.portcheck.PortCheckService;
 import com.faforever.client.preferences.OnChoseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.SettingsController;
@@ -247,12 +247,12 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     notificationsPopup.setAutoFix(false);
     notificationsPopup.setAutoHide(true);
 
-    notificationService.addPersistentNotificationListener(change -> {
-      Platform.runLater(() -> updateNotificationsButton(change.getSet()));
-    });
-    notificationService.addImmediateNotificationListener(notification -> {
-      Platform.runLater(() -> displayImmediateNotification(notification));
-    });
+    notificationService.addPersistentNotificationListener(
+        change -> Platform.runLater(() -> updateNotificationsButton(change.getSet()))
+    );
+    notificationService.addImmediateNotificationListener(
+        notification -> Platform.runLater(() -> displayImmediateNotification(notification))
+    );
 
     taskService.addChangeListener(change -> {
       while (change.next()) {
@@ -446,37 +446,37 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   @FXML
-  void onPortCheckHelpClicked(ActionEvent event) {
+  void onPortCheckHelpClicked() {
     // FIXME implement
   }
 
   @FXML
-  void onChangePortClicked(ActionEvent event) {
+  void onChangePortClicked() {
     // FIXME implement
   }
 
   @FXML
-  void onEnableUpnpClicked(ActionEvent event) {
+  void onEnableUpnpClicked() {
     // FIXME implement
   }
 
   @FXML
-  void onPortCheckRetryClicked(ActionEvent event) {
+  void onPortCheckRetryClicked() {
     portCheckService.checkGamePortInBackground();
   }
 
   @FXML
-  void onFafReconnectClicked(ActionEvent event) {
+  void onFafReconnectClicked() {
     // FIXME implement
   }
 
   @FXML
-  void onIrcReconnectClicked(ActionEvent event) {
+  void onIrcReconnectClicked() {
     // FIXME implement
   }
 
   @FXML
-  void onNotificationsButtonClicked(ActionEvent event) {
+  void onNotificationsButtonClicked() {
     Bounds screenBounds = notificationsButton.localToScreen(notificationsButton.getBoundsInLocal());
     notificationsPopup.show(notificationsButton.getScene().getWindow(), screenBounds.getMaxX(), screenBounds.getMaxY());
   }
@@ -500,12 +500,12 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   @FXML
-  void onSupportItemSelected(ActionEvent event) {
+  void onSupportItemSelected() {
     // FIXME implement
   }
 
   @FXML
-  void onSettingsItemSelected(ActionEvent event) {
+  void onSettingsItemSelected() {
     Stage stage = new Stage(StageStyle.UNDECORATED);
     stage.initOwner(mainRoot.getScene().getWindow());
 
@@ -517,7 +517,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   @FXML
-  void onExitItemSelected(ActionEvent event) {
+  void onExitItemSelected() {
     Platform.exit();
   }
 
@@ -537,7 +537,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   @FXML
-  void onShowUserInfoClicked(ActionEvent event) {
+  void onShowUserInfoClicked() {
     UserInfoWindowController userInfoWindowController = applicationContext.getBean(UserInfoWindowController.class);
     userInfoWindowController.setPlayerInfoBean(playerService.getCurrentPlayer());
 

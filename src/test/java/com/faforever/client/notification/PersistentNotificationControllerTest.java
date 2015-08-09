@@ -7,7 +7,7 @@ import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -45,9 +45,11 @@ public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTes
   public void testSetNotificationWarningOneAction() throws Exception {
     assertThat(instance.actionButtonsContainer.getChildren(), empty());
 
-    PersistentNotification notification = new PersistentNotification("foo", Severity.WARN, Arrays.asList(
-        new Action("title", null)
-    ));
+    PersistentNotification notification = new PersistentNotification("foo", Severity.WARN,
+        Collections.singletonList(
+            new Action("title", null)
+        )
+    );
     instance.setNotification(notification);
 
     assertEquals("foo", instance.messageLabel.getText());
@@ -77,7 +79,7 @@ public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTes
   public void testOnCloseButtonClicked() throws Exception {
     PersistentNotification notification = new PersistentNotification("text", Severity.WARN);
     instance.setNotification(notification);
-    instance.onCloseButtonClicked(null);
+    instance.onCloseButtonClicked();
     verify(instance.notificationService).removeNotification(notification);
   }
 }

@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.config.CacheKeys;
-import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.Bytes;
 import com.google.common.net.MediaType;

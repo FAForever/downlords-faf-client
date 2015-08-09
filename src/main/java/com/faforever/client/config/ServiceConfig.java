@@ -7,8 +7,10 @@ import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.ForgedAllianceServiceImpl;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameServiceImpl;
+import com.faforever.client.leaderboard.LeaderboardParser;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.LeaderboardServiceImpl;
+import com.faforever.client.leaderboard.LegacyLeaderboardParser;
 import com.faforever.client.leaderboard.MockLeaderboardService;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.LobbyServerAccessorImpl;
@@ -17,8 +19,6 @@ import com.faforever.client.legacy.MockStatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessorImpl;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
-import com.faforever.client.legacy.ladder.LeaderParser;
-import com.faforever.client.legacy.ladder.LegacyLeaderParser;
 import com.faforever.client.legacy.map.LegacyMapVaultParser;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.legacy.proxy.Proxy;
@@ -31,8 +31,6 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModServiceImpl;
-import com.faforever.client.network.DownlordsPortCheckServiceImpl;
-import com.faforever.client.network.PortCheckService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.patch.GitRepositoryPatchService;
@@ -41,6 +39,8 @@ import com.faforever.client.patch.JGitWrapper;
 import com.faforever.client.patch.PatchService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
+import com.faforever.client.portcheck.DownlordsPortCheckServiceImpl;
+import com.faforever.client.portcheck.PortCheckService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayFileReader;
 import com.faforever.client.replay.ReplayFileReaderImpl;
@@ -168,8 +168,8 @@ public class ServiceConfig {
   }
 
   @Bean
-  LeaderParser ladderParser() {
-    return new LegacyLeaderParser();
+  LeaderboardParser ladderParser() {
+    return new LegacyLeaderboardParser();
   }
 
   @Bean

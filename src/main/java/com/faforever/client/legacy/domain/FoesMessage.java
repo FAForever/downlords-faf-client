@@ -4,7 +4,7 @@ import java.util.Collection;
 
 public class FoesMessage extends ClientMessage {
 
-  private final Collection<String> foes;
+  public Collection<String> foes;
 
   public FoesMessage(Collection<String> foes) {
     this.command = "social";

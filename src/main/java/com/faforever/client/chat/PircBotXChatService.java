@@ -172,15 +172,13 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void addOnMessageListener(final OnChatMessageListener listener) {
-    addEventListener(MessageEvent.class, event -> {
-      listener.onMessage(event.getChannel().getName(),
-          new ChatMessage(
-              Instant.ofEpochMilli(event.getTimestamp()),
-              event.getUser().getNick(),
-              event.getMessage()
-          )
-      );
-    });
+    addEventListener(MessageEvent.class, event -> listener.onMessage(event.getChannel().getName(),
+        new ChatMessage(
+            Instant.ofEpochMilli(event.getTimestamp()),
+            event.getUser().getNick(),
+            event.getMessage()
+        )
+    ));
     addEventListener(ActionEvent.class, event -> {
       listener.onMessage(event.getChannel().getName(),
           new ChatMessage(
@@ -200,6 +198,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public void addOnUserListListener(final OnChatUserListListener listener) {
     addEventListener(UserListEvent.class,
         event -> listener.onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers())));
@@ -238,16 +237,12 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void addOnChatUserLeftChannelListener(OnChatUserLeftChannelListener listener) {
-    addEventListener(PartEvent.class, event -> {
-      listener.onChatUserLeftChannel(event.getUser().getNick(), event.getChannel().getName());
-    });
+    addEventListener(PartEvent.class, event -> listener.onChatUserLeftChannel(event.getUser().getNick(), event.getChannel().getName()));
   }
 
   @Override
   public void addOnModeratorSetListener(OnModeratorSetListener listener) {
-    addEventListener(OpEvent.class, event -> {
-      listener.onModeratorSet(event.getChannel().getName(), event.getRecipient().getNick());
-    });
+    addEventListener(OpEvent.class, event -> listener.onModeratorSet(event.getChannel().getName(), event.getRecipient().getNick()));
   }
 
 
@@ -283,6 +278,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     });
   }
 
+  @SuppressWarnings("unchecked")
   private void init() {
     String username = userService.getUsername();
 
@@ -366,6 +362,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public void onEvent(Event event) throws Exception {
     if (!eventListeners.containsKey(event.getClass())) {
       return;

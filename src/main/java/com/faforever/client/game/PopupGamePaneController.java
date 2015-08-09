@@ -32,12 +32,8 @@ public class PopupGamePaneController {
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
     createTeam(gameInfoBean.getTeams());
     createModsList(gameInfoBean.getSimMods());
-    gameInfoBean.getTeams().addListener((MapChangeListener<String, List<String>>) change -> {
-      createTeam(change.getMap());
-    });
-    gameInfoBean.getSimMods().addListener((MapChangeListener<String, String>) change -> {
-      createModsList(change.getMap());
-    });
+    gameInfoBean.getTeams().addListener((MapChangeListener<String, List<String>>) change -> createTeam(change.getMap()));
+    gameInfoBean.getSimMods().addListener((MapChangeListener<String, String>) change -> createModsList(change.getMap()));
   }
 
   private void createTeam(ObservableMap<? extends String, ? extends List<String>> teamsList) {

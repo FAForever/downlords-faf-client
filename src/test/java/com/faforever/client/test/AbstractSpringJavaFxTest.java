@@ -2,7 +2,7 @@ package com.faforever.client.test;
 
 import com.faforever.client.config.TestServiceConfiguration;
 import com.faforever.client.config.TestUiConfiguration;
-import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.fx.FxmlLoader;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;

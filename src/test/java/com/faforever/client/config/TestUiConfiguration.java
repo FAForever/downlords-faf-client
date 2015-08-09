@@ -14,6 +14,8 @@ import com.faforever.client.game.EnterPasswordController;
 import com.faforever.client.game.GameCardController;
 import com.faforever.client.game.GameTiledController;
 import com.faforever.client.game.GamesController;
+import com.faforever.client.fx.FxmlLoader;
+import com.faforever.client.fx.FxmlLoaderImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;

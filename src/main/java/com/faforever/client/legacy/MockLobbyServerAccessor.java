@@ -34,9 +34,9 @@ import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
-  private Collection<OnGameTypeInfoListener> onModInfoMessageListeners;
+  private final Collection<OnGameTypeInfoListener> onModInfoMessageListeners;
+  private final Collection<OnGameInfoListener> onGameInfoListeners;
   private OnPlayerInfoListener onPlayerInfoListener;
-  private Collection<OnGameInfoListener> onGameInfoListeners;
 
   @Autowired
   UserService userService;
@@ -93,19 +93,18 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
                 "How about a long-running (7s) mock task?",
                 Severity.INFO,
                 Arrays.asList(
-                    new Action("Execute", event -> {
-                      taskService.submitTask(TaskGroup.NET_HEAVY, new PrioritizedTask<Void>("Mock task") {
-                        @Override
-                        protected Void call() throws Exception {
-                          Thread.sleep(2000);
-                          for (int i = 0; i < 5; i++) {
-                            updateProgress(i, 5);
-                            Thread.sleep(1000);
+                    new Action("Execute", event ->
+                        taskService.submitTask(TaskGroup.NET_HEAVY, new PrioritizedTask<Void>("Mock task") {
+                          @Override
+                          protected Void call() throws Exception {
+                            Thread.sleep(2000);
+                            for (int i = 0; i < 5; i++) {
+                              updateProgress(i, 5);
+                              Thread.sleep(1000);
+                            }
+                            return null;
                           }
-                          return null;
-                        }
-                      });
-                    }),
+                        })),
                     new Action("Nope")
                 )
             )

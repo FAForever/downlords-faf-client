@@ -40,10 +40,10 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
 
   private class ProxyPackage {
 
-    int length;
-    int playerNumber;
-    int uid;
-    int dataLength;
+    final int length;
+    final int playerNumber;
+    final int uid;
+    final int dataLength;
 
     ProxyPackage(int length, int playerNumber, int uid, int dataLength) {
       this.length = length;
@@ -341,7 +341,7 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
     });
   }
 
-  private void startFakeGameProcess() throws IOException {
+  private void startFakeGameProcess() {
     dataReceivedByGame = new ArrayBlockingQueue<>(10);
     fakeGameTerminatedLatch = new CountDownLatch(1);
 

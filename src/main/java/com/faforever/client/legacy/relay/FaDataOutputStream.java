@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+// TODO move to com.faforever.client.fa
 
 /**
  * Writes data to Forged Alliance (the game, not the lobby).

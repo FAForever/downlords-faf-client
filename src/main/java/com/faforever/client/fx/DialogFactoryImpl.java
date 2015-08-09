@@ -1,6 +1,5 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.preferences.PreferencesService;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;

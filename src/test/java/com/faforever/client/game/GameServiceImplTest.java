@@ -15,6 +15,8 @@ import com.faforever.client.util.Callback;
 import javafx.collections.MapChangeListener;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.util.Arrays;
@@ -39,8 +41,13 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
   private GameServiceImpl instance;
 
+  @Mock
+  private Callback<Void> callback;
+
   @Before
   public void setUp() throws Exception {
+    MockitoAnnotations.initMocks(this);
+
     instance = new GameServiceImpl();
     instance.lobbyServerAccessor = mock(LobbyServerAccessor.class);
     instance.mapService = mock(MapService.class);
@@ -57,9 +64,9 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testJoinGameMapIsAvailable() throws Exception {
     GameInfoBean gameInfoBean = mock(GameInfoBean.class);
-    Callback<Void> callback = mock(Callback.class);
 
     when(gameInfoBean.getTechnicalName()).thenReturn("map");
 
@@ -112,16 +119,17 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAddOnGameTypeInfoListener() throws Exception {
-    MapChangeListener listener = mock(MapChangeListener.class);
+    @SuppressWarnings("unchecked")
+    MapChangeListener<String, GameTypeBean> listener = mock(MapChangeListener.class);
     instance.addOnGameTypeInfoListener(listener);
 
     instance.onGameTypeInfo(GameTypeInfoBuilder.create().defaultValues().get());
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testAddOnGameStartedListener() throws Exception {
     OnGameStartedListener listener = mock(OnGameStartedListener.class);
-    Callback<Void> callback = mock(Callback.class);
     Process process = mock(Process.class);
 
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
@@ -129,8 +137,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameLaunchInfo.args = Arrays.asList("/foo bar", "/bar foo");
 
     doAnswer((InvocationOnMock invocation) -> {
-      Callback<GameLaunchInfo> callback1 = (Callback<GameLaunchInfo>) invocation.getArguments()[1];
-      callback1.success(gameLaunchInfo);
+      Callback<GameLaunchInfo> callback = (Callback<GameLaunchInfo>) invocation.getArguments()[1];
+      callback.success(gameLaunchInfo);
       return null;
     }).when(instance.lobbyServerAccessor).requestNewGame(eq(newGameInfo), any(Callback.class));
 

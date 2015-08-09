@@ -3,7 +3,7 @@ package com.faforever.client.replay;
 import com.faforever.client.game.FeaturedMod;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class ReplayServiceImplTest {
 
