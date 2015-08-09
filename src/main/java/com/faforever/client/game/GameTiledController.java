@@ -20,10 +20,10 @@ public class GameTiledController {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
-  FlowPane tiledFlowPane;
+  public FlowPane tiledFlowPane;
 
   @FXML
-  ScrollPane tiledScrollPane;
+  public ScrollPane tiledScrollPane;
 
   @Autowired
   ApplicationContext applicationContext;

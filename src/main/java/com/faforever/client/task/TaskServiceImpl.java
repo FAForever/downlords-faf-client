@@ -77,7 +77,6 @@ public class TaskServiceImpl implements TaskService {
     FXCollections.sort(tasks);
   }
 
-
   @Override
   public <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task) {
     submitTask(taskGroup, task, null);
@@ -89,6 +88,4 @@ public class TaskServiceImpl implements TaskService {
       queueListsByGroup.get(taskGroup).addListener(listener);
     }
   }
-
-
 }

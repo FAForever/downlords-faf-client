@@ -291,9 +291,6 @@ public class GamesController {
     }
   }
 
-  public void setUpIfNecessary() {
-  }
-
   @FXML
   void onCreateGameButtonClicked(ActionEvent actionEvent) {
     Button button = (Button) actionEvent.getSource();

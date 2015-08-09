@@ -45,15 +45,15 @@ public class ReplayInfoBean {
 
   public ReplayInfoBean(LocalReplayInfo replayInfo, Path replayFile) {
     this();
-    id.set(replayInfo.uid);
-    title.set(StringEscapeUtils.unescapeHtml4(replayInfo.title));
-    startTime.set(fromPythonTime(replayInfo.gameTime));
-    endTime.set(fromPythonTime(replayInfo.gameEnd));
-    gameType.set(replayInfo.featuredMod);
-    map.set(replayInfo.mapname);
+    id.set(replayInfo.getUid());
+    title.set(StringEscapeUtils.unescapeHtml4(replayInfo.getTitle()));
+    startTime.set(fromPythonTime(replayInfo.getGameTime()));
+    endTime.set(fromPythonTime(replayInfo.getGameEnd()));
+    gameType.set(replayInfo.getFeaturedMod());
+    map.set(replayInfo.getMapname());
     this.replayFile.set(replayFile);
-    if (replayInfo.teams != null) {
-      teams.putAll(replayInfo.teams);
+    if (replayInfo.getTeams() != null) {
+      teams.putAll(replayInfo.getTeams());
     }
   }
 

@@ -12,9 +12,9 @@ public class GameTypeBean {
   private final StringProperty description;
 
   public GameTypeBean(GameTypeInfo gameTypeInfo) {
-    name = new SimpleStringProperty(gameTypeInfo.name);
-    fullName = new SimpleStringProperty(gameTypeInfo.fullname);
-    description = new SimpleStringProperty(Jsoup.parse(gameTypeInfo.desc).text());
+    name = new SimpleStringProperty(gameTypeInfo.getName());
+    fullName = new SimpleStringProperty(gameTypeInfo.getFullname());
+    description = new SimpleStringProperty(Jsoup.parse(gameTypeInfo.getDesc()).text());
   }
 
   public String getName() {

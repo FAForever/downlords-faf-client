@@ -12,10 +12,14 @@ public class GameStatusMessage extends ClientMessage {
     }
   }
 
-  public final String state;
+  private final String state;
 
   public GameStatusMessage(Status status) {
-    command = "fa_state";
+    setCommand("fa_state");
     state = status.string;
+  }
+
+  public String getState() {
+    return state;
   }
 }

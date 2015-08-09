@@ -202,9 +202,9 @@ public class ReplayServiceImpl implements ReplayService {
     Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
 
     LocalReplayInfo replayInfo = replayFileReader.readReplayInfo(path);
-    String featuredMod = replayInfo.featuredMod;
-    Integer replayId = replayInfo.uid;
-    Map<String, Integer> featuredModVersions = replayInfo.featuredModVersions;
+    String featuredMod = replayInfo.getFeaturedMod();
+    Integer replayId = replayInfo.getUid();
+    Map<String, Integer> featuredModVersions = replayInfo.getFeaturedModVersions();
 
     String version = parseSupComVersion(rawReplayBytes);
 

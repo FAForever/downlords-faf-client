@@ -34,8 +34,8 @@ public class UserServiceImpl implements UserService {
 
       @Override
       public void success(SessionInfo result) {
-        UserServiceImpl.this.uid = result.id;
-        UserServiceImpl.this.sessionId = result.session;
+        UserServiceImpl.this.uid = result.getId();
+        UserServiceImpl.this.sessionId = result.getSession();
         callback.success(null);
       }
 

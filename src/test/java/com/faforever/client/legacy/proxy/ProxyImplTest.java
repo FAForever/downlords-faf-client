@@ -52,7 +52,6 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
       this.dataLength = dataLength;
     }
   }
-
   public static final int TIMEOUT = 1000;
   public static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
@@ -176,7 +175,7 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
     assertThat(instance.peersByUid.values(), hasSize(1));
 
     Peer peer = instance.peersByUid.values().iterator().next();
-    assertThat(peer.connected, is(true));
+    assertThat(peer.isConnected(), is(true));
   }
 
   @Test
@@ -190,7 +189,7 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
     instance.updateConnectedState(OTHER_UID_1, false);
 
     assertThat(instance.peersByUid.values(), hasSize(0));
-    assertThat(peer.connected, is(false));
+    assertThat(peer.isConnected(), is(false));
   }
 
   @Test
@@ -254,8 +253,8 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
     instance.setUidForPeer("64.1.1.1:6112", 1);
 
     assertThat(instance.peersByUid.values(), hasSize(1));
-    assertThat(instance.peersByUid.get(1).uid, is(1));
-    assertThat(SocketAddressUtil.toString(instance.peersByUid.get(1).inetSocketAddress), is("64.1.1.1:6112"));
+    assertThat(instance.peersByUid.get(1).getUid(), is(1));
+    assertThat(SocketAddressUtil.toString(instance.peersByUid.get(1).getInetSocketAddress()), is("64.1.1.1:6112"));
   }
 
   @Test

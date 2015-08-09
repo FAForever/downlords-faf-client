@@ -25,8 +25,4 @@ public class CommunityHubController {
   public Node getRoot() {
     return communityHubRoot;
   }
-
-  public void setUpIfNecessary() {
-
-  }
 }

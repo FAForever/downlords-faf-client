@@ -4,7 +4,7 @@ import com.faforever.client.legacy.AbstractServerAccessor;
 import com.faforever.client.legacy.ClientMessageSerializer;
 import com.faforever.client.legacy.StringSerializer;
 import com.faforever.client.legacy.domain.ClientMessage;
-import com.faforever.client.legacy.domain.ServerMessageType;
+import com.faforever.client.legacy.domain.ServerCommand;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.util.Callback;
 import com.google.gson.FieldNamingPolicy;
@@ -101,8 +101,8 @@ public class ReplayServerAccessorImpl extends AbstractServerAccessor implements 
 
   @Override
   public void onServerMessage(String message) {
-    ServerMessageType serverMessageType = ServerMessageType.fromString(message);
-    if (serverMessageType != null) {
+    ServerCommand serverCommand = ServerCommand.fromString(message);
+    if (serverCommand != null) {
       throw new IllegalStateException("Didn't expect an unknown server message from the statistics server");
     }
 
@@ -111,7 +111,7 @@ public class ReplayServerAccessorImpl extends AbstractServerAccessor implements 
       ReplayServerObject replayServerObject = gson.fromJson(message, ReplayServerObject.class);
 
       if (replayListCallback != null) {
-        replayListCallback.success(replayInfoBeans(replayServerObject.replays));
+        replayListCallback.success(replayInfoBeans(replayServerObject.getReplays()));
       }
     } catch (JsonSyntaxException e) {
       logger.warn("Could not deserialize message: " + message, e);

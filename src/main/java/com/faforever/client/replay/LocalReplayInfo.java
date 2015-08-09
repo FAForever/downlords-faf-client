@@ -14,26 +14,26 @@ import java.util.Map;
  */
 public class LocalReplayInfo {
 
-  public String host;
-  public Integer uid;
-  public String title;
-  public GameAccess access;
-  public String mapname;
-  public GameState state;
-  public Boolean[] options;
+  private String host;
+  private Integer uid;
+  private String title;
+  private GameAccess access;
+  private String mapname;
+  private GameState state;
+  private Boolean[] options;
   // FAF calls this "game_type" but it's actually the victory condition.
-  public VictoryCondition gameType;
-  public String featuredMod;
-  public Integer maxPlayers;
-  public Integer numPlayers;
-  public Map<String, String> simMods;
-  public Map<String, List<String>> teams;
-  public Map<String, Integer> featuredModVersions;
-  public boolean complete;
-  public String recorder;
-  public Map<String, String> versionInfo;
-  public double gameEnd;
-  public double gameTime;
+  private VictoryCondition gameType;
+  private String featuredMod;
+  private Integer maxPlayers;
+  private Integer numPlayers;
+  private Map<String, String> simMods;
+  private Map<String, List<String>> teams;
+  private Map<String, Integer> featuredModVersions;
+  private boolean complete;
+  private String recorder;
+  private Map<String, String> versionInfo;
+  private double gameEnd;
+  private double gameTime;
 
   public void updateFromGameInfoBean(GameInfoBean gameInfoBean) {
     host = gameInfoBean.getHost();
@@ -51,6 +51,158 @@ public class LocalReplayInfo {
     featuredModVersions = gameInfoBean.getFeaturedModVersions();
 
     ObservableList<Boolean> options = gameInfoBean.getOptions();
-    this.options = options.toArray(new Boolean[options.size()]);
+    this.setOptions(options.toArray(new Boolean[options.size()]));
+  }
+
+  public String getHost() {
+    return host;
+  }
+
+  public void setHost(String host) {
+    this.host = host;
+  }
+
+  public Integer getUid() {
+    return uid;
+  }
+
+  public void setUid(Integer uid) {
+    this.uid = uid;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  public GameAccess getAccess() {
+    return access;
+  }
+
+  public void setAccess(GameAccess access) {
+    this.access = access;
+  }
+
+  public String getMapname() {
+    return mapname;
+  }
+
+  public void setMapname(String mapname) {
+    this.mapname = mapname;
+  }
+
+  public GameState getState() {
+    return state;
+  }
+
+  public void setState(GameState state) {
+    this.state = state;
+  }
+
+  public Boolean[] getOptions() {
+    return options;
+  }
+
+  public void setOptions(Boolean[] options) {
+    this.options = options;
+  }
+
+  public VictoryCondition getGameType() {
+    return gameType;
+  }
+
+  public void setGameType(VictoryCondition gameType) {
+    this.gameType = gameType;
+  }
+
+  public String getFeaturedMod() {
+    return featuredMod;
+  }
+
+  public void setFeaturedMod(String featuredMod) {
+    this.featuredMod = featuredMod;
+  }
+
+  public Integer getMaxPlayers() {
+    return maxPlayers;
+  }
+
+  public void setMaxPlayers(Integer maxPlayers) {
+    this.maxPlayers = maxPlayers;
+  }
+
+  public Integer getNumPlayers() {
+    return numPlayers;
+  }
+
+  public void setNumPlayers(Integer numPlayers) {
+    this.numPlayers = numPlayers;
+  }
+
+  public Map<String, String> getSimMods() {
+    return simMods;
+  }
+
+  public void setSimMods(Map<String, String> simMods) {
+    this.simMods = simMods;
+  }
+
+  public Map<String, List<String>> getTeams() {
+    return teams;
+  }
+
+  public void setTeams(Map<String, List<String>> teams) {
+    this.teams = teams;
+  }
+
+  public Map<String, Integer> getFeaturedModVersions() {
+    return featuredModVersions;
+  }
+
+  public void setFeaturedModVersions(Map<String, Integer> featuredModVersions) {
+    this.featuredModVersions = featuredModVersions;
+  }
+
+  public boolean isComplete() {
+    return complete;
+  }
+
+  public void setComplete(boolean complete) {
+    this.complete = complete;
+  }
+
+  public String getRecorder() {
+    return recorder;
+  }
+
+  public void setRecorder(String recorder) {
+    this.recorder = recorder;
+  }
+
+  public Map<String, String> getVersionInfo() {
+    return versionInfo;
+  }
+
+  public void setVersionInfo(Map<String, String> versionInfo) {
+    this.versionInfo = versionInfo;
+  }
+
+  public double getGameEnd() {
+    return gameEnd;
+  }
+
+  public void setGameEnd(double gameEnd) {
+    this.gameEnd = gameEnd;
+  }
+
+  public double getGameTime() {
+    return gameTime;
+  }
+
+  public void setGameTime(double gameTime) {
+    this.gameTime = gameTime;
   }
 }

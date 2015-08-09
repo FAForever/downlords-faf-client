@@ -39,7 +39,6 @@ public class WindowDecorator {
     SOUTH,
     WEST
   }
-
   public static final double RESIZE_BORDER_WIDTH = 7d;
   public static final String PROPERTY_WINDOW_DECORATOR = "windowDecorator";
   private static final PseudoClass MAXIMIZED_PSEUDO_STATE = PseudoClass.getPseudoClass("maximized");

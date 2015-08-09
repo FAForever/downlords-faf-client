@@ -106,14 +106,14 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   @Override
   public void onPlayerInfo(PlayerInfo playerInfo) {
-    PlayerInfoBean playerInfoBean = registerAndGetPlayerForUsername(playerInfo.login);
+    PlayerInfoBean playerInfoBean = registerAndGetPlayerForUsername(playerInfo.getLogin());
     playerInfoBean.updateFromPlayerInfo(playerInfo);
 
-    if (playerInfo.login.equals(userService.getUsername())) {
+    if (playerInfo.getLogin().equals(userService.getUsername())) {
       this.currentPlayer = playerInfoBean;
     } else {
-      playerInfoBean.setFriend(friendList.contains(playerInfo.login));
-      playerInfoBean.setFoe(foeList.contains(playerInfo.login));
+      playerInfoBean.setFriend(friendList.contains(playerInfo.getLogin()));
+      playerInfoBean.setFoe(foeList.contains(playerInfo.getLogin()));
     }
   }
 

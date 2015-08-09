@@ -88,38 +88,52 @@ public class ChatUserContextMenuController {
     userInfoWindow.show();
   }
 
-  public void onSendPrivateMessage() {
+  @FXML
+  void onSendPrivateMessage() {
   }
 
-  public void onAddFriend() {
+  @FXML
+  void onAddFriend() {
     playerService.addFriend(playerInfoBean.getUsername());
   }
 
-  public void onRemoveFriend() {
+  @FXML
+  void onRemoveFriend() {
     playerService.removeFriend(playerInfoBean.getUsername());
   }
 
-  public void onAddFoe() {
+  @FXML
+  void onAddFoe() {
     playerService.addFoe(playerInfoBean.getUsername());
   }
 
-  public void onRemoveFoe() {
+  @FXML
+  void onRemoveFoe() {
     playerService.removeFoe(playerInfoBean.getUsername());
   }
 
-  public void onWatchGame() {
+  @FXML
+  void onWatchGame() {
+    // FIXME implement
   }
 
-  public void onViewReplays() {
+  @FXML
+  void onViewReplays() {
+    // FIXME implement
   }
 
-  public void onInviteToGame() {
+  @FXML
+  void onInviteToGame() {
+    // FIXME implement
   }
 
-  public void onKick() {
+  @FXML
+  void onKick() {
+    // FIXME implement
   }
 
-  public void onBan() {
-
+  @FXML
+  void onBan() {
+    // FIXME implement
   }
 }

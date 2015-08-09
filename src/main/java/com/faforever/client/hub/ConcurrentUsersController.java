@@ -21,8 +21,8 @@ public class ConcurrentUsersController {
 
   private class DummyData {
 
-    public Long time;
-    public Integer value;
+    Long time;
+    Integer value;
 
     public DummyData(Long time, Integer value) {
       this.time = time;

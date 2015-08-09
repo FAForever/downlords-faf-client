@@ -9,11 +9,11 @@ public class NewGameInfoBuilder {
   }
 
   public NewGameInfoBuilder defaultValues() {
-    newGameInfo.map = "map";
-    newGameInfo.mod = "mod";
-    newGameInfo.password = "password";
-    newGameInfo.title = "title";
-    newGameInfo.version = 1;
+    newGameInfo.setMap("map");
+    newGameInfo.setMod("mod");
+    newGameInfo.setPassword("password");
+    newGameInfo.setTitle("title");
+    newGameInfo.setVersion(1);
     return this;
   }
 

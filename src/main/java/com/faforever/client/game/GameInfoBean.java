@@ -75,34 +75,34 @@ public class GameInfoBean {
   }
 
   public void updateFromGameInfo(GameInfo gameInfo) {
-    uid.set(gameInfo.uid);
-    host.set(gameInfo.host);
-    title.set(StringEscapeUtils.unescapeHtml4(gameInfo.title));
-    access.set(gameInfo.access);
-    technicalName.set(gameInfo.mapname);
-    featuredMod.set(gameInfo.featuredMod);
-    numPlayers.setValue(gameInfo.numPlayers);
-    maxPlayers.setValue(gameInfo.maxPlayers);
-    gameType.set(gameInfo.gameType);
-    status.set(gameInfo.state);
+    uid.set(gameInfo.getUid());
+    host.set(gameInfo.getHost());
+    title.set(StringEscapeUtils.unescapeHtml4(gameInfo.getTitle()));
+    access.set(gameInfo.getAccess());
+    technicalName.set(gameInfo.getMapname());
+    featuredMod.set(gameInfo.getFeaturedMod());
+    numPlayers.setValue(gameInfo.getNumPlayers());
+    maxPlayers.setValue(gameInfo.getMaxPlayers());
+    gameType.set(gameInfo.getGameType());
+    status.set(gameInfo.getState());
 
-    if (gameInfo.options != null) {
-      options.setAll(gameInfo.options);
+    if (gameInfo.getOptions() != null) {
+      options.setAll(gameInfo.getOptions());
     }
 
     simMods.clear();
-    if (gameInfo.simMods != null) {
-      simMods.putAll(gameInfo.simMods);
+    if (gameInfo.getSimMods() != null) {
+      simMods.putAll(gameInfo.getSimMods());
     }
 
     teams.clear();
-    if (gameInfo.teams != null) {
-      teams.putAll(gameInfo.teams);
+    if (gameInfo.getTeams() != null) {
+      teams.putAll(gameInfo.getTeams());
     }
 
     featuredModVersions.clear();
-    if (gameInfo.featuredModVersions != null) {
-      featuredModVersions.putAll(gameInfo.featuredModVersions);
+    if (gameInfo.getFeaturedModVersions() != null) {
+      featuredModVersions.putAll(gameInfo.getFeaturedModVersions());
     }
 
     // TODO as this can be removed as soon as we get server side support. Until then, let's be hacky

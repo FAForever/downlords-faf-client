@@ -2,9 +2,9 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.legacy.domain.AskPlayerStatsDaysMessage;
 import com.faforever.client.legacy.domain.ClientMessage;
+import com.faforever.client.legacy.domain.ServerCommand;
+import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
-import com.faforever.client.legacy.domain.ServerObject;
-import com.faforever.client.legacy.domain.ServerObjectType;
 import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.legacy.gson.LocalDateDeserializer;
 import com.faforever.client.legacy.gson.LocalTimeDeserializer;
@@ -31,7 +31,7 @@ import java.net.Socket;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-import static com.faforever.client.legacy.domain.ServerObjectType.STATS;
+import static com.faforever.client.legacy.domain.ServerMessageType.STATS;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
 public class StatisticsServerAccessorImpl extends AbstractServerAccessor implements StatisticsServerAccessor {
@@ -111,18 +111,18 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
 
   @Override
   public void onServerMessage(String message) {
-    ServerMessageType serverMessageType = ServerMessageType.fromString(message);
-    if (serverMessageType != null) {
+    ServerCommand serverCommand = ServerCommand.fromString(message);
+    if (serverCommand != null) {
       throw new IllegalStateException("Didn't expect an unknown server message from the statistics server");
     }
 
     try {
-      ServerObject serverObject = gson.fromJson(message, ServerObject.class);
+      ServerMessage serverMessage = gson.fromJson(message, ServerMessage.class);
 
-      ServerObjectType serverObjectType = ServerObjectType.fromString(serverObject.command);
+      ServerMessageType serverMessageType = serverMessage.getServerMessageType();
 
-      if (serverObjectType != STATS) {
-        throw new IllegalStateException("Unexpected object type: " + serverObjectType);
+      if (serverMessageType != STATS) {
+        throw new IllegalStateException("Unexpected object type: " + serverMessageType);
       }
 
       StatisticsObject statisticsObject = gson.fromJson(message, StatisticsObject.class);
@@ -133,7 +133,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   }
 
   private void dispatchStatisticsObject(String jsonString, StatisticsObject statisticsObject) {
-    switch (statisticsObject.type) {
+    switch (statisticsObject.getStatisticsType()) {
       case LEAGUE_TABLE:
         // TODO remove it it's never going to be implemented
         logger.warn("league table is not yet implemented");
@@ -146,7 +146,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
         break;
 
       default:
-        logger.warn("Unhandled statistics object of type: {}", statisticsObject.type);
+        logger.warn("Unhandled statistics object of type: {}", statisticsObject.getStatisticsType());
     }
   }
 

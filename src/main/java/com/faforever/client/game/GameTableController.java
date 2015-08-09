@@ -122,22 +122,22 @@ public class GameTableController {
           setText(null);
           setGraphic(null);
         } else {
-          if (item.min == null && item.max == null) {
+          if (item.getMin() == null && item.getMax() == null) {
             setText("");
             return;
           }
 
-          if (item.min != null && item.max != null) {
-            setText(i18n.get("game.ratingFormat.minMax", item.min, item.max));
+          if (item.getMin() != null && item.getMax() != null) {
+            setText(i18n.get("game.ratingFormat.minMax", item.getMin(), item.getMax()));
             return;
           }
 
-          if (item.min != null) {
-            setText(i18n.get("game.ratingFormat.minOnly", item.min));
+          if (item.getMin() != null) {
+            setText(i18n.get("game.ratingFormat.minOnly", item.getMin()));
             return;
           }
 
-          setText(i18n.get("game.ratingFormat.maxOnly", item.max));
+          setText(i18n.get("game.ratingFormat.maxOnly", item.getMax()));
         }
       }
     };

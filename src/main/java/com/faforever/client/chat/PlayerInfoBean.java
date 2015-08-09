@@ -32,13 +32,13 @@ public class PlayerInfoBean {
   public PlayerInfoBean(PlayerInfo playerInfo) {
     this();
 
-    username.set(playerInfo.login);
-    clan.set(playerInfo.clan);
-    country.set(playerInfo.country);
+    username.set(playerInfo.getLogin());
+    clan.set(playerInfo.getClan());
+    country.set(playerInfo.getCountry());
 
-    if (playerInfo.avatar != null) {
-      avatarTooltip.set(playerInfo.avatar.tooltip);
-      avatarUrl.set(playerInfo.avatar.url);
+    if (playerInfo.getAvatar() != null) {
+      avatarTooltip.set(playerInfo.getAvatar().getTooltip());
+      avatarUrl.set(playerInfo.getAvatar().getUrl());
     }
   }
 
@@ -215,14 +215,14 @@ public class PlayerInfoBean {
 
   public void updateFromPlayerInfo(PlayerInfo playerInfo) {
     setChatOnly(false);
-    setDeviation(playerInfo.ratingDeviation);
-    setClan(playerInfo.clan);
-    setCountry(playerInfo.country);
-    setMean(playerInfo.ratingMean);
-    setDeviation(playerInfo.ratingDeviation);
-    if (playerInfo.avatar != null) {
-      setAvatarUrl(playerInfo.avatar.url);
-      setAvatarTooltip(playerInfo.avatar.tooltip);
+    setDeviation(playerInfo.getRatingDeviation());
+    setClan(playerInfo.getClan());
+    setCountry(playerInfo.getCountry());
+    setMean(playerInfo.getRatingMean());
+    setDeviation(playerInfo.getRatingDeviation());
+    if (playerInfo.getAvatar() != null) {
+      setAvatarUrl(playerInfo.getAvatar().getUrl());
+      setAvatarTooltip(playerInfo.getAvatar().getTooltip());
     }
   }
 }
