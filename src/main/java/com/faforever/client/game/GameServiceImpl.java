@@ -80,7 +80,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   @Override
   public void hostGame(NewGameInfo newGameInfo, Callback<Void> callback) {
     cancelLadderSearch();
-    updateGameIfNecessary(newGameInfo.mod, new Callback<Void>() {
+    updateGameIfNecessary(newGameInfo.getMod(), new Callback<Void>() {
       @Override
       public void success(Void result) {
         lobbyServerAccessor.requestNewGame(newGameInfo, gameLaunchCallback(callback));
@@ -101,10 +101,10 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     return new Callback<GameLaunchInfo>() {
       @Override
       public void success(GameLaunchInfo gameLaunchInfo) {
-        List<String> args = fixMalformedArgs(gameLaunchInfo.args);
+        List<String> args = fixMalformedArgs(gameLaunchInfo.getArgs());
         try {
-          Process process = forgedAllianceService.startGame(gameLaunchInfo.uid, gameLaunchInfo.mod, args);
-          onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(gameLaunchInfo.uid));
+          Process process = forgedAllianceService.startGame(gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), args);
+          onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(gameLaunchInfo.getUid()));
           lobbyServerAccessor.notifyGameStarted();
 
           waitForProcessTerminationInBackground(process);
@@ -249,28 +249,28 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   @Override
   public void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
-    if (!gameTypeInfo.host || !gameTypeInfo.live || gameTypeBeans.containsKey(gameTypeInfo.name)) {
+    if (!gameTypeInfo.isHost() || !gameTypeInfo.isLive() || gameTypeBeans.containsKey(gameTypeInfo.getName())) {
       return;
     }
 
-    gameTypeBeans.put(gameTypeInfo.name, new GameTypeBean(gameTypeInfo));
+    gameTypeBeans.put(gameTypeInfo.getName(), new GameTypeBean(gameTypeInfo));
   }
 
   @Override
   public void onGameInfo(GameInfo gameInfo) {
     logger.debug("Received game info from server: {}", gameInfo);
-    if (GameState.CLOSED.equals(gameInfo.state)) {
-      gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfo.uid));
+    if (GameState.CLOSED.equals(gameInfo.getState())) {
+      gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfo.getUid()));
       return;
     }
 
-    if (!uidToGameInfoBean.containsKey(gameInfo.uid)) {
+    if (!uidToGameInfoBean.containsKey(gameInfo.getUid())) {
       GameInfoBean gameInfoBean = new GameInfoBean(gameInfo);
 
       gameInfoBeans.add(gameInfoBean);
-      uidToGameInfoBean.put(gameInfo.uid, gameInfoBean);
+      uidToGameInfoBean.put(gameInfo.getUid(), gameInfoBean);
     } else {
-      uidToGameInfoBean.get(gameInfo.uid).updateFromGameInfo(gameInfo);
+      uidToGameInfoBean.get(gameInfo.getUid()).updateFromGameInfo(gameInfo);
     }
   }
 }

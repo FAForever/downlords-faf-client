@@ -22,9 +22,10 @@ import java.util.Arrays;
 
 public class JsonMessageSerializer<T extends SerializableMessage> implements Serializer<T> {
 
-  public static final String CONFIDENTIAL_INFORMATION_MASK = "********";
-
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  private static final String CONFIDENTIAL_INFORMATION_MASK = "********";
+
   private Gson gson;
 
   // TODO Clean this up, such that the message is logged within ServerWriter and everything makes much more sense
@@ -92,12 +93,13 @@ public class JsonMessageSerializer<T extends SerializableMessage> implements Ser
    * doesn't need to be called.
    */
   protected void appendMore(QStreamWriter qStreamWriter) throws IOException {
+    // To be overridden by subclasses, if desired
   }
 
   /**
    * Allows subclasses to register additional type adapters. Super doesn't need to be called.
    */
   protected void addTypeAdapters(GsonBuilder gsonBuilder) {
-
+    // To be overridden by subclasses, if desired
   }
 }

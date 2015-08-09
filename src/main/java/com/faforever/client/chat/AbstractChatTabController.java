@@ -310,10 +310,10 @@ public abstract class AbstractChatTabController {
       return;
     }
 
-    linkPreviewTooltip = new Tooltip(preview.description);
+    linkPreviewTooltip = new Tooltip(preview.getDescription());
     linkPreviewTooltip.setAutoHide(true);
     linkPreviewTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
-    linkPreviewTooltip.setGraphic(preview.node);
+    linkPreviewTooltip.setGraphic(preview.getNode());
     linkPreviewTooltip.setContentDisplay(ContentDisplay.TOP);
     linkPreviewTooltip.show(getRoot().getTabPane(), lastMouseX + 20, lastMouseY);
   }

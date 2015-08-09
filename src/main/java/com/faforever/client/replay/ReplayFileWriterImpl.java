@@ -34,7 +34,7 @@ public class ReplayFileWriterImpl implements ReplayFileWriter {
 
   @Override
   public void writeReplayDataToFile(ByteArrayOutputStream replayData, LocalReplayInfo replayInfo) throws IOException {
-    String fileName = String.format(environment.getProperty("replayFileFormat"), replayInfo.uid, replayInfo.recorder);
+    String fileName = String.format(environment.getProperty("replayFileFormat"), replayInfo.getUid(), replayInfo.getRecorder());
     Path replayFile = preferencesService.getReplaysDirectory().resolve(fileName);
 
     logger.info("Writing replay file to {} ({} bytes)", replayFile, replayData.size());

@@ -134,7 +134,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   }
 
   private void updateLobbyModeFromGameInfo(GameLaunchInfo gameLaunchInfo) {
-    FeaturedMod featuredMod = FeaturedMod.fromString(gameLaunchInfo.mod);
+    FeaturedMod featuredMod = FeaturedMod.fromString(gameLaunchInfo.getMod());
     switch (featuredMod) {
       case LADDER_1V1:
         lobbyMode = LobbyMode.NO_LOBBY;

@@ -25,7 +25,7 @@ public final class ConcurrentUtil {
     return executeInBackground(task, new Callback<T>() {
       @Override
       public void success(T result) {
-
+        // NOOP
       }
 
       @Override

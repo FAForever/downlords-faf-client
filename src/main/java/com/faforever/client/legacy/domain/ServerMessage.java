@@ -8,16 +8,27 @@ import java.util.Collections;
  * and types must exactly match to what the server sends.. A server object's concrete type is derived by its {@link
  * #command}.
  *
- * @see ServerObjectType
+ * @see ServerMessageType
  */
-public class ServerObject implements SerializableMessage {
+public class ServerMessage implements SerializableMessage {
 
   /**
    * The server "command" actually isn't a command but identifies the object type.
    */
-  public String command;
+  private ServerMessageType command;
+
+  public ServerMessage() {
+  }
+
+  protected ServerMessage(ServerMessageType command) {
+    this.command = command;
+  }
 
   public Collection<String> getStringsToMask() {
     return Collections.emptyList();
+  }
+
+  public ServerMessageType getServerMessageType() {
+    return command;
   }
 }

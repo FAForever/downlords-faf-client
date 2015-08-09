@@ -11,9 +11,9 @@ public class GameTypeBean {
   private final StringProperty description;
 
   public GameTypeBean(GameTypeInfo gameTypeInfo) {
-    name = new SimpleStringProperty(gameTypeInfo.name);
-    fullName = new SimpleStringProperty(gameTypeInfo.fullname);
-    description = new SimpleStringProperty(gameTypeInfo.desc);
+    name = new SimpleStringProperty(gameTypeInfo.getName());
+    fullName = new SimpleStringProperty(gameTypeInfo.getFullname());
+    description = new SimpleStringProperty(gameTypeInfo.getDesc());
   }
 
   public String getName() {

@@ -19,9 +19,9 @@ import com.faforever.client.legacy.domain.InitSessionMessage;
 import com.faforever.client.legacy.domain.JoinGameMessage;
 import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.legacy.domain.ServerCommand;
+import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
-import com.faforever.client.legacy.domain.ServerObject;
-import com.faforever.client.legacy.domain.ServerObjectType;
 import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.legacy.domain.SocialInfo;
 import com.faforever.client.legacy.domain.StatisticsType;
@@ -221,14 +221,14 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   @Override
   public void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchInfo> callback) {
     HostGameMessage hostGameMessage = new HostGameMessage(
-        StringUtils.isEmpty(newGameInfo.password) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
-        newGameInfo.map,
-        newGameInfo.title,
+        StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
+        newGameInfo.getMap(),
+        newGameInfo.getTitle(),
         preferencesService.getPreferences().getForgedAlliance().getPort(),
         new boolean[0],
-        newGameInfo.mod,
-        newGameInfo.password,
-        newGameInfo.version
+        newGameInfo.getMod(),
+        newGameInfo.getPassword(),
+        newGameInfo.getVersion()
     );
 
     gameLaunchCallback = callback;
@@ -327,16 +327,16 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   public void onServerMessage(String message) throws IOException {
-    ServerMessageType serverMessageType = ServerMessageType.fromString(message);
-    if (serverMessageType != null) {
-      dispatchServerMessage(serverMessageType);
+    ServerCommand serverCommand = ServerCommand.fromString(message);
+    if (serverCommand != null) {
+      dispatchServerMessage(serverCommand);
     } else {
       parseServerObject(message);
     }
   }
 
-  private void dispatchServerMessage(ServerMessageType serverMessageType) throws IOException {
-    switch (serverMessageType) {
+  private void dispatchServerMessage(ServerCommand serverCommand) throws IOException {
+    switch (serverCommand) {
       case PING:
         logger.debug("Server PINGed");
         onServerPing();
@@ -362,28 +362,28 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
         break;
 
       default:
-        logger.warn("Unknown server response: {}", serverMessageType);
+        logger.warn("Unknown server response: {}", serverCommand);
     }
   }
 
   private void parseServerObject(String jsonString) {
     try {
-      ServerObject serverObject = gson.fromJson(jsonString, ServerObject.class);
+      ServerMessage serverMessage = gson.fromJson(jsonString, ServerMessage.class);
 
-      ServerObjectType serverObjectType = ServerObjectType.fromString(serverObject.command);
+      ServerMessageType serverMessageType = serverMessage.getServerMessageType();
 
-      if (serverObjectType == null) {
+      if (serverMessageType == null) {
         logger.warn("Unknown server object: " + jsonString);
         return;
       }
 
-      switch (serverObjectType) {
+      switch (serverMessageType) {
         case WELCOME:
           SessionInfo sessionInfo = gson.fromJson(jsonString, SessionInfo.class);
-          if (sessionInfo.session != null) {
+          if (sessionInfo.getSession() != null) {
             onSessionInitiated(sessionInfo);
-          } else if (sessionInfo.email != null) {
-            sessionInfo.session = sessionId.get();
+          } else if (sessionInfo.getEmail() != null) {
+            sessionInfo.setSession(sessionId.get());
             onFafLoginSucceeded(sessionInfo);
           }
           break;
@@ -421,7 +421,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           dispatchSocialInfo(socialInfo);
           break;
         default:
-          logger.warn("Missing case for server object type: " + serverObjectType);
+          logger.warn("Missing case for server object type: " + serverMessageType);
       }
     } catch (JsonSyntaxException e) {
       logger.warn("Could not deserialize message: " + jsonString, e);
@@ -433,7 +433,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   private void onSessionInitiated(SessionInfo message) {
-    this.sessionId.set(message.session);
+    this.sessionId.set(message.getSession());
     String uniqueId = UID.generate(sessionId.get(), preferencesService.getFafDataDirectory().resolve("uid.log"));
 
     logger.info("FAF session initiated, session ID: {}", sessionId.get());
@@ -470,12 +470,12 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   private void dispatchSocialInfo(SocialInfo socialInfo) {
-    if (socialInfo.friends != null) {
-      onFriendListListener.onFriendList(socialInfo.friends);
-    } else if (socialInfo.foes != null) {
-      onFoeListListener.onFoeList(socialInfo.foes);
-    } else if (socialInfo.autojoin != null) {
-      onJoinChannelsRequestListeners.forEach(listener -> listener.onJoinChannelsRequest(socialInfo.autojoin));
+    if (socialInfo.getFriends() != null) {
+      onFriendListListener.onFriendList(socialInfo.getFriends());
+    } else if (socialInfo.getFoes() != null) {
+      onFoeListListener.onFoeList(socialInfo.getFoes());
+    } else if (socialInfo.getAutoJoin() != null) {
+      onJoinChannelsRequestListeners.forEach(listener -> listener.onJoinChannelsRequest(socialInfo.getAutoJoin()));
     }
   }
 }

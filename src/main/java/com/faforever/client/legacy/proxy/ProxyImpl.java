@@ -181,7 +181,7 @@ public class ProxyImpl implements Proxy {
     if (!connected) {
       peersByUid.remove(uid);
     }
-    peer.connected = connected;
+    peer.setConnected(connected);
   }
 
   @Override
@@ -203,14 +203,14 @@ public class ProxyImpl implements Proxy {
       return null;
     }
 
-    return SocketAddressUtil.toString(peer.inetSocketAddress);
+    return SocketAddressUtil.toString(peer.getInetSocketAddress());
   }
 
   @Override
   public String translateToLocal(String publicAddress) {
     Peer peer = peersByAddress.get(publicAddress);
 
-    return SocketAddressUtil.toString((InetSocketAddress) peer.localSocket.getLocalSocketAddress());
+    return SocketAddressUtil.toString((InetSocketAddress) peer.getLocalSocket().getLocalSocketAddress());
   }
 
   @Override
@@ -226,12 +226,12 @@ public class ProxyImpl implements Proxy {
       DatagramSocket localSocket = new DatagramSocket(new InetSocketAddress(localInetAddr, 0));
 
       Peer peer = new Peer();
-      peer.inetSocketAddress = toInetSocketAddress(publicAddress);
-      peer.localSocket = localSocket;
+      peer.setInetSocketAddress(toInetSocketAddress(publicAddress));
+      peer.setLocalSocket(localSocket);
 
       redirectLocalToRemote(peer);
 
-      String localAddress = SocketAddressUtil.toString((InetSocketAddress) peer.localSocket.getLocalSocketAddress());
+      String localAddress = SocketAddressUtil.toString((InetSocketAddress) peer.getLocalSocket().getLocalSocketAddress());
 
       peersByAddress.put(publicAddress, peer);
       peersByAddress.put(localAddress, peer);
@@ -260,7 +260,7 @@ public class ProxyImpl implements Proxy {
       return;
     }
 
-    peer.uid = peerUid;
+    peer.setUid(peerUid);
     peersByUid.put(peerUid, peer);
   }
 
@@ -459,43 +459,43 @@ public class ProxyImpl implements Proxy {
     if (isReconnectionSequence(data)) {
       dispatchReconnectMessage(peer, data, originSocketAddress);
     } else {
-      datagramPacket.setAddress(peer.localSocket.getInetAddress());
+      datagramPacket.setAddress(peer.getLocalSocket().getInetAddress());
       datagramPacket.setPort(ProxyUtils.translateToProxyPort(publicSocket.getLocalPort()));
 
-      peer.localSocket.send(datagramPacket);
+      peer.getLocalSocket().send(datagramPacket);
 
-      if (peer.connected && peer.currentlyReconnecting || !peer.ourConnectionTagAcknowledged && !peer.ourConnectionTagDeclined) {
-        if (peer.tagOfferTimestamp + TAG_OFFER_RATELIMIT >= System.currentTimeMillis()) {
+      if (peer.isConnected() && peer.isCurrentlyReconnecting() || !peer.isOurConnectionTagAcknowledged() && !peer.isOurConnectionTagDeclined()) {
+        if (peer.getTagOfferTimestamp() + TAG_OFFER_RATELIMIT >= System.currentTimeMillis()) {
           return;
         }
 
-        if (peer.numberOfTagOffers >= MAX_TAG_OFFERS) {
-          logger.info("Giving up on tag offers for peer '{}' after '{}' attempts", originSocketAddress, peer.numberOfTagOffers);
+        if (peer.getNumberOfTagOffers() >= MAX_TAG_OFFERS) {
+          logger.info("Giving up on tag offers for peer '{}' after '{}' attempts", originSocketAddress, peer.getNumberOfTagOffers());
           return;
         }
 
-        peer.tagOfferTimestamp = System.currentTimeMillis();
-        if (peer.ourConnectionTag == null) {
-          peer.ourConnectionTag = generateConnectionTag();
+        peer.setTagOfferTimestamp(System.currentTimeMillis());
+        if (peer.getOurConnectionTag() == null) {
+          peer.setOurConnectionTag(generateConnectionTag());
         }
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         byteArrayOutputStream.write(RECONNECTION_ESCAPE_PREFIX);
 
-        if (peer.ourConnectionTagAcknowledged) {
+        if (peer.isOurConnectionTagAcknowledged()) {
           byteArrayOutputStream.write(MESSAGE_REQUEST_TAG_CONFIRMATION);
         } else {
           byteArrayOutputStream.write(MESSAGE_OFFER_TAG);
         }
 
-        byteArrayOutputStream.write(peer.ourConnectionTag);
+        byteArrayOutputStream.write(peer.getOurConnectionTag());
 
-        logger.debug("Sending connection tag '{}' to peer '{}'", peer.ourConnectionTag);
+        logger.debug("Sending connection tag '{}' to peer '{}'", peer.getOurConnectionTag());
 
         byte[] buffer = byteArrayOutputStream.toByteArray();
         publicSocket.send(new DatagramPacket(buffer, buffer.length, originSocketAddress));
 
-        peer.numberOfTagOffers++;
+        peer.setNumberOfTagOffers(peer.getNumberOfTagOffers() + 1);
       }
     }
   }
@@ -516,10 +516,10 @@ public class ProxyImpl implements Proxy {
         byte[] buffer = new byte[1024];
         DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
 
-        DatagramSocket localSocket = peer.localSocket;
+        DatagramSocket localSocket = peer.getLocalSocket();
         localSocket.receive(datagramPacket);
 
-        InetSocketAddress inetSocketAddress = peer.inetSocketAddress;
+        InetSocketAddress inetSocketAddress = peer.getInetSocketAddress();
 
         datagramPacket.setAddress(inetSocketAddress.getAddress());
         datagramPacket.setPort(inetSocketAddress.getPort());
@@ -552,7 +552,7 @@ public class ProxyImpl implements Proxy {
     byte messageType = data[15];
     switch (messageType) {
       case MESSAGE_OFFER_TAG:
-        if (peer.connectionTag != null && !Arrays.equals(peer.connectionTag, tag)) {
+        if (peer.getConnectionTag() != null && !Arrays.equals(peer.getConnectionTag(), tag)) {
           declineTag(originSocketAddress, peer, tag);
         } else {
           updateTagForPeer(originSocketAddress, peer, tag);
@@ -560,7 +560,7 @@ public class ProxyImpl implements Proxy {
         break;
 
       case MESSAGE_REQUEST_TAG_CONFIRMATION:
-        if (peer.connectionTag == null) {
+        if (peer.getConnectionTag() == null) {
           declineTag(originSocketAddress, peer, tag);
         } else {
           updateTagForPeer(originSocketAddress, peer, tag);
@@ -568,21 +568,21 @@ public class ProxyImpl implements Proxy {
         break;
 
       case MESSAGE_ACKNOWLEDGE:
-        if (Arrays.equals(peer.ourConnectionTag, tag)) {
+        if (Arrays.equals(peer.getOurConnectionTag(), tag)) {
           logger.debug("Peer '{}' acknowledged our connection tag '{}'", peer, tag);
 
-          peer.ourConnectionTagAcknowledged = true;
-          peer.numberOfTagOffers = 0;
-          peer.currentlyReconnecting = false;
+          peer.setOurConnectionTagAcknowledged(true);
+          peer.setNumberOfTagOffers(0);
+          peer.setCurrentlyReconnecting(false);
         } else {
           logger.warn("Peer '{}' acknowledged a tag we didn't send: {}", peer, tag);
         }
         break;
 
       case MESSAGE_DECLINE:
-        if (Arrays.equals(peer.ourConnectionTag, tag)) {
+        if (Arrays.equals(peer.getOurConnectionTag(), tag)) {
           logger.warn("Peer '{}' declined our tag '{}' even though it was correct", peer, tag);
-          peer.ourConnectionTagDeclined = true;
+          peer.setOurConnectionTagDeclined(true);
         } else {
           logger.warn("Peer '{}' declined tag '{}' which we didn't send", peer, tag);
         }
@@ -627,7 +627,7 @@ public class ProxyImpl implements Proxy {
   private void updateTagForPeer(SocketAddress originSocketAddress, Peer peer, byte[] theirTag) throws IOException {
     logger.debug("Peer '{}' offers tag  '{}'", peer, theirTag);
 
-    peer.connectionTag = theirTag;
+    peer.setConnectionTag(theirTag);
 
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(RECONNECTION_ESCAPE_PREFIX.length + 1 + theirTag.length);
     byteArrayOutputStream.write(RECONNECTION_ESCAPE_PREFIX);
@@ -643,7 +643,7 @@ public class ProxyImpl implements Proxy {
     for (Map.Entry<String, Peer> entry : peersByAddress.entrySet()) {
       Peer peer = entry.getValue();
 
-      if (!Objects.equals(peer.inetSocketAddress, originSocketAddress)) {
+      if (!Objects.equals(peer.getInetSocketAddress(), originSocketAddress)) {
         logger.debug("Passing on reconnect-by-intermediary to {}", originSocketAddress);
 
         int port = originSocketAddress.getPort();
@@ -686,13 +686,13 @@ public class ProxyImpl implements Proxy {
       Peer peer = entry.getValue();
       String peerAddress = entry.getKey();
 
-      byte[] peerConnectionTag = peer.connectionTag;
+      byte[] peerConnectionTag = peer.getConnectionTag();
       if (peerConnectionTag != null && Arrays.equals(peerConnectionTag, tag)) {
         found = true;
 
-        if (!Objects.equals(peer.inetSocketAddress, senderInetSocketAddress)) {
-          logger.debug("Updating peer address from '{}' to '{}'", peer.inetSocketAddress, senderInetSocketAddress);
-          peer.inetSocketAddress = senderInetSocketAddress;
+        if (!Objects.equals(peer.getInetSocketAddress(), senderInetSocketAddress)) {
+          logger.debug("Updating peer address from '{}' to '{}'", peer.getInetSocketAddress(), senderInetSocketAddress);
+          peer.setInetSocketAddress(senderInetSocketAddress);
 
           oldPeerAddress = peerAddress;
           newPeerAddress = SocketAddressUtil.toString(senderInetSocketAddress);
@@ -710,7 +710,7 @@ public class ProxyImpl implements Proxy {
   private void reconnectPeer(InetSocketAddress originSocketAddress, Peer peer, byte[] tag) {
     logger.debug("Reconnect request from peer: {}", originSocketAddress);
 
-    if (Arrays.equals(peer.connectionTag, tag)) {
+    if (Arrays.equals(peer.getConnectionTag(), tag)) {
       logger.debug("Ignoring reconnect request since the connection tag matches the current connection");
       return;
     }
@@ -721,10 +721,10 @@ public class ProxyImpl implements Proxy {
     for (Map.Entry<String, Peer> entry : peersByAddress.entrySet()) {
       Peer iteratingPeer = entry.getValue();
 
-      if (Arrays.equals(iteratingPeer.connectionTag, tag)) {
-        iteratingPeer.inetSocketAddress = originSocketAddress;
+      if (Arrays.equals(iteratingPeer.getConnectionTag(), tag)) {
+        iteratingPeer.setInetSocketAddress(originSocketAddress);
 
-        oldPeerAddress = SocketAddressUtil.toString(iteratingPeer.inetSocketAddress);
+        oldPeerAddress = SocketAddressUtil.toString(iteratingPeer.getInetSocketAddress());
         newPeerAddress = SocketAddressUtil.toString(originSocketAddress);
         break;
       }

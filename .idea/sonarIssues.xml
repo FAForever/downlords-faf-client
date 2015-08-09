@@ -214,56 +214,7 @@
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/chat/ChatUserContextMenuController.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="45848419-ead4-4461-9d10-01bc7ce838f6" />
-                <option name="line" value="122" />
-                <option name="message" value="Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation." />
-                <option name="ruleKey" value="squid:S1186" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="b1bbd01e-be14-496f-bc32-251d1a41d07a" />
-                <option name="line" value="119" />
-                <option name="message" value="Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation." />
-                <option name="ruleKey" value="squid:S1186" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="4c5bacb6-77ac-40ad-80c2-5c22f89bfb3d" />
-                <option name="line" value="113" />
-                <option name="message" value="Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation." />
-                <option name="ruleKey" value="squid:S1186" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="4f8800df-c676-49ce-be8b-38c7f7832a8a" />
-                <option name="line" value="91" />
-                <option name="message" value="Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation." />
-                <option name="ruleKey" value="squid:S1186" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="392b925b-73a4-45d9-a6bc-0edbfdc5565a" />
-                <option name="line" value="116" />
-                <option name="message" value="Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation." />
-                <option name="ruleKey" value="squid:S1186" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="c56e6e9b-7253-4314-8b35-2f3a34e6cba9" />
-                <option name="line" value="110" />
-                <option name="message" value="Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation." />
-                <option name="ruleKey" value="squid:S1186" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/chat/ChatUserControl.java">
@@ -366,96 +317,7 @@
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/chat/MockChatService.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="f6031e78-5b0b-4706-9b82-a5126ad988fd" />
-                <option name="line" value="159" />
-                <option name="message" value="Rename this class." />
-                <option name="ruleKey" value="squid:S2176" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="f2cc2f12-569e-4da8-80e3-984d69febf0e" />
-                <option name="line" value="213" />
-                <option name="message" value="Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation." />
-                <option name="ruleKey" value="squid:S1186" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="a06b82bc-c2f3-4583-9dca-746b5595e6a5" />
-                <option name="line" value="96" />
-                <option name="message" value="Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation." />
-                <option name="ruleKey" value="squid:S1186" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="6337ddfe-ef1c-42f5-9c20-9d783a6d7406" />
-                <option name="line" value="203" />
-                <option name="message" value="Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation." />
-                <option name="ruleKey" value="squid:S1186" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="567f6e5f-f621-4e3b-b353-570fc0b6eee1" />
-                <option name="line" value="159" />
-                <option name="message" value="Reduce this anonymous class number of lines from 24 to at most 20, or make it a named class." />
-                <option name="ruleKey" value="squid:S1188" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="388ac57f-aa8c-4739-8967-6a6a289b1e3c" />
-                <option name="line" value="148" />
-                <option name="message" value="Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation." />
-                <option name="ruleKey" value="squid:S1186" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="2830e20a-aad6-4e96-a267-6e39678ffdf6" />
-                <option name="line" value="101" />
-                <option name="message" value="Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation." />
-                <option name="ruleKey" value="squid:S1186" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="d764b5ef-e51b-4598-9173-dc74b1ecbb12" />
-                <option name="line" value="112" />
-                <option name="message" value="Make this anonymous inner class a lambda" />
-                <option name="ruleKey" value="squid:S1604" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="63943b72-4df9-4ce1-a69a-1ca57c117ec5" />
-                <option name="line" value="184" />
-                <option name="message" value="Make this anonymous inner class a lambda" />
-                <option name="ruleKey" value="squid:S1604" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="482202af-6a59-436c-a4e4-27c26aaca974" />
-                <option name="line" value="159" />
-                <option name="message" value="Make this anonymous inner class a lambda" />
-                <option name="ruleKey" value="squid:S1604" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="1d6c68f0-4b2c-4a68-bb7f-649689c93974" />
-                <option name="line" value="127" />
-                <option name="message" value="Make this anonymous inner class a lambda" />
-                <option name="ruleKey" value="squid:S1604" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/chat/PircBotXChatService.java">
@@ -543,17 +405,17 @@
             <set>
               <SonarIssue>
                 <option name="isNew" value="false" />
-                <option name="key" value="d568ba48-b789-40c8-9055-c6b44692db96" />
-                <option name="line" value="10" />
-                <option name="message" value="Make description a static final constant or non-public and provide accessors if needed." />
+                <option name="key" value="008553b7-fa46-4dd6-8dc0-c829701d3a47" />
+                <option name="line" value="8" />
+                <option name="message" value="Make node a static final constant or non-public and provide accessors if needed." />
                 <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
               <SonarIssue>
                 <option name="isNew" value="false" />
-                <option name="key" value="008553b7-fa46-4dd6-8dc0-c829701d3a47" />
+                <option name="key" value="d568ba48-b789-40c8-9055-c6b44692db96" />
                 <option name="line" value="9" />
-                <option name="message" value="Make node a static final constant or non-public and provide accessors if needed." />
+                <option name="message" value="Make description a static final constant or non-public and provide accessors if needed." />
                 <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
@@ -1308,9 +1170,9 @@
               </SonarIssue>
               <SonarIssue>
                 <option name="isNew" value="false" />
-                <option name="key" value="59cdc839-5e15-49ef-868f-601ec2b07587" />
-                <option name="line" value="7" />
-                <option name="message" value="Make mod a static final constant or non-public and provide accessors if needed." />
+                <option name="key" value="372c9d7e-a623-49d0-b7eb-11f71f39adf6" />
+                <option name="line" value="6" />
+                <option name="message" value="Make password a static final constant or non-public and provide accessors if needed." />
                 <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
@@ -1324,9 +1186,9 @@
               </SonarIssue>
               <SonarIssue>
                 <option name="isNew" value="false" />
-                <option name="key" value="372c9d7e-a623-49d0-b7eb-11f71f39adf6" />
-                <option name="line" value="6" />
-                <option name="message" value="Make password a static final constant or non-public and provide accessors if needed." />
+                <option name="key" value="59cdc839-5e15-49ef-868f-601ec2b07587" />
+                <option name="line" value="7" />
+                <option name="message" value="Make mod a static final constant or non-public and provide accessors if needed." />
                 <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
@@ -1399,35 +1261,20 @@
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/game/RatingRange.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="e1fabf4d-7c0f-4a99-9da5-1b123bd457a7" />
-                <option name="line" value="7" />
-                <option name="message" value="Make min a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="73922720-bf40-4289-97a5-4d5ef4195fd4" />
-                <option name="line" value="16" />
-                <option name="message" value="Override &quot;equals(Object obj)&quot; to comply with the contract of the &quot;compareTo(T o)&quot; method." />
-                <option name="ruleKey" value="squid:S1210" />
-                <option name="severity" value="CRITICAL" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="29e87c7c-f9ff-4a9e-8232-fc1615d3b52b" />
-                <option name="line" value="8" />
-                <option name="message" value="Make max a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/game/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/hub/CommunityHubController.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/hub/ConcurrentUsersController.java">
           <value>
             <set />
           </value>
@@ -1539,46 +1386,12 @@
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/leaderboard/LeagueInfo.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="cb30b64e-00e7-4a32-9c74-3c07f4cdd126" />
-                <option name="line" value="4" />
-                <option name="message" value="Make score a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="b7d34a1d-7149-4d67-8b1d-2ceb3e68af91" />
-                <option name="line" value="6" />
-                <option name="message" value="Make rank a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="921fe79d-3516-47d2-a0f8-48a15ddf437e" />
-                <option name="line" value="5" />
-                <option name="message" value="Make name a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/leaderboard/LeagueResponse.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="1fe2871c-47b5-4533-b1b6-d3ab6978ff1d" />
-                <option name="line" value="8" />
-                <option name="message" value="Make values a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/leaderboard/MockLeaderboardService.java">
@@ -1628,111 +1441,7 @@
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/LobbyServerAccessorImpl.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="d531aaf4-0caa-47d8-b2c7-71c812203310" />
-                <option name="line" value="138" />
-                <option name="message" value="Reduce this anonymous class number of lines from 60 to at most 20, or make it a named class." />
-                <option name="ruleKey" value="squid:S1188" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="d1e77e45-8fc5-4237-931d-d16072493e1a" />
-                <option name="message" value="44 more branches need to be covered by unit tests to reach the minimum threshold of 65.0% branch coverage." />
-                <option name="ruleKey" value="common-java:InsufficientBranchCoverage" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="cf3d08a8-0d23-4394-816d-f9deb51fc718" />
-                <option name="line" value="138" />
-                <option name="message" value="Rename this class." />
-                <option name="ruleKey" value="squid:S2176" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="c54a37d7-fec3-4342-9779-00bb4b931241" />
-                <option name="line" value="283" />
-                <option name="message" value="Rename this class." />
-                <option name="ruleKey" value="squid:S2176" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="bc68a3a2-6636-4b65-bbf5-339bc5ad4c00" />
-                <option name="line" value="378" />
-                <option name="message" value="Add the &quot;@Override&quot; annotation above this method signature" />
-                <option name="ruleKey" value="squid:S1161" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="ab067a9b-23ee-4f7b-91c8-61aa6eb82761" />
-                <option name="line" value="430" />
-                <option name="message" value="Reduce this switch case number of lines from 10 to at most 5, for example by extracting code into methods." />
-                <option name="ruleKey" value="squid:S1151" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="3d974aa5-37ed-4e66-a62c-4b60c7d97ac3" />
-                <option name="line" value="398" />
-                <option name="message" value="Reduce this switch case number of lines from 7 to at most 5, for example by extracting code into methods." />
-                <option name="ruleKey" value="squid:S1151" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="63c77ef7-7e8e-471a-bd30-be413b8c3c4d" />
-                <option name="line" value="250" />
-                <option name="message" value="Replace this lambda with a method reference." />
-                <option name="ruleKey" value="squid:S1612" />
-                <option name="severity" value="MINOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="5ec3053f-569c-4ec2-ac06-bcfaae93265d" />
-                <option name="line" value="350" />
-                <option name="message" value="Make this anonymous inner class a lambda" />
-                <option name="ruleKey" value="squid:S1604" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="39d75c40-23a1-4511-89e1-bb4cc248c1c8" />
-                <option name="line" value="304" />
-                <option name="message" value="Replace this lambda with a method reference." />
-                <option name="ruleKey" value="squid:S1612" />
-                <option name="severity" value="MINOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="2a4ffb35-cccb-4592-a3e0-74a2421f6c73" />
-                <option name="line" value="486" />
-                <option name="message" value="Replace this lambda with a method reference." />
-                <option name="ruleKey" value="squid:S1612" />
-                <option name="severity" value="MINOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="133425df-d7bc-4abb-b160-01f1162fc63b" />
-                <option name="line" value="283" />
-                <option name="message" value="Make this anonymous inner class a lambda" />
-                <option name="ruleKey" value="squid:S1604" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="053bda95-29a2-42be-84cf-001b88f2bff1" />
-                <option name="line" value="244" />
-                <option name="message" value="Replace this lambda with a method reference." />
-                <option name="ruleKey" value="squid:S1612" />
-                <option name="severity" value="MINOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/MockLobbyServerAccessor.java">
@@ -1954,76 +1663,12 @@
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/StatisticsServerAccessorImpl.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="f62a29b6-f745-4c98-8beb-195ba204ce1b" />
-                <option name="line" value="59" />
-                <option name="message" value="Take the required action to fix the issue indicated by this comment." />
-                <option name="ruleKey" value="squid:S1134" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="eef3cefd-1214-4150-9806-69ff21edc939" />
-                <option name="line" value="76" />
-                <option name="message" value="Complete the task associated to this TODO comment." />
-                <option name="ruleKey" value="squid:S1135" />
-                <option name="severity" value="INFO" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="c3a1b2a1-5d17-4bc2-ba67-1b8a77e5e743" />
-                <option name="message" value="17 more branches need to be covered by unit tests to reach the minimum threshold of 65.0% branch coverage." />
-                <option name="ruleKey" value="common-java:InsufficientBranchCoverage" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="8992b5c0-f40c-4210-b65b-057d1027e620" />
-                <option name="line" value="115" />
-                <option name="message" value="Reduce this anonymous class number of lines from 39 to at most 20, or make it a named class." />
-                <option name="ruleKey" value="squid:S1188" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="6cfffbb8-b39f-4ef2-9e19-50a43c2f6242" />
-                <option name="line" value="115" />
-                <option name="message" value="Rename this class." />
-                <option name="ruleKey" value="squid:S2176" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="00405430-184c-4cd9-9a78-339ca4f121de" />
-                <option name="message" value="1 duplicated blocks of code." />
-                <option name="ruleKey" value="common-java:DuplicatedBlocks" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/AskPlayerStatsDaysMessage.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="49b36f5b-69a7-4b24-9b4c-7415561bfd38" />
-                <option name="line" value="5" />
-                <option name="message" value="Make type a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="1f1b0168-dc7f-4223-9156-65c1b6b10eb0" />
-                <option name="line" value="6" />
-                <option name="message" value="Make player a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/Avatar.java">
@@ -2031,17 +1676,17 @@
             <set>
               <SonarIssue>
                 <option name="isNew" value="false" />
-                <option name="key" value="85158762-e555-438c-acdb-1d881d19cd80" />
-                <option name="line" value="5" />
-                <option name="message" value="Make url a static final constant or non-public and provide accessors if needed." />
+                <option name="key" value="1e9b18ff-7494-4cfd-9346-67c6f98549cf" />
+                <option name="line" value="6" />
+                <option name="message" value="Make tooltip a static final constant or non-public and provide accessors if needed." />
                 <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
               <SonarIssue>
                 <option name="isNew" value="false" />
-                <option name="key" value="1e9b18ff-7494-4cfd-9346-67c6f98549cf" />
-                <option name="line" value="6" />
-                <option name="message" value="Make tooltip a static final constant or non-public and provide accessors if needed." />
+                <option name="key" value="85158762-e555-438c-acdb-1d881d19cd80" />
+                <option name="line" value="5" />
+                <option name="message" value="Make url a static final constant or non-public and provide accessors if needed." />
                 <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
@@ -2051,14 +1696,6 @@
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/ClientMessage.java">
           <value>
             <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="81656540-c81b-41a1-bdc8-3c624bbc756a" />
-                <option name="line" value="11" />
-                <option name="message" value="Add the &quot;@Override&quot; annotation above this method signature" />
-                <option name="ruleKey" value="squid:S1161" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
               <SonarIssue>
                 <option name="isNew" value="false" />
                 <option name="key" value="3967c8d9-2038-4a5e-b00a-219dc5747a3c" />
@@ -2075,206 +1712,27 @@
                 <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="b9e95629-eb11-4c5e-ace4-37c274d8a0b5" />
-                <option name="line" value="6" />
-                <option name="message" value="Rename this abstract class name to match the regular expression '^Abstract[A-Z][a-zA-Z0-9]*$'." />
-                <option name="ruleKey" value="squid:S00118" />
-                <option name="severity" value="MINOR" />
-              </SonarIssue>
             </set>
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/FoesMessage.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="f5b5c8d4-76c2-48a5-b634-939207321719" />
-                <option name="line" value="7" />
-                <option name="message" value="Make foes a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/FriendsMessage.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="8ad75038-6254-4c5a-bc05-a7948b7600f5" />
-                <option name="line" value="7" />
-                <option name="message" value="Make friends a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/GameInfo.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="eb1c1d1a-c487-4bb2-97c9-b755534e17eb" />
-                <option name="message" value="1 duplicated blocks of code." />
-                <option name="ruleKey" value="common-java:DuplicatedBlocks" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="e9750d21-653e-4373-8941-b298b8328830" />
-                <option name="line" value="12" />
-                <option name="message" value="Make mapname a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="e29163da-6424-4d6a-b60c-0714d877dcc1" />
-                <option name="line" value="11" />
-                <option name="message" value="Make access a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="86887161-22c7-41e6-af64-b3d63469b209" />
-                <option name="line" value="8" />
-                <option name="message" value="Make host a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="83878ce6-08f2-46e6-9628-20f9b3e444c3" />
-                <option name="line" value="14" />
-                <option name="message" value="Make options a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="82a5f666-5ef5-4693-8cac-fe46374e7c94" />
-                <option name="line" value="18" />
-                <option name="message" value="Make maxPlayers a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="76c0a74d-93bb-49af-80f7-0a97fed9c782" />
-                <option name="line" value="17" />
-                <option name="message" value="Make featuredMod a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="686e1bb6-6e0a-40a7-9b00-c401cda49d27" />
-                <option name="line" value="19" />
-                <option name="message" value="Make numPlayers a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="566e4c30-0da3-4bc9-908a-0e53313532b8" />
-                <option name="line" value="10" />
-                <option name="message" value="Make title a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="418f274f-0e18-4ebc-9c00-8241cad56058" />
-                <option name="line" value="16" />
-                <option name="message" value="Make gameType a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="3fd8261a-08b1-4463-a25c-f44d8462f5de" />
-                <option name="line" value="21" />
-                <option name="message" value="Make teams a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="3c718009-e31f-40a7-b43d-f69162b9f616" />
-                <option name="line" value="20" />
-                <option name="message" value="Make simMods a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="2c174ffa-7d63-442b-a128-8936bd5aa25c" />
-                <option name="line" value="22" />
-                <option name="message" value="Make featuredModVersions a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="244a2c4b-c157-4cfd-8c47-bd717ccb3fc6" />
-                <option name="line" value="13" />
-                <option name="message" value="Make state a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="23be727f-59c6-4833-b8c5-ee79ec53d2ee" />
-                <option name="line" value="9" />
-                <option name="message" value="Make uid a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/GameLaunchInfo.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="c356137b-1ccd-457c-b7ff-ed70d4e42859" />
-                <option name="line" value="10" />
-                <option name="message" value="Make args a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="87ef4b3a-2249-42cb-8358-5759208594d2" />
-                <option name="line" value="11" />
-                <option name="message" value="Make uid a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="46a36750-d5ed-4a0d-bebb-ab2f94b47e15" />
-                <option name="line" value="13" />
-                <option name="message" value="Make version a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="0a2a6b52-80b5-4e65-b284-46f87c03bcd4" />
-                <option name="line" value="12" />
-                <option name="message" value="Make mod a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/GameState.java">
@@ -2293,363 +1751,52 @@
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/GameStatusMessage.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="b56f125e-1d4d-473a-a337-a8b8337620c5" />
-                <option name="line" value="15" />
-                <option name="message" value="Make state a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/GameTypeInfo.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="f9982fd9-46e6-41ab-81cb-d991fa97ae8d" />
-                <option name="line" value="9" />
-                <option name="message" value="Make join a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="e6b1a881-730e-4265-b60a-b16b9168a0f8" />
-                <option name="line" value="14" />
-                <option name="message" value="Make desc a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="b92463af-a458-427c-b738-6d98856f4b95" />
-                <option name="line" value="12" />
-                <option name="message" value="Make host a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="b11ea34d-0270-4a83-b1cb-79a8e8fcef9d" />
-                <option name="line" value="11" />
-                <option name="message" value="Make live a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="65121907-cd31-4acf-ab87-7fc4ff0553e3" />
-                <option name="line" value="15" />
-                <option name="message" value="Make options a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="4e93166e-2f2e-44b1-b317-e4368900dca4" />
-                <option name="line" value="16" />
-                <option name="message" value="Make icon a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="2b8aae71-7dc5-4b60-8c24-e088df1f3704" />
-                <option name="line" value="10" />
-                <option name="message" value="Make name a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="2abe0a3b-2d03-454a-8c84-7af3c193008a" />
-                <option name="line" value="13" />
-                <option name="message" value="Make fullname a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/HostGameMessage.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="fab2f012-eb68-499c-b30b-4bc62de50ff8" />
-                <option name="line" value="10" />
-                <option name="message" value="Make access a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="a804a000-d681-44c1-bee4-efa837894454" />
-                <option name="line" value="14" />
-                <option name="message" value="Method has 8 parameters, which is greater than 7 authorized." />
-                <option name="ruleKey" value="squid:S00107" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="a6f0348c-03d8-42d7-908e-3dc72166457b" />
-                <option name="line" value="12" />
-                <option name="message" value="Make password a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="a2530a26-7bc7-40cc-a261-7b5d568ce82a" />
-                <option name="line" value="7" />
-                <option name="message" value="Make title a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="5c3e56db-ebb1-4132-b5af-be709272e256" />
-                <option name="line" value="9" />
-                <option name="message" value="Make options a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="4145a0c5-0a66-41c7-89f2-440636fdc704" />
-                <option name="line" value="11" />
-                <option name="message" value="Make version a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="2b60ada7-b85b-43f3-bb32-083ec5f2dc7f" />
-                <option name="line" value="8" />
-                <option name="message" value="Make mod a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="1e5ad3c5-1411-4d85-a507-488648809a0e" />
-                <option name="line" value="6" />
-                <option name="message" value="Make mapname a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="17357744-0606-4211-900e-3bc02de3b5f3" />
-                <option name="line" value="5" />
-                <option name="message" value="Make gameport a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/IdkHowToCallThis.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/JoinGameMessage.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="8e3a7d0d-6beb-4ccd-a040-5731ef5706a4" />
-                <option name="line" value="5" />
-                <option name="message" value="Make uid a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="32e2e047-066b-43e0-8fc9-33e08e60dc3b" />
-                <option name="line" value="6" />
-                <option name="message" value="Make password a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="2d628642-b6e5-4657-b866-d4f622064fe8" />
-                <option name="line" value="7" />
-                <option name="message" value="Make gameport a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/LoginMessage.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="f22b00c5-ed5b-479b-92ca-d612f4ef7750" />
-                <option name="line" value="11" />
-                <option name="message" value="Make uniqueId a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="8dc30dff-27ce-4c5e-9a3a-4f50f2a312a2" />
-                <option name="line" value="8" />
-                <option name="message" value="Make login a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="837f5467-2dc6-4dad-8b52-c358e48b32a0" />
-                <option name="line" value="12" />
-                <option name="message" value="Make localIp a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="73cb1a6b-d6c8-462b-840e-9914f036453f" />
-                <option name="line" value="9" />
-                <option name="message" value="Make password a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="6ecd897b-011c-4f64-b123-eba70f09bac7" />
-                <option name="line" value="14" />
-                <option name="message" value="Make userAgent a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="5ce233cc-e570-48fe-adbb-726f5ec8468c" />
-                <option name="line" value="13" />
-                <option name="message" value="Make version a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="283ce6bd-9349-4106-99c7-fd9236102531" />
-                <option name="line" value="10" />
-                <option name="message" value="Make session a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/PlayerInfo.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="f3367366-dbd5-4e17-a8d8-956dd4566aa8" />
-                <option name="line" value="14" />
-                <option name="message" value="Make country a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="f1e05c1a-fac0-4005-a6ca-00fc1e6a4fd1" />
-                <option name="line" value="17" />
-                <option name="message" value="Make ratingDeviation a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="dab2cd82-e404-4a42-874f-ee8d6c5feb84" />
-                <option name="line" value="11" />
-                <option name="message" value="Make clan a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="9ae4aa24-b7dc-496a-b2a3-2e9a739a03f9" />
-                <option name="line" value="13" />
-                <option name="message" value="Make avatar a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="95ac04a2-729e-4a49-979b-feaaedc26a33" />
-                <option name="line" value="18" />
-                <option name="message" value="Make ladderRatingMean a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="891bd45e-d885-4061-8224-742bbee3d511" />
-                <option name="line" value="12" />
-                <option name="message" value="Make login a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="61f78a45-02c7-403e-9e9d-480094e706f3" />
-                <option name="line" value="16" />
-                <option name="message" value="Make numberOfGames a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="2d4e1bed-9f1b-4753-97e7-74dda34b4644" />
-                <option name="line" value="15" />
-                <option name="message" value="Make ratingMean a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="107cbafa-0329-45db-8d93-9384f74033cf" />
-                <option name="line" value="19" />
-                <option name="message" value="Make league a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="0d4640e0-ee70-46b9-bfb6-18571234d484" />
-                <option name="line" value="20" />
-                <option name="message" value="Make ladderRatingDeviation a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="4aff5d2b-0f5c-4fe3-a4c0-f8a26c81343f" />
-                <option name="line" value="11" />
-                <option name="message" value="Make this line start at column 3." />
-                <option name="ruleKey" value="squid:IndentationCheck" />
-                <option name="severity" value="MINOR" />
-              </SonarIssue>
-            </set>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/ServerCommand.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/ServerMessage.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/ServerMessageType.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="7782f756-6d73-4cab-8258-9ce35a69b88f" />
-                <option name="message" value="2 more branches need to be covered by unit tests to reach the minimum threshold of 65.0% branch coverage." />
-                <option name="ruleKey" value="common-java:InsufficientBranchCoverage" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/ServerObject.java">
@@ -2663,96 +1810,22 @@
                 <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="4ec58423-744c-4fa5-9b90-a793f7ac6cc7" />
-                <option name="line" value="20" />
-                <option name="message" value="Add the &quot;@Override&quot; annotation above this method signature" />
-                <option name="ruleKey" value="squid:S1161" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
             </set>
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/ServerObjectType.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="a847c67c-1587-459b-84c0-15c00bb20578" />
-                <option name="message" value="2 more branches need to be covered by unit tests to reach the minimum threshold of 65.0% branch coverage." />
-                <option name="ruleKey" value="common-java:InsufficientBranchCoverage" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="42ff57f5-c0cb-451c-888a-170b5cb6007c" />
-                <option name="line" value="11" />
-                <option name="message" value="Complete the task associated to this TODO comment." />
-                <option name="ruleKey" value="squid:S1135" />
-                <option name="severity" value="INFO" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/SessionInfo.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="c25280d8-3614-4615-affc-99c3253461e3" />
-                <option name="line" value="8" />
-                <option name="message" value="Make session a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="67343d74-a1ff-4c40-8f10-19aa5c34940d" />
-                <option name="line" value="13" />
-                <option name="message" value="Make email a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="45821ebe-890b-4092-a849-e6a53499fe3d" />
-                <option name="line" value="18" />
-                <option name="message" value="Make id a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/SocialInfo.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="e39413bb-9d1e-4967-8d14-355f6eced814" />
-                <option name="line" value="19" />
-                <option name="message" value="Make foes a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="9631b968-c9ef-402e-92c2-b4f85f61d76c" />
-                <option name="line" value="14" />
-                <option name="message" value="Make friends a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="1265f341-1114-44b2-85c3-7de7dac1e4a6" />
-                <option name="line" value="24" />
-                <option name="message" value="Make autojoin a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/domain/VictoryCondition.java">
@@ -2781,6 +1854,11 @@
                 <option name="severity" value="MINOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/gson/ServerMessageTypeTypeAdapter.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/htmlparser/HtmlContentHandler.java">
@@ -2969,33 +2047,9 @@
             <set>
               <SonarIssue>
                 <option name="isNew" value="false" />
-                <option name="key" value="e76889ac-2224-4436-949a-301b6d054ac2" />
-                <option name="line" value="18" />
-                <option name="message" value="Make tagOfferTimestamp a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="dc61f83b-4a42-46ba-b417-78c3bcb2b318" />
-                <option name="line" value="10" />
-                <option name="message" value="Make inetSocketAddress a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="ca14c63f-45ac-4380-ba62-2da69932480c" />
-                <option name="line" value="8" />
-                <option name="message" value="Make uid a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="9c987567-1949-4966-97f2-2969e5cc6d6b" />
-                <option name="line" value="9" />
-                <option name="message" value="Make connected a static final constant or non-public and provide accessors if needed." />
+                <option name="key" value="2f28fd03-fdd8-4c4d-8e14-a36e1fcfd231" />
+                <option name="line" value="12" />
+                <option name="message" value="Make connectionTag a static final constant or non-public and provide accessors if needed." />
                 <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
@@ -3017,9 +2071,17 @@
               </SonarIssue>
               <SonarIssue>
                 <option name="isNew" value="false" />
-                <option name="key" value="3f82659e-0996-45dc-bf0a-39306a0cfdf3" />
-                <option name="line" value="16" />
-                <option name="message" value="Make currentlyReconnecting a static final constant or non-public and provide accessors if needed." />
+                <option name="key" value="e76889ac-2224-4436-949a-301b6d054ac2" />
+                <option name="line" value="18" />
+                <option name="message" value="Make tagOfferTimestamp a static final constant or non-public and provide accessors if needed." />
+                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
+                <option name="severity" value="MAJOR" />
+              </SonarIssue>
+              <SonarIssue>
+                <option name="isNew" value="false" />
+                <option name="key" value="dc61f83b-4a42-46ba-b417-78c3bcb2b318" />
+                <option name="line" value="10" />
+                <option name="message" value="Make inetSocketAddress a static final constant or non-public and provide accessors if needed." />
                 <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
@@ -3033,22 +2095,6 @@
               </SonarIssue>
               <SonarIssue>
                 <option name="isNew" value="false" />
-                <option name="key" value="2f28fd03-fdd8-4c4d-8e14-a36e1fcfd231" />
-                <option name="line" value="12" />
-                <option name="message" value="Make connectionTag a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="23def11b-f7f7-42b8-b560-bd4fb06803c1" />
-                <option name="line" value="13" />
-                <option name="message" value="Make ourConnectionTag a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
                 <option name="key" value="1fa039e8-4806-4dad-acaa-e5c4441e033d" />
                 <option name="line" value="17" />
                 <option name="message" value="Make ourConnectionTagDeclined a static final constant or non-public and provide accessors if needed." />
@@ -3057,9 +2103,41 @@
               </SonarIssue>
               <SonarIssue>
                 <option name="isNew" value="false" />
+                <option name="key" value="9c987567-1949-4966-97f2-2969e5cc6d6b" />
+                <option name="line" value="9" />
+                <option name="message" value="Make connected a static final constant or non-public and provide accessors if needed." />
+                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
+                <option name="severity" value="MAJOR" />
+              </SonarIssue>
+              <SonarIssue>
+                <option name="isNew" value="false" />
                 <option name="key" value="009108ae-573f-4641-8c3d-f580029060b6" />
                 <option name="line" value="14" />
                 <option name="message" value="Make ourConnectionTagAcknowledged a static final constant or non-public and provide accessors if needed." />
+                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
+                <option name="severity" value="MAJOR" />
+              </SonarIssue>
+              <SonarIssue>
+                <option name="isNew" value="false" />
+                <option name="key" value="3f82659e-0996-45dc-bf0a-39306a0cfdf3" />
+                <option name="line" value="16" />
+                <option name="message" value="Make currentlyReconnecting a static final constant or non-public and provide accessors if needed." />
+                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
+                <option name="severity" value="MAJOR" />
+              </SonarIssue>
+              <SonarIssue>
+                <option name="isNew" value="false" />
+                <option name="key" value="ca14c63f-45ac-4380-ba62-2da69932480c" />
+                <option name="line" value="8" />
+                <option name="message" value="Make uid a static final constant or non-public and provide accessors if needed." />
+                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
+                <option name="severity" value="MAJOR" />
+              </SonarIssue>
+              <SonarIssue>
+                <option name="isNew" value="false" />
+                <option name="key" value="23def11b-f7f7-42b8-b560-bd4fb06803c1" />
+                <option name="line" value="13" />
+                <option name="message" value="Make ourConnectionTag a static final constant or non-public and provide accessors if needed." />
                 <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
@@ -3477,32 +2555,7 @@
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/writer/JsonMessageSerializer.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="b486d9ee-ee65-4009-94d1-74aeff6f974a" />
-                <option name="line" value="84" />
-                <option name="message" value="Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation." />
-                <option name="ruleKey" value="squid:S1186" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="81a30f1f-be6d-46f6-8eca-b58ed147906b" />
-                <option name="line" value="30" />
-                <option name="message" value="Complete the task associated to this TODO comment." />
-                <option name="ruleKey" value="squid:S1135" />
-                <option name="severity" value="INFO" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="5060d887-f0e8-4772-829c-55ff312de437" />
-                <option name="line" value="65" />
-                <option name="message" value="Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation." />
-                <option name="ruleKey" value="squid:S1186" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/writer/ServerWriter.java">
@@ -3608,151 +2661,7 @@
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/main/MainController.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="59295ceb-3382-42fe-b58f-2dcf9248c568" />
-                <option name="line" value="390" />
-                <option name="message" value="Replace this lambda with a method reference." />
-                <option name="ruleKey" value="squid:S1612" />
-                <option name="severity" value="MINOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="de94f3d1-c91e-4176-89e1-870bd5a56633" />
-                <option name="line" value="455" />
-                <option name="message" value="Take the required action to fix the issue indicated by this comment." />
-                <option name="ruleKey" value="squid:S1134" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="bc537739-0911-474e-9d25-7b9e67ddd205" />
-                <option name="line" value="701" />
-                <option name="message" value="Replace this lambda with a method reference." />
-                <option name="ruleKey" value="squid:S1612" />
-                <option name="severity" value="MINOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="b723424c-18bd-4833-a73d-350b4746a0b3" />
-                <option name="line" value="475" />
-                <option name="message" value="Take the required action to fix the issue indicated by this comment." />
-                <option name="ruleKey" value="squid:S1134" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="f9e27354-4c3e-4839-a476-b9b5308eb9a4" />
-                <option name="line" value="630" />
-                <option name="message" value="Take the required action to fix the issue indicated by this comment." />
-                <option name="ruleKey" value="squid:S1134" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="6ba0ba0c-b02c-408c-b68b-6f43f9089906" />
-                <option name="line" value="470" />
-                <option name="message" value="Take the required action to fix the issue indicated by this comment." />
-                <option name="ruleKey" value="squid:S1134" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="4336749e-a9e9-4b86-a09c-43416432a7f4" />
-                <option name="line" value="319" />
-                <option name="message" value="This block of commented-out lines of code should be removed." />
-                <option name="ruleKey" value="squid:CommentedOutCodeLine" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="a3942baf-55ca-43b1-bda1-a47e457eb07e" />
-                <option name="line" value="667" />
-                <option name="message" value="Replace this lambda with a method reference." />
-                <option name="ruleKey" value="squid:S1612" />
-                <option name="severity" value="MINOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="85564b7b-72b5-468b-8d17-219cc1be0676" />
-                <option name="line" value="254" />
-                <option name="message" value="Replace this lambda with a method reference." />
-                <option name="ruleKey" value="squid:S1612" />
-                <option name="severity" value="MINOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="ab793edf-451c-41fd-a66d-bbc01452845f" />
-                <option name="line" value="237" />
-                <option name="message" value="Replace this lambda with a method reference." />
-                <option name="ruleKey" value="squid:S1612" />
-                <option name="severity" value="MINOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="98b5b2b5-e91a-457f-a0ad-f879966f1989" />
-                <option name="message" value="23 more branches need to be covered by unit tests to reach the minimum threshold of 65.0% branch coverage." />
-                <option name="ruleKey" value="common-java:InsufficientBranchCoverage" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="7a77c4d0-0938-46d0-b5f4-228a974a8cce" />
-                <option name="line" value="325" />
-                <option name="message" value="This block of commented-out lines of code should be removed." />
-                <option name="ruleKey" value="squid:CommentedOutCodeLine" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="0beee1af-6418-4041-8070-da226bdb2dba" />
-                <option name="line" value="321" />
-                <option name="message" value="This block of commented-out lines of code should be removed." />
-                <option name="ruleKey" value="squid:CommentedOutCodeLine" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="6ab9f8a7-9add-4db8-94f5-bab2cbf5fb5d" />
-                <option name="line" value="450" />
-                <option name="message" value="Take the required action to fix the issue indicated by this comment." />
-                <option name="ruleKey" value="squid:S1134" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="57d10da1-366f-4eb8-982f-a9ee15e2039e" />
-                <option name="line" value="504" />
-                <option name="message" value="Take the required action to fix the issue indicated by this comment." />
-                <option name="ruleKey" value="squid:S1134" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="0897bb75-bfa7-427d-8e86-bc5f38f96a40" />
-                <option name="line" value="251" />
-                <option name="message" value="Replace this lambda with a method reference." />
-                <option name="ruleKey" value="squid:S1612" />
-                <option name="severity" value="MINOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="af0fc81d-4da6-431b-be91-8d51aa44a1d7" />
-                <option name="line" value="460" />
-                <option name="message" value="Take the required action to fix the issue indicated by this comment." />
-                <option name="ruleKey" value="squid:S1134" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="f480a32b-b679-4fc5-8ab4-2699c1aa4c15" />
-                <option name="line" value="389" />
-                <option name="message" value="Replace this lambda with a method reference." />
-                <option name="ruleKey" value="squid:S1612" />
-                <option name="severity" value="MINOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/main/hub/CommunityHubController.java">
@@ -4638,167 +3547,7 @@
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/replay/LocalReplayInfo.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="f589a80f-34af-4016-8a0c-f7c36abc363b" />
-                <option name="line" value="33" />
-                <option name="message" value="Make recorder a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="f4d15ae3-25d8-4d38-8873-af50e9131f8f" />
-                <option name="line" value="31" />
-                <option name="message" value="Make featuredModVersions a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="cab27348-55c2-4635-b807-0ecb5728dd45" />
-                <option name="line" value="23" />
-                <option name="message" value="Make options a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="ba104c95-27b0-44f3-9a7f-e2358717e325" />
-                <option name="line" value="32" />
-                <option name="message" value="Make complete a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="b8019c64-2a39-46a8-b95f-aa472c4e07e3" />
-                <option name="line" value="21" />
-                <option name="message" value="Make mapname a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="9ae9bcf3-f1a4-428c-b077-823449a749bf" />
-                <option name="line" value="30" />
-                <option name="message" value="Make teams a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="9549d194-d8df-4e21-b7f8-62458630e309" />
-                <option name="line" value="36" />
-                <option name="message" value="Make gameTime a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="8f32e864-5307-4985-b9b9-8a546565539b" />
-                <option name="line" value="18" />
-                <option name="message" value="Make uid a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="8cc5eead-f082-404e-912b-20fd4e823999" />
-                <option name="line" value="25" />
-                <option name="message" value="Make gameType a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="7cda08f3-9d09-452e-bf06-4f9690850a97" />
-                <option name="message" value="1 duplicated blocks of code." />
-                <option name="ruleKey" value="common-java:DuplicatedBlocks" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="7a393f3b-8603-441f-90d3-a2732c684afc" />
-                <option name="line" value="34" />
-                <option name="message" value="Make versionInfo a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="625a11c2-8f89-4dfc-b43d-c4ae5d1ab2c9" />
-                <option name="line" value="22" />
-                <option name="message" value="Make state a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="5336bb03-270e-4f90-ba11-150645dd0e72" />
-                <option name="line" value="27" />
-                <option name="message" value="Make maxPlayers a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="380490d8-b22e-4432-af45-bbd3db70ca12" />
-                <option name="line" value="19" />
-                <option name="message" value="Make title a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="28813d5d-88b8-471c-a788-0a9fef8c5a04" />
-                <option name="line" value="35" />
-                <option name="message" value="Make gameEnd a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="21f3b913-8e61-4c58-b41f-b5b23bee2902" />
-                <option name="line" value="28" />
-                <option name="message" value="Make numPlayers a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="1f4f90e9-327a-4e3f-a913-f370bfac71e5" />
-                <option name="line" value="26" />
-                <option name="message" value="Make featuredMod a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="13205407-c15d-48d2-9011-d8d89bb55bdd" />
-                <option name="line" value="29" />
-                <option name="message" value="Make simMods a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="10a1d827-0666-4ec3-978a-f41f28b8702e" />
-                <option name="line" value="17" />
-                <option name="message" value="Make host a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="0319d090-d054-4b46-838f-21d33fdedb20" />
-                <option name="line" value="20" />
-                <option name="message" value="Make access a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/replay/ReplayAction.java">
@@ -5557,16 +4306,7 @@
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/stats/StatisticsObject.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="1df69576-17e8-46f0-ace1-4b32cceff05c" />
-                <option name="line" value="8" />
-                <option name="message" value="Make type a static final constant or non-public and provide accessors if needed." />
-                <option name="ruleKey" value="squid:ClassVariableVisibilityCheck" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/stats/package-info.java">
@@ -5783,47 +4523,7 @@
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/util/ConcurrentUtil.java">
           <value>
-            <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="a5641322-e7cd-4904-b469-e97c624d85a3" />
-                <option name="message" value="1 more branches need to be covered by unit tests to reach the minimum threshold of 65.0% branch coverage." />
-                <option name="ruleKey" value="common-java:InsufficientBranchCoverage" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="52e6569a-0034-455e-9bd4-f7909ca60197" />
-                <option name="line" value="27" />
-                <option name="message" value="Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation." />
-                <option name="ruleKey" value="squid:S1186" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="1ef22f1f-fdf7-42ff-9eba-d65006989543" />
-                <option name="line" value="48" />
-                <option name="message" value="Rename this class." />
-                <option name="ruleKey" value="squid:S2176" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="a67388eb-5d2e-4d4e-9e19-5887e36968c7" />
-                <option name="line" value="78" />
-                <option name="message" value="Replace this lambda with a method reference." />
-                <option name="ruleKey" value="squid:S1612" />
-                <option name="severity" value="MINOR" />
-              </SonarIssue>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="7918c3bf-d3dd-448e-86bc-92ef8d07bb5f" />
-                <option name="line" value="48" />
-                <option name="message" value="Make this anonymous inner class a lambda" />
-                <option name="ruleKey" value="squid:S1604" />
-                <option name="severity" value="MAJOR" />
-              </SonarIssue>
-            </set>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/util/Copier.java">
@@ -6221,6 +4921,16 @@
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/test/java/com/faforever/client/config/TestUiConfiguration.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/test/java/com/faforever/client/game/GameLaunchInfoBuilder.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/test/java/com/faforever/client/game/GameTypeInfoBuilder.java">
           <value>
             <set />
           </value>

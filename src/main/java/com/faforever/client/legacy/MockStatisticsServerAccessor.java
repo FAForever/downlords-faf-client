@@ -32,8 +32,8 @@ public class MockStatisticsServerAccessor implements StatisticsServerAccessor {
         }
 
         PlayerStatistics playerStatistics = new PlayerStatistics();
-        playerStatistics.type = StatisticsType.STATS;
-        playerStatistics.values = ratings;
+        playerStatistics.setStatisticsType(StatisticsType.STATS);
+        playerStatistics.setValues(ratings);
         return playerStatistics;
       }
     }, callback);

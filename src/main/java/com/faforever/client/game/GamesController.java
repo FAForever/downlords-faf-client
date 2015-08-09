@@ -1,7 +1,6 @@
 package com.faforever.client.game;
 
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameState;
@@ -115,7 +114,6 @@ public class GamesController {
   //TODO Implement into options menu
   private boolean tilePaneSelected = false;
   private boolean firstGeneratedPane = true;
-  private FxmlLoader fxmlLoader;
 
   @PostConstruct
   void postConstruct() {
@@ -256,9 +254,6 @@ public class GamesController {
       firstGeneratedPane = false;
       tilePaneSelected = true;
     }
-  }
-
-  public void setUpIfNecessary() {
   }
 
   public Node getRoot() {

@@ -102,7 +102,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     verify(instance.lobbyServerAccessor).addOnGameLaunchListener(captor.capture());
 
     GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
-    gameLaunchInfo.mod = FeaturedMod.DEFAULT_MOD.getString();
+    gameLaunchInfo.setMod(FeaturedMod.DEFAULT_MOD.getString());
     captor.getValue().onGameLaunchInfo(gameLaunchInfo);
 
     localRelayServerReadyLatch.await(TIMEOUT, TIMEOUT_UNIT);

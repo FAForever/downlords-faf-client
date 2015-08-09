@@ -11,14 +11,13 @@ public class GameTypeInfoBuilder {
   }
 
   public GameTypeInfoBuilder defaultValues() {
-    gameTypeInfo.desc = "Description";
-    gameTypeInfo.fullname = "Full name";
-    gameTypeInfo.host = true;
-    gameTypeInfo.icon = "icon";
-    gameTypeInfo.join = true;
-    gameTypeInfo.live = true;
-    gameTypeInfo.options = new Boolean[0];
-    gameTypeInfo.command = "command";
+    gameTypeInfo.setDesc("Description");
+    gameTypeInfo.setFullname("Full name");
+    gameTypeInfo.setHost(true);
+    gameTypeInfo.setIcon("icon");
+    gameTypeInfo.setJoin(true);
+    gameTypeInfo.setLive(true);
+    gameTypeInfo.setOptions(new Boolean[0]);
     return this;
   }
 

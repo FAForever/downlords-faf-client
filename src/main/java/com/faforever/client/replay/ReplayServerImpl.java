@@ -141,10 +141,10 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
     }
 
     replayInfo = new LocalReplayInfo();
-    replayInfo.uid = uid;
-    replayInfo.gameTime = pythonTime();
-    replayInfo.versionInfo = new HashMap<>();
-    replayInfo.versionInfo.put("lobby", VersionUtil.getVersion(getClass()));
+    replayInfo.setUid(uid);
+    replayInfo.setGameTime(pythonTime());
+    replayInfo.setVersionInfo(new HashMap<>());
+    replayInfo.getVersionInfo().put("lobby", VersionUtil.getVersion(getClass()));
   }
 
   /**
@@ -155,12 +155,12 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
   }
 
   private void finishReplayInfo() {
-    GameInfoBean gameInfoBean = gameService.getByUid(replayInfo.uid);
+    GameInfoBean gameInfoBean = gameService.getByUid(replayInfo.getUid());
 
-    replayInfo.gameEnd = pythonTime();
-    replayInfo.recorder = userService.getUsername();
-    replayInfo.complete = true;
-    replayInfo.state = GameState.CLOSED;
+    replayInfo.setGameEnd(pythonTime());
+    replayInfo.setRecorder(userService.getUsername());
+    replayInfo.setComplete(true);
+    replayInfo.setState(GameState.CLOSED);
     replayInfo.updateFromGameInfoBean(gameInfoBean);
 
     gameInfoBean = null;

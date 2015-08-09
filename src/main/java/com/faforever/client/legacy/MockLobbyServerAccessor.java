@@ -58,19 +58,19 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
       protected SessionInfo call() throws Exception {
         for (OnGameTypeInfoListener onModInfoMessageListener : onModInfoMessageListeners) {
           GameTypeInfo gameTypeInfo = new GameTypeInfo();
-          gameTypeInfo.fullname = "Forged Alliance Forever";
-          gameTypeInfo.name = "faf";
-          gameTypeInfo.live = true;
-          gameTypeInfo.host = true;
+          gameTypeInfo.setFullname("Forged Alliance Forever");
+          gameTypeInfo.setName("faf");
+          gameTypeInfo.setLive(true);
+          gameTypeInfo.setHost(true);
 
           onModInfoMessageListener.onGameTypeInfo(gameTypeInfo);
         }
 
         if (onPlayerInfoListener != null) {
           PlayerInfo playerInfo = new PlayerInfo();
-          playerInfo.login = userService.getUsername();
-          playerInfo.clan = "ABC";
-          playerInfo.country = "A1";
+          playerInfo.setLogin(userService.getUsername());
+          playerInfo.setClan("ABC");
+          playerInfo.setCountry("A1");
           onPlayerInfoListener.onPlayerInfo(playerInfo);
         }
 
@@ -107,9 +107,9 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
         );
 
         SessionInfo sessionInfo = new SessionInfo();
-        sessionInfo.id = 1234;
-        sessionInfo.session = "5678";
-        sessionInfo.email = "junit@example.com";
+        sessionInfo.setId(1234);
+        sessionInfo.setSession("5678");
+        sessionInfo.setEmail("junit@example.com");
 
         return sessionInfo;
       }
@@ -118,19 +118,19 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
   private GameInfo createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
     GameInfo gameInfo = new GameInfo();
-    gameInfo.uid = uid;
-    gameInfo.title = title;
-    gameInfo.access = access;
-    gameInfo.featuredMod = featuredMod;
-    gameInfo.mapname = mapName;
-    gameInfo.numPlayers = numPlayers;
-    gameInfo.maxPlayers = maxPlayers;
-    gameInfo.host = host;
-    gameInfo.state = GameState.OPEN;
-    gameInfo.options = new Boolean[0];
-    gameInfo.simMods = Collections.emptyMap();
-    gameInfo.teams = Collections.emptyMap();
-    gameInfo.featuredModVersions = Collections.emptyMap();
+    gameInfo.setUid(uid);
+    gameInfo.setTitle(title);
+    gameInfo.setAccess(access);
+    gameInfo.setFeaturedMod(featuredMod);
+    gameInfo.setMapname(mapName);
+    gameInfo.setNumPlayers(numPlayers);
+    gameInfo.setMaxPlayers(maxPlayers);
+    gameInfo.setHost(host);
+    gameInfo.setState(GameState.OPEN);
+    gameInfo.setOptions(new Boolean[0]);
+    gameInfo.setSimMods(Collections.emptyMap());
+    gameInfo.setTeams(Collections.emptyMap());
+    gameInfo.setFeaturedModVersions(Collections.emptyMap());
 
     return gameInfo;
   }
@@ -156,10 +156,10 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
       @Override
       protected GameLaunchInfo call() throws Exception {
         GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
-        gameLaunchInfo.args = Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234");
-        gameLaunchInfo.mod = "faf";
-        gameLaunchInfo.uid = 1234;
-        gameLaunchInfo.version = "1";
+        gameLaunchInfo.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));
+        gameLaunchInfo.setMod("faf");
+        gameLaunchInfo.setUid(1234);
+        gameLaunchInfo.setVersion("1");
         return gameLaunchInfo;
       }
     }, callback);
@@ -171,10 +171,10 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
       @Override
       protected GameLaunchInfo call() throws Exception {
         GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
-        gameLaunchInfo.args = Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234");
-        gameLaunchInfo.mod = "faf";
-        gameLaunchInfo.uid = 1234;
-        gameLaunchInfo.version = "1";
+        gameLaunchInfo.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));
+        gameLaunchInfo.setMod("faf");
+        gameLaunchInfo.setUid(1234);
+        gameLaunchInfo.setVersion("1");
         return gameLaunchInfo;
       }
     }, callback);

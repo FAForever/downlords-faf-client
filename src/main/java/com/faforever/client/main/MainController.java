@@ -628,7 +628,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   void onCommunityHubSelected(ActionEvent event) {
-    communityHubController.setUpIfNecessary();
     setContent(communityHubController.getRoot());
     setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
@@ -662,7 +661,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   void onPlayCustomSelected(ActionEvent event) {
-    gamesController.setUpIfNecessary();
     setContent(gamesController.getRoot());
     setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }

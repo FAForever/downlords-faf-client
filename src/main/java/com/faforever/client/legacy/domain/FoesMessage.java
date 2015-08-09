@@ -4,10 +4,18 @@ import java.util.Collection;
 
 public class FoesMessage extends ClientMessage {
 
-  public Collection<String> foes;
+  private Collection<String> foes;
 
   public FoesMessage(Collection<String> foes) {
-    this.command = "social";
+    this.setCommand("social");
+    this.setFoes(foes);
+  }
+
+  public Collection<String> getFoes() {
+    return foes;
+  }
+
+  public void setFoes(Collection<String> foes) {
     this.foes = foes;
   }
 }

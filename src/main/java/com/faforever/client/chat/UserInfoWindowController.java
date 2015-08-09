@@ -144,7 +144,7 @@ public class UserInfoWindowController {
 
     List<XYChart.Data<Long, Integer>> values = new ArrayList<>();
 
-    for (RatingInfo ratingInfo : result.values) {
+    for (RatingInfo ratingInfo : result.getValues()) {
       int minRating = RatingUtil.getRating(ratingInfo);
       LocalDateTime dateTime = LocalDate.from(ratingInfo.date).atTime(ratingInfo.time);
       values.add(new XYChart.Data<>(dateTime.atZone(ZoneId.systemDefault()).toEpochSecond(), minRating));
