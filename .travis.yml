@@ -17,3 +17,17 @@ script:
 
 after_success:
 - ./gradlew test jacocoTestReport coveralls
+
+env:
+  global:
+   - secure: "UVIbeoJpx9n0KSWHbpdWZuR4zeZfXw3JQBq2Zb1h0/j4uREfXWiGFuNVQBPjsdtYi2+LkecjJ/MgKWo+SS0SjsvTa/ZPkOXt4408H1qYgwVnvWoeL/g1QQ6T8ADNysl/4ZtJLnSp0WXYEBkfHYZJD++vgDwkpVhnCLVzSFVAHls="
+
+addons:
+  coverity_scan:
+    project:
+      name: "micheljung/downlords-faf-client"
+      description: "A high quality re-implementation of the Forged Alliance Forever client"
+    notification_email: michel.jung89@gmail.com
+    build_command_prepend: "./gradlew clean"
+    build_command:   "./gradlew sonarqube"
+    branch_pattern: coverity_scan

@@ -2,7 +2,7 @@ package com.faforever.client.legacy.relay;
 
 import com.faforever.client.util.Validator;
 
-public class CreateRelayServerMessage extends RelayServerMessage {
+public class CreateLobbyServerMessage extends RelayServerMessage {
 
   private static final int LOBBY_MODE_INDEX = 0;
   private static final int PORT_INDEX = 1;
@@ -10,7 +10,7 @@ public class CreateRelayServerMessage extends RelayServerMessage {
   private static final int UID_INDEX = 3;
   private static final int UNKNOWN_FLAG_INDEX = 4;
 
-  public CreateRelayServerMessage(LobbyMode lobbyMode, int port, String username, int uid, int unknownFlag) {
+  public CreateLobbyServerMessage(LobbyMode lobbyMode, int port, String username, int uid, int unknownFlag) {
     super(RelayServerCommand.CREATE_LOBBY);
     Validator.notNull(lobbyMode, "lobbyMode must not be null");
     Validator.notNull(username, "username must not be null");

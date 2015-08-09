@@ -1,7 +1,7 @@
 package com.faforever.client.legacy;
 
 import com.faforever.client.legacy.domain.ServerObject;
-import com.faforever.client.legacy.io.QDataReader;
+import com.faforever.client.legacy.io.QDataInputStream;
 import com.faforever.client.util.JavaFxUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ public abstract class AbstractServerAccessor {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private boolean stopped;
-  private QDataReader dataInput;
+  private QDataInputStream dataInput;
 
   /**
    * Reads data received from the server and dispatches it. So far, there are two types of data sent by the server: <ol>
@@ -31,7 +31,7 @@ public abstract class AbstractServerAccessor {
   protected void blockingReadServer(Socket socket) throws IOException {
     JavaFxUtil.assertBackgroundThread();
 
-    try (QDataReader dataInput = new QDataReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())))) {
+    try (QDataInputStream dataInput = new QDataInputStream(new DataInputStream(new BufferedInputStream(socket.getInputStream())))) {
       this.dataInput = dataInput;
       while (!stopped && !socket.isInputShutdown()) {
         dataInput.skipBlockSize();

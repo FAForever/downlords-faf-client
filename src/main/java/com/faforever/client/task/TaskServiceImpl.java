@@ -80,7 +80,6 @@ public class TaskServiceImpl implements TaskService {
       @Override
       protected Void call() throws Exception {
         while (!isCancelled()) {
-
           PrioritizedTask<?> task = queue.take();
           task.run();
           queueList.remove(task);

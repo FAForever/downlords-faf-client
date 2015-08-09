@@ -6,23 +6,23 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.DataInput;
 import java.io.IOException;
-import java.io.Reader;
+import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-public class QDataReader extends Reader {
+public class QDataInputStream extends InputStream {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private DataInput dataInput;
   private Charset charset;
 
-  public QDataReader(DataInput dataInput) {
+  public QDataInputStream(DataInput dataInput) {
     this(dataInput, StandardCharsets.UTF_16BE);
   }
 
-  public QDataReader(DataInput dataInput, Charset charset) {
+  public QDataInputStream(DataInput dataInput, Charset charset) {
     this.dataInput = dataInput;
     this.charset = charset;
   }
@@ -35,8 +35,8 @@ public class QDataReader extends Reader {
   }
 
   @Override
-  public int read(char[] cbuf, int off, int len) throws IOException {
-    throw new UnsupportedOperationException();
+  public int read() throws IOException {
+    return dataInput.readUnsignedByte();
   }
 
   @Override
@@ -46,7 +46,7 @@ public class QDataReader extends Reader {
     }
   }
 
-  public int readInt32() throws IOException {
+  public int readInt() throws IOException {
     return dataInput.readInt();
   }
 

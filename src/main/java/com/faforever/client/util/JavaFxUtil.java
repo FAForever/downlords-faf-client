@@ -59,7 +59,8 @@ public class JavaFxUtil {
   /**
    * Creates a listener that waits for the document property of a WebEngine to change (a sign that the WebEngine has
    * loaded a new document) and sets the background color of the new web page to transparent. This is a workaround for
-   * the JavaFX bug that's preventing WebView elements from having a transparent background by default.
+   * the <a href="https://bugs.openjdk.java.net/browse/JDK-8116513">JavaFX</a> bug that's preventing WebView elements
+   * from having a transparent background by default.
    */
   public static void makeWebViewTransparent(WebEngine webEngine) {
     webEngine.documentProperty().addListener((arg0, arg1, arg2) -> {

@@ -13,11 +13,9 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.Callback;
 import javafx.collections.MapChangeListener;
-import javafx.concurrent.Service;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
-import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -155,17 +153,15 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   public void testWaitForProcessTerminationInBackground() throws Exception {
     CompletableFuture<Void> serviceStateDoneFuture = new CompletableFuture<>();
 
+    doAnswer(invocation -> {
+      serviceStateDoneFuture.complete(null);
+      return null;
+    }).when(instance.lobbyServerAccessor).notifyGameTerminated();
+
     Process process = mock(Process.class);
 
-    Service<Void> service = instance.waitForProcessTerminationInBackground(process);
+    instance.waitForProcessTerminationInBackground(process);
 
-    WaitForAsyncUtils.waitForAsyncFx(200, () -> service.stateProperty().addListener((observable, oldValue, newValue) -> {
-      serviceStateDoneFuture.complete(null);
-    }));
-
-
-    // It may happen that the listener above is added after the background task finished; for now we just gamble until
-    // it really needs to be fixed.
     serviceStateDoneFuture.get(500, TimeUnit.MILLISECONDS);
 
     verify(process).waitFor();
