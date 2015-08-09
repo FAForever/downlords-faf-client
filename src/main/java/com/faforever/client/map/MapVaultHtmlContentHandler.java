@@ -52,6 +52,7 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
       return;
     }
 
+    //TODO get multiline descriptions
     if (localName.equals("div") && "map_desc".equals(atts.getValue("class"))) {
       currentProperty = MapProperty.DESCRIPTION;
       return;

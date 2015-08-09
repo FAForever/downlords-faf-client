@@ -57,7 +57,7 @@ public class MapPreviewLargeController {
 
     mapNameLabel.setText(i18n.get("mapPreview.name", mapInfoBean.getDisplayName()));
     maxPlayerLabel.setText(i18n.get("mapPreview.maxPlayers", mapInfoBean.getPlayers()));
-    mapSizeLabel.setText(i18n.get("mapPreview.size", mapInfoBean.getSize().toString()));
+    mapSizeLabel.setText(i18n.get("mapPreview.size", mapInfoBean.getSize()));
     mapDescriptionLabel.setText(mapInfoBean.getDescription());
 
     commentContainer.getChildren().clear();

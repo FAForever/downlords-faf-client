@@ -5,8 +5,10 @@ import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
@@ -88,7 +90,8 @@ public class CreateGameController {
   @FXML
   Node createGameRoot;
 
-  private FilteredList<MapInfoBean> filteredMaps;
+  @VisibleForTesting
+  FilteredList<MapInfoBean> filteredMaps;
 
   @FXML
   void initialize() {
@@ -161,8 +164,12 @@ public class CreateGameController {
     initModList();
     initMapSelection();
     initGameTypeComboBox();
-    setLastGameTitle();
     selectLastMap();
+    setLastGameTitle();
+    titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+      preferencesService.getPreferences().setLastGameTitle(newValue);
+      preferencesService.storeInBackground();
+    });
   }
 
   private void initRankingSlider() {
@@ -188,11 +195,6 @@ public class CreateGameController {
     rankingSlider.setMin(environment.getProperty("rating.min", Integer.class));
     rankingSlider.setHighValue(environment.getProperty("rating.selectedMax", Integer.class));
     rankingSlider.setLowValue(environment.getProperty("rating.selectedMin", Integer.class));
-
-    titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().setLastGameTitle(newValue);
-      preferencesService.storeInBackground();
-    });
   }
 
   private void initModList() {
