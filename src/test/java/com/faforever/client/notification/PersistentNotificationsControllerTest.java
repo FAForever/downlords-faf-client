@@ -1,6 +1,6 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.sound.SoundController;
+import com.faforever.client.audio.AudioController;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.SetChangeListener;
 import javafx.collections.SetChangeListener.Change;
@@ -27,7 +27,7 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
   @Before
   public void setUp() throws Exception {
     instance = new PersistentNotificationsController();
-    instance.soundController = mock(SoundController.class);
+    instance.audioController = mock(AudioController.class);
     instance.notificationService = mock(NotificationService.class);
     instance.applicationContext = mock(ApplicationContext.class);
     instance.persistentNotificationsRoot = new Pane();
@@ -52,7 +52,7 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
     CompletableFuture<Void> future = new CompletableFuture<>();
     doAnswer(
         invocation -> future.complete(null)
-    ).when(instance.soundController).playInfoNotificationSound();
+    ).when(instance.audioController).playInfoNotificationSound();
 
     onNotificationAdded(Severity.INFO);
 
@@ -64,7 +64,7 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
     CompletableFuture<Void> future = new CompletableFuture<>();
     doAnswer(
         invocation -> future.complete(null)
-    ).when(instance.soundController).playWarnNotificationSound();
+    ).when(instance.audioController).playWarnNotificationSound();
 
     onNotificationAdded(Severity.WARN);
 
@@ -76,7 +76,7 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
     CompletableFuture<Void> future = new CompletableFuture<>();
     doAnswer(
         invocation -> future.complete(null)
-    ).when(instance.soundController).playErrorNotificationSound();
+    ).when(instance.audioController).playErrorNotificationSound();
 
     onNotificationAdded(Severity.ERROR);
 

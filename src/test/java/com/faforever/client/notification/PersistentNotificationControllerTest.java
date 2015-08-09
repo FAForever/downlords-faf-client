@@ -79,7 +79,7 @@ public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTes
   public void testOnCloseButtonClicked() throws Exception {
     PersistentNotification notification = new PersistentNotification("text", Severity.WARN);
     instance.setNotification(notification);
-    instance.onCloseButtonClicked(null);
+    instance.onCloseButtonClicked();
     verify(instance.notificationService).removeNotification(notification);
   }
 }

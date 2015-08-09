@@ -13,6 +13,11 @@
             <set />
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/cast/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/chat/AbstractChatTabController.java">
           <value>
             <set>
@@ -624,6 +629,11 @@
             </set>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/chat/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/config/BaseConfig.java">
           <value>
             <set>
@@ -657,6 +667,11 @@
                 <option name="severity" value="MINOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/config/package-info.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/fa/ForgedAllianceServiceImpl.java">
@@ -710,6 +725,21 @@
             </set>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/fa/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/fx/FxmlLoader.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/fx/FxmlLoaderImpl.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/fx/WindowDecorator.java">
           <value>
             <set>
@@ -745,6 +775,16 @@
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/fx/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/fxml/package-info.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/game/CreateGameController.java">
@@ -1489,6 +1529,26 @@
             </set>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/game/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/hub/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/i18n/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/leaderboard/LeaderboardContentHandler.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/leaderboard/LeaderboardController.java">
           <value>
             <set>
@@ -1574,6 +1634,11 @@
             </set>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/leaderboard/LeaderboardParser.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/leaderboard/LeagueInfo.java">
           <value>
             <set>
@@ -1630,6 +1695,11 @@
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/leaderboard/package-info.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/AbstractServerAccessor.java">
@@ -2874,6 +2944,11 @@
             </set>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/htmlparser/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/io/QDataInputStream.java">
           <value>
             <set>
@@ -2898,6 +2973,11 @@
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/ladder/LeaderParser.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/ladder/LeaderboardContentHandler.java">
@@ -2927,6 +3007,11 @@
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/ladder/LeaderboardParser.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/ladder/LegacyLeaderParser.java">
@@ -2969,6 +3054,16 @@
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/map/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/package-info.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/proxy/Peer.java">
@@ -3284,17 +3379,14 @@
             </set>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/proxy/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/relay/FaDataInputStream.java">
           <value>
             <set>
-              <SonarIssue>
-                <option name="isNew" value="false" />
-                <option name="key" value="e8444a04-60d1-4154-b0a1-1b7313a0679c" />
-                <option name="line" value="59" />
-                <option name="message" value="Replace this &quot;switch&quot; statement by &quot;if&quot; statements to increase readability." />
-                <option name="ruleKey" value="squid:S1301" />
-                <option name="severity" value="MINOR" />
-              </SonarIssue>
               <SonarIssue>
                 <option name="isNew" value="false" />
                 <option name="key" value="bca85c71-a8dd-47c9-ae58-98399aa395c4" />
@@ -3304,6 +3396,11 @@
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/relay/FaDataOutputStream.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/legacy/relay/LobbyMessage.java">
@@ -3540,6 +3637,11 @@
             </set>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/lobby/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/login/LoginController.java">
           <value>
             <set>
@@ -3599,6 +3701,11 @@
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/login/package-info.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/main/MainController.java">
@@ -3809,6 +3916,11 @@
             </set>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/main/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/map/MapServiceImpl.java">
           <value>
             <set>
@@ -4001,6 +4113,11 @@
             </set>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/map/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/mod/ModServiceImpl.java">
           <value>
             <set>
@@ -4012,6 +4129,11 @@
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/mod/package-info.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/network/DownlordsPortCheckServiceImpl.java">
@@ -4174,6 +4296,11 @@
             </set>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/network/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/news/NewsController.java">
           <value>
             <set>
@@ -4330,6 +4457,11 @@
             </set>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/patch/GitRepositoryPatchService.java">
           <value>
             <set>
@@ -4454,6 +4586,11 @@
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/portcheck/package-info.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/preferences/ForgedAlliancePrefs.java">
@@ -4594,6 +4731,11 @@
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/preferences/package-info.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/replay/LocalReplayInfo.java">
@@ -5403,6 +5545,16 @@
             </set>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/replay/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/reporting/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/sound/SoundControllerImpl.java">
           <value>
             <set>
@@ -5438,6 +5590,11 @@
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/sound/package-info.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/stats/PlayerStatistics.java">
@@ -5514,6 +5671,11 @@
             </set>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/stats/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/task/PrioritizedTask.java">
           <value>
             <set>
@@ -5571,6 +5733,11 @@
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/task/package-info.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/uploader/imgur/ImgurImageUploadService.java">
@@ -5673,6 +5840,21 @@
                 <option name="severity" value="MAJOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/upnp/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/user/UserServiceImpl.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/user/package-info.java">
+          <value>
+            <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/util/ByteCopier.java">
@@ -5942,6 +6124,16 @@
             </set>
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/util/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/java/com/faforever/client/voice/package-info.java">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/jbsdiff/Header.java">
           <value>
             <set>
@@ -6113,6 +6305,11 @@
                 <option name="severity" value="MINOR" />
               </SonarIssue>
             </set>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/test/java/com/faforever/client/notification/PersistentNotificationControllerTest.java">
+          <value>
+            <set />
           </value>
         </entry>
       </map>

@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.fx.FxmlLoader;
 import javafx.scene.control.TableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;

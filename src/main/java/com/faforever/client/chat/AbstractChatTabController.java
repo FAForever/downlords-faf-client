@@ -1,11 +1,11 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.audio.AudioController;
 import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.sound.SoundController;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
@@ -106,7 +106,7 @@ public abstract class AbstractChatTabController {
   PlayerService playerService;
 
   @Autowired
-  SoundController soundController;
+  AudioController audioController;
 
   @Autowired
   TimeService timeService;
@@ -538,7 +538,7 @@ public abstract class AbstractChatTabController {
       if (mentionPattern.matcher(text).find()) {
         text = highlightOwnUsername(text);
         if (!hasFocus()) {
-          soundController.playChatMentionSound();
+          audioController.playChatMentionSound();
         }
       }
 

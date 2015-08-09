@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.fx.FxmlLoader;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;

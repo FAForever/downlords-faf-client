@@ -1,6 +1,6 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.sound.SoundController;
+import com.faforever.client.audio.AudioController;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -30,7 +30,7 @@ public class PersistentNotificationsController {
   NotificationService notificationService;
 
   @Autowired
-  SoundController soundController;
+  AudioController audioController;
 
   @Autowired
   ApplicationContext applicationContext;
@@ -85,15 +85,15 @@ public class PersistentNotificationsController {
   private void playNotificationSound(PersistentNotification notification) {
     switch (notification.getSeverity()) {
       case INFO:
-        soundController.playInfoNotificationSound();
+        audioController.playInfoNotificationSound();
         break;
 
       case WARN:
-        soundController.playWarnNotificationSound();
+        audioController.playWarnNotificationSound();
         break;
 
       case ERROR:
-        soundController.playErrorNotificationSound();
+        audioController.playErrorNotificationSound();
         break;
     }
   }

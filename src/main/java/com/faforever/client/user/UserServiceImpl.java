@@ -2,7 +2,6 @@ package com.faforever.client.user;
 
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.SessionInfo;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +13,6 @@ public class UserServiceImpl implements UserService {
 
   @Autowired
   PreferencesService preferencesService;
-
-  @Autowired
-  PlayerService playerService;
 
   private String username;
   private String password;

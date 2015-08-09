@@ -1,5 +1,9 @@
 package com.faforever.client.config;
 
+import com.faforever.client.audio.AudioClipPlayer;
+import com.faforever.client.audio.AudioClipPlayerImpl;
+import com.faforever.client.audio.AudioController;
+import com.faforever.client.audio.AudioControllerImpl;
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.AvatarService;
 import com.faforever.client.chat.AvatarServiceImpl;
@@ -16,10 +20,10 @@ import com.faforever.client.chat.UrlPreviewResolverImpl;
 import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.DialogFactory;
 import com.faforever.client.fx.DialogFactoryImpl;
+import com.faforever.client.fx.FxmlLoader;
+import com.faforever.client.fx.FxmlLoaderImpl;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
-import com.faforever.client.fxml.FxmlLoader;
-import com.faforever.client.fxml.FxmlLoaderImpl;
 import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
 import com.faforever.client.game.GameCardController;
@@ -29,11 +33,11 @@ import com.faforever.client.game.GamesTiledController;
 import com.faforever.client.game.PopupGamePaneController;
 import com.faforever.client.game.PopupPlayerCardController;
 import com.faforever.client.game.PopupTeamCardController;
+import com.faforever.client.hub.CommunityHubController;
+import com.faforever.client.hub.ConcurrentUsersController;
 import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
-import com.faforever.client.main.hub.CommunityHubController;
-import com.faforever.client.main.hub.ConcurrentUsersController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
@@ -43,10 +47,6 @@ import com.faforever.client.notification.PersistentNotificationController;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.replay.ReplayVaultController;
-import com.faforever.client.sound.AudioClipPlayer;
-import com.faforever.client.sound.AudioClipPlayerImpl;
-import com.faforever.client.sound.SoundController;
-import com.faforever.client.sound.SoundControllerImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -259,8 +259,8 @@ public class UiConfig {
   }
 
   @Bean
-  SoundController soundService() {
-    return new SoundControllerImpl();
+  AudioController soundService() {
+    return new AudioControllerImpl();
   }
 
   @Bean

@@ -1,6 +1,6 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
