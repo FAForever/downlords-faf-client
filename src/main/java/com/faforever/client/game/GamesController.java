@@ -153,6 +153,31 @@ public class GamesController {
     switchViewButton.setManaged(false);
   }
 
+  @FXML
+  void onDetailsButtonPressed() {
+    if (tilePaneSelected || isFirstGeneratedPane()) {
+      GameTableController gameTableController = applicationContext.getBean(GameTableController.class);
+      gameTableController.initializeGameTable(filteredItems);
+
+      Node root = gameTableController.getRoot();
+      populateContainer(root);
+      firstGeneratedPane = false;
+      tilePaneSelected = false;
+    }
+  }
+
+  public boolean isFirstGeneratedPane() {
+    return firstGeneratedPane;
+  }
+
+  private void populateContainer(Node root) {
+    gameViewContainer.getChildren().setAll(root);
+    AnchorPane.setBottomAnchor(root, 0d);
+    AnchorPane.setLeftAnchor(root, 0d);
+    AnchorPane.setRightAnchor(root, 0d);
+    AnchorPane.setTopAnchor(root, 0d);
+  }
+
   public void displayGameDetail(GameInfoBean gameInfoBean) {
     mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapName()));
     gameTitleLabel.setText(gameInfoBean.getTitle());
@@ -220,10 +245,6 @@ public class GamesController {
     }
   }
 
-  public boolean isFirstGeneratedPane() {
-    return firstGeneratedPane;
-  }
-
   @FXML
   void onTilesButtonPressed() {
     if (!tilePaneSelected || isFirstGeneratedPane()) {
@@ -235,27 +256,6 @@ public class GamesController {
       firstGeneratedPane = false;
       tilePaneSelected = true;
     }
-  }
-
-  @FXML
-  void onDetailsButtonPressed() {
-    if (tilePaneSelected || isFirstGeneratedPane()) {
-      GameTableController gameTableController = applicationContext.getBean(GameTableController.class);
-      gameTableController.initializeGameTable(filteredItems);
-
-      Node root = gameTableController.getRoot();
-      populateContainer(root);
-      firstGeneratedPane = false;
-      tilePaneSelected = false;
-    }
-  }
-
-  private void populateContainer(Node root) {
-    gameViewContainer.getChildren().setAll(root);
-    AnchorPane.setBottomAnchor(root, 0d);
-    AnchorPane.setLeftAnchor(root, 0d);
-    AnchorPane.setRightAnchor(root, 0d);
-    AnchorPane.setTopAnchor(root, 0d);
   }
 
   public void setUpIfNecessary() {

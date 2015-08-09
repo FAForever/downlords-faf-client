@@ -23,6 +23,7 @@ public enum LobbyAction {
   PONG("pong");
 
   private static final Map<String, LobbyAction> fromString;
+
   static {
     fromString = new HashMap<>();
     for (LobbyAction action : values()) {

@@ -39,29 +39,6 @@ public class TaskServiceImpl implements TaskService {
     }
   }
 
-  @Override
-  public <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task, Callback<T> callback) {
-    ConcurrentUtil.setCallbackOnTask(task, callback);
-
-    queuesByGroup.get(taskGroup).add(task);
-
-    ObservableList<PrioritizedTask<?>> tasks = queueListsByGroup.get(taskGroup);
-    tasks.add(task);
-    FXCollections.sort(tasks);
-  }
-
-  @Override
-  public <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task) {
-    submitTask(taskGroup, task, null);
-  }
-
-  @Override
-  public void addChangeListener(ListChangeListener<PrioritizedTask<?>> listener, TaskGroup... taskGroups) {
-    for (TaskGroup taskGroup : taskGroups) {
-      queueListsByGroup.get(taskGroup).addListener(listener);
-    }
-  }
-
   @PostConstruct
   void startWorkers() {
     for (TaskGroup taskGroup : TaskGroup.values()) {
@@ -88,4 +65,31 @@ public class TaskServiceImpl implements TaskService {
       }
     });
   }
+
+  @Override
+  public <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task, Callback<T> callback) {
+    ConcurrentUtil.setCallbackOnTask(task, callback);
+
+    queuesByGroup.get(taskGroup).add(task);
+
+    ObservableList<PrioritizedTask<?>> tasks = queueListsByGroup.get(taskGroup);
+    tasks.add(task);
+    FXCollections.sort(tasks);
+  }
+
+  @Override
+  public <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task) {
+    submitTask(taskGroup, task, null);
+  }
+
+  @Override
+  public void addChangeListener(ListChangeListener<PrioritizedTask<?>> listener, TaskGroup... taskGroups) {
+    for (TaskGroup taskGroup : taskGroups) {
+      queueListsByGroup.get(taskGroup).addListener(listener);
+    }
+  }
+
+
+
+
 }

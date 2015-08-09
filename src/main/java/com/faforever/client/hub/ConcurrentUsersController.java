@@ -19,8 +19,6 @@ import java.util.stream.Collectors;
 
 public class ConcurrentUsersController {
 
-  private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
-
   private class DummyData {
 
     public Long time;
@@ -32,6 +30,7 @@ public class ConcurrentUsersController {
     }
   }
 
+  private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
   @FXML
   Pane concurrentUsersRoot;
 

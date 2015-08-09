@@ -2,8 +2,10 @@
 
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.FlowPane?>
-<ScrollPane fx:id="tiledScrollPane" fitToWidth="true" hbarPolicy="NEVER" styleClass="games-tiled" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GamesTiledController">
+<ScrollPane xmlns:fx="http://javafx.com/fxml/1" fx:id="tiledScrollPane" fitToWidth="true" hbarPolicy="NEVER"
+            styleClass="games-tiled" xmlns="http://javafx.com/javafx/8.0.40"
+            fx:controller="com.faforever.client.game.GamesTiledController">
    <content>
-      <FlowPane fx:id="tiledFlowPane" nodeOrientation="LEFT_TO_RIGHT" prefWrapLength="0.0" vgap="10.0" />
+      <FlowPane fx:id="tiledFlowPane" nodeOrientation="LEFT_TO_RIGHT" prefWrapLength="0.0" vgap="10.0"/>
    </content>
 </ScrollPane>

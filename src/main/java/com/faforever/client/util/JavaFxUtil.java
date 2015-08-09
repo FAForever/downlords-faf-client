@@ -31,9 +31,6 @@ import java.nio.file.Paths;
  */
 public class JavaFxUtil {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final double ZOOM_STEP = 0.2d;
-
   public static final StringConverter<Path> PATH_STRING_CONVERTER = new StringConverter<Path>() {
     @Override
     public String toString(Path object) {
@@ -51,6 +48,8 @@ public class JavaFxUtil {
       return Paths.get(string);
     }
   };
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final double ZOOM_STEP = 0.2d;
 
   private JavaFxUtil() {
     // Utility class

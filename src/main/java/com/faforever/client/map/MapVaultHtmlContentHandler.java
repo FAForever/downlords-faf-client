@@ -33,11 +33,6 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
   private String currentValue;
 
   @Override
-  protected List<MapInfoBean> getResult() {
-    return result;
-  }
-
-  @Override
   public void startDocument() throws SAXException {
     result = new ArrayList<>();
   }
@@ -130,5 +125,10 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
   @Override
   public void characters(char[] ch, int start, int length) throws SAXException {
     currentValue = new String(ch, start, length);
+  }
+
+  @Override
+  protected List<MapInfoBean> getResult() {
+    return result;
   }
 }

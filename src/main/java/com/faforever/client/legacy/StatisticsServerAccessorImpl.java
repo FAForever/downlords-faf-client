@@ -37,11 +37,9 @@ import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 public class StatisticsServerAccessorImpl extends AbstractServerAccessor implements StatisticsServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  private final Gson gson;
   @Autowired
   Environment environment;
-
-  private final Gson gson;
   private Callback<PlayerStatistics> playerStatisticsCallback;
   private ServerWriter serverWriter;
 
@@ -59,56 +57,6 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
     // FIXME this is not safe (as well aren't similar implementations in other accessors)
     playerStatisticsCallback = callback;
     writeToServer(new AskPlayerStatsDaysMessage(username, type));
-  }
-
-  private void onPlayerStats(PlayerStatistics playerStatistics) {
-    Platform.runLater(() -> {
-      if (playerStatisticsCallback != null) {
-        playerStatisticsCallback.success(playerStatistics);
-        playerStatisticsCallback = null;
-      }
-    });
-  }
-
-  private void dispatchStatisticsObject(String jsonString, StatisticsObject statisticsObject) {
-    switch (statisticsObject.type) {
-      case LEAGUE_TABLE:
-        // TODO remove it it's never going to be implemented
-        logger.warn("league table is not yet implemented");
-        break;
-
-      case GLOBAL_90_DAYS:
-      case GLOBAL_365_DAYS:
-        PlayerStatistics playerStatistics = gson.fromJson(jsonString, PlayerStatistics.class);
-        onPlayerStats(playerStatistics);
-        break;
-
-      default:
-        logger.warn("Unhandled statistics object of type: {}", statisticsObject.type);
-    }
-  }
-
-  @Override
-  public void onServerMessage(String message) {
-    ServerMessageType serverMessageType = ServerMessageType.fromString(message);
-    if (serverMessageType != null) {
-      throw new IllegalStateException("Didn't expect an unknown server message from the statistics server");
-    }
-
-    try {
-      ServerObject serverObject = gson.fromJson(message, ServerObject.class);
-
-      ServerObjectType serverObjectType = ServerObjectType.fromString(serverObject.command);
-
-      if (serverObjectType != STATS) {
-        throw new IllegalStateException("Unexpected object type: " + serverObjectType);
-      }
-
-      StatisticsObject statisticsObject = gson.fromJson(message, StatisticsObject.class);
-      dispatchStatisticsObject(message, statisticsObject);
-    } catch (JsonSyntaxException e) {
-      logger.warn("Could not deserialize message: " + message, e);
-    }
   }
 
   private void writeToServer(ClientMessage clientMessage) {
@@ -159,5 +107,55 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
     serverWriter.registerMessageSerializer(new ClientMessageSerializer(), ClientMessage.class);
     serverWriter.registerMessageSerializer(new StringSerializer(), String.class);
     return serverWriter;
+  }
+
+  @Override
+  public void onServerMessage(String message) {
+    ServerMessageType serverMessageType = ServerMessageType.fromString(message);
+    if (serverMessageType != null) {
+      throw new IllegalStateException("Didn't expect an unknown server message from the statistics server");
+    }
+
+    try {
+      ServerObject serverObject = gson.fromJson(message, ServerObject.class);
+
+      ServerObjectType serverObjectType = ServerObjectType.fromString(serverObject.command);
+
+      if (serverObjectType != STATS) {
+        throw new IllegalStateException("Unexpected object type: " + serverObjectType);
+      }
+
+      StatisticsObject statisticsObject = gson.fromJson(message, StatisticsObject.class);
+      dispatchStatisticsObject(message, statisticsObject);
+    } catch (JsonSyntaxException e) {
+      logger.warn("Could not deserialize message: " + message, e);
+    }
+  }
+
+  private void dispatchStatisticsObject(String jsonString, StatisticsObject statisticsObject) {
+    switch (statisticsObject.type) {
+      case LEAGUE_TABLE:
+        // TODO remove it it's never going to be implemented
+        logger.warn("league table is not yet implemented");
+        break;
+
+      case GLOBAL_90_DAYS:
+      case GLOBAL_365_DAYS:
+        PlayerStatistics playerStatistics = gson.fromJson(jsonString, PlayerStatistics.class);
+        onPlayerStats(playerStatistics);
+        break;
+
+      default:
+        logger.warn("Unhandled statistics object of type: {}", statisticsObject.type);
+    }
+  }
+
+  private void onPlayerStats(PlayerStatistics playerStatistics) {
+    Platform.runLater(() -> {
+      if (playerStatisticsCallback != null) {
+        playerStatisticsCallback.success(playerStatistics);
+        playerStatisticsCallback = null;
+      }
+    });
   }
 }

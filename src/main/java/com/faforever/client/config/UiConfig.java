@@ -79,6 +79,15 @@ public class UiConfig {
     return loadController("login.fxml");
   }
 
+  private <T> T loadController(String fxml) {
+    return fxmlLoader().loadAndGetController(fxml);
+  }
+
+  @Bean
+  FxmlLoader fxmlLoader() {
+    return new FxmlLoaderImpl();
+  }
+
   @Bean
   MainController mainController() {
     return loadController("main.fxml");
@@ -215,7 +224,6 @@ public class UiConfig {
     return loadController("mod_vault.fxml");
   }
 
-
   @Bean
   MapVaultController mapVaultController() {
     return loadController("map_vault.fxml");
@@ -266,14 +274,5 @@ public class UiConfig {
   @Bean
   UrlPreviewResolver urlPreviewResolver() {
     return new UrlPreviewResolverImpl();
-  }
-
-  @Bean
-  FxmlLoader fxmlLoader() {
-    return new FxmlLoaderImpl();
-  }
-
-  private <T> T loadController(String fxml) {
-    return fxmlLoader().loadAndGetController(fxml);
   }
 }

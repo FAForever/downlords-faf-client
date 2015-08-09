@@ -285,6 +285,16 @@ public class ReplayVaultController {
     });
   }
 
+  private void addLocalReplays(Collection<ReplayInfoBean> result) {
+    Collection<TreeItem<ReplayInfoBean>> items = new ArrayList<>();
+
+    for (ReplayInfoBean bean : result) {
+      items.add(new TreeItem<>(bean));
+    }
+
+    Platform.runLater(() -> localReplaysRoot.getChildren().addAll(items));
+  }
+
   public void loadOnlineReplaysInBackground() {
     replayService.getOnlineReplays(new Callback<List<ReplayInfoBean>>() {
       @Override
@@ -302,16 +312,6 @@ public class ReplayVaultController {
         ));
       }
     });
-  }
-
-  private void addLocalReplays(Collection<ReplayInfoBean> result) {
-    Collection<TreeItem<ReplayInfoBean>> items = new ArrayList<>();
-
-    for (ReplayInfoBean bean : result) {
-      items.add(new TreeItem<>(bean));
-    }
-
-    Platform.runLater(() -> localReplaysRoot.getChildren().addAll(items));
   }
 
   private void addOnlineReplays(Collection<ReplayInfoBean> result) {

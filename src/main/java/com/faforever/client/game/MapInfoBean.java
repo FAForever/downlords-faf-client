@@ -36,14 +36,6 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
 
   }
 
-  public String getName() {
-    return name.get();
-  }
-
-  public void setName(String name) {
-    this.name.set(name);
-  }
-
   public StringProperty nameProperty() {
     return name;
   }
@@ -100,40 +92,48 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
     return size.get();
   }
 
-  public ObjectProperty<MapSize> sizeProperty() {
-    return size;
-  }
-
   public void setSize(MapSize size) {
     this.size.set(size);
+  }
+
+  public ObjectProperty<MapSize> sizeProperty() {
+    return size;
   }
 
   public int getPlayers() {
     return players.get();
   }
 
-  public IntegerProperty playersProperty() {
-    return players;
-  }
-
   public void setPlayers(int players) {
     this.players.set(players);
+  }
+
+  public IntegerProperty playersProperty() {
+    return players;
   }
 
   public int getVersion() {
     return version.get();
   }
 
-  public IntegerProperty versionProperty() {
-    return version;
-  }
-
   public void setVersion(int version) {
     this.version.set(version);
+  }
+
+  public IntegerProperty versionProperty() {
+    return version;
   }
 
   @Override
   public int compareTo(@NotNull MapInfoBean o) {
     return getName().compareTo(o.getName());
+  }
+
+  public String getName() {
+    return name.get();
+  }
+
+  public void setName(String name) {
+    this.name.set(name);
   }
 }

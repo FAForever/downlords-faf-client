@@ -20,13 +20,11 @@ import java.util.Set;
 
 public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, OnFoeListListener, OnFriendListListener {
 
+  private final ObservableMap<String, PlayerInfoBean> players;
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
-
   @Autowired
   UserService userService;
-
-  private final ObservableMap<String, PlayerInfoBean> players;
   private List<String> foeList;
   private List<String> friendList;
   private PlayerInfoBean currentPlayer;
@@ -102,6 +100,11 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   }
 
   @Override
+  public PlayerInfoBean getCurrentPlayer() {
+    return currentPlayer;
+  }
+
+  @Override
   public void onPlayerInfo(PlayerInfo playerInfo) {
     PlayerInfoBean playerInfoBean = registerAndGetPlayerForUsername(playerInfo.login);
     playerInfoBean.updateFromPlayerInfo(playerInfo);
@@ -136,10 +139,5 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
         playerInfoBean.setFriend(true);
       }
     }
-  }
-
-  @Override
-  public PlayerInfoBean getCurrentPlayer() {
-    return currentPlayer;
   }
 }

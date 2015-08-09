@@ -20,22 +20,17 @@ import java.util.Set;
  */
 public class PersistentNotificationsController {
 
+  private final Map<PersistentNotification, Node> notificationsToNode;
   @FXML
   Label noNotificationsLabel;
-
   @FXML
   Pane persistentNotificationsRoot;
-
   @Autowired
   NotificationService notificationService;
-
   @Autowired
   AudioController audioController;
-
   @Autowired
   ApplicationContext applicationContext;
-
-  private final Map<PersistentNotification, Node> notificationsToNode;
 
   public PersistentNotificationsController() {
     notificationsToNode = new HashMap<>();
@@ -52,15 +47,6 @@ public class PersistentNotificationsController {
         removeNotification(change.getElementRemoved());
       }
     });
-  }
-
-  private void removeNotification(PersistentNotification removedNotifications) {
-    ObservableList<Node> children = persistentNotificationsRoot.getChildren();
-    children.remove(notificationsToNode.get(removedNotifications));
-
-    if (children.isEmpty()) {
-      children.setAll(noNotificationsLabel);
-    }
   }
 
   private void addNotifications(Set<PersistentNotification> persistentNotifications) {
@@ -80,6 +66,15 @@ public class PersistentNotificationsController {
 
       playNotificationSound(notification);
     });
+  }
+
+  private void removeNotification(PersistentNotification removedNotifications) {
+    ObservableList<Node> children = persistentNotificationsRoot.getChildren();
+    children.remove(notificationsToNode.get(removedNotifications));
+
+    if (children.isEmpty()) {
+      children.setAll(noNotificationsLabel);
+    }
   }
 
   private void playNotificationSound(PersistentNotification notification) {

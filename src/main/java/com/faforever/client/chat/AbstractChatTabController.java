@@ -84,56 +84,41 @@ public abstract class AbstractChatTabController {
    */
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
-
-  private final EventHandler<MouseEvent> moveHandler = (MouseEvent event) -> {
-    lastMouseX = event.getScreenX();
-    lastMouseY = event.getScreenY();
-  };
-
   @Autowired
   UserService userService;
-
   @Autowired
   ChatService chatService;
-
   @Autowired
   HostService hostService;
-
   @Autowired
   PreferencesService preferencesService;
-
   @Autowired
   PlayerService playerService;
-
   @Autowired
   AudioController audioController;
-
   @Autowired
   TimeService timeService;
-
   @Autowired
   PlayerInfoTooltipController playerInfoTooltipController;
-
   @Autowired
   I18n i18n;
-
   @Autowired
   ImageUploadService imageUploadService;
-
   @Autowired
   UrlPreviewResolver urlPreviewResolver;
-
   private boolean isChatReady;
   private WebEngine engine;
   private List<ChatMessage> waitingMessages;
-
   /**
    * Maps a user name to a css style class.
    */
   private Map<String, String> userToCssStyle;
   private double lastMouseX;
   private double lastMouseY;
-
+  private final EventHandler<MouseEvent> moveHandler = (MouseEvent event) -> {
+    lastMouseX = event.getScreenX();
+    lastMouseY = event.getScreenY();
+  };
   /**
    * Either a channel like "#aeolus" or a user like "Visionik".
    */
@@ -171,38 +156,36 @@ public abstract class AbstractChatTabController {
     addImagePasteListener();
   }
 
-  private void addImagePasteListener() {
-    TextInputControl messageTextField = getMessageTextField();
-    messageTextField.setOnKeyReleased(event -> {
-      if ((event.getCode() == KeyCode.V && event.isControlDown() || event.getCode() == KeyCode.INSERT && event.isShiftDown())
-          && Clipboard.getSystemClipboard().hasImage()) {
-        pasteImage();
+  private void initChatView() {
+    WebView messagesWebView = getMessagesWebView();
+    JavaFxUtil.configureWebView(messagesWebView, preferencesService);
+
+    messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
+    messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
+      preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
+      preferencesService.storeInBackground();
+    });
+
+    Double zoom = preferencesService.getPreferences().getChat().getZoom();
+    if (zoom != null) {
+      messagesWebView.setZoom(zoom);
+    }
+
+    engine = messagesWebView.getEngine();
+    ((JSObject) engine.executeScript("window")).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
+    engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
+      if (Worker.State.SUCCEEDED.equals(newValue)) {
+        waitingMessages.forEach(this::appendMessage);
+        waitingMessages.clear();
+        isChatReady = true;
       }
     });
-  }
 
-  private void pasteImage() {
-    TextInputControl messageTextField = getMessageTextField();
-    int currentCaretPosition = messageTextField.getCaretPosition();
-
-    messageTextField.setDisable(true);
-
-    Clipboard clipboard = Clipboard.getSystemClipboard();
-    Image image = clipboard.getImage();
-
-    imageUploadService.uploadImageInBackground(image, new Callback<String>() {
-      @Override
-      public void success(String url) {
-        messageTextField.insertText(currentCaretPosition, url);
-        messageTextField.setDisable(false);
-        messageTextField.requestFocus();
-      }
-
-      @Override
-      public void error(Throwable e) {
-        messageTextField.setDisable(false);
-      }
-    });
+    try {
+      this.engine.load(CHAT_HTML_RESOURCE.getURL().toExternalForm());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -237,45 +220,51 @@ public abstract class AbstractChatTabController {
     });
   }
 
+  private void addImagePasteListener() {
+    TextInputControl messageTextField = getMessageTextField();
+    messageTextField.setOnKeyReleased(event -> {
+      if ((event.getCode() == KeyCode.V && event.isControlDown() || event.getCode() == KeyCode.INSERT && event.isShiftDown())
+          && Clipboard.getSystemClipboard().hasImage()) {
+        pasteImage();
+      }
+    });
+  }
+
+  protected abstract WebView getMessagesWebView();
+
+  public abstract Tab getRoot();
+
+  protected abstract TextInputControl getMessageTextField();
+
+  private void pasteImage() {
+    TextInputControl messageTextField = getMessageTextField();
+    int currentCaretPosition = messageTextField.getCaretPosition();
+
+    messageTextField.setDisable(true);
+
+    Clipboard clipboard = Clipboard.getSystemClipboard();
+    Image image = clipboard.getImage();
+
+    imageUploadService.uploadImageInBackground(image, new Callback<String>() {
+      @Override
+      public void success(String url) {
+        messageTextField.insertText(currentCaretPosition, url);
+        messageTextField.setDisable(false);
+        messageTextField.requestFocus();
+      }
+
+      @Override
+      public void error(Throwable e) {
+        messageTextField.setDisable(false);
+      }
+    });
+  }
+
   private void resetAutoCompletion() {
     possibleAutoCompletions = null;
     nextAutoCompleteIndex = -1;
     autoCompletePartialName = null;
   }
-
-  private void initChatView() {
-    WebView messagesWebView = getMessagesWebView();
-    JavaFxUtil.configureWebView(messagesWebView, preferencesService);
-
-    messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
-    messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
-      preferencesService.storeInBackground();
-    });
-
-    Double zoom = preferencesService.getPreferences().getChat().getZoom();
-    if (zoom != null) {
-      messagesWebView.setZoom(zoom);
-    }
-
-    engine = messagesWebView.getEngine();
-    ((JSObject) engine.executeScript("window")).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
-    engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
-      if (Worker.State.SUCCEEDED.equals(newValue)) {
-        waitingMessages.forEach(this::appendMessage);
-        waitingMessages.clear();
-        isChatReady = true;
-      }
-    });
-
-    try {
-      this.engine.load(CHAT_HTML_RESOURCE.getURL().toExternalForm());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  protected abstract WebView getMessagesWebView();
 
   /**
    * Called from JavaScript when user hovers over a user name.
@@ -481,8 +470,6 @@ public abstract class AbstractChatTabController {
     });
   }
 
-  protected abstract TextInputControl getMessageTextField();
-
   public void onChatMessage(ChatMessage chatMessage) {
     if (!isChatReady) {
       waitingMessages.add(chatMessage);
@@ -605,6 +592,4 @@ public abstract class AbstractChatTabController {
         && tabPane.getScene().getWindow().isFocused();
 
   }
-
-  public abstract Tab getRoot();
 }

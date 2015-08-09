@@ -29,11 +29,9 @@ import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 public class ReplayServerAccessorImpl extends AbstractServerAccessor implements ReplayServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  private final Gson gson;
   @Autowired
   Environment environment;
-
-  private final Gson gson;
   private Task<Void> connectionTask;
   private ServerWriter serverWriter;
   private Callback<List<ReplayInfoBean>> replayListCallback;
@@ -49,31 +47,6 @@ public class ReplayServerAccessorImpl extends AbstractServerAccessor implements 
     // FIXME this is not safe (as well aren't similar implementations in other accessors)
     replayListCallback = callback;
     writeToServer(new ListReplaysMessage());
-  }
-
-  @Override
-  public void onServerMessage(String message) {
-    ServerMessageType serverMessageType = ServerMessageType.fromString(message);
-    if (serverMessageType != null) {
-      throw new IllegalStateException("Didn't expect an unknown server message from the statistics server");
-    }
-
-    try {
-      // Who knows why, but these messages do not have a "command" like all other messages but an "action"
-      ReplayServerObject replayServerObject = gson.fromJson(message, ReplayServerObject.class);
-
-      if (replayListCallback != null) {
-        replayListCallback.success(replayInfoBeans(replayServerObject.replays));
-      }
-    } catch (JsonSyntaxException e) {
-      logger.warn("Could not deserialize message: " + message, e);
-    }
-  }
-
-  private List<ReplayInfoBean> replayInfoBeans(List<ServerReplayInfo> replayInfos) {
-    return replayInfos.stream()
-        .map(ReplayInfoBean::new)
-        .collect(Collectors.toList());
   }
 
   private void writeToServer(ClientMessage clientMessage) {
@@ -124,5 +97,30 @@ public class ReplayServerAccessorImpl extends AbstractServerAccessor implements 
     serverWriter.registerMessageSerializer(new ClientMessageSerializer(), ClientMessage.class);
     serverWriter.registerMessageSerializer(new StringSerializer(), String.class);
     return serverWriter;
+  }
+
+  @Override
+  public void onServerMessage(String message) {
+    ServerMessageType serverMessageType = ServerMessageType.fromString(message);
+    if (serverMessageType != null) {
+      throw new IllegalStateException("Didn't expect an unknown server message from the statistics server");
+    }
+
+    try {
+      // Who knows why, but these messages do not have a "command" like all other messages but an "action"
+      ReplayServerObject replayServerObject = gson.fromJson(message, ReplayServerObject.class);
+
+      if (replayListCallback != null) {
+        replayListCallback.success(replayInfoBeans(replayServerObject.replays));
+      }
+    } catch (JsonSyntaxException e) {
+      logger.warn("Could not deserialize message: " + message, e);
+    }
+  }
+
+  private List<ReplayInfoBean> replayInfoBeans(List<ServerReplayInfo> replayInfos) {
+    return replayInfos.stream()
+        .map(ReplayInfoBean::new)
+        .collect(Collectors.toList());
   }
 }

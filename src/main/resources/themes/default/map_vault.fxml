@@ -5,7 +5,7 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.VBox?>
-<VBox fx:id="mapVaultRoot" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="mapVaultRoot" xmlns="http://javafx.com/javafx/8.0.40"
       fx:controller="com.faforever.client.map.MapVaultController">
   <children>
     <TableView fx:id="mapTableView" VBox.vgrow="ALWAYS">

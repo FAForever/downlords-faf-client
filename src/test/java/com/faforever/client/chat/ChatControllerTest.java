@@ -23,10 +23,9 @@ import static org.mockito.Mockito.when;
 // TODO those unit tests need to be improved (missing verifications)
 public class ChatControllerTest extends AbstractSpringJavaFxTest {
 
+  public static final String TEST_CHANNEL_NAME = "#testChannel";
   private static final long TIMEOUT = 1000;
   private static final TimeUnit TIMEOUT_UNITS = TimeUnit.MILLISECONDS;
-  public static final String TEST_CHANNEL_NAME = "#testChannel";
-
   @Autowired
   ChannelTabController channelTabController;
 

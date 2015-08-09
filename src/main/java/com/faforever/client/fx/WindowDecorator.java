@@ -27,8 +27,6 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
 public class WindowDecorator {
 
-  private static final PseudoClass MAXIMIZED_PSEUDO_STATE = PseudoClass.getPseudoClass("maximized");
-
   public enum WindowButtonType {
     MINIMIZE,
     MAXIMIZE_RESTORE,
@@ -41,10 +39,9 @@ public class WindowDecorator {
     SOUTH,
     WEST
   }
-
   public static final double RESIZE_BORDER_WIDTH = 7d;
   public static final String PROPERTY_WINDOW_DECORATOR = "windowDecorator";
-
+  private static final PseudoClass MAXIMIZED_PSEUDO_STATE = PseudoClass.getPseudoClass("maximized");
   @FXML
   AnchorPane contentPane;
 
@@ -87,9 +84,50 @@ public class WindowDecorator {
     restore();
   }
 
+  private void restore() {
+    windowRoot.pseudoClassStateChanged(MAXIMIZED_PSEUDO_STATE, false);
+
+    stage.setMaximized(false);
+    AnchorPane.setTopAnchor(contentPane, RESIZE_BORDER_WIDTH);
+    AnchorPane.setRightAnchor(contentPane, RESIZE_BORDER_WIDTH);
+    AnchorPane.setBottomAnchor(contentPane, RESIZE_BORDER_WIDTH);
+    AnchorPane.setLeftAnchor(contentPane, RESIZE_BORDER_WIDTH);
+
+    AnchorPane.setRightAnchor(windowButtons, RESIZE_BORDER_WIDTH);
+  }
+
   @FXML
   void onMaximizeButtonClicked(ActionEvent actionEvent) {
     maximize();
+  }
+
+  public void maximize() {
+    windowRoot.pseudoClassStateChanged(MAXIMIZED_PSEUDO_STATE, true);
+
+    Rectangle2D visualBounds = getVisualBounds(stage);
+
+    stage.setMaximized(true);
+
+    stage.setWidth(visualBounds.getWidth());
+    stage.setHeight(visualBounds.getHeight());
+    stage.setX(visualBounds.getMinX());
+    stage.setY(visualBounds.getMinY());
+
+    AnchorPane.setTopAnchor(contentPane, 0d);
+    AnchorPane.setRightAnchor(contentPane, 0d);
+    AnchorPane.setBottomAnchor(contentPane, 0d);
+    AnchorPane.setLeftAnchor(contentPane, 0d);
+
+    AnchorPane.setRightAnchor(windowButtons, 0d);
+  }
+
+  public static Rectangle2D getVisualBounds(Stage stage) {
+    double x1 = stage.getX() + (stage.getWidth() / 2);
+    double y1 = stage.getY() + (stage.getHeight() / 2);
+
+    Rectangle2D windowCenter = new Rectangle2D(x1, y1, 1, 1);
+    ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(windowCenter);
+    return screensForRectangle.get(0).getVisualBounds();
   }
 
   @FXML
@@ -159,38 +197,6 @@ public class WindowDecorator {
     windowRoot.requestLayout();
   }
 
-  private void restore() {
-    windowRoot.pseudoClassStateChanged(MAXIMIZED_PSEUDO_STATE, false);
-
-    stage.setMaximized(false);
-    AnchorPane.setTopAnchor(contentPane, RESIZE_BORDER_WIDTH);
-    AnchorPane.setRightAnchor(contentPane, RESIZE_BORDER_WIDTH);
-    AnchorPane.setBottomAnchor(contentPane, RESIZE_BORDER_WIDTH);
-    AnchorPane.setLeftAnchor(contentPane, RESIZE_BORDER_WIDTH);
-
-    AnchorPane.setRightAnchor(windowButtons, RESIZE_BORDER_WIDTH);
-  }
-
-  public void maximize() {
-    windowRoot.pseudoClassStateChanged(MAXIMIZED_PSEUDO_STATE, true);
-
-    Rectangle2D visualBounds = getVisualBounds(stage);
-
-    stage.setMaximized(true);
-
-    stage.setWidth(visualBounds.getWidth());
-    stage.setHeight(visualBounds.getHeight());
-    stage.setX(visualBounds.getMinX());
-    stage.setY(visualBounds.getMinY());
-
-    AnchorPane.setTopAnchor(contentPane, 0d);
-    AnchorPane.setRightAnchor(contentPane, 0d);
-    AnchorPane.setBottomAnchor(contentPane, 0d);
-    AnchorPane.setLeftAnchor(contentPane, 0d);
-
-    AnchorPane.setRightAnchor(windowButtons, 0d);
-  }
-
   public Parent getWindowRoot() {
     return windowRoot;
   }
@@ -235,23 +241,6 @@ public class WindowDecorator {
   }
 
   @FXML
-  void onMousePressed(MouseEvent event) {
-    if (isOnResizeBorder(event)) {
-      isResizing = true;
-    }
-
-    dragOffset = new Point2D(event.getScreenX() - stage.getX(), event.getScreenY() - stage.getY());
-    event.consume();
-  }
-
-  private boolean isOnResizeBorder(MouseEvent event) {
-    return event.getY() > stage.getHeight() - RESIZE_BORDER_WIDTH
-        || event.getY() < RESIZE_BORDER_WIDTH
-        || event.getX() > stage.getWidth() - RESIZE_BORDER_WIDTH
-        || event.getX() < RESIZE_BORDER_WIDTH;
-  }
-
-  @FXML
   void onMouseDragged(MouseEvent event) {
     if (dragOffset == null) {
       // Somehow the drag event occurred without an initial press event
@@ -265,19 +254,13 @@ public class WindowDecorator {
     }
   }
 
-  private void onWindowMove(MouseEvent event) {
-    if (event.getTarget() == windowRoot) {
-      return;
+  @FXML
+  void onMousePressed(MouseEvent event) {
+    if (isOnResizeBorder(event)) {
+      isResizing = true;
     }
-    if (stage.isMaximized()) {
-      return;
-    }
-    double newY = event.getScreenY() - dragOffset.getY();
-    double newX = event.getScreenX() - dragOffset.getX();
 
-    stage.setY(newY);
-    stage.setX(newX);
-
+    dragOffset = new Point2D(event.getScreenX() - stage.getX(), event.getScreenY() - stage.getY());
     event.consume();
   }
 
@@ -316,6 +299,29 @@ public class WindowDecorator {
     event.consume();
   }
 
+  private void onWindowMove(MouseEvent event) {
+    if (event.getTarget() == windowRoot) {
+      return;
+    }
+    if (stage.isMaximized()) {
+      return;
+    }
+    double newY = event.getScreenY() - dragOffset.getY();
+    double newX = event.getScreenX() - dragOffset.getX();
+
+    stage.setY(newY);
+    stage.setX(newX);
+
+    event.consume();
+  }
+
+  private boolean isOnResizeBorder(MouseEvent event) {
+    return event.getY() > stage.getHeight() - RESIZE_BORDER_WIDTH
+        || event.getY() < RESIZE_BORDER_WIDTH
+        || event.getX() > stage.getWidth() - RESIZE_BORDER_WIDTH
+        || event.getX() < RESIZE_BORDER_WIDTH;
+  }
+
   @FXML
   void onMouseClicked(MouseEvent event) {
     if (event.getTarget() instanceof Pane
@@ -337,15 +343,6 @@ public class WindowDecorator {
 
   public void onMouseExited() {
     windowRoot.setCursor(Cursor.DEFAULT);
-  }
-
-  public static Rectangle2D getVisualBounds(Stage stage) {
-    double x1 = stage.getX() + (stage.getWidth() / 2);
-    double y1 = stage.getY() + (stage.getHeight() / 2);
-
-    Rectangle2D windowCenter = new Rectangle2D(x1, y1, 1, 1);
-    ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(windowCenter);
-    return screensForRectangle.get(0).getVisualBounds();
   }
 
   public static void maximize(Stage stage) {

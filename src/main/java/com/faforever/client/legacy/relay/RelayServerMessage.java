@@ -38,16 +38,16 @@ class RelayServerMessage implements SerializableMessage {
     return key;
   }
 
-  @VisibleForTesting
-  void setArgs(List<Object> args) {
-    this.commands = args;
-  }
-
   /**
    * Returns what the server sends as "commands" but with a sane naming (args).
    */
   public List<Object> getArgs() {
     return Collections.unmodifiableList(commands);
+  }
+
+  @VisibleForTesting
+  void setArgs(List<Object> args) {
+    this.commands = args;
   }
 
   protected void setValue(int index, Object value) {

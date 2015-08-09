@@ -22,14 +22,11 @@ import static java.nio.file.StandardOpenOption.CREATE_NEW;
 public class ReplayFileWriterImpl implements ReplayFileWriter {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  private final Gson gson;
   @Autowired
   Environment environment;
-
   @Autowired
   PreferencesService preferencesService;
-
-  private final Gson gson;
 
   public ReplayFileWriterImpl() {
     gson = ReplayFiles.gson();

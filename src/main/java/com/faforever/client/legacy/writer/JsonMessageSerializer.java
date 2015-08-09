@@ -58,13 +58,6 @@ public class JsonMessageSerializer<T extends SerializableMessage> implements Ser
     outputStream.write(byteArray);
   }
 
-  /**
-   * Allows subclasses to append more stuff after the serialized JSON. Default implementation does nothing, so super
-   * doesn't need to be called.
-   */
-  protected void appendMore(QStreamWriter qStreamWriter) throws IOException {
-  }
-
   private Gson getGson() {
     if (gson == null) {
       GsonBuilder gsonBuilder = new GsonBuilder()
@@ -76,13 +69,6 @@ public class JsonMessageSerializer<T extends SerializableMessage> implements Ser
       gson = gsonBuilder.create();
     }
     return gson;
-  }
-
-  /**
-   * Allows subclasses to register additional type adapters. Super doesn't need to be called.
-   */
-  protected void addTypeAdapters(GsonBuilder gsonBuilder) {
-
   }
 
   private JsonWriter fixedJsonWriter(Writer writer) {
@@ -99,5 +85,19 @@ public class JsonMessageSerializer<T extends SerializableMessage> implements Ser
     } catch (NoSuchFieldException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Allows subclasses to append more stuff after the serialized JSON. Default implementation does nothing, so super
+   * doesn't need to be called.
+   */
+  protected void appendMore(QStreamWriter qStreamWriter) throws IOException {
+  }
+
+  /**
+   * Allows subclasses to register additional type adapters. Super doesn't need to be called.
+   */
+  protected void addTypeAdapters(GsonBuilder gsonBuilder) {
+
   }
 }

@@ -50,16 +50,6 @@ public class ChatUserControl extends HBox {
 
   private PlayerInfoBean playerInfoBean;
 
-  public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
-    this.playerInfoBean = playerInfoBean;
-
-    configureCountryImageView();
-    configureAvatarImageView();
-    configureClanLabel();
-
-    usernameLabel.setText(playerInfoBean.getUsername());
-  }
-
   @FXML
   void onContextMenuRequested(ContextMenuEvent event) {
     ChatUserContextMenuController contextMenuController = applicationContext.getBean(ChatUserContextMenuController.class);
@@ -74,20 +64,35 @@ public class ChatUserControl extends HBox {
     }
   }
 
-  private void configureClanLabel() {
-    setClanTag(playerInfoBean.getClan());
-    playerInfoBean.clanProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> setClanTag(newValue));
-    });
+  @PostConstruct
+  void init() {
+    fxmlLoader.loadCustomControl("chat_user_control.fxml", this);
   }
 
-  private void setClanTag(String newValue) {
-    if (StringUtils.isEmpty(newValue)) {
-      clanLabel.setVisible(false);
-    } else {
-      clanLabel.setText(String.format(CLAN_TAG_FORMAT, newValue));
-      clanLabel.setVisible(true);
-    }
+  public PlayerInfoBean getPlayerInfoBean() {
+    return playerInfoBean;
+  }
+
+  public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
+    this.playerInfoBean = playerInfoBean;
+
+    configureCountryImageView();
+    configureAvatarImageView();
+    configureClanLabel();
+
+    usernameLabel.setText(playerInfoBean.getUsername());
+  }
+
+  private void configureCountryImageView() {
+    playerInfoBean.countryProperty().addListener((observable, oldValue, newValue) -> {
+      Platform.runLater(() -> setCountry(newValue));
+    });
+    setCountry(playerInfoBean.getCountry());
+
+    Tooltip countryTooltip = new Tooltip(playerInfoBean.getCountry());
+    countryTooltip.textProperty().bind(playerInfoBean.countryProperty());
+
+    Tooltip.install(countryImageView, countryTooltip);
   }
 
   private void configureAvatarImageView() {
@@ -103,16 +108,11 @@ public class ChatUserControl extends HBox {
     Tooltip.install(avatarImageView, avatarTooltip);
   }
 
-  private void configureCountryImageView() {
-    playerInfoBean.countryProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> setCountry(newValue));
+  private void configureClanLabel() {
+    setClanTag(playerInfoBean.getClan());
+    playerInfoBean.clanProperty().addListener((observable, oldValue, newValue) -> {
+      Platform.runLater(() -> setClanTag(newValue));
     });
-    setCountry(playerInfoBean.getCountry());
-
-    Tooltip countryTooltip = new Tooltip(playerInfoBean.getCountry());
-    countryTooltip.textProperty().bind(playerInfoBean.countryProperty());
-
-    Tooltip.install(countryImageView, countryTooltip);
   }
 
   private void setCountry(String country) {
@@ -133,12 +133,12 @@ public class ChatUserControl extends HBox {
     }
   }
 
-  @PostConstruct
-  void init() {
-    fxmlLoader.loadCustomControl("chat_user_control.fxml", this);
-  }
-
-  public PlayerInfoBean getPlayerInfoBean() {
-    return playerInfoBean;
+  private void setClanTag(String newValue) {
+    if (StringUtils.isEmpty(newValue)) {
+      clanLabel.setVisible(false);
+    } else {
+      clanLabel.setText(String.format(CLAN_TAG_FORMAT, newValue));
+      clanLabel.setVisible(true);
+    }
   }
 }

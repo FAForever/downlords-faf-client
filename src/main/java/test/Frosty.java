@@ -72,6 +72,33 @@ public class Frosty extends Application {
     return background;
   }
 
+  // create a frosty pane from a background node.
+  private StackPane freeze(Node background, DoubleProperty y) {
+    Image frostImage = background.snapshot(
+        new SnapshotParameters(),
+        null
+    );
+    ImageView frost = new ImageView(frostImage);
+
+    Rectangle filler = new Rectangle(0, 0, W, H);
+    filler.setFill(Color.AZURE);
+
+    Pane frostPane = new Pane(frost);
+    frostPane.setEffect(frostEffect);
+
+    StackPane frostView = new StackPane(
+        filler,
+        new StackPane(frostPane)
+    );
+
+    Rectangle clipShape = new Rectangle(0, y.get(), W, H);
+    frostView.setClip(clipShape);
+
+    clipShape.yProperty().bind(y);
+
+    return frostView;
+  }
+
   // create some content to be displayed on top of the frozen glass panel.
   private Label createContent() {
     Label label = new Label("Create a new question for drop shadow effects.");
@@ -130,33 +157,6 @@ public class Frosty extends Application {
         content.setVisible(false);
       }
     });
-  }
-
-  // create a frosty pane from a background node.
-  private StackPane freeze(Node background, DoubleProperty y) {
-    Image frostImage = background.snapshot(
-        new SnapshotParameters(),
-        null
-    );
-    ImageView frost = new ImageView(frostImage);
-
-    Rectangle filler = new Rectangle(0, 0, W, H);
-    filler.setFill(Color.AZURE);
-
-    Pane frostPane = new Pane(frost);
-    frostPane.setEffect(frostEffect);
-
-    StackPane frostView = new StackPane(
-        filler,
-        new StackPane(frostPane)
-    );
-
-    Rectangle clipShape = new Rectangle(0, y.get(), W, H);
-    frostView.setClip(clipShape);
-
-    clipShape.yProperty().bind(y);
-
-    return frostView;
   }
 
   public static void main(String[] args) {

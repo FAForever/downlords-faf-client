@@ -191,6 +191,54 @@ public class GitRepositoryPatchService implements PatchService {
     }, callback);
   }
 
+  @Override
+  public void checkForUpdatesInBackground() {
+    Callback<Boolean> callback = new Callback<Boolean>() {
+      @Override
+      public void success(Boolean needsPatching) {
+        if (!needsPatching) {
+          return;
+        }
+
+        notificationService.addNotification(
+            new PersistentNotification(
+                i18n.get("faUpdateAvailable.notification"),
+                Severity.INFO,
+                Arrays.asList(
+                    new Action(i18n.get("faUpdateAvailable.updateLater")),
+                    new Action(i18n.get("faUpdateAvailable.updateNow"), event -> patchInBackground())
+                )
+            )
+        );
+      }
+
+      @Override
+      public void error(Throwable e) {
+        notificationService.addNotification(
+            new PersistentNotification(
+                i18n.get("updateCheckFailed.notification"),
+                Severity.WARN,
+                Collections.singletonList(
+                    new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdatesInBackground())
+                )
+            )
+        );
+      }
+    };
+
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<Boolean>(i18n.get("updateCheckTask.title"), LOW) {
+      @Override
+      protected Boolean call() throws Exception {
+        logger.info("Checking for FA update");
+
+        return initAndCheckDirectories() &&
+            (Files.notExists(binaryPatchRepoDirectory)
+                || areNewPatchFilesAvailable()
+                || !areLocalFilesPatched());
+      }
+    }, callback);
+  }
+
   /**
    * Since it's possible that the user has changed or never specified the game path, this method needs to be called
    * every time before any work is done.
@@ -272,54 +320,6 @@ public class GitRepositoryPatchService implements PatchService {
     } else {
       return InstallType.RETAIL;
     }
-  }
-
-  @Override
-  public void checkForUpdatesInBackground() {
-    Callback<Boolean> callback = new Callback<Boolean>() {
-      @Override
-      public void success(Boolean needsPatching) {
-        if (!needsPatching) {
-          return;
-        }
-
-        notificationService.addNotification(
-            new PersistentNotification(
-                i18n.get("faUpdateAvailable.notification"),
-                Severity.INFO,
-                Arrays.asList(
-                    new Action(i18n.get("faUpdateAvailable.updateLater")),
-                    new Action(i18n.get("faUpdateAvailable.updateNow"), event -> patchInBackground())
-                )
-            )
-        );
-      }
-
-      @Override
-      public void error(Throwable e) {
-        notificationService.addNotification(
-            new PersistentNotification(
-                i18n.get("updateCheckFailed.notification"),
-                Severity.WARN,
-                Collections.singletonList(
-                    new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdatesInBackground())
-                )
-            )
-        );
-      }
-    };
-
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<Boolean>(i18n.get("updateCheckTask.title"), LOW) {
-      @Override
-      protected Boolean call() throws Exception {
-        logger.info("Checking for FA update");
-
-        return initAndCheckDirectories() &&
-            (Files.notExists(binaryPatchRepoDirectory)
-                || areNewPatchFilesAvailable()
-                || !areLocalFilesPatched());
-      }
-    }, callback);
   }
 
   /**

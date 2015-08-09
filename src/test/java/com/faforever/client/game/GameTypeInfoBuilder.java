@@ -6,10 +6,6 @@ public class GameTypeInfoBuilder {
 
   private final GameTypeInfo gameTypeInfo;
 
-  public static GameTypeInfoBuilder create() {
-    return new GameTypeInfoBuilder();
-  }
-
   public GameTypeInfoBuilder() {
     gameTypeInfo = new GameTypeInfo();
   }
@@ -28,5 +24,9 @@ public class GameTypeInfoBuilder {
 
   public GameTypeInfo get() {
     return gameTypeInfo;
+  }
+
+  public static GameTypeInfoBuilder create() {
+    return new GameTypeInfoBuilder();
   }
 }

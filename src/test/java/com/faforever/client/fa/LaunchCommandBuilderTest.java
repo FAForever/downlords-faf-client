@@ -9,6 +9,11 @@ import static org.junit.Assert.*;
 
 public class LaunchCommandBuilderTest {
 
+  @Test
+  public void testAllSet() throws Exception {
+    assertNotNull(defaultBuilder().build());
+  }
+
   private static LaunchCommandBuilder defaultBuilder() {
     return LaunchCommandBuilder.create()
         .additionalArgs(Collections.emptyList())
@@ -21,11 +26,6 @@ public class LaunchCommandBuilderTest {
         .username("")
         .uid(0)
         .executable(Paths.get("."));
-  }
-
-  @Test
-  public void testAllSet() throws Exception {
-    assertNotNull(defaultBuilder().build());
   }
 
   @Test(expected = IllegalStateException.class)

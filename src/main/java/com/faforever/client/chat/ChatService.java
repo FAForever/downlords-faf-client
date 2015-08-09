@@ -32,10 +32,8 @@ public interface ChatService {
   void sendMessageInBackground(String target, String message, Callback<String> callback);
 
   /**
-   * Gets the list of chat users for the given channel as soon as it is available.
-   * <p>
-   * <strong>IMPORTANT:</strong> All operations on the returned list must be synchronized, even iteration. Use the map as monitor.
-   * </p>
+   * Gets the list of chat users for the given channel as soon as it is available. <p> <strong>IMPORTANT:</strong> All
+   * operations on the returned list must be synchronized, even iteration. Use the map as monitor. </p>
    */
   ObservableMap<String, ChatUser> getChatUsersForChannel(String channelName);
 

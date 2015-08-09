@@ -112,6 +112,30 @@ public class UserInfoWindowController {
     ratingOver90DaysButton.fire();
   }
 
+  public Region getRoot() {
+    return userInfoRoot;
+  }
+
+  @FXML
+  void onRatingOver90DaysButtonClicked() {
+    loadStatistics(StatisticsType.GLOBAL_90_DAYS);
+  }
+
+  private void loadStatistics(StatisticsType type) {
+    statisticsService.getStatisticsForPlayer(type, playerInfoBean.getUsername(), new Callback<PlayerStatistics>() {
+      @Override
+      public void success(PlayerStatistics result) {
+        Platform.runLater(() -> plotPlayerStatistics(result));
+      }
+
+      @Override
+      public void error(Throwable e) {
+        // FIXME display to user
+        logger.warn("Statistics could not be loaded", e);
+      }
+    });
+  }
+
   @SuppressWarnings("unchecked")
   private void plotPlayerStatistics(PlayerStatistics result) {
     XYChart.Series<Long, Integer> series = new XYChart.Series<>();
@@ -130,32 +154,8 @@ public class UserInfoWindowController {
     rating90DaysChart.getData().setAll(series);
   }
 
-  public Region getRoot() {
-    return userInfoRoot;
-  }
-
-  @FXML
-  void onRatingOver90DaysButtonClicked() {
-    loadStatistics(StatisticsType.GLOBAL_90_DAYS);
-  }
-
   @FXML
   void onRatingOver365DaysButtonClicked() {
     loadStatistics(StatisticsType.GLOBAL_365_DAYS);
-  }
-
-  private void loadStatistics(StatisticsType type) {
-    statisticsService.getStatisticsForPlayer(type, playerInfoBean.getUsername(), new Callback<PlayerStatistics>() {
-      @Override
-      public void success(PlayerStatistics result) {
-        Platform.runLater(() -> plotPlayerStatistics(result));
-      }
-
-      @Override
-      public void error(Throwable e) {
-        // FIXME display to user
-        logger.warn("Statistics could not be loaded", e);
-      }
-    });
   }
 }

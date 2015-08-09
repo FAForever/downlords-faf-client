@@ -69,12 +69,12 @@ import static org.mockito.Mockito.when;
 
 public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
+  public static final String CHAT_USER_NAME = "junit";
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final long TIMEOUT = 100000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final String DEFAULT_CHANNEL_NAME = "#defaultChannel";
   private static final String OTHER_CHANNEL_NAME = "#otherChannel";
-  public static final String CHAT_USER_NAME = "junit";
   private static final int IRC_SERVER_PORT = 123;
 
   private PircBotXChatService instance;
@@ -472,6 +472,27 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     verify(outputIrc).message(DEFAULT_CHANNEL_NAME, message);
   }
 
+  @SuppressWarnings("unchecked")
+  private void mockTaskService() {
+    doAnswer((InvocationOnMock invocation) -> {
+      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(1, PrioritizedTask.class);
+      prioritizedTask.run();
+
+      Callback<Boolean> callback = invocation.getArgumentAt(2, Callback.class);
+
+      Future<Throwable> throwableFuture = WaitForAsyncUtils.asyncFx(prioritizedTask::getException);
+      Throwable throwable = throwableFuture.get(1, TimeUnit.SECONDS);
+      if (throwable != null) {
+        callback.error(throwable);
+      } else {
+        Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
+        callback.success(result.get(1, TimeUnit.SECONDS));
+      }
+
+      return null;
+    }).when(instance.taskService).submitTask(any(), any(), any());
+  }
+
   @Test
   public void testGetChatUsersForChannelEmpty() throws Exception {
     ObservableMap<String, ChatUser> chatUsersForChannel = instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME);
@@ -604,26 +625,5 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testClose() {
     instance.close();
-  }
-
-  @SuppressWarnings("unchecked")
-  private void mockTaskService() {
-    doAnswer((InvocationOnMock invocation) -> {
-      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(1, PrioritizedTask.class);
-      prioritizedTask.run();
-
-      Callback<Boolean> callback = invocation.getArgumentAt(2, Callback.class);
-
-      Future<Throwable> throwableFuture = WaitForAsyncUtils.asyncFx(prioritizedTask::getException);
-      Throwable throwable = throwableFuture.get(1, TimeUnit.SECONDS);
-      if (throwable != null) {
-        callback.error(throwable);
-      } else {
-        Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
-        callback.success(result.get(1, TimeUnit.SECONDS));
-      }
-
-      return null;
-    }).when(instance.taskService).submitTask(any(), any(), any());
   }
 }

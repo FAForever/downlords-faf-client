@@ -16,17 +16,18 @@ public enum ServerObjectType {
   STATS("stats");
 
   private static final Map<String, ServerObjectType> fromString;
-  private final String string;
-
-  ServerObjectType(String string) {
-    this.string = string;
-  }
 
   static {
     fromString = new HashMap<>(values().length, 1);
     for (ServerObjectType serverObjectType : values()) {
       fromString.put(serverObjectType.string, serverObjectType);
     }
+  }
+
+  private final String string;
+
+  ServerObjectType(String string) {
+    this.string = string;
   }
 
   public static ServerObjectType fromString(String string) {

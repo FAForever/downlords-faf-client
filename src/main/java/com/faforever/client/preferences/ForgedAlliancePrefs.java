@@ -50,59 +50,59 @@ public class ForgedAlliancePrefs {
     return path.get();
   }
 
-  public ObjectProperty<Path> pathProperty() {
-    return path;
-  }
-
   public void setPath(Path path) {
     this.path.set(path);
+  }
+
+  public ObjectProperty<Path> pathProperty() {
+    return path;
   }
 
   public int getPort() {
     return port.get();
   }
 
-  public IntegerProperty portProperty() {
-    return port;
-  }
-
   public void setPort(int port) {
     this.port.set(port);
+  }
+
+  public IntegerProperty portProperty() {
+    return port;
   }
 
   public boolean getAutoDownloadMaps() {
     return autoDownloadMaps.get();
   }
 
-  public BooleanProperty autoDownloadMapsProperty() {
-    return autoDownloadMaps;
-  }
-
   public void setAutoDownloadMaps(boolean autoDownloadMaps) {
     this.autoDownloadMaps.set(autoDownloadMaps);
+  }
+
+  public BooleanProperty autoDownloadMapsProperty() {
+    return autoDownloadMaps;
   }
 
   public Path getModsDirectory() {
     return modsDirectory.get();
   }
 
-  public ObjectProperty<Path> modsDirectoryProperty() {
-    return modsDirectory;
-  }
-
   public void setModsDirectory(Path modsDirectory) {
     this.modsDirectory.set(modsDirectory);
+  }
+
+  public ObjectProperty<Path> modsDirectoryProperty() {
+    return modsDirectory;
   }
 
   public Path getMapsDirectory() {
     return mapsDirectory.get();
   }
 
-  public ObjectProperty<Path> mapsDirectoryProperty() {
-    return mapsDirectory;
-  }
-
   public void setMapsDirectory(Path mapsDirectory) {
     this.mapsDirectory.set(mapsDirectory);
+  }
+
+  public ObjectProperty<Path> mapsDirectoryProperty() {
+    return mapsDirectory;
   }
 }

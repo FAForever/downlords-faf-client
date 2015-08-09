@@ -51,11 +51,6 @@ public class FxmlLoaderImpl implements FxmlLoader {
     return load(file, controller, null).getRoot();
   }
 
-  private URL buildResourceUrl(String file) throws IOException {
-    String theme = preferencesService.getPreferences().getTheme();
-    return new ClassPathResource(ThemeUtil.themeFile(theme, file)).getURL();
-  }
-
   private FXMLLoader load(String file, Object controller, Object root) {
     try {
       FXMLLoader loader = new FXMLLoader();
@@ -68,5 +63,10 @@ public class FxmlLoaderImpl implements FxmlLoader {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private URL buildResourceUrl(String file) throws IOException {
+    String theme = preferencesService.getPreferences().getTheme();
+    return new ClassPathResource(ThemeUtil.themeFile(theme, file)).getURL();
   }
 }

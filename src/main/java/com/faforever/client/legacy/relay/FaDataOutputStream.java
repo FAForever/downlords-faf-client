@@ -32,16 +32,9 @@ public class FaDataOutputStream extends OutputStream {
     outputStream.write(b);
   }
 
-  public void writeInt(int value) throws IOException {
-    outputStream.writeInt(value);
-  }
-
-  public void writeString(String string) throws IOException {
-    outputStream.write(string.getBytes(charset));
-  }
-
-  public void writeByte(int b) throws IOException {
-    outputStream.writeByte(b);
+  @Override
+  public void flush() throws IOException {
+    outputStream.flush();
   }
 
   public void writeArgs(List<Object> args) throws IOException {
@@ -63,6 +56,18 @@ public class FaDataOutputStream extends OutputStream {
     }
   }
 
+  public void writeInt(int value) throws IOException {
+    outputStream.writeInt(value);
+  }
+
+  public void writeByte(int b) throws IOException {
+    outputStream.writeByte(b);
+  }
+
+  public void writeString(String string) throws IOException {
+    outputStream.write(string.getBytes(charset));
+  }
+
   public void writeUdpArgs(List<Object> args) throws IOException {
     writeInt(args.size());
 
@@ -73,7 +78,7 @@ public class FaDataOutputStream extends OutputStream {
         int value = ((Double) arg).intValue();
         writeByte(FIELD_TYPE_INT);
         writeInt(value);
-      } else if(arg instanceof Integer) {
+      } else if (arg instanceof Integer) {
         writeByte(FIELD_TYPE_INT);
         writeInt((int) arg);
       } else {
@@ -92,10 +97,5 @@ public class FaDataOutputStream extends OutputStream {
 
       isFollowingString = true;
     }
-  }
-
-  @Override
-  public void flush() throws IOException {
-    outputStream.flush();
   }
 }

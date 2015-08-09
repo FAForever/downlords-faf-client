@@ -57,6 +57,10 @@ public class ReplayInfoBean {
     }
   }
 
+  private static Instant fromPythonTime(double time) {
+    return Instant.ofEpochMilli((long) (time * 1000));
+  }
+
   public ReplayInfoBean(ServerReplayInfo replayInfo) {
     this();
     id.setValue(replayInfo.id);
@@ -66,40 +70,36 @@ public class ReplayInfoBean {
     endTime.setValue(Instant.ofEpochMilli(replayInfo.end * 1000));
   }
 
-  public void setTeams(ObservableMap<String, List<String>> teams) {
-    this.teams.set(teams);
-  }
-
-  public void setGameType(String gameType) {
-    this.gameType.set(gameType);
-  }
-
   public Path getReplayFile() {
     return replayFile.get();
-  }
-
-  public ObjectProperty<Path> replayFileProperty() {
-    return replayFile;
   }
 
   public void setReplayFile(Path replayFile) {
     this.replayFile.set(replayFile);
   }
 
-  public String getTitle() {
-    return title.get();
+  public ObjectProperty<Path> replayFileProperty() {
+    return replayFile;
   }
 
-  public StringProperty titleProperty() {
-    return title;
+  public String getTitle() {
+    return title.get();
   }
 
   public void setTitle(String title) {
     this.title.set(title);
   }
 
+  public StringProperty titleProperty() {
+    return title;
+  }
+
   public ObservableMap<String, List<String>> getTeams() {
     return teams.get();
+  }
+
+  public void setTeams(ObservableMap<String, List<String>> teams) {
+    this.teams.set(teams);
   }
 
   public MapProperty<String, List<String>> teamsProperty() {
@@ -110,40 +110,44 @@ public class ReplayInfoBean {
     return id.get();
   }
 
-  public IntegerProperty idProperty() {
-    return id;
-  }
-
   public void setId(int id) {
     this.id.set(id);
+  }
+
+  public IntegerProperty idProperty() {
+    return id;
   }
 
   public Instant getStartTime() {
     return startTime.get();
   }
 
-  public ObjectProperty<Instant> startTimeProperty() {
-    return startTime;
-  }
-
   public void setStartTime(Instant startTime) {
     this.startTime.set(startTime);
+  }
+
+  public ObjectProperty<Instant> startTimeProperty() {
+    return startTime;
   }
 
   public Instant getEndTime() {
     return endTime.get();
   }
 
-  public ObjectProperty<Instant> endTimeProperty() {
-    return endTime;
-  }
-
   public void setEndTime(Instant endTime) {
     this.endTime.set(endTime);
   }
 
+  public ObjectProperty<Instant> endTimeProperty() {
+    return endTime;
+  }
+
   public String getGameType() {
     return gameType.get();
+  }
+
+  public void setGameType(String gameType) {
+    this.gameType.set(gameType);
   }
 
   public StringProperty gameTypeProperty() {
@@ -154,15 +158,11 @@ public class ReplayInfoBean {
     return map.get();
   }
 
-  public StringProperty mapProperty() {
-    return map;
-  }
-
   public void setMap(String map) {
     this.map.set(map);
   }
 
-  private static Instant fromPythonTime(double time) {
-    return Instant.ofEpochMilli((long) (time * 1000));
+  public StringProperty mapProperty() {
+    return map;
   }
 }

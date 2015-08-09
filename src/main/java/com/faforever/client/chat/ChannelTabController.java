@@ -26,40 +26,30 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ChannelTabController extends AbstractChatTabController {
 
-  @FXML
-  Tab channelTabRoot;
-
-  @FXML
-  WebView messagesWebView;
-
-  @FXML
-  Pane moderatorsPane;
-
-  @FXML
-  Pane friendsPane;
-
-  @FXML
-  Pane foesPane;
-
-  @FXML
-  Pane othersPane;
-
-  @FXML
-  Pane chatOnlyPane;
-
-  @FXML
-  TextField userSearchTextField;
-
-  @FXML
-  TextField messageTextField;
-
-  @Autowired
-  ApplicationContext applicationContext;
-
   /**
    * Keeps track of which ChatUserControl in which pane belongs to which user.
    */
   private final Map<String, Map<Pane, ChatUserControl>> userToChatUserControls;
+  @FXML
+  Tab channelTabRoot;
+  @FXML
+  WebView messagesWebView;
+  @FXML
+  Pane moderatorsPane;
+  @FXML
+  Pane friendsPane;
+  @FXML
+  Pane foesPane;
+  @FXML
+  Pane othersPane;
+  @FXML
+  Pane chatOnlyPane;
+  @FXML
+  TextField userSearchTextField;
+  @FXML
+  TextField messageTextField;
+  @Autowired
+  ApplicationContext applicationContext;
   private String channelName;
 
   public ChannelTabController() {
@@ -102,13 +92,13 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @Override
-  protected TextInputControl getMessageTextField() {
-    return messageTextField;
+  public Tab getRoot() {
+    return channelTabRoot;
   }
 
   @Override
-  public Tab getRoot() {
-    return channelTabRoot;
+  protected TextInputControl getMessageTextField() {
+    return messageTextField;
   }
 
   @FXML
@@ -116,6 +106,29 @@ public class ChannelTabController extends AbstractChatTabController {
     userSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       filterChatUserControlsBySearchString();
     });
+  }
+
+  /**
+   * Hides all chat user controls whose username does not contain the string entered in the {@link
+   * #userSearchTextField}.
+   */
+  private void filterChatUserControlsBySearchString() {
+    synchronized (userToChatUserControls) {
+      for (Map<Pane, ChatUserControl> chatUserControlMap : userToChatUserControls.values()) {
+        for (Map.Entry<Pane, ChatUserControl> chatUserControlEntry : chatUserControlMap.entrySet()) {
+          ChatUserControl chatUserControl = chatUserControlEntry.getValue();
+
+          applyUserSearchFilter(chatUserControl);
+        }
+      }
+    }
+  }
+
+  private void applyUserSearchFilter(ChatUserControl chatUserControl) {
+    String lowerCaseSearchString = chatUserControl.getPlayerInfoBean().getUsername().toLowerCase();
+    boolean display = lowerCaseSearchString.contains(userSearchTextField.getText().toLowerCase());
+    chatUserControl.setVisible(display);
+    chatUserControl.setManaged(display);
   }
 
   private void onUserJoinedChannel(ChatUser chatUser) {
@@ -253,29 +266,6 @@ public class ChannelTabController extends AbstractChatTabController {
       addChatUserControlSorted(pane, chatUserControl);
       applyUserSearchFilter(chatUserControl);
     });
-  }
-
-  private void applyUserSearchFilter(ChatUserControl chatUserControl) {
-    String lowerCaseSearchString = chatUserControl.getPlayerInfoBean().getUsername().toLowerCase();
-    boolean display = lowerCaseSearchString.contains(userSearchTextField.getText().toLowerCase());
-    chatUserControl.setVisible(display);
-    chatUserControl.setManaged(display);
-  }
-
-  /**
-   * Hides all chat user controls whose username does not contain the string entered in the {@link
-   * #userSearchTextField}.
-   */
-  private void filterChatUserControlsBySearchString() {
-    synchronized (userToChatUserControls) {
-      for (Map<Pane, ChatUserControl> chatUserControlMap : userToChatUserControls.values()) {
-        for (Map.Entry<Pane, ChatUserControl> chatUserControlEntry : chatUserControlMap.entrySet()) {
-          ChatUserControl chatUserControl = chatUserControlEntry.getValue();
-
-          applyUserSearchFilter(chatUserControl);
-        }
-      }
-    }
   }
 
   /**

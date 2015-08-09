@@ -27,19 +27,9 @@ import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 // NOSONAR
 public class MockChatService implements ChatService {
 
-  private static final long CONNECTION_DELAY = 1000;
   public static final int CHAT_MESSAGE_INTERVAL = 5000;
+  private static final long CONNECTION_DELAY = 1000;
   private final Timer timer;
-
-  @Autowired
-  UserService userService;
-
-  @Autowired
-  TaskService taskService;
-
-  @Autowired
-  I18n i18n;
-
   private final Collection<OnChatMessageListener> onChatMessageListeners;
   private final Collection<OnChatConnectedListener> onChatConnectedListeners;
   private final Collection<OnChatUserListListener> onUserListListeners;
@@ -48,6 +38,12 @@ public class MockChatService implements ChatService {
   private final Collection<OnChatUserJoinedChannelListener> onChannelJoinedListeners;
   private final Collection<OnChatUserQuitListener> onChatUserQuitListeners;
   private final Map<String, ObservableMap<String, ChatUser>> channelUserListListeners;
+  @Autowired
+  UserService userService;
+  @Autowired
+  TaskService taskService;
+  @Autowired
+  I18n i18n;
 
   public MockChatService() {
     onChatMessageListeners = new ArrayList<>();
