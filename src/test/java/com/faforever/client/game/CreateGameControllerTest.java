@@ -2,6 +2,10 @@ package com.faforever.client.game;
 
 import com.faforever.client.legacy.OnGameTypeInfoListener;
 import com.faforever.client.legacy.domain.GameTypeInfo;
+import com.faforever.client.mod.ModInfoBean;
+import com.faforever.client.mod.ModService;
+import com.faforever.client.util.Callback;
+import com.sun.org.apache.xpath.internal.operations.Mod;
 import javafx.collections.MapChangeListener.Change;
 import com.faforever.client.map.MapService;
 import com.faforever.client.preferences.PreferencesService;
@@ -15,14 +19,20 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -42,6 +52,9 @@ public class CreateGameControllerTest extends AbstractSpringJavaFxTest {
 
   @Autowired
   GameService gameService;
+
+  @Autowired
+  ModService modService;
 
   private ObservableList<MapInfoBean> mapList;
   private static KeyEvent keyUpPressed = new KeyEvent(KeyEvent.KEY_PRESSED, "0", "", KeyCode.UP, false, false, false, false);
@@ -175,11 +188,12 @@ public class CreateGameControllerTest extends AbstractSpringJavaFxTest {
     GameTypeBean gameTypeBean2 = mock(GameTypeBean.class);
     when(preferencesService.getPreferences().getLastGameType()).thenReturn(null);
     when(gameTypeBean.getName()).thenReturn(FeaturedMod.DEFAULT_MOD.getString());
+    when(gameTypeBean2.getName()).thenReturn(null);
 
     instance = loadController("create_game.fxml");
 
-    onGameTypeAdded(gameTypeBean);
     onGameTypeAdded(gameTypeBean2);
+    onGameTypeAdded(gameTypeBean);
 
     assertThat(instance.gameTypeComboBox.getSelectionModel().getSelectedItem(), is(gameTypeBean));
   }
@@ -189,7 +203,8 @@ public class CreateGameControllerTest extends AbstractSpringJavaFxTest {
     GameTypeBean gameTypeBean = mock(GameTypeBean.class);
     GameTypeBean gameTypeBean2 = mock(GameTypeBean.class);
     when(preferencesService.getPreferences().getLastGameType()).thenReturn("last");
-    when(gameTypeBean.getName()).thenReturn("last");
+    when(gameTypeBean.getName()).thenReturn(null);
+    when(gameTypeBean2.getName()).thenReturn("last");
 
     instance = loadController("create_game.fxml");
 
@@ -212,6 +227,33 @@ public class CreateGameControllerTest extends AbstractSpringJavaFxTest {
     listener.onChanged(change);
   }
 
+  @Test
+  public void testInitModListEmpty() {
+    ArgumentCaptor<Callback<List<ModInfoBean>>> callbackCaptor = ArgumentCaptor.forClass(Callback.class);
+    verify(modService).getInstalledModsInBackground(callbackCaptor.capture());
+
+    instance = loadController("create_game.fxml");
+    assertThat(instance.modListView.getItems(), empty());
+
+    callbackCaptor.getValue().success(new ArrayList<>());
+    assertThat(instance.modListView.getItems(), empty());
+  }
+
+  @Test
+  public void testInitModListPopulated() {
+    ArgumentCaptor<Callback<List<ModInfoBean>>> callbackCaptor = ArgumentCaptor.forClass(Callback.class);
+    verify(modService).getInstalledModsInBackground(callbackCaptor.capture());
+
+    instance = loadController("create_game.fxml");
+    assertThat(instance.modListView.getItems(), empty());
+
+    ModInfoBean modInfoBean = mock(ModInfoBean.class);
+    List<ModInfoBean> result = new ArrayList<ModInfoBean>();
+    result.add(mock(ModInfoBean.class));
+    callbackCaptor.getValue().success(result);
+
+    assertThat(instance.modListView.getItems(), hasItem(modInfoBean));
+  }
 
 
   @Test
