@@ -11,7 +11,7 @@ public final class ByteCopier {
     void updateBytesWritten(long written, long total);
   }
 
-  private InputStream inputStream;
+  private final InputStream inputStream;
   private ByteCountListener byteCountListener;
   private int byteCountInterval;
   private int bufferSize;

@@ -17,7 +17,6 @@ import com.google.gson.GsonBuilder;
 import jbsdiff.InvalidHeaderException;
 import jbsdiff.Patch;
 import org.apache.commons.compress.compressors.CompressorException;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +49,7 @@ public class GitRepositoryPatchService implements PatchService {
     RETAIL("retail.json"),
     STEAM("steam.json");
 
-    String migrationDataFileName;
+    final String migrationDataFileName;
 
     InstallType(String migrationDataFileName) {
       this.migrationDataFileName = migrationDataFileName;
@@ -64,7 +63,6 @@ public class GitRepositoryPatchService implements PatchService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String BINARY_PATCH_DIRECTORY = "bsdiff4";
-  private static final long UPDATE_CHECK_PERIOD = 3600_000;
 
   private final Gson gson;
 
@@ -327,7 +325,7 @@ public class GitRepositoryPatchService implements PatchService {
   /**
    * Checks whether the remote GIT repository has newer patch files available then the local repsitory.
    */
-  private boolean areNewPatchFilesAvailable() throws IOException, GitAPIException {
+  private boolean areNewPatchFilesAvailable() throws IOException {
     String remoteHead = gitWrapper.getRemoteHead(binaryPatchRepoDirectory);
     String localHead = gitWrapper.getLocalHead(binaryPatchRepoDirectory);
 

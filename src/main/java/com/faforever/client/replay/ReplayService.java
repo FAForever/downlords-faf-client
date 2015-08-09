@@ -4,7 +4,6 @@ import com.faforever.client.util.Callback;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.List;
 
@@ -16,5 +15,5 @@ public interface ReplayService {
 
   void runReplay(ReplayInfoBean item);
 
-  void runLiveReplay(URI uri) throws URISyntaxException, IOException;
+  void runLiveReplay(URI uri) throws IOException;
 }

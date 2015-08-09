@@ -14,7 +14,7 @@ public enum ReplayAction {
     }
   }
 
-  private String string;
+  private final String string;
 
   ReplayAction(String string) {
     this.string = string;

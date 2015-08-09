@@ -76,7 +76,7 @@ public class PortCheckServiceImpl implements PortCheckService {
   @Autowired
   UpnpService upnpService;
 
-  private Collection<GamePortCheckListener> gamePortCheckListeners;
+  private final Collection<GamePortCheckListener> gamePortCheckListeners;
 
   public PortCheckServiceImpl() {
     gamePortCheckListeners = new ArrayList<>();

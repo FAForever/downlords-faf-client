@@ -34,9 +34,9 @@ import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
-  private Collection<OnGameTypeInfoListener> onModInfoMessageListeners;
+  private final Collection<OnGameTypeInfoListener> onModInfoMessageListeners;
+  private final Collection<OnGameInfoListener> onGameInfoListeners;
   private OnPlayerInfoListener onPlayerInfoListener;
-  private Collection<OnGameInfoListener> onGameInfoListeners;
 
   @Autowired
   UserService userService;

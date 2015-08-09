@@ -104,7 +104,7 @@ public class PreferencesService {
 
   private Preferences preferences;
   private TimerTask storeInBackgroundTask;
-  private Collection<PreferenceUpdateListener> updateListeners;
+  private final Collection<PreferenceUpdateListener> updateListeners;
   private OnChoseGameDirectoryListener onChoseGameDirectoryListener;
 
   public PreferencesService() {

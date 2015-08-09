@@ -13,8 +13,8 @@ public class TransientNotification {
 
   private final String title;
   private final String text;
-  private Image image;
-  private List<Action> actions;
+  private final Image image;
+  private final List<Action> actions;
 
   public TransientNotification(String title, String text) {
     this(title, text, null, null);

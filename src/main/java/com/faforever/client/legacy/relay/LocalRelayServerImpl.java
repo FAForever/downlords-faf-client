@@ -69,16 +69,17 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
 
-  private BooleanProperty p2pProxyEnabled;
-  private int port;
+  private final BooleanProperty p2pProxyEnabled;
   private final Gson gson;
+  private final Collection<OnReadyListener> onReadyListeners;
+  private final Collection<OnConnectionAcceptedListener> onConnectionAcceptedListeners;
+
+  private int port;
   private FaDataOutputStream faOutputStream;
   private FaDataInputStream faInputStream;
   private ServerWriter serverWriter;
   private InputStream fafInputStream;
   private LobbyMode lobbyMode;
-  private Collection<OnReadyListener> onReadyListeners;
-  private Collection<OnConnectionAcceptedListener> onConnectionAcceptedListeners;
   private ServerSocket serverSocket;
   private boolean stopped;
   private Socket fafSocket;
@@ -187,7 +188,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
     return serverWriter;
   }
 
-  private FaDataInputStream createFaInputStream(InputStream inputStream) throws IOException {
+  private FaDataInputStream createFaInputStream(InputStream inputStream) {
     return new FaDataInputStream(inputStream);
   }
 

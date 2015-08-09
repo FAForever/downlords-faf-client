@@ -14,6 +14,17 @@
             </Rule>
           </value>
         </entry>
+        <entry key="squid:IndentationCheck">
+          <value>
+            <Rule>
+              <option name="htmlDesc" value="&lt;p&gt;Proper indentation is a simple and effective way to improve the code's readability. Consistent indentation among the developers on a team also reduces the differences that are committed to source control systems, making code reviews easier. &lt;/p&gt;&#10;&lt;p&gt;By default this rule checks that each block of code is indented but not the size of this indent. The parameter &quot;indentSize&quot; allows the expected indent size to be defined. Only the first line of a badly indented section is reported.&lt;/p&gt;&#10;&lt;p&gt;The following code illustrates this rule when the expected indent size is set to 2:&lt;/p&gt;&#10;&lt;h2&gt;Noncompliant Code Example&lt;/h2&gt;&#10;&#10;&lt;pre&gt;&#10;class Foo {&#10;  public int a; &#10;   public int b;   // Noncompliant, expected to start at column 4&#10;&#10;...&#10;&#10;  public void doSomething() {&#10;    if(something) {&#10;          doSomethingElse();  // Noncompliant, expected to start at column 6&#10;  }   // Noncompliant, expected to start at column 4&#10;  }&#10;}&#10;&lt;/pre&gt;&#10;&lt;h2&gt;Compliant Solution&lt;/h2&gt;&#10;&#10;&lt;pre&gt;&#10;class Foo {&#10;  public int a; &#10;  public int b; &#10;&#10;...&#10;&#10;  public void doSomething() {&#10;    if(something) {&#10;        doSomethingElse();&#10;    } &#10;  }&#10;}&#10;&lt;/pre&gt;" />
+              <option name="key" value="squid:IndentationCheck" />
+              <option name="langName" value="Java" />
+              <option name="name" value="Source code should be indented consistently" />
+              <option name="severity" value="MINOR" />
+            </Rule>
+          </value>
+        </entry>
         <entry key="squid:S1132">
           <value>
             <Rule>
@@ -25,6 +36,17 @@
             </Rule>
           </value>
         </entry>
+        <entry key="squid:S1166">
+          <value>
+            <Rule>
+              <option name="htmlDesc" value="&lt;p&gt;When handling a caught exception, the original exception's message and stack trace should be logged or passed forward.&lt;/p&gt;&#10;&lt;h2&gt;Noncompliant Code Example&lt;/h2&gt;&#10;&#10;&lt;pre&gt;&#10; // Noncompliant - exception is lost&#10;try { /* ... */ } catch (Exception e) { LOGGER.info(&quot;context&quot;); }   &#10;&#10;// Noncompliant - exception is lost (only message is preserved)       &#10;try { /* ... */ } catch (Exception e) { LOGGER.info(e.getMessage()); }   &#10;&#10;// Noncompliant - exception is lost &#10;try { /* ... */ } catch (Exception e) { throw new RuntimeException(&quot;context&quot;); }&#10;&lt;/pre&gt;&#10;&lt;h2&gt;Compliant Solution&lt;/h2&gt;&#10;&#10;&lt;pre&gt;&#10;try { /* ... */ } catch (Exception e) { LOGGER.info(e); }   &#10;&#10;try { /* ... */ } catch (Exception e) { throw new RuntimeException(e); }&#10;&#10;try {&#10;  /* ... */&#10;} catch (RuntimeException e) {&#10;  doSomething();&#10;  throw e;&#10;} catch (Exception e) {&#10;  // Conversion into unchecked exception is also allowed&#10;  throw new RuntimeException(e);&#10;}&#10;&lt;/pre&gt;&#10;&lt;h2&gt;Exceptions&lt;/h2&gt;&#10;&#10;&lt;p&gt;&lt;code&gt;InterruptedException&lt;/code&gt;, &lt;code&gt;NumberFormatException&lt;/code&gt;, &lt;code&gt;ParseException&lt;/code&gt; and &lt;code&gt;MalformedURLException&lt;/code&gt; exceptions are arguably used to indicate nonexceptional outcomes.&lt;/p&gt;&#10;&lt;p&gt;Because they are part of Java, developers have no choice but to deal with them. This rule does not verify that those particular exceptions are correctly handled.&lt;/p&gt;&#10;&lt;pre&gt;&#10;int myInteger;&#10;try {&#10;  myInteger = Integer.parseInt(myString);&#10;} catch (NumberFormatException e) {&#10;  // It is perfectly acceptable to not handle &quot;e&quot; here&#10;  myInteger = 0;&#10;}&#10;&#10;&lt;/pre&gt;" />
+              <option name="key" value="squid:S1166" />
+              <option name="langName" value="Java" />
+              <option name="name" value="Exception handlers should preserve the original exception" />
+              <option name="severity" value="CRITICAL" />
+            </Rule>
+          </value>
+        </entry>
         <entry key="squid:S1210">
           <value>
             <Rule>
@@ -33,6 +55,28 @@
               <option name="langName" value="Java" />
               <option name="name" value="&quot;equals(Object obj)&quot; should be overridden along with the &quot;compareTo(T obj)&quot; method" />
               <option name="severity" value="CRITICAL" />
+            </Rule>
+          </value>
+        </entry>
+        <entry key="squid:S1213">
+          <value>
+            <Rule>
+              <option name="htmlDesc" value="&lt;p&gt;According to the Java Code Conventions as defined by Oracle, the members of a class or interface declaration should appear in the following order in the source files:&lt;/p&gt;&#10;&lt;ul&gt;&#10;&lt;li&gt; Class and instance variables&lt;/li&gt;&#10;&lt;li&gt; Constructors&lt;/li&gt;&#10;&lt;li&gt; Methods&lt;/li&gt;&#10;&lt;/ul&gt;&#10;&lt;h2&gt;Noncompliant Code Example&lt;/h2&gt;&#10;&#10;&lt;pre&gt;&#10;public class Foo{ &#10;   private int field = 0;&#10;   public boolean isTrue() {...}     &#10;   public Foo() {...}                         // Noncompliant, constructor defined after methods&#10;   public static final int OPEN = 4;  //Noncompliant, variable defined after constructors and methods&#10;}&#10;&lt;/pre&gt;&#10;&lt;h2&gt;Compliant Solution&lt;/h2&gt;&#10;&#10;&lt;pre&gt;&#10;public class Foo{ &#10;   public static final int OPEN = 4;&#10;   private int field = 0;&#10;   public Foo() {...}&#10;   public boolean isTrue() {...}&#10;}&#10;&lt;/pre&gt;" />
+              <option name="key" value="squid:S1213" />
+              <option name="langName" value="Java" />
+              <option name="name" value="The members of an interface declaration or class should appear in a pre-defined order" />
+              <option name="severity" value="MINOR" />
+            </Rule>
+          </value>
+        </entry>
+        <entry key="squid:S1612">
+          <value>
+            <Rule>
+              <option name="htmlDesc" value="&lt;p&gt;Method/constructor references are more compact and readable than using lambdas, and are therefore preferred.&lt;/p&gt;&#10;&#10;&lt;h2&gt;Noncompliant Code Example&lt;/h2&gt;&#10;&lt;pre&gt;&#10;  List&lt;Integer&gt; list = new ArrayList&lt;Integer&gt;();&#10;  list.add(0);&#10;  list.add(1);&#10;  list.add(2);&#10;&#10;    list.forEach(n -&gt; { System.out.println(n); });&#10;&lt;/pre&gt;&#10;&#10;&lt;h2&gt;Compliant Solution&lt;/h2&gt;&#10;&lt;pre&gt;&#10;  List&lt;Integer&gt; list = new ArrayList&lt;Integer&gt;();&#10;  list.add(0);&#10;  list.add(1);&#10;  list.add(2);&#10;&#10;  list.forEach(System.out::println);&#10;&lt;/pre&gt;" />
+              <option name="key" value="squid:S1612" />
+              <option name="langName" value="Java" />
+              <option name="name" value="Replace lambdas with method references when possible" />
+              <option name="severity" value="MINOR" />
             </Rule>
           </value>
         </entry>

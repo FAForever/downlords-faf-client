@@ -35,7 +35,7 @@ public class PersistentNotificationsController {
   @Autowired
   ApplicationContext applicationContext;
 
-  private Map<PersistentNotification, Node> notificationsToNode;
+  private final Map<PersistentNotification, Node> notificationsToNode;
 
   public PersistentNotificationsController() {
     notificationsToNode = new HashMap<>();

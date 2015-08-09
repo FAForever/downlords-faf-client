@@ -16,7 +16,7 @@ public enum ServerObjectType {
   STATS("stats");
 
   private static final Map<String, ServerObjectType> fromString;
-  private String string;
+  private final String string;
 
   ServerObjectType(String string) {
     this.string = string;

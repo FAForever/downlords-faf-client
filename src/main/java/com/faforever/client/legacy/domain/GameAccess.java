@@ -16,7 +16,7 @@ public enum GameAccess {
     }
   }
 
-  private String string;
+  private final String string;
 
   GameAccess(String string) {
     this.string = string;

@@ -91,14 +91,14 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private String username;
   private String password;
   private String localIp;
-  private StringProperty sessionId;
+  private final StringProperty sessionId;
   private ServerWriter serverWriter;
   private Callback<SessionInfo> loginCallback;
   private Callback<GameLaunchInfo> gameLaunchCallback;
-  private Collection<OnGameInfoListener> onGameInfoListeners;
-  private Collection<OnGameTypeInfoListener> onGameTypeInfoListeners;
-  private Collection<OnJoinChannelsRequestListener> onJoinChannelsRequestListeners;
-  private Collection<OnGameLaunchInfoListener> onGameLaunchListeners;
+  private final Collection<OnGameInfoListener> onGameInfoListeners;
+  private final Collection<OnGameTypeInfoListener> onGameTypeInfoListeners;
+  private final Collection<OnJoinChannelsRequestListener> onJoinChannelsRequestListeners;
+  private final Collection<OnGameLaunchInfoListener> onGameLaunchListeners;
 
   // Yes I know, those aren't lists. They will become if it's necessary
   private OnLobbyConnectingListener onLobbyConnectingListener;

@@ -17,17 +17,17 @@ import javafx.collections.ObservableSet;
  */
 public class PlayerInfoBean {
 
-  private StringProperty username;
-  private StringProperty clan;
-  private StringProperty country;
-  private StringProperty avatarUrl;
-  private StringProperty avatarTooltip;
-  private BooleanProperty friend;
-  private BooleanProperty foe;
-  private SetProperty<String> moderatorInChannels;
-  private BooleanProperty chatOnly;
-  private FloatProperty deviation;
-  private FloatProperty mean;
+  private final StringProperty username;
+  private final StringProperty clan;
+  private final StringProperty country;
+  private final StringProperty avatarUrl;
+  private final StringProperty avatarTooltip;
+  private final BooleanProperty friend;
+  private final BooleanProperty foe;
+  private final SetProperty<String> moderatorInChannels;
+  private final BooleanProperty chatOnly;
+  private final FloatProperty deviation;
+  private final FloatProperty mean;
 
   private PlayerInfoBean() {
     username = new SimpleStringProperty();

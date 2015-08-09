@@ -133,7 +133,7 @@ public class DownlordsPortCheckServiceImpl implements PortCheckService {
 
       return true;
     } catch (SocketTimeoutException e) {
-      logger.warn("UDP port {} is unreachable", port);
+      logger.info("UDP port " + port + " is unreachable", e);
       return false;
     }
   }

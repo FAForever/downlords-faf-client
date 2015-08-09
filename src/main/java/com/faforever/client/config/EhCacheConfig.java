@@ -1,7 +1,6 @@
 package com.faforever.client.config;
 
 import net.sf.ehcache.config.CacheConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
@@ -10,16 +9,12 @@ import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 @Configuration
 @EnableCaching
 public class EhCacheConfig implements CachingConfigurer {
 
-  final static String CACHE_POLICY = "LRU";
-
-  @Autowired
-  Environment environment;
+  static final String CACHE_POLICY = "LRU";
 
   @Bean(destroyMethod = "shutdown")
   public net.sf.ehcache.CacheManager ehCacheManager() {

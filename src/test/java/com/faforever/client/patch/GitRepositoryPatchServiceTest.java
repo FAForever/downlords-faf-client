@@ -47,13 +47,13 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
   private static final String GIT_PATCH_URL = "git://dummy/repo.git";
 
   @Rule
-  public TemporaryFolder reposDirectory = new TemporaryFolder();
+  public final TemporaryFolder reposDirectory = new TemporaryFolder();
 
   @Rule
-  public TemporaryFolder fafBinDirectory = new TemporaryFolder();
+  public final TemporaryFolder fafBinDirectory = new TemporaryFolder();
 
   @Rule
-  public TemporaryFolder faDirectory = new TemporaryFolder();
+  public final TemporaryFolder faDirectory = new TemporaryFolder();
 
   private GitRepositoryPatchService instance;
   private ForgedAlliancePrefs forgedAlliancePrefs;

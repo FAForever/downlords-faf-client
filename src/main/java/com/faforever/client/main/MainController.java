@@ -446,37 +446,37 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   @FXML
-  void onPortCheckHelpClicked(ActionEvent event) {
+  void onPortCheckHelpClicked() {
     // FIXME implement
   }
 
   @FXML
-  void onChangePortClicked(ActionEvent event) {
+  void onChangePortClicked() {
     // FIXME implement
   }
 
   @FXML
-  void onEnableUpnpClicked(ActionEvent event) {
+  void onEnableUpnpClicked() {
     // FIXME implement
   }
 
   @FXML
-  void onPortCheckRetryClicked(ActionEvent event) {
+  void onPortCheckRetryClicked() {
     portCheckService.checkGamePortInBackground();
   }
 
   @FXML
-  void onFafReconnectClicked(ActionEvent event) {
+  void onFafReconnectClicked() {
     // FIXME implement
   }
 
   @FXML
-  void onIrcReconnectClicked(ActionEvent event) {
+  void onIrcReconnectClicked() {
     // FIXME implement
   }
 
   @FXML
-  void onNotificationsButtonClicked(ActionEvent event) {
+  void onNotificationsButtonClicked() {
     Bounds screenBounds = notificationsButton.localToScreen(notificationsButton.getBoundsInLocal());
     notificationsPopup.show(notificationsButton.getScene().getWindow(), screenBounds.getMaxX(), screenBounds.getMaxY());
   }
@@ -500,12 +500,12 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   @FXML
-  void onSupportItemSelected(ActionEvent event) {
+  void onSupportItemSelected() {
     // FIXME implement
   }
 
   @FXML
-  void onSettingsItemSelected(ActionEvent event) {
+  void onSettingsItemSelected() {
     Stage stage = new Stage(StageStyle.UNDECORATED);
     stage.initOwner(mainRoot.getScene().getWindow());
 
@@ -517,7 +517,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   @FXML
-  void onExitItemSelected(ActionEvent event) {
+  void onExitItemSelected() {
     Platform.exit();
   }
 
@@ -537,7 +537,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   @FXML
-  void onShowUserInfoClicked(ActionEvent event) {
+  void onShowUserInfoClicked() {
     UserInfoWindowController userInfoWindowController = applicationContext.getBean(UserInfoWindowController.class);
     userInfoWindowController.setPlayerInfoBean(playerService.getCurrentPlayer());
 

@@ -3,7 +3,6 @@ package com.faforever.client.fx;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
@@ -331,12 +330,12 @@ public class WindowDecorator {
   }
 
   @FXML
-  void onMouseReleased(Event event) {
+  void onMouseReleased() {
     isResizing = false;
     dragOffset = null;
   }
 
-  public void onMouseExited(Event event) {
+  public void onMouseExited() {
     windowRoot.setCursor(Cursor.DEFAULT);
   }
 

@@ -5,7 +5,6 @@ import com.faforever.client.legacy.ClientMessageSerializer;
 import com.faforever.client.legacy.StringSerializer;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
-import com.faforever.client.legacy.domain.ServerObject;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.util.Callback;
 import com.google.gson.FieldNamingPolicy;
@@ -75,10 +74,6 @@ public class ReplayServerAccessorImpl extends AbstractServerAccessor implements 
     return replayInfos.stream()
         .map(ReplayInfoBean::new)
         .collect(Collectors.toList());
-  }
-
-  private void dispatchServerObject(String message, ServerObject statisticsObject) {
-
   }
 
   private void writeToServer(ClientMessage clientMessage) {

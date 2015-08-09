@@ -1,7 +1,6 @@
 package com.faforever.client.notification;
 
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -99,7 +98,7 @@ public class PersistentNotificationController {
     return notificationRoot;
   }
 
-  public void onCloseButtonClicked(ActionEvent event) {
+  public void onCloseButtonClicked() {
     dismiss();
   }
 }

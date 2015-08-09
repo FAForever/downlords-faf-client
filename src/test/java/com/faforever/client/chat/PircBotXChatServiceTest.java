@@ -607,7 +607,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @SuppressWarnings("unchecked")
-  private void mockTaskService() throws Exception {
+  private void mockTaskService() {
     doAnswer((InvocationOnMock invocation) -> {
       PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(1, PrioritizedTask.class);
       prioritizedTask.run();

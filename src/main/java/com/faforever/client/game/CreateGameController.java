@@ -9,7 +9,6 @@ import com.google.common.base.Strings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
@@ -289,14 +288,14 @@ public class CreateGameController {
   }
 
   @FXML
-  void onRandomMapButtonClicked(ActionEvent event) {
+  void onRandomMapButtonClicked() {
     int mapIndex = (int) (Math.random() * filteredMaps.size());
     mapListView.getSelectionModel().select(mapIndex);
     mapListView.scrollTo(mapIndex);
   }
 
   @FXML
-  void onCreateButtonClicked(ActionEvent event) {
+  void onCreateButtonClicked() {
     if (StringUtils.isEmpty(titleTextField.getText())) {
       // TODO tell the user
       return;

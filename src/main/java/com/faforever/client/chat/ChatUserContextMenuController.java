@@ -88,38 +88,38 @@ public class ChatUserContextMenuController {
     userInfoWindow.show();
   }
 
-  public void onSendPrivateMessage(ActionEvent event) {
+  public void onSendPrivateMessage() {
   }
 
-  public void onAddFriend(ActionEvent event) {
+  public void onAddFriend() {
     playerService.addFriend(playerInfoBean.getUsername());
   }
 
-  public void onRemoveFriend(ActionEvent event) {
+  public void onRemoveFriend() {
     playerService.removeFriend(playerInfoBean.getUsername());
   }
 
-  public void onAddFoe(ActionEvent event) {
+  public void onAddFoe() {
     playerService.addFoe(playerInfoBean.getUsername());
   }
 
-  public void onRemoveFoe(ActionEvent event) {
+  public void onRemoveFoe() {
     playerService.removeFoe(playerInfoBean.getUsername());
   }
 
-  public void onWatchGame(ActionEvent event) {
+  public void onWatchGame() {
   }
 
-  public void onViewReplays(ActionEvent event) {
+  public void onViewReplays() {
   }
 
-  public void onInviteToGame(ActionEvent event) {
+  public void onInviteToGame() {
   }
 
-  public void onKick(ActionEvent event) {
+  public void onKick() {
   }
 
-  public void onBan(ActionEvent event) {
+  public void onBan() {
 
   }
 }

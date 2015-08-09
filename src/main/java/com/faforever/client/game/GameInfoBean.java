@@ -31,22 +31,22 @@ public class GameInfoBean {
   private static final Pattern BETWEEN_RATING_PATTERN = Pattern.compile("(\\d+)\\s?-\\s?(\\d+)");
   private static final Pattern RATING_PATTERN = Pattern.compile("([<>+~](?:\\d\\.?\\d?k|\\d{3,4})|(?:\\d\\.?\\d?k|\\d{3,4})[<>+]|(?:\\d\\.?\\d?k|\\d{1,4})\\s?-\\s?(?:\\d\\.?\\d?k|\\d{3,4}))");
 
-  private StringProperty host;
-  private StringProperty title;
-  private StringProperty mapName;
-  private StringProperty featuredMod;
-  private ObjectProperty<GameAccess> access;
-  private IntegerProperty uid;
-  private IntegerProperty numPlayers;
-  private IntegerProperty maxPlayers;
-  private IntegerProperty minRating;
-  private IntegerProperty maxRating;
-  private ObjectProperty<GameState> status;
-  private ObjectProperty<VictoryCondition> gameType;
-  private ListProperty<Boolean> options;
-  private MapProperty<String, String> simMods;
-  private MapProperty<String, List<String>> teams;
-  private MapProperty<String, Integer> featuredModVersions;
+  private final StringProperty host;
+  private final StringProperty title;
+  private final StringProperty mapName;
+  private final StringProperty featuredMod;
+  private final ObjectProperty<GameAccess> access;
+  private final IntegerProperty uid;
+  private final IntegerProperty numPlayers;
+  private final IntegerProperty maxPlayers;
+  private final IntegerProperty minRating;
+  private final IntegerProperty maxRating;
+  private final ObjectProperty<GameState> status;
+  private final ObjectProperty<VictoryCondition> gameType;
+  private final ListProperty<Boolean> options;
+  private final MapProperty<String, String> simMods;
+  private final MapProperty<String, List<String>> teams;
+  private final MapProperty<String, Integer> featuredModVersions;
 
   public GameInfoBean(GameInfo gameInfo) {
     this();

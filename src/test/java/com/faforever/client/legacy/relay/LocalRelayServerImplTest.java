@@ -546,7 +546,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   /**
    * Writes the specified message to the local relay server as if it was sent by the FAF server.
    */
-  private void sendFromServer(RelayServerMessage relayServerMessage) throws IOException {
+  private void sendFromServer(RelayServerMessage relayServerMessage) {
     serverToRelayWriter.write(relayServerMessage);
   }
 

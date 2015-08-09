@@ -6,9 +6,9 @@ import javafx.beans.property.StringProperty;
 
 public class GameTypeBean {
 
-  private StringProperty name;
-  private StringProperty fullName;
-  private StringProperty description;
+  private final StringProperty name;
+  private final StringProperty fullName;
+  private final StringProperty description;
 
   public GameTypeBean(GameTypeInfo gameTypeInfo) {
     name = new SimpleStringProperty(gameTypeInfo.name);

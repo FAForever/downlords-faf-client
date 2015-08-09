@@ -19,7 +19,6 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -58,7 +57,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   @Autowired
   Proxy proxy;
 
-  private Collection<OnGameStartedListener> onGameLaunchingListeners;
+  private final Collection<OnGameStartedListener> onGameLaunchingListeners;
 
   private final ObservableMap<String, GameTypeBean> gameTypeBeans;
 
@@ -193,8 +192,8 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @VisibleForTesting
-  Service<Void> waitForProcessTerminationInBackground(Process process) {
-    return ConcurrentUtil.executeInBackground(new Task<Void>() {
+  void waitForProcessTerminationInBackground(Process process) {
+    ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
         int exitCode = process.waitFor();
@@ -237,12 +236,22 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   @Override
   public void runWithReplay(Path path, @Nullable Integer replayId) throws IOException {
-    forgedAllianceService.startReplay(path, replayId);
+    Process process = forgedAllianceService.startReplay(path, replayId);
+    onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
+    // TODO is this needed when watching a replay?
+    lobbyServerAccessor.notifyGameStarted();
+
+    waitForProcessTerminationInBackground(process);
   }
 
   @Override
   public void runWithReplay(URL replayUrl, Integer replayId) throws IOException {
-    forgedAllianceService.startReplay(replayUrl, replayId);
+    Process process = forgedAllianceService.startReplay(replayUrl, replayId);
+    onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
+    // TODO is this needed when watching a replay?
+    lobbyServerAccessor.notifyGameStarted();
+
+    waitForProcessTerminationInBackground(process);
   }
 
   @Override

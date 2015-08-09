@@ -26,10 +26,10 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   @Autowired
   UserService userService;
 
-  private PlayerInfoBean currentPlayer;
-  private ObservableMap<String, PlayerInfoBean> players;
+  private final ObservableMap<String, PlayerInfoBean> players;
   private List<String> foeList;
   private List<String> friendList;
+  private PlayerInfoBean currentPlayer;
 
   public PlayerServiceImpl() {
     players = FXCollections.observableHashMap();

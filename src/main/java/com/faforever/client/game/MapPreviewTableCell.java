@@ -7,7 +7,7 @@ import javafx.scene.image.ImageView;
 
 public class MapPreviewTableCell extends TableCell<GameInfoBean, Image> {
 
-  private ImageView imageVew;
+  private final ImageView imageVew;
 
   public MapPreviewTableCell(FxmlLoader fxmlLoader) {
     imageVew = fxmlLoader.loadAndGetRoot("map_preview_table_cell.fxml", this);

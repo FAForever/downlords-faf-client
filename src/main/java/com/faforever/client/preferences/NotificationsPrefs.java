@@ -22,6 +22,8 @@ public class NotificationsPrefs {
   private final BooleanProperty privateMessageSoundEnabled;
   private final BooleanProperty privateMessageToastEnabled;
   private final BooleanProperty friendJoinsGameToastEnabled;
+  private final BooleanProperty displayFriendPlaysGameToast;
+  private final ObjectProperty<ToastPosition> toastPosition;
 
   public NotificationsPrefs() {
     soundsEnabled = new SimpleBooleanProperty(true);
@@ -90,9 +92,6 @@ public class NotificationsPrefs {
   public void setDisplayFriendPlaysGameToast(boolean displayFriendPlaysGameToast) {
     this.displayFriendPlaysGameToast.set(displayFriendPlaysGameToast);
   }
-
-  private final BooleanProperty displayFriendPlaysGameToast;
-  private final ObjectProperty<ToastPosition> toastPosition;
 
   public boolean getDisplayFriendOnlineToast() {
     return displayFriendOnlineToast.get();
