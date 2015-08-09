@@ -125,6 +125,24 @@ public class CreateGameController {
     gameTypeComboBox.setButtonCell(gameTypeCell());
   }
 
+  @NotNull
+  private ListCell<GameTypeBean> gameTypeCell() {
+    return new ListCell<GameTypeBean>() {
+
+      @Override
+      protected void updateItem(GameTypeBean item, boolean empty) {
+        super.updateItem(item, empty);
+
+        if (empty || item == null) {
+          setText(null);
+          setGraphic(null);
+        } else {
+          setText(item.getName());
+        }
+      }
+    };
+  }
+
   @PostConstruct
   void postConstruct() {
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
@@ -145,116 +163,6 @@ public class CreateGameController {
     initGameTypeComboBox();
     setLastGameTitle();
     selectLastMap();
-  }
-
-  private void setLastGameTitle() {
-    titleTextField.setText(preferencesService.getPreferences().getLastGameTitle());
-  }
-
-  private void selectLastMap() {
-    String lastMap = preferencesService.getPreferences().getLastMap();
-    for (MapInfoBean mapInfoBean : mapListView.getItems()) {
-      if (mapInfoBean.getDisplayName().equals(lastMap)) {
-        mapListView.getSelectionModel().select(mapInfoBean);
-        break;
-      }
-    }
-  }
-
-  private void initGameTypeComboBox() {
-    gameService.addOnGameTypeInfoListener(change -> {
-      change.getValueAdded();
-
-      gameTypeComboBox.getItems().add(change.getValueAdded());
-      selectLastOrDefaultGameType();
-    });
-  }
-
-  private void selectLastOrDefaultGameType() {
-    String lastGameMod = preferencesService.getPreferences().getLastGameType();
-    if (lastGameMod == null) {
-      lastGameMod = FeaturedMod.DEFAULT_MOD.getString();
-    }
-
-    for (GameTypeBean mod : gameTypeComboBox.getItems()) {
-      if (Objects.equals(mod.getName(), lastGameMod)) {
-        gameTypeComboBox.getSelectionModel().select(mod);
-        break;
-      }
-    }
-  }
-
-  private void initModList() {
-    modListView.setCellFactory(param -> modListCell());
-
-    modService.getInstalledModsInBackground(new Callback<List<ModInfoBean>>() {
-      @Override
-      public void success(List<ModInfoBean> result) {
-        modListView.setItems(FXCollections.observableList(result));
-      }
-
-      @Override
-      public void error(Throwable e) {
-        logger.warn("Could not load mod list", e);
-      }
-    });
-  }
-
-  @NotNull
-  private ListCell<ModInfoBean> modListCell() {
-    return new ListCell<ModInfoBean>() {
-
-      @Override
-      protected void updateItem(ModInfoBean item, boolean empty) {
-        super.updateItem(item, empty);
-
-        if (empty || item == null) {
-          setText(null);
-          setGraphic(null);
-        } else {
-          setText(item.getName());
-        }
-      }
-    };
-  }
-
-  @NotNull
-  private ListCell<GameTypeBean> gameTypeCell() {
-    return new ListCell<GameTypeBean>() {
-
-      @Override
-      protected void updateItem(GameTypeBean item, boolean empty) {
-        super.updateItem(item, empty);
-
-        if (empty || item == null) {
-          setText(null);
-          setGraphic(null);
-        } else {
-          setText(item.getName());
-        }
-      }
-    };
-  }
-
-  private void initMapSelection() {
-    ObservableList<MapInfoBean> localMaps = mapService.getLocalMaps();
-
-    filteredMaps = new FilteredList<>(localMaps);
-
-    mapListView.setItems(filteredMaps);
-    mapListView.setCellFactory(mapListCellFactory());
-    mapListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue == null) {
-        mapNameLabel.setText("");
-        return;
-      }
-      String mapName = newValue.getDisplayName();
-
-      mapNameLabel.setText(mapName);
-      mapImageView.setImage(mapService.loadLargePreview(mapName));
-      preferencesService.getPreferences().setLastMap(mapName);
-      preferencesService.storeInBackground();
-    });
   }
 
   private void initRankingSlider() {
@@ -285,6 +193,115 @@ public class CreateGameController {
       preferencesService.getPreferences().setLastGameTitle(newValue);
       preferencesService.storeInBackground();
     });
+  }
+
+  private void initModList() {
+    modListView.setCellFactory(param -> modListCell());
+
+    modService.getInstalledModsInBackground(new Callback<List<ModInfoBean>>() {
+      @Override
+      public void success(List<ModInfoBean> result) {
+        modListView.setItems(FXCollections.observableList(result));
+      }
+
+      @Override
+      public void error(Throwable e) {
+        logger.warn("Could not load mod list", e);
+      }
+    });
+  }
+
+  private void initMapSelection() {
+    ObservableList<MapInfoBean> localMaps = mapService.getLocalMaps();
+
+    filteredMaps = new FilteredList<>(localMaps);
+
+    mapListView.setItems(filteredMaps);
+    mapListView.setCellFactory(mapListCellFactory());
+    mapListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == null) {
+        mapNameLabel.setText("");
+        return;
+      }
+      String mapName = newValue.getDisplayName();
+
+      mapNameLabel.setText(mapName);
+      mapImageView.setImage(mapService.loadLargePreview(mapName));
+      preferencesService.getPreferences().setLastMap(mapName);
+      preferencesService.storeInBackground();
+    });
+  }
+
+  private void initGameTypeComboBox() {
+    gameService.addOnGameTypeInfoListener(change -> {
+      change.getValueAdded();
+
+      gameTypeComboBox.getItems().add(change.getValueAdded());
+      selectLastOrDefaultGameType();
+    });
+  }
+
+  private void setLastGameTitle() {
+    titleTextField.setText(preferencesService.getPreferences().getLastGameTitle());
+  }
+
+  private void selectLastMap() {
+    String lastMap = preferencesService.getPreferences().getLastMap();
+    for (MapInfoBean mapInfoBean : mapListView.getItems()) {
+      if (mapInfoBean.getDisplayName().equals(lastMap)) {
+        mapListView.getSelectionModel().select(mapInfoBean);
+        break;
+      }
+    }
+  }
+
+  @NotNull
+  private ListCell<ModInfoBean> modListCell() {
+    return new ListCell<ModInfoBean>() {
+
+      @Override
+      protected void updateItem(ModInfoBean item, boolean empty) {
+        super.updateItem(item, empty);
+
+        if (empty || item == null) {
+          setText(null);
+          setGraphic(null);
+        } else {
+          setText(item.getName());
+        }
+      }
+    };
+  }
+
+  @NotNull
+  private javafx.util.Callback<ListView<MapInfoBean>, ListCell<MapInfoBean>> mapListCellFactory() {
+    return param -> new ListCell<MapInfoBean>() {
+      @Override
+      protected void updateItem(MapInfoBean item, boolean empty) {
+        super.updateItem(item, empty);
+
+        if (empty || item == null) {
+          setText(null);
+          setGraphic(null);
+        } else {
+          setText(item.getDisplayName());
+        }
+      }
+    };
+  }
+
+  private void selectLastOrDefaultGameType() {
+    String lastGameMod = preferencesService.getPreferences().getLastGameType();
+    if (lastGameMod == null) {
+      lastGameMod = FeaturedMod.DEFAULT_MOD.getString();
+    }
+
+    for (GameTypeBean mod : gameTypeComboBox.getItems()) {
+      if (Objects.equals(mod.getName(), lastGameMod)) {
+        gameTypeComboBox.getSelectionModel().select(mod);
+        break;
+      }
+    }
   }
 
   @FXML
@@ -324,22 +341,5 @@ public class CreateGameController {
 
   public Node getRoot() {
     return createGameRoot;
-  }
-
-  @NotNull
-  private javafx.util.Callback<ListView<MapInfoBean>, ListCell<MapInfoBean>> mapListCellFactory() {
-    return param -> new ListCell<MapInfoBean>() {
-      @Override
-      protected void updateItem(MapInfoBean item, boolean empty) {
-        super.updateItem(item, empty);
-
-        if (empty || item == null) {
-          setText(null);
-          setGraphic(null);
-        } else {
-          setText(item.getDisplayName());
-        }
-      }
-    };
   }
 }

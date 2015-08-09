@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 // TODO move to com.faforever.client.fa
+
 /**
  * Reads data from Forged Alliance (the game, not the lobby).
  */
@@ -24,24 +25,6 @@ public class FaDataInputStream extends InputStream {
   public FaDataInputStream(InputStream inputStream) {
     this.inputStream = new LittleEndianDataInputStream(new BufferedInputStream(inputStream));
     charset = StandardCharsets.UTF_8;
-  }
-
-
-  @Override
-  public int read() throws IOException {
-    return inputStream.read();
-  }
-
-  public int readInt() throws IOException {
-    return inputStream.readInt();
-  }
-
-  public String readString() throws IOException {
-    int size = readInt();
-
-    byte[] buffer = new byte[size];
-    inputStream.readFully(buffer);
-    return new String(buffer, charset);
   }
 
   public List<Object> readChunks() throws IOException {
@@ -68,5 +51,22 @@ public class FaDataInputStream extends InputStream {
     }
 
     return chunks;
+  }
+
+  public int readInt() throws IOException {
+    return inputStream.readInt();
+  }
+
+  @Override
+  public int read() throws IOException {
+    return inputStream.read();
+  }
+
+  public String readString() throws IOException {
+    int size = readInt();
+
+    byte[] buffer = new byte[size];
+    inputStream.readFully(buffer);
+    return new String(buffer, charset);
   }
 }

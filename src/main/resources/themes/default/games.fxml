@@ -11,82 +11,95 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<VBox fx:id="gamesRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" spacing="10.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GamesController">
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="gamesRoot" maxHeight="1.7976931348623157E308"
+      maxWidth="1.7976931348623157E308"
+      minHeight="0.0" minWidth="0.0" spacing="10.0" xmlns="http://javafx.com/javafx/8.0.40"
+      fx:controller="com.faforever.client.game.GamesController">
   <children>
     <HBox alignment="BASELINE_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
       <children>
-            <AnchorPane HBox.hgrow="ALWAYS">
-               <children>
-              <CheckBox layoutX="110.0" layoutY="6.0" mnemonicParsing="false" onAction="#onShowPrivateGames" selected="true" text="%games.showPrivateGames" AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="124.0" AnchorPane.topAnchor="7.0" />
-              <Button fx:id="createGameButton" layoutX="14.0" layoutY="3.0" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" text="%games.create" AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="7.0" />
-                 <MenuButton fx:id="switchViewButton" mnemonicParsing="false" text="View" AnchorPane.bottomAnchor="7.0"
-                             AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="7.0">
-                    <items>
-                      <MenuItem fx:id="tiledButton" mnemonicParsing="false" onAction="#onTilesButtonPressed" text="Tiled" />
-                      <MenuItem fx:id="detailsButton" mnemonicParsing="false" onAction="#onDetailsButtonPressed" text="Details" />
-                    </items>
-                  </MenuButton>
-               </children>
-               <HBox.margin>
-                  <Insets />
-               </HBox.margin>
-            </AnchorPane>
+        <AnchorPane HBox.hgrow="ALWAYS">
+          <children>
+            <CheckBox layoutX="110.0" layoutY="6.0" mnemonicParsing="false" onAction="#onShowPrivateGames"
+                      selected="true" text="%games.showPrivateGames" AnchorPane.bottomAnchor="7.0"
+                      AnchorPane.leftAnchor="124.0" AnchorPane.topAnchor="7.0"/>
+            <Button fx:id="createGameButton" layoutX="14.0" layoutY="3.0" mnemonicParsing="false"
+                    onAction="#onCreateGameButtonClicked" text="%games.create" AnchorPane.bottomAnchor="7.0"
+                    AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="7.0"/>
+            <MenuButton fx:id="switchViewButton" mnemonicParsing="false" text="View" AnchorPane.bottomAnchor="7.0"
+                        AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="7.0">
+              <items>
+                <MenuItem fx:id="tiledButton" mnemonicParsing="false" onAction="#onTilesButtonPressed" text="Tiled"/>
+                <MenuItem fx:id="detailsButton" mnemonicParsing="false" onAction="#onDetailsButtonPressed"
+                          text="Details"/>
+              </items>
+            </MenuButton>
+          </children>
+          <HBox.margin>
+            <Insets/>
+          </HBox.margin>
+        </AnchorPane>
       </children>
     </HBox>
-    <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
+    <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
+          VBox.vgrow="ALWAYS">
       <children>
-            <AnchorPane fx:id="gameViewContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
-            <ScrollPane maxWidth="300.0" minWidth="300.0">
-               <HBox.margin>
-                  <Insets />
-               </HBox.margin>
-               <content>
-              <VBox fx:id="gamePreviewPanel" maxHeight="1.7976931348623157E308" maxWidth="300.0" minHeight="0.0" minWidth="0.0">
-                <children>
-                  <ImageView fx:id="mapImageView" fitWidth="256.0" onMouseClicked="#onMapLargePreview" pickOnBounds="true" preserveRatio="true" styleClass="map-preview" />
-                  <Label fx:id="gameTitleLabel" alignment="CENTER" maxHeight="1.7976931348623157E308" styleClass="game-detail-title" text="&lt;Game title&gt;" wrapText="true">
-                    <padding>
-                      <Insets left="10.0" />
-                    </padding>
-                  </Label>
-                  <Label fx:id="numberOfPlayersLabel" maxHeight="1.7976931348623157E308" text="&lt;Number of players&gt;">
-                    <padding>
-                      <Insets left="10.0" />
-                    </padding>
-                  </Label>
-                  <Label fx:id="hosterLabel" maxHeight="1.7976931348623157E308" text="&lt;Hoster&gt;">
-                    <VBox.margin>
-                      <Insets />
-                    </VBox.margin>
-                    <padding>
-                      <Insets left="10.0" />
-                    </padding>
-                  </Label>
-                        <Label fx:id="mapLabel" maxHeight="1.7976931348623157E308" text="&lt;Map&gt;">
-                           <padding>
-                              <Insets left="10.0" />
-                           </padding>
-                        </Label>
-                  <Label fx:id="gameModeLabel" maxHeight="1.7976931348623157E308" text="&lt;Game mode&gt;">
-                    <VBox.margin>
-                      <Insets />
-                    </VBox.margin>
-                    <padding>
-                      <Insets left="10.0" />
-                    </padding>
-                  </Label>
-                        <VBox fx:id="teamListPane">
-                           <VBox.margin>
-                              <Insets top="10.0" />
-                           </VBox.margin>
-                        </VBox>
-                </children>
-                <padding>
-                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                </padding>
-              </VBox>
-               </content>
-            </ScrollPane>
+        <AnchorPane fx:id="gameViewContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                    HBox.hgrow="ALWAYS"/>
+        <ScrollPane maxWidth="300.0" minWidth="300.0">
+          <HBox.margin>
+            <Insets/>
+          </HBox.margin>
+          <content>
+            <VBox fx:id="gamePreviewPanel" maxHeight="1.7976931348623157E308" maxWidth="300.0" minHeight="0.0"
+                  minWidth="0.0">
+              <children>
+                <ImageView fx:id="mapImageView" fitWidth="256.0" onMouseClicked="#onMapLargePreview" pickOnBounds="true"
+                           preserveRatio="true" styleClass="map-preview"/>
+                <Label fx:id="gameTitleLabel" alignment="CENTER" maxHeight="1.7976931348623157E308"
+                       styleClass="game-detail-title" text="&lt;Game title&gt;" wrapText="true">
+                  <padding>
+                    <Insets left="10.0"/>
+                  </padding>
+                </Label>
+                <Label fx:id="numberOfPlayersLabel" maxHeight="1.7976931348623157E308" text="&lt;Number of players&gt;">
+                  <padding>
+                    <Insets left="10.0"/>
+                  </padding>
+                </Label>
+                <Label fx:id="hosterLabel" maxHeight="1.7976931348623157E308" text="&lt;Hoster&gt;">
+                  <VBox.margin>
+                    <Insets/>
+                  </VBox.margin>
+                  <padding>
+                    <Insets left="10.0"/>
+                  </padding>
+                </Label>
+                <Label fx:id="mapLabel" maxHeight="1.7976931348623157E308" text="&lt;Map&gt;">
+                  <padding>
+                    <Insets left="10.0"/>
+                  </padding>
+                </Label>
+                <Label fx:id="gameModeLabel" maxHeight="1.7976931348623157E308" text="&lt;Game mode&gt;">
+                  <VBox.margin>
+                    <Insets/>
+                  </VBox.margin>
+                  <padding>
+                    <Insets left="10.0"/>
+                  </padding>
+                </Label>
+                <VBox fx:id="teamListPane">
+                  <VBox.margin>
+                    <Insets top="10.0"/>
+                  </VBox.margin>
+                </VBox>
+              </children>
+              <padding>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+              </padding>
+            </VBox>
+          </content>
+        </ScrollPane>
       </children>
     </HBox>
   </children>

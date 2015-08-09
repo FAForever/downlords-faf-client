@@ -82,6 +82,10 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
     return launch(executable, launchCommand);
   }
 
+  private Path getExecutable() {
+    return preferencesService.getFafBinDirectory().resolve("ForgedAlliance.exe");
+  }
+
   @NotNull
   private Process launch(Path executable, List<String> launchCommand) throws IOException {
     ProcessBuilder processBuilder = new ProcessBuilder();
@@ -92,9 +96,5 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
     logger.info("Starting Forged Alliance with command: " + processBuilder.command());
 
     return processBuilder.start();
-  }
-
-  private Path getExecutable() {
-    return preferencesService.getFafBinDirectory().resolve("ForgedAlliance.exe");
   }
 }

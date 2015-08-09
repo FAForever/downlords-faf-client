@@ -120,7 +120,9 @@ public class ServiceConfig {
   }
 
   @Bean
-  MapVaultParser mapVaultParser(){ return new LegacyMapVaultParser();}
+  MapVaultParser mapVaultParser() {
+    return new LegacyMapVaultParser();
+  }
 
   @Bean
   GameService gameService() {

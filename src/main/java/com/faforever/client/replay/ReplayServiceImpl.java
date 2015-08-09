@@ -235,21 +235,6 @@ public class ReplayServiceImpl implements ReplayService {
     });
   }
 
-  @VisibleForTesting
-  static String parseSupComVersion(byte[] rawReplayBytes) {
-    int versionDelimiterIndex = Bytes.indexOf(rawReplayBytes, (byte) 0x00);
-    return new String(rawReplayBytes, VERSION_OFFSET, versionDelimiterIndex - VERSION_OFFSET, StandardCharsets.US_ASCII);
-  }
-
-  @VisibleForTesting
-  static String guessModByFileName(String fileName) {
-    String[] splitFileName = fileName.split("\\.");
-    if (splitFileName.length > 2) {
-      return splitFileName[splitFileName.length - 2];
-    }
-    return FeaturedMod.DEFAULT_MOD.getString();
-  }
-
   private void downloadReplayToTemporaryDirectory(int replayId, Callback<Path> callback) {
     String taskTitle = i18n.get("mapReplayTask.title", replayId);
 
@@ -284,5 +269,20 @@ public class ReplayServiceImpl implements ReplayService {
 
   private String getReplayUrl(int replayId, String baseUrl) {
     return String.format(baseUrl, replayId);
+  }
+
+  @VisibleForTesting
+  static String parseSupComVersion(byte[] rawReplayBytes) {
+    int versionDelimiterIndex = Bytes.indexOf(rawReplayBytes, (byte) 0x00);
+    return new String(rawReplayBytes, VERSION_OFFSET, versionDelimiterIndex - VERSION_OFFSET, StandardCharsets.US_ASCII);
+  }
+
+  @VisibleForTesting
+  static String guessModByFileName(String fileName) {
+    String[] splitFileName = fileName.split("\\.");
+    if (splitFileName.length > 2) {
+      return splitFileName[splitFileName.length - 2];
+    }
+    return FeaturedMod.DEFAULT_MOD.getString();
   }
 }

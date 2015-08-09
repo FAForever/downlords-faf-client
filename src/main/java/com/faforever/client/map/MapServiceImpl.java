@@ -29,7 +29,6 @@ import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -39,29 +38,23 @@ import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 public class MapServiceImpl implements MapService {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  @Autowired
-  Environment environment;
-
-  @Autowired
-  PreferencesService preferencesService;
-
-  @Autowired
-  TaskService taskService;
-
-  @Autowired
-  MapVaultParser mapVaultParser;
-
-  @Autowired
-  I18n i18n;
-
-  public enum officialMaps{
+  public enum officialMaps {
     SCMP_001, SCMP_002, SCMP_003, SCMP_004, SCMP_005, SCMP_006, SCMP_007, SCMP_008, SCMP_009, SCMP_010, SCMP_011, SCMP_012, SCMP_013,
     SCMP_014, SCMP_015, SCMP_016, SCMP_017, SCMP_018, SCMP_019, SCMP_020, SCMP_021, SCMP_022, SCMP_023, SCMP_024, SCMP_025, SCMP_026,
     SCMP_027, SCMP_028, SCMP_029, SCMP_030, SCMP_031, SCMP_032, SCMP_033, SCMP_034, SCMP_035, SCMP_036, SCMP_037, SCMP_038, SCMP_039,
     SCMP_040, X1MP_001, X1MP_002, X1MP_003, X1MP_004, X1MP_005, X1MP_006, X1MP_007, X1MP_008, X1MP_009, X1MP_010, X1MP_011, X1MP_012, X1MP_014, X1MP_017
   }
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  @Autowired
+  Environment environment;
+  @Autowired
+  PreferencesService preferencesService;
+  @Autowired
+  TaskService taskService;
+  @Autowired
+  MapVaultParser mapVaultParser;
+  @Autowired
+  I18n i18n;
 
   @Override
   @Cacheable(CacheKeys.SMALL_MAP_PREVIEW)
@@ -124,7 +117,7 @@ public class MapServiceImpl implements MapService {
 
   //FIXME implement official map detection
   @Override
-  public MapInfoBean getMapInfoBeanLocallyFromName(String mapName){
+  public MapInfoBean getMapInfoBeanLocallyFromName(String mapName) {
     logger.debug("Trying to return {} mapInfoBean locally", mapName);
     for (MapInfoBean mapInfoBean : getLocalMaps()) {
       if (mapName.equalsIgnoreCase(mapInfoBean.getDisplayName())) {
@@ -152,8 +145,8 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public boolean isOfficialMap(String mapName) {
-    for(officialMaps map : officialMaps.values()){
-      if(map.name().equals(mapName.toUpperCase())){
+    for (officialMaps map : officialMaps.values()) {
+      if (map.name().equals(mapName.toUpperCase())) {
         logger.debug("{} is an official map", mapName);
         return true;
       }
@@ -208,7 +201,7 @@ public class MapServiceImpl implements MapService {
   @Override
   public List<Comment> getComments(int mapId) {
     //int mapId = getMapInfoBeanFromVaultFromName(mapName).getId();
-    if(mapId == 0){
+    if (mapId == 0) {
       return Collections.emptyList();
     }
     try {

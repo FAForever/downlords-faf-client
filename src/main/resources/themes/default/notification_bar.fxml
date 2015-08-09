@@ -7,8 +7,8 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
-<HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" minHeight="20.0" minWidth="400.0"
-      styleClass="notification-bar" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
+<HBox xmlns:fx="http://javafx.com/fxml/1" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" minHeight="20.0"
+      minWidth="400.0" styleClass="notification-bar" xmlns="http://javafx.com/javafx/8.0.40">
   <children>
     <Label fx:id="messageLabel" text="Label">
       <HBox.margin>

@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.test.AbstractSpringJavaFxTest;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -18,10 +17,9 @@ import static org.mockito.Mockito.when;
 
 public class GameTiledControllerTest extends AbstractSpringJavaFxTest {
 
-  private GameTiledController instance;
-
   @Autowired
   GameCardController gameCardController;
+  private GameTiledController instance;
 
   @Before
   public void setUp() throws Exception {

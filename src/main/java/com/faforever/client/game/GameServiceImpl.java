@@ -41,30 +41,22 @@ import java.util.Map;
 public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnGameInfoListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  @Autowired
-  LobbyServerAccessor lobbyServerAccessor;
-
-  @Autowired
-  UserService userService;
-
-  @Autowired
-  ForgedAllianceService forgedAllianceService;
-
-  @Autowired
-  MapService mapService;
-
-  @Autowired
-  Proxy proxy;
-
   private final Collection<OnGameStartedListener> onGameLaunchingListeners;
-
   private final ObservableMap<String, GameTypeBean> gameTypeBeans;
-
   // It is indeed ugly to keep references in both, a list and a map, however I don't see how I can populate the map
   // values as an observable list (in order to display it in the games table)
   private final ObservableList<GameInfoBean> gameInfoBeans;
   private final Map<Integer, GameInfoBean> uidToGameInfoBean;
+  @Autowired
+  LobbyServerAccessor lobbyServerAccessor;
+  @Autowired
+  UserService userService;
+  @Autowired
+  ForgedAllianceService forgedAllianceService;
+  @Autowired
+  MapService mapService;
+  @Autowired
+  Proxy proxy;
 
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
@@ -76,12 +68,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   @Override
   public void addOnGameInfoBeanListener(ListChangeListener<GameInfoBean> listener) {
     gameInfoBeans.addListener(listener);
-  }
-
-  @PostConstruct
-  void postConstruct() {
-    lobbyServerAccessor.addOnGameTypeInfoListener(this);
-    lobbyServerAccessor.addOnGameInfoListener(this);
   }
 
   @Override
@@ -109,6 +95,60 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   private void updateGameIfNecessary(String modName, Callback<Void> callback) {
     callback.success(null);
+  }
+
+  private Callback<GameLaunchInfo> gameLaunchCallback(final Callback<Void> callback) {
+    return new Callback<GameLaunchInfo>() {
+      @Override
+      public void success(GameLaunchInfo gameLaunchInfo) {
+        List<String> args = fixMalformedArgs(gameLaunchInfo.args);
+        try {
+          Process process = forgedAllianceService.startGame(gameLaunchInfo.uid, gameLaunchInfo.mod, args);
+          onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(gameLaunchInfo.uid));
+          lobbyServerAccessor.notifyGameStarted();
+
+          waitForProcessTerminationInBackground(process);
+          callback.success(null);
+        } catch (Exception e) {
+          callback.error(e);
+        }
+      }
+
+      @Override
+      public void error(Throwable e) {
+        // FIXME implement
+        logger.warn("Could not create game", e);
+      }
+    };
+  }
+
+  /**
+   * A correct argument list looks like ["/ratingcolor", "d8d8d8d8", "/numgames", "236"]. However, the FAF server sends
+   * it as ["/ratingcolor d8d8d8d8", "/numgames 236"]. This method fixes this.
+   */
+  private List<String> fixMalformedArgs(List<String> gameLaunchMessage) {
+    ArrayList<String> fixedArgs = new ArrayList<>();
+
+    for (String combinedArg : gameLaunchMessage) {
+      String[] split = combinedArg.split(" ");
+
+      Collections.addAll(fixedArgs, split);
+    }
+    return fixedArgs;
+  }
+
+  @VisibleForTesting
+  void waitForProcessTerminationInBackground(Process process) {
+    ConcurrentUtil.executeInBackground(new Task<Void>() {
+      @Override
+      protected Void call() throws Exception {
+        int exitCode = process.waitFor();
+        logger.info("Forged Alliance terminated with exit code {}", exitCode);
+        proxy.close();
+        lobbyServerAccessor.notifyGameTerminated();
+        return null;
+      }
+    });
   }
 
   @Override
@@ -166,69 +206,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     gameTypeBeans.addListener(changeListener);
   }
 
-  private Callback<GameLaunchInfo> gameLaunchCallback(final Callback<Void> callback) {
-    return new Callback<GameLaunchInfo>() {
-      @Override
-      public void success(GameLaunchInfo gameLaunchInfo) {
-        List<String> args = fixMalformedArgs(gameLaunchInfo.args);
-        try {
-          Process process = forgedAllianceService.startGame(gameLaunchInfo.uid, gameLaunchInfo.mod, args);
-          onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(gameLaunchInfo.uid));
-          lobbyServerAccessor.notifyGameStarted();
-
-          waitForProcessTerminationInBackground(process);
-          callback.success(null);
-        } catch (Exception e) {
-          callback.error(e);
-        }
-      }
-
-      @Override
-      public void error(Throwable e) {
-        // FIXME implement
-        logger.warn("Could not create game", e);
-      }
-    };
-  }
-
-  @VisibleForTesting
-  void waitForProcessTerminationInBackground(Process process) {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        int exitCode = process.waitFor();
-        logger.info("Forged Alliance terminated with exit code {}", exitCode);
-        proxy.close();
-        lobbyServerAccessor.notifyGameTerminated();
-        return null;
-      }
-    });
-  }
-
-  /**
-   * A correct argument list looks like ["/ratingcolor", "d8d8d8d8", "/numgames", "236"]. However, the FAF server sends
-   * it as ["/ratingcolor d8d8d8d8", "/numgames 236"]. This method fixes this.
-   */
-  private List<String> fixMalformedArgs(List<String> gameLaunchMessage) {
-    ArrayList<String> fixedArgs = new ArrayList<>();
-
-    for (String combinedArg : gameLaunchMessage) {
-      String[] split = combinedArg.split(" ");
-
-      Collections.addAll(fixedArgs, split);
-    }
-    return fixedArgs;
-  }
-
-  @Override
-  public void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
-    if (!gameTypeInfo.host || !gameTypeInfo.live || gameTypeBeans.containsKey(gameTypeInfo.name)) {
-      return;
-    }
-
-    gameTypeBeans.put(gameTypeInfo.name, new GameTypeBean(gameTypeInfo));
-  }
-
   @Override
   public void addOnGameStartedListener(OnGameStartedListener listener) {
     onGameLaunchingListeners.add(listener);
@@ -267,6 +244,21 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   @Override
   public GameInfoBean getByUid(int uid) {
     return uidToGameInfoBean.get(uid);
+  }
+
+  @PostConstruct
+  void postConstruct() {
+    lobbyServerAccessor.addOnGameTypeInfoListener(this);
+    lobbyServerAccessor.addOnGameInfoListener(this);
+  }
+
+  @Override
+  public void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
+    if (!gameTypeInfo.host || !gameTypeInfo.live || gameTypeBeans.containsKey(gameTypeInfo.name)) {
+      return;
+    }
+
+    gameTypeBeans.put(gameTypeInfo.name, new GameTypeBean(gameTypeInfo));
   }
 
   @Override

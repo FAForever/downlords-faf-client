@@ -362,6 +362,13 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
+  public void close() {
+    if (connectionService != null) {
+      Platform.runLater(connectionService::cancel);
+    }
+  }
+
+  @Override
   @SuppressWarnings("unchecked")
   public void onEvent(Event event) throws Exception {
     if (!eventListeners.containsKey(event.getClass())) {
@@ -402,12 +409,5 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       return;
     }
     chatUser.getModeratorInChannels().add(channelName);
-  }
-
-  @Override
-  public void close() {
-    if (connectionService != null) {
-      Platform.runLater(connectionService::cancel);
-    }
   }
 }

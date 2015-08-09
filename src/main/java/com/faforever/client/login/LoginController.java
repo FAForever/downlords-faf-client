@@ -103,18 +103,6 @@ public class LoginController {
     }
   }
 
-  @FXML
-  void loginButtonClicked(ActionEvent actionEvent) {
-    String username = usernameInput.getText();
-    String password = passwordInput.getText();
-
-    password = DigestUtils.sha256Hex(password);
-
-    boolean autoLogin = autoLoginCheckBox.isSelected();
-
-    login(username, password, autoLogin);
-  }
-
   private void login(String username, String password, boolean autoLogin) {
     onLoginProgress();
 
@@ -129,6 +117,10 @@ public class LoginController {
         onLoginFailed(e);
       }
     });
+  }
+
+  private void onLoginProgress() {
+    setShowLoginProgress(true);
   }
 
   private void onLoginSucceeded() {
@@ -146,14 +138,22 @@ public class LoginController {
     loginButton.setDisable(false);
   }
 
-  private void onLoginProgress() {
-    setShowLoginProgress(true);
-  }
-
   private void setShowLoginProgress(boolean b) {
     loginFormPane.setVisible(!b);
     loginProgressPane.setVisible(b);
     loginButton.setDisable(b);
+  }
+
+  @FXML
+  void loginButtonClicked(ActionEvent actionEvent) {
+    String username = usernameInput.getText();
+    String password = passwordInput.getText();
+
+    password = DigestUtils.sha256Hex(password);
+
+    boolean autoLogin = autoLoginCheckBox.isSelected();
+
+    login(username, password, autoLogin);
   }
 
   @FXML

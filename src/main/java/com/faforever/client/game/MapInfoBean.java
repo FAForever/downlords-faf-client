@@ -42,14 +42,6 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
 
   }
 
-  public String getDisplayName() {
-    return displayName.get();
-  }
-
-  public void setDisplayName(String displayName) {
-    this.displayName.set(displayName);
-  }
-
   public StringProperty displayNameProperty() {
     return displayName;
   }
@@ -106,36 +98,36 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
     return size.get();
   }
 
-  public ObjectProperty<MapSize> sizeProperty() {
-    return size;
-  }
-
   public void setSize(MapSize size) {
     this.size.set(size);
+  }
+
+  public ObjectProperty<MapSize> sizeProperty() {
+    return size;
   }
 
   public int getPlayers() {
     return players.get();
   }
 
-  public IntegerProperty playersProperty() {
-    return players;
-  }
-
   public void setPlayers(int players) {
     this.players.set(players);
+  }
+
+  public IntegerProperty playersProperty() {
+    return players;
   }
 
   public int getVersion() {
     return version.get();
   }
 
-  public IntegerProperty versionProperty() {
-    return version;
-  }
-
   public void setVersion(int version) {
     this.version.set(version);
+  }
+
+  public IntegerProperty versionProperty() {
+    return version;
   }
 
   @Override
@@ -143,23 +135,35 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
     return getDisplayName().compareTo(o.getDisplayName());
   }
 
+  public String getDisplayName() {
+    return displayName.get();
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName.set(displayName);
+  }
+
+  public IntegerProperty idProperty() {
+    return id;
+  }
+
+  public int getId() {
+    return id.get();
+  }
+
   public void setId(int id) {
     this.id.set(id);
   }
-
-  public IntegerProperty idProperty() {return id;}
-
-  public int getId(){ return id.get();}
 
   public String getTechnicalName() {
     return technicalName.get();
   }
 
-  public StringProperty technicalNameProperty() {
-    return technicalName;
-  }
-
   public void setTechnicalName(String technicalName) {
     this.technicalName.set(technicalName);
+  }
+
+  public StringProperty technicalNameProperty() {
+    return technicalName;
   }
 }

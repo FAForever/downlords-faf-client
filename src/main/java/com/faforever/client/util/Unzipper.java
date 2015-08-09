@@ -31,10 +31,6 @@ public final class Unzipper {
     byteCountInterval = 333;
   }
 
-  public static Unzipper from(ZipInputStream zipInputStream) {
-    return new Unzipper(zipInputStream);
-  }
-
   public Unzipper to(Path targetDirectory) {
     this.targetDirectory = targetDirectory;
     return this;
@@ -92,5 +88,9 @@ public final class Unzipper {
         }
       }
     }
+  }
+
+  public static Unzipper from(ZipInputStream zipInputStream) {
+    return new Unzipper(zipInputStream);
   }
 }

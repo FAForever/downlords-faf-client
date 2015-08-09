@@ -54,29 +54,21 @@ public class PortCheckServiceImpl implements PortCheckService {
    * Half an hour.
    */
   private static final long UPNP_LIFETIME = 1800;
-
+  private final Collection<GamePortCheckListener> gamePortCheckListeners;
   @Autowired
   TaskService taskService;
-
   @Autowired
   Environment environment;
-
   @Autowired
   NotificationService notificationService;
-
   @Autowired
   PreferencesService preferencesService;
-
   @Autowired
   HostService hostService;
-
   @Autowired
   I18n i18n;
-
   @Autowired
   UpnpService upnpService;
-
-  private final Collection<GamePortCheckListener> gamePortCheckListeners;
 
   public PortCheckServiceImpl() {
     gamePortCheckListeners = new ArrayList<>();
@@ -192,7 +184,6 @@ public class PortCheckServiceImpl implements PortCheckService {
       }
     }, REQUEST_DELAY);
   }
-
 
 
   private ServerWriter createServerWriter(Socket fafSocket) throws IOException {

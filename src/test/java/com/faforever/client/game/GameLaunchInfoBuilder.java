@@ -8,6 +8,10 @@ public class GameLaunchInfoBuilder {
 
   private final GameLaunchInfo gameLaunchInfo;
 
+  public GameLaunchInfoBuilder() {
+    gameLaunchInfo = new GameLaunchInfo();
+  }
+
   public GameLaunchInfoBuilder defaultValues() {
     gameLaunchInfo.version = "1";
     gameLaunchInfo.uid = 1;
@@ -22,9 +26,5 @@ public class GameLaunchInfoBuilder {
 
   public static GameLaunchInfoBuilder create() {
     return new GameLaunchInfoBuilder();
-  }
-
-  public GameLaunchInfoBuilder() {
-    gameLaunchInfo = new GameLaunchInfo();
   }
 }

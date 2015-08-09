@@ -16,6 +16,12 @@ public class EhCacheConfig implements CachingConfigurer {
 
   static final String CACHE_POLICY = "LRU";
 
+  @Bean
+  @Override
+  public CacheManager cacheManager() {
+    return new EhCacheCacheManager(ehCacheManager());
+  }
+
   @Bean(destroyMethod = "shutdown")
   public net.sf.ehcache.CacheManager ehCacheManager() {
     net.sf.ehcache.config.Configuration config = new net.sf.ehcache.config.Configuration();
@@ -27,18 +33,6 @@ public class EhCacheConfig implements CachingConfigurer {
     return net.sf.ehcache.CacheManager.newInstance(config);
   }
 
-  @Bean
-  @Override
-  public CacheManager cacheManager() {
-    return new EhCacheCacheManager(ehCacheManager());
-  }
-
-  @Bean
-  @Override
-  public KeyGenerator keyGenerator() {
-    return new SimpleKeyGenerator();
-  }
-
   private CacheConfiguration cacheConfig(String name, long maxEntries, long timeToIdle) {
     CacheConfiguration config = new CacheConfiguration();
     config.setName(name);
@@ -46,5 +40,11 @@ public class EhCacheConfig implements CachingConfigurer {
     config.setTimeToIdleSeconds(timeToIdle);
     config.setMemoryStoreEvictionPolicy(CACHE_POLICY);
     return config;
+  }
+
+  @Bean
+  @Override
+  public KeyGenerator keyGenerator() {
+    return new SimpleKeyGenerator();
   }
 }

@@ -13,11 +13,14 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
-<VBox fx:id="loginRoot" alignment="TOP_CENTER" prefWidth="360.0" styleClass="login" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.login.LoginController">
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="loginRoot" alignment="TOP_CENTER" prefWidth="360.0" styleClass="login"
+      AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+      AnchorPane.topAnchor="25.0" xmlns="http://javafx.com/javafx/8.0.40"
+      fx:controller="com.faforever.client.login.LoginController">
   <children>
     <ImageView fitHeight="160.0" fitWidth="180.0" pickOnBounds="true" preserveRatio="true" styleClass="login-icon">
       <image>
-        <Image url="@../../images/logo_transparent.png" />
+        <Image url="@../../images/logo_transparent.png"/>
       </image>
       <VBox.margin>
         <Insets bottom="50.0" top="70.0"/>
@@ -25,39 +28,46 @@
     </ImageView>
     <AnchorPane>
       <children>
-        <VBox fx:id="loginProgressPane" alignment="CENTER" layoutY="104.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <VBox fx:id="loginProgressPane" alignment="CENTER" layoutY="104.0" AnchorPane.bottomAnchor="0.0"
+              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
           <children>
-            <ProgressIndicator prefHeight="80.0" prefWidth="80.0" />
+            <ProgressIndicator prefHeight="80.0" prefWidth="80.0"/>
             <Label text="%login.progress.message">
               <VBox.margin>
-                <Insets top="14.0" />
+                <Insets top="14.0"/>
               </VBox.margin>
             </Label>
-            <Pane VBox.vgrow="ALWAYS" />
-            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onCancelLoginButtonClicked" text="%login.button.cancel">
+            <Pane VBox.vgrow="ALWAYS"/>
+            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onCancelLoginButtonClicked"
+                    text="%login.button.cancel">
               <VBox.margin>
-                <Insets top="20.0" />
+                <Insets top="20.0"/>
               </VBox.margin>
             </Button>
           </children>
         </VBox>
-        <VBox fx:id="loginFormPane" alignment="TOP_CENTER" layoutY="40.0" spacing="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <VBox fx:id="loginFormPane" alignment="TOP_CENTER" layoutY="40.0" spacing="5.0" AnchorPane.bottomAnchor="0.0"
+              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
           <children>
-            <TextField fx:id="usernameInput" minWidth="100.0" promptText="%login.name" />
-            <PasswordField fx:id="passwordInput" minWidth="100.0" promptText="%login.password" />
-            <CheckBox fx:id="autoLoginCheckBox" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%login.autoLogin">
+            <TextField fx:id="usernameInput" minWidth="100.0" promptText="%login.name"/>
+            <PasswordField fx:id="passwordInput" minWidth="100.0" promptText="%login.password"/>
+            <CheckBox fx:id="autoLoginCheckBox" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308"
+                      mnemonicParsing="false" text="%login.autoLogin">
               <VBox.margin>
-                <Insets bottom="10.0" top="10.0" />
+                <Insets bottom="10.0" top="10.0"/>
               </VBox.margin>
             </CheckBox>
-            <Button fx:id="loginButton" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#loginButtonClicked" text="%login.button.login" />
+            <Button fx:id="loginButton" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                    onAction="#loginButtonClicked" text="%login.button.login"/>
             <HBox alignment="CENTER" spacing="10.0">
               <children>
-                <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%login.forgot" HBox.hgrow="ALWAYS" />
-                <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="%login.create" HBox.hgrow="ALWAYS" />
+                <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                        text="%login.forgot" HBox.hgrow="ALWAYS"/>
+                <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                        text="%login.create" HBox.hgrow="ALWAYS"/>
               </children>
               <VBox.margin>
-                <Insets top="20.0" />
+                <Insets top="20.0"/>
               </VBox.margin>
             </HBox>
           </children>

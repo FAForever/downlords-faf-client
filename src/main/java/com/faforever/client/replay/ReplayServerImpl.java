@@ -147,6 +147,13 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
     replayInfo.versionInfo.put("lobby", VersionUtil.getVersion(getClass()));
   }
 
+  /**
+   * Returns the current millis the same way as python does since this is what's stored in the replay files *yay*.
+   */
+  private static double pythonTime() {
+    return System.currentTimeMillis() / 1000;
+  }
+
   private void finishReplayInfo() {
     GameInfoBean gameInfoBean = gameService.getByUid(replayInfo.uid);
 
@@ -157,12 +164,5 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
     replayInfo.updateFromGameInfoBean(gameInfoBean);
 
     gameInfoBean = null;
-  }
-
-  /**
-   * Returns the current millis the same way as python does since this is what's stored in the replay files *yay*.
-   */
-  private static double pythonTime() {
-    return System.currentTimeMillis() / 1000;
   }
 }

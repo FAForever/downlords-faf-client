@@ -26,10 +26,6 @@ public final class ByteCopier {
     byteCountInterval = 333;
   }
 
-  public static ByteCopier from(InputStream inputStream) {
-    return new ByteCopier(inputStream);
-  }
-
   public ByteCopier to(OutputStream outputStream) {
     this.outputStream = outputStream;
     return this;
@@ -71,5 +67,9 @@ public final class ByteCopier {
         lastCountUpdate = now;
       }
     }
+  }
+
+  public static ByteCopier from(InputStream inputStream) {
+    return new ByteCopier(inputStream);
   }
 }

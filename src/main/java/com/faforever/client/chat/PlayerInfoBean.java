@@ -29,6 +29,19 @@ public class PlayerInfoBean {
   private final FloatProperty deviation;
   private final FloatProperty mean;
 
+  public PlayerInfoBean(PlayerInfo playerInfo) {
+    this();
+
+    username.set(playerInfo.login);
+    clan.set(playerInfo.clan);
+    country.set(playerInfo.country);
+
+    if (playerInfo.avatar != null) {
+      avatarTooltip.set(playerInfo.avatar.tooltip);
+      avatarUrl.set(playerInfo.avatar.url);
+    }
+  }
+
   private PlayerInfoBean() {
     username = new SimpleStringProperty();
     clan = new SimpleStringProperty();
@@ -43,23 +56,15 @@ public class PlayerInfoBean {
     mean = new SimpleFloatProperty();
   }
 
-  public PlayerInfoBean(PlayerInfo playerInfo) {
-    this();
-
-    username.set(playerInfo.login);
-    clan.set(playerInfo.clan);
-    country.set(playerInfo.country);
-
-    if (playerInfo.avatar != null) {
-      avatarTooltip.set(playerInfo.avatar.tooltip);
-      avatarUrl.set(playerInfo.avatar.url);
-    }
-  }
-
   public PlayerInfoBean(String username) {
     this();
 
     this.username.set(username);
+  }
+
+  @Override
+  public int hashCode() {
+    return username.hashCode();
   }
 
   @Override
@@ -68,13 +73,12 @@ public class PlayerInfoBean {
         && username.equals(((PlayerInfoBean) obj).username);
   }
 
-  @Override
-  public int hashCode() {
-    return username.hashCode();
-  }
-
   public String getUsername() {
     return username.get();
+  }
+
+  public void setUsername(String username) {
+    this.username.set(username);
   }
 
   public StringProperty usernameProperty() {
@@ -85,12 +89,20 @@ public class PlayerInfoBean {
     return clan.get();
   }
 
+  public void setClan(String clan) {
+    this.clan.set(clan);
+  }
+
   public StringProperty clanProperty() {
     return clan;
   }
 
   public String getCountry() {
     return country.get();
+  }
+
+  public void setCountry(String country) {
+    this.country.set(country);
   }
 
   public StringProperty countryProperty() {
@@ -101,12 +113,20 @@ public class PlayerInfoBean {
     return avatarUrl.get();
   }
 
+  public void setAvatarUrl(String avatarUrl) {
+    this.avatarUrl.set(avatarUrl);
+  }
+
   public StringProperty avatarUrlProperty() {
     return avatarUrl;
   }
 
   public String getAvatarTooltip() {
     return avatarTooltip.get();
+  }
+
+  public void setAvatarTooltip(String avatarTooltip) {
+    this.avatarTooltip.set(avatarTooltip);
   }
 
   public StringProperty avatarTooltipProperty() {
@@ -121,10 +141,6 @@ public class PlayerInfoBean {
     return friend;
   }
 
-  public void setFriend(boolean friend) {
-    this.friend.set(friend);
-  }
-
   public boolean isFoe() {
     return foe.get();
   }
@@ -133,48 +149,32 @@ public class PlayerInfoBean {
     return foe;
   }
 
-  public void setFoe(boolean foe) {
-    this.foe.set(foe);
-  }
-
   public boolean isChatOnly() {
     return chatOnly.get();
-  }
-
-  public BooleanProperty chatOnlyProperty() {
-    return chatOnly;
   }
 
   public void setChatOnly(boolean chatOnly) {
     this.chatOnly.set(chatOnly);
   }
 
-  public void setUsername(String username) {
-    this.username.set(username);
-  }
-
-  public void setClan(String clan) {
-    this.clan.set(clan);
-  }
-
-  public void setCountry(String country) {
-    this.country.set(country);
-  }
-
-  public void setAvatarUrl(String avatarUrl) {
-    this.avatarUrl.set(avatarUrl);
-  }
-
-  public void setAvatarTooltip(String avatarTooltip) {
-    this.avatarTooltip.set(avatarTooltip);
+  public BooleanProperty chatOnlyProperty() {
+    return chatOnly;
   }
 
   public boolean getFriend() {
     return friend.get();
   }
 
+  public void setFriend(boolean friend) {
+    this.friend.set(friend);
+  }
+
   public boolean getFoe() {
     return foe.get();
+  }
+
+  public void setFoe(boolean foe) {
+    this.foe.set(foe);
   }
 
   public ObservableSet<String> getModeratorInChannels() {
@@ -193,24 +193,24 @@ public class PlayerInfoBean {
     return deviation.get();
   }
 
-  public FloatProperty deviationProperty() {
-    return deviation;
-  }
-
   public void setDeviation(float deviation) {
     this.deviation.set(deviation);
+  }
+
+  public FloatProperty deviationProperty() {
+    return deviation;
   }
 
   public float getMean() {
     return mean.get();
   }
 
-  public FloatProperty meanProperty() {
-    return mean;
-  }
-
   public void setMean(float mean) {
     this.mean.set(mean);
+  }
+
+  public FloatProperty meanProperty() {
+    return mean;
   }
 
   public void updateFromPlayerInfo(PlayerInfo playerInfo) {

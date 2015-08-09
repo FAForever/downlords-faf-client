@@ -53,16 +53,6 @@ public class HtmlParser {
     }
   }
 
-  /**
-   * Parses the given HTML string. The HTML string is always put into &lt;root&gt;&lt;/root&gt; because the SAX parser
-   * would not be able to parse HTML without a single root element. The specified HtmlContentHandler should expect
-   * this.
-   */
-  public <RESULT_TYPE> RESULT_TYPE parse(String string, HtmlContentHandler<RESULT_TYPE> htmlContentHandler) throws IOException {
-    logger.trace("Parsing maps from HTML string: {}", string);
-    return parseData(new ByteArrayInputStream(string.getBytes(StandardCharsets.US_ASCII)), htmlContentHandler);
-  }
-
   private static <T> T parseData(InputStream inputStream, HtmlContentHandler<T> htmlContentHandler) throws IOException {
     StringWriter out = new StringWriter();
 
@@ -81,5 +71,15 @@ public class HtmlParser {
     } catch (SAXException e) {
       throw new IOException("Error while parsing HTML", e);
     }
+  }
+
+  /**
+   * Parses the given HTML string. The HTML string is always put into &lt;root&gt;&lt;/root&gt; because the SAX parser
+   * would not be able to parse HTML without a single root element. The specified HtmlContentHandler should expect
+   * this.
+   */
+  public <RESULT_TYPE> RESULT_TYPE parse(String string, HtmlContentHandler<RESULT_TYPE> htmlContentHandler) throws IOException {
+    logger.trace("Parsing maps from HTML string: {}", string);
+    return parseData(new ByteArrayInputStream(string.getBytes(StandardCharsets.US_ASCII)), htmlContentHandler);
   }
 }

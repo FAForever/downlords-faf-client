@@ -3,7 +3,6 @@ package com.faforever.client.game;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
-import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameState;
@@ -167,6 +166,31 @@ public class GamesController {
     onDetailsButtonPressed();
   }
 
+  @FXML
+  void onDetailsButtonPressed() {
+    if (tilePaneSelected || isFirstGeneratedPane()) {
+      GameTableController gameTableController = applicationContext.getBean(GameTableController.class);
+      gameTableController.initializeGameTable(filteredItems);
+
+      Node root = gameTableController.getRoot();
+      populateContainer(root);
+      firstGeneratedPane = false;
+      tilePaneSelected = false;
+    }
+  }
+
+  public boolean isFirstGeneratedPane() {
+    return firstGeneratedPane;
+  }
+
+  private void populateContainer(Node root) {
+    gameViewContainer.getChildren().setAll(root);
+    AnchorPane.setBottomAnchor(root, 0d);
+    AnchorPane.setLeftAnchor(root, 0d);
+    AnchorPane.setRightAnchor(root, 0d);
+    AnchorPane.setTopAnchor(root, 0d);
+  }
+
   public void displayGameDetail(GameInfoBean gameInfoBean) {
     currentGameInfoBean = gameInfoBean;
     gameTitleLabel.setText(gameInfoBean.getTitle());
@@ -254,10 +278,6 @@ public class GamesController {
     }
   }
 
-  public boolean isFirstGeneratedPane() {
-    return firstGeneratedPane;
-  }
-
   @FXML
   void onTilesButtonPressed() {
     if (!tilePaneSelected || isFirstGeneratedPane()) {
@@ -271,32 +291,7 @@ public class GamesController {
     }
   }
 
-  @FXML
-  void onDetailsButtonPressed() {
-    if (tilePaneSelected || isFirstGeneratedPane()) {
-      GameTableController gameTableController = applicationContext.getBean(GameTableController.class);
-      gameTableController.initializeGameTable(filteredItems);
-
-      Node root = gameTableController.getRoot();
-      populateContainer(root);
-      firstGeneratedPane = false;
-      tilePaneSelected = false;
-    }
-  }
-
-  private void populateContainer(Node root) {
-    gameViewContainer.getChildren().setAll(root);
-    AnchorPane.setBottomAnchor(root, 0d);
-    AnchorPane.setLeftAnchor(root, 0d);
-    AnchorPane.setRightAnchor(root, 0d);
-    AnchorPane.setTopAnchor(root, 0d);
-  }
-
   public void setUpIfNecessary() {
-  }
-
-  public Node getRoot() {
-    return gamesRoot;
   }
 
   @FXML
@@ -334,5 +329,9 @@ public class GamesController {
       mapDetailPopup.initOwner(getRoot().getScene().getWindow());
     }
     return mapDetailPopup;
+  }
+
+  public Node getRoot() {
+    return gamesRoot;
   }
 }

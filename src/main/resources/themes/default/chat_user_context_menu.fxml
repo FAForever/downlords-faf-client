@@ -3,7 +3,7 @@
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
-<ContextMenu fx:id="contextMenu" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+<ContextMenu xmlns:fx="http://javafx.com/fxml/1" fx:id="contextMenu" xmlns="http://javafx.com/javafx/8.0.40"
              fx:controller="com.faforever.client.chat.ChatUserContextMenuController">
   <items>
     <MenuItem mnemonicParsing="false" text="%chat.userContext.userInfo" onAction="#onUserInfo"/>

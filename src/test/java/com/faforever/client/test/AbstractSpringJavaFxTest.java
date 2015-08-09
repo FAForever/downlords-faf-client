@@ -22,14 +22,14 @@ public abstract class AbstractSpringJavaFxTest extends AbstractPlainJavaFxTest {
   @Autowired
   FxmlLoader fxmlLoader;
 
-  protected void initBean(Object bean, String name) {
-    applicationContext.autowireBean(bean);
-    applicationContext.initializeBean(bean, name);
-  }
-
   protected <T> T loadController(String fileName) {
     T controller = fxmlLoader.loadAndGetController(fileName);
     initBean(controller, "controller");
     return controller;
+  }
+
+  protected void initBean(Object bean, String name) {
+    applicationContext.autowireBean(bean);
+    applicationContext.initializeBean(bean, name);
   }
 }

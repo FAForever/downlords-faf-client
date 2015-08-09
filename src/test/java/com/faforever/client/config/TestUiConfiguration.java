@@ -6,20 +6,16 @@ import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.PlayerInfoTooltipController;
 import com.faforever.client.chat.PrivateChatTabController;
 import com.faforever.client.chat.UrlPreviewResolver;
+import com.faforever.client.fx.FxmlLoader;
+import com.faforever.client.fx.FxmlLoaderImpl;
 import com.faforever.client.fx.SceneFactory;
-import com.faforever.client.fxml.FxmlLoader;
-import com.faforever.client.fxml.FxmlLoaderImpl;
 import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
 import com.faforever.client.game.GameCardController;
-import com.faforever.client.game.GameTiledController;
 import com.faforever.client.game.GamesController;
-import com.faforever.client.fx.FxmlLoader;
-import com.faforever.client.fx.FxmlLoaderImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Scope;
 
 import static org.mockito.Mockito.mock;
 

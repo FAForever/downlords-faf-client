@@ -63,71 +63,71 @@ public class Preferences {
     return theme.get();
   }
 
-  public StringProperty themeProperty() {
-    return theme;
-  }
-
   public void setTheme(String theme) {
     this.theme.set(theme);
+  }
+
+  public StringProperty themeProperty() {
+    return theme;
   }
 
   public String getLastGameType() {
     return lastGameType.get();
   }
 
-  public StringProperty lastGameTypeProperty() {
-    return lastGameType;
-  }
-
   public void setLastGameType(String lastGameType) {
     this.lastGameType.set(lastGameType);
+  }
+
+  public StringProperty lastGameTypeProperty() {
+    return lastGameType;
   }
 
   public String getLastGameTitle() {
     return lastGameTitle.get();
   }
 
-  public StringProperty lastGameTitleProperty() {
-    return lastGameTitle;
-  }
-
   public void setLastGameTitle(String lastGameTitle) {
     this.lastGameTitle.set(lastGameTitle);
+  }
+
+  public StringProperty lastGameTitleProperty() {
+    return lastGameTitle;
   }
 
   public String getLastMap() {
     return lastMap.get();
   }
 
-  public StringProperty lastMapProperty() {
-    return lastMap;
-  }
-
   public void setLastMap(String lastMap) {
     this.lastMap.set(lastMap);
+  }
+
+  public StringProperty lastMapProperty() {
+    return lastMap;
   }
 
   public boolean getRememberLastTab() {
     return rememberLastTab.get();
   }
 
-  public BooleanProperty rememberLastTabProperty() {
-    return rememberLastTab;
-  }
-
   public void setRememberLastTab(boolean rememberLastTab) {
     this.rememberLastTab.set(rememberLastTab);
+  }
+
+  public BooleanProperty rememberLastTabProperty() {
+    return rememberLastTab;
   }
 
   public ObservableList<String> getIgnoredNotifications() {
     return ignoredNotifications.get();
   }
 
-  public ListProperty<String> ignoredNotificationsProperty() {
-    return ignoredNotifications;
-  }
-
   public void setIgnoredNotifications(ObservableList<String> ignoredNotifications) {
     this.ignoredNotifications.set(ignoredNotifications);
+  }
+
+  public ListProperty<String> ignoredNotificationsProperty() {
+    return ignoredNotifications;
   }
 }

@@ -13,10 +13,9 @@ import static org.mockito.Mockito.verify;
 public class ChannelTabControllerTest extends AbstractSpringJavaFxTest {
 
   private static final String CHANNEL_NAME = "#testChannel";
-  private ChannelTabController instance;
-
   @Autowired
   ChatService chatService;
+  private ChannelTabController instance;
 
   @Override
   public void start(Stage stage) throws Exception {

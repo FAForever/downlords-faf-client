@@ -17,8 +17,6 @@ import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 public class LegacyMapVaultParser implements MapVaultParser {
 

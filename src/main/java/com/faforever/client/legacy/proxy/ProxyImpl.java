@@ -40,40 +40,34 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ProxyImpl implements Proxy {
 
+  // TODO find out what exactly this means and document it
+  public static final int PROXY_UPDATE_INTERVAL = 10000;
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   private static final byte[] RECONNECTION_ESCAPE_PREFIX = new byte[]{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-
   private static final int PROXY_CONNECTION_TIMEOUT = 10000;
-
   /**
    * Number of bytes per connection tag.
    */
   private static final int TAG_LENGTH = 8;
   private static final int THEIR_TAG_BEGIN_INDEX = RECONNECTION_ESCAPE_PREFIX.length + 1;
   private static final int THEIR_TAG_END_INDEX = THEIR_TAG_BEGIN_INDEX + TAG_LENGTH;
-
   /**
    * This byte marks a connection tag offer. That is, the client tells us "hey, this is my tag".
    */
   private static final char MESSAGE_OFFER_TAG = 0x01;
-
   /**
    * This byte marks a connection tag confirmation request. That is, the client requests us "hey, this is the tag I got
    * from you. Is it correct?".
    */
   private static final char MESSAGE_REQUEST_TAG_CONFIRMATION = 0x0B;
-
   /**
    * This byte marks a "decline" domain.
    */
   private static final byte MESSAGE_DECLINE = 0x03;
-
   /**
    * This byte marks a "ack" domain.
    */
   private static final byte MESSAGE_ACKNOWLEDGE = 0x02;
-
   /**
    * This byte marks a "connect by intermediary" domain. (Description copied from python code) This is needed for "UDP
    * hole punching". In a situation where the disconnected peer attempts to reconnect to a peer whose NAT requires UDP
@@ -90,74 +84,61 @@ public class ProxyImpl implements Proxy {
    * domain in its reconnect-by-intermediary-2 domain
    */
   private static final byte MESSAGE_RECONNECT_BY_INTERMEDIARY = 0x11;
-
   /**
    * This byte marks a reconnect domain that has been forwarded by an intermediary peer.
    */
   private static final byte MESSAGE_RECONNECT_BY_INTERMEDIARY_2 = 0x012;
-
   /**
    * This byte marks a "reconnect request" domain. Such a domain doesn't contain any additional information.
    */
   private static final byte MESSAGE_RECONNECT_REQUEST = 0x017;
   private static final int IPV4_BEGIN_INDEX = 24;
   private static final int IPV4_END_INDEX = IPV4_BEGIN_INDEX + 4 * 8;
-
   // TODO find out and document what does "rate limit" means
   private static final int TAG_OFFER_RATELIMIT = 5000;
-
-  // TODO find out what exactly this means and document it
-  public static final int PROXY_UPDATE_INTERVAL = 10000;
   private static final int MAX_TAG_OFFERS = 10;
 
   /**
    * Number of prefix bytes for writing a QByteArray as a QVariant.
    */
   private static final int Q_BYTE_ARRAY_PREFIX_LENGTH = 9;
-
-  @Autowired
-  Environment environment;
-
-  @Autowired
-  PreferencesService preferencesService;
-
   @VisibleForTesting
   final Map<Integer, Peer> peersByUid;
-
   /**
    * Maps peer addresses (local and public) to peers.
    */
   @VisibleForTesting
   final Map<String, Peer> peersByAddress;
-
-  @VisibleForTesting
-  boolean gameLaunched;
-  boolean bottleneck;
-  final private InetAddress localInetAddr;
-  /**
-   * Public UDP socket that receives game data if p2p proxy is enabled (default port 6112).
-   */
-  private DatagramSocket publicSocket;
-  private final Random random;
-  int uid;
-  /**
-   * Socket to the FAF proxy server.
-   */
-  private Socket fafProxySocket;
-  final private Set<OnP2pProxyInitializedListener> onP2pProxyInitializedListeners;
-
   /**
    * Holds UDP sockets that represent other players. Key is the player's number (0 - 11).
    */
   @VisibleForTesting
   final Map<Integer, DatagramSocket> proxySocketsByPlayerNumber;
-  private QDataOutputStream fafProxyOutputStream;
-  private QDataInputStream fafProxyReader;
-
+  final private InetAddress localInetAddr;
+  private final Random random;
+  final private Set<OnP2pProxyInitializedListener> onP2pProxyInitializedListeners;
   /**
    * Lock to synchronize multiple threads trying to read/write/open a FAF proxy connection
    */
   private final Object proxyLock;
+  @Autowired
+  Environment environment;
+  @Autowired
+  PreferencesService preferencesService;
+  @VisibleForTesting
+  boolean gameLaunched;
+  boolean bottleneck;
+  int uid;
+  /**
+   * Public UDP socket that receives game data if p2p proxy is enabled (default port 6112).
+   */
+  private DatagramSocket publicSocket;
+  /**
+   * Socket to the FAF proxy server.
+   */
+  private Socket fafProxySocket;
+  private QDataOutputStream fafProxyOutputStream;
+  private QDataInputStream fafProxyReader;
 
   public ProxyImpl() {
     proxyLock = new Object();
@@ -190,134 +171,6 @@ public class ProxyImpl implements Proxy {
     }
   }
 
-  /**
-   * Starts a background reader that reads all incoming UDP data (from FA) of the given socket and forwards it to the
-   * FAF proxy. If the connection fails, it does not reconnect automatically.
-   *
-   * @param proxySocket a local UDP socket representing another player
-   */
-  private void startFaReaderInBackground(int playerNumber, int playerUid, final DatagramSocket proxySocket) {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        ensureFafProxyConnection();
-
-        byte[] buffer = new byte[1024];
-        DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
-
-        while (!isCancelled()) {
-          try {
-            proxySocket.receive(datagramPacket);
-
-            logger.trace("Received {} bytes from FA for player #{}, forwarding to FAF proxy", datagramPacket.getLength(), playerNumber);
-          } catch (SocketException | EOFException e) {
-            logger.info("Proxy socket for player #{} has been closed ({})", e.getMessage());
-            return null;
-          }
-
-          try {
-            writeToFafProxyServer(playerNumber, playerUid, datagramPacket);
-          } catch (SocketException | EOFException e) {
-            // Sometimes the proxy disconnects for no apparent reason
-            ensureFafProxyConnection();
-          }
-        }
-
-        return null;
-      }
-    });
-  }
-
-  private void writeToFafProxyServer(int playerNumber, int uid, DatagramPacket datagramPacket) throws IOException {
-    byte[] data = Arrays.copyOfRange(datagramPacket.getData(), datagramPacket.getOffset(), datagramPacket.getLength());
-
-    synchronized (proxyLock) {
-      // Number of bytes for port, uid and QByteArray (prefix stuff plus data length)
-      fafProxyOutputStream.writeInt(Short.BYTES + Short.BYTES + Q_BYTE_ARRAY_PREFIX_LENGTH + data.length);
-      fafProxyOutputStream.writeShort(playerNumber);
-      // WTF: The UID can be larger than 65535 but who cares? Just cut it off, what can possibly happen? -.-
-      fafProxyOutputStream.writeShort(uid);
-      fafProxyOutputStream.writeQByteArray(data);
-      fafProxyOutputStream.flush();
-    }
-  }
-
-  private void ensureFafProxyConnection() throws IOException {
-    synchronized (proxyLock) {
-      if (fafProxySocket != null && fafProxySocket.isConnected()) {
-        return;
-      }
-
-      String proxyHost = environment.getProperty("proxy.host");
-      int proxyPort = environment.getProperty("proxy.port", int.class);
-
-      logger.info("Connecting to FAF proxy at {}:{}", proxyHost, proxyPort);
-
-      fafProxySocket = new Socket();
-      fafProxySocket.setTcpNoDelay(true);
-      fafProxySocket.connect(new InetSocketAddress(proxyHost, proxyPort), PROXY_CONNECTION_TIMEOUT);
-
-      fafProxyOutputStream = new QDataOutputStream(new BufferedOutputStream(fafProxySocket.getOutputStream()));
-      fafProxyReader = new QDataInputStream(new DataInputStream(new BufferedInputStream(fafProxySocket.getInputStream())));
-
-      sendUid(uid);
-      startFafProxyReaderInBackground();
-    }
-  }
-
-  /**
-   * Starts a reader in background that reads the FAF proxy data and forwards that data to FA as if it was sent by a
-   * specific player. We're the man-in-the-middle.
-   */
-  private void startFafProxyReaderInBackground() {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        int port = preferencesService.getPreferences().getForgedAlliance().getPort();
-
-        byte[] payloadBuffer = new byte[1024];
-        byte[] datagramBuffer = new byte[1024];
-        DatagramPacket datagramPacket = new DatagramPacket(datagramBuffer, datagramBuffer.length);
-        datagramPacket.setSocketAddress(new InetSocketAddress(localInetAddr, port));
-
-        try {
-          while (!isCancelled()) {
-            // Skip block size bytes, we have no use for it
-            fafProxyReader.readInt();
-
-            int playerNumber = fafProxyReader.readShort();
-            int payloadSize = fafProxyReader.readQByteArray(payloadBuffer);
-
-            logger.trace("Forwarding {} bytes from FAF proxy, sent by player #{}", payloadSize, playerNumber);
-
-            datagramPacket.setData(payloadBuffer, 0, payloadSize);
-
-            DatagramSocket proxySocket = proxySocketsByPlayerNumber.get(playerNumber);
-            if (proxySocket == null) {
-              logger.warn("Discarding proxy data for player #{} as its socket is not yet ready", playerNumber);
-              continue;
-            }
-
-            proxySocket.send(datagramPacket);
-          }
-        } catch (SocketException | EOFException e) {
-          logger.debug("Connection closed");
-        }
-        return null;
-      }
-    });
-  }
-
-  private void sendUid(int uid) throws IOException {
-    logger.debug("Sending UID to server: {}", uid);
-
-    synchronized (proxyLock) {
-      fafProxyOutputStream.writeInt(Short.BYTES);
-      fafProxyOutputStream.writeShort(uid);
-      fafProxyOutputStream.flush();
-    }
-  }
-
   @Override
   public void updateConnectedState(int uid, boolean connected) {
     Peer peer = peersByUid.get(uid);
@@ -335,7 +188,6 @@ public class ProxyImpl implements Proxy {
   public void setGameLaunched(boolean gameLaunched) {
     this.gameLaunched = gameLaunched;
   }
-
 
   @Override
   public void setBottleneck(boolean bottleneck) {
@@ -443,6 +295,134 @@ public class ProxyImpl implements Proxy {
     return proxySocketAddress;
   }
 
+  /**
+   * Starts a background reader that reads all incoming UDP data (from FA) of the given socket and forwards it to the
+   * FAF proxy. If the connection fails, it does not reconnect automatically.
+   *
+   * @param proxySocket a local UDP socket representing another player
+   */
+  private void startFaReaderInBackground(int playerNumber, int playerUid, final DatagramSocket proxySocket) {
+    ConcurrentUtil.executeInBackground(new Task<Void>() {
+      @Override
+      protected Void call() throws Exception {
+        ensureFafProxyConnection();
+
+        byte[] buffer = new byte[1024];
+        DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
+
+        while (!isCancelled()) {
+          try {
+            proxySocket.receive(datagramPacket);
+
+            logger.trace("Received {} bytes from FA for player #{}, forwarding to FAF proxy", datagramPacket.getLength(), playerNumber);
+          } catch (SocketException | EOFException e) {
+            logger.info("Proxy socket for player #{} has been closed ({})", e.getMessage());
+            return null;
+          }
+
+          try {
+            writeToFafProxyServer(playerNumber, playerUid, datagramPacket);
+          } catch (SocketException | EOFException e) {
+            // Sometimes the proxy disconnects for no apparent reason
+            ensureFafProxyConnection();
+          }
+        }
+
+        return null;
+      }
+    });
+  }
+
+  private void ensureFafProxyConnection() throws IOException {
+    synchronized (proxyLock) {
+      if (fafProxySocket != null && fafProxySocket.isConnected()) {
+        return;
+      }
+
+      String proxyHost = environment.getProperty("proxy.host");
+      int proxyPort = environment.getProperty("proxy.port", int.class);
+
+      logger.info("Connecting to FAF proxy at {}:{}", proxyHost, proxyPort);
+
+      fafProxySocket = new Socket();
+      fafProxySocket.setTcpNoDelay(true);
+      fafProxySocket.connect(new InetSocketAddress(proxyHost, proxyPort), PROXY_CONNECTION_TIMEOUT);
+
+      fafProxyOutputStream = new QDataOutputStream(new BufferedOutputStream(fafProxySocket.getOutputStream()));
+      fafProxyReader = new QDataInputStream(new DataInputStream(new BufferedInputStream(fafProxySocket.getInputStream())));
+
+      sendUid(uid);
+      startFafProxyReaderInBackground();
+    }
+  }
+
+  private void writeToFafProxyServer(int playerNumber, int uid, DatagramPacket datagramPacket) throws IOException {
+    byte[] data = Arrays.copyOfRange(datagramPacket.getData(), datagramPacket.getOffset(), datagramPacket.getLength());
+
+    synchronized (proxyLock) {
+      // Number of bytes for port, uid and QByteArray (prefix stuff plus data length)
+      fafProxyOutputStream.writeInt(Short.BYTES + Short.BYTES + Q_BYTE_ARRAY_PREFIX_LENGTH + data.length);
+      fafProxyOutputStream.writeShort(playerNumber);
+      // WTF: The UID can be larger than 65535 but who cares? Just cut it off, what can possibly happen? -.-
+      fafProxyOutputStream.writeShort(uid);
+      fafProxyOutputStream.writeQByteArray(data);
+      fafProxyOutputStream.flush();
+    }
+  }
+
+  private void sendUid(int uid) throws IOException {
+    logger.debug("Sending UID to server: {}", uid);
+
+    synchronized (proxyLock) {
+      fafProxyOutputStream.writeInt(Short.BYTES);
+      fafProxyOutputStream.writeShort(uid);
+      fafProxyOutputStream.flush();
+    }
+  }
+
+  /**
+   * Starts a reader in background that reads the FAF proxy data and forwards that data to FA as if it was sent by a
+   * specific player. We're the man-in-the-middle.
+   */
+  private void startFafProxyReaderInBackground() {
+    ConcurrentUtil.executeInBackground(new Task<Void>() {
+      @Override
+      protected Void call() throws Exception {
+        int port = preferencesService.getPreferences().getForgedAlliance().getPort();
+
+        byte[] payloadBuffer = new byte[1024];
+        byte[] datagramBuffer = new byte[1024];
+        DatagramPacket datagramPacket = new DatagramPacket(datagramBuffer, datagramBuffer.length);
+        datagramPacket.setSocketAddress(new InetSocketAddress(localInetAddr, port));
+
+        try {
+          while (!isCancelled()) {
+            // Skip block size bytes, we have no use for it
+            fafProxyReader.readInt();
+
+            int playerNumber = fafProxyReader.readShort();
+            int payloadSize = fafProxyReader.readQByteArray(payloadBuffer);
+
+            logger.trace("Forwarding {} bytes from FAF proxy, sent by player #{}", payloadSize, playerNumber);
+
+            datagramPacket.setData(payloadBuffer, 0, payloadSize);
+
+            DatagramSocket proxySocket = proxySocketsByPlayerNumber.get(playerNumber);
+            if (proxySocket == null) {
+              logger.warn("Discarding proxy data for player #{} as its socket is not yet ready", playerNumber);
+              continue;
+            }
+
+            proxySocket.send(datagramPacket);
+          }
+        } catch (SocketException | EOFException e) {
+          logger.debug("Connection closed");
+        }
+        return null;
+      }
+    });
+  }
+
   @Override
   public void addOnP2pProxyInitializedListener(OnP2pProxyInitializedListener listener) {
     this.onP2pProxyInitializedListeners.add(listener);
@@ -520,10 +500,50 @@ public class ProxyImpl implements Proxy {
     }
   }
 
-  private byte[] generateConnectionTag() {
-    byte[] tag = new byte[TAG_LENGTH];
-    random.nextBytes(tag);
-    return tag;
+  private static InetSocketAddress toInetSocketAddress(String hostAndPort) {
+    int portDividerIndex = hostAndPort.lastIndexOf(":");
+
+    String host = hostAndPort.substring(0, portDividerIndex);
+    int port = Integer.parseInt(hostAndPort.substring(portDividerIndex + 1, hostAndPort.length()));
+
+    return new InetSocketAddress(InetAddresses.forString(host), port);
+  }
+
+  private void redirectLocalToRemote(Peer peer) {
+    ConcurrentUtil.executeInBackground(new Task<Void>() {
+      @Override
+      protected Void call() throws Exception {
+        byte[] buffer = new byte[1024];
+        DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
+
+        DatagramSocket localSocket = peer.localSocket;
+        localSocket.receive(datagramPacket);
+
+        InetSocketAddress inetSocketAddress = peer.inetSocketAddress;
+
+        datagramPacket.setAddress(inetSocketAddress.getAddress());
+        datagramPacket.setPort(inetSocketAddress.getPort());
+
+        publicSocket.send(datagramPacket);
+
+        return null;
+      }
+    });
+  }
+
+  @VisibleForTesting
+  static boolean isReconnectionSequence(byte[] data) {
+    if (data.length < RECONNECTION_ESCAPE_PREFIX.length) {
+      return false;
+    }
+
+    for (int i = 0; i < RECONNECTION_ESCAPE_PREFIX.length; i++) {
+      if (data[i] != RECONNECTION_ESCAPE_PREFIX[i]) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   private void dispatchReconnectMessage(Peer peer, byte[] data, InetSocketAddress originSocketAddress) throws IOException {
@@ -585,35 +605,64 @@ public class ProxyImpl implements Proxy {
     }
   }
 
-  private void reconnectPeer(InetSocketAddress originSocketAddress, Peer peer, byte[] tag) {
-    logger.debug("Reconnect request from peer: {}", originSocketAddress);
+  private byte[] generateConnectionTag() {
+    byte[] tag = new byte[TAG_LENGTH];
+    random.nextBytes(tag);
+    return tag;
+  }
 
-    if (Arrays.equals(peer.connectionTag, tag)) {
-      logger.debug("Ignoring reconnect request since the connection tag matches the current connection");
-      return;
-    }
+  private void declineTag(SocketAddress originSocketAddress, Peer peer, byte[] theirTag) throws IOException {
+    logger.debug("Declining tag offer '{}' from peer '{}'", peer, theirTag);
 
-    String oldPeerAddress = null;
-    String newPeerAddress = null;
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(RECONNECTION_ESCAPE_PREFIX.length + 1 + theirTag.length);
+    byteArrayOutputStream.write(RECONNECTION_ESCAPE_PREFIX);
+    byteArrayOutputStream.write(MESSAGE_DECLINE);
+    byteArrayOutputStream.write(theirTag);
 
+    byte[] buffer = byteArrayOutputStream.toByteArray();
+
+    publicSocket.send(new DatagramPacket(buffer, buffer.length, originSocketAddress));
+  }
+
+  private void updateTagForPeer(SocketAddress originSocketAddress, Peer peer, byte[] theirTag) throws IOException {
+    logger.debug("Peer '{}' offers tag  '{}'", peer, theirTag);
+
+    peer.connectionTag = theirTag;
+
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(RECONNECTION_ESCAPE_PREFIX.length + 1 + theirTag.length);
+    byteArrayOutputStream.write(RECONNECTION_ESCAPE_PREFIX);
+    byteArrayOutputStream.write(MESSAGE_ACKNOWLEDGE);
+    byteArrayOutputStream.write(theirTag);
+
+    byte[] buffer = byteArrayOutputStream.toByteArray();
+
+    publicSocket.send(new DatagramPacket(buffer, buffer.length, originSocketAddress));
+  }
+
+  private void reconnectByIntermediary(InetSocketAddress originSocketAddress, byte[] tag) throws IOException {
     for (Map.Entry<String, Peer> entry : peersByAddress.entrySet()) {
-      Peer iteratingPeer = entry.getValue();
+      Peer peer = entry.getValue();
 
-      if (Arrays.equals(iteratingPeer.connectionTag, tag)) {
-        iteratingPeer.inetSocketAddress = originSocketAddress;
+      if (!Objects.equals(peer.inetSocketAddress, originSocketAddress)) {
+        logger.debug("Passing on reconnect-by-intermediary to {}", originSocketAddress);
 
-        oldPeerAddress = SocketAddressUtil.toString(iteratingPeer.inetSocketAddress);
-        newPeerAddress = SocketAddressUtil.toString(originSocketAddress);
-        break;
+        int port = originSocketAddress.getPort();
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(RECONNECTION_ESCAPE_PREFIX.length + 1 + tag.length + 4 + 2);
+        byteArrayOutputStream.write(RECONNECTION_ESCAPE_PREFIX);
+        byteArrayOutputStream.write(MESSAGE_RECONNECT_REQUEST);
+        byteArrayOutputStream.write(tag);
+        byteArrayOutputStream.write(originSocketAddress.getAddress().getAddress());
+
+        // Write the port as two bytes, little endian
+        byteArrayOutputStream.write((byte) (port >> 8));
+        byteArrayOutputStream.write((byte) port);
+
+        byte[] buffer = byteArrayOutputStream.toByteArray();
+
+        publicSocket.send(new DatagramPacket(buffer, buffer.length, originSocketAddress));
       }
     }
-
-    if (oldPeerAddress == null) {
-      logger.warn("Peer could not be found for update: {}", originSocketAddress);
-      return;
-    }
-
-    peersByAddress.put(newPeerAddress, peersByAddress.remove(oldPeerAddress));
   }
 
   /**
@@ -658,103 +707,34 @@ public class ProxyImpl implements Proxy {
     }
   }
 
-  private void reconnectByIntermediary(InetSocketAddress originSocketAddress, byte[] tag) throws IOException {
+  private void reconnectPeer(InetSocketAddress originSocketAddress, Peer peer, byte[] tag) {
+    logger.debug("Reconnect request from peer: {}", originSocketAddress);
+
+    if (Arrays.equals(peer.connectionTag, tag)) {
+      logger.debug("Ignoring reconnect request since the connection tag matches the current connection");
+      return;
+    }
+
+    String oldPeerAddress = null;
+    String newPeerAddress = null;
+
     for (Map.Entry<String, Peer> entry : peersByAddress.entrySet()) {
-      Peer peer = entry.getValue();
+      Peer iteratingPeer = entry.getValue();
 
-      if (!Objects.equals(peer.inetSocketAddress, originSocketAddress)) {
-        logger.debug("Passing on reconnect-by-intermediary to {}", originSocketAddress);
+      if (Arrays.equals(iteratingPeer.connectionTag, tag)) {
+        iteratingPeer.inetSocketAddress = originSocketAddress;
 
-        int port = originSocketAddress.getPort();
-
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(RECONNECTION_ESCAPE_PREFIX.length + 1 + tag.length + 4 + 2);
-        byteArrayOutputStream.write(RECONNECTION_ESCAPE_PREFIX);
-        byteArrayOutputStream.write(MESSAGE_RECONNECT_REQUEST);
-        byteArrayOutputStream.write(tag);
-        byteArrayOutputStream.write(originSocketAddress.getAddress().getAddress());
-
-        // Write the port as two bytes, little endian
-        byteArrayOutputStream.write((byte) (port >> 8));
-        byteArrayOutputStream.write((byte) port);
-
-        byte[] buffer = byteArrayOutputStream.toByteArray();
-
-        publicSocket.send(new DatagramPacket(buffer, buffer.length, originSocketAddress));
-      }
-    }
-  }
-
-  private void declineTag(SocketAddress originSocketAddress, Peer peer, byte[] theirTag) throws IOException {
-    logger.debug("Declining tag offer '{}' from peer '{}'", peer, theirTag);
-
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(RECONNECTION_ESCAPE_PREFIX.length + 1 + theirTag.length);
-    byteArrayOutputStream.write(RECONNECTION_ESCAPE_PREFIX);
-    byteArrayOutputStream.write(MESSAGE_DECLINE);
-    byteArrayOutputStream.write(theirTag);
-
-    byte[] buffer = byteArrayOutputStream.toByteArray();
-
-    publicSocket.send(new DatagramPacket(buffer, buffer.length, originSocketAddress));
-  }
-
-  private void updateTagForPeer(SocketAddress originSocketAddress, Peer peer, byte[] theirTag) throws IOException {
-    logger.debug("Peer '{}' offers tag  '{}'", peer, theirTag);
-
-    peer.connectionTag = theirTag;
-
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(RECONNECTION_ESCAPE_PREFIX.length + 1 + theirTag.length);
-    byteArrayOutputStream.write(RECONNECTION_ESCAPE_PREFIX);
-    byteArrayOutputStream.write(MESSAGE_ACKNOWLEDGE);
-    byteArrayOutputStream.write(theirTag);
-
-    byte[] buffer = byteArrayOutputStream.toByteArray();
-
-    publicSocket.send(new DatagramPacket(buffer, buffer.length, originSocketAddress));
-  }
-
-  private void redirectLocalToRemote(Peer peer) {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        byte[] buffer = new byte[1024];
-        DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
-
-        DatagramSocket localSocket = peer.localSocket;
-        localSocket.receive(datagramPacket);
-
-        InetSocketAddress inetSocketAddress = peer.inetSocketAddress;
-
-        datagramPacket.setAddress(inetSocketAddress.getAddress());
-        datagramPacket.setPort(inetSocketAddress.getPort());
-
-        publicSocket.send(datagramPacket);
-
-        return null;
-      }
-    });
-  }
-
-  private static InetSocketAddress toInetSocketAddress(String hostAndPort) {
-    int portDividerIndex = hostAndPort.lastIndexOf(":");
-
-    String host = hostAndPort.substring(0, portDividerIndex);
-    int port = Integer.parseInt(hostAndPort.substring(portDividerIndex + 1, hostAndPort.length()));
-
-    return new InetSocketAddress(InetAddresses.forString(host), port);
-  }
-
-  @VisibleForTesting
-  static boolean isReconnectionSequence(byte[] data) {
-    if (data.length < RECONNECTION_ESCAPE_PREFIX.length) {
-      return false;
-    }
-
-    for (int i = 0; i < RECONNECTION_ESCAPE_PREFIX.length; i++) {
-      if (data[i] != RECONNECTION_ESCAPE_PREFIX[i]) {
-        return false;
+        oldPeerAddress = SocketAddressUtil.toString(iteratingPeer.inetSocketAddress);
+        newPeerAddress = SocketAddressUtil.toString(originSocketAddress);
+        break;
       }
     }
 
-    return true;
+    if (oldPeerAddress == null) {
+      logger.warn("Peer could not be found for update: {}", originSocketAddress);
+      return;
+    }
+
+    peersByAddress.put(newPeerAddress, peersByAddress.remove(oldPeerAddress));
   }
 }

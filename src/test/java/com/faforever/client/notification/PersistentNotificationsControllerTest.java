@@ -59,30 +59,6 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
     future.get(100, TimeUnit.MILLISECONDS);
   }
 
-  @Test
-  public void testOnWarnNotificationAdded() throws Exception {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    doAnswer(
-        invocation -> future.complete(null)
-    ).when(instance.audioController).playWarnNotificationSound();
-
-    onNotificationAdded(Severity.WARN);
-
-    future.get(100, TimeUnit.MILLISECONDS);
-  }
-
-  @Test()
-  public void testOnErrorNotificationAdded() throws Exception {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    doAnswer(
-        invocation -> future.complete(null)
-    ).when(instance.audioController).playErrorNotificationSound();
-
-    onNotificationAdded(Severity.ERROR);
-
-    future.get(100, TimeUnit.MILLISECONDS);
-  }
-
   @SuppressWarnings("unchecked")
   private void onNotificationAdded(Severity severity) {
     PersistentNotificationController notificationController = mock(PersistentNotificationController.class);
@@ -105,5 +81,29 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
     listener.onChanged(change);
 
     verify(notificationController).setNotification(notification);
+  }
+
+  @Test
+  public void testOnWarnNotificationAdded() throws Exception {
+    CompletableFuture<Void> future = new CompletableFuture<>();
+    doAnswer(
+        invocation -> future.complete(null)
+    ).when(instance.audioController).playWarnNotificationSound();
+
+    onNotificationAdded(Severity.WARN);
+
+    future.get(100, TimeUnit.MILLISECONDS);
+  }
+
+  @Test()
+  public void testOnErrorNotificationAdded() throws Exception {
+    CompletableFuture<Void> future = new CompletableFuture<>();
+    doAnswer(
+        invocation -> future.complete(null)
+    ).when(instance.audioController).playErrorNotificationSound();
+
+    onNotificationAdded(Severity.ERROR);
+
+    future.get(100, TimeUnit.MILLISECONDS);
   }
 }

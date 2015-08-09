@@ -6,22 +6,23 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
-<HBox fx:id="newsRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0"
-      minWidth="0.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+<HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="newsRoot" maxHeight="1.7976931348623157E308"
+      maxWidth="1.7976931348623157E308"
+      minHeight="0.0" minWidth="0.0" xmlns="http://javafx.com/javafx/8.0.40"
       fx:controller="com.faforever.client.news.NewsController">
-   <children>
-      <ScrollPane fitToWidth="true" hbarPolicy="NEVER" minHeight="0.0" minWidth="0.0" HBox.hgrow="NEVER">
-         <content>
-            <VBox fx:id="newsListPane" minHeight="0.0" minWidth="0.0"/>
-         </content>
-      </ScrollPane>
-      <Separator orientation="VERTICAL"/>
-      <AnchorPane HBox.hgrow="ALWAYS">
-         <children>
-            <WebView fx:id="newsDetailWebView" blendMode="ADD" prefHeight="-1.0" prefWidth="-1.0"
-                     AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                     AnchorPane.topAnchor="0.0"/>
-         </children>
-      </AnchorPane>
-   </children>
+  <children>
+    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" minHeight="0.0" minWidth="0.0" HBox.hgrow="NEVER">
+      <content>
+        <VBox fx:id="newsListPane" minHeight="0.0" minWidth="0.0"/>
+      </content>
+    </ScrollPane>
+    <Separator orientation="VERTICAL"/>
+    <AnchorPane HBox.hgrow="ALWAYS">
+      <children>
+        <WebView fx:id="newsDetailWebView" blendMode="ADD" prefHeight="-1.0" prefWidth="-1.0"
+                 AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                 AnchorPane.topAnchor="0.0"/>
+      </children>
+    </AnchorPane>
+  </children>
 </HBox>

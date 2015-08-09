@@ -18,6 +18,11 @@ public class LeaderboardContentHandler extends HtmlContentHandler<List<Leaderboa
   private List<LeaderboardEntryBean> result;
 
   @Override
+  public void startDocument() throws SAXException {
+    result = new ArrayList<>();
+  }
+
+  @Override
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
     if (localName.equals("tr")) {
       currentBean = new LeaderboardEntryBean();
@@ -58,11 +63,6 @@ public class LeaderboardContentHandler extends HtmlContentHandler<List<Leaderboa
   @Override
   protected List<LeaderboardEntryBean> getResult() {
     return result;
-  }
-
-  @Override
-  public void startDocument() throws SAXException {
-    result = new ArrayList<>();
   }
 
 }

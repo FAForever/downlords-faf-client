@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 
 public class PopupPlayerCardController {
+
   @FXML
   Label playerInfo;
 
@@ -24,14 +25,14 @@ public class PopupPlayerCardController {
   @Autowired
   I18n i18n;
 
-  public void setPlayer(PlayerInfoBean playerInfoBean){
+  public void setPlayer(PlayerInfoBean playerInfoBean) {
     playerFlag.setImage(countryFlagService.loadCountryFlag(playerInfoBean.getCountry()));
 
     String playerInfoLocalized = i18n.get("playerInfoTooltipFormat", playerInfoBean.getUsername(), RatingUtil.getRating(playerInfoBean));
     playerInfo.setText(playerInfoLocalized);
   }
 
-  public Node getRoot(){
+  public Node getRoot() {
     return playerInfo;
   }
 }

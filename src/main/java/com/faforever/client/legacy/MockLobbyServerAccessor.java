@@ -36,19 +36,15 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
   private final Collection<OnGameTypeInfoListener> onModInfoMessageListeners;
   private final Collection<OnGameInfoListener> onGameInfoListeners;
-  private OnPlayerInfoListener onPlayerInfoListener;
-
   @Autowired
   UserService userService;
-
   @Autowired
   TaskService taskService;
-
   @Autowired
   NotificationService notificationService;
-
   @Autowired
   I18n i18n;
+  private OnPlayerInfoListener onPlayerInfoListener;
 
   public MockLobbyServerAccessor() {
     onModInfoMessageListeners = new ArrayList<>();

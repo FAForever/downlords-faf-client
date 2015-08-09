@@ -231,13 +231,29 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     });
   }
 
+  /**
+   * @param task the task to set, {@code null} to unset
+   */
+  private void setCurrentTaskInStatusBar(PrioritizedTask<?> task) {
+    if (task == null) {
+      taskProgressBar.setVisible(false);
+      taskProgressLabel.setVisible(false);
+      return;
+    }
+
+    taskProgressBar.setVisible(true);
+    taskProgressBar.progressProperty().bind(task.progressProperty());
+
+    taskProgressLabel.setVisible(true);
+    taskProgressLabel.setText(task.getTitle());
+  }
+
   private void showMenuDropdown(SplitMenuButton button) {
     mainNavigation.getChildren().stream()
         .filter(item -> item instanceof SplitMenuButton && item != button)
         .forEach(item -> ((SplitMenuButton) item).hide());
     button.show();
   }
-
 
   @PostConstruct
   void postConstruct() {
@@ -273,19 +289,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     preferencesService.setOnChoseGameDirectoryListener(this);
   }
 
-  private void displayImmediateNotification(ImmediateNotification notification) {
-    Popup popup = new Popup();
-    popup.setAutoFix(true);
-    popup.setAutoHide(true);
-
-    ImmediateNotificationController controller = applicationContext.getBean(ImmediateNotificationController.class);
-    controller.setNotification(notification);
-
-    popup.getContent().setAll(controller.getRoot());
-    popup.centerOnScreen();
-    popup.show(mainRoot.getScene().getWindow());
-  }
-
   /**
    * Updates the number displayed in the notifications button and sets its CSS pseudo class based on the highest
    * notification {@code Severity} of all current notifications.
@@ -308,8 +311,17 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     notificationsButton.pseudoClassStateChanged(NOTIFICATION_ERROR_PSEUDO_CLASS, highestSeverity == Severity.ERROR);
   }
 
-  private void removeTasks(List<? extends PrioritizedTask<?>> removed) {
-    setCurrentTaskInStatusBar(null);
+  private void displayImmediateNotification(ImmediateNotification notification) {
+    Popup popup = new Popup();
+    popup.setAutoFix(true);
+    popup.setAutoHide(true);
+
+    ImmediateNotificationController controller = applicationContext.getBean(ImmediateNotificationController.class);
+    controller.setNotification(notification);
+
+    popup.getContent().setAll(controller.getRoot());
+    popup.centerOnScreen();
+    popup.show(mainRoot.getScene().getWindow());
   }
 
   /**
@@ -327,21 +339,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     setCurrentTaskInStatusBar(tasks.get(tasks.size() - 1));
   }
 
-  /**
-   * @param task the task to set, {@code null} to unset
-   */
-  private void setCurrentTaskInStatusBar(PrioritizedTask<?> task) {
-    if (task == null) {
-      taskProgressBar.setVisible(false);
-      taskProgressLabel.setVisible(false);
-      return;
-    }
-
-    taskProgressBar.setVisible(true);
-    taskProgressBar.progressProperty().bind(task.progressProperty());
-
-    taskProgressLabel.setVisible(true);
-    taskProgressLabel.setText(task.getTitle());
+  private void removeTasks(List<? extends PrioritizedTask<?>> removed) {
+    setCurrentTaskInStatusBar(null);
   }
 
   public void display(Stage stage) {
@@ -495,10 +494,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
   }
 
-  public Pane getRoot() {
-    return mainRoot;
-  }
-
   @FXML
   void onSupportItemSelected() {
     // FIXME implement
@@ -536,6 +531,10 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     });
   }
 
+  public Pane getRoot() {
+    return mainRoot;
+  }
+
   @FXML
   void onShowUserInfoClicked() {
     UserInfoWindowController userInfoWindowController = applicationContext.getBean(UserInfoWindowController.class);
@@ -554,6 +553,36 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   void onCommunitySelected(ActionEvent event) {
     setActiveNavigationButton((ButtonBase) event.getSource());
     selectLastChildOrFirstItem(communityButton);
+  }
+
+  /**
+   * Sets the specified button to active state.
+   */
+  private void setActiveNavigationButton(ButtonBase button) {
+    mainNavigation.getChildren().stream()
+        .filter(navigationButton -> navigationButton instanceof ButtonBase && navigationButton != button)
+        .forEach(navigationItem -> navigationItem.pseudoClassStateChanged(NAVIGATION_ACTIVE_PSEUDO_CLASS, false));
+    button.pseudoClassStateChanged(NAVIGATION_ACTIVE_PSEUDO_CLASS, true);
+
+    preferencesService.getPreferences().getMainWindow().setLastView(button.getId());
+    preferencesService.storeInBackground();
+  }
+
+  /**
+   * Selects the previously selected child view for the given button. If no match was found (or there hasn't been any
+   * previous selected view), the first item is selected.
+   */
+  private void selectLastChildOrFirstItem(SplitMenuButton button) {
+    String lastChildView = preferencesService.getPreferences().getMainWindow().getLastChildViews().get(button.getId());
+
+    if (lastChildView == null) {
+      button.getItems().get(0).fire();
+      return;
+    }
+
+    button.getItems().stream()
+        .filter(item -> item.getId().equals(lastChildView))
+        .forEach(MenuItem::fire);
   }
 
   @FXML
@@ -580,11 +609,42 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     setContent(chatController.getRoot());
   }
 
+  private void setContent(Node node) {
+    ObservableList<Node> children = contentPane.getChildren();
+
+    if (!children.contains(node)) {
+      children.add(node);
+
+      AnchorPane.setTopAnchor(node, 0d);
+      AnchorPane.setRightAnchor(node, 0d);
+      AnchorPane.setBottomAnchor(node, 0d);
+      AnchorPane.setLeftAnchor(node, 0d);
+    }
+
+    for (Node child : children) {
+      child.setVisible(child == node);
+    }
+  }
+
   @FXML
   void onCommunityHubSelected(ActionEvent event) {
     communityHubController.setUpIfNecessary();
     setContent(communityHubController.getRoot());
     setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
+  }
+
+  /**
+   * Sets the parent navigation button of the specified menu item as active. This only works of the child item was
+   * selected manually by the user using the dropdown menu.
+   */
+  private void setActiveNavigationButtonFromChild(MenuItem menuItem) {
+    ButtonBase navigationButton = (ButtonBase) menuItem.getParentPopup().getOwnerNode();
+    if (navigationButton == null) {
+      return;
+    }
+    setActiveNavigationButton((ButtonBase) menuItem.getParentPopup().getOwnerNode());
+    preferencesService.getPreferences().getMainWindow().getLastChildViews().put(navigationButton.getId(), menuItem.getId());
+    preferencesService.storeInBackground();
   }
 
   @FXML
@@ -639,66 +699,5 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     leaderboardController.setUpIfNecessary();
     setContent(leaderboardController.getRoot());
     setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
-  }
-
-  private void setContent(Node node) {
-    ObservableList<Node> children = contentPane.getChildren();
-
-    if (!children.contains(node)) {
-      children.add(node);
-
-      AnchorPane.setTopAnchor(node, 0d);
-      AnchorPane.setRightAnchor(node, 0d);
-      AnchorPane.setBottomAnchor(node, 0d);
-      AnchorPane.setLeftAnchor(node, 0d);
-    }
-
-    for (Node child : children) {
-      child.setVisible(child == node);
-    }
-  }
-
-  /**
-   * Sets the specified button to active state.
-   */
-  private void setActiveNavigationButton(ButtonBase button) {
-    mainNavigation.getChildren().stream()
-        .filter(navigationButton -> navigationButton instanceof ButtonBase && navigationButton != button)
-        .forEach(navigationItem -> navigationItem.pseudoClassStateChanged(NAVIGATION_ACTIVE_PSEUDO_CLASS, false));
-    button.pseudoClassStateChanged(NAVIGATION_ACTIVE_PSEUDO_CLASS, true);
-
-    preferencesService.getPreferences().getMainWindow().setLastView(button.getId());
-    preferencesService.storeInBackground();
-  }
-
-  /**
-   * Sets the parent navigation button of the specified menu item as active. This only works of the child item was
-   * selected manually by the user using the dropdown menu.
-   */
-  private void setActiveNavigationButtonFromChild(MenuItem menuItem) {
-    ButtonBase navigationButton = (ButtonBase) menuItem.getParentPopup().getOwnerNode();
-    if (navigationButton == null) {
-      return;
-    }
-    setActiveNavigationButton((ButtonBase) menuItem.getParentPopup().getOwnerNode());
-    preferencesService.getPreferences().getMainWindow().getLastChildViews().put(navigationButton.getId(), menuItem.getId());
-    preferencesService.storeInBackground();
-  }
-
-  /**
-   * Selects the previously selected child view for the given button. If no match was found (or there hasn't been any
-   * previous selected view), the first item is selected.
-   */
-  private void selectLastChildOrFirstItem(SplitMenuButton button) {
-    String lastChildView = preferencesService.getPreferences().getMainWindow().getLastChildViews().get(button.getId());
-
-    if (lastChildView == null) {
-      button.getItems().get(0).fire();
-      return;
-    }
-
-    button.getItems().stream()
-        .filter(item -> item.getId().equals(lastChildView))
-        .forEach(MenuItem::fire);
   }
 }

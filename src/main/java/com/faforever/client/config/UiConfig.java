@@ -28,20 +28,19 @@ import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
 import com.faforever.client.game.GameCardController;
 import com.faforever.client.game.GameTableController;
-import com.faforever.client.game.GamesController;
 import com.faforever.client.game.GameTiledController;
+import com.faforever.client.game.GamesController;
 import com.faforever.client.game.PopupGamePaneController;
 import com.faforever.client.game.PopupPlayerCardController;
-import com.faforever.client.game.PopupTeamCardController;
+import com.faforever.client.game.TeamCardController;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.hub.ConcurrentUsersController;
-import com.faforever.client.game.TeamCardController;
 import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
-import com.faforever.client.map.MapVaultController;
 import com.faforever.client.map.CommentCardController;
 import com.faforever.client.map.MapPreviewLargeController;
+import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.news.NewsListItemController;
@@ -80,6 +79,15 @@ public class UiConfig {
   @Bean
   LoginController loginController() {
     return loadController("login.fxml");
+  }
+
+  private <T> T loadController(String fxml) {
+    return fxmlLoader().loadAndGetController(fxml);
+  }
+
+  @Bean
+  FxmlLoader fxmlLoader() {
+    return new FxmlLoaderImpl();
   }
 
   @Bean
@@ -145,7 +153,6 @@ public class UiConfig {
   PopupPlayerCardController popupPlayerCardController() {
     return loadController("popup_player_card.fxml");
   }
-
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -230,7 +237,6 @@ public class UiConfig {
     return loadController("mod_vault.fxml");
   }
 
-
   @Bean
   MapVaultController mapVaultController() {
     return loadController("map_vault.fxml");
@@ -281,14 +287,5 @@ public class UiConfig {
   @Bean
   UrlPreviewResolver urlPreviewResolver() {
     return new UrlPreviewResolverImpl();
-  }
-
-  @Bean
-  FxmlLoader fxmlLoader() {
-    return new FxmlLoaderImpl();
-  }
-
-  private <T> T loadController(String fxml) {
-    return fxmlLoader().loadAndGetController(fxml);
   }
 }

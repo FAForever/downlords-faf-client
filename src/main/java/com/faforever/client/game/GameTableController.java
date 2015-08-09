@@ -100,6 +100,18 @@ public class GameTableController {
     accessColumn.setCellValueFactory(param -> param.getValue().accessProperty());
   }
 
+  @NotNull
+  private TableRow<GameInfoBean> gamesRowFactory() {
+    TableRow<GameInfoBean> row = new TableRow<>();
+    row.setOnMouseClicked(event -> {
+      if (event.getClickCount() == 2) {
+        GameInfoBean gameInfoBean = row.getItem();
+        gamesController.onJoinGame(gameInfoBean, null, event.getScreenX(), event.getScreenY());
+      }
+    });
+    return row;
+  }
+
   private TableCell<GameInfoBean, RatingRange> ratingTableCell() {
     return new TableCell<GameInfoBean, RatingRange>() {
       @Override
@@ -130,19 +142,6 @@ public class GameTableController {
       }
     };
   }
-
-  @NotNull
-  private TableRow<GameInfoBean> gamesRowFactory() {
-    TableRow<GameInfoBean> row = new TableRow<>();
-    row.setOnMouseClicked(event -> {
-      if (event.getClickCount() == 2) {
-        GameInfoBean gameInfoBean = row.getItem();
-        gamesController.onJoinGame(gameInfoBean, null, event.getScreenX(), event.getScreenY());
-      }
-    });
-    return row;
-  }
-
 
   public Node getRoot() {
     return gamesTable;
