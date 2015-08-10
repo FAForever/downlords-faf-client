@@ -15,7 +15,6 @@ import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
 import javafx.application.Platform;
 import javafx.concurrent.Worker;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.ContentDisplay;
@@ -329,7 +328,7 @@ public abstract class AbstractChatTabController {
   }
 
   @FXML
-  void onSendMessage(ActionEvent actionEvent) {
+  void onSendMessage() {
     TextInputControl messageTextField = getMessageTextField();
 
     String text = messageTextField.getText();

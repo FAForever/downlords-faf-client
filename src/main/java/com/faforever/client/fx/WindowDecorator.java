@@ -2,7 +2,6 @@ package com.faforever.client.fx;
 
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
@@ -70,17 +69,17 @@ public class WindowDecorator {
   private boolean isResizing;
 
   @FXML
-  void onMinimizeButtonClicked(ActionEvent actionEvent) {
+  void onMinimizeButtonClicked() {
     stage.setIconified(true);
   }
 
   @FXML
-  void onCloseButtonClicked(ActionEvent actionEvent) {
+  void onCloseButtonClicked() {
     stage.close();
   }
 
   @FXML
-  void onRestoreButtonClicked(ActionEvent actionEvent) {
+  void onRestoreButtonClicked() {
     restore();
   }
 
@@ -97,7 +96,7 @@ public class WindowDecorator {
   }
 
   @FXML
-  void onMaximizeButtonClicked(ActionEvent actionEvent) {
+  void onMaximizeButtonClicked() {
     maximize();
   }
 
@@ -146,9 +145,7 @@ public class WindowDecorator {
     if (!stage.getProperties().containsKey(PROPERTY_WINDOW_DECORATOR)) {
       stage.getProperties().put(PROPERTY_WINDOW_DECORATOR, this);
       stage.iconifiedProperty().addListener((observable, oldValue, newValue) -> {
-        System.out.println(String.format("iconified: %s, maximized: %s", newValue, stage.isMaximized()));
         if (!newValue && stage.isMaximized()) {
-          System.out.println(newValue);
           maximize();
         }
       });

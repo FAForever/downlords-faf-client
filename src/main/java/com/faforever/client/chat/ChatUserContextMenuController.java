@@ -2,7 +2,6 @@ package com.faforever.client.chat;
 
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.player.PlayerService;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -75,7 +74,7 @@ public class ChatUserContextMenuController {
   }
 
   @FXML
-  void onUserInfo(ActionEvent actionEvent) {
+  void onUserInfo() {
     UserInfoWindowController userInfoWindowController = applicationContext.getBean(UserInfoWindowController.class);
     userInfoWindowController.setPlayerInfoBean(playerInfoBean);
 

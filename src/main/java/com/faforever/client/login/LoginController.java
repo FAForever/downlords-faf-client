@@ -9,7 +9,6 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Strings;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -145,7 +144,7 @@ public class LoginController {
   }
 
   @FXML
-  void loginButtonClicked(ActionEvent actionEvent) {
+  void loginButtonClicked() {
     String username = usernameInput.getText();
     String password = passwordInput.getText();
 
@@ -157,17 +156,17 @@ public class LoginController {
   }
 
   @FXML
-  void onCloseButtonClicked(ActionEvent actionEvent) {
+  void onCloseButtonClicked() {
     stage.close();
   }
 
   @FXML
-  void onMinimizeButtonClicked(ActionEvent actionEvent) {
+  void onMinimizeButtonClicked() {
     stage.setIconified(true);
   }
 
   @FXML
-  public void onCancelLoginButtonClicked(ActionEvent actionEvent) {
+  public void onCancelLoginButtonClicked() {
     userService.cancelLogin();
     setShowLoginProgress(false);
   }
