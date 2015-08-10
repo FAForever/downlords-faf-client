@@ -670,7 +670,7 @@ public class ProxyImpl implements Proxy {
    * memory.
    */
   private void reconnectByIntermediary2(InetSocketAddress intermediaryInetSocketAddress, byte[] tag, byte[] data) throws UnknownHostException {
-    // TODO this breaks IPv4 compatibility
+    // TODO this breaks IPv6 compatibility
     InetAddress inetAddress = InetAddresses.fromLittleEndianByteArray(Arrays.copyOfRange(data, IPV4_BEGIN_INDEX, IPV4_END_INDEX));
     int port = data[28] << 8 | data[29];
 

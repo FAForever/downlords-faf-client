@@ -87,7 +87,7 @@ task buildInstaller(type: Install4jTask) {
   release = version
 }
 task wrapper(type: Wrapper) {
-  gradleVersion = '2.4'
+  gradleVersion = '2.5'
 }
 
 repositories {
@@ -95,7 +95,7 @@ repositories {
 }
 
 jacoco {
-  toolVersion = "0.7.4.201502262128"
+  toolVersion = "0.7.5.201505241946"
 }
 
 dependencies {
