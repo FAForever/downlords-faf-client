@@ -16,7 +16,7 @@ script:
   - java -version
 
 after_success:
-- ./gradlew test jacocoTestReport coveralls
+- ./gradlew test jacocoTestReport coveralls sonarqube --stacktrace
 
 env:
   global:
