@@ -308,6 +308,19 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getMessageTextField().getText(), isEmptyString());
   }
 
+  @NotNull
+  private KeyEvent keyEvent(KeyCode keyCode) {
+    return keyEvent(keyCode, emptyList());
+  }
+
+  @NotNull
+  private KeyEvent keyEvent(KeyCode keyCode, Collection<KeyCode> modifiers) {
+    return new KeyEvent(null, null, KeyEvent.KEY_PRESSED, "\u0000", "", keyCode,
+        modifiers.contains(KeyCode.SHIFT),
+        modifiers.contains(KeyCode.CONTROL), modifiers.contains(KeyCode.ALT),
+        modifiers.contains(KeyCode.META));
+  }
+
   @Test
   public void testAutoCompleteDoesntCompleteWhenTheresNoWordBeforeCaret() throws Exception {
     when(playerService.getPlayerNames()).thenReturn(FXCollections.observableSet("DummyUser", "Junit"));
@@ -434,13 +447,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getMessageTextField().getText(), is(url));
   }
 
-  @NotNull
-  private KeyEvent keyEvent(KeyCode keyCode) {
-    return keyEvent(keyCode, emptyList());
-  }
-
   @Test
-  public void testPasteImageCtrlV() throws Exception {
+  public void testPasteImageShiftInsert() throws Exception {
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> {
       Image image = new Image(getClass().getResourceAsStream("/images/tray_icon.png"));
 
@@ -449,7 +457,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
       Clipboard.getSystemClipboard().setContent(clipboardContent);
 
       instance.getMessageTextField().getOnKeyReleased().handle(
-          keyEvent(KeyCode.V, singletonList(KeyCode.CONTROL))
+          keyEvent(KeyCode.INSERT, singletonList(KeyCode.SHIFT))
       );
     });
 
@@ -460,13 +468,5 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     argumentCaptor.getValue().success(url);
 
     assertThat(instance.getMessageTextField().getText(), is(url));
-  }
-
-  @NotNull
-  private KeyEvent keyEvent(KeyCode keyCode, Collection<KeyCode> modifiers) {
-    return new KeyEvent(null, null, KeyEvent.KEY_PRESSED, "\u0000", "", keyCode,
-        modifiers.contains(KeyCode.SHIFT),
-        modifiers.contains(KeyCode.CONTROL), modifiers.contains(KeyCode.ALT),
-        modifiers.contains(KeyCode.META));
   }
 }
