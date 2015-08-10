@@ -16,7 +16,7 @@ script:
   - java -version
 
 after_success:
-- ./gradlew test jacocoTestReport coveralls sonarqube --stacktrace
+- ./gradlew test jacocoTestReport coveralls
 
 env:
   global:
@@ -29,5 +29,5 @@ addons:
       description: "A high quality re-implementation of the Forged Alliance Forever client"
     notification_email: michel.jung89@gmail.com
     build_command_prepend: "./gradlew clean"
-    build_command:   "./gradlew sonarqube"
+    build_command:   "./gradlew sonarqube -Dsonar.jdbc.username=$sonarJdbcUser -Dsonar.jdbc.password=$sonarJdbcPassword"
     branch_pattern: coverity_scan
