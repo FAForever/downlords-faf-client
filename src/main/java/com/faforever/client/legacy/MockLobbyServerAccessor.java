@@ -159,7 +159,6 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
         gameLaunchInfo.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));
         gameLaunchInfo.setMod("faf");
         gameLaunchInfo.setUid(1234);
-        gameLaunchInfo.setVersion("1");
         return gameLaunchInfo;
       }
     }, callback);
@@ -174,7 +173,6 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
         gameLaunchInfo.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));
         gameLaunchInfo.setMod("faf");
         gameLaunchInfo.setUid(1234);
-        gameLaunchInfo.setVersion("1");
         return gameLaunchInfo;
       }
     }, callback);

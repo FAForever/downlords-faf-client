@@ -13,7 +13,6 @@ public class GameLaunchInfoBuilder {
   }
 
   public GameLaunchInfoBuilder defaultValues() {
-    gameLaunchInfo.setVersion("1");
     gameLaunchInfo.setUid(1);
     gameLaunchInfo.setMod("mod");
     gameLaunchInfo.setArgs(Arrays.asList("/ratingcolor red", "/clan foo"));

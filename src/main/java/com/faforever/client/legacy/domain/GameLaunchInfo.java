@@ -7,8 +7,6 @@ public class GameLaunchInfo extends ServerMessage {
   private List<String> args;
   private int uid;
   private String mod;
-  private String version;
-
 
   /**
    * Stores game launch arguments, like "/ratingcolor d8d8d8d8 /numgames 236".
@@ -35,13 +33,5 @@ public class GameLaunchInfo extends ServerMessage {
 
   public void setMod(String mod) {
     this.mod = mod;
-  }
-
-  public String getVersion() {
-    return version;
-  }
-
-  public void setVersion(String version) {
-    this.version = version;
   }
 }
