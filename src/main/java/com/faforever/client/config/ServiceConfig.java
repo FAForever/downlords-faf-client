@@ -3,6 +3,8 @@ package com.faforever.client.config;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.MockChatService;
 import com.faforever.client.chat.PircBotXChatService;
+import com.faforever.client.chat.PircBotXFactory;
+import com.faforever.client.chat.PircBotXFactoryImpl;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.ForgedAllianceServiceImpl;
 import com.faforever.client.game.GameService;
@@ -256,5 +258,10 @@ public class ServiceConfig {
   @Bean
   GitWrapper gitWrapper() {
     return new JGitWrapper();
+  }
+
+  @Bean
+  PircBotXFactory pircBotXFactory() {
+    return new PircBotXFactoryImpl();
   }
 }
