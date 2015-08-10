@@ -15,7 +15,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GamesTiledController {
+public class GameTiledController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -37,7 +37,7 @@ public class GamesTiledController {
     gameInfoBeans.addListener((ListChangeListener<GameInfoBean>) change -> {
       while (change.next()) {
         change.getRemoved().forEach(gameInfoBean -> tiledFlowPane.getChildren().remove(uidToGameCard.get(gameInfoBean.getUid())));
-        change.getAddedSubList().forEach(this::addGameCard);
+        change.getAddedSubList().forEach(GameTiledController.this::addGameCard);
       }
     });
   }

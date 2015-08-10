@@ -68,7 +68,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   public void testJoinGameMapIsAvailable() throws Exception {
     GameInfoBean gameInfoBean = mock(GameInfoBean.class);
 
-    when(gameInfoBean.getMapName()).thenReturn("map");
+    when(gameInfoBean.getTechnicalName()).thenReturn("map");
 
     when(instance.mapService.isAvailable("map")).thenReturn(true);
 

@@ -19,7 +19,7 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
     NAME,
     DESCRIPTION,
     MAP_MISC,
-    RATING
+    RATING,
   }
 
   /**
@@ -42,6 +42,8 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
     if (localName.equals("td") && "map".equals(atts.getValue("class"))) {
       // Start of table cell is start of map
       currentBean = new MapInfoBean();
+      currentBean.setId(Integer.parseInt(atts.getValue("id")));
+      currentBean.setTechnicalName(atts.getValue("folder"));
       return;
     }
 
@@ -50,6 +52,7 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
       return;
     }
 
+    //TODO get multiline descriptions
     if (localName.equals("div") && "map_desc".equals(atts.getValue("class"))) {
       currentProperty = MapProperty.DESCRIPTION;
       return;
@@ -96,7 +99,7 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
         currentBean.setDownloads(Integer.parseInt(currentValue));
         return;
       case NAME:
-        currentBean.setName(currentValue.replaceAll("[\\s\\n]+", "\\s"));
+        currentBean.setDisplayName(currentValue.trim().replaceAll("[\\s\\n]+", " ").replace("_", " "));
         return;
       case DESCRIPTION:
         currentBean.setDescription(currentValue.replaceAll("[\\s\\n]+", " "));

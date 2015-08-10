@@ -177,7 +177,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     updateGameIfNecessary(gameInfoBean.getFeaturedMod(), new Callback<Void>() {
       @Override
       public void success(Void result) {
-        downloadMapIfNecessary(gameInfoBean.getMapName(), mapDownloadCallback);
+        downloadMapIfNecessary(gameInfoBean.getTechnicalName(), mapDownloadCallback);
       }
 
       @Override
@@ -234,6 +234,11 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   @Override
   public ObservableList<GameInfoBean> getGameInfoBeans() {
     return FXCollections.unmodifiableObservableList(gameInfoBeans);
+  }
+
+  @Override
+  public GameTypeBean getGameTypeBeanFromString(String gameTypeBeanName) {
+    return gameTypeBeans.get(gameTypeBeanName);
   }
 
   @Override

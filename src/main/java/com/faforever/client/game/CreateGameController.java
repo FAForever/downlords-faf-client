@@ -5,6 +5,7 @@ import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -88,7 +89,8 @@ public class CreateGameController {
   @FXML
   Node createGameRoot;
 
-  private FilteredList<MapInfoBean> filteredMaps;
+  @VisibleForTesting
+  FilteredList<MapInfoBean> filteredMaps;
 
   @FXML
   void initialize() {
@@ -96,7 +98,7 @@ public class CreateGameController {
       if (newValue.isEmpty()) {
         filteredMaps.setPredicate(mapInfoBean -> true);
       } else {
-        filteredMaps.setPredicate(mapInfoBean -> mapInfoBean.getName().toLowerCase().contains(newValue.toLowerCase()));
+        filteredMaps.setPredicate(mapInfoBean -> mapInfoBean.getDisplayName().toLowerCase().contains(newValue.toLowerCase()));
       }
       if (!filteredMaps.isEmpty()) {
         mapListView.getSelectionModel().select(0);
@@ -161,8 +163,12 @@ public class CreateGameController {
     initModList();
     initMapSelection();
     initGameTypeComboBox();
-    setLastGameTitle();
     selectLastMap();
+    setLastGameTitle();
+    titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+      preferencesService.getPreferences().setLastGameTitle(newValue);
+      preferencesService.storeInBackground();
+    });
   }
 
   private void initRankingSlider() {
@@ -188,11 +194,6 @@ public class CreateGameController {
     rankingSlider.setMin(environment.getProperty("rating.min", Integer.class));
     rankingSlider.setHighValue(environment.getProperty("rating.selectedMax", Integer.class));
     rankingSlider.setLowValue(environment.getProperty("rating.selectedMin", Integer.class));
-
-    titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().setLastGameTitle(newValue);
-      preferencesService.storeInBackground();
-    });
   }
 
   private void initModList() {
@@ -223,7 +224,7 @@ public class CreateGameController {
         mapNameLabel.setText("");
         return;
       }
-      String mapName = newValue.getName();
+      String mapName = newValue.getDisplayName();
 
       mapNameLabel.setText(mapName);
       mapImageView.setImage(mapService.loadLargePreview(mapName));
@@ -241,18 +242,18 @@ public class CreateGameController {
     });
   }
 
-  private void setLastGameTitle() {
-    titleTextField.setText(preferencesService.getPreferences().getLastGameTitle());
-  }
-
   private void selectLastMap() {
     String lastMap = preferencesService.getPreferences().getLastMap();
     for (MapInfoBean mapInfoBean : mapListView.getItems()) {
-      if (mapInfoBean.getName().equals(lastMap)) {
+      if (mapInfoBean.getDisplayName().equals(lastMap)) {
         mapListView.getSelectionModel().select(mapInfoBean);
         break;
       }
     }
+  }
+
+  private void setLastGameTitle() {
+    titleTextField.setText(preferencesService.getPreferences().getLastGameTitle());
   }
 
   @NotNull
@@ -284,7 +285,7 @@ public class CreateGameController {
           setText(null);
           setGraphic(null);
         } else {
-          setText(item.getName());
+          setText(item.getDisplayName());
         }
       }
     };
@@ -322,7 +323,7 @@ public class CreateGameController {
         titleTextField.getText(),
         Strings.emptyToNull(passwordTextField.getText()),
         gameTypeComboBox.getSelectionModel().getSelectedItem().getName(),
-        mapListView.getSelectionModel().getSelectedItem().getName(),
+        mapListView.getSelectionModel().getSelectedItem().getDisplayName(),
         0);
 
     gameService.hostGame(newGameInfo, new Callback<Void>() {

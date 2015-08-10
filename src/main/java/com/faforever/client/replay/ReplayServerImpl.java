@@ -162,7 +162,5 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
     replayInfo.setComplete(true);
     replayInfo.setState(GameState.CLOSED);
     replayInfo.updateFromGameInfoBean(gameInfoBean);
-
-    gameInfoBean = null;
   }
 }

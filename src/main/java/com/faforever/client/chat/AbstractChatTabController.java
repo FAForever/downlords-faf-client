@@ -83,6 +83,11 @@ public abstract class AbstractChatTabController {
    */
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
+  private final List<ChatMessage> waitingMessages;
+  /**
+   * Maps a user name to a css style class.
+   */
+  private final Map<String, String> userToCssStyle;
   @Autowired
   UserService userService;
   @Autowired
@@ -107,11 +112,6 @@ public abstract class AbstractChatTabController {
   UrlPreviewResolver urlPreviewResolver;
   private boolean isChatReady;
   private WebEngine engine;
-  private List<ChatMessage> waitingMessages;
-  /**
-   * Maps a user name to a css style class.
-   */
-  private Map<String, String> userToCssStyle;
   private double lastMouseX;
   private double lastMouseY;
   private final EventHandler<MouseEvent> moveHandler = (MouseEvent event) -> {
@@ -174,9 +174,11 @@ public abstract class AbstractChatTabController {
     ((JSObject) engine.executeScript("window")).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
       if (Worker.State.SUCCEEDED.equals(newValue)) {
-        waitingMessages.forEach(this::appendMessage);
-        waitingMessages.clear();
-        isChatReady = true;
+        synchronized (waitingMessages) {
+          waitingMessages.forEach(this::appendMessage);
+          waitingMessages.clear();
+          isChatReady = true;
+        }
       }
     });
 
@@ -222,7 +224,7 @@ public abstract class AbstractChatTabController {
   private void addImagePasteListener() {
     TextInputControl messageTextField = getMessageTextField();
     messageTextField.setOnKeyReleased(event -> {
-      if ((event.getCode() == KeyCode.V && event.isControlDown() || event.getCode() == KeyCode.INSERT && event.isShiftDown())
+      if (isPaste(event)
           && Clipboard.getSystemClipboard().hasImage()) {
         pasteImage();
       }
@@ -234,6 +236,11 @@ public abstract class AbstractChatTabController {
   public abstract Tab getRoot();
 
   protected abstract TextInputControl getMessageTextField();
+
+  private boolean isPaste(KeyEvent event) {
+    return (event.getCode() == KeyCode.V && event.isShortcutDown())
+        || (event.getCode() == KeyCode.INSERT && event.isShiftDown());
+  }
 
   private void pasteImage() {
     TextInputControl messageTextField = getMessageTextField();
@@ -405,14 +412,19 @@ public abstract class AbstractChatTabController {
   }
 
   private void initializeAutoCompletion(TextInputControl messageTextField) {
-    autoCompletePartialName = getWordBeforeCaret(messageTextField);
-
     possibleAutoCompletions = new ArrayList<>();
+
+    autoCompletePartialName = getWordBeforeCaret(messageTextField);
+    if (autoCompletePartialName.isEmpty()) {
+      return;
+    }
+
     nextAutoCompleteIndex = 0;
 
     possibleAutoCompletions.addAll(
         playerService.getPlayerNames().stream()
             .filter(playerName -> playerName.toLowerCase().startsWith(autoCompletePartialName.toLowerCase()))
+            .sorted()
             .collect(Collectors.toList())
     );
   }
@@ -469,15 +481,17 @@ public abstract class AbstractChatTabController {
     });
   }
 
-  public void onChatMessage(ChatMessage chatMessage) {
-    if (!isChatReady) {
-      waitingMessages.add(chatMessage);
-    } else {
-      Platform.runLater(() -> {
-        appendMessage(chatMessage);
-        removeTopmostMessages();
-        scrollToBottomIfDesired();
-      });
+  protected void onChatMessage(ChatMessage chatMessage) {
+    synchronized (waitingMessages) {
+      if (!isChatReady) {
+        waitingMessages.add(chatMessage);
+      } else {
+        Platform.runLater(() -> {
+          appendMessage(chatMessage);
+          removeTopmostMessages();
+          scrollToBottomIfDesired();
+        });
+      }
     }
   }
 
@@ -514,7 +528,7 @@ public abstract class AbstractChatTabController {
         avatarUrl = playerInfoBean.getAvatarUrl();
 
         if (StringUtils.isNotEmpty(playerInfoBean.getClan())) {
-          clanTag = i18n.get("chat.clanTagFormag", playerInfoBean.getClan());
+          clanTag = i18n.get("chat.clanTagFormat", playerInfoBean.getClan());
         }
       }
 

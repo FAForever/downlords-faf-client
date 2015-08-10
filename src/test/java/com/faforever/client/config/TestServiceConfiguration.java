@@ -3,9 +3,13 @@ package com.faforever.client.config;
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.fx.HostService;
+import com.faforever.client.game.GameService;
+import com.faforever.client.map.MapService;
+import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.uploader.ImageUploadService;
@@ -68,6 +72,21 @@ public class TestServiceConfiguration {
   }
 
   @Bean
+  GameService gameService() {
+    return mock(GameService.class);
+  }
+
+  @Bean
+  MapService mapService() {
+    return mock(MapService.class);
+  }
+
+  @Bean
+  ModService modService() {
+    return mock(ModService.class);
+  }
+
+  @Bean
   PreferencesService preferencesService() throws IOException {
     PreferencesService preferencesService = mock(PreferencesService.class);
 
@@ -77,6 +96,7 @@ public class TestServiceConfiguration {
     Preferences preferences = mock(Preferences.class);
     when(preferences.getTheme()).thenReturn("default");
     when(preferences.getChat()).thenReturn(chatPrefs);
+    when(preferences.getForgedAlliance()).thenReturn(mock(ForgedAlliancePrefs.class));
 
     Path tempDir = Paths.get("build/tmp");
     Files.createDirectories(tempDir);

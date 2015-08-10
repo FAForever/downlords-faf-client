@@ -28,16 +28,18 @@ import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
 import com.faforever.client.game.GameCardController;
 import com.faforever.client.game.GameTableController;
+import com.faforever.client.game.GameTiledController;
 import com.faforever.client.game.GamesController;
-import com.faforever.client.game.GamesTiledController;
 import com.faforever.client.game.PopupGamePaneController;
 import com.faforever.client.game.PopupPlayerCardController;
-import com.faforever.client.game.PopupTeamCardController;
+import com.faforever.client.game.TeamCardController;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.hub.ConcurrentUsersController;
 import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
+import com.faforever.client.map.CommentCardController;
+import com.faforever.client.map.MapPreviewLargeController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
@@ -104,6 +106,11 @@ public class UiConfig {
   }
 
   @Bean
+  MapPreviewLargeController mapPreviewLargeController() {
+    return loadController("map_preview_large.fxml");
+  }
+
+  @Bean
   ChatController chatController() {
     return loadController("chat.fxml");
   }
@@ -121,6 +128,12 @@ public class UiConfig {
   @Bean
   ConcurrentUsersController concurrentUsersController() {
     return loadController("concurrent_users.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  CommentCardController commentCardController() {
+    return loadController("comment_card.fxml");
   }
 
   @Bean
@@ -143,8 +156,8 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  PopupTeamCardController popupTeamCardController() {
-    return loadController("popup_team_card.fxml");
+  TeamCardController teamCardController() {
+    return loadController("team_card.fxml");
   }
 
   @Bean
@@ -155,7 +168,7 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  GamesTiledController gamesTiledController() {
+  GameTiledController gamesTiledController() {
     return loadController("games_tiled.fxml");
   }
 

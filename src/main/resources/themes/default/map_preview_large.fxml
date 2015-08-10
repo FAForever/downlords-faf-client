@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="root" styleClass="map-preview-large"
+          xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.map.MapPreviewLargeController">
+  <columnConstraints>
+    <ColumnConstraints/>
+    <ColumnConstraints/>
+  </columnConstraints>
+  <rowConstraints>
+    <RowConstraints/>
+    <RowConstraints/>
+    <RowConstraints minHeight="10.0" prefHeight="30.0"/>
+    <RowConstraints/>
+    <RowConstraints/>
+  </rowConstraints>
+  <children>
+    <ImageView fx:id="largeImagePreview" fitHeight="512.0" fitWidth="512.0" pickOnBounds="true" preserveRatio="true"
+               styleClass="large-image-preview" GridPane.rowSpan="4">
+      <GridPane.margin>
+        <Insets/>
+      </GridPane.margin>
+    </ImageView>
+    <Label fx:id="mapNameLabel" styleClass="map-displayName-label" text="&lt;Map Name&gt;" GridPane.columnIndex="1"
+           GridPane.columnSpan="2" GridPane.vgrow="NEVER"/>
+    <Label fx:id="maxPlayerLabel" styleClass="max-player-label" text="&lt;Max Player&gt;" GridPane.columnIndex="1"
+           GridPane.rowIndex="2" GridPane.vgrow="NEVER">
+      <GridPane.margin>
+        <Insets/>
+      </GridPane.margin>
+    </Label>
+    <Label fx:id="mapSizeLabel" styleClass="map-size-label" text="&lt;Map Size&gt;" GridPane.columnIndex="1"
+           GridPane.rowIndex="1" GridPane.vgrow="NEVER"/>
+    <Label fx:id="mapDescriptionLabel" styleClass="map-description-label" text="&lt;Map Description&gt;"
+           wrapText="true" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="3"
+           GridPane.rowSpan="2" GridPane.valignment="TOP"/>
+    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="comment-container-scroll-pane"
+                GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="4">
+      <content>
+        <VBox fx:id="commentContainer" styleClass="comment-container"/>
+      </content>
+    </ScrollPane>
+  </children>
+</GridPane>

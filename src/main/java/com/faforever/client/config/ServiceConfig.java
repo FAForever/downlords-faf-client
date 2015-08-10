@@ -122,6 +122,11 @@ public class ServiceConfig {
   }
 
   @Bean
+  MapVaultParser mapVaultParser() {
+    return new LegacyMapVaultParser();
+  }
+
+  @Bean
   GameService gameService() {
     return new GameServiceImpl();
   }
@@ -170,12 +175,6 @@ public class ServiceConfig {
   LeaderboardParser ladderParser() {
     return new LegacyLeaderboardParser();
   }
-
-  @Bean
-  MapVaultParser mapVaultParser() {
-    return new LegacyMapVaultParser();
-  }
-
 
   @Bean
   ReplayServer replayServer() {

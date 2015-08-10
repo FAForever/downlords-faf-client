@@ -39,10 +39,10 @@ public class PopupGamePaneController {
   private void createTeam(ObservableMap<? extends String, ? extends List<String>> teamsList) {
     teamListPane.getChildren().clear();
     for (Map.Entry<? extends String, ? extends List<String>> entry : teamsList.entrySet()) {
-      PopupTeamCardController popupTeamCardController = applicationContext.getBean(PopupTeamCardController.class);
-      boolean teamCardSuccess = popupTeamCardController.setTeam(entry.getValue(), Integer.parseInt(entry.getKey()));
+      TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
+      boolean teamCardSuccess = teamCardController.setTeam(entry.getValue(), Integer.parseInt(entry.getKey()));
       if (teamCardSuccess) {
-        teamListPane.getChildren().add(popupTeamCardController.getRoot());
+        teamListPane.getChildren().add(teamCardController.getRoot());
       }
     }
   }

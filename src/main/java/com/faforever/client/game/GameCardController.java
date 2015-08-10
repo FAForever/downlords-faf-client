@@ -24,7 +24,6 @@ import java.lang.invoke.MethodHandles;
 
 public class GameCardController {
 
-  private static final long POPUP_DELAY = 1000;
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @FXML
   Label modsPrefix;
@@ -74,9 +73,9 @@ public class GameCardController {
       }
     }
 
-    gameMapLabel.setText(gameInfoBean.getMapName());
-    gameInfoBean.mapNameProperty().addListener(((observable3, oldValue3, newValue3) -> {
-      gameMapLabel.setText(gameInfoBean.getMapName());
+    gameMapLabel.setText(gameInfoBean.getTechnicalName());
+    gameInfoBean.technicalNameProperty().addListener(((observable3, oldValue3, newValue3) -> {
+      gameMapLabel.setText(gameInfoBean.getTechnicalName());
       numberOfPlayersLabel.setText(
           i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers())
       );
@@ -92,9 +91,9 @@ public class GameCardController {
     displaySimMods(gameInfoBean.getSimMods());
     gameInfoBean.getSimMods().addListener((MapChangeListener<String, String>) change -> displaySimMods(change.getMap()));
 
-    Image image = mapService.loadSmallPreview(gameInfoBean.getMapName());
+    Image image = mapService.loadSmallPreview(gameInfoBean.getTechnicalName());
     mapImageView.setImage(image);
-    gameInfoBean.mapNameProperty().addListener((observable, oldValue, newValue) -> {
+    gameInfoBean.technicalNameProperty().addListener((observable, oldValue, newValue) -> {
       Image newImage = mapService.loadSmallPreview(newValue);
       mapImageView.setImage(newImage);
     });
@@ -110,6 +109,7 @@ public class GameCardController {
     Tooltip tooltip = new Tooltip();
     tooltip.setGraphic(popupGamePaneController.getRoot());
     Tooltip.install(gameCardRoot, tooltip);
+
   }
 
   private void displaySimMods(ObservableMap<? extends String, ? extends String> simMods) {

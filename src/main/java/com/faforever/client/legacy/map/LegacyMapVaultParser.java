@@ -2,6 +2,7 @@ package com.faforever.client.legacy.map;
 
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
+import com.faforever.client.map.CommentVaultHtmlContentHandler;
 import com.faforever.client.map.MapVaultHtmlContentHandler;
 import com.google.gson.stream.JsonReader;
 import org.slf4j.Logger;
@@ -59,5 +60,76 @@ public class LegacyMapVaultParser implements MapVaultParser {
     }
 
     throw new IllegalStateException("Map vault could not be read from " + url);
+  }
+
+  //FIXME change map to string
+  @Override
+  public List<Comment> parseComments(int id) throws IOException {
+    CommentVaultHtmlContentHandler commentVaultHtmlContentHandler = new CommentVaultHtmlContentHandler();
+
+    URL url = new URL(String.format(environment.getProperty("vault.mapCommentUrl"), id));
+
+    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+
+    logger.debug("Fetching comments from {}", url);
+
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
+      JsonReader jsonReader = new JsonReader(reader);
+      jsonReader.beginObject();
+
+      //FIXME pretty sure this is useless code for the comment parser
+      while (jsonReader.hasNext()) {
+        String key = jsonReader.nextName();
+        if (!"comments".equals(key)) {
+          jsonReader.skipValue();
+          continue;
+        }
+
+        String comments = jsonReader.nextString();
+
+        return htmlParser.parse(comments, commentVaultHtmlContentHandler);
+      }
+
+      jsonReader.endObject();
+    }
+
+    throw new IllegalStateException("Comment vault could not be read from " + url);
+  }
+
+  @Override
+  public MapInfoBean parseSingleMap(String mapName) throws IOException {
+    MapVaultHtmlContentHandler mapVaultHtmlContentHandler = new MapVaultHtmlContentHandler();
+
+    URL url = new URL(String.format(environment.getProperty("vault.singleMapUrl"), mapName));
+
+    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))) {
+      JsonReader jsonReader = new JsonReader(reader);
+      jsonReader.beginObject();
+
+      while (jsonReader.hasNext()) {
+        String key = jsonReader.nextName();
+        if (!"layout".equals(key)) {
+          jsonReader.skipValue();
+          continue;
+        }
+
+        String layout = jsonReader.nextString();
+
+        List<MapInfoBean> mapInfoBeans = htmlParser.parse(layout, mapVaultHtmlContentHandler);
+        if (!mapInfoBeans.isEmpty()) {
+          for (MapInfoBean mapInfoBean : mapInfoBeans) {
+            if (mapInfoBean.getTechnicalName().equalsIgnoreCase(mapName)) {
+              return mapInfoBean;
+            }
+          }
+        }
+      }
+
+      jsonReader.endObject();
+    }
+
+    throw new IOException("Map vault could not be read from " + url);
   }
 }

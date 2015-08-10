@@ -33,7 +33,8 @@ public class GameInfoBean {
 
   private final StringProperty host;
   private final StringProperty title;
-  private final StringProperty mapName;
+  private final StringProperty technicalName;
+  private final StringProperty displayName;
   private final StringProperty featuredMod;
   private final ObjectProperty<GameAccess> access;
   private final IntegerProperty uid;
@@ -57,7 +58,8 @@ public class GameInfoBean {
     uid = new SimpleIntegerProperty();
     host = new SimpleStringProperty();
     title = new SimpleStringProperty();
-    mapName = new SimpleStringProperty();
+    displayName = new SimpleStringProperty();
+    technicalName = new SimpleStringProperty();
     featuredMod = new SimpleStringProperty();
     access = new SimpleObjectProperty<>();
     numPlayers = new SimpleIntegerProperty();
@@ -77,7 +79,7 @@ public class GameInfoBean {
     host.set(gameInfo.getHost());
     title.set(StringEscapeUtils.unescapeHtml4(gameInfo.getTitle()));
     access.set(gameInfo.getAccess());
-    mapName.set(gameInfo.getMapname());
+    technicalName.set(gameInfo.getMapname());
     featuredMod.set(gameInfo.getFeaturedMod());
     numPlayers.setValue(gameInfo.getNumPlayers());
     maxPlayers.setValue(gameInfo.getMaxPlayers());
@@ -124,7 +126,7 @@ public class GameInfoBean {
         }
       }
     } else {
-      maxRating.set(2500);
+      maxRating.set(3000);
     }
   }
 
@@ -152,16 +154,16 @@ public class GameInfoBean {
     return title;
   }
 
-  public String getMapName() {
-    return mapName.get();
+  public String getTechnicalName() {
+    return technicalName.get();
   }
 
-  public void setMapName(String mapName) {
-    this.mapName.set(mapName);
+  public void setTechnicalName(String technicalName) {
+    this.technicalName.set(technicalName);
   }
 
-  public StringProperty mapNameProperty() {
-    return mapName;
+  public StringProperty technicalNameProperty() {
+    return technicalName;
   }
 
   public String getFeaturedMod() {

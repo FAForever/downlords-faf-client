@@ -36,19 +36,19 @@ public class LocalReplayInfo {
   private double gameTime;
 
   public void updateFromGameInfoBean(GameInfoBean gameInfoBean) {
-    setHost(gameInfoBean.getHost());
-    setUid(gameInfoBean.getUid());
-    setTitle(gameInfoBean.getTitle());
-    setAccess(gameInfoBean.getAccess());
-    setMapname(gameInfoBean.getMapName());
-    setState(gameInfoBean.getStatus());
-    setGameType(gameInfoBean.getGameType());
-    setFeaturedMod(gameInfoBean.getFeaturedMod());
-    setMaxPlayers(gameInfoBean.getMaxPlayers());
-    setNumPlayers(gameInfoBean.getNumPlayers());
-    setSimMods(gameInfoBean.getSimMods());
-    setTeams(gameInfoBean.getTeams());
-    setFeaturedModVersions(gameInfoBean.getFeaturedModVersions());
+    host = gameInfoBean.getHost();
+    uid = gameInfoBean.getUid();
+    title = gameInfoBean.getTitle();
+    access = gameInfoBean.getAccess();
+    mapname = gameInfoBean.getTechnicalName();
+    state = gameInfoBean.getStatus();
+    gameType = gameInfoBean.getGameType();
+    featuredMod = gameInfoBean.getFeaturedMod();
+    maxPlayers = gameInfoBean.getMaxPlayers();
+    numPlayers = gameInfoBean.getNumPlayers();
+    simMods = gameInfoBean.getSimMods();
+    teams = gameInfoBean.getTeams();
+    featuredModVersions = gameInfoBean.getFeaturedModVersions();
 
     ObservableList<Boolean> options = gameInfoBean.getOptions();
     this.setOptions(options.toArray(new Boolean[options.size()]));

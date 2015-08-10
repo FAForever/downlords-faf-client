@@ -5,18 +5,13 @@ import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ThemeUtil;
 import javafx.scene.media.AudioClip;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 
 public class AudioControllerImpl implements AudioController {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Autowired
   PreferencesService preferencesService;

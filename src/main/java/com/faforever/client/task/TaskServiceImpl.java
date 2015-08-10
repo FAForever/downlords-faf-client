@@ -88,8 +88,4 @@ public class TaskServiceImpl implements TaskService {
       queueListsByGroup.get(taskGroup).addListener(listener);
     }
   }
-
-
-
-
 }
