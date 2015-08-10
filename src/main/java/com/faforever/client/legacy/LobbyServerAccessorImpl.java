@@ -28,6 +28,7 @@ import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.legacy.domain.VictoryCondition;
 import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
+import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.writer.ServerWriter;
@@ -113,6 +114,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
         .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
         .registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter())
         .registerTypeAdapter(StatisticsType.class, new StatisticsTypeTypeAdapter())
+        .registerTypeAdapter(ServerMessageType.class, new ServerMessageTypeTypeAdapter())
         .create();
   }
 
