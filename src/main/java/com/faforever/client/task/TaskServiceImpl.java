@@ -22,12 +22,12 @@ public class TaskServiceImpl implements TaskService {
   /**
    * Holds one queue for each TaskGroup.
    */
-  private Map<TaskGroup, PriorityBlockingQueue<PrioritizedTask<?>>> queuesByGroup;
+  private final Map<TaskGroup, PriorityBlockingQueue<PrioritizedTask<?>>> queuesByGroup;
 
   /**
    * Since there is no observable queue in JavaFX, these lists serve as target for queue listeners.
    */
-  private Map<TaskGroup, ObservableList<PrioritizedTask<?>>> queueListsByGroup;
+  private final Map<TaskGroup, ObservableList<PrioritizedTask<?>>> queueListsByGroup;
 
   public TaskServiceImpl() {
     queuesByGroup = new HashMap<>();
@@ -36,29 +36,6 @@ public class TaskServiceImpl implements TaskService {
     for (TaskGroup taskGroup : TaskGroup.values()) {
       queuesByGroup.put(taskGroup, new PriorityBlockingQueue<>());
       queueListsByGroup.put(taskGroup, FXCollections.observableArrayList());
-    }
-  }
-
-  @Override
-  public <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task, Callback<T> callback) {
-    ConcurrentUtil.setCallbackOnTask(task, callback);
-
-    queuesByGroup.get(taskGroup).add(task);
-
-    ObservableList<PrioritizedTask<?>> tasks = queueListsByGroup.get(taskGroup);
-    tasks.add(task);
-    FXCollections.sort(tasks);
-  }
-
-  @Override
-  public <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task) {
-    submitTask(taskGroup, task, null);
-  }
-
-  @Override
-  public void addChangeListener(ListChangeListener<PrioritizedTask<?>> listener, TaskGroup... taskGroups) {
-    for (TaskGroup taskGroup : taskGroups) {
-      queueListsByGroup.get(taskGroup).addListener(listener);
     }
   }
 
@@ -88,4 +65,31 @@ public class TaskServiceImpl implements TaskService {
       }
     });
   }
+
+  @Override
+  public <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task, Callback<T> callback) {
+    ConcurrentUtil.setCallbackOnTask(task, callback);
+
+    queuesByGroup.get(taskGroup).add(task);
+
+    ObservableList<PrioritizedTask<?>> tasks = queueListsByGroup.get(taskGroup);
+    tasks.add(task);
+    FXCollections.sort(tasks);
+  }
+
+  @Override
+  public <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task) {
+    submitTask(taskGroup, task, null);
+  }
+
+  @Override
+  public void addChangeListener(ListChangeListener<PrioritizedTask<?>> listener, TaskGroup... taskGroups) {
+    for (TaskGroup taskGroup : taskGroups) {
+      queueListsByGroup.get(taskGroup).addListener(listener);
+    }
+  }
+
+
+
+
 }

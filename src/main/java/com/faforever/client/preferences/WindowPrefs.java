@@ -37,83 +37,83 @@ public class WindowPrefs {
     return width.get();
   }
 
-  public IntegerProperty widthProperty() {
-    return width;
-  }
-
   public void setWidth(int width) {
     this.width.set(width);
+  }
+
+  public IntegerProperty widthProperty() {
+    return width;
   }
 
   public int getHeight() {
     return height.get();
   }
 
-  public IntegerProperty heightProperty() {
-    return height;
-  }
-
   public void setHeight(int height) {
     this.height.set(height);
+  }
+
+  public IntegerProperty heightProperty() {
+    return height;
   }
 
   public boolean getMaximized() {
     return maximized.get();
   }
 
-  public BooleanProperty maximizedProperty() {
-    return maximized;
-  }
-
   public void setMaximized(boolean maximized) {
     this.maximized.set(maximized);
+  }
+
+  public BooleanProperty maximizedProperty() {
+    return maximized;
   }
 
   public String getLastView() {
     return lastView.get();
   }
 
-  public StringProperty lastViewProperty() {
-    return lastView;
-  }
-
   public void setLastView(String lastView) {
     this.lastView.set(lastView);
+  }
+
+  public StringProperty lastViewProperty() {
+    return lastView;
   }
 
   public double getX() {
     return x.get();
   }
 
-  public DoubleProperty xProperty() {
-    return x;
-  }
-
   public void setX(double x) {
     this.x.set(x);
+  }
+
+  public DoubleProperty xProperty() {
+    return x;
   }
 
   public double getY() {
     return y.get();
   }
 
-  public DoubleProperty yProperty() {
-    return y;
-  }
-
   public void setY(double y) {
     this.y.set(y);
+  }
+
+  public DoubleProperty yProperty() {
+    return y;
   }
 
   public ObservableMap<String, String> getLastChildViews() {
     return lastChildViews.get();
   }
 
-  public MapProperty<String, String> lastChildViewsProperty() {
-    return lastChildViews;
-  }
-
   public void setLastChildViews(ObservableMap<String, String> lastChildViews) {
     this.lastChildViews.set(lastChildViews);
+  }
+
+  public MapProperty<String, String> lastChildViewsProperty() {
+    return lastChildViews;
   }
 }

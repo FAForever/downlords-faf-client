@@ -1,9 +1,11 @@
 package com.faforever.client.game;
 
+import org.jetbrains.annotations.NotNull;
+
 public class RatingRange implements Comparable<RatingRange> {
 
-  public final Integer min;
-  public final Integer max;
+  private final Integer min;
+  private final Integer max;
 
   public RatingRange(Integer min, Integer max) {
     this.min = min;
@@ -11,7 +13,15 @@ public class RatingRange implements Comparable<RatingRange> {
   }
 
   @Override
-  public int compareTo(RatingRange o) {
-    return Integer.compare(min, o.min);
+  public int compareTo(@NotNull RatingRange o) {
+    return Integer.compare(getMin(), o.getMin());
+  }
+
+  public Integer getMin() {
+    return min;
+  }
+
+  public Integer getMax() {
+    return max;
   }
 }

@@ -69,12 +69,12 @@ import static org.mockito.Mockito.when;
 
 public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
+  public static final String CHAT_USER_NAME = "junit";
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final long TIMEOUT = 100000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final String DEFAULT_CHANNEL_NAME = "#defaultChannel";
   private static final String OTHER_CHANNEL_NAME = "#otherChannel";
-  public static final String CHAT_USER_NAME = "junit";
   private static final int IRC_SERVER_PORT = 123;
 
   private PircBotXChatService instance;
@@ -343,7 +343,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAddOnChatDisconnectedListener() throws Exception {
     CompletableFuture<Exception> onChatDisconnectedFuture = new CompletableFuture<>();
-    instance.addOnChatDisconnectedListener((exception) -> onChatDisconnectedFuture.complete(exception));
+    instance.addOnChatDisconnectedListener(onChatDisconnectedFuture::complete);
 
     Exception disconnectException = new Exception();
     instance.onEvent(new DisconnectEvent<>(pircBotX, daoSnapshot, disconnectException));
@@ -410,6 +410,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testConnect() throws Exception {
     ArgumentCaptor<Configuration> captor = ArgumentCaptor.forClass(Configuration.class);
 
@@ -471,6 +472,27 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     verify(outputIrc).message(DEFAULT_CHANNEL_NAME, message);
   }
 
+  @SuppressWarnings("unchecked")
+  private void mockTaskService() {
+    doAnswer((InvocationOnMock invocation) -> {
+      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(1, PrioritizedTask.class);
+      prioritizedTask.run();
+
+      Callback<Boolean> callback = invocation.getArgumentAt(2, Callback.class);
+
+      Future<Throwable> throwableFuture = WaitForAsyncUtils.asyncFx(prioritizedTask::getException);
+      Throwable throwable = throwableFuture.get(1, TimeUnit.SECONDS);
+      if (throwable != null) {
+        callback.error(throwable);
+      } else {
+        Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
+        callback.success(result.get(1, TimeUnit.SECONDS));
+      }
+
+      return null;
+    }).when(instance.taskService).submitTask(any(), any(), any());
+  }
+
   @Test
   public void testGetChatUsersForChannelEmpty() throws Exception {
     ObservableMap<String, ChatUser> chatUsersForChannel = instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME);
@@ -504,6 +526,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAddChannelUserListListener() throws Exception {
+    @SuppressWarnings("unchecked")
     MapChangeListener<String, ChatUser> listener = mock(MapChangeListener.class);
 
     instance.addChannelUserListListener(DEFAULT_CHANNEL_NAME, listener);
@@ -532,6 +555,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.connect();
 
     String action = "test action";
+
+    @SuppressWarnings("unchecked")
     Callback<String> callback = mock(Callback.class);
 
     instance.sendActionInBackground(DEFAULT_CHANNEL_NAME, action, callback);
@@ -600,26 +625,5 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testClose() {
     instance.close();
-  }
-
-  @SuppressWarnings("unchecked")
-  private void mockTaskService() throws Exception {
-    doAnswer((InvocationOnMock invocation) -> {
-      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(1, PrioritizedTask.class);
-      prioritizedTask.run();
-
-      Callback<Boolean> callback = invocation.getArgumentAt(2, Callback.class);
-
-      Future<Throwable> throwableFuture = WaitForAsyncUtils.asyncFx(prioritizedTask::getException);
-      Throwable throwable = throwableFuture.get(1, TimeUnit.SECONDS);
-      if (throwable != null) {
-        callback.error(throwable);
-      } else {
-        Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
-        callback.success(result.get(1, TimeUnit.SECONDS));
-      }
-
-      return null;
-    }).when(instance.taskService).submitTask(any(), any(), any());
   }
 }

@@ -9,7 +9,6 @@ import com.faforever.client.util.RatingUtil;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
@@ -113,36 +112,13 @@ public class UserInfoWindowController {
     ratingOver90DaysButton.fire();
   }
 
-  @SuppressWarnings("unchecked")
-  private void plotPlayerStatistics(PlayerStatistics result) {
-    XYChart.Series<Long, Integer> series = new XYChart.Series<>();
-    // FIXME i18n
-    series.setName("Player rating");
-
-    List<XYChart.Data<Long, Integer>> values = new ArrayList<>();
-
-    for (RatingInfo ratingInfo : result.values) {
-      int minRating = RatingUtil.getRating(ratingInfo);
-      LocalDateTime dateTime = LocalDate.from(ratingInfo.date).atTime(ratingInfo.time);
-      values.add(new XYChart.Data<>(dateTime.atZone(ZoneId.systemDefault()).toEpochSecond(), minRating));
-    }
-
-    series.getData().setAll(FXCollections.observableList(values));
-    rating90DaysChart.getData().setAll(series);
-  }
-
   public Region getRoot() {
     return userInfoRoot;
   }
 
   @FXML
-  void onRatingOver90DaysButtonClicked(ActionEvent event) {
+  void onRatingOver90DaysButtonClicked() {
     loadStatistics(StatisticsType.GLOBAL_90_DAYS);
-  }
-
-  @FXML
-  void onRatingOver365DaysButtonClicked(ActionEvent event) {
-    loadStatistics(StatisticsType.GLOBAL_365_DAYS);
   }
 
   private void loadStatistics(StatisticsType type) {
@@ -158,5 +134,28 @@ public class UserInfoWindowController {
         logger.warn("Statistics could not be loaded", e);
       }
     });
+  }
+
+  @SuppressWarnings("unchecked")
+  private void plotPlayerStatistics(PlayerStatistics result) {
+    XYChart.Series<Long, Integer> series = new XYChart.Series<>();
+    // FIXME i18n
+    series.setName("Player rating");
+
+    List<XYChart.Data<Long, Integer>> values = new ArrayList<>();
+
+    for (RatingInfo ratingInfo : result.getValues()) {
+      int minRating = RatingUtil.getRating(ratingInfo);
+      LocalDateTime dateTime = LocalDate.from(ratingInfo.date).atTime(ratingInfo.time);
+      values.add(new XYChart.Data<>(dateTime.atZone(ZoneId.systemDefault()).toEpochSecond(), minRating));
+    }
+
+    series.getData().setAll(FXCollections.observableList(values));
+    rating90DaysChart.getData().setAll(series);
+  }
+
+  @FXML
+  void onRatingOver365DaysButtonClicked() {
+    loadStatistics(StatisticsType.GLOBAL_365_DAYS);
   }
 }

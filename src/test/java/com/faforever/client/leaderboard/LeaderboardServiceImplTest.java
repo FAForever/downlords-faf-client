@@ -22,6 +22,7 @@ public class LeaderboardServiceImplTest {
 
   @Test
   public void testGetLadderInfo() throws Exception {
+    @SuppressWarnings("unchecked")
     Callback<List<LeaderboardEntryBean>> callback = mock(Callback.class);
 
     instance.getLadderInfo(callback);

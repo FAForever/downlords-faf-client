@@ -17,7 +17,6 @@ import com.google.gson.GsonBuilder;
 import jbsdiff.InvalidHeaderException;
 import jbsdiff.Patch;
 import org.apache.commons.compress.compressors.CompressorException;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +49,7 @@ public class GitRepositoryPatchService implements PatchService {
     RETAIL("retail.json"),
     STEAM("steam.json");
 
-    String migrationDataFileName;
+    final String migrationDataFileName;
 
     InstallType(String migrationDataFileName) {
       this.migrationDataFileName = migrationDataFileName;
@@ -64,7 +63,6 @@ public class GitRepositoryPatchService implements PatchService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String BINARY_PATCH_DIRECTORY = "bsdiff4";
-  private static final long UPDATE_CHECK_PERIOD = 3600_000;
 
   private final Gson gson;
 
@@ -193,6 +191,54 @@ public class GitRepositoryPatchService implements PatchService {
     }, callback);
   }
 
+  @Override
+  public void checkForUpdatesInBackground() {
+    Callback<Boolean> callback = new Callback<Boolean>() {
+      @Override
+      public void success(Boolean needsPatching) {
+        if (!needsPatching) {
+          return;
+        }
+
+        notificationService.addNotification(
+            new PersistentNotification(
+                i18n.get("faUpdateAvailable.notification"),
+                Severity.INFO,
+                Arrays.asList(
+                    new Action(i18n.get("faUpdateAvailable.updateLater")),
+                    new Action(i18n.get("faUpdateAvailable.updateNow"), event -> patchInBackground())
+                )
+            )
+        );
+      }
+
+      @Override
+      public void error(Throwable e) {
+        notificationService.addNotification(
+            new PersistentNotification(
+                i18n.get("updateCheckFailed.notification"),
+                Severity.WARN,
+                Collections.singletonList(
+                    new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdatesInBackground())
+                )
+            )
+        );
+      }
+    };
+
+    taskService.submitTask(NET_LIGHT, new PrioritizedTask<Boolean>(i18n.get("updateCheckTask.title"), LOW) {
+      @Override
+      protected Boolean call() throws Exception {
+        logger.info("Checking for FA update");
+
+        return initAndCheckDirectories() &&
+            (Files.notExists(binaryPatchRepoDirectory)
+                || areNewPatchFilesAvailable()
+                || !areLocalFilesPatched());
+      }
+    }, callback);
+  }
+
   /**
    * Since it's possible that the user has changed or never specified the game path, this method needs to be called
    * every time before any work is done.
@@ -276,58 +322,10 @@ public class GitRepositoryPatchService implements PatchService {
     }
   }
 
-  @Override
-  public void checkForUpdatesInBackground() {
-    Callback<Boolean> callback = new Callback<Boolean>() {
-      @Override
-      public void success(Boolean needsPatching) {
-        if (!needsPatching) {
-          return;
-        }
-
-        notificationService.addNotification(
-            new PersistentNotification(
-                i18n.get("faUpdateAvailable.notification"),
-                Severity.INFO,
-                Arrays.asList(
-                    new Action(i18n.get("faUpdateAvailable.updateLater")),
-                    new Action(i18n.get("faUpdateAvailable.updateNow"), event -> patchInBackground())
-                )
-            )
-        );
-      }
-
-      @Override
-      public void error(Throwable e) {
-        notificationService.addNotification(
-            new PersistentNotification(
-                i18n.get("updateCheckFailed.notification"),
-                Severity.WARN,
-                Arrays.asList(
-                    new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdatesInBackground())
-                )
-            )
-        );
-      }
-    };
-
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<Boolean>(i18n.get("updateCheckTask.title"), LOW) {
-      @Override
-      protected Boolean call() throws Exception {
-        logger.info("Checking for FA update");
-
-        return initAndCheckDirectories() &&
-            (Files.notExists(binaryPatchRepoDirectory)
-                || areNewPatchFilesAvailable()
-                || !areLocalFilesPatched());
-      }
-    }, callback);
-  }
-
   /**
    * Checks whether the remote GIT repository has newer patch files available then the local repsitory.
    */
-  private boolean areNewPatchFilesAvailable() throws IOException, GitAPIException {
+  private boolean areNewPatchFilesAvailable() throws IOException {
     String remoteHead = gitWrapper.getRemoteHead(binaryPatchRepoDirectory);
     String localHead = gitWrapper.getLocalHead(binaryPatchRepoDirectory);
 

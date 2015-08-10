@@ -25,25 +25,19 @@ public class ChatController implements
     OnChatUserLeftChannelListener,
     OnJoinChannelsRequestListener {
 
+  private final Map<String, AbstractChatTabController> nameToChatTabController;
   @Autowired
   ChatService chatService;
-
   @Autowired
   ApplicationContext applicationContext;
-
   @Autowired
   UserService userService;
-
   @FXML
   Node chatRoot;
-
   @FXML
   TabPane chatsTabPane;
-
   @FXML
   Pane connectingProgressPane;
-
-  private final Map<String, AbstractChatTabController> nameToChatTabController;
 
   public ChatController() {
     nameToChatTabController = new HashMap<>();
@@ -65,10 +59,14 @@ public class ChatController implements
   }
 
   @Override
+  public void onDisconnected(Exception e) {
+    connectingProgressPane.setVisible(true);
+    chatsTabPane.setVisible(false);
+  }
+
+  @Override
   public void onMessage(String channelName, ChatMessage chatMessage) {
-    Platform.runLater(() -> {
-      addAndGetChannelTab(channelName).onChatMessage(chatMessage);
-    });
+    Platform.runLater(() -> addAndGetChannelTab(channelName).onChatMessage(chatMessage));
   }
 
   private AbstractChatTabController addAndGetChannelTab(String channelName) {
@@ -80,18 +78,6 @@ public class ChatController implements
       addTab(channelName, tab);
     }
     return nameToChatTabController.get(channelName);
-  }
-
-  private AbstractChatTabController addAndGetPrivateMessageTab(String username) {
-    JavaFxUtil.assertApplicationThread();
-
-    if (!nameToChatTabController.containsKey(username)) {
-      PrivateChatTabController tab = applicationContext.getBean(PrivateChatTabController.class);
-      tab.setUsername(username);
-      addTab(username, tab);
-    }
-
-    return nameToChatTabController.get(username);
   }
 
   private void addTab(String playerOrChannelName, AbstractChatTabController tabController) {
@@ -106,12 +92,6 @@ public class ChatController implements
     }
 
     chatsTabPane.getSelectionModel().select(0);
-  }
-
-  @Override
-  public void onDisconnected(Exception e) {
-    connectingProgressPane.setVisible(true);
-    chatsTabPane.setVisible(false);
   }
 
   @Override
@@ -136,6 +116,18 @@ public class ChatController implements
     Platform.runLater(() -> addAndGetPrivateMessageTab(sender).onChatMessage(chatMessage));
   }
 
+  private AbstractChatTabController addAndGetPrivateMessageTab(String username) {
+    JavaFxUtil.assertApplicationThread();
+
+    if (!nameToChatTabController.containsKey(username)) {
+      PrivateChatTabController tab = applicationContext.getBean(PrivateChatTabController.class);
+      tab.setUsername(username);
+      addTab(username, tab);
+    }
+
+    return nameToChatTabController.get(username);
+  }
+
   public Node getRoot() {
     return chatRoot;
   }
@@ -148,7 +140,7 @@ public class ChatController implements
   @Override
   public void onChatUserLeftChannel(String username, String channelName) {
     if (userService.getUsername().equals(username)) {
-      chatsTabPane.getTabs().remove(nameToChatTabController.get(channelName));
+      chatsTabPane.getTabs().remove(nameToChatTabController.get(channelName).getRoot());
     }
   }
 

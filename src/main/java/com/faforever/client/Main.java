@@ -18,11 +18,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 public class Main extends Application {
 
-  public static void main(String[] args) {
-    PreferencesService.configureLogging();
-    launch(args);
-  }
-
   @Override
   public void start(Stage stage) throws Exception {
     Font.loadFont(Main.class.getResource("/font/fontawesome-webfont.ttf").toExternalForm(), 10);
@@ -42,5 +37,10 @@ public class Main extends Application {
   private void showLoginWindow(Stage stage, ApplicationContext context) {
     LoginController loginController = context.getBean(LoginController.class);
     loginController.display(stage);
+  }
+
+  public static void main(String[] args) {
+    PreferencesService.configureLogging();
+    launch(args);
   }
 }

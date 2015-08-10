@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.map.MapService;
@@ -100,37 +100,6 @@ public class GameTableController {
     accessColumn.setCellValueFactory(param -> param.getValue().accessProperty());
   }
 
-  private TableCell<GameInfoBean, RatingRange> ratingTableCell() {
-    return new TableCell<GameInfoBean, RatingRange>() {
-      @Override
-      protected void updateItem(RatingRange item, boolean empty) {
-        super.updateItem(item, empty);
-
-        if (empty || item == null) {
-          setText(null);
-          setGraphic(null);
-        } else {
-          if (item.min == null && item.max == null) {
-            setText("");
-            return;
-          }
-
-          if (item.min != null && item.max != null) {
-            setText(i18n.get("game.ratingFormat.minMax", item.min, item.max));
-            return;
-          }
-
-          if (item.min != null) {
-            setText(i18n.get("game.ratingFormat.minOnly", item.min));
-            return;
-          }
-
-          setText(i18n.get("game.ratingFormat.maxOnly", item.max));
-        }
-      }
-    };
-  }
-
   @NotNull
   private TableRow<GameInfoBean> gamesRowFactory() {
     TableRow<GameInfoBean> row = new TableRow<>();
@@ -143,6 +112,36 @@ public class GameTableController {
     return row;
   }
 
+  private TableCell<GameInfoBean, RatingRange> ratingTableCell() {
+    return new TableCell<GameInfoBean, RatingRange>() {
+      @Override
+      protected void updateItem(RatingRange item, boolean empty) {
+        super.updateItem(item, empty);
+
+        if (empty || item == null) {
+          setText(null);
+          setGraphic(null);
+        } else {
+          if (item.getMin() == null && item.getMax() == null) {
+            setText("");
+            return;
+          }
+
+          if (item.getMin() != null && item.getMax() != null) {
+            setText(i18n.get("game.ratingFormat.minMax", item.getMin(), item.getMax()));
+            return;
+          }
+
+          if (item.getMin() != null) {
+            setText(i18n.get("game.ratingFormat.minOnly", item.getMin()));
+            return;
+          }
+
+          setText(i18n.get("game.ratingFormat.maxOnly", item.getMax()));
+        }
+      }
+    };
+  }
 
   public Node getRoot() {
     return gamesTable;

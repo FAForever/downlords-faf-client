@@ -1,16 +1,25 @@
 package test;
 
-import javafx.animation.*;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Application;
-import javafx.beans.property.*;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.*;
 import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Label;
-import javafx.scene.effect.*;
-import javafx.scene.image.*;
+import javafx.scene.effect.BoxBlur;
+import javafx.scene.effect.Effect;
+import javafx.scene.effect.Glow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
@@ -61,6 +70,33 @@ public class Frosty extends Application {
     background.setViewport(viewport);
 
     return background;
+  }
+
+  // create a frosty pane from a background node.
+  private StackPane freeze(Node background, DoubleProperty y) {
+    Image frostImage = background.snapshot(
+        new SnapshotParameters(),
+        null
+    );
+    ImageView frost = new ImageView(frostImage);
+
+    Rectangle filler = new Rectangle(0, 0, W, H);
+    filler.setFill(Color.AZURE);
+
+    Pane frostPane = new Pane(frost);
+    frostPane.setEffect(frostEffect);
+
+    StackPane frostView = new StackPane(
+        filler,
+        new StackPane(frostPane)
+    );
+
+    Rectangle clipShape = new Rectangle(0, y.get(), W, H);
+    frostView.setClip(clipShape);
+
+    clipShape.yProperty().bind(y);
+
+    return frostView;
   }
 
   // create some content to be displayed on top of the frozen glass panel.
@@ -121,33 +157,6 @@ public class Frosty extends Application {
         content.setVisible(false);
       }
     });
-  }
-
-  // create a frosty pane from a background node.
-  private StackPane freeze(Node background, DoubleProperty y) {
-    Image frostImage = background.snapshot(
-        new SnapshotParameters(),
-        null
-    );
-    ImageView frost = new ImageView(frostImage);
-
-    Rectangle filler = new Rectangle(0, 0, W, H);
-    filler.setFill(Color.AZURE);
-
-    Pane frostPane = new Pane(frost);
-    frostPane.setEffect(frostEffect);
-
-    StackPane frostView = new StackPane(
-        filler,
-        new StackPane(frostPane)
-    );
-
-    Rectangle clipShape = new Rectangle(0, y.get(), W, H);
-    frostView.setClip(clipShape);
-
-    clipShape.yProperty().bind(y);
-
-    return frostView;
   }
 
   public static void main(String[] args) {

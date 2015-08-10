@@ -25,7 +25,7 @@ public final class ConcurrentUtil {
     return executeInBackground(task, new Callback<T>() {
       @Override
       public void success(T result) {
-
+        // NOOP
       }
 
       @Override
@@ -62,6 +62,7 @@ public final class ConcurrentUtil {
    *
    * @throws IllegalStateException of {@code onSucceeded} or {@code onFailed} is already specified
    */
+  @SuppressWarnings("unchecked")
   public static <T> void setCallbackOnTask(Task<T> task, Callback<T> callback) {
     if (callback == null) {
       return;

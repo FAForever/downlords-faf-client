@@ -1,6 +1,5 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.fxml.FxmlLoader;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;

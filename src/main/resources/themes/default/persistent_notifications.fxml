@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.text.*?>
-<?import java.lang.*?>
-<?import javafx.scene.layout.*?>
-
-<VBox fx:id="persistentNotificationsRoot" minHeight="20.0" minWidth="400.0" styleClass="persistent-notifications"
-      xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="persistentNotificationsRoot" minHeight="20.0" minWidth="400.0"
+      styleClass="persistent-notifications" xmlns="http://javafx.com/javafx/8.0.40"
       fx:controller="com.faforever.client.notification.PersistentNotificationsController">
   <children>
     <Label fx:id="noNotificationsLabel" styleClass="no-notifications" text="%notifications.empty"/>

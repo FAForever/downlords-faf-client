@@ -1,11 +1,11 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.audio.AudioController;
 import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.sound.SoundController;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
@@ -15,11 +15,8 @@ import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
 import javafx.application.Platform;
 import javafx.concurrent.Worker;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -34,7 +31,6 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
-import javafx.stage.Window;
 import netscape.javascript.JSObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -87,68 +83,52 @@ public abstract class AbstractChatTabController {
    */
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
-
-  private EventHandler<MouseEvent> MOVE_HANDLER = (MouseEvent event) -> {
-    lastMouseX = event.getScreenX();
-    lastMouseY = event.getScreenY();
-  };
-
   @Autowired
   UserService userService;
-
   @Autowired
   ChatService chatService;
-
   @Autowired
   HostService hostService;
-
   @Autowired
   PreferencesService preferencesService;
-
   @Autowired
   PlayerService playerService;
-
   @Autowired
-  SoundController soundController;
-
+  AudioController audioController;
   @Autowired
   TimeService timeService;
-
   @Autowired
   PlayerInfoTooltipController playerInfoTooltipController;
-
   @Autowired
   I18n i18n;
-
   @Autowired
   ImageUploadService imageUploadService;
-
   @Autowired
   UrlPreviewResolver urlPreviewResolver;
-
   private boolean isChatReady;
   private WebEngine engine;
   private List<ChatMessage> waitingMessages;
-
   /**
    * Maps a user name to a css style class.
    */
   private Map<String, String> userToCssStyle;
   private double lastMouseX;
   private double lastMouseY;
-
+  private final EventHandler<MouseEvent> moveHandler = (MouseEvent event) -> {
+    lastMouseX = event.getScreenX();
+    lastMouseY = event.getScreenY();
+  };
   /**
    * Either a channel like "#aeolus" or a user like "Visionik".
    */
   private String receiver;
-  private String fxmlFile;
 
   /**
    * Stores possible values for autocompletion (when strted typing a name, then pressing TAB). This value needs to be
    * set to {@code null} after the message has been sent or the caret has been moved in order to restart the
    * autocompletion on next TAB press.
    */
-  private ArrayList<String> possibleAutoCompletions;
+  private List<String> possibleAutoCompletions;
   private int nextAutoCompleteIndex;
   private String autoCompletePartialName;
   private Pattern mentionPattern;
@@ -175,83 +155,11 @@ public abstract class AbstractChatTabController {
     addImagePasteListener();
   }
 
-  private void addImagePasteListener() {
-    TextInputControl messageTextField = getMessageTextField();
-    messageTextField.setOnKeyReleased(event -> {
-      if ((event.getCode() == KeyCode.V && event.isControlDown() || event.getCode() == KeyCode.INSERT && event.isShiftDown())
-          && Clipboard.getSystemClipboard().hasImage()) {
-        pasteImage();
-      }
-    });
-  }
-
-  private void pasteImage() {
-    TextInputControl messageTextField = getMessageTextField();
-    int currentCaretPosition = messageTextField.getCaretPosition();
-
-    messageTextField.setDisable(true);
-
-    Clipboard clipboard = Clipboard.getSystemClipboard();
-    Image image = clipboard.getImage();
-
-    imageUploadService.uploadImageInBackground(image, new Callback<String>() {
-      @Override
-      public void success(String url) {
-        messageTextField.insertText(currentCaretPosition, url);
-        messageTextField.setDisable(false);
-        messageTextField.requestFocus();
-      }
-
-      @Override
-      public void error(Throwable e) {
-        messageTextField.setDisable(false);
-      }
-    });
-  }
-
-  /**
-   * Registers listeners necessary to focus the message input field when changing to another message tab, changing from
-   * another tab to the "chat" tab or re-focusing the window.
-   */
-  private void addFocusListeners() {
-    getRoot().selectedProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
-        // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
-        // So let's schedule the focus to be executed afterwards
-        Platform.runLater(() -> getMessageTextField().requestFocus());
-      }
-    });
-
-    getRoot().tabPaneProperty().addListener((tabPane, oldTabPane, newTabPane) -> {
-      if (newTabPane == null) {
-        return;
-      }
-      newTabPane.sceneProperty().addListener((tabPane1, oldScene, newScene) -> {
-        newScene.getWindow().focusedProperty().addListener((window, windowFocusOld, windowFocusNew) -> {
-          if (newTabPane.isVisible()) {
-            getMessageTextField().requestFocus();
-          }
-        });
-      });
-      newTabPane.focusedProperty().addListener((focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
-        if (newTabPaneFocus) {
-          getMessageTextField().requestFocus();
-        }
-      });
-    });
-  }
-
-  private void resetAutoCompletion() {
-    possibleAutoCompletions = null;
-    nextAutoCompleteIndex = -1;
-    autoCompletePartialName = null;
-  }
-
-  private WebEngine initChatView() {
+  private void initChatView() {
     WebView messagesWebView = getMessagesWebView();
     JavaFxUtil.configureWebView(messagesWebView, preferencesService);
 
-    messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, MOVE_HANDLER);
+    messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
     messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
       preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
       preferencesService.storeInBackground();
@@ -277,11 +185,85 @@ public abstract class AbstractChatTabController {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
 
-    return engine;
+  /**
+   * Registers listeners necessary to focus the message input field when changing to another message tab, changing from
+   * another tab to the "chat" tab or re-focusing the window.
+   */
+  private void addFocusListeners() {
+    getRoot().selectedProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
+        // So let's schedule the focus to be executed afterwards
+        Platform.runLater(getMessageTextField()::requestFocus);
+      }
+    });
+
+    getRoot().tabPaneProperty().addListener((tabPane, oldTabPane, newTabPane) -> {
+      if (newTabPane == null) {
+        return;
+      }
+      newTabPane.sceneProperty().addListener((tabPane1, oldScene, newScene) -> {
+        newScene.getWindow().focusedProperty().addListener((window, windowFocusOld, windowFocusNew) -> {
+          if (newTabPane.isVisible()) {
+            getMessageTextField().requestFocus();
+          }
+        });
+      });
+      newTabPane.focusedProperty().addListener((focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
+        if (newTabPaneFocus) {
+          getMessageTextField().requestFocus();
+        }
+      });
+    });
+  }
+
+  private void addImagePasteListener() {
+    TextInputControl messageTextField = getMessageTextField();
+    messageTextField.setOnKeyReleased(event -> {
+      if ((event.getCode() == KeyCode.V && event.isControlDown() || event.getCode() == KeyCode.INSERT && event.isShiftDown())
+          && Clipboard.getSystemClipboard().hasImage()) {
+        pasteImage();
+      }
+    });
   }
 
   protected abstract WebView getMessagesWebView();
+
+  public abstract Tab getRoot();
+
+  protected abstract TextInputControl getMessageTextField();
+
+  private void pasteImage() {
+    TextInputControl messageTextField = getMessageTextField();
+    int currentCaretPosition = messageTextField.getCaretPosition();
+
+    messageTextField.setDisable(true);
+
+    Clipboard clipboard = Clipboard.getSystemClipboard();
+    Image image = clipboard.getImage();
+
+    imageUploadService.uploadImageInBackground(image, new Callback<String>() {
+      @Override
+      public void success(String url) {
+        messageTextField.insertText(currentCaretPosition, url);
+        messageTextField.setDisable(false);
+        messageTextField.requestFocus();
+      }
+
+      @Override
+      public void error(Throwable e) {
+        messageTextField.setDisable(false);
+      }
+    });
+  }
+
+  private void resetAutoCompletion() {
+    possibleAutoCompletions = null;
+    nextAutoCompleteIndex = -1;
+    autoCompletePartialName = null;
+  }
 
   /**
    * Called from JavaScript when user hovers over a user name.
@@ -319,7 +301,7 @@ public abstract class AbstractChatTabController {
   }
 
   /**
-   * Called from JavaScript when user hovers over a URL.
+   * Called from JavaScript when user hovers over an URL.
    */
   public void previewUrl(String urlString) {
     Preview preview = urlPreviewResolver.resolvePreview(urlString);
@@ -327,14 +309,17 @@ public abstract class AbstractChatTabController {
       return;
     }
 
-    linkPreviewTooltip = new Tooltip(preview.description);
+    linkPreviewTooltip = new Tooltip(preview.getDescription());
     linkPreviewTooltip.setAutoHide(true);
     linkPreviewTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
-    linkPreviewTooltip.setGraphic(preview.node);
+    linkPreviewTooltip.setGraphic(preview.getNode());
     linkPreviewTooltip.setContentDisplay(ContentDisplay.TOP);
     linkPreviewTooltip.show(getRoot().getTabPane(), lastMouseX + 20, lastMouseY);
   }
 
+  /**
+   * Called from JavaScript when user no longer hovers over an URL.
+   */
   public void hideUrlPreview() {
     if (linkPreviewTooltip != null) {
       linkPreviewTooltip.hide();
@@ -342,13 +327,8 @@ public abstract class AbstractChatTabController {
     }
   }
 
-  private Window getWindow(final Node node) {
-    final Scene scene = node == null ? null : node.getScene();
-    return scene == null ? null : scene.getWindow();
-  }
-
   @FXML
-  void onSendMessage(ActionEvent actionEvent) {
+  void onSendMessage() {
     TextInputControl messageTextField = getMessageTextField();
 
     String text = messageTextField.getText();
@@ -489,8 +469,6 @@ public abstract class AbstractChatTabController {
     });
   }
 
-  protected abstract TextInputControl getMessageTextField();
-
   public void onChatMessage(ChatMessage chatMessage) {
     if (!isChatReady) {
       waitingMessages.add(chatMessage);
@@ -546,7 +524,7 @@ public abstract class AbstractChatTabController {
       if (mentionPattern.matcher(text).find()) {
         text = highlightOwnUsername(text);
         if (!hasFocus()) {
-          soundController.playChatMentionSound();
+          audioController.playChatMentionSound();
         }
       }
 
@@ -613,6 +591,4 @@ public abstract class AbstractChatTabController {
         && tabPane.getScene().getWindow().isFocused();
 
   }
-
-  public abstract Tab getRoot();
 }

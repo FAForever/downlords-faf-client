@@ -8,13 +8,13 @@ public enum ReplayAction {
   private static final HashMap<String, ReplayAction> fromString;
 
   static {
-    fromString = new HashMap<String, ReplayAction>();
+    fromString = new HashMap<>();
     for (ReplayAction replayAction : values()) {
       fromString.put(replayAction.string, replayAction);
     }
   }
 
-  private String string;
+  private final String string;
 
   ReplayAction(String string) {
     this.string = string;

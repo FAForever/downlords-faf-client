@@ -1,11 +1,7 @@
 package com.faforever.client.game;
 
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
-import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
@@ -23,16 +19,16 @@ public class GamesTiledController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    @FXML
-    public FlowPane tiledFlowPane;
+  @FXML
+  public FlowPane tiledFlowPane;
 
-    @FXML
-    public ScrollPane tiledScrollPane;
+  @FXML
+  public ScrollPane tiledScrollPane;
 
-    @Autowired
-    ApplicationContext applicationContext;
+  @Autowired
+  ApplicationContext applicationContext;
 
-    private Map<Integer, Node> uidToGameCard;
+  private Map<Integer, Node> uidToGameCard;
 
   public void createTiledFlowPane(ObservableList<GameInfoBean> gameInfoBeans) {
     uidToGameCard = new HashMap<>();

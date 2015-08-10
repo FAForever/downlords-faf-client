@@ -16,7 +16,7 @@ public final class RatingUtil {
   }
 
   public static int getRating(PlayerInfo playerInfo) {
-    return getRating(playerInfo.ratingMean, playerInfo.ratingDeviation);
+    return getRating(playerInfo.getRatingMean(), playerInfo.getRatingDeviation());
   }
 
   private static int getRating(float ratingMean, float ratingDeviation) {

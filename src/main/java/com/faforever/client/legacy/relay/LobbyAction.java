@@ -23,11 +23,22 @@ public enum LobbyAction {
   PONG("pong");
 
   private static final Map<String, LobbyAction> fromString;
+
   static {
     fromString = new HashMap<>();
     for (LobbyAction action : values()) {
       fromString.put(action.string, action);
     }
+  }
+
+  private final String string;
+
+  LobbyAction(String string) {
+    this.string = string;
+  }
+
+  public String getString() {
+    return string;
   }
 
   public static LobbyAction fromString(String string) {
@@ -36,15 +47,5 @@ public enum LobbyAction {
       throw new IllegalArgumentException("Unknown relay server action: " + string);
     }
     return action;
-  }
-
-  private String string;
-
-  LobbyAction(String string) {
-    this.string = string;
-  }
-
-  public String getString() {
-    return string;
   }
 }

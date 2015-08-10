@@ -12,6 +12,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Set;
 
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -124,13 +125,13 @@ public class PlayerServiceImplTest {
 
     // TODO check if this mockito usage is correct
     instance.addFriend("player1");
-    verify(instance.lobbyServerAccessor).setFriends(eq(Arrays.asList("player1")));
+    verify(instance.lobbyServerAccessor).setFriends(eq(singletonList("player1")));
 
     instance.addFriend("player2");
     verify(instance.lobbyServerAccessor, times(2)).setFriends(eq(Arrays.asList("player1", "player2")));
 
     instance.removeFriend("player1");
-    verify(instance.lobbyServerAccessor, times(3)).setFriends(eq(Arrays.asList("player2")));
+    verify(instance.lobbyServerAccessor, times(3)).setFriends(eq(singletonList("player2")));
 
     assertFalse("Property 'friend' was not set to false", player1.getFriend());
     assertTrue("Property 'friend' was not set to true", player2.getFriend());

@@ -22,6 +22,22 @@ public class CreateLobbyServerMessage extends RelayServerMessage {
     setUnknownFlag(unknownFlag);
   }
 
+  public void setLobbyMode(LobbyMode lobbyMode) {
+    setValue(LOBBY_MODE_INDEX, lobbyMode.getMode());
+  }
+
+  public void setPort(int port) {
+    setValue(PORT_INDEX, port);
+  }
+
+  public void setUsername(String username) {
+    setValue(USERNAME_INDEX, username);
+  }
+
+  public void setUnknownFlag(int unknownFlag) {
+    setValue(UNKNOWN_FLAG_INDEX, unknownFlag);
+  }
+
   /**
    * Returns the UID of the hosting player.
    */
@@ -29,23 +45,7 @@ public class CreateLobbyServerMessage extends RelayServerMessage {
     return getInt(UID_INDEX);
   }
 
-  public void setPort(int port) {
-    setValue(PORT_INDEX, port);
-  }
-
-  public void setLobbyMode(LobbyMode lobbyMode) {
-    setValue(LOBBY_MODE_INDEX, lobbyMode.getMode());
-  }
-
-  public void setUsername(String username) {
-    setValue(USERNAME_INDEX, username);
-  }
-
   public void setUid(int uid) {
     setValue(UID_INDEX, uid);
-  }
-
-  public void setUnknownFlag(int unknownFlag) {
-    setValue(UNKNOWN_FLAG_INDEX, unknownFlag);
   }
 }

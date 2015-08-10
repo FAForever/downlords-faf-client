@@ -31,22 +31,22 @@ public class GameInfoBean {
   private static final Pattern BETWEEN_RATING_PATTERN = Pattern.compile("(\\d+)\\s?-\\s?(\\d+)");
   private static final Pattern RATING_PATTERN = Pattern.compile("([<>+~](?:\\d\\.?\\d?k|\\d{3,4})|(?:\\d\\.?\\d?k|\\d{3,4})[<>+]|(?:\\d\\.?\\d?k|\\d{1,4})\\s?-\\s?(?:\\d\\.?\\d?k|\\d{3,4}))");
 
-  private StringProperty host;
-  private StringProperty title;
-  private StringProperty mapName;
-  private StringProperty featuredMod;
-  private ObjectProperty<GameAccess> access;
-  private IntegerProperty uid;
-  private IntegerProperty numPlayers;
-  private IntegerProperty maxPlayers;
-  private IntegerProperty minRating;
-  private IntegerProperty maxRating;
-  private ObjectProperty<GameState> status;
-  private ObjectProperty<VictoryCondition> gameType;
-  private ListProperty<Boolean> options;
-  private MapProperty<String, String> simMods;
-  private MapProperty<String, List<String>> teams;
-  private MapProperty<String, Integer> featuredModVersions;
+  private final StringProperty host;
+  private final StringProperty title;
+  private final StringProperty mapName;
+  private final StringProperty featuredMod;
+  private final ObjectProperty<GameAccess> access;
+  private final IntegerProperty uid;
+  private final IntegerProperty numPlayers;
+  private final IntegerProperty maxPlayers;
+  private final IntegerProperty minRating;
+  private final IntegerProperty maxRating;
+  private final ObjectProperty<GameState> status;
+  private final ObjectProperty<VictoryCondition> gameType;
+  private final ListProperty<Boolean> options;
+  private final MapProperty<String, String> simMods;
+  private final MapProperty<String, List<String>> teams;
+  private final MapProperty<String, Integer> featuredModVersions;
 
   public GameInfoBean(GameInfo gameInfo) {
     this();
@@ -73,34 +73,34 @@ public class GameInfoBean {
   }
 
   public void updateFromGameInfo(GameInfo gameInfo) {
-    uid.set(gameInfo.uid);
-    host.set(gameInfo.host);
-    title.set(StringEscapeUtils.unescapeHtml4(gameInfo.title));
-    access.set(gameInfo.access);
-    mapName.set(gameInfo.mapname);
-    featuredMod.set(gameInfo.featuredMod);
-    numPlayers.setValue(gameInfo.numPlayers);
-    maxPlayers.setValue(gameInfo.maxPlayers);
-    gameType.set(gameInfo.gameType);
-    status.set(gameInfo.state);
+    uid.set(gameInfo.getUid());
+    host.set(gameInfo.getHost());
+    title.set(StringEscapeUtils.unescapeHtml4(gameInfo.getTitle()));
+    access.set(gameInfo.getAccess());
+    mapName.set(gameInfo.getMapname());
+    featuredMod.set(gameInfo.getFeaturedMod());
+    numPlayers.setValue(gameInfo.getNumPlayers());
+    maxPlayers.setValue(gameInfo.getMaxPlayers());
+    gameType.set(gameInfo.getGameType());
+    status.set(gameInfo.getState());
 
-    if (gameInfo.options != null) {
-      options.setAll(gameInfo.options);
+    if (gameInfo.getOptions() != null) {
+      options.setAll(gameInfo.getOptions());
     }
 
     simMods.clear();
-    if (gameInfo.simMods != null) {
-      simMods.putAll(gameInfo.simMods);
+    if (gameInfo.getSimMods() != null) {
+      simMods.putAll(gameInfo.getSimMods());
     }
 
     teams.clear();
-    if (gameInfo.teams != null) {
-      teams.putAll(gameInfo.teams);
+    if (gameInfo.getTeams() != null) {
+      teams.putAll(gameInfo.getTeams());
     }
 
     featuredModVersions.clear();
-    if (gameInfo.featuredModVersions != null) {
-      featuredModVersions.putAll(gameInfo.featuredModVersions);
+    if (gameInfo.getFeaturedModVersions() != null) {
+      featuredModVersions.putAll(gameInfo.getFeaturedModVersions());
     }
 
     // TODO as this can be removed as soon as we get server side support. Until then, let's be hacky
@@ -128,200 +128,196 @@ public class GameInfoBean {
     }
   }
 
-  public static Pattern getRatingPattern() {
-    return RATING_PATTERN;
-  }
-
   public String getHost() {
     return host.get();
-  }
-
-  public StringProperty hostProperty() {
-    return host;
   }
 
   public void setHost(String host) {
     this.host.set(host);
   }
 
-  public String getTitle() {
-    return title.get();
+  public StringProperty hostProperty() {
+    return host;
   }
 
-  public StringProperty titleProperty() {
-    return title;
+  public String getTitle() {
+    return title.get();
   }
 
   public void setTitle(String title) {
     this.title.set(title);
   }
 
-  public String getMapName() {
-    return mapName.get();
+  public StringProperty titleProperty() {
+    return title;
   }
 
-  public StringProperty mapNameProperty() {
-    return mapName;
+  public String getMapName() {
+    return mapName.get();
   }
 
   public void setMapName(String mapName) {
     this.mapName.set(mapName);
   }
 
-  public String getFeaturedMod() {
-    return featuredMod.get();
+  public StringProperty mapNameProperty() {
+    return mapName;
   }
 
-  public StringProperty featuredModProperty() {
-    return featuredMod;
+  public String getFeaturedMod() {
+    return featuredMod.get();
   }
 
   public void setFeaturedMod(String featuredMod) {
     this.featuredMod.set(featuredMod);
   }
 
-  public GameAccess getAccess() {
-    return access.get();
+  public StringProperty featuredModProperty() {
+    return featuredMod;
   }
 
-  public ObjectProperty<GameAccess> accessProperty() {
-    return access;
+  public GameAccess getAccess() {
+    return access.get();
   }
 
   public void setAccess(GameAccess access) {
     this.access.set(access);
   }
 
-  public int getUid() {
-    return uid.get();
+  public ObjectProperty<GameAccess> accessProperty() {
+    return access;
   }
 
-  public IntegerProperty uidProperty() {
-    return uid;
+  public int getUid() {
+    return uid.get();
   }
 
   public void setUid(int uid) {
     this.uid.set(uid);
   }
 
-  public int getNumPlayers() {
-    return numPlayers.get();
+  public IntegerProperty uidProperty() {
+    return uid;
   }
 
-  public IntegerProperty numPlayersProperty() {
-    return numPlayers;
+  public int getNumPlayers() {
+    return numPlayers.get();
   }
 
   public void setNumPlayers(int numPlayers) {
     this.numPlayers.set(numPlayers);
   }
 
-  public int getMaxPlayers() {
-    return maxPlayers.get();
+  public IntegerProperty numPlayersProperty() {
+    return numPlayers;
   }
 
-  public IntegerProperty maxPlayersProperty() {
-    return maxPlayers;
+  public int getMaxPlayers() {
+    return maxPlayers.get();
   }
 
   public void setMaxPlayers(int maxPlayers) {
     this.maxPlayers.set(maxPlayers);
   }
 
-  public int getMinRating() {
-    return minRating.get();
+  public IntegerProperty maxPlayersProperty() {
+    return maxPlayers;
   }
 
-  public IntegerProperty minRatingProperty() {
-    return minRating;
+  public int getMinRating() {
+    return minRating.get();
   }
 
   public void setMinRating(int minRating) {
     this.minRating.set(minRating);
   }
 
-  public int getMaxRating() {
-    return maxRating.get();
+  public IntegerProperty minRatingProperty() {
+    return minRating;
   }
 
-  public IntegerProperty maxRatingProperty() {
-    return maxRating;
+  public int getMaxRating() {
+    return maxRating.get();
   }
 
   public void setMaxRating(int maxRating) {
     this.maxRating.set(maxRating);
   }
 
-  public GameState getStatus() {
-    return status.get();
+  public IntegerProperty maxRatingProperty() {
+    return maxRating;
   }
 
-  public ObjectProperty<GameState> statusProperty() {
-    return status;
+  public GameState getStatus() {
+    return status.get();
   }
 
   public void setStatus(GameState status) {
     this.status.set(status);
   }
 
-  public VictoryCondition getGameType() {
-    return gameType.get();
+  public ObjectProperty<GameState> statusProperty() {
+    return status;
   }
 
-  public ObjectProperty<VictoryCondition> gameTypeProperty() {
-    return gameType;
+  public VictoryCondition getGameType() {
+    return gameType.get();
   }
 
   public void setGameType(VictoryCondition gameType) {
     this.gameType.set(gameType);
   }
 
-  public ObservableList<Boolean> getOptions() {
-    return options.get();
+  public ObjectProperty<VictoryCondition> gameTypeProperty() {
+    return gameType;
   }
 
-  public ListProperty<Boolean> optionsProperty() {
-    return options;
+  public ObservableList<Boolean> getOptions() {
+    return options.get();
   }
 
   public void setOptions(ObservableList<Boolean> options) {
     this.options.set(options);
   }
 
-  public ObservableMap<String, String> getSimMods() {
-    return simMods.get();
+  public ListProperty<Boolean> optionsProperty() {
+    return options;
   }
 
-  public MapProperty<String, String> simModsProperty() {
-    return simMods;
+  public ObservableMap<String, String> getSimMods() {
+    return simMods.get();
   }
 
   public void setSimMods(ObservableMap<String, String> simMods) {
     this.simMods.set(simMods);
   }
 
-  public ObservableMap<String, List<String>> getTeams() {
-    return teams.get();
+  public MapProperty<String, String> simModsProperty() {
+    return simMods;
   }
 
-  public MapProperty<String, List<String>> teamsProperty() {
-    return teams;
+  public ObservableMap<String, List<String>> getTeams() {
+    return teams.get();
   }
 
   public void setTeams(ObservableMap<String, List<String>> teams) {
     this.teams.set(teams);
   }
 
+  public MapProperty<String, List<String>> teamsProperty() {
+    return teams;
+  }
+
   public ObservableMap<String, Integer> getFeaturedModVersions() {
     return featuredModVersions.get();
   }
 
-  public MapProperty<String, Integer> featuredModVersionsProperty() {
-    return featuredModVersions;
-  }
-
   public void setFeaturedModVersions(ObservableMap<String, Integer> featuredModVersions) {
     this.featuredModVersions.set(featuredModVersions);
+  }
+
+  public MapProperty<String, Integer> featuredModVersionsProperty() {
+    return featuredModVersions;
   }
 
   @Override
@@ -333,5 +329,9 @@ public class GameInfoBean {
   public boolean equals(Object obj) {
     return obj instanceof GameInfoBean
         && uid.getValue().equals(((GameInfoBean) obj).uid.getValue());
+  }
+
+  public static Pattern getRatingPattern() {
+    return RATING_PATTERN;
   }
 }

@@ -7,7 +7,7 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 
 // TODO turn all type adapters into singleton
-public class RelayServerCommandTypeAdapter extends TypeAdapter<RelayServerCommand>{
+public class RelayServerCommandTypeAdapter extends TypeAdapter<RelayServerCommand> {
 
   @Override
   public void write(JsonWriter out, RelayServerCommand value) throws IOException {

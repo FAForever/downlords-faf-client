@@ -48,12 +48,11 @@ import static org.mockito.Mockito.when;
 
 public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
+  public static final int TIMEOUT = 10000;
+  public static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final String SESSION_ID = "1234";
   private static final int GAME_PORT = 6112;
-  public static final int TIMEOUT = 10000;
-  public static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
-
   private BlockingQueue<LobbyMessage> messagesReceivedByFafServer;
   private BlockingQueue<RelayServerMessage> messagesReceivedByGame;
   private boolean stopped;
@@ -103,7 +102,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     verify(instance.lobbyServerAccessor).addOnGameLaunchListener(captor.capture());
 
     GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
-    gameLaunchInfo.mod = FeaturedMod.DEFAULT_MOD.getString();
+    gameLaunchInfo.setMod(FeaturedMod.DEFAULT_MOD.getString());
     captor.getValue().onGameLaunchInfo(gameLaunchInfo);
 
     localRelayServerReadyLatch.await(TIMEOUT, TIMEOUT_UNIT);
@@ -112,6 +111,56 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     startFakeGameProcess();
     gameConnectedLatch.await(TIMEOUT, TIMEOUT_UNIT);
     assertTrue("Fake game did not connect within timeout", gameConnectedLatch.getCount() == 0);
+  }
+
+  private void startFakeFafRelayServer() throws IOException {
+    fafRelayServerSocket = new ServerSocket(0);
+    System.out.println("FAke server listening on " + fafRelayServerSocket.getLocalPort());
+
+    WaitForAsyncUtils.async(() -> {
+      Gson gson = new GsonBuilder()
+          .registerTypeAdapter(LobbyAction.class, new RelayServerActionDeserializer())
+          .create();
+
+      try (Socket socket = fafRelayServerSocket.accept()) {
+        localToServerSocket = socket;
+        QDataInputStream qDataInputStream = new QDataInputStream(new DataInputStream(socket.getInputStream()));
+        serverToRelayWriter = new ServerWriter(socket.getOutputStream());
+        serverToRelayWriter.registerMessageSerializer(new RelayServerMessageSerializer(), RelayServerMessage.class);
+
+        while (!stopped) {
+          qDataInputStream.skipBlockSize();
+          String json = qDataInputStream.readQString();
+
+          LobbyMessage lobbyMessage = gson.fromJson(json, LobbyMessage.class);
+
+          messagesReceivedByFafServer.add(lobbyMessage);
+        }
+      } catch (IOException e) {
+        System.out.println("Closing fake FAF relay server: " + e.getMessage());
+        throw new RuntimeException(e);
+      }
+    });
+  }
+
+  private void startFakeGameProcess() throws IOException {
+    gameToRelaySocket = new Socket(LOOPBACK_ADDRESS, instance.getPort());
+    this.gameToRelayOutputStream = new FaDataOutputStream(gameToRelaySocket.getOutputStream());
+    this.gameFromRelayInputStream = new FaDataInputStream(gameToRelaySocket.getInputStream());
+
+    WaitForAsyncUtils.async(() -> {
+      while (!stopped) {
+        try {
+          RelayServerCommand command = RelayServerCommand.fromString(gameFromRelayInputStream.readString());
+          RelayServerMessage message = new RelayServerMessage(command);
+          message.setArgs(gameFromRelayInputStream.readChunks());
+
+          messagesReceivedByGame.add(message);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
   }
 
   @After
@@ -173,6 +222,26 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     assertThat(lobbyMessage.getChunks().get(0), is("Idle"));
   }
 
+  private void verifyAuthenticateMessage() throws InterruptedException {
+    LobbyMessage authenticateMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(authenticateMessage.getAction(), is(LobbyAction.AUTHENTICATE));
+  }
+
+  /**
+   * Writes the specified message to the local relay server as if it was sent by the game.
+   */
+  private void sendFromGame(LobbyMessage message) throws IOException {
+    String action = message.getAction().getString();
+
+    int headerSize = action.length();
+    String headerField = action.replace("\t", "/t").replace("\n", "/n");
+
+    gameToRelayOutputStream.writeInt(headerSize);
+    gameToRelayOutputStream.writeString(headerField);
+    gameToRelayOutputStream.writeArgs(message.getChunks());
+    gameToRelayOutputStream.flush();
+  }
+
   @Test
   public void testCreateLobbyUponIdle() throws Exception {
     verifyAuthenticateMessage();
@@ -194,6 +263,20 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     RelayServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(relayMessage.getCommand(), is(RelayServerCommand.CREATE_LOBBY));
     assertThat(relayMessage.getArgs(), contains(0, ProxyUtils.translateToProxyPort(GAME_PORT), "junit", LobbyMode.DEFAULT_LOBBY.getMode(), 1));
+  }
+
+  private void enableP2pProxy() throws IOException, InterruptedException {
+    CountDownLatch p2pProxyEnabledLatch = new CountDownLatch(1);
+    instance.addOnP2pProxyEnabledChangeListener((observable, oldValue, newValue) -> p2pProxyEnabledLatch.countDown());
+    sendFromServer(new RelayServerMessage(RelayServerCommand.P2P_RECONNECT));
+    p2pProxyEnabledLatch.await();
+  }
+
+  /**
+   * Writes the specified message to the local relay server as if it was sent by the FAF server.
+   */
+  private void sendFromServer(RelayServerMessage relayServerMessage) {
+    serverToRelayWriter.write(relayServerMessage);
   }
 
   @Test
@@ -246,20 +329,6 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     verify(instance.proxy).setUidForPeer("37.58.123.2:6112", 4);
     assertThat(relayMessage.getCommand(), is(RelayServerCommand.CONNECT_TO_PEER));
     assertThat(relayMessage.getArgs(), contains("127.0.0.1:53214", "junit", 4));
-  }
-
-  private void enableP2pProxy() throws IOException, InterruptedException {
-    CountDownLatch p2pProxyEnabledLatch = new CountDownLatch(1);
-    instance.addOnP2pProxyEnabledChangeListener((observable, oldValue, newValue) -> {
-      p2pProxyEnabledLatch.countDown();
-    });
-    sendFromServer(new RelayServerMessage(RelayServerCommand.P2P_RECONNECT));
-    p2pProxyEnabledLatch.await();
-  }
-
-  private void verifyAuthenticateMessage() throws InterruptedException {
-    LobbyMessage authenticateMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(authenticateMessage.getAction(), is(LobbyAction.AUTHENTICATE));
   }
 
   @Test
@@ -423,9 +492,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     verifyAuthenticateMessage();
 
     CountDownLatch latch = new CountDownLatch(1);
-    instance.addOnP2pProxyEnabledChangeListener((observable, oldValue, newValue) -> {
-      latch.countDown();
-    });
+    instance.addOnP2pProxyEnabledChangeListener((observable, oldValue, newValue) -> latch.countDown());
 
     RelayServerMessage relayServerMessage = new RelayServerMessage(RelayServerCommand.P2P_RECONNECT);
     sendFromServer(relayServerMessage);
@@ -530,77 +597,5 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(lobbyMessage.getAction(), is(LobbyAction.BOTTLENECK_CLEARED));
     verify(instance.proxy).setBottleneck(false);
-  }
-
-  /**
-   * Writes the specified message to the local relay server as if it was sent by the game.
-   */
-  private void sendFromGame(LobbyMessage message) throws IOException {
-    String action = message.getAction().getString();
-
-    int headerSize = action.length();
-    String headerField = action.replace("\t", "/t").replace("\n", "/n");
-
-    gameToRelayOutputStream.writeInt(headerSize);
-    gameToRelayOutputStream.writeString(headerField);
-    gameToRelayOutputStream.writeArgs(message.getChunks());
-    gameToRelayOutputStream.flush();
-  }
-
-  /**
-   * Writes the specified message to the local relay server as if it was sent by the FAF server.
-   */
-  private void sendFromServer(RelayServerMessage relayServerMessage) throws IOException {
-    serverToRelayWriter.write(relayServerMessage);
-  }
-
-  private void startFakeGameProcess() throws IOException {
-    gameToRelaySocket = new Socket(LOOPBACK_ADDRESS, instance.getPort());
-    this.gameToRelayOutputStream = new FaDataOutputStream(gameToRelaySocket.getOutputStream());
-    this.gameFromRelayInputStream = new FaDataInputStream(gameToRelaySocket.getInputStream());
-
-    WaitForAsyncUtils.async(() -> {
-      while (!stopped) {
-        try {
-          RelayServerCommand command = RelayServerCommand.fromString(gameFromRelayInputStream.readString());
-          RelayServerMessage message = new RelayServerMessage(command);
-          message.setArgs(gameFromRelayInputStream.readChunks());
-
-          messagesReceivedByGame.add(message);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    });
-  }
-
-  private void startFakeFafRelayServer() throws IOException {
-    fafRelayServerSocket = new ServerSocket(0);
-    System.out.println("FAke server listening on " + fafRelayServerSocket.getLocalPort());
-
-    WaitForAsyncUtils.async(() -> {
-      Gson gson = new GsonBuilder()
-          .registerTypeAdapter(LobbyAction.class, new RelayServerActionDeserializer())
-          .create();
-
-      try (Socket socket = fafRelayServerSocket.accept()) {
-        localToServerSocket = socket;
-        QDataInputStream qDataInputStream = new QDataInputStream(new DataInputStream(socket.getInputStream()));
-        serverToRelayWriter = new ServerWriter(socket.getOutputStream());
-        serverToRelayWriter.registerMessageSerializer(new RelayServerMessageSerializer(), RelayServerMessage.class);
-
-        while (!stopped) {
-          qDataInputStream.skipBlockSize();
-          String json = qDataInputStream.readQString();
-
-          LobbyMessage lobbyMessage = gson.fromJson(json, LobbyMessage.class);
-
-          messagesReceivedByFafServer.add(lobbyMessage);
-        }
-      } catch (IOException e) {
-        System.out.println("Closing fake FAF relay server: " + e.getMessage());
-        throw new RuntimeException(e);
-      }
-    });
   }
 }

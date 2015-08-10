@@ -5,5 +5,14 @@ import com.faforever.client.stats.StatisticsObject;
 import java.util.List;
 
 public class LeagueResponse extends StatisticsObject {
-  public List<LeagueInfo> values;
+
+  private List<LeagueInfo> values;
+
+  public List<LeagueInfo> getValues() {
+    return values;
+  }
+
+  public void setValues(List<LeagueInfo> values) {
+    this.values = values;
+  }
 }

@@ -33,5 +33,5 @@ addons:
       description: "A high quality re-implementation of the Forged Alliance Forever client"
     notification_email: michel.jung89@gmail.com
     build_command_prepend: "./gradlew clean"
-    build_command:   "./gradlew build"
+    build_command:   "./gradlew sonarqube"
     branch_pattern: coverity_scan

@@ -1,7 +1,6 @@
 package com.faforever.client.config;
 
 import net.sf.ehcache.config.CacheConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
@@ -10,16 +9,18 @@ import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 @Configuration
 @EnableCaching
 public class EhCacheConfig implements CachingConfigurer {
 
-  final static String CACHE_POLICY = "LRU";
+  static final String CACHE_POLICY = "LRU";
 
-  @Autowired
-  Environment environment;
+  @Bean
+  @Override
+  public CacheManager cacheManager() {
+    return new EhCacheCacheManager(ehCacheManager());
+  }
 
   @Bean(destroyMethod = "shutdown")
   public net.sf.ehcache.CacheManager ehCacheManager() {
@@ -32,18 +33,6 @@ public class EhCacheConfig implements CachingConfigurer {
     return net.sf.ehcache.CacheManager.newInstance(config);
   }
 
-  @Bean
-  @Override
-  public CacheManager cacheManager() {
-    return new EhCacheCacheManager(ehCacheManager());
-  }
-
-  @Bean
-  @Override
-  public KeyGenerator keyGenerator() {
-    return new SimpleKeyGenerator();
-  }
-
   private CacheConfiguration cacheConfig(String name, long maxEntries, long timeToIdle) {
     CacheConfiguration config = new CacheConfiguration();
     config.setName(name);
@@ -51,5 +40,11 @@ public class EhCacheConfig implements CachingConfigurer {
     config.setTimeToIdleSeconds(timeToIdle);
     config.setMemoryStoreEvictionPolicy(CACHE_POLICY);
     return config;
+  }
+
+  @Bean
+  @Override
+  public KeyGenerator keyGenerator() {
+    return new SimpleKeyGenerator();
   }
 }

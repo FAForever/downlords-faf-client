@@ -1,48 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import javafx.scene.web.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
-
-<Tab fx:id="channelTabRoot" fx:controller="com.faforever.client.chat.ChannelTabController"
-     xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
+<Tab xmlns:fx="http://javafx.com/fxml/1" fx:id="channelTabRoot"
+     fx:controller="com.faforever.client.chat.ChannelTabController" xmlns="http://javafx.com/javafx/8.0.40">
   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0">
     <children>
       <SplitPane dividerPositions="0.9" focusTraversable="false" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
         <items>
-          <WebView fx:id="messagesWebView" blendMode="ADD" minHeight="100.0" minWidth="100.0" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-          <VBox maxHeight="1.7976931348623157E308" minWidth="250.0" prefWidth="250.0" SplitPane.resizableWithParent="false">
+          <WebView fx:id="messagesWebView" blendMode="ADD" minHeight="100.0" minWidth="100.0" prefHeight="-1.0"
+                   prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+          <VBox maxHeight="1.7976931348623157E308" minWidth="250.0" prefWidth="250.0"
+                SplitPane.resizableWithParent="false">
             <children>
-              <TextField fx:id="userSearchTextField" promptText="%chat.searchPrompt" />
+              <TextField fx:id="userSearchTextField" promptText="%chat.searchPrompt"/>
               <ScrollPane fitToWidth="true" focusTraversable="false" VBox.vgrow="ALWAYS">
                 <content>
                   <VBox fx:id="usersVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                     <children>
-                      <TitledPane focusTraversable="false" maxWidth="1.7976931348623157E308" text="%chat.category.moderators">
+                      <TitledPane focusTraversable="false" maxWidth="1.7976931348623157E308"
+                                  text="%chat.category.moderators">
                         <content>
-                          <VBox fx:id="moderatorsPane" />
+                          <VBox fx:id="moderatorsPane"/>
                         </content>
                       </TitledPane>
-                      <TitledPane focusTraversable="false" maxWidth="1.7976931348623157E308" text="%chat.category.friends">
+                      <TitledPane focusTraversable="false" maxWidth="1.7976931348623157E308"
+                                  text="%chat.category.friends">
                         <content>
-                          <VBox fx:id="friendsPane" />
+                          <VBox fx:id="friendsPane"/>
                         </content>
                       </TitledPane>
-                      <TitledPane focusTraversable="false" maxWidth="1.7976931348623157E308" text="%chat.category.others">
+                      <TitledPane focusTraversable="false" maxWidth="1.7976931348623157E308"
+                                  text="%chat.category.others">
                         <content>
-                          <VBox fx:id="othersPane" />
+                          <VBox fx:id="othersPane"/>
                         </content>
                       </TitledPane>
                       <TitledPane focusTraversable="false" maxWidth="1.7976931348623157E308" text="%chat.category.irc">
                         <content>
-                          <VBox fx:id="chatOnlyPane" />
+                          <VBox fx:id="chatOnlyPane"/>
                         </content>
                       </TitledPane>
                       <TitledPane focusTraversable="false" maxWidth="1.7976931348623157E308" text="%chat.category.foes">
                         <content>
-                          <VBox fx:id="foesPane" />
+                          <VBox fx:id="foesPane"/>
                         </content>
                       </TitledPane>
                     </children>
@@ -53,7 +61,8 @@
           </VBox>
         </items>
       </SplitPane>
-      <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage" onKeyPressed="#onKeyPressed" promptText="%chat.messagePrompt" />
+      <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage"
+                 onKeyPressed="#onKeyPressed" promptText="%chat.messagePrompt"/>
     </children>
   </VBox>
 </Tab>

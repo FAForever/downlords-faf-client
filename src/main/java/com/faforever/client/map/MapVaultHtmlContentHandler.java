@@ -25,17 +25,12 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
   /**
    * Extracts data out of "8 players, 10x10 km, v.25".
    */
-  private static Pattern MAP_MISC_PATTERN = Pattern.compile("(\\d+)\\s+players,\\s+(\\d+)x(\\d+)\\s+km,\\s+v.(\\d+)");
+  private static final Pattern MAP_MISC_PATTERN = Pattern.compile("(\\d+)\\s+players,\\s+(\\d+)x(\\d+)\\s+km,\\s+v.(\\d+)");
 
   private MapProperty currentProperty;
   private List<MapInfoBean> result;
   private MapInfoBean currentBean;
   private String currentValue;
-
-  @Override
-  protected List<MapInfoBean> getResult() {
-    return result;
-  }
 
   @Override
   public void startDocument() throws SAXException {
@@ -130,5 +125,10 @@ public class MapVaultHtmlContentHandler extends HtmlContentHandler<List<MapInfoB
   @Override
   public void characters(char[] ch, int start, int length) throws SAXException {
     currentValue = new String(ch, start, length);
+  }
+
+  @Override
+  protected List<MapInfoBean> getResult() {
+    return result;
   }
 }

@@ -2,7 +2,7 @@ package com.faforever.client.test;
 
 import com.faforever.client.config.TestServiceConfiguration;
 import com.faforever.client.config.TestUiConfiguration;
-import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.fx.FxmlLoader;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -22,14 +22,14 @@ public abstract class AbstractSpringJavaFxTest extends AbstractPlainJavaFxTest {
   @Autowired
   FxmlLoader fxmlLoader;
 
-  protected void initBean(Object bean, String name) {
-    applicationContext.autowireBean(bean);
-    applicationContext.initializeBean(bean, name);
-  }
-
   protected <T> T loadController(String fileName) {
     T controller = fxmlLoader.loadAndGetController(fileName);
     initBean(controller, "controller");
     return controller;
+  }
+
+  protected void initBean(Object bean, String name) {
+    applicationContext.autowireBean(bean);
+    applicationContext.initializeBean(bean, name);
   }
 }

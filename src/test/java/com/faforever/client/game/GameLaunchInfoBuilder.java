@@ -8,11 +8,14 @@ public class GameLaunchInfoBuilder {
 
   private final GameLaunchInfo gameLaunchInfo;
 
+  public GameLaunchInfoBuilder() {
+    gameLaunchInfo = new GameLaunchInfo();
+  }
+
   public GameLaunchInfoBuilder defaultValues() {
-    gameLaunchInfo.version = "1";
-    gameLaunchInfo.uid = 1;
-    gameLaunchInfo.mod = "mod";
-    gameLaunchInfo.args = Arrays.asList("/ratingcolor red", "/clan foo");
+    gameLaunchInfo.setUid(1);
+    gameLaunchInfo.setMod("mod");
+    gameLaunchInfo.setArgs(Arrays.asList("/ratingcolor red", "/clan foo"));
     return this;
   }
 
@@ -22,9 +25,5 @@ public class GameLaunchInfoBuilder {
 
   public static GameLaunchInfoBuilder create() {
     return new GameLaunchInfoBuilder();
-  }
-
-  public GameLaunchInfoBuilder() {
-    gameLaunchInfo = new GameLaunchInfo();
   }
 }

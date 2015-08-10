@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.image.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.layout.*?>
-<?import java.lang.*?>
-<?import javafx.scene.control.*?>
-
-<VBox fx:id="playerInfoTooltipRoot" styleClass="popup" xmlns="http://javafx.com/javafx/8.0.40"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.PlayerInfoTooltipController">
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="playerInfoTooltipRoot" styleClass="popup"
+      xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.chat.PlayerInfoTooltipController">
   <children>
     <Label fx:id="tooltipLabel" text="&lt;rating&gt;">
       <graphic>

@@ -47,13 +47,13 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
   private static final String GIT_PATCH_URL = "git://dummy/repo.git";
 
   @Rule
-  public TemporaryFolder reposDirectory = new TemporaryFolder();
+  public final TemporaryFolder reposDirectory = new TemporaryFolder();
 
   @Rule
-  public TemporaryFolder fafBinDirectory = new TemporaryFolder();
+  public final TemporaryFolder fafBinDirectory = new TemporaryFolder();
 
   @Rule
-  public TemporaryFolder faDirectory = new TemporaryFolder();
+  public final TemporaryFolder faDirectory = new TemporaryFolder();
 
   private GitRepositoryPatchService instance;
   private ForgedAlliancePrefs forgedAlliancePrefs;
@@ -90,6 +90,27 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
     instance.postConstruct();
   }
 
+  @SuppressWarnings("unchecked")
+  private void mockTaskService() throws Exception {
+    doAnswer((InvocationOnMock invocation) -> {
+      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(1, PrioritizedTask.class);
+      prioritizedTask.run();
+
+      Callback<Boolean> callback = invocation.getArgumentAt(2, Callback.class);
+
+      Future<Throwable> throwableFuture = WaitForAsyncUtils.asyncFx(prioritizedTask::getException);
+      Throwable throwable = throwableFuture.get(1, TimeUnit.SECONDS);
+      if (throwable != null) {
+        callback.error(throwable);
+      } else {
+        Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
+        callback.success(result.get(1, TimeUnit.SECONDS));
+      }
+
+      return null;
+    }).when(instance.taskService).submitTask(any(), any(), any());
+  }
+
   @Test
   public void testPatchInBackgroundFaDirectoryUnspecified() throws Exception {
     when(forgedAlliancePrefs.getPath()).thenReturn(null);
@@ -117,6 +138,27 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
     verifyNotification(Severity.INFO);
   }
 
+  private void prepareFaBinaries() throws IOException {
+    Path faBinDirectory = faDirectory.getRoot().toPath().resolve("bin");
+    Files.createDirectories(faBinDirectory);
+
+    TestResources.copyResource("/patch/GDFBinary.dll", faBinDirectory.resolve("GDFBinary.dll"));
+    TestResources.copyResource("/patch/testFile1.txt", faBinDirectory.resolve("testFile1.txt"));
+    TestResources.copyResource("/patch/testFile2.txt", faBinDirectory.resolve("testFile2.txt"));
+  }
+
+  private void prepareLocalPatchRepo() throws IOException {
+    TestResources.copyResource("/patch/retail.json", binaryPatchRepoDirectory.resolve(RETAIL.migrationDataFileName));
+    TestResources.copyResource("/patch/bsdiff4/040943c20d9e1f7de7f496b1202a600d", binaryPatchRepoDirectory.resolve("bsdiff4/040943c20d9e1f7de7f496b1202a600d"));
+  }
+
+  private void verifyNotification(Severity severity) {
+    ArgumentCaptor<PersistentNotification> captor = ArgumentCaptor.forClass(PersistentNotification.class);
+    verify(instance.notificationService).addNotification(captor.capture());
+    verifyNoMoreInteractions(instance.notificationService);
+    assertThat(captor.getValue().getSeverity(), is(severity));
+  }
+
   @Test
   public void testPatchInBackgroundThrowsException() throws Exception {
     doAnswer((InvocationOnMock invocation) -> {
@@ -138,11 +180,6 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
     instance.patchInBackground();
 
     verifyNotification(Severity.INFO);
-  }
-
-  private void prepareLocalPatchRepo() throws IOException {
-    TestResources.copyResource("/patch/retail.json", binaryPatchRepoDirectory.resolve(RETAIL.migrationDataFileName));
-    TestResources.copyResource("/patch/bsdiff4/040943c20d9e1f7de7f496b1202a600d", binaryPatchRepoDirectory.resolve("bsdiff4/040943c20d9e1f7de7f496b1202a600d"));
   }
 
   @Test
@@ -240,43 +277,6 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
     instance.checkForUpdatesInBackground();
 
     verifyNoMoreInteractions(instance.notificationService);
-  }
-
-  private void prepareFaBinaries() throws IOException {
-    Path faBinDirectory = faDirectory.getRoot().toPath().resolve("bin");
-    Files.createDirectories(faBinDirectory);
-
-    TestResources.copyResource("/patch/GDFBinary.dll", faBinDirectory.resolve("GDFBinary.dll"));
-    TestResources.copyResource("/patch/testFile1.txt", faBinDirectory.resolve("testFile1.txt"));
-    TestResources.copyResource("/patch/testFile2.txt", faBinDirectory.resolve("testFile2.txt"));
-  }
-
-  @SuppressWarnings("unchecked")
-  private void mockTaskService() throws Exception {
-    doAnswer((InvocationOnMock invocation) -> {
-      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(1, PrioritizedTask.class);
-      prioritizedTask.run();
-
-      Callback<Boolean> callback = invocation.getArgumentAt(2, Callback.class);
-
-      Future<Throwable> throwableFuture = WaitForAsyncUtils.asyncFx(prioritizedTask::getException);
-      Throwable throwable = throwableFuture.get(1, TimeUnit.SECONDS);
-      if (throwable != null) {
-        callback.error(throwable);
-      } else {
-        Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
-        callback.success(result.get(1, TimeUnit.SECONDS));
-      }
-
-      return null;
-    }).when(instance.taskService).submitTask(any(), any(), any());
-  }
-
-  private void verifyNotification(Severity severity) {
-    ArgumentCaptor<PersistentNotification> captor = ArgumentCaptor.forClass(PersistentNotification.class);
-    verify(instance.notificationService).addNotification(captor.capture());
-    verifyNoMoreInteractions(instance.notificationService);
-    assertThat(captor.getValue().getSeverity(), is(severity));
   }
 
   @Test

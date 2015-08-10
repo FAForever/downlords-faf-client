@@ -1,24 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
-
-<AnchorPane fx:id="windowRoot" minHeight="50.0" minWidth="100.0" onMouseClicked="#onMouseClicked" onMouseDragged="#onMouseDragged" onMouseExited="#onMouseExited" onMouseMoved="#onMouseMoved" onMousePressed="#onMousePressed" onMouseReleased="#onMouseReleased" styleClass="decorated-window" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.fx.WindowDecorator">
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="windowRoot" minHeight="50.0" minWidth="100.0"
+            onMouseClicked="#onMouseClicked" onMouseDragged="#onMouseDragged" onMouseExited="#onMouseExited"
+            onMouseMoved="#onMouseMoved" onMousePressed="#onMousePressed" onMouseReleased="#onMouseReleased"
+            styleClass="decorated-window" xmlns="http://javafx.com/javafx/8.0.40"
+            fx:controller="com.faforever.client.fx.WindowDecorator">
   <children>
-    <AnchorPane fx:id="contentPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+    <AnchorPane fx:id="contentPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
 
     <HBox fx:id="windowButtons" alignment="TOP_RIGHT" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <children>
 
-        <Button fx:id="minimizeButton" focusTraversable="false" onAction="#onMinimizeButtonClicked" styleClass="window-button" />
-        <Button fx:id="maximizeButton" focusTraversable="false" onAction="#onMaximizeButtonClicked" styleClass="window-button" />
-        <Button fx:id="restoreButton" focusTraversable="false" onAction="#onRestoreButtonClicked" styleClass="window-button" />
-        <Button fx:id="closeButton" focusTraversable="false" onAction="#onCloseButtonClicked" styleClass="window-button" />
+        <Button fx:id="minimizeButton" focusTraversable="false" onAction="#onMinimizeButtonClicked"
+                styleClass="window-button"/>
+        <Button fx:id="maximizeButton" focusTraversable="false" onAction="#onMaximizeButtonClicked"
+                styleClass="window-button"/>
+        <Button fx:id="restoreButton" focusTraversable="false" onAction="#onRestoreButtonClicked"
+                styleClass="window-button"/>
+        <Button fx:id="closeButton" focusTraversable="false" onAction="#onCloseButtonClicked"
+                styleClass="window-button"/>
 
       </children>
     </HBox>

@@ -1,5 +1,6 @@
 package com.faforever.client.config;
 
+import com.faforever.client.audio.AudioController;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.notification.NotificationService;
@@ -7,7 +8,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.sound.SoundController;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.mockito.Mockito.mock;
@@ -52,8 +53,8 @@ public class TestServiceConfiguration {
   }
 
   @Bean
-  SoundController soundService() {
-    return mock(SoundController.class);
+  AudioController soundService() {
+    return mock(AudioController.class);
   }
 
   @Bean
@@ -77,7 +78,9 @@ public class TestServiceConfiguration {
     when(preferences.getTheme()).thenReturn("default");
     when(preferences.getChat()).thenReturn(chatPrefs);
 
-    when(preferencesService.getPreferencesDirectory()).thenReturn(Files.createTempDirectory(Paths.get("build/tmp"), null));
+    Path tempDir = Paths.get("build/tmp");
+    Files.createDirectories(tempDir);
+    when(preferencesService.getPreferencesDirectory()).thenReturn(Files.createTempDirectory(tempDir, null));
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
     return preferencesService;

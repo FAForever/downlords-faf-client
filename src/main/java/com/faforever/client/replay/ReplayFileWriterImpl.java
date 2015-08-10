@@ -22,14 +22,11 @@ import static java.nio.file.StandardOpenOption.CREATE_NEW;
 public class ReplayFileWriterImpl implements ReplayFileWriter {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  private final Gson gson;
   @Autowired
   Environment environment;
-
   @Autowired
   PreferencesService preferencesService;
-
-  private final Gson gson;
 
   public ReplayFileWriterImpl() {
     gson = ReplayFiles.gson();
@@ -37,7 +34,7 @@ public class ReplayFileWriterImpl implements ReplayFileWriter {
 
   @Override
   public void writeReplayDataToFile(ByteArrayOutputStream replayData, LocalReplayInfo replayInfo) throws IOException {
-    String fileName = String.format(environment.getProperty("replayFileFormat"), replayInfo.uid, replayInfo.recorder);
+    String fileName = String.format(environment.getProperty("replayFileFormat"), replayInfo.getUid(), replayInfo.getRecorder());
     Path replayFile = preferencesService.getReplaysDirectory().resolve(fileName);
 
     logger.info("Writing replay file to {} ({} bytes)", replayFile, replayData.size());

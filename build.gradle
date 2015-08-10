@@ -1,3 +1,5 @@
+import com.install4j.gradle.Install4jTask
+
 buildscript {
   repositories {
     mavenCentral()
@@ -78,14 +80,14 @@ applicationDistribution.from(copyNativeLibs) {
 //  installDir = file(install4jHomeDir)
 //}
 
-task buildInstaller(type: com.install4j.gradle.Install4jTask) {
+task buildInstaller(type: Install4jTask) {
   dependsOn 'installDist'
 
   projectFile = file('downlords-faf-client.install4j')
   release = version
 }
 task wrapper(type: Wrapper) {
-  gradleVersion = '2.4'
+  gradleVersion = '2.5'
 }
 
 repositories {

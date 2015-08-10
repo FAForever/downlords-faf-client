@@ -11,7 +11,7 @@ public final class ByteCopier {
     void updateBytesWritten(long written, long total);
   }
 
-  private InputStream inputStream;
+  private final InputStream inputStream;
   private ByteCountListener byteCountListener;
   private int byteCountInterval;
   private int bufferSize;
@@ -24,10 +24,6 @@ public final class ByteCopier {
     // 4K
     bufferSize = 0x1000;
     byteCountInterval = 333;
-  }
-
-  public static ByteCopier from(InputStream inputStream) {
-    return new ByteCopier(inputStream);
   }
 
   public ByteCopier to(OutputStream outputStream) {
@@ -71,5 +67,9 @@ public final class ByteCopier {
         lastCountUpdate = now;
       }
     }
+  }
+
+  public static ByteCopier from(InputStream inputStream) {
+    return new ByteCopier(inputStream);
   }
 }

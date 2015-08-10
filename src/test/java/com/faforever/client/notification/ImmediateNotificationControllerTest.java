@@ -8,7 +8,7 @@ import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -40,9 +40,10 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
 
   @Test
   public void testSetNotificationWithActions() throws Exception {
-    ImmediateNotification notification = new ImmediateNotification("title", "text", Severity.INFO, Arrays.asList(
-        new Action("actionTitle")
-    ));
+    ImmediateNotification notification = new ImmediateNotification("title", "text", Severity.INFO,
+        Collections.singletonList(
+            new Action("actionTitle")
+        ));
     instance.setNotification(notification);
 
     assertEquals("title", instance.titleLabel.getText());

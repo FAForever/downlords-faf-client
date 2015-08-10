@@ -4,6 +4,7 @@ import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
+import com.faforever.client.leaderboard.LeaderboardParser;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.FoesMessage;
 import com.faforever.client.legacy.domain.FriendsMessage;
@@ -18,9 +19,9 @@ import com.faforever.client.legacy.domain.InitSessionMessage;
 import com.faforever.client.legacy.domain.JoinGameMessage;
 import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.legacy.domain.ServerCommand;
+import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
-import com.faforever.client.legacy.domain.ServerObject;
-import com.faforever.client.legacy.domain.ServerObjectType;
 import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.legacy.domain.SocialInfo;
 import com.faforever.client.legacy.domain.StatisticsType;
@@ -29,7 +30,6 @@ import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
-import com.faforever.client.legacy.ladder.LeaderParser;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -71,35 +71,28 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   private static final long RECONNECT_DELAY = 3000;
   private final Gson gson;
-
+  private final StringProperty sessionId;
+  private final Collection<OnGameInfoListener> onGameInfoListeners;
+  private final Collection<OnGameTypeInfoListener> onGameTypeInfoListeners;
+  private final Collection<OnJoinChannelsRequestListener> onJoinChannelsRequestListeners;
+  private final Collection<OnGameLaunchInfoListener> onGameLaunchListeners;
   @Autowired
   Environment environment;
-
   @Autowired
   PreferencesService preferencesService;
-
   @Autowired
-  LeaderParser leaderParser;
-
+  LeaderboardParser leaderboardParser;
   @Autowired
   TaskService taskService;
-
   @Autowired
   I18n i18n;
-
   private Task<Void> fafConnectionTask;
   private String username;
   private String password;
   private String localIp;
-  private StringProperty sessionId;
   private ServerWriter serverWriter;
   private Callback<SessionInfo> loginCallback;
   private Callback<GameLaunchInfo> gameLaunchCallback;
-  private Collection<OnGameInfoListener> onGameInfoListeners;
-  private Collection<OnGameTypeInfoListener> onGameTypeInfoListeners;
-  private Collection<OnJoinChannelsRequestListener> onJoinChannelsRequestListeners;
-  private Collection<OnGameLaunchInfoListener> onGameLaunchListeners;
-
   // Yes I know, those aren't lists. They will become if it's necessary
   private OnLobbyConnectingListener onLobbyConnectingListener;
   private OnFafDisconnectedListener onFafDisconnectedListener;
@@ -198,10 +191,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     executeInBackground(fafConnectionTask);
   }
 
-  private void writeToServer(Object object) {
-    serverWriter.write(object);
-  }
-
   protected ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
     ServerWriter serverWriter = new ServerWriter(outputStream);
     serverWriter.registerMessageSerializer(new ClientMessageSerializer(username, sessionId), ClientMessage.class);
@@ -210,45 +199,13 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     return serverWriter;
   }
 
-  private void onSessionInitiated(SessionInfo message) {
-    this.sessionId.set(message.session);
-    String uniqueId = UID.generate(sessionId.get(), preferencesService.getFafDataDirectory().resolve("uid.log"));
-
-    logger.info("FAF session initiated, session ID: {}", sessionId.get());
-
-    writeToServer(new LoginMessage(username, password, sessionId.get(), uniqueId, localIp, VERSION));
-  }
-
-  private void onServerPing() {
-    writeToServer(new PongMessage());
-  }
-
-  private void onFafLoginSucceeded(SessionInfo sessionInfo) {
-    logger.info("FAF login succeeded");
-
-    Platform.runLater(() -> {
-      if (loginCallback != null) {
-        loginCallback.success(sessionInfo);
-        loginCallback = null;
-      }
-    });
+  private void writeToServer(Object object) {
+    serverWriter.write(object);
   }
 
   @Override
   public void addOnGameTypeInfoListener(OnGameTypeInfoListener listener) {
     onGameTypeInfoListeners.add(listener);
-  }
-
-  private void onGameInfo(GameInfo gameInfo) {
-    for (OnGameInfoListener listener : onGameInfoListeners) {
-      Platform.runLater(() -> listener.onGameInfo(gameInfo));
-    }
-  }
-
-  private void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
-    for (OnGameTypeInfoListener listener : onGameTypeInfoListeners) {
-      Platform.runLater(() -> listener.onGameTypeInfo(gameTypeInfo));
-    }
   }
 
   @Override
@@ -261,18 +218,17 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     onPlayerInfoListener = listener;
   }
 
-
   @Override
   public void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchInfo> callback) {
     HostGameMessage hostGameMessage = new HostGameMessage(
-        StringUtils.isEmpty(newGameInfo.password) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
-        newGameInfo.map,
-        newGameInfo.title,
+        StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
+        newGameInfo.getMap(),
+        newGameInfo.getTitle(),
         preferencesService.getPreferences().getForgedAlliance().getPort(),
         new boolean[0],
-        newGameInfo.mod,
-        newGameInfo.password,
-        newGameInfo.version
+        newGameInfo.getMod(),
+        newGameInfo.getPassword(),
+        newGameInfo.getVersion()
     );
 
     gameLaunchCallback = callback;
@@ -298,11 +254,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
     gameLaunchCallback = callback;
     writeToServerInBackground(joinGameMessage);
-  }
-
-  private void onGameLaunchInfo(GameLaunchInfo gameLaunchInfo) {
-    onGameLaunchListeners.forEach(listener -> listener.onGameLaunchInfo(gameLaunchInfo));
-    gameLaunchCallback.success(gameLaunchInfo);
   }
 
   @Override
@@ -350,7 +301,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LeaderboardEntryBean>>(i18n.get("readLadderTask.title")) {
       @Override
       protected List<LeaderboardEntryBean> call() throws Exception {
-        return leaderParser.parseLadder();
+        return leaderboardParser.parseLadder();
       }
     }, callback);
   }
@@ -376,16 +327,16 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   public void onServerMessage(String message) throws IOException {
-    ServerMessageType serverMessageType = ServerMessageType.fromString(message);
-    if (serverMessageType != null) {
-      dispatchServerMessage(serverMessageType);
+    ServerCommand serverCommand = ServerCommand.fromString(message);
+    if (serverCommand != null) {
+      dispatchServerMessage(serverCommand);
     } else {
       parseServerObject(message);
     }
   }
 
-  private void dispatchServerMessage(ServerMessageType serverMessageType) throws IOException {
-    switch (serverMessageType) {
+  private void dispatchServerMessage(ServerCommand serverCommand) throws IOException {
+    switch (serverCommand) {
       case PING:
         logger.debug("Server PINGed");
         onServerPing();
@@ -411,28 +362,28 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
         break;
 
       default:
-        logger.warn("Unknown server response: {}", serverMessageType);
+        logger.warn("Unknown server response: {}", serverCommand);
     }
   }
 
   private void parseServerObject(String jsonString) {
     try {
-      ServerObject serverObject = gson.fromJson(jsonString, ServerObject.class);
+      ServerMessage serverMessage = gson.fromJson(jsonString, ServerMessage.class);
 
-      ServerObjectType serverObjectType = ServerObjectType.fromString(serverObject.command);
+      ServerMessageType serverMessageType = serverMessage.getServerMessageType();
 
-      if (serverObjectType == null) {
+      if (serverMessageType == null) {
         logger.warn("Unknown server object: " + jsonString);
         return;
       }
 
-      switch (serverObjectType) {
+      switch (serverMessageType) {
         case WELCOME:
           SessionInfo sessionInfo = gson.fromJson(jsonString, SessionInfo.class);
-          if (sessionInfo.session != null) {
+          if (sessionInfo.getSession() != null) {
             onSessionInitiated(sessionInfo);
-          } else if (sessionInfo.email != null) {
-            sessionInfo.session = sessionId.get();
+          } else if (sessionInfo.getEmail() != null) {
+            sessionInfo.setSession(sessionId.get());
             onFafLoginSucceeded(sessionInfo);
           }
           break;
@@ -470,20 +421,61 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           dispatchSocialInfo(socialInfo);
           break;
         default:
-          logger.warn("Missing case for server object type: " + serverObjectType);
+          logger.warn("Missing case for server object type: " + serverMessageType);
       }
     } catch (JsonSyntaxException e) {
       logger.warn("Could not deserialize message: " + jsonString, e);
     }
   }
 
+  private void onServerPing() {
+    writeToServer(new PongMessage());
+  }
+
+  private void onSessionInitiated(SessionInfo message) {
+    this.sessionId.set(message.getSession());
+    String uniqueId = UID.generate(sessionId.get(), preferencesService.getFafDataDirectory().resolve("uid.log"));
+
+    logger.info("FAF session initiated, session ID: {}", sessionId.get());
+
+    writeToServer(new LoginMessage(username, password, sessionId.get(), uniqueId, localIp, VERSION));
+  }
+
+  private void onFafLoginSucceeded(SessionInfo sessionInfo) {
+    logger.info("FAF login succeeded");
+
+    Platform.runLater(() -> {
+      if (loginCallback != null) {
+        loginCallback.success(sessionInfo);
+        loginCallback = null;
+      }
+    });
+  }
+
+  private void onGameInfo(GameInfo gameInfo) {
+    for (OnGameInfoListener listener : onGameInfoListeners) {
+      Platform.runLater(() -> listener.onGameInfo(gameInfo));
+    }
+  }
+
+  private void onGameLaunchInfo(GameLaunchInfo gameLaunchInfo) {
+    onGameLaunchListeners.forEach(listener -> listener.onGameLaunchInfo(gameLaunchInfo));
+    gameLaunchCallback.success(gameLaunchInfo);
+  }
+
+  private void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
+    for (OnGameTypeInfoListener listener : onGameTypeInfoListeners) {
+      Platform.runLater(() -> listener.onGameTypeInfo(gameTypeInfo));
+    }
+  }
+
   private void dispatchSocialInfo(SocialInfo socialInfo) {
-    if (socialInfo.friends != null) {
-      onFriendListListener.onFriendList(socialInfo.friends);
-    } else if (socialInfo.foes != null) {
-      onFoeListListener.onFoeList(socialInfo.foes);
-    } else if (socialInfo.autojoin != null) {
-      onJoinChannelsRequestListeners.forEach(listener -> listener.onJoinChannelsRequest(socialInfo.autojoin));
+    if (socialInfo.getFriends() != null) {
+      onFriendListListener.onFriendList(socialInfo.getFriends());
+    } else if (socialInfo.getFoes() != null) {
+      onFoeListListener.onFoeList(socialInfo.getFoes());
+    } else if (socialInfo.getAutoJoin() != null) {
+      onJoinChannelsRequestListeners.forEach(listener -> listener.onJoinChannelsRequest(socialInfo.getAutoJoin()));
     }
   }
 }

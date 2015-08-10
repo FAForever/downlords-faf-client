@@ -113,7 +113,7 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public MapInfoBean getMapInfoBeanFromString(String mapName){
+  public MapInfoBean getMapInfoBeanFromString(String mapName) {
     logger.debug("Trying to return {} mapInfoBean locally", mapName);
     for (MapInfoBean mapInfoBean : getLocalMaps()) {
       if (mapName.equalsIgnoreCase(mapInfoBean.getName())) {

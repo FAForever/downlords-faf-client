@@ -12,7 +12,7 @@ public class PersistentNotification implements Comparable<PersistentNotification
 
   private final String text;
   private final Severity severity;
-  private List<Action> actions;
+  private final List<Action> actions;
 
   public PersistentNotification(String text, Severity severity) {
     this(text, severity, null);

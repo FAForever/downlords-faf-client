@@ -25,58 +25,40 @@ import java.lang.invoke.MethodHandles;
 public class GameCardController {
 
   private static final long POPUP_DELAY = 1000;
-
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @FXML
   Label modsPrefix;
-
   @FXML
   Label gameTypePrefix;
-
   @FXML
   ImageView mapImageCornerView;
-
   @FXML
   Label gameType;
-
   @FXML
   Node gameCardRoot;
-
   @FXML
   Label gameMapLabel;
-
   @FXML
   Label gameTitleLabel;
-
   @FXML
   Label numberOfPlayersLabel;
-
   @FXML
   Label hosterLabel;
-
   @FXML
   Label modsLabel;
-
   @FXML
   ImageView mapImageView;
-
   @Autowired
   MapService mapService;
-
   @Autowired
   I18n i18n;
-
   @Autowired
   Environment environment;
-
   @Autowired
   ApplicationContext applicationContext;
-
   @Autowired
   GamesController gamesController;
-
   private GameInfoBean gameInfoBean;
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   //FIXME change name of cards to tiles
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
@@ -87,7 +69,7 @@ public class GameCardController {
       gameType.setText("");
     } else {
       gameType.setText(gameInfoBean.getFeaturedMod());
-      if(!gameType.getText().isEmpty()){
+      if (!gameType.getText().isEmpty()) {
         gameTypePrefix.setVisible(true);
       }
     }
@@ -108,9 +90,7 @@ public class GameCardController {
     }));
 
     displaySimMods(gameInfoBean.getSimMods());
-    gameInfoBean.getSimMods().addListener((MapChangeListener<String, String>) change -> {
-      displaySimMods(change.getMap());
-    });
+    gameInfoBean.getSimMods().addListener((MapChangeListener<String, String>) change -> displaySimMods(change.getMap()));
 
     Image image = mapService.loadSmallPreview(gameInfoBean.getMapName());
     mapImageView.setImage(image);
@@ -119,7 +99,7 @@ public class GameCardController {
       mapImageView.setImage(newImage);
     });
 
-    if(gameInfoBean.getAccess() == GameAccess.PASSWORD){
+    if (gameInfoBean.getAccess() == GameAccess.PASSWORD) {
       Image lockImage = new Image("/images/private_game.png");
       mapImageCornerView.setImage(lockImage);
     }
@@ -132,20 +112,20 @@ public class GameCardController {
     Tooltip.install(gameCardRoot, tooltip);
   }
 
+  private void displaySimMods(ObservableMap<? extends String, ? extends String> simMods) {
+    String stringSimMods = Joiner.on(i18n.get("textSeparator")).join(simMods.values());
+    modsLabel.setText(stringSimMods);
+    if (!modsLabel.getText().isEmpty()) {
+      modsPrefix.setVisible(true);
+    }
+  }
+
   @FXML
   void onClick(MouseEvent mouseEvent) {
     gamesController.displayGameDetail(gameInfoBean);
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
       mouseEvent.consume();
       gamesController.onJoinGame(gameInfoBean, null, mouseEvent.getScreenX(), mouseEvent.getScreenY());
-    }
-  }
-
-  private void displaySimMods(ObservableMap<? extends String, ? extends String> simMods) {
-    String stringSimMods = Joiner.on(i18n.get("textSeparator")).join(simMods.values());
-    modsLabel.setText(stringSimMods);
-    if(!modsLabel.getText().isEmpty()){
-      modsPrefix.setVisible(true);
     }
   }
 
