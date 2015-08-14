@@ -309,14 +309,16 @@ public class GamesController {
     MapPreviewLargeController mapPreviewLargeController = applicationContext.getBean(MapPreviewLargeController.class);
     MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultFromName(currentGameInfoBean.getTechnicalName());
     if (mapInfoBean == null) {
+      mapDetailPopup.hide();
       String title = i18n.get("mapPreview.loadFailure.title");
       String message = i18n.get("mapPreview.loadFailure.message");
       notificationService.addNotification(new ImmediateNotification(title, message, Severity.ERROR));
+    }else {
+      mapPreviewLargeController.createPreview(mapInfoBean);
+      sceneFactory.createScene(mapDetailPopup, mapPreviewLargeController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
+      mapDetailPopup.centerOnScreen();
+      mapDetailPopup.show();
     }
-    mapPreviewLargeController.createPreview(mapInfoBean);
-
-    sceneFactory.createScene(mapDetailPopup, mapPreviewLargeController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
-    mapDetailPopup.show();
   }
 
   private Stage getMapDetailPopup() {

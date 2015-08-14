@@ -122,6 +122,9 @@ public class LegacyMapVaultParser implements MapVaultParser {
           for (MapInfoBean mapInfoBean : mapInfoBeans) {
             if (mapInfoBean.getTechnicalName().equalsIgnoreCase(mapName)) {
               return mapInfoBean;
+              //FIXME temporary ugly fix until api
+            }else if(mapInfoBean.getDisplayName().equalsIgnoreCase(mapName)){
+
             }
           }
         }
