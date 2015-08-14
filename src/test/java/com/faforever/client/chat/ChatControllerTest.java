@@ -101,7 +101,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOpenPrivateMessageTabForUser() throws Exception {
     when(privateChatTabController.getRoot()).thenReturn(new Tab());
-    WaitForAsyncUtils.waitForAsyncFx(10, () -> instance.openPrivateMessageTabForUser("user"));
+    WaitForAsyncUtils.waitForAsyncFx(100, () -> instance.openPrivateMessageTabForUser("user"));
   }
 
   @Test
