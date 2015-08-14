@@ -102,7 +102,7 @@ public class MapServiceImpl implements MapService {
   public ObservableList<MapInfoBean> getLocalMaps() {
     ObservableList<MapInfoBean> maps = FXCollections.observableArrayList();
 
-    Path mapsDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
+    Path mapsDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
 
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(mapsDirectory)) {
       for (Path path : stream) {
@@ -184,7 +184,7 @@ public class MapServiceImpl implements MapService {
         HttpURLConnection urlConnection = (HttpURLConnection) new URL(mapUrl).openConnection();
         int bytesToRead = urlConnection.getContentLength();
 
-        Path targetDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
+        Path targetDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
 
         try (ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(urlConnection.getInputStream()))) {
           Unzipper.from(inputStream)
