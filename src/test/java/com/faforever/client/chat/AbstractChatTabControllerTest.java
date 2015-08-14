@@ -31,7 +31,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
@@ -96,7 +95,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Override
   public void start(Stage stage) throws Exception {
     super.start(stage);
-    MockitoAnnotations.initMocks(this);
 
     instance = new AbstractChatTabController() {
       private final Tab root = new Tab();
@@ -135,7 +133,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(timeService.asShortTime(any())).thenReturn("123");
     when(userService.getUsername()).thenReturn("junit");
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferencesService.getPreferencesDirectory()).thenReturn(tempDir.getRoot().toPath());
+    when(preferencesService.getCacheDirectory()).thenReturn(tempDir.getRoot().toPath());
     when(preferences.getTheme()).thenReturn("default");
     when(preferences.getChat()).thenReturn(chatPrefs);
 
@@ -274,7 +272,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     UrlPreviewResolver.Preview preview = mock(UrlPreviewResolver.Preview.class);
     when(urlPreviewResolver.resolvePreview(url)).thenReturn(preview);
 
-    WaitForAsyncUtils.waitForAsyncFx(100, () -> instance.previewUrl(url));
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.previewUrl(url));
 
     verify(urlPreviewResolver).resolvePreview(url);
     verify(preview).getNode();

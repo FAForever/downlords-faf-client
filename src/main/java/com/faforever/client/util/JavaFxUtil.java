@@ -146,7 +146,7 @@ public class JavaFxUtil {
     String theme = preferencesService.getPreferences().getTheme();
 
     WebEngine engine = webView.getEngine();
-    engine.setUserDataDirectory(preferencesService.getPreferencesDirectory().toFile());
+    engine.setUserDataDirectory(preferencesService.getCacheDirectory().toFile());
     try {
       engine.setUserStyleSheetLocation(new ClassPathResource(ThemeUtil.themeFile(theme, "style-webview.css")).getURL().toString());
     } catch (IOException e) {

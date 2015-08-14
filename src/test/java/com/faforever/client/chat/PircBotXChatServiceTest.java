@@ -17,7 +17,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.pircbotx.Channel;
 import org.pircbotx.Configuration;
@@ -135,8 +134,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
-
     instance = new PircBotXChatService();
     instance.lobbyServerAccessor = lobbyServerAccessor;
     instance.environment = environment;

@@ -16,7 +16,6 @@ import javafx.collections.MapChangeListener;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.util.Arrays;
@@ -46,8 +45,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
-
     instance = new GameServiceImpl();
     instance.lobbyServerAccessor = mock(LobbyServerAccessor.class);
     instance.mapService = mock(MapService.class);
