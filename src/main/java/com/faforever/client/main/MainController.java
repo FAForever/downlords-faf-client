@@ -183,7 +183,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   NotificationService notificationService;
 
   @Autowired
-  SettingsController settingsWindowController;
+  SettingsController settingsController;
 
   @Autowired
   ApplicationContext applicationContext;
@@ -206,7 +206,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Autowired
   PatchService patchService;
 
-  private Popup notificationsPopup;
+  Popup notificationsPopup;
 
   @FXML
   void initialize() {
@@ -504,7 +504,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     Stage stage = new Stage(StageStyle.UNDECORATED);
     stage.initOwner(mainRoot.getScene().getWindow());
 
-    Region root = settingsWindowController.getRoot();
+    Region root = settingsController.getRoot();
     sceneFactory.createScene(stage, root, true, CLOSE);
 
     stage.setTitle(i18n.get("settings.windowTitle"));

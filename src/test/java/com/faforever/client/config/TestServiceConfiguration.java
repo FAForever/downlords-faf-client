@@ -4,17 +4,27 @@ import com.faforever.client.audio.AudioController;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.game.GameService;
+import com.faforever.client.leaderboard.LeaderboardService;
+import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.patch.PatchService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.portcheck.PortCheckService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.WindowPrefs;
+import com.faforever.client.replay.ReplayService;
+import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.stats.StatisticsService;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
+import javafx.collections.FXCollections;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -39,6 +49,41 @@ public class TestServiceConfiguration {
   @Bean
   NotificationService notificationService() {
     return mock(NotificationService.class);
+  }
+
+  @Bean
+  LeaderboardService leaderboardService() {
+    return mock(LeaderboardService.class);
+  }
+
+  @Bean
+  ReplayService replayService() {
+    return mock(ReplayService.class);
+  }
+
+  @Bean
+  PortCheckService portCheckService() {
+    return mock(PortCheckService.class);
+  }
+
+  @Bean
+  LobbyService lobbyService() {
+    return mock(LobbyService.class);
+  }
+
+  @Bean
+  PatchService patchService() {
+    return mock(PatchService.class);
+  }
+
+  @Bean
+  ReportingService reportingService() {
+    return mock(ReportingService.class);
+  }
+
+  @Bean
+  TaskService taskService() {
+    return mock(TaskService.class);
   }
 
   @Bean
@@ -87,8 +132,16 @@ public class TestServiceConfiguration {
   }
 
   @Bean
+  StatisticsService statisticsService() {
+    return mock(StatisticsService.class);
+  }
+
+  @Bean
   PreferencesService preferencesService() throws IOException {
     PreferencesService preferencesService = mock(PreferencesService.class);
+
+    WindowPrefs windowPrefs = mock(WindowPrefs.class);
+    when(windowPrefs.getLastChildViews()).thenReturn(FXCollections.observableHashMap());
 
     ChatPrefs chatPrefs = mock(ChatPrefs.class);
     when(chatPrefs.getZoom()).thenReturn(1d);
@@ -97,6 +150,7 @@ public class TestServiceConfiguration {
     when(preferences.getTheme()).thenReturn("default");
     when(preferences.getChat()).thenReturn(chatPrefs);
     when(preferences.getForgedAlliance()).thenReturn(mock(ForgedAlliancePrefs.class));
+    when(preferences.getMainWindow()).thenReturn(windowPrefs);
 
     Path tempDir = Paths.get("build/tmp");
     Files.createDirectories(tempDir);

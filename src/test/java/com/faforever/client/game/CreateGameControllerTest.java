@@ -217,7 +217,7 @@ public class CreateGameControllerTest extends AbstractSpringJavaFxTest {
 
   @Test
   @Ignore("Not yet ready")
-  public void testInitModListEmpty() {
+  public void testInitModListEmpty() throws Exception {
     ArgumentCaptor<Callback<List<ModInfoBean>>> callbackCaptor = ArgumentCaptor.forClass(Callback.class);
     verify(modService).getInstalledModsInBackground(callbackCaptor.capture());
 
@@ -230,7 +230,7 @@ public class CreateGameControllerTest extends AbstractSpringJavaFxTest {
 
   @Test
   @Ignore("Not yet ready")
-  public void testInitModListPopulated() {
+  public void testInitModListPopulated() throws Exception {
     ArgumentCaptor<Callback<List<ModInfoBean>>> callbackCaptor = ArgumentCaptor.forClass(Callback.class);
     verify(modService).getInstalledModsInBackground(callbackCaptor.capture());
 
