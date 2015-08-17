@@ -5,10 +5,12 @@ import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.FloatProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleSetProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -32,6 +34,8 @@ public class PlayerInfoBean {
   private final BooleanProperty chatOnly;
   private final FloatProperty deviation;
   private final FloatProperty mean;
+
+  private final IntegerProperty gameUID;
 
   private final SimpleObjectProperty<GameStatus> gameStatus;
 
@@ -61,6 +65,7 @@ public class PlayerInfoBean {
     deviation = new SimpleFloatProperty();
     mean = new SimpleFloatProperty();
     gameStatus = new SimpleObjectProperty<>();
+    gameUID = new SimpleIntegerProperty();
   }
 
   public PlayerInfoBean(String username) {
@@ -234,6 +239,18 @@ public class PlayerInfoBean {
 
   public void setGameStatusFromGameState(GameState gameState){
     gameStatus.set(GameStatus.getFromGameState(gameState));
+  }
+
+  public int getGameUID() {
+    return gameUID.get();
+  }
+
+  public IntegerProperty gameUIDProperty() {
+    return gameUID;
+  }
+
+  public void setGameUID(int gameUID) {
+    this.gameUID.set(gameUID);
   }
 
   public void updateFromPlayerInfo(PlayerInfo playerInfo) {

@@ -165,7 +165,7 @@ public class ChatUserControl extends HBox {
 
   public void setGameStatus(GameStatus gameStatus) {
     try {
-    switch (gameStatus) {
+      switch (gameStatus) {
         case PLAYING:
           statusImageView.setImage(new Image(new ClassPathResource(path + "playing.png").getURL().toString(), true));
           break;
@@ -178,15 +178,8 @@ public class ChatUserControl extends HBox {
         default:
           statusImageView.setImage(new Image(new ClassPathResource(path + "none.png").getURL().toString(), true));
       }
-    }catch (IOException e) {
+    } catch (IOException e) {
     }
     statusImageView.setVisible(true);
-  }
-
-  @FXML
-  void onClick(MouseEvent mouseEvent) {
-    if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
-      mouseEvent.consume();
-    }
   }
 }

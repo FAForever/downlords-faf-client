@@ -1,7 +1,13 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.fx.SceneFactory;
+import com.faforever.client.game.GameInfoBean;
+import com.faforever.client.game.GameService;
+import com.faforever.client.legacy.GameStatus;
+import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.util.Callback;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -9,12 +15,21 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+
+import java.lang.invoke.MethodHandles;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 
 public class ChatUserContextMenuController {
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  @FXML
+  MenuItem joinGameItem;
 
   @FXML
   MenuItem addFriendItem;
@@ -58,6 +73,9 @@ public class ChatUserContextMenuController {
   @Autowired
   PlayerService playerService;
 
+  @Autowired
+  GameService gameService;
+
   private PlayerInfoBean playerInfoBean;
 
   public ContextMenu getContextMenu() {
@@ -71,6 +89,11 @@ public class ChatUserContextMenuController {
     removeFriendItem.visibleProperty().bind(playerInfoBean.friendProperty());
     addFoeItem.visibleProperty().bind(playerInfoBean.foeProperty().not());
     removeFoeItem.visibleProperty().bind(playerInfoBean.foeProperty());
+
+    joinGameItem.visibleProperty().bind(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.LOBBY).or(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.HOST)));
+    watchGameItem.visibleProperty().bind(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.PLAYING));
+    inviteItem.visibleProperty().bind(playerInfoBean.gameStatusProperty().isNotEqualTo(GameStatus.PLAYING));
+
   }
 
   @FXML
@@ -123,7 +146,7 @@ public class ChatUserContextMenuController {
 
   @FXML
   void onInviteToGame() {
-    // FIXME implement
+    GameInfoBean gameInfoBean = gameService.getByUid(playerInfoBean.getGameUID());
   }
 
   @FXML
@@ -134,5 +157,22 @@ public class ChatUserContextMenuController {
   @FXML
   void onBan() {
     // FIXME implement
+  }
+
+  @FXML
+  void onJoinGame() {
+    GameInfoBean gameInfoBean = gameService.getByUid(playerInfoBean.getGameUID());
+    gameService.joinGame(gameInfoBean,null,new Callback<Void>() {
+      @Override
+      public void success(Void result) {
+        // Cool.
+      }
+
+      @Override
+      public void error(Throwable e) {
+        // FIXME implement
+        logger.warn("Game could not be joined", e);
+      }
+    });
   }
 }

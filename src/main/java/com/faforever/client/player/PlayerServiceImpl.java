@@ -7,30 +7,27 @@ import com.faforever.client.legacy.GameStatus;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnFoeListListener;
 import com.faforever.client.legacy.OnFriendListListener;
-import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.OnPlayerInfoListener;
-import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiConsumer;
 
 public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, OnFoeListListener, OnFriendListListener {
 
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final ObservableMap<String, PlayerInfoBean> players;
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
@@ -69,12 +66,12 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
       while (change.next()) {
         for (GameInfoBean gameInfoBean : change.getRemoved()) {
           gameInfoBean.setStatus(GameState.CLOSED);
-          gameInfoBean.getTeams().forEach((team, players) -> updatePlayerGameStatuses(players, gameInfoBean));
+          gameInfoBean.getTeams().forEach((team, players) -> updatePlayerInfoBean(players, gameInfoBean));
         }
         for (GameInfoBean gameInfoBean : change.getAddedSubList()) {
-          gameInfoBean.getTeams().forEach((team, players) -> updatePlayerGameStatuses(players, gameInfoBean));
+          gameInfoBean.getTeams().forEach((team, players) -> updatePlayerInfoBean(players, gameInfoBean));
           gameInfoBean.statusProperty().addListener(change2 -> {
-            gameInfoBean.getTeams().forEach((team, updatedPlayer) -> updatePlayerGameStatuses(updatedPlayer, gameInfoBean));
+            gameInfoBean.getTeams().forEach((team, updatedPlayer) -> updatePlayerInfoBean(updatedPlayer, gameInfoBean));
           });
         }
       }
@@ -82,10 +79,15 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   }
 
   //FIXME ugly fix until host can be resolved from gamestate
-  private void updatePlayerGameStatuses(List<String> players, GameInfoBean gameInfoBean) {
+  private void updatePlayerInfoBean(List<String> players, GameInfoBean gameInfoBean) {
     for (String player : players) {
       PlayerInfoBean playerInfoBean = getPlayerForUsername(player);
+      if(playerInfoBean == null) {
+
+        continue;
+      }
       updatePlayerGameStatus(playerInfoBean, GameStatus.getFromGameState(gameInfoBean.getStatus()));
+      playerInfoBean.setGameUID(gameInfoBean.getUid());
     }
     if (GameStatus.getFromGameState(gameInfoBean.getStatus()) == GameStatus.LOBBY) {
       PlayerInfoBean host = getPlayerForUsername(gameInfoBean.getHost());
@@ -103,7 +105,10 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   @Override
   public PlayerInfoBean getPlayerForUsername(String username) {
-    return players.get(username);
+    PlayerInfoBean playerInfoBean = players.get(username);
+    if(playerInfoBean == null)
+      logger.error("Error returning playerInfoBean of {}", username);
+    return playerInfoBean;
   }
 
   @Override
