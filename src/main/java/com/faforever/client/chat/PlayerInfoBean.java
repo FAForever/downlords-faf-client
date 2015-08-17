@@ -1,11 +1,15 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.legacy.GameStatus;
+import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.FloatProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleSetProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -28,6 +32,8 @@ public class PlayerInfoBean {
   private final BooleanProperty chatOnly;
   private final FloatProperty deviation;
   private final FloatProperty mean;
+
+  private final SimpleObjectProperty<GameStatus> gameStatus;
 
   public PlayerInfoBean(PlayerInfo playerInfo) {
     this();
@@ -54,11 +60,12 @@ public class PlayerInfoBean {
     chatOnly = new SimpleBooleanProperty(true);
     deviation = new SimpleFloatProperty();
     mean = new SimpleFloatProperty();
+    gameStatus = new SimpleObjectProperty<GameStatus>();
   }
 
   public PlayerInfoBean(String username) {
     this();
-
+    this.gameStatus.set(GameStatus.NONE);
     this.username.set(username);
   }
 
@@ -211,6 +218,22 @@ public class PlayerInfoBean {
 
   public FloatProperty meanProperty() {
     return mean;
+  }
+
+  public GameStatus getGameStatus() {
+    return gameStatus.get();
+  }
+
+  public SimpleObjectProperty<GameStatus> gameStatusProperty() {
+    return gameStatus;
+  }
+
+  public void setGameStatus(GameStatus gameStatus) {
+    this.gameStatus.set(gameStatus);
+  }
+
+  public void setGameStatusFromGameState(GameState gameState){
+    gameStatus.set(GameStatus.getFromGameState(gameState));
   }
 
   public void updateFromPlayerInfo(PlayerInfo playerInfo) {

@@ -1,10 +1,12 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.fx.FxmlLoader;
+import com.faforever.client.legacy.GameStatus;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
@@ -13,9 +15,11 @@ import javafx.scene.layout.HBox;
 import javafx.stage.PopupWindow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 
 public class ChatUserControl extends HBox {
 
@@ -48,6 +52,9 @@ public class ChatUserControl extends HBox {
   @FXML
   Label clanLabel;
 
+  @FXML
+  ImageView statusImageView;
+
   private PlayerInfoBean playerInfoBean;
 
   @FXML
@@ -79,6 +86,7 @@ public class ChatUserControl extends HBox {
     configureCountryImageView();
     configureAvatarImageView();
     configureClanLabel();
+    configureGameStatusView();
 
     usernameLabel.setText(playerInfoBean.getUsername());
   }
@@ -106,6 +114,12 @@ public class ChatUserControl extends HBox {
     avatarTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
 
     Tooltip.install(avatarImageView, avatarTooltip);
+  }
+
+  private void configureGameStatusView() {
+    playerInfoBean.gameStatusProperty().addListener((observable, oldValue, newValue) -> {
+      Platform.runLater(() -> setGameStatus(newValue));
+    });
   }
 
   private void configureClanLabel() {
@@ -140,5 +154,27 @@ public class ChatUserControl extends HBox {
       clanLabel.setText(String.format(CLAN_TAG_FORMAT, newValue));
       clanLabel.setVisible(true);
     }
+  }
+
+  String path = "/images/";
+
+  public void setGameStatus(GameStatus gameStatus) {
+    try {
+    switch (gameStatus) {
+        case PLAYING:
+          statusImageView.setImage(new Image(new ClassPathResource(path + "playing.png").getURL().toString(), true));
+          break;
+        case HOST:
+          statusImageView.setImage(new Image(new ClassPathResource(path + "host.png").getURL().toString(), true));
+          break;
+        case LOBBY:
+          statusImageView.setImage(new Image(new ClassPathResource(path + "lobby.png").getURL().toString(), true));
+          break;
+        default:
+          statusImageView.setImage(new Image(new ClassPathResource(path + "none.png").getURL().toString(), true));
+      }
+    }catch (IOException e) {
+    }
+    statusImageView.setVisible(true);
   }
 }
