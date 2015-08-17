@@ -12,7 +12,9 @@ public enum GameStatus {
         return GameStatus.PLAYING;
       case "open":
         return GameStatus.LOBBY;
+      //unknown and closed
+      default:
+        return GameStatus.NONE;
     }
-    return GameStatus.NONE;
   }
 }

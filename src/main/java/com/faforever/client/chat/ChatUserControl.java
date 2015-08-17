@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.fx.FxmlLoader;
+import com.faforever.client.game.GameService;
 import com.faforever.client.legacy.GameStatus;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -39,6 +40,9 @@ public class ChatUserControl extends HBox {
 
   @Autowired
   ChatController chatController;
+
+  @Autowired
+  GameService gameService;
 
   @FXML
   ImageView countryImageView;
@@ -177,5 +181,12 @@ public class ChatUserControl extends HBox {
     }catch (IOException e) {
     }
     statusImageView.setVisible(true);
+  }
+
+  @FXML
+  void onClick(MouseEvent mouseEvent) {
+    if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
+      mouseEvent.consume();
+    }
   }
 }

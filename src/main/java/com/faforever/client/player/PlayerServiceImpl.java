@@ -84,10 +84,10 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   //FIXME ugly fix until host can be resolved from gamestate
   private void updatePlayerGameStatuses(List<String> players, GameInfoBean gameInfoBean) {
     for (String player : players) {
-        PlayerInfoBean playerInfoBean = getPlayerForUsername(player);
-        updatePlayerGameStatus(playerInfoBean, GameStatus.getFromGameState(gameInfoBean.getStatus()));
+      PlayerInfoBean playerInfoBean = getPlayerForUsername(player);
+      updatePlayerGameStatus(playerInfoBean, GameStatus.getFromGameState(gameInfoBean.getStatus()));
     }
-    if(GameStatus.getFromGameState(gameInfoBean.getStatus()) == GameStatus.LOBBY) {
+    if (GameStatus.getFromGameState(gameInfoBean.getStatus()) == GameStatus.LOBBY) {
       PlayerInfoBean host = getPlayerForUsername(gameInfoBean.getHost());
       updatePlayerGameStatus(host, GameStatus.HOST);
     }
@@ -96,10 +96,8 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   @Override
   public void updatePlayerGameStatus(PlayerInfoBean playerInfoBean, GameStatus gameStatus) {
     if (playerInfoBean != null && playerInfoBean.getGameStatus() != gameStatus) {
-      //remove once api is added
-      if (playerInfoBean.getGameStatus() != GameStatus.HOST) {
-        playerInfoBean.setGameStatus(gameStatus);
-      }
+      //FIXME until api, host is set twice or ugly code, I chose host set twice
+      playerInfoBean.setGameStatus(gameStatus);
     }
   }
 

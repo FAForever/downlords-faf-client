@@ -60,7 +60,7 @@ public class PlayerInfoBean {
     chatOnly = new SimpleBooleanProperty(true);
     deviation = new SimpleFloatProperty();
     mean = new SimpleFloatProperty();
-    gameStatus = new SimpleObjectProperty<GameStatus>();
+    gameStatus = new SimpleObjectProperty<>();
   }
 
   public PlayerInfoBean(String username) {
