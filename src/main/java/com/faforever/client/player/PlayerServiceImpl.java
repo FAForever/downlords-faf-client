@@ -67,7 +67,11 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     lobbyServerAccessor.setOnFriendListListener(this);
     gameService.addOnGameInfoBeanListener(change -> {
       while (change.next()) {
-        for (GameInfoBean gameInfoBean : change.getList()) {
+        for (GameInfoBean gameInfoBean : change.getRemoved()) {
+          gameInfoBean.setStatus(GameState.CLOSED);
+          gameInfoBean.getTeams().forEach((team, players) -> updatePlayerGameStatuses(players, gameInfoBean));
+        }
+        for (GameInfoBean gameInfoBean : change.getAddedSubList()) {
           gameInfoBean.getTeams().forEach((team, players) -> updatePlayerGameStatuses(players, gameInfoBean));
           gameInfoBean.statusProperty().addListener(change2 -> {
             gameInfoBean.getTeams().forEach((team, updatedPlayer) -> updatePlayerGameStatuses(updatedPlayer, gameInfoBean));
