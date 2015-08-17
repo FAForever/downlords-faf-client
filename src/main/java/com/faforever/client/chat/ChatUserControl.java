@@ -117,6 +117,7 @@ public class ChatUserControl extends HBox {
   }
 
   private void configureGameStatusView() {
+    setGameStatus(playerInfoBean.getGameStatus());
     playerInfoBean.gameStatusProperty().addListener((observable, oldValue, newValue) -> {
       Platform.runLater(() -> setGameStatus(newValue));
     });
