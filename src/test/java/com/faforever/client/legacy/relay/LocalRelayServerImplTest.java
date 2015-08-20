@@ -67,8 +67,8 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    messagesReceivedByFafServer = new ArrayBlockingQueue<>(100);
-    messagesReceivedByGame = new ArrayBlockingQueue<>(100);
+    messagesReceivedByFafServer = new ArrayBlockingQueue<>(10);
+    messagesReceivedByGame = new ArrayBlockingQueue<>(10);
 
     startFakeFafRelayServer();
 
@@ -115,7 +115,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
   private void startFakeFafRelayServer() throws IOException {
     fafRelayServerSocket = new ServerSocket(0);
-    System.out.println("FAke server listening on " + fafRelayServerSocket.getLocalPort());
+    System.out.println("Fake server listening on " + fafRelayServerSocket.getLocalPort());
 
     WaitForAsyncUtils.async(() -> {
       Gson gson = new GsonBuilder()

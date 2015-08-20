@@ -3,10 +3,10 @@ package com.faforever.client.legacy.domain;
 import java.util.Collection;
 import java.util.Collections;
 
-public abstract class ClientMessage implements SerializableMessage {
+public class ClientMessage implements SerializableMessage {
 
   private String action;
-  private String command;
+  private ClientMessageType command;
 
   public Collection<String> getStringsToMask() {
     return Collections.emptyList();
@@ -20,11 +20,11 @@ public abstract class ClientMessage implements SerializableMessage {
     this.action = action;
   }
 
-  public String getCommand() {
+  public ClientMessageType getCommand() {
     return command;
   }
 
-  public void setCommand(String command) {
+  public void setCommand(ClientMessageType command) {
     this.command = command;
   }
 }
