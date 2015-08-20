@@ -128,7 +128,7 @@ public class GamesController {
   private Stage mapDetailPopup;
 
   //TODO Implement into options menu
-  private boolean tilePaneSelected = false;
+  private boolean tiledPaneSelected = false;
   private boolean firstGeneratedPane = true;
   private GameInfoBean currentGameInfoBean;
 
@@ -163,19 +163,19 @@ public class GamesController {
     filteredItems = new FilteredList<>(gameService.getGameInfoBeans());
     filteredItems.setPredicate(OPEN_GAMES_PREDICATE);
 
-    onDetailsButtonPressed();
+    onTableButtonPressed();
   }
 
   @FXML
-  void onDetailsButtonPressed() {
-    if (tilePaneSelected || isFirstGeneratedPane()) {
+  void onTableButtonPressed() {
+    if (tiledPaneSelected || isFirstGeneratedPane()) {
       GameTableController gameTableController = applicationContext.getBean(GameTableController.class);
       gameTableController.initializeGameTable(filteredItems);
 
       Node root = gameTableController.getRoot();
       populateContainer(root);
       firstGeneratedPane = false;
-      tilePaneSelected = false;
+      tiledPaneSelected = false;
     }
   }
 
@@ -279,15 +279,15 @@ public class GamesController {
   }
 
   @FXML
-  void onTilesButtonPressed() {
-    if (!tilePaneSelected || isFirstGeneratedPane()) {
+  void onTileButtonPressed() {
+    if (!tiledPaneSelected || isFirstGeneratedPane()) {
       GameTiledController gameTiledController = applicationContext.getBean(GameTiledController.class);
       gameTiledController.createTiledFlowPane(filteredItems);
 
       Node root = gameTiledController.getRoot();
       populateContainer(root);
       firstGeneratedPane = false;
-      tilePaneSelected = true;
+      tiledPaneSelected = true;
     }
   }
 

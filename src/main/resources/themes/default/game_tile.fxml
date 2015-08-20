@@ -11,7 +11,7 @@
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="gameCardRoot" focusTraversable="true" maxHeight="-Infinity"
           maxWidth="-Infinity"
           minHeight="-Infinity" minWidth="-Infinity" onMouseClicked="#onClick"
-          styleClass="game-card-root" xmlns="http://javafx.com/javafx/8.0.40"
+          styleClass="game-tile-root" xmlns="http://javafx.com/javafx/8.0.40"
           fx:controller="com.faforever.client.game.GameCardController">
   <columnConstraints>
     <ColumnConstraints hgrow="NEVER" minWidth="115.0"/>
@@ -28,7 +28,7 @@
   </rowConstraints>
   <children>
     <Label fx:id="gameTitleLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-           styleClass="game-card-title" text="&lt;Game Title&gt;" GridPane.columnIndex="1"
+           styleClass="game-tile-title" text="&lt;Game Title&gt;" GridPane.columnIndex="1"
            GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="NEVER">
       <GridPane.margin>
         <Insets/>

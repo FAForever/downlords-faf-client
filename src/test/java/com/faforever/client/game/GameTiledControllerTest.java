@@ -26,7 +26,7 @@ public class GameTiledControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = loadController("games_tiled.fxml");
+    instance = loadController("game_tile_container.fxml");
     instance.applicationContext = applicationContext;
 
     when(applicationContext.getBean(GameCardController.class)).thenReturn(gameCardController);

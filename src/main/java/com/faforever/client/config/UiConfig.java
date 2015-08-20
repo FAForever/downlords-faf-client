@@ -169,7 +169,7 @@ public class UiConfig {
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   GameTiledController gamesTiledController() {
-    return loadController("games_tiled.fxml");
+    return loadController("game_tile_container.fxml");
   }
 
   @Bean
@@ -181,7 +181,7 @@ public class UiConfig {
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   GameCardController gameCardController() {
-    return loadController("game_card.fxml");
+    return loadController("game_tile.fxml");
   }
 
   @Bean
