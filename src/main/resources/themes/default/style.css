@@ -614,12 +614,12 @@
 }
 /***************** Game Card *****************/
 
-.game-card-root:hover,
-.game-card-root:focused {
+.game-tile-root:hover,
+.game-tile-root:focused {
   -fx-background-color: -fx-control-inner-background;
 }
 
-.game-card-root .label {
+.game-tile-root .label {
   -fx-font-size: 0.88em;
 }
 
@@ -628,22 +628,22 @@
   -fx-font-size: 1.5em;
 }
 
-.game-card-root .game-card-title {
+.game-tile-root .game-tile-title {
   -fx-font-weight: bold;
   -fx-font-size: 1.3em;
 }
 
-.game-card-root .featured-mod-prefix {
+.game-tile-root .featured-mod-prefix {
   -fx-text-fill: #F44336;
   -fx-font-style: italic;
 }
 
-.game-card-root .mods-prefix {
+.game-tile-root .mods-prefix {
   -fx-text-fill: #4CAF50;
   -fx-font-style: italic;
 }
 
-.game-card-root .prefix {
+.game-tile-root .prefix {
   -fx-text-fill: -fx-dark-text-color;
   -fx-font-style: italic;
 }

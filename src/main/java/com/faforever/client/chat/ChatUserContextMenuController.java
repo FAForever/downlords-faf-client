@@ -146,7 +146,7 @@ public class ChatUserContextMenuController {
 
   @FXML
   void onInviteToGame() {
-    GameInfoBean gameInfoBean = gameService.getByUid(playerInfoBean.getGameUID());
+    //FIXME implement
   }
 
   @FXML

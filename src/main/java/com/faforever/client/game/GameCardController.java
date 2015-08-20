@@ -59,7 +59,6 @@ public class GameCardController {
   GamesController gamesController;
   private GameInfoBean gameInfoBean;
 
-  //FIXME change name of cards to tiles
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
     this.gameInfoBean = gameInfoBean;
     gameTitleLabel.setText(gameInfoBean.getTitle());

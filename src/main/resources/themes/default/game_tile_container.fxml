@@ -3,7 +3,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.FlowPane?>
 <ScrollPane xmlns:fx="http://javafx.com/fxml/1" fx:id="tiledScrollPane" fitToWidth="true" hbarPolicy="NEVER"
-            styleClass="games-tiled" xmlns="http://javafx.com/javafx/8.0.40"
+            styleClass="game-tiled-container" xmlns="http://javafx.com/javafx/8.0.40"
             fx:controller="com.faforever.client.game.GameTiledController">
   <content>
     <FlowPane fx:id="tiledFlowPane" nodeOrientation="LEFT_TO_RIGHT" prefWrapLength="0.0" vgap="10.0"/>

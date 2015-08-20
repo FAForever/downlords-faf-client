@@ -83,7 +83,6 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     for (String player : players) {
       PlayerInfoBean playerInfoBean = getPlayerForUsername(player);
       if(playerInfoBean == null) {
-
         continue;
       }
       updatePlayerGameStatus(playerInfoBean, GameStatus.getFromGameState(gameInfoBean.getStatus()));
