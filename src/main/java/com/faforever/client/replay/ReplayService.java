@@ -15,5 +15,7 @@ public interface ReplayService {
 
   void runReplay(ReplayInfoBean item);
 
+  void runLiveReplay(Integer uid, String playerName) throws IOException;
+
   void runLiveReplay(URI uri) throws IOException;
 }

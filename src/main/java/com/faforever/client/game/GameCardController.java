@@ -72,9 +72,9 @@ public class GameCardController {
       }
     }
 
-    gameMapLabel.setText(gameInfoBean.getTechnicalName());
-    gameInfoBean.technicalNameProperty().addListener(((observable3, oldValue3, newValue3) -> {
-      gameMapLabel.setText(gameInfoBean.getTechnicalName());
+    gameMapLabel.setText(gameInfoBean.getMapTechnicalName());
+    gameInfoBean.mapTechnicalNameProperty().addListener(((observable3, oldValue3, newValue3) -> {
+      gameMapLabel.setText(gameInfoBean.getMapTechnicalName());
       numberOfPlayersLabel.setText(
           i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers())
       );
@@ -90,9 +90,9 @@ public class GameCardController {
     displaySimMods(gameInfoBean.getSimMods());
     gameInfoBean.getSimMods().addListener((MapChangeListener<String, String>) change -> displaySimMods(change.getMap()));
 
-    Image image = mapService.loadSmallPreview(gameInfoBean.getTechnicalName());
+    Image image = mapService.loadSmallPreview(gameInfoBean.getMapTechnicalName());
     mapImageView.setImage(image);
-    gameInfoBean.technicalNameProperty().addListener((observable, oldValue, newValue) -> {
+    gameInfoBean.mapTechnicalNameProperty().addListener((observable, oldValue, newValue) -> {
       Image newImage = mapService.loadSmallPreview(newValue);
       mapImageView.setImage(newImage);
     });

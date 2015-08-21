@@ -194,9 +194,9 @@ public class GamesController {
   public void displayGameDetail(GameInfoBean gameInfoBean) {
     currentGameInfoBean = gameInfoBean;
     gameTitleLabel.setText(gameInfoBean.getTitle());
-    mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getTechnicalName()));
+    mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapTechnicalName()));
 
-    gameInfoBean.technicalNameProperty().addListener((observable, oldValue, newValue) -> {
+    gameInfoBean.mapTechnicalNameProperty().addListener((observable, oldValue, newValue) -> {
       gameTitleLabel.setText(newValue);
       mapImageView.setImage(mapService.loadLargePreview(newValue));
     });
@@ -204,7 +204,7 @@ public class GamesController {
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     hosterLabel.textProperty().bind(gameInfoBean.hostProperty());
     gameModeLabel.textProperty().bind(gameInfoBean.featuredModProperty());
-    mapLabel.textProperty().bind(gameInfoBean.technicalNameProperty());
+    mapLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
     createTeams(gameInfoBean.getTeams());
   }
 
@@ -307,7 +307,7 @@ public class GamesController {
     }
     mapDetailPopup = getMapDetailPopup();
     MapPreviewLargeController mapPreviewLargeController = applicationContext.getBean(MapPreviewLargeController.class);
-    MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultFromName(currentGameInfoBean.getTechnicalName());
+    MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultFromName(currentGameInfoBean.getMapTechnicalName());
     if (mapInfoBean == null) {
       mapDetailPopup.hide();
       String title = i18n.get("mapPreview.loadFailure.title");

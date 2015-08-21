@@ -177,7 +177,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     updateGameIfNecessary(gameInfoBean.getFeaturedMod(), new Callback<Void>() {
       @Override
       public void success(Void result) {
-        downloadMapIfNecessary(gameInfoBean.getTechnicalName(), mapDownloadCallback);
+        downloadMapIfNecessary(gameInfoBean.getMapTechnicalName(), mapDownloadCallback);
       }
 
       @Override
@@ -241,9 +241,16 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     return gameTypeBeans.get(gameTypeBeanName);
   }
 
+  //FIXME check this, I think we should return null on not finding it
   @Override
   public GameInfoBean getByUid(int uid) {
-    return uidToGameInfoBean.get(uid);
+    GameInfoBean gameInfoBean = null;
+    try {
+      gameInfoBean = uidToGameInfoBean.get(uid);
+    }catch(NullPointerException e){
+      logger.error("Can't find {} in gameInfoBean map",uid);
+    }
+    return gameInfoBean;
   }
 
   @PostConstruct

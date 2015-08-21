@@ -40,7 +40,7 @@ public class LocalReplayInfo {
     uid = gameInfoBean.getUid();
     title = gameInfoBean.getTitle();
     access = gameInfoBean.getAccess();
-    mapname = gameInfoBean.getTechnicalName();
+    mapname = gameInfoBean.getMapTechnicalName();
     state = gameInfoBean.getStatus();
     gameType = gameInfoBean.getGameType();
     featuredMod = gameInfoBean.getFeaturedMod();
