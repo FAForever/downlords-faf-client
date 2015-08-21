@@ -161,7 +161,7 @@ public class ChatUserControl extends HBox {
     }
   }
 
-  String path = "/images/";
+  String path = "/themes/default/images/chat/";
 
   public void setGameStatus(GameStatus gameStatus) {
     try {

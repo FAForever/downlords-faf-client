@@ -3,9 +3,14 @@ package com.faforever.client.chat;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.GameStatus;
 import com.faforever.client.legacy.domain.GameInfo;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.replay.ReplayService;
 import com.faforever.client.util.Callback;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -20,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
@@ -75,6 +81,15 @@ public class ChatUserContextMenuController {
 
   @Autowired
   GameService gameService;
+
+  @Autowired
+  ReplayService replayService;
+
+  @Autowired
+  NotificationService notificationService;
+
+  @Autowired
+  I18n i18n;
 
   private PlayerInfoBean playerInfoBean;
 
@@ -136,7 +151,14 @@ public class ChatUserContextMenuController {
 
   @FXML
   void onWatchGame() {
-    // FIXME implement
+    try {
+      replayService.runLiveReplay(playerInfoBean.getGameUID(),playerInfoBean.getUsername());
+    } catch (IOException e) {
+      logger.error("Cannot load live replay {}", e.getCause());
+      String title = i18n.get("replays.live.loadFailure.title");
+      String message = i18n.get("replays.live.loadFailure.message");
+      notificationService.addNotification(new ImmediateNotification(title, message, Severity.ERROR));
+    }
   }
 
   @FXML

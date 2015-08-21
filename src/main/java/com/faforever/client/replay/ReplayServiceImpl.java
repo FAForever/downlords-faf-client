@@ -37,6 +37,9 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
+import java.net.URLStreamHandlerFactory;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -158,7 +161,7 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public void runLiveReplay(Integer uid, String playerName) throws IOException {
+  public void runLiveReplay(int uid, String playerName) throws IOException {
     //FIXME if getByUid returns null then handle null
     GameInfoBean gameInfoBean = gameService.getByUid(uid);
     if(gameInfoBean == null){
@@ -168,7 +171,7 @@ public class ReplayServiceImpl implements ReplayService {
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme(FAF_LIFE_PROTOCOL);
     uriBuilder.setHost(environment.getProperty("lobby.host"));
-    uriBuilder.setPath(uid + "/" + playerName + SUP_COM_REPLAY_FILE_ENDING);
+    uriBuilder.setPath("/" + uid + "/" + playerName + SUP_COM_REPLAY_FILE_ENDING);
     uriBuilder.addParameter("map", gameInfoBean.getMapTechnicalName());
     uriBuilder.addParameter("mod",gameInfoBean.getFeaturedMod());
 
@@ -192,13 +195,23 @@ public class ReplayServiceImpl implements ReplayService {
 
     String mod = queryParams.get("mod");
     String mapName = queryParams.get("map");
-    Integer replayId = Integer.parseInt(queryParams.get(uri.getPath().split("/")[0]));
+    Integer replayId = Integer.parseInt(uri.getPath().split("/")[1]);
+
+    //FIXME is this fine being an anonymous class, I don't think it will be used outside the scope of this method
+    URLStreamHandlerFactory urlStreamHandlerFactory = protocol -> new URLStreamHandler() {
+      @Override
+      protected URLConnection openConnection(URL u) throws IOException {
+        return u.openConnection();
+      }
+    };
+    urlStreamHandlerFactory.createURLStreamHandler(GPGNET_SCHEME);
 
     try {
+      URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
       URL gpgReplayUrl = new URL(GPGNET_SCHEME, uri.getHost(), uri.getPort(), uri.getPath());
       gameService.runWithReplay(gpgReplayUrl, replayId);
     } catch (MalformedURLException e) {
-      throw new RuntimeException();
+      throw new RuntimeException(e);
     }
   }
 
