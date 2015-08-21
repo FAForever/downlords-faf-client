@@ -30,8 +30,8 @@ import com.faforever.client.game.GameCardController;
 import com.faforever.client.game.GameTableController;
 import com.faforever.client.game.GameTiledController;
 import com.faforever.client.game.GamesController;
-import com.faforever.client.game.PopupGamePaneController;
-import com.faforever.client.game.PopupPlayerCardController;
+import com.faforever.client.game.GameContainerTooltipController;
+import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.hub.ConcurrentUsersController;
@@ -150,8 +150,8 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  PopupPlayerCardController popupPlayerCardController() {
-    return loadController("popup_player_card.fxml");
+  PlayerCardTooltipController playerCardTooltipController() {
+    return loadController("player_card_tooltip.fxml");
   }
 
   @Bean
@@ -162,8 +162,8 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  PopupGamePaneController popupGamePaneController() {
-    return loadController("popup_game_pane.fxml");
+  GameContainerTooltipController gameContainerTooltipController() {
+    return loadController("game_container_tooltip.fxml");
   }
 
   @Bean

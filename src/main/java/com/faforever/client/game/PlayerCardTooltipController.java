@@ -11,7 +11,7 @@ import javafx.scene.image.ImageView;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
-public class PopupPlayerCardController {
+public class PlayerCardTooltipController {
 
   @FXML
   Label playerInfo;

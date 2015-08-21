@@ -643,8 +643,13 @@
   -fx-font-style: italic;
 }
 
+/***************** Game Tiled Tooltip *****************/
 
-/***************** Game detail *****************/
+.game-container-tooltip {
+  -fx-font-size: 1.2em;
+}
+
+/***************** Map Preview *****************/
 
 .map-preview {
   -fx-effect: -fx-drop-shadow;

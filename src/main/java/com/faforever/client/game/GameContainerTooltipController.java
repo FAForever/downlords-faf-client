@@ -15,7 +15,7 @@ import org.springframework.context.ApplicationContext;
 import java.util.List;
 import java.util.Map;
 
-public class PopupGamePaneController {
+public class GameContainerTooltipController {
 
   @FXML
   public Pane teamListPane;
