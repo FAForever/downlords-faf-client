@@ -42,11 +42,11 @@ public class TeamCardController {
 
     String localizedTeamTile;
     if (teamNumber == 0) {
-      localizedTeamTile = i18n.get("game.popup.teamTitleNoTeam");
+      localizedTeamTile = i18n.get("game.tooltip.teamTitleNoTeam");
     } else if (teamNumber == -1) {
-      localizedTeamTile = i18n.get("game.popup.observers");
+      localizedTeamTile = i18n.get("game.tooltip.observers");
     } else {
-      localizedTeamTile = i18n.get("game.popup.teamTitle", teamNumber);
+      localizedTeamTile = i18n.get("game.tooltip.teamTitle", teamNumber);
     }
     teamPaneRoot.setText(localizedTeamTile);
 
@@ -56,10 +56,10 @@ public class TeamCardController {
         logger.warn("{} is not returned by playerService", player);
         return false;
       }
-      PopupPlayerCardController popupPlayerCardController = applicationContext.getBean(PopupPlayerCardController.class);
-      popupPlayerCardController.setPlayer(playerInfoBean);
+      PlayerCardTooltipController playerCardTooltipController = applicationContext.getBean(PlayerCardTooltipController.class);
+      playerCardTooltipController.setPlayer(playerInfoBean);
 
-      teamPane.getChildren().add(popupPlayerCardController.getRoot());
+      teamPane.getChildren().add(playerCardTooltipController.getRoot());
     }
     return true;
   }

@@ -6,6 +6,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.leaderboard.LeaderboardParser;
 import com.faforever.client.legacy.domain.ClientMessage;
+import com.faforever.client.legacy.domain.ClientMessageType;
 import com.faforever.client.legacy.domain.FoesMessage;
 import com.faforever.client.legacy.domain.FriendsMessage;
 import com.faforever.client.legacy.domain.GameAccess;
@@ -26,6 +27,7 @@ import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.legacy.domain.SocialInfo;
 import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.legacy.domain.VictoryCondition;
+import com.faforever.client.legacy.gson.ClientMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
@@ -113,6 +115,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
         .registerTypeAdapter(VictoryCondition.class, new VictoryConditionTypeAdapter())
         .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
         .registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter())
+        .registerTypeAdapter(ClientMessageType.class, new ClientMessageTypeTypeAdapter())
         .registerTypeAdapter(StatisticsType.class, new StatisticsTypeTypeAdapter())
         .registerTypeAdapter(ServerMessageType.class, new ServerMessageTypeTypeAdapter())
         .create();

@@ -103,10 +103,10 @@ public class GameCardController {
     }
 
     //TODO move tooltip Y position down 10 pixels
-    PopupGamePaneController popupGamePaneController = applicationContext.getBean(PopupGamePaneController.class);
-    popupGamePaneController.setGameInfoBean(gameInfoBean);
+    GameContainerTooltipController gameContainerTooltipController = applicationContext.getBean(GameContainerTooltipController.class);
+    gameContainerTooltipController.setGameInfoBean(gameInfoBean);
     Tooltip tooltip = new Tooltip();
-    tooltip.setGraphic(popupGamePaneController.getRoot());
+    tooltip.setGraphic(gameContainerTooltipController.getRoot());
     Tooltip.install(gameCardRoot, tooltip);
 
   }

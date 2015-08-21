@@ -7,7 +7,7 @@ public class FriendsMessage extends ClientMessage {
   private Collection<String> friends;
 
   public FriendsMessage(Collection<String> friends) {
-    setCommand("social");
+    setCommand(ClientMessageType.SOCIAL);
     this.setFriends(friends);
   }
 

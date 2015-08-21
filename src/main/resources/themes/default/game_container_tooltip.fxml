@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="teamListRoot" styleClass="game-container-tooltip" xmlns="http://javafx.com/javafx/null" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GameContainerTooltipController">
+  <children>
+    <HBox fx:id="teamListPane" prefHeight="100.0" prefWidth="200.0" />
+    <Label fx:id="modsListLabel" alignment="BOTTOM_LEFT" text="&lt;Mods List&gt;" />
+  </children>
+</VBox>
