@@ -11,8 +11,7 @@ html, body {
   padding: 0;
   /* Use same as -fx-light-text-color */
   color: #F5F5F5;
-  font-family: System;
-  font-size: 14px;
+  font-family: "Arial","Tahoma","sans-serif";
 }
 
 a {
