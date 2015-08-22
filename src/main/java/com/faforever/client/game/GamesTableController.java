@@ -20,7 +20,7 @@ import javafx.scene.image.Image;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class GameTableController {
+public class GamesTableController {
 
 
   @FXML
