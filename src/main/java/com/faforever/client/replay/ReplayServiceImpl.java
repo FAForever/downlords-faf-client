@@ -21,6 +21,7 @@ import com.google.common.primitives.Bytes;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -93,6 +94,8 @@ public class ReplayServiceImpl implements ReplayService {
   @Autowired
   ReplayServerAccessor replayServerAccessor;
 
+  boolean urlFactoryHasBeenSet = false;
+
   @Override
   public Collection<ReplayInfoBean> getLocalReplays() throws IOException {
     Collection<ReplayInfoBean> replayInfos = new ArrayList<>();
@@ -161,19 +164,17 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public void runLiveReplay(int uid, String playerName) throws IOException {
+  public void runLiveReplay(int replayId, String playerName) throws IOException {
     //FIXME if getByUid returns null then handle null
-    GameInfoBean gameInfoBean = gameService.getByUid(uid);
-    if(gameInfoBean == null){
-      return;
-    }
+
+    GameInfoBean gameInfoBean = gameService.getByUid(replayId);
 
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme(FAF_LIFE_PROTOCOL);
     uriBuilder.setHost(environment.getProperty("lobby.host"));
-    uriBuilder.setPath("/" + uid + "/" + playerName + SUP_COM_REPLAY_FILE_ENDING);
+    uriBuilder.setPath("/" + replayId + "/" + playerName + SUP_COM_REPLAY_FILE_ENDING);
     uriBuilder.addParameter("map", gameInfoBean.getMapTechnicalName());
-    uriBuilder.addParameter("mod",gameInfoBean.getFeaturedMod());
+    uriBuilder.addParameter("mod", gameInfoBean.getFeaturedMod());
 
     URI uri = null;
     try {
@@ -197,17 +198,26 @@ public class ReplayServiceImpl implements ReplayService {
     String mapName = queryParams.get("map");
     Integer replayId = Integer.parseInt(uri.getPath().split("/")[1]);
 
-    //FIXME is this fine being an anonymous class, I don't think it will be used outside the scope of this method
-    URLStreamHandlerFactory urlStreamHandlerFactory = protocol -> new URLStreamHandler() {
-      @Override
-      protected URLConnection openConnection(URL u) throws IOException {
-        return u.openConnection();
-      }
-    };
-    urlStreamHandlerFactory.createURLStreamHandler(GPGNET_SCHEME);
+    if(gameService.getByUid(replayId) == null){
+      runOnlineReplay(replayId);
+    }
+
+    //FIXME I don't understand this and I know this is ugly
+    if(!urlFactoryHasBeenSet) {
+      URLStreamHandlerFactory urlStreamHandlerFactory = protocol -> new URLStreamHandler() {
+        @Override
+        protected URLConnection openConnection(URL u) throws IOException {
+          return u.openConnection();
+        }
+      };
+
+      URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
+
+      urlFactoryHasBeenSet = true;
+    }
 
     try {
-      URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
+
       URL gpgReplayUrl = new URL(GPGNET_SCHEME, uri.getHost(), uri.getPort(), uri.getPath());
       gameService.runWithReplay(gpgReplayUrl, replayId);
     } catch (MalformedURLException e) {
