@@ -16,26 +16,26 @@ import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
-public class GameTiledControllerTest extends AbstractPlainJavaFxTest {
+public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
-  GameCardController gameCardController;
+  GameTileController gameTileController;
   @Mock
   ApplicationContext applicationContext;
-  private GameTiledController instance;
+  private GamesTilesContainerController instance;
 
   @Before
   public void setUp() throws Exception {
-    instance = loadController("game_tile_container.fxml");
+    instance = loadController("games_tiles_container.fxml");
     instance.applicationContext = applicationContext;
 
-    when(applicationContext.getBean(GameCardController.class)).thenReturn(gameCardController);
+    when(applicationContext.getBean(GameTileController.class)).thenReturn(gameTileController);
 
   }
 
   @Test
   public void testCreateTiledFlowPaneWithEmptyList() throws Exception {
-    when(gameCardController.getRoot()).thenReturn(new Pane());
+    when(gameTileController.getRoot()).thenReturn(new Pane());
     ObservableList<GameInfoBean> observableList = FXCollections.observableArrayList();
 
     instance.createTiledFlowPane(observableList);
@@ -45,7 +45,7 @@ public class GameTiledControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateTiledFlowPaneWithPopulatedList() throws Exception {
-    when(gameCardController.getRoot()).thenReturn(new Pane());
+    when(gameTileController.getRoot()).thenReturn(new Pane());
     ObservableList<GameInfoBean> observableList = FXCollections.observableArrayList();
     observableList.add(new GameInfoBean());
 
@@ -56,7 +56,7 @@ public class GameTiledControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateTiledFlowPaneWithPostInstantiatedGameInfoBean() throws Exception {
-    when(gameCardController.getRoot()).thenReturn(new Pane());
+    when(gameTileController.getRoot()).thenReturn(new Pane());
     ObservableList<GameInfoBean> observableList = FXCollections.observableArrayList();
 
     instance.createTiledFlowPane(observableList);
@@ -67,7 +67,7 @@ public class GameTiledControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateTiledFlowPaneWithPopulatedListAndPostInstantiatedGameInfoBean() throws Exception {
-    when(gameCardController.getRoot())
+    when(gameTileController.getRoot())
         .thenReturn(new Pane())
         .thenReturn(new Pane());
 
