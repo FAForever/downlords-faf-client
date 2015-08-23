@@ -138,7 +138,7 @@ public class CreateGameController {
           setText(null);
           setGraphic(null);
         } else {
-          setText(item.getName());
+          setText(item.getFullName());
         }
       }
     };
