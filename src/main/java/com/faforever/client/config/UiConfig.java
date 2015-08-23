@@ -26,11 +26,11 @@ import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
 import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
-import com.faforever.client.game.GameCardController;
 import com.faforever.client.game.GameContainerTooltipController;
-import com.faforever.client.game.GameTableController;
-import com.faforever.client.game.GameTiledController;
+import com.faforever.client.game.GameTileController;
 import com.faforever.client.game.GamesController;
+import com.faforever.client.game.GamesTableController;
+import com.faforever.client.game.GamesTilesContainerController;
 import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.hub.CommunityHubController;
@@ -186,9 +186,8 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    // TODO cs: naming consistency
-  GameTableController gameTableController() {
-    return loadController("game_table.fxml");
+  GamesTableController gameTableController() {
+    return loadController("games_table.fxml");
   }
 
   @Bean
@@ -217,9 +216,8 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    // TODO @cs: naming consistency
-  GameTiledController gamesTiledController() {
-    return loadController("game_tile_container.fxml");
+  GamesTilesContainerController gamesTiledController() {
+    return loadController("games_tiles_container.fxml");
   }
 
   @Bean
@@ -230,8 +228,7 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    // TODO @cs: naming consistency
-  GameCardController gameCardController() {
+  GameTileController gameCardController() {
     return loadController("game_tile.fxml");
   }
 

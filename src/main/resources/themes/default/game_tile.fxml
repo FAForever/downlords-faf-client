@@ -12,7 +12,7 @@
           maxWidth="-Infinity"
           minHeight="-Infinity" minWidth="-Infinity" onMouseClicked="#onClick"
           styleClass="game-tile-root" xmlns="http://javafx.com/javafx/8.0.40"
-          fx:controller="com.faforever.client.game.GameCardController">
+          fx:controller="com.faforever.client.game.GameTileController">
   <columnConstraints>
     <ColumnConstraints hgrow="NEVER" minWidth="115.0"/>
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="250.0"/>

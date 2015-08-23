@@ -22,7 +22,7 @@ import org.springframework.core.env.Environment;
 
 import java.lang.invoke.MethodHandles;
 
-public class GameCardController {
+public class GameTileController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @FXML
