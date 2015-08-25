@@ -5,10 +5,10 @@ import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
+import com.faforever.client.util.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
@@ -21,8 +21,6 @@ import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import org.controlsfx.control.CheckListView;
-import org.controlsfx.control.RangeSlider;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +35,8 @@ import java.util.Objects;
 
 public class CreateGameController {
 
+  public static final int MAX_RATING_LENGTH = 4;
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   @FXML
   Label mapNameLabel;
 
@@ -52,16 +50,13 @@ public class CreateGameController {
   TextField titleTextField;
 
   @FXML
-  CheckListView<ModInfoBean> modListView;
+  ListView<ModInfoBean> modListView;
 
   @FXML
   TextField passwordTextField;
 
   @FXML
   TextField minRankingTextField;
-
-  @FXML
-  RangeSlider rankingSlider;
 
   @FXML
   TextField maxRankingTextField;
@@ -126,6 +121,9 @@ public class CreateGameController {
 
     gameTypeComboBox.setCellFactory(param -> gameTypeCell());
     gameTypeComboBox.setButtonCell(gameTypeCell());
+
+    JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH);
+    JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH);
   }
 
   @NotNull
@@ -140,7 +138,7 @@ public class CreateGameController {
           setText(null);
           setGraphic(null);
         } else {
-          setText(item.getName());
+          setText(item.getFullName());
         }
       }
     };
@@ -160,41 +158,16 @@ public class CreateGameController {
   }
 
   private void init() {
-    initRankingSlider();
     initModList();
     initMapSelection();
     initGameTypeComboBox();
+    initRatingBoundaries();
     selectLastMap();
     setLastGameTitle();
     titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       preferencesService.getPreferences().setLastGameTitle(newValue);
       preferencesService.storeInBackground();
     });
-  }
-
-  private void initRankingSlider() {
-    rankingSlider.setFocusTraversable(false);
-    rankingSlider.lowValueProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue.intValue() < rankingSlider.getHighValue()) {
-        minRankingTextField.setText(String.valueOf(newValue.intValue()));
-      }
-    });
-    rankingSlider.highValueProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue.intValue() > rankingSlider.getLowValue()) {
-        maxRankingTextField.setText(String.valueOf(newValue.intValue()));
-      }
-    });
-    minRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      rankingSlider.setLowValue(Double.parseDouble(newValue));
-    });
-    maxRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      rankingSlider.setHighValue(Double.parseDouble(newValue));
-    });
-
-    rankingSlider.setMax(environment.getProperty("rating.max", Integer.class));
-    rankingSlider.setMin(environment.getProperty("rating.min", Integer.class));
-    rankingSlider.setHighValue(environment.getProperty("rating.selectedMax", Integer.class));
-    rankingSlider.setLowValue(environment.getProperty("rating.selectedMin", Integer.class));
   }
 
   private void initModList() {
@@ -241,6 +214,14 @@ public class CreateGameController {
       gameTypeComboBox.getItems().add(change.getValueAdded());
       selectLastOrDefaultGameType();
     });
+  }
+
+  private void initRatingBoundaries() {
+    int lastGameMinRating = preferencesService.getPreferences().getLastGameMinRating();
+    int lastGameMaxRating = preferencesService.getPreferences().getLastGameMaxRating();
+
+    minRankingTextField.setText(String.valueOf(lastGameMinRating));
+    minRankingTextField.setText(String.valueOf(lastGameMaxRating));
   }
 
   private void selectLastMap() {

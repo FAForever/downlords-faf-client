@@ -8,6 +8,7 @@ import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.web.WebEngine;
@@ -53,6 +54,28 @@ public class JavaFxUtil {
 
   private JavaFxUtil() {
     // Utility class
+  }
+
+  public static void makeNumericTextField(TextField textField) {
+    makeNumericTextField(textField, -1);
+  }
+
+  public static void makeNumericTextField(TextField textField, int maxLength) {
+    textField.textProperty().addListener((observable, oldValue, newValue) -> {
+      String value = newValue;
+      if (!value.matches("\\d*")) {
+        value = newValue.replaceAll("[^\\d]", "");
+      }
+
+      if (maxLength > 0 && value.length() > maxLength) {
+        value = value.substring(0, maxLength);
+      }
+
+      textField.setText(value);
+      if (textField.getCaretPosition() > textField.getLength()) {
+        textField.positionCaret(textField.getLength());
+      }
+    });
   }
 
   /**

@@ -35,6 +35,14 @@ import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.hub.ConcurrentUsersController;
+import com.faforever.client.hub.DonationWallController;
+import com.faforever.client.hub.LastCastController;
+import com.faforever.client.hub.LastNewsController;
+import com.faforever.client.hub.MapOfTheDayController;
+import com.faforever.client.hub.MostActivePlayersController;
+import com.faforever.client.hub.RecentForumPostsController;
+import com.faforever.client.hub.TopPlayersController;
+import com.faforever.client.hub.UpcomingEventsController;
 import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
@@ -131,6 +139,46 @@ public class UiConfig {
   }
 
   @Bean
+  LastCastController lastCastController() {
+    return loadController("last_cast.fxml");
+  }
+
+  @Bean
+  UpcomingEventsController upcomingEventController() {
+    return loadController("upcoming_events.fxml");
+  }
+
+  @Bean
+  LastNewsController lastNewsController() {
+    return loadController("last_news.fxml");
+  }
+
+  @Bean
+  MapOfTheDayController mapOfTheDayController() {
+    return loadController("map_of_the_day.fxml");
+  }
+
+  @Bean
+  TopPlayersController topPlayersController() {
+    return loadController("top_players.fxml");
+  }
+
+  @Bean
+  DonationWallController donationWallController() {
+    return loadController("donation_wall.fxml");
+  }
+
+  @Bean
+  RecentForumPostsController recentForumPostsController() {
+    return loadController("recent_forum_posts.fxml");
+  }
+
+  @Bean
+  MostActivePlayersController mostActivePlayersController() {
+    return loadController("most_active_players.fxml");
+  }
+
+  @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   CommentCardController commentCardController() {
     return loadController("comment_card.fxml");
@@ -186,6 +234,7 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    // TODO @mj: naming consistency
   NewsListItemController newsTileController() {
     return loadController("news_list_item.fxml");
   }

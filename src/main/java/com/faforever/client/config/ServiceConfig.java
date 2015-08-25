@@ -33,6 +33,8 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModServiceImpl;
+import com.faforever.client.news.LegacyNewsService;
+import com.faforever.client.news.NewsService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.patch.GitRepositoryPatchService;
@@ -262,5 +264,10 @@ public class ServiceConfig {
   @Bean
   PircBotXFactory pircBotXFactory() {
     return new PircBotXFactoryImpl();
+  }
+
+  @Bean
+  NewsService newsService() {
+    return new LegacyNewsService();
   }
 }

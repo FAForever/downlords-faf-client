@@ -70,10 +70,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
     mapList = FXCollections.observableArrayList();
 
-    when(environment.getProperty("rating.max", Integer.class)).thenReturn(3000);
-    when(environment.getProperty("rating.min", Integer.class)).thenReturn(0);
-    when(environment.getProperty("rating.selectedMax", Integer.class)).thenReturn(800);
-    when(environment.getProperty("rating.selectedMin", Integer.class)).thenReturn(1500);
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPath()).thenReturn(Paths.get(""));

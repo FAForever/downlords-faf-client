@@ -15,8 +15,6 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import org.controlsfx.control.CheckListView?>
-<?import org.controlsfx.control.RangeSlider?>
 <HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="createGameRoot" styleClass="popup"
       xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.game.CreateGameController">
   <children>
@@ -32,10 +30,11 @@
         <Label text="%game.create.rating"/>
         <HBox maxWidth="1.7976931348623157E308" spacing="10.0">
           <children>
-            <TextField fx:id="minRankingTextField" minWidth="30.0" prefWidth="60.0" HBox.hgrow="NEVER"/>
-            <RangeSlider fx:id="rankingSlider" blockIncrement="100.0" majorTickUnit="500.0" minorTickCount="4"
-                         showTickLabels="true" showTickMarks="true" snapToTicks="true" HBox.hgrow="ALWAYS"/>
-            <TextField fx:id="maxRankingTextField" minWidth="30.0" prefWidth="60.0" HBox.hgrow="NEVER"/>
+            <TextField fx:id="minRankingTextField" minWidth="30.0" prefWidth="60.0" promptText="%games.create.minRating"
+                       HBox.hgrow="NEVER"/>
+            <Pane minHeight="0.0" minWidth="0.0" HBox.hgrow="ALWAYS"/>
+            <TextField fx:id="maxRankingTextField" minWidth="30.0" prefWidth="60.0" promptText="%games.create.maxRating"
+                       HBox.hgrow="NEVER"/>
           </children>
           <padding>
             <Insets left="2.0" right="2.0" top="2.0"/>
@@ -60,7 +59,7 @@
             <Button mnemonicParsing="false" text="%game.create.noMods"/>
           </children>
         </HBox>
-        <CheckListView fx:id="modListView" minHeight="60.0" prefHeight="200.0"/>
+        <ListView fx:id="modListView" minHeight="60.0" prefHeight="200.0"/>
         <Button defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
                 onAction="#onCreateButtonClicked" text="%game.create.create"/>
       </children>

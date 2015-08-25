@@ -14,6 +14,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
 import com.google.common.annotations.VisibleForTesting;
+import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
@@ -61,8 +62,11 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
     onGameLaunchingListeners = new HashSet<>();
-    gameInfoBeans = FXCollections.observableArrayList();
     uidToGameInfoBean = new HashMap<>();
+
+    gameInfoBeans = FXCollections.observableArrayList(
+        item -> new Observable[]{item.statusProperty()}
+    );
   }
 
   @Override

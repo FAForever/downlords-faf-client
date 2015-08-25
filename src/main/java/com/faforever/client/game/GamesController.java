@@ -16,6 +16,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.RatingUtil;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
@@ -160,7 +161,9 @@ public class GamesController {
       });
     }
 
-    filteredItems = new FilteredList<>(gameService.getGameInfoBeans());
+    ObservableList<GameInfoBean> gameInfoBeans = gameService.getGameInfoBeans();
+
+    filteredItems = new FilteredList<>(gameInfoBeans);
     filteredItems.setPredicate(OPEN_GAMES_PREDICATE);
 
     onTableButtonPressed();
@@ -313,7 +316,7 @@ public class GamesController {
       String title = i18n.get("mapPreview.loadFailure.title");
       String message = i18n.get("mapPreview.loadFailure.message");
       notificationService.addNotification(new ImmediateNotification(title, message, Severity.ERROR));
-    }else {
+    } else {
       mapPreviewLargeController.createPreview(mapInfoBean);
       sceneFactory.createScene(mapDetailPopup, mapPreviewLargeController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
       mapDetailPopup.centerOnScreen();
