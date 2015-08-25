@@ -125,6 +125,9 @@ public class ChatUserControl extends HBox {
     playerInfoBean.gameStatusProperty().addListener((observable, oldValue, newValue) -> {
       Platform.runLater(() -> setGameStatus(newValue));
     });
+
+    Tooltip statusTooltip = new Tooltip(playerInfoBean.getGameStatus().toString());
+    statusTooltip.textProperty().bind(playerInfoBean.gameStatusProperty().asString());
   }
 
   private void configureClanLabel() {
@@ -161,7 +164,7 @@ public class ChatUserControl extends HBox {
     }
   }
 
-  String path = "/themes/default/images/chat/";
+  String path = "themes/default/images/chat/";
 
   public void setGameStatus(GameStatus gameStatus) {
     try {
@@ -179,6 +182,7 @@ public class ChatUserControl extends HBox {
           statusImageView.setImage(new Image(new ClassPathResource(path + "none.png").getURL().toString(), true));
       }
     } catch (IOException e) {
+      //fixme log
     }
     statusImageView.setVisible(true);
   }

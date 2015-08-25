@@ -173,8 +173,26 @@
     -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,55%);
 }
 
-/***************** ChartPlot *****************/
-.chat-user-control-root:hover {
+/***************** ChatUser *****************/
+.chat-user-control-avatar:hover {
+  -fx-background-color: -fx-control-inner-background
+}
+
+.chat-user-control-country:hover {
+  -fx-background-color: -fx-control-inner-background
+}
+
+.chat-user-control-clan:hover {
+  -fx-background-color: -fx-control-inner-background
+}
+
+.chat-user-control-username:hover {
+  -fx-background-radius: 1.5, 1.5, 1.5, 1.5;
+  -fx-background-insets: 1.2, 1.2, 1.2, 1.2;
+  -fx-background-color: -fx-control-inner-background
+}
+
+.chat-user-control-status:hover {
   -fx-background-color: -fx-control-inner-background
 }
 
