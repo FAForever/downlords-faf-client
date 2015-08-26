@@ -6,7 +6,6 @@ import com.faforever.client.legacy.domain.PlayerInfo;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
@@ -30,6 +29,7 @@ public class PlayerInfoBean {
   private final StringProperty avatarTooltip;
   private final BooleanProperty friend;
   private final BooleanProperty foe;
+  //TODO I think this does not describe what it is meant for
   private final SetProperty<String> moderatorInChannels;
   private final BooleanProperty chatOnly;
   private final FloatProperty deviation;

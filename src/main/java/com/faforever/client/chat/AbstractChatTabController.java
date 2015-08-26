@@ -69,6 +69,9 @@ public abstract class AbstractChatTabController {
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
   private static final String FRIEND_CSS_CLASS = "friend";
+  private static final String MOD_CSS_CLASS = "mod";
+  private static final String IRC_CSS_CLASS = "irc";
+  private static final String REG_CSS_CLASS = "reg";
   private static final String CSS_STYLE_SELF = "self";
 
   /**
@@ -561,16 +564,28 @@ public abstract class AbstractChatTabController {
       }
 
       PlayerInfoBean playerInfo = playerService.getPlayerForUsername(chatMessage.getUsername());
-      if (playerInfo != null && playerInfo.isFriend()) {
+
+      if (playerInfo != null && playerInfo.getModeratorInChannels().size() > 0) {
+        cssClasses.add(MOD_CSS_CLASS);
+      } else if (playerInfo != null && playerInfo.isFriend()) {
         cssClasses.add(FRIEND_CSS_CLASS);
+      } else if (playerInfo.isChatOnly()) {
+        cssClasses.add(IRC_CSS_CLASS);
+      } else {
+        cssClasses.add(REG_CSS_CLASS);
       }
 
       html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
 
       addToMessageContainer(html);
-    } catch (IOException e) {
+    } catch (
+        IOException e
+        )
+
+    {
       throw new RuntimeException(e);
     }
+
   }
 
   private String highlightOwnUsername(String text) {

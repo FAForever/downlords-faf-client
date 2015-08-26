@@ -173,6 +173,8 @@ public class ChannelTabController extends AbstractChatTabController {
         }
       }
     });
+
+    //TODO chat only in code, but irc only in ui?
     playerInfoBean.chatOnlyProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue) {
         addToPane(playerInfoBean, chatOnlyPane);
