@@ -71,7 +71,7 @@ public abstract class AbstractChatTabController {
   private static final String FRIEND_CSS_CLASS = "friend";
   private static final String MOD_CSS_CLASS = "mod";
   private static final String IRC_CSS_CLASS = "irc";
-  private static final String REG_CSS_CLASS = "reg";
+  private static final String OTHERS_CSS_CLASS = "others";
   private static final String CSS_STYLE_SELF = "self";
 
   /**
@@ -572,20 +572,15 @@ public abstract class AbstractChatTabController {
       } else if (playerInfo.isChatOnly()) {
         cssClasses.add(IRC_CSS_CLASS);
       } else {
-        cssClasses.add(REG_CSS_CLASS);
+        cssClasses.add(OTHERS_CSS_CLASS);
       }
 
       html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
 
       addToMessageContainer(html);
-    } catch (
-        IOException e
-        )
-
-    {
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
-
   }
 
   private String highlightOwnUsername(String text) {

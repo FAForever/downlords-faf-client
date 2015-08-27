@@ -196,6 +196,35 @@
   -fx-background-color: -fx-control-inner-background
 }
 
+/***************** Channel Tab *****************/
+
+/* Message colors are not linked to user color,
+update corresponding selectors in style-webview */
+
+.channel-tab-moderators-title {
+  -fx-text-fill: white;
+}
+
+.channel-tab-friends-title {
+  -fx-text-fill: #00B7EB;
+}
+
+.channel-tab-friends-users {
+  -fx-text-fill: #00B7EB;
+}
+
+.channel-tab-others-title {
+  -fx-text-fill: #BFBEBA;
+}
+
+.channel-tab-irc-title {
+  -fx-text-fill: #808080;
+}
+
+.channel-tab-foes-title {
+  -fx-text-fill: red;
+}
+
 /***************** Headings *****************/
 
 .h1 {
