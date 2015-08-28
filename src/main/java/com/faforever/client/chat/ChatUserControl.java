@@ -3,7 +3,11 @@ package com.faforever.client.chat;
 import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.game.GameService;
 import com.faforever.client.legacy.GameStatus;
+import com.faforever.client.preferences.ColorPrefs;
+import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.user.UserService;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -13,6 +17,7 @@ import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -43,6 +48,12 @@ public class ChatUserControl extends HBox {
 
   @Autowired
   GameService gameService;
+
+  @Autowired
+  PreferencesService preferencesService;
+
+  @Autowired
+  UserService userService;
 
   @FXML
   ImageView countryImageView;
@@ -87,12 +98,46 @@ public class ChatUserControl extends HBox {
   public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
     this.playerInfoBean = playerInfoBean;
 
+    configureColor();
     configureCountryImageView();
     configureAvatarImageView();
     configureClanLabel();
     configureGameStatusView();
 
     usernameLabel.setText(playerInfoBean.getUsername());
+  }
+
+  private void configureColor() {
+    ColorPrefs colorPrefs = preferencesService.getPreferences().getColorPrefs();
+    ObjectProperty<Color> colorProperty;
+
+    //FIXME so ugly'
+
+
+    if (playerInfoBean.getModeratorInChannels().size() > 0) {
+      colorProperty = colorPrefs.modsChatColorProperty();
+    } else if (playerInfoBean.isFriend()) {
+      colorProperty = colorPrefs.friendsChatColorProperty();
+    } else if (playerInfoBean.isFoe()) {
+      colorProperty = colorPrefs.foesChatColorProperty();
+    } else if (playerInfoBean.isChatOnly()) {
+      colorProperty = colorPrefs.ircChatColorProperty();
+    } else if (userService.getUsername().equals(playerInfoBean.getUsername())) {
+      colorProperty = colorPrefs.selfChatColorProperty();
+    } else {
+      colorProperty = colorPrefs.othersChatColorProperty();
+    }
+
+    usernameLabel.setTextFill(colorProperty.get());
+    clanLabel.setTextFill(colorProperty.get());
+    addColorListenerToLabels(colorProperty);
+  }
+
+  private void addColorListenerToLabels(ObjectProperty<Color> colorProperty) {
+    colorProperty.addListener((observable, oldValue, newValue) -> {
+      usernameLabel.setTextFill(newValue);
+      clanLabel.setTextFill(newValue);
+    });
   }
 
   private void configureCountryImageView() {

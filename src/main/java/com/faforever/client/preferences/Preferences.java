@@ -19,6 +19,7 @@ public class Preferences {
   private final LoginPrefs login;
   private final ChatPrefs chat;
   private final NotificationsPrefs notification;
+  private final ColorPrefs colorPrefs;
 
   private final StringProperty theme;
   private final StringProperty lastGameType;
@@ -34,6 +35,7 @@ public class Preferences {
     login = new LoginPrefs();
     mainWindow = new WindowPrefs();
     forgedAlliance = new ForgedAlliancePrefs();
+    colorPrefs = new ColorPrefs();
     theme = new SimpleStringProperty("default");
     lastGameType = new SimpleStringProperty("faf");
     ignoredNotifications = new SimpleListProperty<>(observableArrayList());
@@ -159,5 +161,9 @@ public class Preferences {
 
   public IntegerProperty lastGameMaxRatingProperty() {
     return lastGameMaxRating;
+  }
+
+  public ColorPrefs getColorPrefs() {
+    return colorPrefs;
   }
 }
