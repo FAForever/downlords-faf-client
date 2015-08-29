@@ -13,7 +13,6 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
@@ -50,8 +49,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
+import static java.lang.String.format;
 import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.synchronizedObservableMap;
+import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
 
 public class PircBotXChatService implements ChatService, Listener, OnChatConnectedListener,
     OnChatUserListListener, OnChatUserJoinedChannelListener, OnChatUserQuitListener, OnChatDisconnectedListener,
@@ -382,7 +383,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void onConnected() {
-    sendMessageInBackground("NICKSERV", "IDENTIFY " + DigestUtils.md5Hex(userService.getPassword()), new Callback<String>() {
+    Callback<String> callback = new Callback<String>() {
       @Override
       public void success(String message) {
         pircBotX.sendIRC().joinChannel(defaultChannelName);
@@ -392,7 +393,22 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       public void error(Throwable e) {
         throw new RuntimeException(e);
       }
-    });
+    };
+
+    sendMessageInBackground("NICKSERV",
+        format("REGISTER %s %s", md5Hex(userService.getPassword()), userService.getEmail()),
+        new Callback<String>() {
+          @Override
+          public void success(String result) {
+            sendMessageInBackground("NICKSERV", "IDENTIFY " + md5Hex(userService.getPassword()), callback);
+          }
+
+          @Override
+          public void error(Throwable e) {
+            callback.error(e);
+          }
+        }
+    );
   }
 
   @Override
