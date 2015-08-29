@@ -135,7 +135,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getCacheDirectory()).thenReturn(tempDir.getRoot().toPath());
     when(preferences.getTheme()).thenReturn("default");
-    when(preferences.getChat()).thenReturn(chatPrefs);
+    when(preferences.getChatPrefs()).thenReturn(chatPrefs);
 
     chatReadyLatch = new CountDownLatch(1);
     instance.getMessagesWebView().getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {

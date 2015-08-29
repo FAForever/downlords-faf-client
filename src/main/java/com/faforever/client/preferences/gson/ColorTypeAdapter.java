@@ -14,18 +14,12 @@ public class ColorTypeAdapter extends TypeAdapter<Color> {
     if (value == null) {
       out.nullValue();
     } else {
-      //FIXME idk if this will work
-      out.value(Integer.toHexString(value.hashCode()));
+      out.value(value.toString());
     }
   }
 
   @Override
   public Color read(JsonReader in) throws IOException {
-    String string = in.nextString();
-    if (string == null) {
-      return null;
-    } else {
-      return Color.web(string);
-    }
+    return Color.web(in.nextString());
   }
 }

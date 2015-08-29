@@ -5,6 +5,7 @@ import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
@@ -27,6 +28,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
@@ -68,11 +70,11 @@ public abstract class AbstractChatTabController {
   private static final Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
-  private static final String FRIEND_CSS_CLASS = "friend";
+/*  private static final String FRIEND_CSS_CLASS = "friend";
   private static final String MOD_CSS_CLASS = "mod";
   private static final String IRC_CSS_CLASS = "irc";
   private static final String OTHERS_CSS_CLASS = "others";
-  private static final String CSS_STYLE_SELF = "self";
+  private static final String CSS_STYLE_SELF = "self";*/
 
   /**
    * This is the member name within the JavaScript code that provides access to this chat tab instance.
@@ -90,7 +92,7 @@ public abstract class AbstractChatTabController {
   /**
    * Maps a user name to a css style class.
    */
-  private final Map<String, String> userToCssStyle;
+  private final Map<String, Color> userToCssStyle;
   @Autowired
   UserService userService;
   @Autowired
@@ -137,6 +139,7 @@ public abstract class AbstractChatTabController {
   private Pattern mentionPattern;
   private Popup playerInfoTooltip;
   private Tooltip linkPreviewTooltip;
+  private ChatPrefs chatPrefs;
 
   public AbstractChatTabController() {
     userToCssStyle = new HashMap<>();
@@ -149,7 +152,8 @@ public abstract class AbstractChatTabController {
 
   @PostConstruct
   void postConstruct() {
-    userToCssStyle.put(userService.getUsername(), CSS_STYLE_SELF);
+    chatPrefs = preferencesService.getPreferences().getChatPrefs();
+    userToCssStyle.put(userService.getUsername(), chatPrefs.getSelfChatColor());
     mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b");
 
     initChatView();
@@ -164,11 +168,11 @@ public abstract class AbstractChatTabController {
 
     messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
     messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
+      preferencesService.getPreferences().getChatPrefs().setZoom(newValue.doubleValue());
       preferencesService.storeInBackground();
     });
 
-    Double zoom = preferencesService.getPreferences().getChat().getZoom();
+    Double zoom = preferencesService.getPreferences().getChatPrefs().getZoom();
     if (zoom != null) {
       messagesWebView.setZoom(zoom);
     }
@@ -507,7 +511,7 @@ public abstract class AbstractChatTabController {
   }
 
   private void removeTopmostMessages() {
-    int maxMessageItems = preferencesService.getPreferences().getChat().getMaxMessages();
+    int maxMessageItems = preferencesService.getPreferences().getChatPrefs().getMaxMessages();
 
     int numberOfMessages = (int) engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "').length");
     while (numberOfMessages > maxMessageItems) {
@@ -554,7 +558,7 @@ public abstract class AbstractChatTabController {
       Collection<String> cssClasses = new ArrayList<>();
 
       if (userToCssStyle.containsKey(login)) {
-        cssClasses.add(userToCssStyle.get(login));
+        cssClasses.add(userToCssStyle.get(login).toString());
       }
 
       if (chatMessage.isAction()) {
@@ -562,18 +566,18 @@ public abstract class AbstractChatTabController {
       } else {
         cssClasses.add(MESSAGE_CSS_CLASS);
       }
-
+      String messageColor = null;
       PlayerInfoBean playerInfo = playerService.getPlayerForUsername(chatMessage.getUsername());
-
       if (playerInfo != null && playerInfo.getModeratorInChannels().size() > 0) {
-        cssClasses.add(MOD_CSS_CLASS);
+        messageColor = chatPrefs.getModsChatColor().toString();
       } else if (playerInfo != null && playerInfo.isFriend()) {
-        cssClasses.add(FRIEND_CSS_CLASS);
-      } else if (playerInfo.isChatOnly()) {
-        cssClasses.add(IRC_CSS_CLASS);
+        messageColor = chatPrefs.getFriendsChatColor().toString();
+      } else if (playerInfo != null && playerInfo.isChatOnly()) {
+        messageColor = chatPrefs.getIrcChatColor().toString();
       } else {
-        cssClasses.add(OTHERS_CSS_CLASS);
+        messageColor = chatPrefs.getOthersChatColor().toString();
       }
+      cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));
 
       html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
 

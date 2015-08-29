@@ -105,8 +105,8 @@ public class SettingsController {
     themeComboBox.setItems(FXCollections.singletonObservableList("Default"));
 
     rememberLastTabCheckBox.selectedProperty().bindBidirectional(preferences.rememberLastTabProperty());
-    maxMessagesTextField.textProperty().bindBidirectional(preferences.getChat().maxMessagesProperty(), new NumberStringConverter(integerNumberFormat));
-    imagePreviewCheckBox.selectedProperty().bindBidirectional(preferences.getChat().previewImageUrlsProperty());
+    maxMessagesTextField.textProperty().bindBidirectional(preferences.getChatPrefs().maxMessagesProperty(), new NumberStringConverter(integerNumberFormat));
+    imagePreviewCheckBox.selectedProperty().bindBidirectional(preferences.getChatPrefs().previewImageUrlsProperty());
     enableToastsCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().toastsEnabledProperty());
 
     displayFriendOnlineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().displayFriendOnlineToastProperty());

@@ -3,7 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.game.GameService;
 import com.faforever.client.legacy.GameStatus;
-import com.faforever.client.preferences.ColorPrefs;
+import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import javafx.application.Platform;
@@ -108,24 +108,24 @@ public class ChatUserControl extends HBox {
   }
 
   private void configureColor() {
-    ColorPrefs colorPrefs = preferencesService.getPreferences().getColorPrefs();
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChatPrefs();
     ObjectProperty<Color> colorProperty;
 
     //FIXME so ugly'
 
 
     if (playerInfoBean.getModeratorInChannels().size() > 0) {
-      colorProperty = colorPrefs.modsChatColorProperty();
+      colorProperty = chatPrefs.modsChatColorProperty();
     } else if (playerInfoBean.isFriend()) {
-      colorProperty = colorPrefs.friendsChatColorProperty();
+      colorProperty = chatPrefs.friendsChatColorProperty();
     } else if (playerInfoBean.isFoe()) {
-      colorProperty = colorPrefs.foesChatColorProperty();
+      colorProperty = chatPrefs.foesChatColorProperty();
     } else if (playerInfoBean.isChatOnly()) {
-      colorProperty = colorPrefs.ircChatColorProperty();
+      colorProperty = chatPrefs.ircChatColorProperty();
     } else if (userService.getUsername().equals(playerInfoBean.getUsername())) {
-      colorProperty = colorPrefs.selfChatColorProperty();
+      colorProperty = chatPrefs.selfChatColorProperty();
     } else {
-      colorProperty = colorPrefs.othersChatColorProperty();
+      colorProperty = chatPrefs.othersChatColorProperty();
     }
 
     usernameLabel.setTextFill(colorProperty.get());

@@ -106,7 +106,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   public PlayerInfoBean getPlayerForUsername(String username) {
     PlayerInfoBean playerInfoBean = players.get(username);
     if(playerInfoBean == null)
-      logger.error("Error returning playerInfoBean of {}", username);
+      logger.warn("Error returning playerInfoBean of {}", username);
     return playerInfoBean;
   }
 
