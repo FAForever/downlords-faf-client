@@ -22,6 +22,7 @@ public class ChatPrefs {
   private final ObjectProperty<Color> modsChatColor;
   private final ObjectProperty<Color> ircChatColor;
   private final ObjectProperty<Color> othersChatColor;
+  private final BooleanProperty prettyColors;
 
   public ChatPrefs() {
     maxMessages = new SimpleIntegerProperty(500);
@@ -34,6 +35,7 @@ public class ChatPrefs {
     modsChatColor = new SimpleObjectProperty<>(Color.web("#FFFFFF"));
     ircChatColor = new SimpleObjectProperty<>(Color.web("#808080"));
     othersChatColor = new SimpleObjectProperty<>(Color.web("#BFBEBA"));
+    prettyColors = new SimpleBooleanProperty(true);
   }
 
   public boolean getPreviewImageUrls() {
@@ -154,5 +156,22 @@ public class ChatPrefs {
 
   public void setOthersChatColor(Color othersChatColor) {
     this.othersChatColor.set(othersChatColor);
+  }
+
+
+  public boolean getPrettyColors() {
+    return prettyColors.get();
+  }
+
+  public BooleanProperty prettyColorsProperty() {
+    return prettyColors;
+  }
+
+  public void setPrettyColors(boolean prettyColors) {
+    this.prettyColors.set(prettyColors);
+  }
+
+  public void setZoom(double zoom) {
+    this.zoom.set(zoom);
   }
 }

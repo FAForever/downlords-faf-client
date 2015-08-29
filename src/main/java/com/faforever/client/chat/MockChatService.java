@@ -11,6 +11,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
+import javafx.scene.paint.Color;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
@@ -135,6 +136,12 @@ public class MockChatService implements ChatService {
     return channelUserListListeners.get(channelName);
   }
 
+  //FIXME implement
+  @Override
+  public ChatUser getChatUserForChannel(String channelName, String username) {
+    return null;
+  }
+
   @Override
   public void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener) {
     getChatUsersForChannel(channelName).addListener(listener);
@@ -208,5 +215,11 @@ public class MockChatService implements ChatService {
   @Override
   public void close() {
 
+  }
+
+  //FIXME implement
+  @Override
+  public Color getUserColor(String username) {
+    return null;
   }
 }

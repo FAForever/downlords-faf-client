@@ -13,6 +13,7 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.scene.paint.Color;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
@@ -323,6 +324,16 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
+  public ChatUser getChatUserForChannel(String channelName, String username) {
+    synchronized (chatUserLists) {
+      if (!chatUserLists.containsKey(channelName)) {
+        chatUserLists.put(channelName, synchronizedObservableMap(observableHashMap()));
+      }
+      return chatUserLists.get(channelName).get(username);
+    }
+  }
+
+  @Override
   public void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener) {
     ObservableMap<String, ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
     synchronized (chatUsersForChannel) {
@@ -409,5 +420,12 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       return;
     }
     chatUser.getModeratorInChannels().add(channelName);
+  }
+
+  @Override
+  public Color getUserColor(String username) {
+    synchronized (chatUserLists) {
+      return chatUserLists.get(defaultChannelName).get(username).getColor();
+    }
   }
 }

@@ -566,22 +566,34 @@ public abstract class AbstractChatTabController {
       } else {
         cssClasses.add(MESSAGE_CSS_CLASS);
       }
-      String messageColor = null;
       PlayerInfoBean playerInfo = playerService.getPlayerForUsername(chatMessage.getUsername());
-      if (playerInfo != null && playerInfo.getModeratorInChannels().size() > 0) {
-        messageColor = chatPrefs.getModsChatColor().toString();
-      } else if (playerInfo != null && playerInfo.isFriend()) {
-        messageColor = chatPrefs.getFriendsChatColor().toString();
-      } else if (playerInfo != null && playerInfo.isChatOnly()) {
-        messageColor = chatPrefs.getIrcChatColor().toString();
-      } else {
-        messageColor = chatPrefs.getOthersChatColor().toString();
+
+      if (playerInfo != null) {
+        String messageColor = null;
+        if (playerInfo.getModeratorInChannels().size() > 0) {
+          messageColor = chatPrefs.getModsChatColor().toString();
+        } else if (playerInfo.isFriend()) {
+          messageColor = chatPrefs.getFriendsChatColor().toString();
+        } else if (playerInfo.isFoe()) {
+          messageColor = chatPrefs.getFoesChatColor().toString();
+        }
+
+        if (!chatPrefs.getPrettyColors() && messageColor == null) {
+          if (playerInfo.isChatOnly()) {
+            messageColor = chatPrefs.getIrcChatColor().toString();
+          } else {
+            messageColor = chatPrefs.getOthersChatColor().toString();
+          }
+        } else if (messageColor == null) {
+          messageColor = chatService.getUserColor(playerInfo.getUsername()).toString();
+        }
+
+        cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));
+
+        html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
+
+        addToMessageContainer(html);
       }
-      cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));
-
-      html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
-
-      addToMessageContainer(html);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

@@ -21,6 +21,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StringUtils;
 
@@ -54,6 +55,12 @@ public class ChatUserControl extends HBox {
 
   @Autowired
   UserService userService;
+
+  @Autowired
+  ChatService chatService;
+
+  @Autowired
+  Environment environment;
 
   @FXML
   ImageView countryImageView;
@@ -99,6 +106,7 @@ public class ChatUserControl extends HBox {
     this.playerInfoBean = playerInfoBean;
 
     configureColor();
+    addPrettyColorListener();
     configureCountryImageView();
     configureAvatarImageView();
     configureClanLabel();
@@ -109,10 +117,8 @@ public class ChatUserControl extends HBox {
 
   private void configureColor() {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChatPrefs();
-    ObjectProperty<Color> colorProperty;
-
-    //FIXME so ugly'
-
+    ObjectProperty<Color> colorProperty = null;
+    Color color = null;
 
     if (playerInfoBean.getModeratorInChannels().size() > 0) {
       colorProperty = chatPrefs.modsChatColorProperty();
@@ -120,23 +126,45 @@ public class ChatUserControl extends HBox {
       colorProperty = chatPrefs.friendsChatColorProperty();
     } else if (playerInfoBean.isFoe()) {
       colorProperty = chatPrefs.foesChatColorProperty();
-    } else if (playerInfoBean.isChatOnly()) {
-      colorProperty = chatPrefs.ircChatColorProperty();
-    } else if (userService.getUsername().equals(playerInfoBean.getUsername())) {
-      colorProperty = chatPrefs.selfChatColorProperty();
-    } else {
-      colorProperty = chatPrefs.othersChatColorProperty();
     }
 
-    usernameLabel.setTextFill(colorProperty.get());
-    clanLabel.setTextFill(colorProperty.get());
-    addColorListenerToLabels(colorProperty);
+    if (!chatPrefs.getPrettyColors() && colorProperty == null) {
+
+      if (playerInfoBean.isChatOnly()) {
+        colorProperty = chatPrefs.ircChatColorProperty();
+      } else if (userService.getUsername().equals(playerInfoBean.getUsername())) {
+        colorProperty = chatPrefs.selfChatColorProperty();
+      } else {
+        colorProperty = chatPrefs.othersChatColorProperty();
+      }
+
+    } else if (chatPrefs.getPrettyColors() && colorProperty == null) {
+      color = ColorGeneratorUtil.generatePrettyHexColor();
+      ChatUser chatUser = chatService.getChatUserForChannel(environment.getProperty("irc.defaultChannel"), playerInfoBean.getUsername());
+      chatUser.setColor(color);
+    }
+
+    if (colorProperty != null) {
+      //FIXME if there is a listener already will this break?
+      color = colorProperty.get();
+      addColorListenerToLabels(colorProperty);
+    }
+
+    usernameLabel.setTextFill(color);
+    clanLabel.setTextFill(color);
   }
 
   private void addColorListenerToLabels(ObjectProperty<Color> colorProperty) {
     colorProperty.addListener((observable, oldValue, newValue) -> {
       usernameLabel.setTextFill(newValue);
       clanLabel.setTextFill(newValue);
+    });
+  }
+
+  private void addPrettyColorListener() {
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChatPrefs();
+    chatPrefs.prettyColorsProperty().addListener((observable, oldValue, newValue) -> {
+      configureColor();
     });
   }
 

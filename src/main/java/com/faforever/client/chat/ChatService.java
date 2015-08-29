@@ -4,6 +4,7 @@ import com.faforever.client.legacy.OnJoinChannelsRequestListener;
 import com.faforever.client.util.Callback;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
+import javafx.scene.paint.Color;
 
 import java.util.List;
 
@@ -37,6 +38,8 @@ public interface ChatService {
    */
   ObservableMap<String, ChatUser> getChatUsersForChannel(String channelName);
 
+  ChatUser getChatUserForChannel(String channelName, String username);
+
   void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener);
 
   void leaveChannel(String channelName);
@@ -53,4 +56,6 @@ public interface ChatService {
   boolean isDefaultChannel(String channelName);
 
   void close();
+
+  Color getUserColor(String username);
 }
