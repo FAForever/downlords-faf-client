@@ -11,7 +11,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static com.faforever.client.config.CacheKeys.COUNTRY_FLAGS;
+import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
 
 public class CountryFlagServiceImpl implements CountryFlagService {
 

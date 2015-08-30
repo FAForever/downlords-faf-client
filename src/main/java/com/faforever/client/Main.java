@@ -1,7 +1,7 @@
 package com.faforever.client;
 
 import com.faforever.client.config.BaseConfig;
-import com.faforever.client.config.EhCacheConfig;
+import com.faforever.client.config.CacheConfig;
 import com.faforever.client.config.ServiceConfig;
 import com.faforever.client.config.UiConfig;
 import com.faforever.client.fx.JavaFxHostService;
@@ -25,7 +25,7 @@ public class Main extends Application {
 
     AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
     context.getBeanFactory().registerSingleton("hostService", new JavaFxHostService(getHostServices()));
-    context.register(BaseConfig.class, UiConfig.class, ServiceConfig.class, EhCacheConfig.class);
+    context.register(BaseConfig.class, UiConfig.class, ServiceConfig.class, CacheConfig.class);
     context.refresh();
 
     stage.getIcons().add(new Image("/images/tray_icon.png"));

@@ -1,6 +1,6 @@
 package com.faforever.client.map;
 
-import com.faforever.client.config.CacheKeys;
+import com.faforever.client.config.CacheNames;
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.map.Comment;
@@ -58,7 +58,7 @@ public class MapServiceImpl implements MapService {
   I18n i18n;
 
   @Override
-  @Cacheable(CacheKeys.SMALL_MAP_PREVIEW)
+  @Cacheable(CacheNames.SMALL_MAP_PREVIEW)
   public Image loadSmallPreview(String mapName) {
     String url = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.small"));
 
@@ -68,7 +68,7 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  @Cacheable(CacheKeys.LARGE_MAP_PREVIEW)
+  @Cacheable(CacheNames.LARGE_MAP_PREVIEW)
   public Image loadLargePreview(String mapName) {
     String urlString = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.large"));
 
