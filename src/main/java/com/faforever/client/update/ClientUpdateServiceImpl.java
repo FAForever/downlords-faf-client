@@ -10,9 +10,7 @@ import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Bytes;
 import com.faforever.client.util.Callback;
-import com.faforever.client.util.OperatingSystem;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.application.Platform;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,8 +61,6 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
 
   @Override
   public void checkForUpdateInBackground() {
-    logger.info("Checking for client update");
-
     taskService.submitTask(TaskGroup.NET_LIGHT, new CheckForUpdateTask(environment, i18n, currentVersion),
         new Callback<UpdateInfo>() {
 
@@ -82,10 +78,6 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
                         new Action(
                             i18n.get("clientUpdateAvailable.downloadAndInstall"),
                             event -> downloadAndInstallInBackground(updateInfo)
-                        ),
-                        new Action(
-                            i18n.get("clientUpdateAvailable.downloadOnly"),
-                            event -> downloadInBackground(updateInfo)
                         ),
                         new Action(
                             i18n.get("clientUpdateAvailable.releaseNotes"),
@@ -111,59 +103,14 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
     return currentVersion;
   }
 
-  private void downloadInBackground(UpdateInfo updateInfo) {
-    taskService.submitTask(TaskGroup.NET_HEAVY, new DownloadUpdateTask(i18n, preferencesService, updateInfo), new Callback<Path>() {
-      @Override
-      public void success(Path binaryPath) {
-        notificationService.addNotification(
-            new PersistentNotification(i18n.get("clientUpdateReady.notification"),
-                INFO,
-                singletonList(
-                    new Action(i18n.get("clientUpdateReady.installNow"), event -> install(binaryPath))
-                )
-            )
-        );
-      }
-
-      @Override
-      public void error(Throwable e) {
-        notificationService.addNotification(
-            new PersistentNotification(i18n.get("clientUpdateDownloadFailed.notification"),
-                WARN,
-                singletonList(
-                    new Action(i18n.get("clientUpdateDownloadFailed.retry"), event -> downloadInBackground(updateInfo))
-                )
-            )
-        );
-      }
-    });
-  }
-
   private void install(Path binaryPath) {
-    makeExecutable(binaryPath);
-
-    // TODO probably need to make this executable
+    // TODO probably need to make this executable on unix
     String command = binaryPath.toAbsolutePath().toString();
     try {
-      logger.info("Closing application in order to install {}", command);
+      logger.info("Starting installer at {}", command);
       new ProcessBuilder(command).inheritIO().start();
-      // TODO we really need a shutdown event
-      Platform.exit();
     } catch (IOException e) {
       logger.warn("Installation could not be started", e);
-    }
-  }
-
-  private void makeExecutable(Path binaryPath) {
-    switch (OperatingSystem.current()) {
-      case WINDOWS:
-        break;
-
-      case MAC:
-        break;
-
-      case OTHER:
-        break;
     }
   }
 

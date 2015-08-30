@@ -8,10 +8,13 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -19,6 +22,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class CheckForUpdateTask extends PrioritizedTask<UpdateInfo> {
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final Gson gson;
   private Environment environment;
@@ -37,6 +42,8 @@ public class CheckForUpdateTask extends PrioritizedTask<UpdateInfo> {
 
   @Override
   protected UpdateInfo call() throws Exception {
+    logger.info("Checking for client update");
+
     String releasesUrl = environment.getProperty("github.releases.url");
     int connectionTimeout = environment.getProperty("github.releases.timeout", int.class);
 

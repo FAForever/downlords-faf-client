@@ -368,8 +368,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     portCheckService.checkGamePortInBackground();
     patchService.checkForUpdateInBackground();
-    // TODO test with newest
-//    clientUpdateService.checkForUpdateInBackground();
+    clientUpdateService.checkForUpdateInBackground();
   }
 
   private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {

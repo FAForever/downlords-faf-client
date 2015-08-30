@@ -145,25 +145,4 @@ public class ClientUpdateServiceImplTest extends AbstractPlainJavaFxTest {
 
     verifyZeroInteractions(notificationService);
   }
-
-  @SuppressWarnings("unchecked")
-  private void mockTaskService() {
-    doAnswer((InvocationOnMock invocation) -> {
-      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(1, PrioritizedTask.class);
-      prioritizedTask.run();
-
-      Callback<Boolean> callback = invocation.getArgumentAt(2, Callback.class);
-
-      Future<Throwable> throwableFuture = WaitForAsyncUtils.asyncFx(prioritizedTask::getException);
-      Throwable throwable = throwableFuture.get(1, TimeUnit.SECONDS);
-      if (throwable != null) {
-        callback.error(throwable);
-      } else {
-        Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
-        callback.success(result.get(1, TimeUnit.SECONDS));
-      }
-
-      return null;
-    }).when(taskService).submitTask(any(), any(), any());
-  }
 }
