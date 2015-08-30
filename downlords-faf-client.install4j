@@ -35,8 +35,8 @@
       </executable>
       <splashScreen show="true" width="618" height="386" bitmapFile="../../Desktop/splash.png" windowsNative="true" textOverlay="true">
         <text>
-          <statusLine x="11" y="364" text="" fontSize="12" fontColor="255,255,255" bold="false" />
-          <versionLine x="393" y="271" text="${compiler:sys.version}" fontSize="16" fontColor="255,255,255" bold="true" />
+          <statusLine x="11" y="362" text="Loading..." fontSize="10" fontColor="255,255,255" bold="false" />
+          <versionLine x="370" y="273" text="v${compiler:sys.version}" fontSize="16" fontColor="255,255,255" bold="true" />
         </text>
       </splashScreen>
       <java mainClass="com.faforever.client.Main" vmParameters="" arguments="" allowVMPassthroughParameters="true" preferredVM="client" bundleRuntime="true">
