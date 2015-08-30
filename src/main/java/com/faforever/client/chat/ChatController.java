@@ -146,6 +146,7 @@ public class ChatController implements
 
   @Override
   public void onJoinChannelsRequest(List<String> channelNames) {
+    Platform.runLater(() -> channelNames.forEach(chatService::joinChannel));
     Platform.runLater(() -> channelNames.forEach(this::addAndGetChannelTab));
   }
 }

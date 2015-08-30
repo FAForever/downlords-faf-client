@@ -568,34 +568,39 @@ public abstract class AbstractChatTabController {
       }
       PlayerInfoBean playerInfo = playerService.getPlayerForUsername(chatMessage.getUsername());
 
-      if (playerInfo != null) {
-        String messageColor = null;
-        if (playerInfo.getModeratorInChannels().size() > 0) {
-          messageColor = chatPrefs.getModsChatColor().toString();
-        } else if (playerInfo.isFriend()) {
-          messageColor = chatPrefs.getFriendsChatColor().toString();
-        } else if (playerInfo.isFoe()) {
-          messageColor = chatPrefs.getFoesChatColor().toString();
-        }
+      assignPlayerColor(cssClasses, playerInfo);
 
-        if (!chatPrefs.getPrettyColors() && messageColor == null) {
-          if (playerInfo.isChatOnly()) {
-            messageColor = chatPrefs.getIrcChatColor().toString();
-          } else {
-            messageColor = chatPrefs.getOthersChatColor().toString();
-          }
-        } else if (messageColor == null) {
-          messageColor = chatService.getUserColor(playerInfo.getUsername()).toString();
-        }
+      html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
 
-        cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));
+      addToMessageContainer(html);
 
-        html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
-
-        addToMessageContainer(html);
-      }
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private void assignPlayerColor(Collection<String> cssClasses, PlayerInfoBean playerInfo) {
+    if (playerInfo != null) {
+      String messageColor = null;
+      if (playerInfo.getModeratorInChannels().size() > 0) {
+        messageColor = chatPrefs.getModsChatColor().toString();
+      } else if (playerInfo.isFriend()) {
+        messageColor = chatPrefs.getFriendsChatColor().toString();
+      } else if (playerInfo.isFoe()) {
+        messageColor = chatPrefs.getFoesChatColor().toString();
+      }
+
+      if (!chatPrefs.getPrettyColors() && messageColor == null) {
+        if (playerInfo.isChatOnly()) {
+          messageColor = chatPrefs.getIrcChatColor().toString();
+        } else {
+          messageColor = chatPrefs.getOthersChatColor().toString();
+        }
+      } else if (messageColor == null) {
+        messageColor = chatPrefs.getSelfChatColor().toString();
+      }
+
+      cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));
     }
   }
 

@@ -4,7 +4,7 @@ import javafx.scene.paint.Color;
 
 import java.util.Random;
 
-public final class ColorGeneratorUtil {
+public class ColorGeneratorUtil {
 
   //http://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
 
@@ -14,9 +14,9 @@ public final class ColorGeneratorUtil {
     hue += goldenRatioConj;
     hue = hue % 1;
 
-    float saturation = randFloat(0.6f, 0.9f);
+    float saturation = randFloat(0.5f, 0.7f);
 
-    return Color.hsb(hue * 360, saturation, 0.95f);
+    return Color.hsb(hue * 360, saturation, 0.9f);
   }
 
   private static float randFloat(float min, float max) {

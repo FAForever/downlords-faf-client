@@ -6,6 +6,7 @@ import com.faforever.client.legacy.GameStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
+import com.google.common.collect.ImmutableSortedSet;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.fxml.FXML;
@@ -19,6 +20,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow;
+import org.pircbotx.Channel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
@@ -27,6 +29,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.util.Iterator;
 
 public class ChatUserControl extends HBox {
 
@@ -126,22 +129,35 @@ public class ChatUserControl extends HBox {
       colorProperty = chatPrefs.friendsChatColorProperty();
     } else if (playerInfoBean.isFoe()) {
       colorProperty = chatPrefs.foesChatColorProperty();
+    } else if (playerInfoBean.getUsername().equals(userService.getUsername())) {
+      colorProperty = chatPrefs.selfChatColorProperty();
     }
 
     if (!chatPrefs.getPrettyColors() && colorProperty == null) {
 
       if (playerInfoBean.isChatOnly()) {
         colorProperty = chatPrefs.ircChatColorProperty();
-      } else if (userService.getUsername().equals(playerInfoBean.getUsername())) {
-        colorProperty = chatPrefs.selfChatColorProperty();
       } else {
         colorProperty = chatPrefs.othersChatColorProperty();
       }
 
     } else if (chatPrefs.getPrettyColors() && colorProperty == null) {
       color = ColorGeneratorUtil.generatePrettyHexColor();
-      ChatUser chatUser = chatService.getChatUserForChannel(environment.getProperty("irc.defaultChannel"), playerInfoBean.getUsername());
-      chatUser.setColor(color);
+      ImmutableSortedSet<Channel> connectedChannels = chatService.getChannelsForUser(userService.getUsername());
+      Iterator<Channel> channelListIterator = connectedChannels.iterator();
+      ChatUser chatUser = null;
+
+      while (channelListIterator.hasNext()) {
+        chatUser = chatService.getChatUserForChannel(channelListIterator.next().getName(), playerInfoBean.getUsername());
+        //FIXME ugly
+        chatService.getChannelsForUser(playerInfoBean.getUsername());
+      }
+      //FIXME can this ever really be null?
+      if (chatUser.getColor() == null) {
+        chatUser.setColor(color);
+      } else {
+        color = chatUser.getColor();
+      }
     }
 
     if (colorProperty != null) {

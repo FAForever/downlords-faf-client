@@ -15,6 +15,7 @@ import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.pircbotx.Channel;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
@@ -44,6 +45,7 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,6 +53,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
+import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.synchronizedObservableMap;
 
@@ -71,6 +74,9 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
    * Map channel names to a map containing chat users, indexed by their login name.
    */
   private final ObservableMap<String, ObservableMap<String, ChatUser>> chatUserLists;
+
+  //FIXME this shouldn't be here
+  private final Collection<Color> assignedColors;
 
   @Autowired
   Environment environment;
@@ -96,9 +102,11 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   private String defaultChannelName;
   private Service<Void> connectionService;
 
+
   public PircBotXChatService() {
     eventListeners = new ConcurrentHashMap<>();
     chatUserLists = observableHashMap();
+    assignedColors = observableArrayList();
   }
 
   @Override
@@ -325,12 +333,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public ChatUser getChatUserForChannel(String channelName, String username) {
-    synchronized (chatUserLists) {
-      if (!chatUserLists.containsKey(channelName)) {
-        chatUserLists.put(channelName, synchronizedObservableMap(observableHashMap()));
-      }
-      return chatUserLists.get(channelName).get(username);
-    }
+    return chatUserLists.get(channelName).get(username);
   }
 
   @Override
@@ -423,9 +426,12 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  public Color getUserColor(String username) {
-    synchronized (chatUserLists) {
-      return chatUserLists.get(defaultChannelName).get(username).getColor();
-    }
+  public Collection<Color> getAssignedColors() {
+    return assignedColors;
+  }
+
+  @Override
+  public ImmutableSortedSet<Channel> getChannelsForUser(String username) {
+    return pircBotX.getUserChannelDao().getChannels(pircBotX.getUserChannelDao().getUser(username));
   }
 }
