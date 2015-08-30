@@ -35,6 +35,7 @@ import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
@@ -206,6 +207,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Autowired
   PatchService patchService;
 
+  @Autowired
+  ClientUpdateService clientUpdateService;
+
   Popup notificationsPopup;
 
   @FXML
@@ -363,7 +367,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     usernameButton.setText(userService.getUsername());
 
     portCheckService.checkGamePortInBackground();
-    patchService.checkForUpdatesInBackground();
+    patchService.checkForUpdateInBackground();
+    // TODO test with newest
+//    clientUpdateService.checkForUpdateInBackground();
   }
 
   private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {

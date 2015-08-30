@@ -135,7 +135,7 @@ public class GitRepositoryPatchService implements PatchService {
                 i18n.get("updateFailed.notification"),
                 Severity.WARN,
                 Collections.singletonList(
-                    new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdatesInBackground())
+                    new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdateInBackground())
                 )
             )
         );
@@ -192,7 +192,7 @@ public class GitRepositoryPatchService implements PatchService {
   }
 
   @Override
-  public void checkForUpdatesInBackground() {
+  public void checkForUpdateInBackground() {
     Callback<Boolean> callback = new Callback<Boolean>() {
       @Override
       public void success(Boolean needsPatching) {
@@ -219,7 +219,7 @@ public class GitRepositoryPatchService implements PatchService {
                 i18n.get("updateCheckFailed.notification"),
                 Severity.WARN,
                 Collections.singletonList(
-                    new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdatesInBackground())
+                    new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdateInBackground())
                 )
             )
         );

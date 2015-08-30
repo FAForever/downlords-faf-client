@@ -9,9 +9,9 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
-import com.faforever.client.util.VersionUtil;
 import com.google.common.primitives.Bytes;
 import javafx.concurrent.Task;
 import org.jetbrains.annotations.Nullable;
@@ -60,6 +60,9 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
 
   @Autowired
   ReplayFileWriter replayFileWriter;
+
+  @Autowired
+  ClientUpdateService clientUpdateService;
 
   private LocalReplayInfo replayInfo;
 
@@ -144,7 +147,9 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
     replayInfo.setUid(uid);
     replayInfo.setGameTime(pythonTime());
     replayInfo.setVersionInfo(new HashMap<>());
-    replayInfo.getVersionInfo().put("lobby", VersionUtil.getVersion(getClass()));
+    replayInfo.getVersionInfo().put("lobby",
+        String.format("dfaf-%s", clientUpdateService.getCurrentVersion().getCanonical())
+    );
   }
 
   /**

@@ -81,7 +81,9 @@ public class PersistentNotificationController {
       button.setFocusTraversable(false);
       button.setOnAction(event -> {
         action.call(event);
-        dismiss();
+        if (action.getType() == Action.Type.OK_DONE) {
+          dismiss();
+        }
       });
 
       actionButtons.add(button);
