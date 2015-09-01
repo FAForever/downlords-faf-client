@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.HostService;
+import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
@@ -108,7 +109,7 @@ public abstract class AbstractChatTabController {
   @Autowired
   TimeService timeService;
   @Autowired
-  PlayerInfoTooltipController playerInfoTooltipController;
+  PlayerCardTooltipController playerCardTooltipController;
   @Autowired
   I18n i18n;
   @Autowired
@@ -137,7 +138,7 @@ public abstract class AbstractChatTabController {
   private int nextAutoCompleteIndex;
   private String autoCompletePartialName;
   private Pattern mentionPattern;
-  private Popup playerInfoTooltip;
+  private Popup playerCardTooltip;
   private Tooltip linkPreviewTooltip;
   private ChatPrefs chatPrefs;
 
@@ -288,23 +289,23 @@ public abstract class AbstractChatTabController {
       return;
     }
 
-    playerInfoTooltipController.setPlayerInfoBean(playerInfoBean);
+    playerCardTooltipController.setPlayer(playerInfoBean);
 
-    playerInfoTooltip = new Popup();
-    playerInfoTooltip.getContent().setAll(playerInfoTooltipController.getRoot());
-    playerInfoTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
-    playerInfoTooltip.show(getRoot().getTabPane(), lastMouseX, lastMouseY - 10);
+    playerCardTooltip = new Popup();
+    playerCardTooltip.getContent().setAll(playerCardTooltipController.getRoot());
+    playerCardTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
+    playerCardTooltip.show(getRoot().getTabPane(), lastMouseX, lastMouseY - 10);
   }
 
   /**
    * Called from JavaScript when user no longer hovers over a user name.
    */
   public void hidePlayerInfo() {
-    if (playerInfoTooltip == null) {
+    if (playerCardTooltip == null) {
       return;
     }
-    playerInfoTooltip.hide();
-    playerInfoTooltip = null;
+    playerCardTooltip.hide();
+    playerCardTooltip = null;
   }
 
   /**
@@ -596,8 +597,17 @@ public abstract class AbstractChatTabController {
         } else {
           messageColor = chatPrefs.getOthersChatColor().toString();
         }
-      } else if (messageColor == null) {
-        messageColor = chatPrefs.getSelfChatColor().toString();
+      }
+
+      if (messageColor == null) {
+        if (playerInfo.getUsername().equals(userService.getUsername())) {
+          messageColor = chatPrefs.getSelfChatColor().toString();
+        } else {
+          ChatUser chatUser = chatService.getChatUser(playerInfo.getUsername());
+          if (chatUser != null) {
+            messageColor = chatUser.getColor().toString();
+          }
+        }
       }
 
       cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));

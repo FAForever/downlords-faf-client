@@ -152,12 +152,12 @@ public class ChatUserControl extends HBox {
 
 
       for (Channel connectedChannel : connectedChannels) {
-        chatUser = chatService.getChatUserForChannel(connectedChannel.getName(), playerInfoBean.getUsername());
+        chatUser = chatService.getChatUser(playerInfoBean.getUsername());
         if (chatUser != null) {
           break;
         }
       }
-      
+
       try {
         if (chatUser.getColor() == null) {
           chatUser.setColor(color);

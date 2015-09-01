@@ -597,6 +597,12 @@
   -fx-margin : 50, 50, 50, 50;
 }
 
+/***************** Played Card Tooltip*****************/
+
+.player-card-tooltip {
+  -fx-padding: 5, 10, 5, 10;
+}
+
 /***************** Progress bar *****************/
 
 .progress-bar {

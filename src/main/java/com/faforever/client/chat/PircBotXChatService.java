@@ -332,11 +332,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  public ChatUser getChatUserForChannel(String channelName, String username) {
-    return chatUserLists.get(channelName).get(username);
-  }
-
-  @Override
   public void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener) {
     ObservableMap<String, ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
     synchronized (chatUsersForChannel) {
@@ -436,12 +431,23 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  public ChatUser createOrGetChatUser(User user) {
+  public ChatUser getChatUser(String username) {
     for (String channel : chatUserLists.keySet()) {
-      if (chatUserLists.get(channel).containsKey(user.getNick())) {
-        return chatUserLists.get(channel).get(user.getNick());
+      if (chatUserLists.get(channel).containsKey(username)) {
+        return chatUserLists.get(channel).get(username);
       }
     }
-    return ChatUser.fromIrcUser(user);
+    return null;
   }
+
+  @Override
+  public ChatUser createOrGetChatUser(User user) {
+    ChatUser chatUser = getChatUser(user.getNick());
+    if(chatUser != null){
+      return chatUser;
+    } else {
+      return ChatUser.fromIrcUser(user);
+    }
+  }
+
 }

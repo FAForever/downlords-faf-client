@@ -145,9 +145,10 @@ public class MockChatService implements ChatService {
     return channelUserListListeners.get(channelName);
   }
 
+
   //FIXME implement
   @Override
-  public ChatUser getChatUserForChannel(String channelName, String username) {
+  public ChatUser getChatUser(String username) {
     return null;
   }
 
