@@ -116,6 +116,8 @@ public abstract class AbstractChatTabController {
   ImageUploadService imageUploadService;
   @Autowired
   UrlPreviewResolver urlPreviewResolver;
+  @Autowired
+  ChatController chatController;
   private boolean isChatReady;
   private WebEngine engine;
   private double lastMouseX;
@@ -306,6 +308,16 @@ public abstract class AbstractChatTabController {
     }
     playerCardTooltip.hide();
     playerCardTooltip = null;
+  }
+
+  /**
+   * Called from JavaScript when user no longer hovers over a user name.
+   */
+  public void messagePlayerFromChat(String username) {
+    if (playerCardTooltip == null) {
+      return;
+    }
+    chatController.openPrivateMessageTabForUser(username);
   }
 
   /**

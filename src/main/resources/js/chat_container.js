@@ -32,6 +32,10 @@ function hidePlayerInfo(node) {
   chatTab.hidePlayerInfo();
 }
 
+function messagePlayer(node) {
+    chatTab.messagePlayerFromChat(node.textContent);
+}
+
 function scrollToBottomIfDesired() {
   if (isScrolledToBottom) {
     window.scrollTo(0, document.documentElement.scrollHeight);
