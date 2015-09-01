@@ -14,6 +14,7 @@ import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
 import org.pircbotx.Channel;
+import org.pircbotx.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
@@ -228,6 +229,12 @@ public class MockChatService implements ChatService {
   //FIXME implement
   @Override
   public ImmutableSortedSet<Channel> getChannelsForUser(String username) {
+    return null;
+  }
+
+  //FIXME implement
+  @Override
+  public ChatUser createOrGetChatUser(User user) {
     return null;
   }
 }

@@ -21,6 +21,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow;
 import org.pircbotx.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
@@ -29,7 +31,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.Iterator;
+import java.lang.invoke.MethodHandles;
 
 public class ChatUserControl extends HBox {
 
@@ -81,6 +83,8 @@ public class ChatUserControl extends HBox {
   ImageView statusImageView;
 
   private PlayerInfoBean playerInfoBean;
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
   void onContextMenuRequested(ContextMenuEvent event) {
@@ -143,20 +147,25 @@ public class ChatUserControl extends HBox {
 
     } else if (chatPrefs.getPrettyColors() && colorProperty == null) {
       color = ColorGeneratorUtil.generatePrettyHexColor();
-      ImmutableSortedSet<Channel> connectedChannels = chatService.getChannelsForUser(userService.getUsername());
-      Iterator<Channel> channelListIterator = connectedChannels.iterator();
       ChatUser chatUser = null;
+      ImmutableSortedSet<Channel> connectedChannels = chatService.getChannelsForUser(playerInfoBean.getUsername());
 
-      while (channelListIterator.hasNext()) {
-        chatUser = chatService.getChatUserForChannel(channelListIterator.next().getName(), playerInfoBean.getUsername());
-        //FIXME ugly
-        chatService.getChannelsForUser(playerInfoBean.getUsername());
+
+      for (Channel connectedChannel : connectedChannels) {
+        chatUser = chatService.getChatUserForChannel(connectedChannel.getName(), playerInfoBean.getUsername());
+        if (chatUser != null) {
+          break;
+        }
       }
-      //FIXME can this ever really be null?
-      if (chatUser.getColor() == null) {
-        chatUser.setColor(color);
-      } else {
-        color = chatUser.getColor();
+      
+      try {
+        if (chatUser.getColor() == null) {
+          chatUser.setColor(color);
+        } else {
+          color = chatUser.getColor();
+        }
+      } catch (NullPointerException e) {
+        logger.warn("{} could not be found in chatUserList", playerInfoBean.getUsername());
       }
     }
 

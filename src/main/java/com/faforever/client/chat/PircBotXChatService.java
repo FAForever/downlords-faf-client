@@ -163,7 +163,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   private Map<String, ChatUser> chatUsers(ImmutableSortedSet<User> users) {
     Map<String, ChatUser> chatUsers = new HashMap<>();
     for (User user : users) {
-      ChatUser chatUser = ChatUser.fromIrcUser(user);
+      ChatUser chatUser = createOrGetChatUser(user);
       chatUsers.put(chatUser.getUsername(), chatUser);
     }
     return chatUsers;
@@ -239,7 +239,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       User user = event.getUser();
       listener.onUserJoinedChannel(
           event.getChannel().getName(),
-          ChatUser.fromIrcUser(user)
+          createOrGetChatUser(user)
       );
     });
   }
@@ -433,5 +433,15 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   @Override
   public ImmutableSortedSet<Channel> getChannelsForUser(String username) {
     return pircBotX.getUserChannelDao().getChannels(pircBotX.getUserChannelDao().getUser(username));
+  }
+
+  @Override
+  public ChatUser createOrGetChatUser(User user) {
+    for (String channel : chatUserLists.keySet()) {
+      if (chatUserLists.get(channel).containsKey(user.getNick())) {
+        return chatUserLists.get(channel).get(user.getNick());
+      }
+    }
+    return ChatUser.fromIrcUser(user);
   }
 }
