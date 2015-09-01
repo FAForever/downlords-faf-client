@@ -184,14 +184,14 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCheckForUpdatesInBackgroundPatchingIsNeeded() throws Exception {
-    instance.checkForUpdatesInBackground();
+    instance.checkForUpdateInBackground();
 
     verifyNotification(Severity.INFO);
   }
 
   @Test
   public void testCheckForUpdatesInBackgroundPatchingIsNeededBecauseRepoDirDoesntExist() throws Exception {
-    instance.checkForUpdatesInBackground();
+    instance.checkForUpdateInBackground();
 
     verifyNotification(Severity.INFO);
   }
@@ -204,7 +204,7 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(instance.taskService).submitTask(any(), any(), any());
 
-    instance.checkForUpdatesInBackground();
+    instance.checkForUpdateInBackground();
 
     verifyNotification(Severity.WARN);
   }
@@ -213,7 +213,7 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
   public void testCheckForUpdatesInBackgroundRepoDirectoryMissing() throws Exception {
     assertTrue(Files.notExists(binaryPatchRepoDirectory));
 
-    instance.checkForUpdatesInBackground();
+    instance.checkForUpdateInBackground();
 
     verifyNotification(Severity.INFO);
   }
@@ -225,7 +225,7 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
     when(instance.gitWrapper.getLocalHead(binaryPatchRepoDirectory)).thenReturn("1234");
     when(instance.gitWrapper.getRemoteHead(binaryPatchRepoDirectory)).thenReturn("5678");
 
-    instance.checkForUpdatesInBackground();
+    instance.checkForUpdateInBackground();
 
     verifyNotification(Severity.INFO);
   }
@@ -237,7 +237,7 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
     when(instance.gitWrapper.getLocalHead(binaryPatchRepoDirectory)).thenReturn("1234");
     when(instance.gitWrapper.getRemoteHead(binaryPatchRepoDirectory)).thenReturn("1234");
 
-    instance.checkForUpdatesInBackground();
+    instance.checkForUpdateInBackground();
 
     verifyNotification(Severity.INFO);
   }
@@ -258,7 +258,7 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
     when(instance.gitWrapper.getLocalHead(binaryPatchRepoDirectory)).thenReturn("1234");
     when(instance.gitWrapper.getRemoteHead(binaryPatchRepoDirectory)).thenReturn("1234");
 
-    instance.checkForUpdatesInBackground();
+    instance.checkForUpdateInBackground();
 
     verifyNotification(Severity.INFO);
   }
@@ -274,14 +274,14 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
     when(instance.gitWrapper.getLocalHead(binaryPatchRepoDirectory)).thenReturn("1234");
     when(instance.gitWrapper.getRemoteHead(binaryPatchRepoDirectory)).thenReturn("1234");
 
-    instance.checkForUpdatesInBackground();
+    instance.checkForUpdateInBackground();
 
     verifyNoMoreInteractions(instance.notificationService);
   }
 
   @Test
   public void testGuessInstallTypeRetail() throws Exception {
-    instance.checkForUpdatesInBackground();
+    instance.checkForUpdateInBackground();
 
     assertTrue(Files.notExists(faBinDirectory.resolve(STEAM_API_DLL)));
 
@@ -291,7 +291,7 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGuessInstallTypeSteam() throws Exception {
-    instance.checkForUpdatesInBackground();
+    instance.checkForUpdateInBackground();
 
     Files.createDirectories(faBinDirectory);
     Files.createFile(faBinDirectory.resolve(STEAM_API_DLL));

@@ -4,5 +4,5 @@ public interface PatchService {
 
   void patchInBackground();
 
-  void checkForUpdatesInBackground();
+  void checkForUpdateInBackground();
 }

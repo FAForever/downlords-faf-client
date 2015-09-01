@@ -10,8 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="notificationRoot" maxWidth="1.7976931348623157E308"
-          minHeight="40.0" minWidth="100.0"
-          prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40"
+          minHeight="40.0" minWidth="100.0" xmlns="http://javafx.com/javafx/8.0.40"
           fx:controller="com.faforever.client.notification.PersistentNotificationController">
   <columnConstraints>
     <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>

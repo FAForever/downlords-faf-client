@@ -243,8 +243,7 @@ public class ChannelTabController extends AbstractChatTabController {
     userToChatUserControls.putIfAbsent(username, new HashMap<>(targetPanesForUser.size(), 1));
 
     for (Pane pane : targetPanesForUser) {
-      // Remove Platform.runLater() as soon as JDK-8097541 is fixed
-      Platform.runLater(() -> createChatUserControlForPlayerIfNecessary(pane, playerInfoBean));
+      createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
     }
   }
 

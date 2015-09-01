@@ -31,6 +31,9 @@ public final class ByteCopier {
     return this;
   }
 
+  /**
+   * Sets the interval between in which listeners should receive updated byte counts, in milliseconds.
+   */
   public ByteCopier byteCountInterval(int byteCountInterval) {
     this.byteCountInterval = byteCountInterval;
     return this;
@@ -46,7 +49,7 @@ public final class ByteCopier {
     return this;
   }
 
-  public ByteCopier totalBytes(int totalBytes) {
+  public ByteCopier totalBytes(long totalBytes) {
     this.totalBytes = totalBytes;
     return this;
   }

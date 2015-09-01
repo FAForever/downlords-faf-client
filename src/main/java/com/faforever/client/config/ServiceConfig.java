@@ -62,6 +62,8 @@ import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.stats.StatisticsServiceImpl;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.task.TaskServiceImpl;
+import com.faforever.client.update.ClientUpdateService;
+import com.faforever.client.update.ClientUpdateServiceImpl;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.uploader.imgur.ImgurImageUploadService;
 import com.faforever.client.upnp.UpnpService;
@@ -269,5 +271,10 @@ public class ServiceConfig {
   @Bean
   NewsService newsService() {
     return new LegacyNewsService();
+  }
+
+  @Bean
+  ClientUpdateService updateService() {
+    return new ClientUpdateServiceImpl();
   }
 }

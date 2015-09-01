@@ -158,7 +158,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     verify(chatService).connect();
     verify(portCheckService).checkGamePortInBackground();
-    verify(patchService).checkForUpdatesInBackground();
+    verify(patchService).checkForUpdateInBackground();
     verify(lobbyService).setOnFafConnectedListener(instance);
     verify(lobbyService).setOnLobbyConnectingListener(instance);
     verify(lobbyService).setOnFafDisconnectedListener(instance);
