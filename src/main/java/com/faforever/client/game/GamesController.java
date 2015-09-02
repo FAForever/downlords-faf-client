@@ -238,7 +238,7 @@ public class GamesController {
 
   public void onJoinGame(GameInfoBean gameInfoBean, String password, double screenX, double screenY) {
     PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
-    int playerRating = RatingUtil.getRating(currentPlayer);
+    int playerRating = RatingUtil.getGlobalRating(currentPlayer);
 
     if ((playerRating < gameInfoBean.getMinRating() || playerRating > gameInfoBean.getMaxRating())) {
       showRatingOutOfBoundsConfirmation(playerRating, gameInfoBean, screenX, screenY);

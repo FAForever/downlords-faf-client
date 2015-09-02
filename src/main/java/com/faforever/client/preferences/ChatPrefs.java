@@ -24,6 +24,20 @@ public class ChatPrefs {
   private final ObjectProperty<Color> othersChatColor;
   private final BooleanProperty prettyColors;
 
+  public int getChannelTabScrollPaneWidth() {
+    return channelTabScrollPaneWidth.get();
+  }
+
+  public IntegerProperty channelTabScrollPaneWidthProperty() {
+    return channelTabScrollPaneWidth;
+  }
+
+  public void setChannelTabScrollPaneWidth(int channelTabScrollPaneWidth) {
+    this.channelTabScrollPaneWidth.set(channelTabScrollPaneWidth);
+  }
+
+  private final IntegerProperty channelTabScrollPaneWidth;
+
   public ChatPrefs() {
     maxMessages = new SimpleIntegerProperty(500);
     zoom = new SimpleDoubleProperty(1);
@@ -36,6 +50,7 @@ public class ChatPrefs {
     ircChatColor = new SimpleObjectProperty<>(Color.web("#808080"));
     othersChatColor = new SimpleObjectProperty<>(Color.web("#BFBEBA"));
     prettyColors = new SimpleBooleanProperty(true);
+    channelTabScrollPaneWidth = new SimpleIntegerProperty(250);
   }
 
   public boolean getPreviewImageUrls() {

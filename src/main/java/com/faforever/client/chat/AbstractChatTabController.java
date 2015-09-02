@@ -594,8 +594,8 @@ public abstract class AbstractChatTabController {
 
   private void assignPlayerColor(Collection<String> cssClasses, PlayerInfoBean playerInfo) {
     if (playerInfo != null) {
-      String messageColor = null;
-      if (playerInfo.getModeratorInChannels().size() > 0) {
+      String messageColor = "";
+      if (playerInfo.getModeratorInChannels() != null && playerInfo.getModeratorInChannels().size() > 0) {
         messageColor = chatPrefs.getModsChatColor().toString();
       } else if (playerInfo.isFriend()) {
         messageColor = chatPrefs.getFriendsChatColor().toString();
@@ -603,7 +603,7 @@ public abstract class AbstractChatTabController {
         messageColor = chatPrefs.getFoesChatColor().toString();
       }
 
-      if (!chatPrefs.getPrettyColors() && messageColor == null) {
+      if (!chatPrefs.getPrettyColors() && messageColor.equals("")) {
         if (playerInfo.isChatOnly()) {
           messageColor = chatPrefs.getIrcChatColor().toString();
         } else {
@@ -611,7 +611,7 @@ public abstract class AbstractChatTabController {
         }
       }
 
-      if (messageColor == null) {
+      if (messageColor.equals("")) {
         if (playerInfo.getUsername().equals(userService.getUsername())) {
           messageColor = chatPrefs.getSelfChatColor().toString();
         } else {
@@ -621,8 +621,9 @@ public abstract class AbstractChatTabController {
           }
         }
       }
-
-      cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));
+      if (messageColor != null) {
+        cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));
+      }
     }
   }
 

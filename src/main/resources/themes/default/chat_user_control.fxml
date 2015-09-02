@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import java.lang.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
-
 <fx:root alignment="CENTER_LEFT" minWidth="-Infinity" onContextMenuRequested="#onContextMenuRequested" spacing="5.0" styleClass="chat-user-control-root" type="HBox" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
   <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true" styleClass="chat-user-control-avatar" HBox.hgrow="NEVER" />
   <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true" styleClass="chat-user-control-country" />
-  <Label fx:id="clanLabel" styleClass="chat-user-control-avatar" />
+  <Label fx:id="clanLabel" styleClass="chat-user-control-clan"/>
    <AnchorPane HBox.hgrow="SOMETIMES">
       <children>
-        <Label fx:id="usernameLabel" onMouseClicked="#onUsernameClicked" styleClass="chat-user-control-username" AnchorPane.leftAnchor="0.0" />
-        <ImageView fx:id="statusImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true" styleClass="chat-user-control-status" AnchorPane.rightAnchor="0.0" />
+        <Label fx:id="usernameLabel" onMouseClicked="#onUsernameClicked" prefWidth="82.0"
+               styleClass="chat-user-control-username" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="25.0"/>
+        <AnchorPane AnchorPane.rightAnchor="2.0">
+          <children>
+            <ImageView fx:id="statusImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true"
+                       styleClass="chat-user-control-status" AnchorPane.leftAnchor="0.0"/>
+          </children>
+        </AnchorPane>
       </children>
    </AnchorPane>  
 </fx:root>

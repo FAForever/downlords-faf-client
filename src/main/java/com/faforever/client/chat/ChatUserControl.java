@@ -2,11 +2,12 @@ package com.faforever.client.chat;
 
 import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.game.GameService;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.GameStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
-import com.google.common.collect.ImmutableSortedSet;
+import com.faforever.client.util.RatingUtil;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.fxml.FXML;
@@ -20,7 +21,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow;
-import org.pircbotx.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +66,9 @@ public class ChatUserControl extends HBox {
 
   @Autowired
   Environment environment;
+
+  @Autowired
+  I18n i18n;
 
   @FXML
   ImageView countryImageView;
@@ -118,8 +121,33 @@ public class ChatUserControl extends HBox {
     configureAvatarImageView();
     configureClanLabel();
     configureGameStatusView();
+    configureRatingTooltip();
 
     usernameLabel.setText(playerInfoBean.getUsername());
+  }
+
+  private void configureRatingTooltip() {
+    Tooltip userRatingTooltip = new Tooltip(playerInfoBean.getCountry());
+
+    String globalRating = i18n.get("playerRatingFormat.Global", RatingUtil.getGlobalRating(playerInfoBean));
+    String ladderRating = i18n.get("playerRatingFormat.Ladder", RatingUtil.getLadderRating(playerInfoBean));
+
+    userRatingTooltip.setText(String.format("%s\n%s", globalRating, ladderRating));
+
+    playerInfoBean.globalRatingMeanProperty().addListener((observable, oldValue, newValue) -> {
+      String updatedGlobalRating = i18n.get("playerRatingFormat.Global", RatingUtil.getGlobalRating(playerInfoBean));
+      String oldLadderRating = i18n.get("playerRatingFormat.Ladder", RatingUtil.getLadderRating(playerInfoBean));
+      userRatingTooltip.setText(String.format("%s \n %s", updatedGlobalRating, oldLadderRating));
+    });
+
+    playerInfoBean.ladderRatingMeanProperty().addListener((observable, oldValue, newValue) -> {
+      String oldGlobalRating = i18n.get("playerRatingFormat.Global", RatingUtil.getGlobalRating(playerInfoBean));
+      String updatedLadderRating = i18n.get("playerRatingFormat.Ladder", RatingUtil.getLadderRating(playerInfoBean));
+      userRatingTooltip.setText(String.format("%s \n %s", oldGlobalRating, updatedLadderRating));
+    });
+
+    Tooltip.install(clanLabel, userRatingTooltip);
+    Tooltip.install(usernameLabel, userRatingTooltip);
   }
 
   private void configureColor() {
@@ -147,16 +175,7 @@ public class ChatUserControl extends HBox {
 
     } else if (chatPrefs.getPrettyColors() && colorProperty == null) {
       color = ColorGeneratorUtil.generatePrettyHexColor();
-      ChatUser chatUser = null;
-      ImmutableSortedSet<Channel> connectedChannels = chatService.getChannelsForUser(playerInfoBean.getUsername());
-
-
-      for (Channel connectedChannel : connectedChannels) {
-        chatUser = chatService.getChatUser(playerInfoBean.getUsername());
-        if (chatUser != null) {
-          break;
-        }
-      }
+      ChatUser chatUser = chatService.getChatUser(playerInfoBean.getUsername());
 
       try {
         if (chatUser.getColor() == null) {
@@ -165,7 +184,7 @@ public class ChatUserControl extends HBox {
           color = chatUser.getColor();
         }
       } catch (NullPointerException e) {
-        logger.warn("{} could not be found in chatUserList", playerInfoBean.getUsername());
+        logger.warn("Could not generate color for {}", playerInfoBean.getUsername());
       }
     }
 
@@ -194,9 +213,10 @@ public class ChatUserControl extends HBox {
   }
 
   private void configureCountryImageView() {
-    playerInfoBean.countryProperty().addListener((observable, oldValue, newValue) -> {
+    //FIXME is this really necessary, when will someone's country change in a single session?
+/*    playerInfoBean.countryProperty().addListener((observable, oldValue, newValue) -> {
       Platform.runLater(() -> setCountry(newValue));
-    });
+    });*/
     setCountry(playerInfoBean.getCountry());
 
     Tooltip countryTooltip = new Tooltip(playerInfoBean.getCountry());

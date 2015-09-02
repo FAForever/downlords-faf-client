@@ -14,12 +14,12 @@ import javafx.collections.ObservableMap;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.pircbotx.Channel;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.UtilSSLSocketFactory;
+import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.Listener;
 import org.pircbotx.hooks.events.ActionEvent;
@@ -53,8 +53,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
-import static javafx.collections.FXCollections.observableArrayList;
 import static java.lang.String.format;
+import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.synchronizedObservableMap;
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
@@ -278,7 +278,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
           try {
             logger.info("Connecting to IRC at {}:{}", configuration.getServerHostname(), configuration.getServerPort());
             pircBotX.startBot();
-          } catch (IOException e) {
+          } catch (IOException | IrcException e) {
             int reconnectDelay = environment.getProperty("irc.reconnectDelay", int.class);
             logger.warn("Lost connection to IRC server, trying to reconnect in " + reconnectDelay / 1000 + "s");
             Thread.sleep(reconnectDelay);

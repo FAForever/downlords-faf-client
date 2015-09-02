@@ -18,6 +18,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,8 @@ public class ChannelTabController extends AbstractChatTabController {
    * Keeps track of which ChatUserControl in which pane belongs to which user.
    */
   private final Map<String, Map<Pane, ChatUserControl>> userToChatUserControls;
+  @FXML
+  VBox channelTabScrollPaneVBox;
   @FXML
   TitledPane moderatorsTitlePane;
   @FXML
@@ -129,6 +132,8 @@ public class ChannelTabController extends AbstractChatTabController {
   @PostConstruct
   void init() {
     assignColors();
+    channelTabScrollPaneVBox.setMinWidth(preferencesService.getPreferences().getChatPrefs().getChannelTabScrollPaneWidth());
+    channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChatPrefs().getChannelTabScrollPaneWidth());
   }
 
   private void assignColors() {
@@ -322,7 +327,7 @@ public class ChannelTabController extends AbstractChatTabController {
       String username1 = chatUserControl.getPlayerInfoBean().getUsername();
       String username2 = ((ChatUserControl) child).getPlayerInfoBean().getUsername();
 
-      if (username1.compareTo(username2) < 0) {
+      if (username1.compareToIgnoreCase(username2) < 0) {
         children.add(children.indexOf(child), chatUserControl);
         return;
       }
