@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ConcurrentUtil;
@@ -7,6 +8,7 @@ import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.SetChangeListener;
@@ -71,6 +73,8 @@ public class ChannelTabController extends AbstractChatTabController {
   ApplicationContext applicationContext;
   @Autowired
   PreferencesService preferencesService;
+  @Autowired
+  I18n i18n;
   private String channelName;
 
   public ChannelTabController() {
@@ -80,9 +84,14 @@ public class ChannelTabController extends AbstractChatTabController {
   public void setChannelName(String channelName) {
     super.setReceiver(channelName);
     this.channelName = channelName;
-
     channelTabRoot.setId(channelName);
     channelTabRoot.setText(channelName);
+
+
+    userSearchTextField.setPromptText(Integer.toString(chatService.getChatUsersForChannel(channelName).size()));
+    chatService.getChatUsersForChannel(channelName).addListener((MapChangeListener<? super String, ? super ChatUser>) change -> {
+      Platform.runLater(() -> userSearchTextField.setPromptText(i18n.get("chat.userCount", change.getMap().size())));
+    });
 
     chatService.addChannelUserListListener(channelName, change -> {
       if (change.wasAdded()) {

@@ -23,19 +23,6 @@ public class ChatPrefs {
   private final ObjectProperty<Color> ircChatColor;
   private final ObjectProperty<Color> othersChatColor;
   private final BooleanProperty prettyColors;
-
-  public int getChannelTabScrollPaneWidth() {
-    return channelTabScrollPaneWidth.get();
-  }
-
-  public IntegerProperty channelTabScrollPaneWidthProperty() {
-    return channelTabScrollPaneWidth;
-  }
-
-  public void setChannelTabScrollPaneWidth(int channelTabScrollPaneWidth) {
-    this.channelTabScrollPaneWidth.set(channelTabScrollPaneWidth);
-  }
-
   private final IntegerProperty channelTabScrollPaneWidth;
 
   public ChatPrefs() {
@@ -51,6 +38,7 @@ public class ChatPrefs {
     othersChatColor = new SimpleObjectProperty<>(Color.web("#BFBEBA"));
     prettyColors = new SimpleBooleanProperty(true);
     channelTabScrollPaneWidth = new SimpleIntegerProperty(250);
+
   }
 
   public boolean getPreviewImageUrls() {
@@ -188,5 +176,17 @@ public class ChatPrefs {
 
   public void setZoom(double zoom) {
     this.zoom.set(zoom);
+  }
+
+  public int getChannelTabScrollPaneWidth() {
+    return channelTabScrollPaneWidth.get();
+  }
+
+  public IntegerProperty channelTabScrollPaneWidthProperty() {
+    return channelTabScrollPaneWidth;
+  }
+
+  public void setChannelTabScrollPaneWidth(int channelTabScrollPaneWidth) {
+    this.channelTabScrollPaneWidth.set(channelTabScrollPaneWidth);
   }
 }

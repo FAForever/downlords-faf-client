@@ -288,8 +288,8 @@ public class PlayerInfoBean {
     setCountry(playerInfo.getCountry());
     setGlobalRatingMean(playerInfo.getRatingMean());
     setGlobalRatingDeviation(playerInfo.getRatingDeviation());
-    setLadderRatingDeviation(new Float(playerInfo.getLadderRatingDeviation()));
-    setLadderRatingMean(new Float(playerInfo.getLadderRatingMean()));
+    setLadderRatingDeviation(playerInfo.getLadderRatingDeviation());
+    setLadderRatingMean(playerInfo.getLadderRatingMean());
     if (playerInfo.getAvatar() != null) {
       setAvatarUrl(playerInfo.getAvatar().getUrl());
       setAvatarTooltip(playerInfo.getAvatar().getTooltip());

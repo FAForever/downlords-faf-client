@@ -14,8 +14,9 @@
                styleClass="chat-user-control-username" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="25.0"/>
         <AnchorPane AnchorPane.rightAnchor="2.0">
           <children>
-            <ImageView fx:id="statusImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true"
-                       styleClass="chat-user-control-status" AnchorPane.leftAnchor="0.0"/>
+            <ImageView fx:id="statusImageView" fitHeight="16.0" fitWidth="16.0" onMouseEntered="#onMouseEnterGameStatus"
+                       pickOnBounds="true" preserveRatio="true" styleClass="chat-user-control-status"
+                       AnchorPane.leftAnchor="0.0"/>
           </children>
         </AnchorPane>
       </children>

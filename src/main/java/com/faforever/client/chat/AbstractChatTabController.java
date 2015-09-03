@@ -617,6 +617,11 @@ public abstract class AbstractChatTabController {
         } else {
           ChatUser chatUser = chatService.getChatUser(playerInfo.getUsername());
           if (chatUser != null) {
+            //FIXME super ugly work around for a bug that I'm not sure about yet
+            if(chatUser.getColor() == null){
+              chatUser.setColor(ColorGeneratorUtil.generatePrettyHexColor());
+            }
+            logger.debug("User {}", chatUser.getUsername());
             messageColor = chatUser.getColor().toString();
           }
         }

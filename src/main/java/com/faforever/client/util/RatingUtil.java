@@ -20,7 +20,7 @@ public final class RatingUtil {
   }
 
   public static int getLadderRating(PlayerInfo playerInfo) {
-    return getRating(new Float(playerInfo.getLadderRatingMean()), new Float(playerInfo.getLadderRatingDeviation()));
+    return getRating(playerInfo.getLadderRatingMean(), playerInfo.getLadderRatingDeviation());
   }
 
   public static int getLadderRating(PlayerInfoBean playerInfoBean) {

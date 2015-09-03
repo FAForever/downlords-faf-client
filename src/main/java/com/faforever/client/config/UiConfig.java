@@ -13,6 +13,7 @@ import com.faforever.client.chat.ChatUserContextMenuController;
 import com.faforever.client.chat.ChatUserControl;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.CountryFlagServiceImpl;
+import com.faforever.client.chat.GameStatusContainerTooltipController;
 import com.faforever.client.chat.PrivateChatTabController;
 import com.faforever.client.chat.UrlPreviewResolver;
 import com.faforever.client.chat.UrlPreviewResolverImpl;
@@ -175,6 +176,12 @@ public class UiConfig {
   @Bean
   MostActivePlayersController mostActivePlayersController() {
     return loadController("most_active_players.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  GameStatusContainerTooltipController gameStatusContainerTooltipController() {
+    return loadController("gamestatus_container_tooltip.fxml");
   }
 
   @Bean
