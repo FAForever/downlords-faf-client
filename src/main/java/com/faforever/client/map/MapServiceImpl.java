@@ -64,7 +64,14 @@ public class MapServiceImpl implements MapService {
 
     logger.debug("Fetching small preview for map {} from {}", mapName, url);
 
-    return new Image(url, true);
+    Image image = new Image(url, true);
+    if (image.isError()) {
+      logger.warn("Error fetching small preview for map {} from {}", mapName, url);
+      String theme = preferencesService.getPreferences().getTheme();
+      return new Image(ThemeUtil.themeFile(theme, "images/map_background.png"));
+    } else {
+      return image;
+    }
   }
 
   @Override

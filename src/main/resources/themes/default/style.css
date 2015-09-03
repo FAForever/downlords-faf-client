@@ -634,7 +634,8 @@
 .comment-card {
   -fx-background-color: -fx-control-inner-background-alt;
 }
-/***************** Game Card *****************/
+
+/***************** Game Tile *****************/
 
 .game-tile-root:hover,
 .game-tile-root:focused {
@@ -668,6 +669,23 @@
 .game-tile-root .prefix {
   -fx-text-fill: -fx-dark-text-color;
   -fx-font-style: italic;
+}
+
+/***************** Game Status Tooltip *****************/
+
+.gamestatus-container-tooltip-mapname {
+  -fx-padding: 5px, 5px, 2px, 2px;
+  -fx-font-size: 1.2em;
+}
+
+.gamestatus-container-tooltip-gametitle {
+  -fx-padding: 5px, 5px, 2px, 2px;
+  -fx-font-size: 1.2em;
+}
+
+.gamestatus-container-tooltip-featuredmod {
+  -fx-padding: 5px, 5px, 2px, 2px;
+  -fx-font-size: 1.2em;
 }
 
 /***************** Game Tiled Tooltip *****************/
