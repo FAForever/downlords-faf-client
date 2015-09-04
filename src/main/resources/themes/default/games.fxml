@@ -67,7 +67,7 @@
                     <Label styleClass="fontawesome" text=""/>
                   </graphic>
                 </Label>
-                <VBox fx:id="teamListPane">
+                <VBox fx:id="teamListPane" maxWidth="1.7976931348623157E308">
                   <VBox.margin>
                     <Insets top="10.0" />
                   </VBox.margin>

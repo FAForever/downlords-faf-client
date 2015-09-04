@@ -16,15 +16,20 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.Callback;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.commons.compress.utils.IOUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -38,6 +43,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final long TIMEOUT = 100000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
@@ -82,7 +89,7 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   private void startFakeFafLobbyServer() throws IOException {
     fafLobbyServerSocket = new ServerSocket(0);
-    System.out.println("Fake server listening on " + fafLobbyServerSocket.getLocalPort());
+    logger.info("Fake server listening on " + fafLobbyServerSocket.getLocalPort());
 
     WaitForAsyncUtils.async(() -> {
       Gson gson = new GsonBuilder()
@@ -111,6 +118,12 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     });
   }
 
+  @After
+  public void tearDown() {
+    IOUtils.closeQuietly(fafLobbyServerSocket);
+    IOUtils.closeQuietly(localToServerSocket);
+  }
+
   @Test
   public void testConnectAndLogInInBackground() throws Exception {
     @SuppressWarnings("unchecked")
@@ -121,105 +134,5 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     ClientMessage clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(clientMessage.getCommand(), is(ClientMessageType.ASK_SESSION));
-  }
-
-  @Test
-  public void testCreateServerWriter() throws Exception {
-
-  }
-
-  @Test
-  public void testAddOnGameTypeInfoListener() throws Exception {
-
-  }
-
-  @Test
-  public void testAddOnGameInfoListener() throws Exception {
-
-  }
-
-  @Test
-  public void testSetOnPlayerInfoMessageListener() throws Exception {
-
-  }
-
-  @Test
-  public void testRequestNewGame() throws Exception {
-
-  }
-
-  @Test
-  public void testRequestJoinGame() throws Exception {
-
-  }
-
-  @Test
-  public void testNotifyGameStarted() throws Exception {
-
-  }
-
-  @Test
-  public void testNotifyGameTerminated() throws Exception {
-
-  }
-
-  @Test
-  public void testSetOnFafConnectingListener() throws Exception {
-
-  }
-
-  @Test
-  public void testSetOnFafDisconnectedListener() throws Exception {
-
-  }
-
-  @Test
-  public void testSetOnFriendListListener() throws Exception {
-
-  }
-
-  @Test
-  public void testSetOnFoeListListener() throws Exception {
-
-  }
-
-  @Test
-  public void testDisconnect() throws Exception {
-
-  }
-
-  @Test
-  public void testSetOnLobbyConnectedListener() throws Exception {
-
-  }
-
-  @Test
-  public void testRequestLadderInfoInBackground() throws Exception {
-
-  }
-
-  @Test
-  public void testAddOnJoinChannelsRequestListener() throws Exception {
-
-  }
-
-  @Test
-  public void testSetFriends() throws Exception {
-
-  }
-
-  @Test
-  public void testSetFoes() throws Exception {
-
-  }
-
-  @Test
-  public void testAddOnGameLaunchListener() throws Exception {
-
-  }
-
-  @Test
-  public void testOnServerMessage() throws Exception {
-
   }
 }

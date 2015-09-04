@@ -22,19 +22,22 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -42,12 +45,14 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final long TIMEOUT = 100000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
@@ -78,7 +83,7 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   private void startFakeFafStatisticsServer() throws IOException {
     fafStatisticsServerSocket = new ServerSocket(0);
-    System.out.println("Fake server listening on " + fafStatisticsServerSocket.getLocalPort());
+    logger.info("Fake statistics server listening on " + fafStatisticsServerSocket.getLocalPort());
 
     WaitForAsyncUtils.async(() -> {
       Gson gson = new GsonBuilder()
@@ -104,7 +109,7 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
           messagesReceivedByFafServer.add(clientMessage);
         }
       } catch (IOException e) {
-        System.out.println("Closing fake FAF lobby server: " + e.getMessage());
+        logger.info("Closing fake FAF lobby server: " + e.getMessage());
         throw new RuntimeException(e);
       }
     });
@@ -118,8 +123,15 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testRequestPlayerStatistics() throws Exception {
+    CompletableFuture<PlayerStatistics> playerStatisticsFuture = new CompletableFuture<>();
+
     @SuppressWarnings("unchecked")
     Callback<PlayerStatistics> callback = mock(Callback.class);
+    doAnswer(invocation -> {
+      playerStatisticsFuture.complete((PlayerStatistics) invocation.getArguments()[0]);
+      return null;
+    }).when(callback).success(any());
+
 
     String username = "junit";
     instance.requestPlayerStatistics(username, callback, StatisticsType.GLOBAL_90_DAYS);
@@ -136,13 +148,12 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
     assertThat(clientMessage.getCommand(), is(ClientMessageType.STATISTICS));
     assertThat(clientMessage.getAction(), nullValue());
 
-    ArgumentCaptor<PlayerStatistics> captor = ArgumentCaptor.forClass(PlayerStatistics.class);
-    verify(callback).success(captor.capture());
+    PlayerStatistics result = playerStatisticsFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(captor.getValue().getValues(), hasSize(2));
-    assertThat(captor.getValue().getStatisticsType(), is(StatisticsType.GLOBAL_90_DAYS));
-    assertThat(captor.getValue().getPlayer(), is(username));
-    assertThat(captor.getValue().getServerMessageType(), is(ServerMessageType.STATS));
+    assertThat(result.getValues(), hasSize(2));
+    assertThat(result.getStatisticsType(), is(StatisticsType.GLOBAL_90_DAYS));
+    assertThat(result.getPlayer(), is(username));
+    assertThat(result.getServerMessageType(), is(ServerMessageType.STATS));
   }
 
   /**

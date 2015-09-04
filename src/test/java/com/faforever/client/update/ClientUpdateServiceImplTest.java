@@ -16,6 +16,8 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -23,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.lang.invoke.MethodHandles;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Future;
@@ -38,6 +41,9 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class ClientUpdateServiceImplTest extends AbstractPlainJavaFxTest {
+
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private ClientUpdateServiceImpl instance;
 
@@ -111,7 +117,7 @@ public class ClientUpdateServiceImplTest extends AbstractPlainJavaFxTest {
 
   private void startFakeGitHubApiServer() throws IOException {
     fafLobbyServerSocket = new ServerSocket(0);
-    System.out.println("Fake server listening on " + fafLobbyServerSocket.getLocalPort());
+    logger.info("Fake server listening on " + fafLobbyServerSocket.getLocalPort());
 
     WaitForAsyncUtils.async(() -> {
       try (Socket socket = fafLobbyServerSocket.accept();

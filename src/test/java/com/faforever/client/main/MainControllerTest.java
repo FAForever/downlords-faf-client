@@ -27,6 +27,7 @@ import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
@@ -105,6 +106,9 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   TaskService taskService;
   @Mock
   ForgedAlliancePrefs forgedAlliancePrefs;
+  @Mock
+  ClientUpdateService clientUpdateService;
+
   private MainController instance;
 
   @Override
@@ -136,9 +140,14 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.persistentNotificationsController = persistentNotificationsController;
     instance.notificationService = notificationService;
     instance.taskService = taskService;
+    instance.clientUpdateService = clientUpdateService;
 
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(leaderboardController.getRoot()).thenReturn(new Pane());
+    when(castsController.getRoot()).thenReturn(new Pane());
+    when(newsController.getRoot()).thenReturn(new Pane());
+    when(communityHubController.getRoot()).thenReturn(new Pane());
+
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(applicationContext.getBean(UserInfoWindowController.class)).thenReturn(userInfoWindowController);
     when(preferences.getMainWindow()).thenReturn(mainWindowPrefs);
@@ -347,7 +356,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnCastsSelected() throws Exception {
     when(castsController.getRoot()).thenReturn(new Pane());
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.communityButton.getItems().get(2).fire());
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.communityButton.getItems().get(1).fire());
   }
 
   @Test
