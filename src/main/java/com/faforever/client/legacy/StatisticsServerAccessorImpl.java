@@ -8,6 +8,7 @@ import com.faforever.client.legacy.domain.ServerMessageType;
 import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.legacy.gson.LocalDateDeserializer;
 import com.faforever.client.legacy.gson.LocalTimeDeserializer;
+import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.stats.PlayerStatistics;
@@ -46,6 +47,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   public StatisticsServerAccessorImpl() {
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+        .registerTypeAdapter(ServerMessageType.class, new ServerMessageTypeTypeAdapter())
         .registerTypeAdapter(StatisticsType.class, new StatisticsTypeTypeAdapter())
         .registerTypeAdapter(LocalDate.class, new LocalDateDeserializer())
         .registerTypeAdapter(LocalTime.class, new LocalTimeDeserializer())
@@ -102,7 +104,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
     executeInBackground(connectionTask);
   }
 
-  protected ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
+  private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
     ServerWriter serverWriter = new ServerWriter(outputStream);
     serverWriter.registerMessageSerializer(new ClientMessageSerializer(), ClientMessage.class);
     serverWriter.registerMessageSerializer(new StringSerializer(), String.class);
@@ -110,7 +112,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   }
 
   @Override
-  public void onServerMessage(String message) {
+  protected void onServerMessage(String message) {
     ServerCommand serverCommand = ServerCommand.fromString(message);
     if (serverCommand != null) {
       throw new IllegalStateException("Didn't expect an unknown server message from the statistics server");

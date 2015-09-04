@@ -16,10 +16,6 @@ public class ClientMessage implements SerializableMessage {
     return action;
   }
 
-  public void setAction(String action) {
-    this.action = action;
-  }
-
   public ClientMessageType getCommand() {
     return command;
   }
