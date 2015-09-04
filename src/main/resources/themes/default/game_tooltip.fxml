@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="teamListRoot" styleClass="game-tooltip"
+      xmlns="http://javafx.com/javafx/null" fx:controller="com.faforever.client.game.GameTooltipController">
+  <children>
+    <HBox fx:id="teamsPane" prefWidth="200.0"/>
+    <Label fx:id="modsLabel" alignment="BOTTOM_LEFT" text="&lt;Mods&gt;"/>
+  </children>
+</VBox>

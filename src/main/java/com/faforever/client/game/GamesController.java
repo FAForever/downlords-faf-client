@@ -81,10 +81,10 @@ public class GamesController {
   Label numberOfPlayersLabel;
 
   @FXML
-  Label hosterLabel;
+  Label hostLabel;
 
   @FXML
-  Label gameModeLabel;
+  Label gameTypeLabel;
 
   @FXML
   VBox gamePreviewPanel;
@@ -121,7 +121,6 @@ public class GamesController {
 
   @Autowired
   NotificationService notificationService;
-
 
   private Popup createGamePopup;
   private Popup passwordPopup;
@@ -205,9 +204,15 @@ public class GamesController {
     });
 
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
-    hosterLabel.textProperty().bind(gameInfoBean.hostProperty());
-    gameModeLabel.textProperty().bind(gameInfoBean.featuredModProperty());
+    hostLabel.textProperty().bind(gameInfoBean.hostProperty());
     mapLabel.textProperty().bind(gameInfoBean.technicalNameProperty());
+
+    gameInfoBean.featuredModProperty().addListener((observable, oldValue, newValue) -> {
+      gameTypeLabel.setText(gameService.getGameTypeByString(newValue).getFullName());
+    });
+    gameTypeLabel.setText(gameService.getGameTypeByString(gameInfoBean.getFeaturedMod()).getFullName());
+
+
     createTeams(gameInfoBean.getTeams());
   }
 

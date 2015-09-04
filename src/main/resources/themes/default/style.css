@@ -179,6 +179,14 @@
   -fx-font-size: 24px;
 }
 
+/***************** Icons (FontAwesome) *****************/
+
+.fontawesome {
+  -fx-font-family: "FontAwesome";
+  -fx-min-width: 20px;
+  -fx-alignment: center;
+}
+
 /***************** ChartPlot *****************/
 
 .chart-vertical-grid-lines,
@@ -528,7 +536,6 @@
 }
 
 .notification-icon {
-  -fx-font-family: "FontAwesome";
   -fx-font-size : 2.5em;
 }
 
@@ -613,47 +620,48 @@
 .comment-card {
   -fx-background-color: -fx-control-inner-background-alt;
 }
-/***************** Game Card *****************/
+/***************** Game Tile *****************/
+
+.game-tile-root {
+  -fx-spacing: 10;
+  -fx-min-width: 360;
+  -fx-max-width: 360;
+  -fx-padding: 10;
+}
+
+.game-tile-root .lock-icon {
+  -fx-font-size: 2em;
+  -fx-effect: dropshadow(gaussian, black, 5, 0.5, 0, 0);
+  -fx-margin: 10;
+}
 
 .game-tile-root:hover,
 .game-tile-root:focused {
   -fx-background-color: -fx-control-inner-background;
 }
 
-.game-tile-root .label {
-  -fx-font-size: 0.88em;
+.game-tile-title {
+  -fx-font-weight: bold;
+  -fx-font-size: 1.2em;
 }
+
+/***************** Game Tooltip *****************/
+
+.game-tooltip {
+  -fx-font-size: 1.2em;
+}
+
+.game-tooltip .teams-pane {
+  -fx-spacing: 10;
+}
+
+/***************** Game detail *****************/
 
 .game-detail-title {
   -fx-font-weight: bold;
   -fx-font-size: 1.5em;
 }
 
-.game-tile-root .game-tile-title {
-  -fx-font-weight: bold;
-  -fx-font-size: 1.3em;
-}
-
-.game-tile-root .featured-mod-prefix {
-  -fx-text-fill: #F44336;
-  -fx-font-style: italic;
-}
-
-.game-tile-root .mods-prefix {
-  -fx-text-fill: #4CAF50;
-  -fx-font-style: italic;
-}
-
-.game-tile-root .prefix {
-  -fx-text-fill: -fx-dark-text-color;
-  -fx-font-style: italic;
-}
-
-/***************** Game Tiled Tooltip *****************/
-
-.game-container-tooltip {
-  -fx-font-size: 1.2em;
-}
 
 /***************** Map Preview *****************/
 
@@ -769,5 +777,5 @@
 /***************** Axis (chart) *****************/
 
 .axis {
-    -fx-tick-label-font-size: 1em;
+  -fx-tick-label-font-size: 1em;
 }

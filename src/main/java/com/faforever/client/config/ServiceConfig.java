@@ -64,6 +64,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.task.TaskServiceImpl;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.ClientUpdateServiceImpl;
+import com.faforever.client.update.MockClientUpdateService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.uploader.imgur.ImgurImageUploadService;
 import com.faforever.client.upnp.UpnpService;
@@ -275,6 +276,10 @@ public class ServiceConfig {
 
   @Bean
   ClientUpdateService updateService() {
-    return new ClientUpdateServiceImpl();
+    if (environment.containsProperty("faf.testing")) {
+      return new MockClientUpdateService();
+    } else {
+      return new ClientUpdateServiceImpl();
+    }
   }
 }

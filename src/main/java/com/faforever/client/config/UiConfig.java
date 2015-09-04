@@ -26,8 +26,8 @@ import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
 import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
-import com.faforever.client.game.GameContainerTooltipController;
 import com.faforever.client.game.GameTileController;
+import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.game.GamesTableController;
 import com.faforever.client.game.GamesTilesContainerController;
@@ -210,8 +210,8 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  GameContainerTooltipController gameContainerTooltipController() {
-    return loadController("game_container_tooltip.fxml");
+  GameTooltipController gameContainerTooltipController() {
+    return loadController("game_tooltip.fxml");
   }
 
   @Bean
