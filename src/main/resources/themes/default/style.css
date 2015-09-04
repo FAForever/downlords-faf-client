@@ -411,7 +411,7 @@
 }
 
 .status-bar .text {
-  -fx-font-size: .9em;
+  -fx-font-size: 1em;
 }
 
 .status-bar .tooltip {
@@ -609,7 +609,7 @@
 }
 
 .map-preview-large .comment-container {
-  -fx-spacing:10;
+  -fx-spacing: 10;
   -fx-background-color: derive(-fx-base,-50%);
 }
 /*FIXME can't seem to get the padding correctly */
@@ -625,6 +625,7 @@
 .game-tile-root {
   -fx-spacing: 10;
   -fx-min-width: 360;
+  -fx-pref-width: 360;
   -fx-max-width: 360;
   -fx-padding: 10;
 }

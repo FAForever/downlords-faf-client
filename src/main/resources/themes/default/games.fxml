@@ -10,6 +10,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="gamesRoot" maxHeight="1.7976931348623157E308"
       maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" spacing="10.0"
@@ -17,21 +18,17 @@
   <children>
     <HBox alignment="BASELINE_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
       <children>
-        <AnchorPane HBox.hgrow="ALWAYS">
-          <children>
-            <CheckBox layoutX="110.0" layoutY="6.0" mnemonicParsing="false" onAction="#onShowPrivateGames" selected="true" text="%games.showPrivateGames" AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="124.0" AnchorPane.topAnchor="7.0" />
-            <Button fx:id="createGameButton" layoutX="14.0" layoutY="3.0" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" text="%games.create" AnchorPane.bottomAnchor="7.0" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="7.0" />
-            <MenuButton fx:id="switchViewButton" mnemonicParsing="false" text="%games.view" AnchorPane.bottomAnchor="7.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="7.0">
-              <items>
-                <MenuItem mnemonicParsing="false" onAction="#onTilesButtonPressed" text="%games.view.tiles"/>
-                <MenuItem mnemonicParsing="false" onAction="#onTableButtonPressed" text="%games.view.table"/>
-              </items>
-            </MenuButton>
-          </children>
-          <HBox.margin>
-            <Insets />
-          </HBox.margin>
-        </AnchorPane>
+        <Button fx:id="createGameButton" mnemonicParsing="false" onAction="#onCreateGameButtonClicked"
+                text="%games.create"/>
+        <CheckBox mnemonicParsing="false" onAction="#onShowPrivateGames" selected="true"
+                  text="%games.showPrivateGames"/>
+        <Pane HBox.hgrow="ALWAYS"/>
+        <MenuButton fx:id="switchViewButton" mnemonicParsing="false" text="%games.view">
+          <items>
+            <MenuItem mnemonicParsing="false" onAction="#onTilesButtonPressed" text="%games.view.tiles"/>
+            <MenuItem mnemonicParsing="false" onAction="#onTableButtonPressed" text="%games.view.table"/>
+          </items>
+        </MenuButton>
       </children>
     </HBox>
     <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
@@ -85,4 +82,7 @@
       </children>
     </HBox>
   </children>
+  <padding>
+    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+  </padding>
 </VBox>
