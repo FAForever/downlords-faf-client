@@ -20,6 +20,9 @@ import com.faforever.client.legacy.MockLobbyServerAccessor;
 import com.faforever.client.legacy.MockStatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessorImpl;
+import com.faforever.client.legacy.UidService;
+import com.faforever.client.legacy.UnixUidService;
+import com.faforever.client.legacy.WindowsUidService;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
 import com.faforever.client.legacy.map.LegacyMapVaultParser;
 import com.faforever.client.legacy.map.MapVaultParser;
@@ -71,6 +74,7 @@ import com.faforever.client.upnp.UpnpService;
 import com.faforever.client.upnp.WeUpnpServiceImpl;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
+import com.faforever.client.util.OperatingSystem;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.util.TimeServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -280,6 +284,16 @@ public class ServiceConfig {
       return new MockClientUpdateService();
     } else {
       return new ClientUpdateServiceImpl();
+    }
+  }
+
+  @Bean
+  UidService uidService() {
+    switch (OperatingSystem.current()) {
+      case WINDOWS:
+        return new WindowsUidService();
+      default:
+        return new UnixUidService();
     }
   }
 }

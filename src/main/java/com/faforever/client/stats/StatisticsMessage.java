@@ -4,11 +4,11 @@ import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
 import com.faforever.client.legacy.domain.StatisticsType;
 
-public class StatisticsObject extends ServerMessage {
+public class StatisticsMessage extends ServerMessage {
 
   private StatisticsType type;
 
-  public StatisticsObject() {
+  public StatisticsMessage() {
     super(ServerMessageType.STATS);
   }
 

@@ -8,12 +8,10 @@ import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.legacy.gson.ClientMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.io.QDataInputStream;
-import com.faforever.client.legacy.relay.LobbyAction;
-import com.faforever.client.legacy.relay.RelayServerActionDeserializer;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.stats.RatingInfo;
-import com.faforever.client.stats.StatisticsObject;
+import com.faforever.client.stats.StatisticsMessage;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.Callback;
 import com.google.gson.Gson;
@@ -89,7 +87,6 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
       Gson gson = new GsonBuilder()
           .registerTypeAdapter(ServerMessageType.class, new ServerMessageTypeTypeAdapter())
           .registerTypeAdapter(ClientMessageType.class, new ClientMessageTypeTypeAdapter())
-          .registerTypeAdapter(LobbyAction.class, new RelayServerActionDeserializer())
           .create();
 
       try (Socket socket = fafStatisticsServerSocket.accept()) {
@@ -128,7 +125,7 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
     @SuppressWarnings("unchecked")
     Callback<PlayerStatistics> callback = mock(Callback.class);
     doAnswer(invocation -> {
-      playerStatisticsFuture.complete((PlayerStatistics) invocation.getArguments()[0]);
+      playerStatisticsFuture.complete(invocation.getArgumentAt(0, PlayerStatistics.class));
       return null;
     }).when(callback).success(any());
 
@@ -157,10 +154,10 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
   }
 
   /**
-   * Writes the specified message to the local relay server as if it was sent by the FAF server.
+   * Writes the specified message to the client if it was sent by the FAF server.
    */
-  private void sendFromServer(StatisticsObject statisticsObject) throws InterruptedException {
+  private void sendFromServer(StatisticsMessage statisticsMessage) throws InterruptedException {
     serverWriterReadyLatch.await();
-    serverToClientWriter.write(statisticsObject);
+    serverToClientWriter.write(statisticsMessage);
   }
 }

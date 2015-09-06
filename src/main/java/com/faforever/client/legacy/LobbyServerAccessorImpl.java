@@ -39,7 +39,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
-import com.faforever.client.util.UID;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -71,7 +70,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int VERSION = 0;
-
   private static final long RECONNECT_DELAY = 3000;
   private final Gson gson;
   private final StringProperty sessionId;
@@ -89,6 +87,8 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   TaskService taskService;
   @Autowired
   I18n i18n;
+  @Autowired
+  UidService uidService;
   private Task<Void> fafConnectionTask;
   private String username;
   private String password;
@@ -196,7 +196,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     executeInBackground(fafConnectionTask);
   }
 
-  protected ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
+  private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
     ServerWriter serverWriter = new ServerWriter(outputStream);
     serverWriter.registerMessageSerializer(new ClientMessageSerializer(username, sessionId), ClientMessage.class);
     serverWriter.registerMessageSerializer(new PongMessageSerializer(username, sessionId), PongMessage.class);
@@ -354,7 +354,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
       case ACK:
         // Number of bytes acknowledged... as a string... I mean, why not.
         int acknowledgedBytes = Integer.parseInt(readNextString());
-        // I really don't care. This is TCP with keepalive!
+        // I really don't care. This is TCP!
         logger.debug("Server acknowledged {} bytes", acknowledgedBytes);
         break;
 
@@ -408,7 +408,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           onGameLaunchInfo(gameLaunchInfo);
           break;
 
-        case MOD_INFO:
+        case GAME_TYPE_INFO:
           GameTypeInfo gameTypeInfo = gson.fromJson(jsonString, GameTypeInfo.class);
           onGameTypeInfo(gameTypeInfo);
           break;
@@ -439,7 +439,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   private void onSessionInitiated(SessionInfo message) {
     this.sessionId.set(message.getSession());
-    String uniqueId = UID.generate(sessionId.get(), preferencesService.getFafDataDirectory().resolve("uid.log"));
+    String uniqueId = uidService.generate(sessionId.get(), preferencesService.getFafDataDirectory().resolve("uid.log"));
 
     logger.info("FAF session initiated, session ID: {}", sessionId.get());
 
