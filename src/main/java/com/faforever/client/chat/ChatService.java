@@ -8,6 +8,7 @@ import javafx.collections.ObservableMap;
 import javafx.scene.paint.Color;
 import org.pircbotx.Channel;
 import org.pircbotx.User;
+import org.pircbotx.UserLevel;
 
 import java.util.Collection;
 import java.util.List;
@@ -66,4 +67,6 @@ public interface ChatService {
   ImmutableSortedSet<Channel> getChannelsForUser(String username);
 
   ChatUser createOrGetChatUser(User user);
+
+  ImmutableSortedSet<UserLevel> getLevelsForChatUser(Channel channel, String username);
 }

@@ -36,6 +36,7 @@ import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import netscape.javascript.JSObject;
 import org.apache.commons.lang3.StringUtils;
+import org.pircbotx.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -71,12 +73,6 @@ public abstract class AbstractChatTabController {
   private static final Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
-/*  private static final String FRIEND_CSS_CLASS = "friend";
-  private static final String MOD_CSS_CLASS = "mod";
-  private static final String IRC_CSS_CLASS = "irc";
-  private static final String OTHERS_CSS_CLASS = "others";
-  private static final String CSS_STYLE_SELF = "self";*/
-
   /**
    * This is the member name within the JavaScript code that provides access to this chat tab instance.
    */
@@ -185,7 +181,12 @@ public abstract class AbstractChatTabController {
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
       if (Worker.State.SUCCEEDED.equals(newValue)) {
         synchronized (waitingMessages) {
-          waitingMessages.forEach(this::appendMessage);
+          waitingMessages.forEach(new Consumer<ChatMessage>() {
+            @Override
+            public void accept(ChatMessage chatMessage) {
+              AbstractChatTabController.this.appendMessage(chatMessage);
+            }
+          });
           waitingMessages.clear();
           isChatReady = true;
         }
@@ -593,42 +594,51 @@ public abstract class AbstractChatTabController {
   }
 
   private void assignPlayerColor(Collection<String> cssClasses, PlayerInfoBean playerInfo) {
-    if (playerInfo != null) {
-      String messageColor = "";
-      if (playerInfo.getModeratorInChannels() != null && playerInfo.getModeratorInChannels().size() > 0) {
-        messageColor = chatPrefs.getModsChatColor().toString();
-      } else if (playerInfo.isFriend()) {
-        messageColor = chatPrefs.getFriendsChatColor().toString();
-      } else if (playerInfo.isFoe()) {
-        messageColor = chatPrefs.getFoesChatColor().toString();
-      }
+    if (playerInfo == null) {
+      return;
+    }
 
-      if (!chatPrefs.getPrettyColors() && messageColor.equals("")) {
-        if (playerInfo.isChatOnly()) {
-          messageColor = chatPrefs.getIrcChatColor().toString();
-        } else {
-          messageColor = chatPrefs.getOthersChatColor().toString();
+    //Mods, friends and foes are never randomly generated
+    String messageColor = "";
+    if (playerInfo.getModeratorInChannels() != null && playerInfo.getModeratorInChannels().size() > 0) {
+      //FIXME this is here because there is no straightfoward way to know what channel the message came from
+      for (Channel channel : chatService.getChannelsForUser(userService.getUsername())) {
+        if (chatService.getLevelsForChatUser(channel, playerInfo.getUsername()).size() > 0) {
+          messageColor = chatPrefs.getModsChatColor().toString();
         }
       }
+    } else if (playerInfo.isFriend()) {
+      messageColor = chatPrefs.getFriendsChatColor().toString();
+    } else if (playerInfo.isFoe()) {
+      messageColor = chatPrefs.getFoesChatColor().toString();
+    }
 
-      if (messageColor.equals("")) {
-        if (playerInfo.getUsername().equals(userService.getUsername())) {
-          messageColor = chatPrefs.getSelfChatColor().toString();
-        } else {
-          ChatUser chatUser = chatService.getChatUser(playerInfo.getUsername());
-          if (chatUser != null) {
-            //FIXME super ugly work around for a bug that I'm not sure about yet
-            if(chatUser.getColor() == null){
-              chatUser.setColor(ColorGeneratorUtil.generatePrettyHexColor());
-            }
-            logger.debug("User {}", chatUser.getUsername());
-            messageColor = chatUser.getColor().toString();
+    //
+    if (!chatPrefs.getPrettyColors() && messageColor.equals("")) {
+      if (playerInfo.isChatOnly()) {
+        messageColor = chatPrefs.getIrcChatColor().toString();
+      } else {
+        messageColor = chatPrefs.getOthersChatColor().toString();
+      }
+    }
+
+    if (messageColor.equals("")) {
+      if (playerInfo.getUsername().equals(userService.getUsername())) {
+        messageColor = chatPrefs.getSelfChatColor().toString();
+      } else {
+        ChatUser chatUser = chatService.getChatUser(playerInfo.getUsername());
+        if (chatUser != null) {
+          //FIXME super ugly work around for a bug that I'm not sure about yet
+          if (chatUser.getColor() == null) {
+            chatUser.setColor(ColorGeneratorUtil.generatePrettyHexColor());
           }
+          logger.debug("User {}", chatUser.getUsername());
+          messageColor = chatUser.getColor().toString();
         }
       }
-      if (messageColor != null) {
-        cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));
-      }
+    }
+    if (messageColor != null) {
+      cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));
     }
   }
 

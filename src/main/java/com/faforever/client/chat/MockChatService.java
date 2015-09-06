@@ -15,6 +15,7 @@ import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
 import org.pircbotx.Channel;
 import org.pircbotx.User;
+import org.pircbotx.UserLevel;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
@@ -236,6 +237,12 @@ public class MockChatService implements ChatService {
   //FIXME implement
   @Override
   public ChatUser createOrGetChatUser(User user) {
+    return null;
+  }
+
+  //FIXME implement
+  @Override
+  public ImmutableSortedSet<UserLevel> getLevelsForChatUser(Channel channel, String username) {
     return null;
   }
 }

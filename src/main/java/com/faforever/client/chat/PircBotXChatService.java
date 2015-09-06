@@ -18,6 +18,7 @@ import org.pircbotx.Channel;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
+import org.pircbotx.UserLevel;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.Event;
@@ -465,6 +466,13 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     } else {
       return ChatUser.fromIrcUser(user);
     }
+  }
+
+  @Override
+  public ImmutableSortedSet<UserLevel> getLevelsForChatUser(Channel channel, String username) {
+    User user = pircBotX.getUserChannelDao().getUser(username);
+    ImmutableSortedSet<UserLevel> levels = pircBotX.getUserChannelDao().getLevels(channel, user);
+    return levels;
   }
 
 }
