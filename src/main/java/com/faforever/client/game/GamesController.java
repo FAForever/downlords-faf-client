@@ -38,6 +38,7 @@ import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -208,12 +209,18 @@ public class GamesController {
     mapLabel.textProperty().bind(gameInfoBean.technicalNameProperty());
 
     gameInfoBean.featuredModProperty().addListener((observable, oldValue, newValue) -> {
-      gameTypeLabel.setText(gameService.getGameTypeByString(newValue).getFullName());
+      updateGameType(newValue);
     });
-    gameTypeLabel.setText(gameService.getGameTypeByString(gameInfoBean.getFeaturedMod()).getFullName());
+    updateGameType(gameInfoBean.getFeaturedMod());
 
 
     createTeams(gameInfoBean.getTeams());
+  }
+
+  private void updateGameType(String newValue) {
+    GameTypeBean gameType = gameService.getGameTypeByString(newValue);
+    String fullName = gameType != null ? gameType.getFullName() : null;
+    gameTypeLabel.setText(StringUtils.defaultString(fullName));
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber) {

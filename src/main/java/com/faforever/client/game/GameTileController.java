@@ -14,6 +14,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
@@ -62,9 +63,13 @@ public class GameTileController {
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
     this.gameInfoBean = gameInfoBean;
 
+    GameTypeBean gameType = gameService.getGameTypeByString(gameInfoBean.getFeaturedMod());
+    String fullName = gameType != null ? gameType.getFullName() : null;
+    gameTypeLabel.setText(StringUtils.defaultString(fullName));
+
     gameTitleLabel.setText(gameInfoBean.getTitle());
     hostLabel.setText(gameInfoBean.getHost());
-    gameTypeLabel.setText(gameService.getGameTypeByString(gameInfoBean.getFeaturedMod()).getFullName());
+
     gameMapLabel.setText(gameInfoBean.getTechnicalName());
     gameInfoBean.technicalNameProperty().addListener(((observable3, oldValue3, newValue3) -> {
       gameMapLabel.setText(gameInfoBean.getTechnicalName());
