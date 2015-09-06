@@ -248,11 +248,11 @@ public class ChatUserControl extends HBox {
   @FXML
   void onMouseEnterGameStatus() {
     if (playerInfoBean.getGameStatus() != GameStatus.NONE) {
-      GameStatusContainerTooltipController gameStatusContainerTooltipController = applicationContext.getBean(GameStatusContainerTooltipController.class);
-      gameStatusContainerTooltipController.setGameInfoBean(gameService.getByUid(playerInfoBean.getGameUID()));
+      GameStatusTooltipController gameStatusTooltipController = applicationContext.getBean(GameStatusTooltipController.class);
+      gameStatusTooltipController.setGameInfoBean(gameService.getByUid(playerInfoBean.getGameUID()));
 
       Tooltip statusTooltip = new Tooltip();
-      statusTooltip.setGraphic(gameStatusContainerTooltipController.getRoot());
+      statusTooltip.setGraphic(gameStatusTooltipController.getRoot());
       Tooltip.install(statusImageView, statusTooltip);
     }
   }
