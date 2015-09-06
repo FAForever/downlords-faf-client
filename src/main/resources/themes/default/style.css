@@ -1,6 +1,6 @@
 .root {
   -fx-font-size: 14px;
-  -fx-font-family: "Arial","Tahoma","sans-serif";
+  -fx-font-family: "Segoe UI","Arial","Tahoma","sans-serif";
 
   /***************************************************************************
    *                                                                         *
@@ -192,6 +192,14 @@
 
 .h1 {
   -fx-font-size: 24px;
+}
+
+/***************** Icons (FontAwesome) *****************/
+
+.fontawesome {
+  -fx-font-family: "FontAwesome";
+  -fx-min-width: 20px;
+  -fx-alignment: center;
 }
 
 /***************** ChartPlot *****************/
@@ -418,7 +426,7 @@
 }
 
 .status-bar .text {
-  -fx-font-size: .9em;
+  -fx-font-size: 1em;
 }
 
 .status-bar .tooltip {
@@ -543,7 +551,6 @@
 }
 
 .notification-icon {
-  -fx-font-family: "FontAwesome";
   -fx-font-size : 2.5em;
 }
 
@@ -623,7 +630,7 @@
 }
 
 .map-preview-large .comment-container {
-  -fx-spacing:10;
+  -fx-spacing: 10;
   -fx-background-color: derive(-fx-base,-50%);
 }
 /*FIXME can't seem to get the padding correctly */
@@ -634,36 +641,36 @@
 .comment-card {
   -fx-background-color: -fx-control-inner-background-alt;
 }
-
 /***************** Game Tile *****************/
+
+.game-tile-root {
+  -fx-spacing: 10;
+  -fx-min-width: 360;
+  -fx-pref-width: 360;
+  -fx-max-width: 360;
+  -fx-padding: 10;
+}
+
+.game-tile-root .lock-icon {
+  -fx-font-size: 2em;
+  -fx-effect: dropshadow(gaussian, black, 5, 0.5, 0, 0);
+  -fx-margin: 10;
+}
 
 .game-tile-root:hover,
 .game-tile-root:focused {
   -fx-background-color: -fx-control-inner-background;
 }
 
-.game-tile-root .label {
-  -fx-font-size: 0.88em;
-}
-
-.game-detail-title {
+.game-tile-title {
   -fx-font-weight: bold;
-  -fx-font-size: 1.5em;
+  -fx-font-size: 1.2em;
 }
 
-.game-tile-root .game-tile-title {
-  -fx-font-weight: bold;
-  -fx-font-size: 1.3em;
-}
+/***************** Game Tooltip *****************/
 
-.game-tile-root .featured-mod-prefix {
-  -fx-text-fill: #F44336;
-  -fx-font-style: italic;
-}
-
-.game-tile-root .mods-prefix {
-  -fx-text-fill: #4CAF50;
-  -fx-font-style: italic;
+.game-tooltip {
+  -fx-font-size: 1.2em;
 }
 
 .game-tile-root .prefix {
@@ -686,13 +693,17 @@
 .gamestatus-container-tooltip-featuredmod {
   -fx-padding: 5px, 5px, 2px, 2px;
   -fx-font-size: 1.2em;
+.game-tooltip .teams-pane {
+  -fx-spacing: 10;
 }
 
-/***************** Game Tiled Tooltip *****************/
+/***************** Game detail *****************/
 
-.game-container-tooltip {
-  -fx-font-size: 1.2em;
+.game-detail-title {
+  -fx-font-weight: bold;
+  -fx-font-size: 1.5em;
 }
+
 
 /***************** Map Preview *****************/
 
@@ -808,5 +819,5 @@
 /***************** Axis (chart) *****************/
 
 .axis {
-    -fx-tick-label-font-size: 1em;
+  -fx-tick-label-font-size: 1em;
 }

@@ -42,7 +42,7 @@ public class GameInfoBean {
   private final IntegerProperty minRating;
   private final IntegerProperty maxRating;
   private final ObjectProperty<GameState> status;
-  private final ObjectProperty<VictoryCondition> gameType;
+  private final ObjectProperty<VictoryCondition> victoryCondition;
   private final ListProperty<Boolean> options;
   private final MapProperty<String, String> simMods;
   private final MapProperty<String, List<String>> teams;
@@ -64,7 +64,7 @@ public class GameInfoBean {
     maxPlayers = new SimpleIntegerProperty();
     minRating = new SimpleIntegerProperty();
     maxRating = new SimpleIntegerProperty();
-    gameType = new SimpleObjectProperty<>();
+    victoryCondition = new SimpleObjectProperty<>();
     options = new SimpleListProperty<>(FXCollections.observableArrayList());
     simMods = new SimpleMapProperty<>(FXCollections.observableHashMap());
     teams = new SimpleMapProperty<>(FXCollections.observableHashMap());
@@ -81,7 +81,7 @@ public class GameInfoBean {
     featuredMod.set(gameInfo.getFeaturedMod());
     numPlayers.setValue(gameInfo.getNumPlayers());
     maxPlayers.setValue(gameInfo.getMaxPlayers());
-    gameType.set(gameInfo.getGameType());
+    victoryCondition.set(gameInfo.getGameType());
     status.set(gameInfo.getState());
 
     if (gameInfo.getOptions() != null) {
@@ -260,16 +260,16 @@ public class GameInfoBean {
     return status;
   }
 
-  public VictoryCondition getGameType() {
-    return gameType.get();
+  public VictoryCondition getVictoryCondition() {
+    return victoryCondition.get();
   }
 
-  public void setGameType(VictoryCondition gameType) {
-    this.gameType.set(gameType);
+  public void setVictoryCondition(VictoryCondition victoryCondition) {
+    this.victoryCondition.set(victoryCondition);
   }
 
-  public ObjectProperty<VictoryCondition> gameTypeProperty() {
-    return gameType;
+  public ObjectProperty<VictoryCondition> victoryConditionProperty() {
+    return victoryCondition;
   }
 
   public ObservableList<Boolean> getOptions() {

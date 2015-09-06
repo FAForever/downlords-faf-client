@@ -41,7 +41,8 @@ public interface GameService {
 
   ObservableList<GameInfoBean> getGameInfoBeans();
 
-  GameTypeBean getGameTypeBeanFromString(String gameTypeBeanName);
+  @Nullable
+  GameTypeBean getGameTypeByString(String gameTypeBeanName);
 
   GameInfoBean getByUid(int uid);
 }

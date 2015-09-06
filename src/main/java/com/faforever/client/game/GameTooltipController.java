@@ -15,13 +15,13 @@ import org.springframework.context.ApplicationContext;
 import java.util.List;
 import java.util.Map;
 
-public class GameContainerTooltipController {
+public class GameTooltipController {
 
   @FXML
-  public Pane teamListPane;
+  public Pane teamsPane;
 
   @FXML
-  public Label modsListLabel;
+  public Label modsLabel;
 
   @FXML
   public VBox teamListRoot;
@@ -37,19 +37,19 @@ public class GameContainerTooltipController {
   }
 
   private void createTeam(ObservableMap<? extends String, ? extends List<String>> teamsList) {
-    teamListPane.getChildren().clear();
+    teamsPane.getChildren().clear();
     for (Map.Entry<? extends String, ? extends List<String>> entry : teamsList.entrySet()) {
       TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
       boolean teamCardSuccess = teamCardController.setTeam(entry.getValue(), Integer.parseInt(entry.getKey()));
       if (teamCardSuccess) {
-        teamListPane.getChildren().add(teamCardController.getRoot());
+        teamsPane.getChildren().add(teamCardController.getRoot());
       }
     }
   }
 
   private void createModsList(ObservableMap<? extends String, ? extends String> simMods) {
     String stringSimMods = Joiner.on(System.getProperty("line.separator")).join(simMods.values());
-    modsListLabel.setText(stringSimMods);
+    modsLabel.setText(stringSimMods);
   }
 
   public Node getRoot() {

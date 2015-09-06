@@ -16,7 +16,7 @@ public class GameTypeInfo extends ServerMessage {
   private String icon;
 
   public GameTypeInfo() {
-    super(ServerMessageType.GAME_INFO);
+    super(ServerMessageType.GAME_TYPE_INFO);
   }
 
   public boolean isJoin() {

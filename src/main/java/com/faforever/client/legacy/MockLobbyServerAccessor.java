@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.faforever.client.legacy.domain.GameAccess.PASSWORD;
 import static com.faforever.client.legacy.domain.GameAccess.PUBLIC;
 import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
@@ -36,6 +37,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
   private final Collection<OnGameTypeInfoListener> onModInfoMessageListeners;
   private final Collection<OnGameInfoListener> onGameInfoListeners;
+
   @Autowired
   UserService userService;
   @Autowired
@@ -44,6 +46,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   NotificationService notificationService;
   @Autowired
   I18n i18n;
+
   private OnPlayerInfoListener onPlayerInfoListener;
 
   public MockLobbyServerAccessor() {
@@ -81,8 +84,8 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
           onGameInfoListener.onGameInfo(createGameInfo(3, "Mock game 3 +500", PUBLIC, "faf", "scmp_012", 3, 6, "Mock user"));
           onGameInfoListener.onGameInfo(createGameInfo(4, "Mock game 4 <1000", PUBLIC, "faf", "scmp_013", 3, 6, "Mock user"));
           onGameInfoListener.onGameInfo(createGameInfo(5, "Mock game 5 >1000", PUBLIC, "faf", "scmp_014", 3, 6, "Mock user"));
-          onGameInfoListener.onGameInfo(createGameInfo(6, "Mock game 6", PUBLIC, "faf", "scmp_015", 3, 6, "Mock user"));
-          onGameInfoListener.onGameInfo(createGameInfo(7, "Mock game 7", PUBLIC, "faf", "scmp_016", 3, 6, "Mock user"));
+          onGameInfoListener.onGameInfo(createGameInfo(6, "Mock game 6", PASSWORD, "faf", "scmp_015", 3, 6, "Mock user"));
+          onGameInfoListener.onGameInfo(createGameInfo(7, "Mock game 7", PASSWORD, "faf", "scmp_016", 3, 6, "Mock user"));
         }
 
         notificationService.addNotification(

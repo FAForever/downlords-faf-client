@@ -24,7 +24,7 @@
     <Label fx:id="messageLabel" text="Sample text" GridPane.halignment="LEFT" GridPane.valignment="CENTER">
       <graphic>
         <Label fx:id="iconLabel" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="45.0"
-               styleClass="notification-icon" text="Label"/>
+               styleClass="fontawesome,notification-icon" text="Label"/>
       </graphic>
     </Label>
     <HBox fx:id="actionButtonsContainer" alignment="CENTER_RIGHT" spacing="10.0" GridPane.columnIndex="1"

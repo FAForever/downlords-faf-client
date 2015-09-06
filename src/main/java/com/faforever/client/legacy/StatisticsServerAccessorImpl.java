@@ -8,10 +8,11 @@ import com.faforever.client.legacy.domain.ServerMessageType;
 import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.legacy.gson.LocalDateDeserializer;
 import com.faforever.client.legacy.gson.LocalTimeDeserializer;
+import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.stats.PlayerStatistics;
-import com.faforever.client.stats.StatisticsObject;
+import com.faforever.client.stats.StatisticsMessage;
 import com.faforever.client.util.Callback;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -46,6 +47,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   public StatisticsServerAccessorImpl() {
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+        .registerTypeAdapter(ServerMessageType.class, new ServerMessageTypeTypeAdapter())
         .registerTypeAdapter(StatisticsType.class, new StatisticsTypeTypeAdapter())
         .registerTypeAdapter(LocalDate.class, new LocalDateDeserializer())
         .registerTypeAdapter(LocalTime.class, new LocalTimeDeserializer())
@@ -102,7 +104,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
     executeInBackground(connectionTask);
   }
 
-  protected ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
+  private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
     ServerWriter serverWriter = new ServerWriter(outputStream);
     serverWriter.registerMessageSerializer(new ClientMessageSerializer(), ClientMessage.class);
     serverWriter.registerMessageSerializer(new StringSerializer(), String.class);
@@ -110,7 +112,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   }
 
   @Override
-  public void onServerMessage(String message) {
+  protected void onServerMessage(String message) {
     ServerCommand serverCommand = ServerCommand.fromString(message);
     if (serverCommand != null) {
       throw new IllegalStateException("Didn't expect an unknown server message from the statistics server");
@@ -125,15 +127,15 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
         throw new IllegalStateException("Unexpected object type: " + serverMessageType);
       }
 
-      StatisticsObject statisticsObject = gson.fromJson(message, StatisticsObject.class);
-      dispatchStatisticsObject(message, statisticsObject);
+      StatisticsMessage statisticsMessage = gson.fromJson(message, StatisticsMessage.class);
+      dispatchStatisticsObject(message, statisticsMessage);
     } catch (JsonSyntaxException e) {
       logger.warn("Could not deserialize message: " + message, e);
     }
   }
 
-  private void dispatchStatisticsObject(String jsonString, StatisticsObject statisticsObject) {
-    switch (statisticsObject.getStatisticsType()) {
+  private void dispatchStatisticsObject(String jsonString, StatisticsMessage statisticsMessage) {
+    switch (statisticsMessage.getStatisticsType()) {
       case LEAGUE_TABLE:
         // TODO remove it it's never going to be implemented
         logger.warn("league table is not yet implemented");
@@ -146,7 +148,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
         break;
 
       default:
-        logger.warn("Unhandled statistics object of type: {}", statisticsObject.getStatisticsType());
+        logger.warn("Unhandled statistics object of type: {}", statisticsMessage.getStatisticsType());
     }
   }
 

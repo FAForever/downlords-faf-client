@@ -8,6 +8,10 @@ public class SessionInfo extends ServerMessage {
 
   private int id;
 
+  public SessionInfo() {
+    super(ServerMessageType.WELCOME);
+  }
+
   /**
    * The session ID sent by the server. Yes, it's a number as a string.
    */

@@ -85,8 +85,8 @@
                 <Insets right="10.0"/>
               </HBox.margin>
             </Button>
-            <MenuButton fx:id="usernameButton" focusTraversable="false" minWidth="10.0" mnemonicParsing="false"
-                        prefWidth="100.0" styleClass="username-button" text="Username">
+            <MenuButton fx:id="usernameButton" focusTraversable="false" mnemonicParsing="false"
+                        styleClass="username-button" text="Username">
               <items>
                 <MenuItem mnemonicParsing="false" onAction="#onShowUserInfoClicked" text="%chat.userContext.userInfo"/>
                 <MenuItem mnemonicParsing="false" text="%menu.logOut"/>

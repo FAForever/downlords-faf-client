@@ -21,11 +21,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -50,6 +53,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
   public static final int TIMEOUT = 10000;
   public static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final String SESSION_ID = "1234";
   private static final int GAME_PORT = 6112;
@@ -115,7 +119,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
   private void startFakeFafRelayServer() throws IOException {
     fafRelayServerSocket = new ServerSocket(0);
-    System.out.println("Fake server listening on " + fafRelayServerSocket.getLocalPort());
+    logger.info("Fake server listening on " + fafRelayServerSocket.getLocalPort());
 
     WaitForAsyncUtils.async(() -> {
       Gson gson = new GsonBuilder()

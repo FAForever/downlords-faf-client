@@ -38,6 +38,7 @@ import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,10 +82,10 @@ public class GamesController {
   Label numberOfPlayersLabel;
 
   @FXML
-  Label hosterLabel;
+  Label hostLabel;
 
   @FXML
-  Label gameModeLabel;
+  Label gameTypeLabel;
 
   @FXML
   VBox gamePreviewPanel;
@@ -121,7 +122,6 @@ public class GamesController {
 
   @Autowired
   NotificationService notificationService;
-
 
   private Popup createGamePopup;
   private Popup passwordPopup;
@@ -205,10 +205,22 @@ public class GamesController {
     });
 
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
-    hosterLabel.textProperty().bind(gameInfoBean.hostProperty());
-    gameModeLabel.textProperty().bind(gameInfoBean.featuredModProperty());
-    mapLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
+    hostLabel.textProperty().bind(gameInfoBean.hostProperty());
+    mapLabel.textProperty().bind(gameInfoBean.technicalNameProperty());
+
+    gameInfoBean.featuredModProperty().addListener((observable, oldValue, newValue) -> {
+      updateGameType(newValue);
+    });
+    updateGameType(gameInfoBean.getFeaturedMod());
+
+
     createTeams(gameInfoBean.getTeams());
+  }
+
+  private void updateGameType(String newValue) {
+    GameTypeBean gameType = gameService.getGameTypeByString(newValue);
+    String fullName = gameType != null ? gameType.getFullName() : null;
+    gameTypeLabel.setText(StringUtils.defaultString(fullName));
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber) {

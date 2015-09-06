@@ -1,10 +1,10 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.stats.StatisticsObject;
+import com.faforever.client.stats.StatisticsMessage;
 
 import java.util.List;
 
-public class LeagueResponse extends StatisticsObject {
+public class LeagueResponse extends StatisticsMessage {
 
   private List<LeagueInfo> values;
 

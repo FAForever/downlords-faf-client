@@ -241,8 +241,8 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
-  public GameTypeBean getGameTypeBeanFromString(String gameTypeBeanName) {
-    return gameTypeBeans.get(gameTypeBeanName);
+  public GameTypeBean getGameTypeByString(String gameTypeName) {
+    return gameTypeBeans.get(gameTypeName);
   }
 
   //FIXME check this, I think we should return null on not finding it

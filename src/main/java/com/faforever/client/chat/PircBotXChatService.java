@@ -74,7 +74,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   private final Map<Class<? extends Event>, ArrayList<ChatEventListener>> eventListeners;
 
   /**
-   * Map channel names to a map containing chat users, indexed by their login name.
+   * Maps channel names to a map containing chat users, indexed by their login name.
    */
   private final ObservableMap<String, ObservableMap<String, ChatUser>> chatUserLists;
 
