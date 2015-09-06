@@ -342,6 +342,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  @Ignore("CummintyHub is not yet available")
   public void testOnCommunityHubSelected() throws Exception {
     when(communityHubController.getRoot()).thenReturn(new Pane());
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.communityButton.getItems().get(0).fire());
@@ -350,12 +351,14 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnNewsSelected() throws Exception {
     when(newsController.getRoot()).thenReturn(new Pane());
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.communityButton.getItems().get(1).fire());
+    // TODO when community hub is added, this index needs to be 1
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.communityButton.getItems().get(0).fire());
   }
 
   @Test
   public void testOnCastsSelected() throws Exception {
     when(castsController.getRoot()).thenReturn(new Pane());
+    // TODO when community hub is added, this index needs to be 2
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.communityButton.getItems().get(1).fire());
   }
 
