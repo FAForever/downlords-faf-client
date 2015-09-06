@@ -26,7 +26,7 @@ import java.util.Locale;
 /**
  * Test ComparableVersion.
  *
- * @author <a href="mailto:hboutemy@apache.org">Hervé Boutemy</a>
+ * @author <a href="mailto:hboutemy@apache.org">HervÃ© Boutemy</a>
  */
 @SuppressWarnings("unchecked")
 public class ComparableVersionTest
