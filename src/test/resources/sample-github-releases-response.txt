@@ -12,9 +12,9 @@ Connection: close
     "upload_url": "https://uploads.github.com/repos/micheljung/downlords-faf-client/releases/1711121/assets{?name}",
     "html_url": "https://github.com/micheljung/downlords-faf-client/releases/tag/v0.4.7-alpha",
     "id": 1711121,
-    "tag_name": "v0.4.7-alpha",
+    "tag_name": "v0.4.8.1-alpha",
     "target_commitish": "master",
-    "name": "v0.4.7-alpha",
+    "name": "v0.4.8.1-alpha",
     "draft": false,
     "author": {
       "login": "micheljung",
