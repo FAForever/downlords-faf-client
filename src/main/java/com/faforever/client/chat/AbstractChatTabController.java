@@ -8,6 +8,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.ByteCopier;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.util.TimeService;
@@ -32,6 +33,7 @@ import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import netscape.javascript.JSObject;
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,10 +42,14 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,7 +70,9 @@ public abstract class AbstractChatTabController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private static final ClassPathResource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
+  private static final Resource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
+  private static final Resource CHAT_JS_RESOURCE = new ClassPathResource("/js/chat_container.js");
+  private static final Resource AUTOLINKER_JS_RESOURCE = new ClassPathResource("/js/Autolinker.min.js");
   private static final Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
@@ -182,8 +190,15 @@ public abstract class AbstractChatTabController {
       }
     });
 
-    try {
-      this.engine.load(CHAT_HTML_RESOURCE.getURL().toExternalForm());
+    try (InputStream inputStream = CHAT_HTML_RESOURCE.getInputStream()) {
+      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+      ByteCopier.from(inputStream).to(byteArrayOutputStream).copy();
+
+      String chatContainerHtml = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8)
+          .replace("{chat-container-js}", CHAT_JS_RESOURCE.getURL().toExternalForm())
+          .replace("{auto-linker-js}", AUTOLINKER_JS_RESOURCE.getURL().toExternalForm());
+
+      engine.loadContent(chatContainerHtml);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
