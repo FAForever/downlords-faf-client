@@ -2,13 +2,28 @@ package com.faforever.client.legacy.domain;
 
 public class AskPlayerStatsDaysMessage extends ClientMessage {
 
-
-  public String type;
-  public String player;
+  private String type;
+  private String player;
 
   public AskPlayerStatsDaysMessage(String username, StatisticsType type) {
-    command = "stats";
-    this.type = type.getString();
-    player = username;
+    super(ClientMessageType.STATISTICS);
+    this.setType(type.getString());
+    setPlayer(username);
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
+  public String getPlayer() {
+    return player;
+  }
+
+  public void setPlayer(String player) {
+    this.player = player;
   }
 }

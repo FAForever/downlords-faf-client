@@ -1,6 +1,6 @@
 .root {
   -fx-font-size: 14px;
-  -fx-font-smoothing-type: gray;
+  -fx-font-family: "Segoe UI","Arial","Tahoma","sans-serif";
 
   /***************************************************************************
    *                                                                         *
@@ -155,7 +155,7 @@
 
   /* These are NOT from modena. */
   -fx-context-menu-background: rgba(0, 0, 0, .8);
-  -fx-tile-background: rgba(50, 50, 50, .9);
+  -fx-tile-background: #FFFFFF11;
   -fx-transparent-hover: rgba(255, 255, 255, .1);
   -fx-drop-shadow: dropshadow(gaussian, #ffffff66, 5, 0.5, 0, 0);
 }
@@ -171,6 +171,20 @@
 .scroll-bar > .increment-button:pressed > .increment-arrow,
 .scroll-bar > .decrement-button:pressed > .decrement-arrow {
     -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,55%);
+}
+
+/***************** Headings *****************/
+
+.h1 {
+  -fx-font-size: 24px;
+}
+
+/***************** Icons (FontAwesome) *****************/
+
+.fontawesome {
+  -fx-font-family: "FontAwesome";
+  -fx-min-width: 20px;
+  -fx-alignment: center;
 }
 
 /***************** ChartPlot *****************/
@@ -397,7 +411,7 @@
 }
 
 .status-bar .text {
-  -fx-font-size: .9em;
+  -fx-font-size: 1em;
 }
 
 .status-bar .tooltip {
@@ -561,7 +575,6 @@
 }
 
 .notification-icon {
-  -fx-font-family: "FontAwesome";
   -fx-font-size : 2.5em;
 }
 
@@ -620,44 +633,77 @@
   -fx-background-color: linear-gradient(to left, transparent, -fx-accent);
 }
 
-/***************** Game Card *****************/
+/***************** Large Map Preview *****************/
+.map-preview-large {
+  -fx-padding: 10px,5px,5px,5px;
+}
 
-.game-card-root:hover,
-.game-card-root:focused {
+.map-preview-large .max-player-label {
+  -fx-padding: 0, 0, 0, 10px;
+}
+
+.map-preview-large .comment-container-scroll-pane {
+  -fx-padding: 5px,5px,5px,5px;
+  -fx-max-height: 500px;
+}
+
+.map-preview-large .comment-container {
+  -fx-spacing: 10;
+  -fx-background-color: derive(-fx-base,-50%);
+}
+/*FIXME can't seem to get the padding correctly */
+.map-preview-large .large-image-preview {
+  -fx-padding: 0,30px,0,0;
+}
+
+.comment-card {
+  -fx-background-color: -fx-control-inner-background-alt;
+}
+/***************** Game Tile *****************/
+
+.game-tile-root {
+  -fx-spacing: 10;
+  -fx-min-width: 360;
+  -fx-pref-width: 360;
+  -fx-max-width: 360;
+  -fx-padding: 10;
+}
+
+.game-tile-root .lock-icon {
+  -fx-font-size: 2em;
+  -fx-effect: dropshadow(gaussian, black, 5, 0.5, 0, 0);
+  -fx-margin: 10;
+}
+
+.game-tile-root:hover,
+.game-tile-root:focused {
   -fx-background-color: -fx-control-inner-background;
 }
 
-.game-card-root .label {
-  -fx-font-size: 0.88em;
+.game-tile-title {
+  -fx-font-weight: bold;
+  -fx-font-size: 1.2em;
 }
+
+/***************** Game Tooltip *****************/
+
+.game-tooltip {
+  -fx-font-size: 1.2em;
+}
+
+.game-tooltip .teams-pane {
+  -fx-spacing: 10;
+}
+
+/***************** Game detail *****************/
 
 .game-detail-title {
   -fx-font-weight: bold;
   -fx-font-size: 1.5em;
 }
 
-.game-card-root .game-card-title {
-  -fx-font-weight: bold;
-  -fx-font-size: 1.3em;
-}
 
-.game-card-root .featured-mod-prefix {
-  -fx-text-fill: #F44336;
-  -fx-font-style: italic;
-}
-
-.game-card-root .mods-prefix {
-  -fx-text-fill: #4CAF50;
-  -fx-font-style: italic;
-}
-
-.game-card-root .prefix {
-  -fx-text-fill: -fx-dark-text-color;
-  -fx-font-style: italic;
-}
-
-
-/***************** Game detail *****************/
+/***************** Map Preview *****************/
 
 .map-preview {
   -fx-effect: -fx-drop-shadow;
@@ -709,6 +755,12 @@
 }
 #closeButton:pressed {
   -fx-background-color: derive(#D32F2F, -40%);
+}
+
+/***************** Community hub *****************/
+
+.communityHub > * {
+  -fx-background-color: -fx-tile-background;
 }
 
 /***************** Login *****************/
@@ -765,5 +817,5 @@
 /***************** Axis (chart) *****************/
 
 .axis {
-    -fx-tick-label-font-size: 1em;
+  -fx-tick-label-font-size: 1em;
 }

@@ -31,22 +31,23 @@ public class GameInfoBean {
   private static final Pattern BETWEEN_RATING_PATTERN = Pattern.compile("(\\d+)\\s?-\\s?(\\d+)");
   private static final Pattern RATING_PATTERN = Pattern.compile("([<>+~](?:\\d\\.?\\d?k|\\d{3,4})|(?:\\d\\.?\\d?k|\\d{3,4})[<>+]|(?:\\d\\.?\\d?k|\\d{1,4})\\s?-\\s?(?:\\d\\.?\\d?k|\\d{3,4}))");
 
-  private StringProperty host;
-  private StringProperty title;
-  private StringProperty mapName;
-  private StringProperty featuredMod;
-  private ObjectProperty<GameAccess> access;
-  private IntegerProperty uid;
-  private IntegerProperty numPlayers;
-  private IntegerProperty maxPlayers;
-  private IntegerProperty minRating;
-  private IntegerProperty maxRating;
-  private ObjectProperty<GameState> status;
-  private ObjectProperty<VictoryCondition> gameType;
-  private ListProperty<Boolean> options;
-  private MapProperty<String, String> simMods;
-  private MapProperty<String, List<String>> teams;
-  private MapProperty<String, Integer> featuredModVersions;
+  private final StringProperty host;
+  private final StringProperty title;
+  private final StringProperty technicalName;
+  private final StringProperty displayName;
+  private final StringProperty featuredMod;
+  private final ObjectProperty<GameAccess> access;
+  private final IntegerProperty uid;
+  private final IntegerProperty numPlayers;
+  private final IntegerProperty maxPlayers;
+  private final IntegerProperty minRating;
+  private final IntegerProperty maxRating;
+  private final ObjectProperty<GameState> status;
+  private final ObjectProperty<VictoryCondition> victoryCondition;
+  private final ListProperty<Boolean> options;
+  private final MapProperty<String, String> simMods;
+  private final MapProperty<String, List<String>> teams;
+  private final MapProperty<String, Integer> featuredModVersions;
 
   public GameInfoBean(GameInfo gameInfo) {
     this();
@@ -57,14 +58,15 @@ public class GameInfoBean {
     uid = new SimpleIntegerProperty();
     host = new SimpleStringProperty();
     title = new SimpleStringProperty();
-    mapName = new SimpleStringProperty();
+    displayName = new SimpleStringProperty();
+    technicalName = new SimpleStringProperty();
     featuredMod = new SimpleStringProperty();
     access = new SimpleObjectProperty<>();
     numPlayers = new SimpleIntegerProperty();
     maxPlayers = new SimpleIntegerProperty();
     minRating = new SimpleIntegerProperty();
     maxRating = new SimpleIntegerProperty();
-    gameType = new SimpleObjectProperty<>();
+    victoryCondition = new SimpleObjectProperty<>();
     options = new SimpleListProperty<>(FXCollections.observableArrayList());
     simMods = new SimpleMapProperty<>(FXCollections.observableHashMap());
     teams = new SimpleMapProperty<>(FXCollections.observableHashMap());
@@ -73,34 +75,34 @@ public class GameInfoBean {
   }
 
   public void updateFromGameInfo(GameInfo gameInfo) {
-    uid.set(gameInfo.uid);
-    host.set(gameInfo.host);
-    title.set(StringEscapeUtils.unescapeHtml4(gameInfo.title));
-    access.set(gameInfo.access);
-    mapName.set(gameInfo.mapname);
-    featuredMod.set(gameInfo.featuredMod);
-    numPlayers.setValue(gameInfo.numPlayers);
-    maxPlayers.setValue(gameInfo.maxPlayers);
-    gameType.set(gameInfo.gameType);
-    status.set(gameInfo.state);
+    uid.set(gameInfo.getUid());
+    host.set(gameInfo.getHost());
+    title.set(StringEscapeUtils.unescapeHtml4(gameInfo.getTitle()));
+    access.set(gameInfo.getAccess());
+    technicalName.set(gameInfo.getMapname());
+    featuredMod.set(gameInfo.getFeaturedMod());
+    numPlayers.setValue(gameInfo.getNumPlayers());
+    maxPlayers.setValue(gameInfo.getMaxPlayers());
+    victoryCondition.set(gameInfo.getGameType());
+    status.set(gameInfo.getState());
 
-    if (gameInfo.options != null) {
-      options.setAll(gameInfo.options);
+    if (gameInfo.getOptions() != null) {
+      options.setAll(gameInfo.getOptions());
     }
 
     simMods.clear();
-    if (gameInfo.simMods != null) {
-      simMods.putAll(gameInfo.simMods);
+    if (gameInfo.getSimMods() != null) {
+      simMods.putAll(gameInfo.getSimMods());
     }
 
     teams.clear();
-    if (gameInfo.teams != null) {
-      teams.putAll(gameInfo.teams);
+    if (gameInfo.getTeams() != null) {
+      teams.putAll(gameInfo.getTeams());
     }
 
     featuredModVersions.clear();
-    if (gameInfo.featuredModVersions != null) {
-      featuredModVersions.putAll(gameInfo.featuredModVersions);
+    if (gameInfo.getFeaturedModVersions() != null) {
+      featuredModVersions.putAll(gameInfo.getFeaturedModVersions());
     }
 
     // TODO as this can be removed as soon as we get server side support. Until then, let's be hacky
@@ -124,204 +126,200 @@ public class GameInfoBean {
         }
       }
     } else {
-      maxRating.set(2500);
+      maxRating.set(3000);
     }
-  }
-
-  public static Pattern getRatingPattern() {
-    return RATING_PATTERN;
   }
 
   public String getHost() {
     return host.get();
   }
 
-  public StringProperty hostProperty() {
-    return host;
-  }
-
   public void setHost(String host) {
     this.host.set(host);
+  }
+
+  public StringProperty hostProperty() {
+    return host;
   }
 
   public String getTitle() {
     return title.get();
   }
 
-  public StringProperty titleProperty() {
-    return title;
-  }
-
   public void setTitle(String title) {
     this.title.set(title);
   }
 
-  public String getMapName() {
-    return mapName.get();
+  public StringProperty titleProperty() {
+    return title;
   }
 
-  public StringProperty mapNameProperty() {
-    return mapName;
+  public String getTechnicalName() {
+    return technicalName.get();
   }
 
-  public void setMapName(String mapName) {
-    this.mapName.set(mapName);
+  public void setTechnicalName(String technicalName) {
+    this.technicalName.set(technicalName);
+  }
+
+  public StringProperty technicalNameProperty() {
+    return technicalName;
   }
 
   public String getFeaturedMod() {
     return featuredMod.get();
   }
 
-  public StringProperty featuredModProperty() {
-    return featuredMod;
-  }
-
   public void setFeaturedMod(String featuredMod) {
     this.featuredMod.set(featuredMod);
+  }
+
+  public StringProperty featuredModProperty() {
+    return featuredMod;
   }
 
   public GameAccess getAccess() {
     return access.get();
   }
 
-  public ObjectProperty<GameAccess> accessProperty() {
-    return access;
-  }
-
   public void setAccess(GameAccess access) {
     this.access.set(access);
+  }
+
+  public ObjectProperty<GameAccess> accessProperty() {
+    return access;
   }
 
   public int getUid() {
     return uid.get();
   }
 
-  public IntegerProperty uidProperty() {
-    return uid;
-  }
-
   public void setUid(int uid) {
     this.uid.set(uid);
+  }
+
+  public IntegerProperty uidProperty() {
+    return uid;
   }
 
   public int getNumPlayers() {
     return numPlayers.get();
   }
 
-  public IntegerProperty numPlayersProperty() {
-    return numPlayers;
-  }
-
   public void setNumPlayers(int numPlayers) {
     this.numPlayers.set(numPlayers);
+  }
+
+  public IntegerProperty numPlayersProperty() {
+    return numPlayers;
   }
 
   public int getMaxPlayers() {
     return maxPlayers.get();
   }
 
-  public IntegerProperty maxPlayersProperty() {
-    return maxPlayers;
-  }
-
   public void setMaxPlayers(int maxPlayers) {
     this.maxPlayers.set(maxPlayers);
+  }
+
+  public IntegerProperty maxPlayersProperty() {
+    return maxPlayers;
   }
 
   public int getMinRating() {
     return minRating.get();
   }
 
-  public IntegerProperty minRatingProperty() {
-    return minRating;
-  }
-
   public void setMinRating(int minRating) {
     this.minRating.set(minRating);
+  }
+
+  public IntegerProperty minRatingProperty() {
+    return minRating;
   }
 
   public int getMaxRating() {
     return maxRating.get();
   }
 
-  public IntegerProperty maxRatingProperty() {
-    return maxRating;
-  }
-
   public void setMaxRating(int maxRating) {
     this.maxRating.set(maxRating);
+  }
+
+  public IntegerProperty maxRatingProperty() {
+    return maxRating;
   }
 
   public GameState getStatus() {
     return status.get();
   }
 
-  public ObjectProperty<GameState> statusProperty() {
-    return status;
-  }
-
   public void setStatus(GameState status) {
     this.status.set(status);
   }
 
-  public VictoryCondition getGameType() {
-    return gameType.get();
+  public ObjectProperty<GameState> statusProperty() {
+    return status;
   }
 
-  public ObjectProperty<VictoryCondition> gameTypeProperty() {
-    return gameType;
+  public VictoryCondition getVictoryCondition() {
+    return victoryCondition.get();
   }
 
-  public void setGameType(VictoryCondition gameType) {
-    this.gameType.set(gameType);
+  public void setVictoryCondition(VictoryCondition victoryCondition) {
+    this.victoryCondition.set(victoryCondition);
+  }
+
+  public ObjectProperty<VictoryCondition> victoryConditionProperty() {
+    return victoryCondition;
   }
 
   public ObservableList<Boolean> getOptions() {
     return options.get();
   }
 
-  public ListProperty<Boolean> optionsProperty() {
-    return options;
-  }
-
   public void setOptions(ObservableList<Boolean> options) {
     this.options.set(options);
+  }
+
+  public ListProperty<Boolean> optionsProperty() {
+    return options;
   }
 
   public ObservableMap<String, String> getSimMods() {
     return simMods.get();
   }
 
-  public MapProperty<String, String> simModsProperty() {
-    return simMods;
-  }
-
   public void setSimMods(ObservableMap<String, String> simMods) {
     this.simMods.set(simMods);
+  }
+
+  public MapProperty<String, String> simModsProperty() {
+    return simMods;
   }
 
   public ObservableMap<String, List<String>> getTeams() {
     return teams.get();
   }
 
-  public MapProperty<String, List<String>> teamsProperty() {
-    return teams;
-  }
-
   public void setTeams(ObservableMap<String, List<String>> teams) {
     this.teams.set(teams);
+  }
+
+  public MapProperty<String, List<String>> teamsProperty() {
+    return teams;
   }
 
   public ObservableMap<String, Integer> getFeaturedModVersions() {
     return featuredModVersions.get();
   }
 
-  public MapProperty<String, Integer> featuredModVersionsProperty() {
-    return featuredModVersions;
-  }
-
   public void setFeaturedModVersions(ObservableMap<String, Integer> featuredModVersions) {
     this.featuredModVersions.set(featuredModVersions);
+  }
+
+  public MapProperty<String, Integer> featuredModVersionsProperty() {
+    return featuredModVersions;
   }
 
   @Override
@@ -333,5 +331,9 @@ public class GameInfoBean {
   public boolean equals(Object obj) {
     return obj instanceof GameInfoBean
         && uid.getValue().equals(((GameInfoBean) obj).uid.getValue());
+  }
+
+  public static Pattern getRatingPattern() {
+    return RATING_PATTERN;
   }
 }

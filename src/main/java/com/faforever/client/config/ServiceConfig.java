@@ -3,12 +3,16 @@ package com.faforever.client.config;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.MockChatService;
 import com.faforever.client.chat.PircBotXChatService;
+import com.faforever.client.chat.PircBotXFactory;
+import com.faforever.client.chat.PircBotXFactoryImpl;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.ForgedAllianceServiceImpl;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameServiceImpl;
+import com.faforever.client.leaderboard.LeaderboardParser;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.LeaderboardServiceImpl;
+import com.faforever.client.leaderboard.LegacyLeaderboardParser;
 import com.faforever.client.leaderboard.MockLeaderboardService;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.LobbyServerAccessorImpl;
@@ -16,9 +20,10 @@ import com.faforever.client.legacy.MockLobbyServerAccessor;
 import com.faforever.client.legacy.MockStatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessorImpl;
+import com.faforever.client.legacy.UidService;
+import com.faforever.client.legacy.UnixUidService;
+import com.faforever.client.legacy.WindowsUidService;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
-import com.faforever.client.legacy.ladder.LeaderParser;
-import com.faforever.client.legacy.ladder.LegacyLeaderParser;
 import com.faforever.client.legacy.map.LegacyMapVaultParser;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.legacy.proxy.Proxy;
@@ -31,8 +36,8 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModServiceImpl;
-import com.faforever.client.network.DownlordsPortCheckServiceImpl;
-import com.faforever.client.network.PortCheckService;
+import com.faforever.client.news.LegacyNewsService;
+import com.faforever.client.news.NewsService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.patch.GitRepositoryPatchService;
@@ -41,6 +46,8 @@ import com.faforever.client.patch.JGitWrapper;
 import com.faforever.client.patch.PatchService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
+import com.faforever.client.portcheck.DownlordsPortCheckServiceImpl;
+import com.faforever.client.portcheck.PortCheckService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayFileReader;
 import com.faforever.client.replay.ReplayFileReaderImpl;
@@ -58,12 +65,16 @@ import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.stats.StatisticsServiceImpl;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.task.TaskServiceImpl;
+import com.faforever.client.update.ClientUpdateService;
+import com.faforever.client.update.ClientUpdateServiceImpl;
+import com.faforever.client.update.MockClientUpdateService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.uploader.imgur.ImgurImageUploadService;
 import com.faforever.client.upnp.UpnpService;
 import com.faforever.client.upnp.WeUpnpServiceImpl;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
+import com.faforever.client.util.OperatingSystem;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.util.TimeServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,6 +131,11 @@ public class ServiceConfig {
   }
 
   @Bean
+  MapVaultParser mapVaultParser() {
+    return new LegacyMapVaultParser();
+  }
+
+  @Bean
   GameService gameService() {
     return new GameServiceImpl();
   }
@@ -165,15 +181,9 @@ public class ServiceConfig {
   }
 
   @Bean
-  LeaderParser ladderParser() {
-    return new LegacyLeaderParser();
+  LeaderboardParser ladderParser() {
+    return new LegacyLeaderboardParser();
   }
-
-  @Bean
-  MapVaultParser mapVaultParser() {
-    return new LegacyMapVaultParser();
-  }
-
 
   @Bean
   ReplayServer replayServer() {
@@ -256,5 +266,34 @@ public class ServiceConfig {
   @Bean
   GitWrapper gitWrapper() {
     return new JGitWrapper();
+  }
+
+  @Bean
+  PircBotXFactory pircBotXFactory() {
+    return new PircBotXFactoryImpl();
+  }
+
+  @Bean
+  NewsService newsService() {
+    return new LegacyNewsService();
+  }
+
+  @Bean
+  ClientUpdateService updateService() {
+    if (environment.containsProperty("faf.testing")) {
+      return new MockClientUpdateService();
+    } else {
+      return new ClientUpdateServiceImpl();
+    }
+  }
+
+  @Bean
+  UidService uidService() {
+    switch (OperatingSystem.current()) {
+      case WINDOWS:
+        return new WindowsUidService();
+      default:
+        return new UnixUidService();
+    }
   }
 }

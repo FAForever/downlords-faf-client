@@ -6,9 +6,9 @@ import javafx.beans.property.IntegerProperty;
 
 public class NumberOfPlayersBinding extends StringBinding {
 
-  private I18n i18n;
-  private IntegerProperty numPlayers;
-  private IntegerProperty maxPlayers;
+  private final I18n i18n;
+  private final IntegerProperty numPlayers;
+  private final IntegerProperty maxPlayers;
 
   public NumberOfPlayersBinding(I18n i18n, IntegerProperty numPlayers, IntegerProperty maxPlayers) {
     this.i18n = i18n;

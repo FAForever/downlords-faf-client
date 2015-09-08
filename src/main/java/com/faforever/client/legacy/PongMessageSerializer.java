@@ -6,15 +6,11 @@ import org.springframework.core.serializer.Serializer;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 public class PongMessageSerializer implements Serializer<PongMessage> {
 
-  private static final Charset CHARSET = StandardCharsets.UTF_16;
-
-  private String username;
-  private StringProperty sessionIdProperty;
+  private final String username;
+  private final StringProperty sessionIdProperty;
 
   /**
    * @param sessionIdProperty the session ID property, so that this serializer can be initialized before the session ID

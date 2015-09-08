@@ -10,6 +10,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -19,16 +20,14 @@ import java.util.Set;
 
 public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, OnFoeListListener, OnFriendListListener {
 
+  private final ObservableMap<String, PlayerInfoBean> players;
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
-
   @Autowired
   UserService userService;
-
-  private PlayerInfoBean currentPlayer;
-  private ObservableMap<String, PlayerInfoBean> players;
   private List<String> foeList;
   private List<String> friendList;
+  private PlayerInfoBean currentPlayer;
 
   public PlayerServiceImpl() {
     players = FXCollections.observableHashMap();
@@ -49,7 +48,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   }
 
   @Override
-  public PlayerInfoBean registerAndGetPlayerForUsername(String username) {
+  public PlayerInfoBean registerAndGetPlayerForUsername(@NotNull String username) {
     Assert.checkNull(username, "username must not be null");
 
     if (!players.containsKey(username)) {
@@ -101,15 +100,20 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   }
 
   @Override
+  public PlayerInfoBean getCurrentPlayer() {
+    return currentPlayer;
+  }
+
+  @Override
   public void onPlayerInfo(PlayerInfo playerInfo) {
-    PlayerInfoBean playerInfoBean = registerAndGetPlayerForUsername(playerInfo.login);
+    PlayerInfoBean playerInfoBean = registerAndGetPlayerForUsername(playerInfo.getLogin());
     playerInfoBean.updateFromPlayerInfo(playerInfo);
 
-    if (playerInfo.login.equals(userService.getUsername())) {
+    if (playerInfo.getLogin().equals(userService.getUsername())) {
       this.currentPlayer = playerInfoBean;
     } else {
-      playerInfoBean.setFriend(friendList.contains(playerInfo.login));
-      playerInfoBean.setFoe(foeList.contains(playerInfo.login));
+      playerInfoBean.setFriend(friendList.contains(playerInfo.getLogin()));
+      playerInfoBean.setFoe(foeList.contains(playerInfo.getLogin()));
     }
   }
 
@@ -135,10 +139,5 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
         playerInfoBean.setFriend(true);
       }
     }
-  }
-
-  @Override
-  public PlayerInfoBean getCurrentPlayer() {
-    return currentPlayer;
   }
 }

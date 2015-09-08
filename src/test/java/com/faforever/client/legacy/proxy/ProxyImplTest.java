@@ -40,10 +40,10 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
 
   private class ProxyPackage {
 
-    int length;
-    int playerNumber;
-    int uid;
-    int dataLength;
+    final int length;
+    final int playerNumber;
+    final int uid;
+    final int dataLength;
 
     ProxyPackage(int length, int playerNumber, int uid, int dataLength) {
       this.length = length;
@@ -52,10 +52,9 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
       this.dataLength = dataLength;
     }
   }
-
-  private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   public static final int TIMEOUT = 1000;
   public static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
+  private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final int OTHER_UID_1 = 111;
   private static final int GAME_PORT = 6112;
 
@@ -86,6 +85,43 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
     when(instance.preferencesService.getPreferences()).thenReturn(preferences);
     when(instance.environment.getProperty("proxy.host")).thenReturn(LOOPBACK_ADDRESS.getHostAddress());
     when(instance.environment.getProperty("proxy.port", int.class)).thenReturn(fafProxyServerSocket.getLocalPort());
+  }
+
+  private void startFakeFafProxyServer() throws IOException {
+    packagesReceivedByFafProxyServer = new ArrayBlockingQueue<>(10);
+    fafProxyConnectedLatch = new CountDownLatch(1);
+    fakeFafProxyTerminatedLatch = new CountDownLatch(1);
+
+    fafProxyServerSocket = new ServerSocket(0);
+
+    WaitForAsyncUtils.async(() -> {
+      try (Socket socket = fafProxyServerSocket.accept()) {
+        this.gameToLocalProxySocket = socket;
+        QDataInputStream qDataInputStream = new QDataInputStream(new DataInputStream(socket.getInputStream()));
+        serverToLocalOutputStream = new QDataOutputStream(new DataOutputStream(socket.getOutputStream()));
+
+        fafProxyConnectedLatch.countDown();
+
+        qDataInputStream.skipBlockSize();
+        int uidOfConnectedPlayer = qDataInputStream.readShort();
+
+        while (!stopped) {
+          // Number of bytes for port, uid and QByteArray (prefix stuff plus data length)
+          int length = qDataInputStream.readInt();
+          int playerNumber = qDataInputStream.readShort();
+          int uidOfTargetPlayer = qDataInputStream.readShort();
+
+          byte[] buffer = new byte[1024];
+          int dataLength = qDataInputStream.readQByteArray(buffer);
+
+          packagesReceivedByFafProxyServer.add(new ProxyPackage(length, playerNumber, uidOfTargetPlayer, dataLength));
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      } finally {
+        fakeFafProxyTerminatedLatch.countDown();
+      }
+    });
   }
 
   @After
@@ -139,7 +175,7 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
     assertThat(instance.peersByUid.values(), hasSize(1));
 
     Peer peer = instance.peersByUid.values().iterator().next();
-    assertThat(peer.connected, is(true));
+    assertThat(peer.isConnected(), is(true));
   }
 
   @Test
@@ -153,7 +189,7 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
     instance.updateConnectedState(OTHER_UID_1, false);
 
     assertThat(instance.peersByUid.values(), hasSize(0));
-    assertThat(peer.connected, is(false));
+    assertThat(peer.isConnected(), is(false));
   }
 
   @Test
@@ -217,8 +253,8 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
     instance.setUidForPeer("64.1.1.1:6112", 1);
 
     assertThat(instance.peersByUid.values(), hasSize(1));
-    assertThat(instance.peersByUid.get(1).uid, is(1));
-    assertThat(SocketAddressUtil.toString(instance.peersByUid.get(1).inetSocketAddress), is("64.1.1.1:6112"));
+    assertThat(instance.peersByUid.get(1).getUid(), is(1));
+    assertThat(SocketAddressUtil.toString(instance.peersByUid.get(1).getInetSocketAddress()), is("64.1.1.1:6112"));
   }
 
   @Test
@@ -263,85 +299,7 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
     assertThat(proxyPackage.uid, is(OTHER_UID_1));
   }
 
-  @Test
-  public void testIsReconnectionSequenceYes() throws Exception {
-    assertTrue(ProxyImpl.isReconnectionSequence(new byte[]{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}));
-  }
-
-  @Test(expected = NullPointerException.class)
-  public void testIsReconnectionSequenceNullThrowsException() throws Exception {
-    ProxyImpl.isReconnectionSequence(null);
-  }
-
-  @Test
-  public void testIsReconnectionSequenceNoButSameLength() throws Exception {
-    assertFalse(ProxyImpl.isReconnectionSequence(new byte[]{0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}));
-  }
-
-  @Test
-  public void testIsReconnectionSequenceNoShorterLength() throws Exception {
-    assertFalse(ProxyImpl.isReconnectionSequence(new byte[]{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}));
-  }
-
-  /**
-   * Sends the specified data to the local proxy server as if it was sent by FA.
-   */
-  private void sendFromGame(int playerNumber, byte[] data) throws IOException {
-    DatagramSocket localProxySocket = instance.proxySocketsByPlayerNumber.get(playerNumber);
-    DatagramPacket datagramPacket = new DatagramPacket(data, data.length, localProxySocket.getLocalSocketAddress());
-
-    gameDatagramSocket.send(datagramPacket);
-  }
-
-  /**
-   * Sends the specified data to the local proxy server as if it was sent by the FAF proxy server.
-   */
-  private void sendFromServer(int playerNumber, byte[] data) throws IOException {
-    // Should be the block size, but is ignored anyway
-    serverToLocalOutputStream.writeInt(1234);
-    serverToLocalOutputStream.writeShort(playerNumber);
-    serverToLocalOutputStream.writeQByteArray(data);
-    serverToLocalOutputStream.flush();
-  }
-
-  private void startFakeFafProxyServer() throws IOException {
-    packagesReceivedByFafProxyServer = new ArrayBlockingQueue<>(10);
-    fafProxyConnectedLatch = new CountDownLatch(1);
-    fakeFafProxyTerminatedLatch = new CountDownLatch(1);
-
-    fafProxyServerSocket = new ServerSocket(0);
-
-    WaitForAsyncUtils.async(() -> {
-      try (Socket socket = fafProxyServerSocket.accept()) {
-        this.gameToLocalProxySocket = socket;
-        QDataInputStream qDataInputStream = new QDataInputStream(new DataInputStream(socket.getInputStream()));
-        serverToLocalOutputStream = new QDataOutputStream(new DataOutputStream(socket.getOutputStream()));
-
-        fafProxyConnectedLatch.countDown();
-
-        qDataInputStream.skipBlockSize();
-        int uidOfConnectedPlayer = qDataInputStream.readShort();
-
-        while (!stopped) {
-          // Number of bytes for port, uid and QByteArray (prefix stuff plus data length)
-          int length = qDataInputStream.readInt();
-          int playerNumber = qDataInputStream.readShort();
-          int uidOfTargetPlayer = qDataInputStream.readShort();
-
-          byte[] buffer = new byte[1024];
-          int dataLength = qDataInputStream.readQByteArray(buffer);
-
-          packagesReceivedByFafProxyServer.add(new ProxyPackage(length, playerNumber, uidOfTargetPlayer, dataLength));
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      } finally {
-        fakeFafProxyTerminatedLatch.countDown();
-      }
-    });
-  }
-
-  private void startFakeGameProcess() throws IOException {
+  private void startFakeGameProcess() {
     dataReceivedByGame = new ArrayBlockingQueue<>(10);
     fakeGameTerminatedLatch = new CountDownLatch(1);
 
@@ -362,5 +320,46 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
         fakeGameTerminatedLatch.countDown();
       }
     });
+  }
+
+  /**
+   * Sends the specified data to the local proxy server as if it was sent by the FAF proxy server.
+   */
+  private void sendFromServer(int playerNumber, byte[] data) throws IOException {
+    // Should be the block size, but is ignored anyway
+    serverToLocalOutputStream.writeInt(1234);
+    serverToLocalOutputStream.writeShort(playerNumber);
+    serverToLocalOutputStream.writeQByteArray(data);
+    serverToLocalOutputStream.flush();
+  }
+
+  /**
+   * Sends the specified data to the local proxy server as if it was sent by FA.
+   */
+  private void sendFromGame(int playerNumber, byte[] data) throws IOException {
+    DatagramSocket localProxySocket = instance.proxySocketsByPlayerNumber.get(playerNumber);
+    DatagramPacket datagramPacket = new DatagramPacket(data, data.length, localProxySocket.getLocalSocketAddress());
+
+    gameDatagramSocket.send(datagramPacket);
+  }
+
+  @Test
+  public void testIsReconnectionSequenceYes() throws Exception {
+    assertTrue(ProxyImpl.isReconnectionSequence(new byte[]{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}));
+  }
+
+  @Test(expected = NullPointerException.class)
+  public void testIsReconnectionSequenceNullThrowsException() throws Exception {
+    ProxyImpl.isReconnectionSequence(null);
+  }
+
+  @Test
+  public void testIsReconnectionSequenceNoButSameLength() throws Exception {
+    assertFalse(ProxyImpl.isReconnectionSequence(new byte[]{0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}));
+  }
+
+  @Test
+  public void testIsReconnectionSequenceNoShorterLength() throws Exception {
+    assertFalse(ProxyImpl.isReconnectionSequence(new byte[]{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}));
   }
 }

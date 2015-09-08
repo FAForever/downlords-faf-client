@@ -27,10 +27,6 @@ public final class Copier {
     byteCountInterval = 333;
   }
 
-  public static Copier from(ReadableByteChannel readableByteChannel) {
-    return new Copier(readableByteChannel);
-  }
-
   public Copier to(WritableByteChannel writableByteChannel) {
     this.writableByteChannel = writableByteChannel;
     return this;
@@ -80,5 +76,9 @@ public final class Copier {
         byteCountListener.updateBytesWritten(bytesDone, totalBytes);
       }
     }
+  }
+
+  public static Copier from(ReadableByteChannel readableByteChannel) {
+    return new Copier(readableByteChannel);
   }
 }

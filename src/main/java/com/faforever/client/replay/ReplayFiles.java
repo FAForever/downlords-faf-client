@@ -26,6 +26,4 @@ public final class ReplayFiles {
   public static Gson gson() {
     return GSON_BUILDER.create();
   }
-
-  ;
 }

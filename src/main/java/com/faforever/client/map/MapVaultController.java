@@ -62,7 +62,7 @@ public class MapVaultController {
 
   @FXML
   void initialize() {
-    nameColumn.setCellValueFactory(param -> param.getValue().nameProperty());
+    nameColumn.setCellValueFactory(param -> param.getValue().displayNameProperty());
     descriptionColumn.setCellValueFactory(param -> param.getValue().descriptionProperty());
     playsColumn.setCellValueFactory(param -> param.getValue().playsProperty());
     // creatorColumn.setCellValueFactory(param -> param.getValue().creatorProperty());

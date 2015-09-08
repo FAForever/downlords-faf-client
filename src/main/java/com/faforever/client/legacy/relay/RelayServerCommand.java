@@ -29,7 +29,7 @@ enum RelayServerCommand {
 
   private final int numberOfArgs;
 
-  private String string;
+  private final String string;
 
   RelayServerCommand(String string, int numberOfArgs) {
     this.string = string;

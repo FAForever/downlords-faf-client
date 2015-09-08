@@ -4,7 +4,7 @@ import javafx.application.HostServices;
 
 public class JavaFxHostService implements HostService {
 
-  private HostServices hostServices;
+  private final HostServices hostServices;
 
   public JavaFxHostService(HostServices hostServices) {
     this.hostServices = hostServices;

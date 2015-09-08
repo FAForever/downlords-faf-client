@@ -15,9 +15,6 @@ public enum GameState {
   CLOSED("closed");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  private String string;
-
   private static final Map<String, GameState> fromString;
 
   static {
@@ -27,14 +24,7 @@ public enum GameState {
     }
   }
 
-  public static GameState fromString(String string) {
-    GameState gameState = fromString.get(string);
-    if (gameState == null) {
-      logger.warn("Unknown game state: {}", string);
-      return UNKNOWN;
-    }
-    return gameState;
-  }
+  private final String string;
 
   GameState(String string) {
     this.string = string;
@@ -42,5 +32,14 @@ public enum GameState {
 
   public String getString() {
     return string;
+  }
+
+  public static GameState fromString(String string) {
+    GameState gameState = fromString.get(string);
+    if (gameState == null) {
+      logger.warn("Unknown game state: {}", string);
+      return UNKNOWN;
+    }
+    return gameState;
   }
 }

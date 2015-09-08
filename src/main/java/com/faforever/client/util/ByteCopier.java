@@ -11,7 +11,7 @@ public final class ByteCopier {
     void updateBytesWritten(long written, long total);
   }
 
-  private InputStream inputStream;
+  private final InputStream inputStream;
   private ByteCountListener byteCountListener;
   private int byteCountInterval;
   private int bufferSize;
@@ -26,15 +26,14 @@ public final class ByteCopier {
     byteCountInterval = 333;
   }
 
-  public static ByteCopier from(InputStream inputStream) {
-    return new ByteCopier(inputStream);
-  }
-
   public ByteCopier to(OutputStream outputStream) {
     this.outputStream = outputStream;
     return this;
   }
 
+  /**
+   * Sets the interval between in which listeners should receive updated byte counts, in milliseconds.
+   */
   public ByteCopier byteCountInterval(int byteCountInterval) {
     this.byteCountInterval = byteCountInterval;
     return this;
@@ -50,7 +49,7 @@ public final class ByteCopier {
     return this;
   }
 
-  public ByteCopier totalBytes(int totalBytes) {
+  public ByteCopier totalBytes(long totalBytes) {
     this.totalBytes = totalBytes;
     return this;
   }
@@ -71,5 +70,9 @@ public final class ByteCopier {
         lastCountUpdate = now;
       }
     }
+  }
+
+  public static ByteCopier from(InputStream inputStream) {
+    return new ByteCopier(inputStream);
   }
 }

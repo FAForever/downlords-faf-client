@@ -9,7 +9,6 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Strings;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -103,18 +102,6 @@ public class LoginController {
     }
   }
 
-  @FXML
-  void loginButtonClicked(ActionEvent actionEvent) {
-    String username = usernameInput.getText();
-    String password = passwordInput.getText();
-
-    password = DigestUtils.sha256Hex(password);
-
-    boolean autoLogin = autoLoginCheckBox.isSelected();
-
-    login(username, password, autoLogin);
-  }
-
   private void login(String username, String password, boolean autoLogin) {
     onLoginProgress();
 
@@ -129,6 +116,10 @@ public class LoginController {
         onLoginFailed(e);
       }
     });
+  }
+
+  private void onLoginProgress() {
+    setShowLoginProgress(true);
   }
 
   private void onLoginSucceeded() {
@@ -146,10 +137,6 @@ public class LoginController {
     loginButton.setDisable(false);
   }
 
-  private void onLoginProgress() {
-    setShowLoginProgress(true);
-  }
-
   private void setShowLoginProgress(boolean b) {
     loginFormPane.setVisible(!b);
     loginProgressPane.setVisible(b);
@@ -157,17 +144,29 @@ public class LoginController {
   }
 
   @FXML
-  void onCloseButtonClicked(ActionEvent actionEvent) {
+  void loginButtonClicked() {
+    String username = usernameInput.getText();
+    String password = passwordInput.getText();
+
+    password = DigestUtils.sha256Hex(password);
+
+    boolean autoLogin = autoLoginCheckBox.isSelected();
+
+    login(username, password, autoLogin);
+  }
+
+  @FXML
+  void onCloseButtonClicked() {
     stage.close();
   }
 
   @FXML
-  void onMinimizeButtonClicked(ActionEvent actionEvent) {
+  void onMinimizeButtonClicked() {
     stage.setIconified(true);
   }
 
   @FXML
-  public void onCancelLoginButtonClicked(ActionEvent actionEvent) {
+  public void onCancelLoginButtonClicked() {
     userService.cancelLogin();
     setShowLoginProgress(false);
   }

@@ -27,9 +27,9 @@ public class ServerWriter implements Closeable {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final QStreamWriter qStreamWriter;
-  private Map<Class<?>, Serializer<?>> objectWriters;
+  private final Map<Class<?>, Serializer<?>> objectWriters;
 
-  public ServerWriter(OutputStream outputStream) throws IOException {
+  public ServerWriter(OutputStream outputStream) {
     qStreamWriter = new QStreamWriter(new DataOutputStream(new BufferedOutputStream(outputStream)));
     objectWriters = new HashMap<>();
   }
@@ -39,7 +39,7 @@ public class ServerWriter implements Closeable {
   }
 
   @SuppressWarnings("unchecked")
-  public void write(Object object){
+  public void write(Object object) {
     Class<?> clazz = object.getClass();
 
     Serializer<Object> serializer = (Serializer<Object>) findSerializerForClass(clazz);

@@ -2,20 +2,21 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.game.Faction;
 import com.faforever.client.legacy.domain.ClientMessage;
+import com.faforever.client.legacy.domain.ClientMessageType;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.VictoryCondition;
 import com.faforever.client.legacy.gson.FactionSerializer;
+import com.faforever.client.legacy.gson.ClientMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
-import com.faforever.client.legacy.writer.JsonMessageSerializer;
 import com.faforever.client.legacy.io.QStreamWriter;
+import com.faforever.client.legacy.writer.JsonMessageSerializer;
 import com.google.gson.GsonBuilder;
 import javafx.beans.property.StringProperty;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 public class ClientMessageSerializer extends JsonMessageSerializer<ClientMessage> {
 
@@ -41,11 +42,6 @@ public class ClientMessageSerializer extends JsonMessageSerializer<ClientMessage
   }
 
   @Override
-  public void serialize(ClientMessage object, OutputStream outputStream) throws IOException {
-    super.serialize(object, outputStream);
-  }
-
-  @Override
   protected void appendMore(QStreamWriter qStreamWriter) throws IOException {
     if (username != null) {
       qStreamWriter.append(username);
@@ -59,6 +55,7 @@ public class ClientMessageSerializer extends JsonMessageSerializer<ClientMessage
   protected void addTypeAdapters(GsonBuilder gsonBuilder) {
     gsonBuilder.registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter());
     gsonBuilder.registerTypeAdapter(GameState.class, new GameStateTypeAdapter());
+    gsonBuilder.registerTypeAdapter(ClientMessageType.class, new ClientMessageTypeTypeAdapter());
     gsonBuilder.registerTypeAdapter(VictoryCondition.class, new VictoryConditionTypeAdapter());
     gsonBuilder.registerTypeAdapter(Faction.class, new FactionSerializer());
   }

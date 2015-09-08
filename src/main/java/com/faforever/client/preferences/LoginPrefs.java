@@ -21,21 +21,17 @@ public class LoginPrefs {
     return username.get();
   }
 
-  public StringProperty usernameProperty() {
-    return username;
-  }
-
   public LoginPrefs setUsername(String username) {
     this.username.set(username);
     return this;
   }
 
-  public String getPassword() {
-    return password.get();
+  public StringProperty usernameProperty() {
+    return username;
   }
 
-  public StringProperty passwordProperty() {
-    return password;
+  public String getPassword() {
+    return password.get();
   }
 
   public LoginPrefs setPassword(String password) {
@@ -43,16 +39,20 @@ public class LoginPrefs {
     return this;
   }
 
-  public boolean getAutoLogin() {
-    return autoLogin.get();
+  public StringProperty passwordProperty() {
+    return password;
   }
 
-  public BooleanProperty autoLoginProperty() {
-    return autoLogin;
+  public boolean getAutoLogin() {
+    return autoLogin.get();
   }
 
   public LoginPrefs setAutoLogin(boolean autoLogin) {
     this.autoLogin.set(autoLogin);
     return this;
+  }
+
+  public BooleanProperty autoLoginProperty() {
+    return autoLogin;
   }
 }

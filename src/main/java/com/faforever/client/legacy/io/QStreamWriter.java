@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 public class QStreamWriter extends Writer {
 
   public static final Charset CHARSET = StandardCharsets.UTF_16BE;
-  private OutputStream out;
+  private final OutputStream out;
 
   public QStreamWriter(OutputStream out) {
     this.out = out;
@@ -42,6 +42,13 @@ public class QStreamWriter extends Writer {
     out.close();
   }
 
+  private void writeInt32(int v) throws IOException {
+    out.write((v >>> 24) & 0xFF);
+    out.write((v >>> 16) & 0xFF);
+    out.write((v >>> 8) & 0xFF);
+    out.write(v & 0xFF);
+  }
+
   /**
    * Appends the size of the given byte array to the stream followed by the byte array itself.
    */
@@ -49,12 +56,5 @@ public class QStreamWriter extends Writer {
     writeInt32(bytes.length);
     out.write(bytes);
     return this;
-  }
-
-  private void writeInt32(int v) throws IOException {
-    out.write((v >>> 24) & 0xFF);
-    out.write((v >>> 16) & 0xFF);
-    out.write((v >>> 8) & 0xFF);
-    out.write(v & 0xFF);
   }
 }

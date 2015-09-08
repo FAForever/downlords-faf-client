@@ -5,9 +5,14 @@ import org.junit.Test;
 import java.nio.file.Paths;
 import java.util.Collections;
 
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class LaunchCommandBuilderTest {
+
+  @Test
+  public void testAllSet() throws Exception {
+    assertNotNull(defaultBuilder().build());
+  }
 
   private static LaunchCommandBuilder defaultBuilder() {
     return LaunchCommandBuilder.create()
@@ -21,11 +26,6 @@ public class LaunchCommandBuilderTest {
         .username("")
         .uid(0)
         .executable(Paths.get("."));
-  }
-
-  @Test
-  public void testAllSet() throws Exception {
-    assertNotNull(defaultBuilder().build());
   }
 
   @Test(expected = IllegalStateException.class)

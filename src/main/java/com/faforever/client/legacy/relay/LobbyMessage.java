@@ -28,12 +28,12 @@ public class LobbyMessage implements SerializableMessage {
     return action;
   }
 
-  public static LobbyMessage pong() {
-    return new LobbyMessage(PONG, Collections.emptyList());
-  }
-
   public Collection<String> getStringsToMask() {
     return Collections.emptyList();
+  }
+
+  public static LobbyMessage pong() {
+    return new LobbyMessage(PONG, Collections.emptyList());
   }
 
 }

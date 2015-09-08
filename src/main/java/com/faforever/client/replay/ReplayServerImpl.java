@@ -9,11 +9,12 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
-import com.faforever.client.util.VersionUtil;
 import com.google.common.primitives.Bytes;
 import javafx.concurrent.Task;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,8 +61,10 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
   @Autowired
   ReplayFileWriter replayFileWriter;
 
+  @Autowired
+  ClientUpdateService clientUpdateService;
+
   private LocalReplayInfo replayInfo;
-  private GameInfoBean gameInfoBean;
 
   @PostConstruct
   void postConstruct() {
@@ -134,24 +137,19 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
   }
 
   @Override
-  public void onGameStarted(int uid) {
+  public void onGameStarted(@Nullable Integer uid) {
+    if (uid == null) {
+      // If there's no UID, the game is either a replay or running offline
+      return;
+    }
+
     replayInfo = new LocalReplayInfo();
-    replayInfo.uid = uid;
-    replayInfo.gameTime = pythonTime();
-    replayInfo.versionInfo = new HashMap<>();
-    replayInfo.versionInfo.put("lobby", VersionUtil.getVersion(getClass()));
-  }
-
-  private void finishReplayInfo() {
-    gameInfoBean = gameService.getByUid(replayInfo.uid);
-
-    replayInfo.gameEnd = pythonTime();
-    replayInfo.recorder = userService.getUsername();
-    replayInfo.complete = true;
-    replayInfo.state = GameState.CLOSED;
-    replayInfo.updateFromGameInfoBean(gameInfoBean);
-
-    gameInfoBean = null;
+    replayInfo.setUid(uid);
+    replayInfo.setGameTime(pythonTime());
+    replayInfo.setVersionInfo(new HashMap<>());
+    replayInfo.getVersionInfo().put("lobby",
+        String.format("dfaf-%s", clientUpdateService.getCurrentVersion().getCanonical())
+    );
   }
 
   /**
@@ -159,5 +157,15 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
    */
   private static double pythonTime() {
     return System.currentTimeMillis() / 1000;
+  }
+
+  private void finishReplayInfo() {
+    GameInfoBean gameInfoBean = gameService.getByUid(replayInfo.getUid());
+
+    replayInfo.setGameEnd(pythonTime());
+    replayInfo.setRecorder(userService.getUsername());
+    replayInfo.setComplete(true);
+    replayInfo.setState(GameState.CLOSED);
+    replayInfo.updateFromGameInfoBean(gameInfoBean);
   }
 }

@@ -39,7 +39,11 @@ import java.io.OutputStream;
  *
  * @author malensek
  */
-public class Patch {
+public final class Patch {
+
+  private Patch() {
+    throw new AssertionError("Not instantiatable");
+  }
 
   /**
    * Using an old file and its accompanying patch, this method generates a new (updated) file and writes it to an {@link

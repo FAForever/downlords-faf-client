@@ -2,7 +2,6 @@ package com.faforever.client.chat;
 
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.player.PlayerService;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -75,7 +74,7 @@ public class ChatUserContextMenuController {
   }
 
   @FXML
-  void onUserInfo(ActionEvent actionEvent) {
+  void onUserInfo() {
     UserInfoWindowController userInfoWindowController = applicationContext.getBean(UserInfoWindowController.class);
     userInfoWindowController.setPlayerInfoBean(playerInfoBean);
 
@@ -88,38 +87,52 @@ public class ChatUserContextMenuController {
     userInfoWindow.show();
   }
 
-  public void onSendPrivateMessage(ActionEvent event) {
+  @FXML
+  void onSendPrivateMessage() {
   }
 
-  public void onAddFriend(ActionEvent event) {
+  @FXML
+  void onAddFriend() {
     playerService.addFriend(playerInfoBean.getUsername());
   }
 
-  public void onRemoveFriend(ActionEvent event) {
+  @FXML
+  void onRemoveFriend() {
     playerService.removeFriend(playerInfoBean.getUsername());
   }
 
-  public void onAddFoe(ActionEvent event) {
+  @FXML
+  void onAddFoe() {
     playerService.addFoe(playerInfoBean.getUsername());
   }
 
-  public void onRemoveFoe(ActionEvent event) {
+  @FXML
+  void onRemoveFoe() {
     playerService.removeFoe(playerInfoBean.getUsername());
   }
 
-  public void onWatchGame(ActionEvent event) {
+  @FXML
+  void onWatchGame() {
+    // FIXME implement
   }
 
-  public void onViewReplays(ActionEvent event) {
+  @FXML
+  void onViewReplays() {
+    // FIXME implement
   }
 
-  public void onInviteToGame(ActionEvent event) {
+  @FXML
+  void onInviteToGame() {
+    // FIXME implement
   }
 
-  public void onKick(ActionEvent event) {
+  @FXML
+  void onKick() {
+    // FIXME implement
   }
 
-  public void onBan(ActionEvent event) {
-
+  @FXML
+  void onBan() {
+    // FIXME implement
   }
 }

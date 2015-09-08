@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 public class ForgedAlliancePrefs {
 
   public static final Path GPG_FA_PATH;
+  public static final Path STEAM_FA_PATH;
   public static final Path FAF_GAME_PATH;
 
   static {
@@ -23,86 +24,105 @@ public class ForgedAlliancePrefs {
       case WINDOWS:
         GPG_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
         FAF_GAME_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
+        //If steam is every swapped to a 64x client, needs to be updated to proper directory or handling must be put in place.
+        STEAM_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PROGRAM_FILESX86), "Steam", "SteamApps", "common", "Supreme Commander Forged Alliance");
         break;
 
       default:
         GPG_FA_PATH = Paths.get(".");
         FAF_GAME_PATH = Paths.get(".");
+        STEAM_FA_PATH = Paths.get(".");
     }
   }
 
   private final ObjectProperty<Path> path;
-  private final ObjectProperty<Path> mapsDirectory;
+  private final ObjectProperty<Path> customMapsDirectory;
+
+  public Path getOfficialMapsDirectory() {
+    return officialMapsDirectory.get();
+  }
+
+  private final ObjectProperty<Path> officialMapsDirectory;
+
   private final ObjectProperty<Path> modsDirectory;
   private final IntegerProperty port;
   private final BooleanProperty autoDownloadMaps;
 
-
   public ForgedAlliancePrefs() {
     port = new SimpleIntegerProperty(6112);
     path = new SimpleObjectProperty<>();
-    mapsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("maps"));
+    customMapsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("maps"));
+    officialMapsDirectory = new SimpleObjectProperty<>(STEAM_FA_PATH.resolve("maps"));
     modsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("mods"));
     autoDownloadMaps = new SimpleBooleanProperty(true);
   }
 
+
   public Path getPath() {
     return path.get();
-  }
-
-  public ObjectProperty<Path> pathProperty() {
-    return path;
   }
 
   public void setPath(Path path) {
     this.path.set(path);
   }
 
-  public int getPort() {
-    return port.get();
+  public ObjectProperty<Path> pathProperty() {
+    return path;
   }
 
-  public IntegerProperty portProperty() {
-    return port;
+  public int getPort() {
+    return port.get();
   }
 
   public void setPort(int port) {
     this.port.set(port);
   }
 
-  public boolean getAutoDownloadMaps() {
-    return autoDownloadMaps.get();
+  public IntegerProperty portProperty() {
+    return port;
   }
 
-  public BooleanProperty autoDownloadMapsProperty() {
-    return autoDownloadMaps;
+  public boolean getAutoDownloadMaps() {
+    return autoDownloadMaps.get();
   }
 
   public void setAutoDownloadMaps(boolean autoDownloadMaps) {
     this.autoDownloadMaps.set(autoDownloadMaps);
   }
 
-  public Path getModsDirectory() {
-    return modsDirectory.get();
+  public BooleanProperty autoDownloadMapsProperty() {
+    return autoDownloadMaps;
   }
 
-  public ObjectProperty<Path> modsDirectoryProperty() {
-    return modsDirectory;
+  public Path getModsDirectory() {
+    return modsDirectory.get();
   }
 
   public void setModsDirectory(Path modsDirectory) {
     this.modsDirectory.set(modsDirectory);
   }
 
-  public Path getMapsDirectory() {
-    return mapsDirectory.get();
+  public ObjectProperty<Path> modsDirectoryProperty() {
+    return modsDirectory;
   }
 
-  public ObjectProperty<Path> mapsDirectoryProperty() {
-    return mapsDirectory;
+  public Path getCustomMapsDirectory() {
+    return customMapsDirectory.get();
   }
 
-  public void setMapsDirectory(Path mapsDirectory) {
-    this.mapsDirectory.set(mapsDirectory);
+  public void setCustomMapsDirectory(Path customMapsDirectory) {
+    this.customMapsDirectory.set(customMapsDirectory);
+  }
+
+  public ObjectProperty<Path> customMapsDirectoryProperty() {
+    return customMapsDirectory;
+  }
+
+  public ObjectProperty<Path> officialMapsDirectoryProperty() {
+    return officialMapsDirectory;
+  }
+
+  public void setOfficialMapsDirectory(Path officialMapsDirectory) {
+    this.officialMapsDirectory.set(officialMapsDirectory);
   }
 }

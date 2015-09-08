@@ -11,7 +11,6 @@ import org.pircbotx.Channel;
 import org.pircbotx.User;
 import org.pircbotx.UserLevel;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,7 +20,7 @@ public class ChatUser {
   private SetProperty<String> moderatorInChannels;
 
   public ChatUser(String username) {
-    this(username, Collections.emptySet());
+    this(username, new HashSet<>());
   }
 
   public ChatUser(String username, Set<String> moderatorInChannels) {
@@ -47,13 +46,13 @@ public class ChatUser {
 
   @Override
   public int hashCode() {
-    return username.hashCode();
+    return username.get().hashCode();
   }
 
   @Override
   public boolean equals(Object obj) {
     return obj instanceof ChatUser
-        && username.equals(obj);
+        && username.get().equals(((ChatUser) obj).username.get());
   }
 
   public static ChatUser fromIrcUser(User user) {

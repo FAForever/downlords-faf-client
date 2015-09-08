@@ -4,10 +4,18 @@ import java.util.Collection;
 
 public class FriendsMessage extends ClientMessage {
 
-  private final Collection<String> friends;
+  private Collection<String> friends;
 
   public FriendsMessage(Collection<String> friends) {
-    command = "social";
+    super(ClientMessageType.SOCIAL);
+    this.setFriends(friends);
+  }
+
+  public Collection<String> getFriends() {
+    return friends;
+  }
+
+  public void setFriends(Collection<String> friends) {
     this.friends = friends;
   }
 }
