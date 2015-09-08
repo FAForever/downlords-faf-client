@@ -15,8 +15,8 @@ public class QDataInputStream extends InputStream {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private DataInput dataInput;
-  private Charset charset;
+  private final DataInput dataInput;
+  private final Charset charset;
 
   public QDataInputStream(DataInput dataInput) {
     this(dataInput, StandardCharsets.UTF_16BE);

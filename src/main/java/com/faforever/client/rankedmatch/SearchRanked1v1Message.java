@@ -6,14 +6,14 @@ import com.faforever.client.legacy.domain.ClientMessageType;
 
 public class SearchRanked1v1Message extends MatchMakerMessage {
 
-  public int gameport;
   public String faction;
+  private int gameport;
 
   public SearchRanked1v1Message(int gamePort, Faction faction) {
-    command = ClientMessageType.GAME_MATCH_MAKING.getString();
+    super(ClientMessageType.GAME_MATCH_MAKING);
     mod = FeaturedMod.LADDER_1V1.getString();
     state = "start";
-    gameport = gamePort;
+    setGameport(gamePort);
 
     // TODO this is BAD since there is a FactionSerializer, but it's a different way.
     switch (faction) {
@@ -30,5 +30,17 @@ public class SearchRanked1v1Message extends MatchMakerMessage {
         this.faction = "/seraphim";
         break;
     }
+  }
+
+  public String getFaction() {
+    return faction;
+  }
+
+  public int getGameport() {
+    return gameport;
+  }
+
+  public void setGameport(int gameport) {
+    this.gameport = gameport;
   }
 }

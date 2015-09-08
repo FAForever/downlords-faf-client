@@ -15,19 +15,7 @@ public enum VictoryCondition {
   UNKNOWN("unknown");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  private Object value;
-
   private static final Map<Object, VictoryCondition> fromNumber;
-
-  public static VictoryCondition fromNumber(Object number) {
-    VictoryCondition victoryCondition = fromNumber.get(number);
-    if (victoryCondition == null) {
-      logger.warn("Unknown victory condition: {}", number);
-      return UNKNOWN;
-    }
-    return victoryCondition;
-  }
 
   static {
     fromNumber = new HashMap<>();
@@ -36,11 +24,22 @@ public enum VictoryCondition {
     }
   }
 
+  private final Object value;
+
   VictoryCondition(Object value) {
     this.value = value;
   }
 
   public Object getValue() {
     return value;
+  }
+
+  public static VictoryCondition fromNumber(Object number) {
+    VictoryCondition victoryCondition = fromNumber.get(number);
+    if (victoryCondition == null) {
+      logger.warn("Unknown victory condition: {}", number);
+      return UNKNOWN;
+    }
+    return victoryCondition;
   }
 }

@@ -1,10 +1,12 @@
 package com.faforever.client.game;
 
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.fx.SceneFactory;
+import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameState;
+import com.faforever.client.map.MapPreviewLargeController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
@@ -14,8 +16,11 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.RatingUtil;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -28,8 +33,12 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,18 +47,21 @@ import org.springframework.context.ApplicationContext;
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
+// TODO rename all Game* things to "Play" to be consistent with the menu
 public class GamesController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final Predicate<GameInfoBean> OPEN_GAMES_PREDICATE = gameInfoBean -> gameInfoBean.getStatus() == GameState.OPEN;
 
   @FXML
-  Label mapLabel;
+  VBox teamListPane;
 
   @FXML
-  Label mapDescriptionLabel;
+  Label mapLabel;
 
   @FXML
   Button createGameButton;
@@ -70,10 +82,10 @@ public class GamesController {
   Label numberOfPlayersLabel;
 
   @FXML
-  Label hosterLabel;
+  Label hostLabel;
 
   @FXML
-  Label gameModeLabel;
+  Label gameTypeLabel;
 
   @FXML
   VBox gamePreviewPanel;
@@ -86,6 +98,9 @@ public class GamesController {
 
   @Autowired
   I18n i18n;
+
+  @Autowired
+  PlayerService playerService;
 
   @Autowired
   GameService gameService;
@@ -103,7 +118,7 @@ public class GamesController {
   PreferencesService preferencesService;
 
   @Autowired
-  PlayerService playerService;
+  SceneFactory sceneFactory;
 
   @Autowired
   NotificationService notificationService;
@@ -111,11 +126,13 @@ public class GamesController {
   private Popup createGamePopup;
   private Popup passwordPopup;
   private FilteredList<GameInfoBean> filteredItems;
+  private Stage mapDetailPopup;
 
   //TODO Implement into options menu
-  private boolean tilePaneSelected = false;
+  private boolean tilesPaneSelected = false;
   private boolean firstGeneratedPane = true;
-  private FxmlLoader fxmlLoader;
+  private GameInfoBean currentGameInfoBean;
+
 
   @PostConstruct
   void postConstruct() {
@@ -144,21 +161,77 @@ public class GamesController {
       });
     }
 
-    filteredItems = new FilteredList<>(gameService.getGameInfoBeans());
+    ObservableList<GameInfoBean> gameInfoBeans = gameService.getGameInfoBeans();
+
+    filteredItems = new FilteredList<>(gameInfoBeans);
     filteredItems.setPredicate(OPEN_GAMES_PREDICATE);
 
-    // FIXME remove after switching between tiles/tables is implemented
-    onDetailsButtonPressed();
-    switchViewButton.setVisible(false);
-    switchViewButton.setManaged(false);
+    onTableButtonPressed();
+  }
+
+  @FXML
+  void onTableButtonPressed() {
+    if (tilesPaneSelected || isFirstGeneratedPane()) {
+      GamesTableController gamesTableController = applicationContext.getBean(GamesTableController.class);
+      gamesTableController.initializeGameTable(filteredItems);
+
+      Node root = gamesTableController.getRoot();
+      populateContainer(root);
+      firstGeneratedPane = false;
+      tilesPaneSelected = false;
+    }
+  }
+
+  public boolean isFirstGeneratedPane() {
+    return firstGeneratedPane;
+  }
+
+  private void populateContainer(Node root) {
+    gameViewContainer.getChildren().setAll(root);
+    AnchorPane.setBottomAnchor(root, 0d);
+    AnchorPane.setLeftAnchor(root, 0d);
+    AnchorPane.setRightAnchor(root, 0d);
+    AnchorPane.setTopAnchor(root, 0d);
   }
 
   public void displayGameDetail(GameInfoBean gameInfoBean) {
-    mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapName()));
+    currentGameInfoBean = gameInfoBean;
     gameTitleLabel.setText(gameInfoBean.getTitle());
+    mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getTechnicalName()));
+
+    gameInfoBean.technicalNameProperty().addListener((observable, oldValue, newValue) -> {
+      gameTitleLabel.setText(newValue);
+      mapImageView.setImage(mapService.loadLargePreview(newValue));
+    });
+
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
-    hosterLabel.setText(gameInfoBean.getHost());
-    gameModeLabel.setText(gameInfoBean.getFeaturedMod());
+    hostLabel.textProperty().bind(gameInfoBean.hostProperty());
+    mapLabel.textProperty().bind(gameInfoBean.technicalNameProperty());
+
+    gameInfoBean.featuredModProperty().addListener((observable, oldValue, newValue) -> {
+      updateGameType(newValue);
+    });
+    updateGameType(gameInfoBean.getFeaturedMod());
+
+
+    createTeams(gameInfoBean.getTeams());
+  }
+
+  private void updateGameType(String newValue) {
+    GameTypeBean gameType = gameService.getGameTypeByString(newValue);
+    String fullName = gameType != null ? gameType.getFullName() : null;
+    gameTypeLabel.setText(StringUtils.defaultString(fullName));
+  }
+
+  private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber) {
+    teamListPane.getChildren().clear();
+    for (Map.Entry<? extends String, ? extends List<String>> entry : playersByTeamNumber.entrySet()) {
+      TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
+      boolean teamCardSuccess = teamCardController.setTeam(entry.getValue(), Integer.parseInt(entry.getKey()));
+      if (teamCardSuccess) {
+        teamListPane.getChildren().add(teamCardController.getRoot());
+      }
+    }
   }
 
   @FXML
@@ -220,55 +293,59 @@ public class GamesController {
     }
   }
 
-  public boolean isFirstGeneratedPane() {
-    return firstGeneratedPane;
-  }
-
   @FXML
   void onTilesButtonPressed() {
-    if (!tilePaneSelected || isFirstGeneratedPane()) {
-      GamesTiledController gamesTiledController = applicationContext.getBean(GamesTiledController.class);
-      gamesTiledController.createTiledFlowPane(filteredItems);
+    if (!tilesPaneSelected || isFirstGeneratedPane()) {
+      GamesTilesContainerController gamesTilesContainerController = applicationContext.getBean(GamesTilesContainerController.class);
+      gamesTilesContainerController.createTiledFlowPane(filteredItems);
 
-      Node root = gamesTiledController.getRoot();
+      Node root = gamesTilesContainerController.getRoot();
       populateContainer(root);
       firstGeneratedPane = false;
-      tilePaneSelected = true;
+      tilesPaneSelected = true;
     }
   }
 
   @FXML
-  void onDetailsButtonPressed() {
-    if (tilePaneSelected || isFirstGeneratedPane()) {
-      GameTableController gameTableController = applicationContext.getBean(GameTableController.class);
-      gameTableController.initializeGameTable(filteredItems);
-
-      Node root = gameTableController.getRoot();
-      populateContainer(root);
-      firstGeneratedPane = false;
-      tilePaneSelected = false;
-    }
-  }
-
-  private void populateContainer(Node root) {
-    gameViewContainer.getChildren().setAll(root);
-    AnchorPane.setBottomAnchor(root, 0d);
-    AnchorPane.setLeftAnchor(root, 0d);
-    AnchorPane.setRightAnchor(root, 0d);
-    AnchorPane.setTopAnchor(root, 0d);
-  }
-
-  public void setUpIfNecessary() {
-  }
-
-  public Node getRoot() {
-    return gamesRoot;
-  }
-
-  public void onCreateGameButtonClicked(ActionEvent actionEvent) {
+  void onCreateGameButtonClicked(ActionEvent actionEvent) {
     Button button = (Button) actionEvent.getSource();
 
     Bounds screenBounds = createGameButton.localToScreen(createGameButton.getBoundsInLocal());
     createGamePopup.show(button.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());
+  }
+
+  //TODO do we want to create new pane or repopulate the same pane
+  @FXML
+  void onMapLargePreview(Event event) {
+    if (currentGameInfoBean == null) {
+      return;
+    }
+    mapDetailPopup = getMapDetailPopup();
+    MapPreviewLargeController mapPreviewLargeController = applicationContext.getBean(MapPreviewLargeController.class);
+    MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultFromName(currentGameInfoBean.getTechnicalName());
+    if (mapInfoBean == null) {
+      mapDetailPopup.hide();
+      String title = i18n.get("mapPreview.loadFailure.title");
+      String message = i18n.get("mapPreview.loadFailure.message");
+      notificationService.addNotification(new ImmediateNotification(title, message, Severity.ERROR));
+    } else {
+      mapPreviewLargeController.createPreview(mapInfoBean);
+      sceneFactory.createScene(mapDetailPopup, mapPreviewLargeController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
+      mapDetailPopup.centerOnScreen();
+      mapDetailPopup.show();
+    }
+  }
+
+  private Stage getMapDetailPopup() {
+    if (mapDetailPopup == null) {
+      mapDetailPopup = new Stage(StageStyle.TRANSPARENT);
+      mapDetailPopup.initModality(Modality.NONE);
+      mapDetailPopup.initOwner(getRoot().getScene().getWindow());
+    }
+    return mapDetailPopup;
+  }
+
+  public Node getRoot() {
+    return gamesRoot;
   }
 }

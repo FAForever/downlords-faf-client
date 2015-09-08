@@ -2,7 +2,6 @@ package com.faforever.client.user;
 
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.SessionInfo;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Callback;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +14,11 @@ public class UserServiceImpl implements UserService {
   @Autowired
   PreferencesService preferencesService;
 
-  @Autowired
-  PlayerService playerService;
-
   private String username;
   private String password;
   private int uid;
   private String sessionId;
+  private String email;
 
   @Override
   public void login(String username, String password, boolean autoLogin, Callback<Void> callback) {
@@ -38,8 +35,9 @@ public class UserServiceImpl implements UserService {
 
       @Override
       public void success(SessionInfo result) {
-        UserServiceImpl.this.uid = result.id;
-        UserServiceImpl.this.sessionId = result.session;
+        UserServiceImpl.this.uid = result.getId();
+        UserServiceImpl.this.sessionId = result.getSession();
+        UserServiceImpl.this.email = result.getEmail();
         callback.success(null);
       }
 
@@ -73,5 +71,10 @@ public class UserServiceImpl implements UserService {
   @Override
   public void cancelLogin() {
     lobbyServerAccessor.disconnect();
+  }
+
+  @Override
+  public String getEmail() {
+    return email;
   }
 }

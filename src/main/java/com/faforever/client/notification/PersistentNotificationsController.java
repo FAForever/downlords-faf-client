@@ -1,6 +1,6 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.sound.SoundController;
+import com.faforever.client.audio.AudioController;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -20,22 +20,17 @@ import java.util.Set;
  */
 public class PersistentNotificationsController {
 
+  private final Map<PersistentNotification, Node> notificationsToNode;
   @FXML
   Label noNotificationsLabel;
-
   @FXML
   Pane persistentNotificationsRoot;
-
   @Autowired
   NotificationService notificationService;
-
   @Autowired
-  SoundController soundController;
-
+  AudioController audioController;
   @Autowired
   ApplicationContext applicationContext;
-
-  private Map<PersistentNotification, Node> notificationsToNode;
 
   public PersistentNotificationsController() {
     notificationsToNode = new HashMap<>();
@@ -54,19 +49,8 @@ public class PersistentNotificationsController {
     });
   }
 
-  private void removeNotification(PersistentNotification removedNotifications) {
-    ObservableList<Node> children = persistentNotificationsRoot.getChildren();
-    children.remove(notificationsToNode.get(removedNotifications));
-
-    if (children.isEmpty()) {
-      children.setAll(noNotificationsLabel);
-    }
-  }
-
   private void addNotifications(Set<PersistentNotification> persistentNotifications) {
-    for (PersistentNotification persistentNotification : persistentNotifications) {
-      addNotification(persistentNotification);
-    }
+    persistentNotifications.forEach(this::addNotification);
   }
 
   private void addNotification(PersistentNotification notification) {
@@ -84,18 +68,27 @@ public class PersistentNotificationsController {
     });
   }
 
+  private void removeNotification(PersistentNotification removedNotifications) {
+    ObservableList<Node> children = persistentNotificationsRoot.getChildren();
+    children.remove(notificationsToNode.get(removedNotifications));
+
+    if (children.isEmpty()) {
+      children.setAll(noNotificationsLabel);
+    }
+  }
+
   private void playNotificationSound(PersistentNotification notification) {
     switch (notification.getSeverity()) {
       case INFO:
-        soundController.playInfoNotificationSound();
+        audioController.playInfoNotificationSound();
         break;
 
       case WARN:
-        soundController.playWarnNotificationSound();
+        audioController.playWarnNotificationSound();
         break;
 
       case ERROR:
-        soundController.playErrorNotificationSound();
+        audioController.playErrorNotificationSound();
         break;
     }
   }

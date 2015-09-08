@@ -43,6 +43,9 @@ public interface GameService {
 
   ObservableList<GameInfoBean> getGameInfoBeans();
 
+  @Nullable
+  GameTypeBean getGameTypeByString(String gameTypeBeanName);
+
   GameInfoBean getByUid(int uid);
 
   void accept1v1Match(Faction faction);

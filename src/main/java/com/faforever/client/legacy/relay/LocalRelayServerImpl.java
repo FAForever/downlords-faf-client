@@ -17,7 +17,6 @@ import com.google.gson.GsonBuilder;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
@@ -47,41 +46,32 @@ import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
 public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyInitializedListener {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   @VisibleForTesting
   static final String GAME_STATE_LAUNCHING = "Launching";
-
   @VisibleForTesting
   static final String GAME_STATE_LOBBY = "Lobby";
-
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private final BooleanProperty p2pProxyEnabled;
+  private final Gson gson;
+  private final Collection<OnReadyListener> onReadyListeners;
+  private final Collection<OnConnectionAcceptedListener> onConnectionAcceptedListeners;
   @Autowired
   Proxy proxy;
-
   @Autowired
   Environment environment;
-
   @Autowired
   UserService userService;
-
   @Autowired
   PreferencesService preferencesService;
-
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
-
-  private BooleanProperty p2pProxyEnabled;
   private int port;
-  private final Gson gson;
   private FaDataOutputStream faOutputStream;
   private FaDataInputStream faInputStream;
   private ServerWriter serverWriter;
   private InputStream fafInputStream;
   private LobbyMode lobbyMode;
-  private Collection<OnReadyListener> onReadyListeners;
-  private Collection<OnConnectionAcceptedListener> onConnectionAcceptedListeners;
   private ServerSocket serverSocket;
-  private Service<Void> service;
   private boolean stopped;
   private Socket fafSocket;
   private Socket faSocket;
@@ -112,23 +102,6 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
     return port;
   }
 
-  @PostConstruct
-  void postConstruct() {
-    startInBackground();
-    lobbyServerAccessor.addOnGameLaunchListener(this::updateLobbyModeFromGameInfo);
-  }
-
-  private void updateLobbyModeFromGameInfo(GameLaunchInfo gameLaunchInfo) {
-    FeaturedMod featuredMod = FeaturedMod.fromString(gameLaunchInfo.mod);
-    switch (featuredMod) {
-      case LADDER_1V1:
-        lobbyMode = LobbyMode.NO_LOBBY;
-        break;
-      default:
-        lobbyMode = LobbyMode.DEFAULT_LOBBY;
-    }
-  }
-
   /**
    * Starts a local, GPG-like server in background that FA can connect to. Received data is forwarded to the FAF server
    * and vice-versa.
@@ -137,13 +110,38 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   public void startInBackground() {
     proxy.addOnP2pProxyInitializedListener(this);
 
-    service = executeInBackground(new Task<Void>() {
+    executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
         start();
         return null;
       }
     });
+  }
+
+  @Override
+  public void close() {
+    stopped = true;
+    IOUtils.closeQuietly(serverSocket);
+    IOUtils.closeQuietly(fafSocket);
+    IOUtils.closeQuietly(faSocket);
+  }
+
+  @PostConstruct
+  void postConstruct() {
+    startInBackground();
+    lobbyServerAccessor.addOnGameLaunchListener(this::updateLobbyModeFromGameInfo);
+  }
+
+  private void updateLobbyModeFromGameInfo(GameLaunchInfo gameLaunchInfo) {
+    FeaturedMod featuredMod = FeaturedMod.fromString(gameLaunchInfo.getMod());
+    switch (featuredMod) {
+      case LADDER_1V1:
+        lobbyMode = LobbyMode.NO_LOBBY;
+        break;
+      default:
+        lobbyMode = LobbyMode.DEFAULT_LOBBY;
+    }
   }
 
   private void start() throws IOException {
@@ -189,7 +187,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
     return serverWriter;
   }
 
-  private FaDataInputStream createFaInputStream(InputStream inputStream) throws IOException {
+  private FaDataInputStream createFaInputStream(InputStream inputStream) {
     return new FaDataInputStream(inputStream);
   }
 
@@ -495,13 +493,5 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   @VisibleForTesting
   void addOnP2pProxyEnabledChangeListener(ChangeListener<Boolean> listener) {
     p2pProxyEnabled.addListener(listener);
-  }
-
-  @Override
-  public void close() {
-    stopped = true;
-    IOUtils.closeQuietly(serverSocket);
-    IOUtils.closeQuietly(fafSocket);
-    IOUtils.closeQuietly(faSocket);
   }
 }

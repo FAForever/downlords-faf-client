@@ -1,13 +1,13 @@
 package com.faforever.client.game;
 
-import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.fx.FxmlLoader;
 import javafx.scene.control.TableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 public class MapPreviewTableCell extends TableCell<GameInfoBean, Image> {
 
-  private ImageView imageVew;
+  private final ImageView imageVew;
 
   public MapPreviewTableCell(FxmlLoader fxmlLoader) {
     imageVew = fxmlLoader.loadAndGetRoot("map_preview_table_cell.fxml", this);

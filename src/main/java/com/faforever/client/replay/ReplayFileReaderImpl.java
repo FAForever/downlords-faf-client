@@ -25,8 +25,8 @@ public class ReplayFileReaderImpl implements ReplayFileReader {
   @Override
   public LocalReplayInfo readReplayInfo(Path replayFile) throws IOException {
     logger.debug("Reading replay file {}", replayFile);
-      List<String> lines = Files.readAllLines(replayFile);
-      return gson.fromJson(lines.get(0), LocalReplayInfo.class);
+    List<String> lines = Files.readAllLines(replayFile);
+    return gson.fromJson(lines.get(0), LocalReplayInfo.class);
   }
 
   @Override

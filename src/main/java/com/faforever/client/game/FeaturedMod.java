@@ -8,9 +8,9 @@ public enum FeaturedMod {
   BALANCE_TESTING("balancetesting"),
   LADDER_1V1("ladder1v1");
 
-  public static FeaturedMod DEFAULT_MOD = FAF;
+  public static final FeaturedMod DEFAULT_MOD = FAF;
 
-  private static Map<String, FeaturedMod> fromString;
+  private static final Map<String, FeaturedMod> fromString;
 
   static {
     fromString = new HashMap<>();

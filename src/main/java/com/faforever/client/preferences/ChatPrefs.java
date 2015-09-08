@@ -25,47 +25,47 @@ public class ChatPrefs {
     return previewImageUrls.get();
   }
 
-  public BooleanProperty previewImageUrlsProperty() {
-    return previewImageUrls;
-  }
-
   public void setPreviewImageUrls(boolean previewImageUrls) {
     this.previewImageUrls.set(previewImageUrls);
+  }
+
+  public BooleanProperty previewImageUrlsProperty() {
+    return previewImageUrls;
   }
 
   public Double getZoom() {
     return zoom.getValue();
   }
 
-  public DoubleProperty zoomProperty() {
-    return zoom;
-  }
-
   public void setZoom(Double zoom) {
     this.zoom.set(zoom);
+  }
+
+  public DoubleProperty zoomProperty() {
+    return zoom;
   }
 
   public boolean getLearnedAutoComplete() {
     return learnedAutoComplete.get();
   }
 
-  public BooleanProperty learnedAutoCompleteProperty() {
-    return learnedAutoComplete;
-  }
-
   public void setLearnedAutoComplete(boolean learnedAutoComplete) {
     this.learnedAutoComplete.set(learnedAutoComplete);
+  }
+
+  public BooleanProperty learnedAutoCompleteProperty() {
+    return learnedAutoComplete;
   }
 
   public int getMaxMessages() {
     return maxMessages.get();
   }
 
-  public IntegerProperty maxMessagesProperty() {
-    return maxMessages;
-  }
-
   public void setMaxMessages(int maxMessages) {
     this.maxMessages.set(maxMessages);
+  }
+
+  public IntegerProperty maxMessagesProperty() {
+    return maxMessages;
   }
 }

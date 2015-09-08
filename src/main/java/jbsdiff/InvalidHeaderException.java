@@ -33,22 +33,21 @@ package jbsdiff;
 
 public class InvalidHeaderException extends Exception {
 
-    private static final long serialVersionUID = -3712364093810940826L;
+  private static final long serialVersionUID = -3712364093810940826L;
 
-    public InvalidHeaderException() {
-        super();
-    }
+  public InvalidHeaderException() {
+    super();
+  }
 
-    public InvalidHeaderException(String detail) {
-        super(detail);
-    }
+  public InvalidHeaderException(String detail) {
+    super(detail);
+  }
 
-    /**
-     * Creates an InvalidHeaderException with details about the invalid field
-     * that was set, and its value.
-     */
-    public InvalidHeaderException(String fieldName, int value) {
-        super("Invalid header field; " + fieldName + " = " + value);
-    }
+  /**
+   * Creates an InvalidHeaderException with details about the invalid field that was set, and its value.
+   */
+  public InvalidHeaderException(String fieldName, int value) {
+    super("Invalid header field; " + fieldName + " = " + value);
+  }
 }
 

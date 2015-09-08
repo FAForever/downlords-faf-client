@@ -5,6 +5,8 @@ import com.faforever.client.util.Callback;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 
+import java.util.List;
+
 public interface ChatService {
 
   void addOnMessageListener(OnChatMessageListener listener);
@@ -30,10 +32,8 @@ public interface ChatService {
   void sendMessageInBackground(String target, String message, Callback<String> callback);
 
   /**
-   * Gets the list of chat users for the given channel as soon as it is available.
-   * <p>
-   * <strong>IMPORTANT:</strong> All operations on the returned list must be synchronized, even iteration. Use the map as monitor.
-   * </p>
+   * Gets the list of chat users for the given channel as soon as it is available. <p> <strong>IMPORTANT:</strong> All
+   * operations on the returned list must be synchronized, even iteration. Use the map as monitor. </p>
    */
   ObservableMap<String, ChatUser> getChatUsersForChannel(String channelName);
 
@@ -45,7 +45,12 @@ public interface ChatService {
 
   void joinChannel(String channelName);
 
+  /**
+   * @see OnJoinChannelsRequestListener#onJoinChannelsRequest(List)
+   */
   void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener);
 
   boolean isDefaultChannel(String channelName);
+
+  void close();
 }

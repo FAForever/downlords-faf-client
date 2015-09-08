@@ -4,22 +4,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum ClientMessageType {
+  HOST_GAME("game_host"),
+  LIST_REPLAYS("list"),
+  JOIN_GAME("game_join"),
   ASK_SESSION("ask_session"),
-  // TODO fix the naming
+  SOCIAL("social"),
+  STATISTICS("stats"),
+  LOGIN("hello"),
+  GAME_STATUS("fa_state"),
   GAME_MATCH_MAKING("game_matchmaking");
 
-  private static final Map<String, ClientMessageType> fromString;
+  private static Map<String, ClientMessageType> fromString;
+
+  static {
+    fromString = new HashMap<>();
+    for (ClientMessageType clientMessageType : values()) {
+      fromString.put(clientMessageType.string, clientMessageType);
+    }
+  }
+
   private String string;
 
   ClientMessageType(String string) {
     this.string = string;
-  }
-
-  static {
-    fromString = new HashMap<>(values().length, 1);
-    for (ClientMessageType clientMessageType : values()) {
-      fromString.put(clientMessageType.string, clientMessageType);
-    }
   }
 
   public String getString() {
@@ -29,5 +36,4 @@ public enum ClientMessageType {
   public static ClientMessageType fromString(String string) {
     return fromString.get(string);
   }
-
 }

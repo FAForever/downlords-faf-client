@@ -19,7 +19,7 @@ public enum StatisticsType {
     }
   }
 
-  private String string;
+  private final String string;
 
   StatisticsType(String string) {
     this.string = string;

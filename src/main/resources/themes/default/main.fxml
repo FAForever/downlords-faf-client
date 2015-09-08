@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.effect.*?>
-<?import org.controlsfx.control.textfield.*?>
-<?import org.controlsfx.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.text.*?>
-<?import java.lang.*?>
-<?import javafx.geometry.*?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
-<VBox fx:id="mainRoot" minHeight="500.0" minWidth="600.0" xmlns="http://javafx.com/javafx/8.0.40"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.SplitMenuButton?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="mainRoot" minHeight="500.0" minWidth="600.0"
+      xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.main.MainController">
   <children>
     <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
           VBox.vgrow="ALWAYS">
@@ -38,8 +41,6 @@
                 <SplitMenuButton fx:id="communityButton" focusTraversable="false" mnemonicParsing="false"
                                  onAction="#onCommunitySelected" text="%main.community">
                   <items>
-                    <MenuItem fx:id="communityHubButton" mnemonicParsing="false" onAction="#onCommunityHubSelected"
-                              text="%main.community.hub"/>
                     <MenuItem fx:id="newsButton" mnemonicParsing="false" onAction="#onNewsSelected"
                               text="%main.community.news"/>
                     <MenuItem fx:id="castsButton" mnemonicParsing="false" onAction="#onCastsSelected"
@@ -84,8 +85,8 @@
                 <Insets right="10.0"/>
               </HBox.margin>
             </Button>
-            <MenuButton fx:id="usernameButton" focusTraversable="false" minWidth="10.0" mnemonicParsing="false"
-                        prefWidth="100.0" styleClass="username-button" text="Username">
+            <MenuButton fx:id="usernameButton" focusTraversable="false" mnemonicParsing="false"
+                        styleClass="username-button" text="Username">
               <items>
                 <MenuItem mnemonicParsing="false" onAction="#onShowUserInfoClicked" text="%chat.userContext.userInfo"/>
                 <MenuItem mnemonicParsing="false" text="%menu.logOut"/>
@@ -104,6 +105,7 @@
       <children>
         <HBox fx:id="taskPane" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
           <children>
+            <Pane minHeight="0.0" minWidth="0.0" HBox.hgrow="ALWAYS"/>
             <Label fx:id="taskProgressLabel" text="Label"/>
             <Pane HBox.hgrow="ALWAYS"/>
             <ProgressBar fx:id="taskProgressBar" maxHeight="1.7976931348623157E308" minWidth="20.0" prefWidth="150.0"/>

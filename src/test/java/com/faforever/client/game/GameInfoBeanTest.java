@@ -12,8 +12,8 @@ public class GameInfoBeanTest {
 
   @Before
   public void setUp() throws Exception {
-     one = new GameInfoBean();
-     two = new GameInfoBean();
+    one = new GameInfoBean();
+    two = new GameInfoBean();
   }
 
   @Test
@@ -24,7 +24,7 @@ public class GameInfoBeanTest {
     one.setUid(1);
     two.setUid(2);
 
-    assertNotEquals(one,two);
+    assertNotEquals(one, two);
   }
 
   @Test
@@ -43,7 +43,7 @@ public class GameInfoBeanTest {
     one.setUid(1);
     two.setUid(1);
 
-    assertEquals(one.hashCode(),two.hashCode());
+    assertEquals(one.hashCode(), two.hashCode());
   }
 
   @Test

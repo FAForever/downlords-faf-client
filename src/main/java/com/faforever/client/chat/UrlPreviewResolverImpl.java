@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.config.CacheKeys;
-import com.faforever.client.fxml.FxmlLoader;
+import com.faforever.client.config.CacheNames;
+import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.Bytes;
 import com.google.common.net.MediaType;
@@ -31,7 +31,7 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
   I18n i18n;
 
   @Override
-  @Cacheable(CacheKeys.URL_PREVIEW)
+  @Cacheable(CacheNames.URL_PREVIEW)
   public Preview resolvePreview(String urlString) {
     try {
       String guessedUrl = guessUrl(urlString);

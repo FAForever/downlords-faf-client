@@ -14,9 +14,9 @@ import static javafx.collections.FXCollections.synchronizedObservableSet;
 
 public class NotificationServiceImpl implements NotificationService {
 
-  private ObservableSet<PersistentNotification> persistentNotifications;
-  private List<OnTransientNotificationListener> onTransientNotificationListeners;
-  private List<OnImmediateNotificationListener> onImmediateNotificationListeners;
+  private final ObservableSet<PersistentNotification> persistentNotifications;
+  private final List<OnTransientNotificationListener> onTransientNotificationListeners;
+  private final List<OnImmediateNotificationListener> onImmediateNotificationListeners;
 
   public NotificationServiceImpl() {
     persistentNotifications = synchronizedObservableSet(observableSet(new TreeSet<>()));

@@ -4,6 +4,22 @@ import java.util.List;
 
 public class ReplayServerObject {
 
-  public ReplayAction action;
-  public List<ServerReplayInfo> replays;
+  private ReplayAction action;
+  private List<ServerReplayInfo> replays;
+
+  public ReplayAction getAction() {
+    return action;
+  }
+
+  public void setAction(ReplayAction action) {
+    this.action = action;
+  }
+
+  public List<ServerReplayInfo> getReplays() {
+    return replays;
+  }
+
+  public void setReplays(List<ServerReplayInfo> replays) {
+    this.replays = replays;
+  }
 }

@@ -22,6 +22,8 @@ public class NotificationsPrefs {
   private final BooleanProperty privateMessageSoundEnabled;
   private final BooleanProperty privateMessageToastEnabled;
   private final BooleanProperty friendJoinsGameToastEnabled;
+  private final BooleanProperty displayFriendPlaysGameToast;
+  private final ObjectProperty<ToastPosition> toastPosition;
 
   public NotificationsPrefs() {
     soundsEnabled = new SimpleBooleanProperty(true);
@@ -47,206 +49,203 @@ public class NotificationsPrefs {
     return friendJoinsGameSoundEnabled.get();
   }
 
-  public BooleanProperty friendJoinsGameSoundEnabledProperty() {
-    return friendJoinsGameSoundEnabled;
-  }
-
   public void setFriendJoinsGameSoundEnabled(boolean friendJoinsGameSoundEnabled) {
     this.friendJoinsGameSoundEnabled.set(friendJoinsGameSoundEnabled);
+  }
+
+  public BooleanProperty friendJoinsGameSoundEnabledProperty() {
+    return friendJoinsGameSoundEnabled;
   }
 
   public boolean getFriendPlaysGameSoundEnabled() {
     return friendPlaysGameSoundEnabled.get();
   }
 
-  public BooleanProperty friendPlaysGameSoundEnabledProperty() {
-    return friendPlaysGameSoundEnabled;
-  }
-
   public void setFriendPlaysGameSoundEnabled(boolean friendPlaysGameSoundEnabled) {
     this.friendPlaysGameSoundEnabled.set(friendPlaysGameSoundEnabled);
+  }
+
+  public BooleanProperty friendPlaysGameSoundEnabledProperty() {
+    return friendPlaysGameSoundEnabled;
   }
 
   public boolean getFriendJoinsGameToastEnabled() {
     return friendJoinsGameToastEnabled.get();
   }
 
-  public BooleanProperty friendJoinsGameToastEnabledProperty() {
-    return friendJoinsGameToastEnabled;
-  }
-
   public void setFriendJoinsGameToastEnabled(boolean friendJoinsGameToastEnabled) {
     this.friendJoinsGameToastEnabled.set(friendJoinsGameToastEnabled);
+  }
+
+  public BooleanProperty friendJoinsGameToastEnabledProperty() {
+    return friendJoinsGameToastEnabled;
   }
 
   public boolean getDisplayFriendPlaysGameToast() {
     return displayFriendPlaysGameToast.get();
   }
 
-  public BooleanProperty displayFriendPlaysGameToastProperty() {
-    return displayFriendPlaysGameToast;
-  }
-
   public void setDisplayFriendPlaysGameToast(boolean displayFriendPlaysGameToast) {
     this.displayFriendPlaysGameToast.set(displayFriendPlaysGameToast);
   }
 
-  private final BooleanProperty displayFriendPlaysGameToast;
-  private final ObjectProperty<ToastPosition> toastPosition;
+  public BooleanProperty displayFriendPlaysGameToastProperty() {
+    return displayFriendPlaysGameToast;
+  }
 
   public boolean getDisplayFriendOnlineToast() {
     return displayFriendOnlineToast.get();
-  }
-
-  public BooleanProperty displayFriendOnlineToastProperty() {
-    return displayFriendOnlineToast;
   }
 
   public void setDisplayFriendOnlineToast(boolean displayFriendOnlineToast) {
     this.displayFriendOnlineToast.set(displayFriendOnlineToast);
   }
 
-  public boolean getDisplayFriendOfflineToast() {
-    return displayFriendOfflineToast.get();
+  public BooleanProperty displayFriendOnlineToastProperty() {
+    return displayFriendOnlineToast;
   }
 
-  public BooleanProperty displayFriendOfflineToastProperty() {
-    return displayFriendOfflineToast;
+  public boolean getDisplayFriendOfflineToast() {
+    return displayFriendOfflineToast.get();
   }
 
   public void setDisplayFriendOfflineToast(boolean displayFriendOfflineToast) {
     this.displayFriendOfflineToast.set(displayFriendOfflineToast);
   }
 
-  public boolean getFriendOnlineSoundEnabled() {
-    return friendOnlineSoundEnabled.get();
+  public BooleanProperty displayFriendOfflineToastProperty() {
+    return displayFriendOfflineToast;
   }
 
-  public BooleanProperty friendOnlineSoundEnabledProperty() {
-    return friendOnlineSoundEnabled;
+  public boolean getFriendOnlineSoundEnabled() {
+    return friendOnlineSoundEnabled.get();
   }
 
   public void setFriendOnlineSoundEnabled(boolean friendOnlineSoundEnabled) {
     this.friendOnlineSoundEnabled.set(friendOnlineSoundEnabled);
   }
 
-  public boolean getFriendOfflineSoundEnabled() {
-    return friendOfflineSoundEnabled.get();
+  public BooleanProperty friendOnlineSoundEnabledProperty() {
+    return friendOnlineSoundEnabled;
   }
 
-  public BooleanProperty friendOfflineSoundEnabledProperty() {
-    return friendOfflineSoundEnabled;
+  public boolean getFriendOfflineSoundEnabled() {
+    return friendOfflineSoundEnabled.get();
   }
 
   public void setFriendOfflineSoundEnabled(boolean friendOfflineSoundEnabled) {
     this.friendOfflineSoundEnabled.set(friendOfflineSoundEnabled);
   }
 
-  public boolean getToastsEnabled() {
-    return toastsEnabled.get();
+  public BooleanProperty friendOfflineSoundEnabledProperty() {
+    return friendOfflineSoundEnabled;
   }
 
-  public BooleanProperty toastsEnabledProperty() {
-    return toastsEnabled;
+  public boolean getToastsEnabled() {
+    return toastsEnabled.get();
   }
 
   public void setToastsEnabled(boolean toastsEnabled) {
     this.toastsEnabled.set(toastsEnabled);
   }
 
-  public ToastPosition getToastPosition() {
-    return toastPosition.get();
+  public BooleanProperty toastsEnabledProperty() {
+    return toastsEnabled;
   }
 
-  public ObjectProperty<ToastPosition> toastPositionProperty() {
-    return toastPosition;
+  public ToastPosition getToastPosition() {
+    return toastPosition.get();
   }
 
   public void setToastPosition(ToastPosition toastPosition) {
     this.toastPosition.set(toastPosition);
   }
 
-  public boolean getSoundsEnabled() {
-    return soundsEnabled.get();
+  public ObjectProperty<ToastPosition> toastPositionProperty() {
+    return toastPosition;
   }
 
-  public BooleanProperty soundsEnabledProperty() {
-    return soundsEnabled;
+  public boolean getSoundsEnabled() {
+    return soundsEnabled.get();
   }
 
   public void setSoundsEnabled(boolean soundsEnabled) {
     this.soundsEnabled.set(soundsEnabled);
   }
 
-  public boolean getMentionSoundEnabled() {
-    return mentionSoundEnabled.get();
+  public BooleanProperty soundsEnabledProperty() {
+    return soundsEnabled;
   }
 
-  public BooleanProperty mentionSoundEnabledProperty() {
-    return mentionSoundEnabled;
+  public boolean getMentionSoundEnabled() {
+    return mentionSoundEnabled.get();
   }
 
   public void setMentionSoundEnabled(boolean mentionSoundEnabled) {
     this.mentionSoundEnabled.set(mentionSoundEnabled);
   }
 
-  public boolean getInfoSoundEnabled() {
-    return infoSoundEnabled.get();
+  public BooleanProperty mentionSoundEnabledProperty() {
+    return mentionSoundEnabled;
   }
 
-  public BooleanProperty infoSoundEnabledProperty() {
-    return infoSoundEnabled;
+  public boolean getInfoSoundEnabled() {
+    return infoSoundEnabled.get();
   }
 
   public void setInfoSoundEnabled(boolean infoSoundEnabled) {
     this.infoSoundEnabled.set(infoSoundEnabled);
   }
 
-  public boolean getWarnSoundEnabled() {
-    return warnSoundEnabled.get();
+  public BooleanProperty infoSoundEnabledProperty() {
+    return infoSoundEnabled;
   }
 
-  public BooleanProperty warnSoundEnabledProperty() {
-    return warnSoundEnabled;
+  public boolean getWarnSoundEnabled() {
+    return warnSoundEnabled.get();
   }
 
   public void setWarnSoundEnabled(boolean warnSoundEnabled) {
     this.warnSoundEnabled.set(warnSoundEnabled);
   }
 
-  public boolean getErrorSoundEnabled() {
-    return errorSoundEnabled.get();
+  public BooleanProperty warnSoundEnabledProperty() {
+    return warnSoundEnabled;
   }
 
-  public BooleanProperty errorSoundEnabledProperty() {
-    return errorSoundEnabled;
+  public boolean getErrorSoundEnabled() {
+    return errorSoundEnabled.get();
   }
 
   public void setErrorSoundEnabled(boolean errorSoundEnabled) {
     this.errorSoundEnabled.set(errorSoundEnabled);
   }
 
-  public boolean getPrivateMessageSoundEnabled() {
-    return privateMessageSoundEnabled.get();
+  public BooleanProperty errorSoundEnabledProperty() {
+    return errorSoundEnabled;
   }
 
-  public BooleanProperty privateMessageSoundEnabledProperty() {
-    return privateMessageSoundEnabled;
+  public boolean getPrivateMessageSoundEnabled() {
+    return privateMessageSoundEnabled.get();
   }
 
   public void setPrivateMessageSoundEnabled(boolean privateMessageSoundEnabled) {
     this.privateMessageSoundEnabled.set(privateMessageSoundEnabled);
   }
 
+  public BooleanProperty privateMessageSoundEnabledProperty() {
+    return privateMessageSoundEnabled;
+  }
+
   public boolean getPrivateMessageToastEnabled() {
     return privateMessageToastEnabled.get();
   }
 
-  public BooleanProperty privateMessageToastEnabledProperty() {
-    return privateMessageToastEnabled;
-  }
-
   public void setPrivateMessageToastEnabled(boolean privateMessageToastEnabled) {
     this.privateMessageToastEnabled.set(privateMessageToastEnabled);
+  }
+
+  public BooleanProperty privateMessageToastEnabledProperty() {
+    return privateMessageToastEnabled;
   }
 }

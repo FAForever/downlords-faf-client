@@ -12,6 +12,7 @@
 .idea/workspace.xml
 .idea/tasks.xml
 .idea/dictionaries
+.idea/sonarIssues.xml
 
 # Sensitive or high-churn files:
 .idea/dataSources.ids
@@ -46,10 +47,6 @@ atlassian-ide-plugin.xml
 com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
-
-
-### Java template
-*.class
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/

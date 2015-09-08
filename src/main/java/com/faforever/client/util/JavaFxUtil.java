@@ -1,13 +1,13 @@
 package com.faforever.client.util;
 
 import com.faforever.client.preferences.PreferencesService;
-import com.sun.webkit.WebPage;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.web.WebEngine;
@@ -31,9 +31,6 @@ import java.nio.file.Paths;
  */
 public class JavaFxUtil {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final double ZOOM_STEP = 0.2d;
-
   public static final StringConverter<Path> PATH_STRING_CONVERTER = new StringConverter<Path>() {
     @Override
     public String toString(Path object) {
@@ -51,26 +48,31 @@ public class JavaFxUtil {
       return Paths.get(string);
     }
   };
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final double ZOOM_STEP = 0.2d;
 
   private JavaFxUtil() {
     // Utility class
   }
 
-  /**
-   * Creates a listener that waits for the document property of a WebEngine to change (a sign that the WebEngine has
-   * loaded a new document) and sets the background color of the new web page to transparent. This is a workaround for
-   * the JavaFX bug that's preventing WebView elements from having a transparent background by default.
-   */
-  public static void makeWebViewTransparent(WebEngine webEngine) {
-    webEngine.documentProperty().addListener((arg0, arg1, arg2) -> {
-      try {
-        Field field = webEngine.getClass().getDeclaredField("page");
-        field.setAccessible(true);
+  public static void makeNumericTextField(TextField textField) {
+    makeNumericTextField(textField, -1);
+  }
 
-        WebPage page = (WebPage) field.get(webEngine);
-        page.setBackgroundColor((new java.awt.Color(0, 0, 0, 0)).getRGB());
-      } catch (Exception e) {
-        logger.error("Failed to set the WebView's background to transparent", e);
+  public static void makeNumericTextField(TextField textField, int maxLength) {
+    textField.textProperty().addListener((observable, oldValue, newValue) -> {
+      String value = newValue;
+      if (!value.matches("\\d*")) {
+        value = newValue.replaceAll("[^\\d]", "");
+      }
+
+      if (maxLength > 0 && value.length() > maxLength) {
+        value = value.substring(0, maxLength);
+      }
+
+      textField.setText(value);
+      if (textField.getCaretPosition() > textField.getLength()) {
+        textField.positionCaret(textField.getLength());
       }
     });
   }
@@ -146,7 +148,7 @@ public class JavaFxUtil {
     String theme = preferencesService.getPreferences().getTheme();
 
     WebEngine engine = webView.getEngine();
-    engine.setUserDataDirectory(preferencesService.getPreferencesDirectory().toFile());
+    engine.setUserDataDirectory(preferencesService.getCacheDirectory().toFile());
     try {
       engine.setUserStyleSheetLocation(new ClassPathResource(ThemeUtil.themeFile(theme, "style-webview.css")).getURL().toString());
     } catch (IOException e) {

@@ -26,17 +26,16 @@ public class MockLeaderboardService implements LeaderboardService {
     taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LeaderboardEntryBean>>(i18n.get("readLadderTask.title"), HIGH) {
       @Override
       protected List<LeaderboardEntryBean> call() throws Exception {
-        ArrayList<LeaderboardEntryBean> list = new ArrayList<LeaderboardEntryBean>();
+        List<LeaderboardEntryBean> list = new ArrayList<>();
         for (int i = 1; i <= 10000; i++) {
           String name = RandomStringUtils.random(10);
-          int rank = i;
           int rating = (int) (Math.random() * 2500);
           int gamecount = (int) (Math.random() * 10000);
           int score = (int) (Math.random() * 100);
           float winloss = (float) (Math.random() * 100);
           String division = RandomStringUtils.random(10);
 
-          list.add(createLadderInfoBean(name, rank, rating, gamecount, score, winloss, division));
+          list.add(createLadderInfoBean(name, i, rating, gamecount, score, winloss, division));
 
         }
         return list;
