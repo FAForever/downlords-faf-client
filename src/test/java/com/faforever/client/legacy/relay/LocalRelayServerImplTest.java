@@ -43,6 +43,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -51,11 +52,12 @@ import static org.mockito.Mockito.when;
 
 public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
-  public static final int TIMEOUT = 10000;
-  public static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
+  private static final int TIMEOUT = 10000;
+  private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final String SESSION_ID = "1234";
+  private static final double USER_ID = 872348.0;
   private static final int GAME_PORT = 6112;
   private BlockingQueue<LobbyMessage> messagesReceivedByFafServer;
   private BlockingQueue<RelayServerMessage> messagesReceivedByGame;
@@ -98,6 +100,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(instance.preferencesService.getPreferences()).thenReturn(preferences);
     when(instance.userService.getSessionId()).thenReturn(SESSION_ID);
+    when(instance.userService.getUid()).thenReturn((int) USER_ID);
     when(instance.userService.getUsername()).thenReturn("junit");
     when(instance.proxy.getPort()).thenReturn(GAME_PORT);
 
@@ -177,42 +180,15 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAuthenticateSentToRelayServer() throws Exception {
-    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-
-    assertThat(lobbyMessage.getAction(), is(LobbyAction.AUTHENTICATE));
-    assertThat(lobbyMessage.getChunks().get(0), is(SESSION_ID));
+    verifyAuthenticateMessage();
   }
 
-  @Test
-  public void testAuthenticateSentToRelayServer4() throws Exception {
-    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-
-    assertThat(lobbyMessage.getAction(), is(LobbyAction.AUTHENTICATE));
-    assertThat(lobbyMessage.getChunks().get(0), is(SESSION_ID));
-  }
-
-  @Test
-  public void testAuthenticateSentToRelayServer1() throws Exception {
-    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-
-    assertThat(lobbyMessage.getAction(), is(LobbyAction.AUTHENTICATE));
-    assertThat(lobbyMessage.getChunks().get(0), is(SESSION_ID));
-  }
-
-  @Test
-  public void testAuthenticateSentToRelayServer3() throws Exception {
-    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-
-    assertThat(lobbyMessage.getAction(), is(LobbyAction.AUTHENTICATE));
-    assertThat(lobbyMessage.getChunks().get(0), is(SESSION_ID));
-  }
-
-  @Test
-  public void testAuthenticateSentToRelayServer2() throws Exception {
-    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-
-    assertThat(lobbyMessage.getAction(), is(LobbyAction.AUTHENTICATE));
-    assertThat(lobbyMessage.getChunks().get(0), is(SESSION_ID));
+  private void verifyAuthenticateMessage() throws InterruptedException {
+    LobbyMessage authenticateMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(authenticateMessage.getAction(), is(LobbyAction.AUTHENTICATE));
+    assertThat(authenticateMessage.getChunks(), hasSize(2));
+    assertThat(authenticateMessage.getChunks().get(0), is(SESSION_ID));
+    assertThat(authenticateMessage.getChunks().get(1), is(USER_ID));
   }
 
   @Test
@@ -224,11 +200,6 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(lobbyMessage.getAction(), is(LobbyAction.GAME_STATE));
     assertThat(lobbyMessage.getChunks().get(0), is("Idle"));
-  }
-
-  private void verifyAuthenticateMessage() throws InterruptedException {
-    LobbyMessage authenticateMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(authenticateMessage.getAction(), is(LobbyAction.AUTHENTICATE));
   }
 
   /**
@@ -254,7 +225,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     RelayServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(relayMessage.getCommand(), is(RelayServerCommand.CREATE_LOBBY));
-    assertThat(relayMessage.getArgs(), contains(0, GAME_PORT, "junit", LobbyMode.DEFAULT_LOBBY.getMode(), 1));
+    assertThat(relayMessage.getArgs(), contains(LobbyMode.DEFAULT_LOBBY.getMode(), GAME_PORT, "junit", (int) USER_ID, 1));
   }
 
   @Test
@@ -266,7 +237,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     RelayServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(relayMessage.getCommand(), is(RelayServerCommand.CREATE_LOBBY));
-    assertThat(relayMessage.getArgs(), contains(0, ProxyUtils.translateToProxyPort(GAME_PORT), "junit", LobbyMode.DEFAULT_LOBBY.getMode(), 1));
+    assertThat(relayMessage.getArgs(), contains(LobbyMode.DEFAULT_LOBBY.getMode(), ProxyUtils.translateToProxyPort(GAME_PORT), "junit", (int) USER_ID, 1));
   }
 
   private void enableP2pProxy() throws IOException, InterruptedException {
