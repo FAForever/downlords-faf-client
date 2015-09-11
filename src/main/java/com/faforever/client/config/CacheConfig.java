@@ -16,6 +16,7 @@ import static com.faforever.client.config.CacheNames.AVATARS;
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
 import static com.faforever.client.config.CacheNames.LARGE_MAP_PREVIEW;
 import static com.faforever.client.config.CacheNames.SMALL_MAP_PREVIEW;
+import static com.faforever.client.config.CacheNames.STATISTICS;
 import static com.faforever.client.config.CacheNames.URL_PREVIEW;
 import static com.google.common.cache.CacheBuilder.newBuilder;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -33,7 +34,8 @@ public class CacheConfig implements CachingConfigurer {
         new GuavaCache(SMALL_MAP_PREVIEW, newBuilder().maximumSize(30).build()),
         new GuavaCache(COUNTRY_FLAGS, newBuilder().maximumSize(100).build()),
         new GuavaCache(AVATARS, newBuilder().maximumSize(30).build()),
-        new GuavaCache(URL_PREVIEW, newBuilder().maximumSize(10).expireAfterAccess(30, MINUTES).build())
+        new GuavaCache(URL_PREVIEW, newBuilder().maximumSize(10).expireAfterAccess(30, MINUTES).build()),
+        new GuavaCache(STATISTICS, newBuilder().maximumSize(10).expireAfterAccess(20, MINUTES).build())
     ));
     return simpleCacheManager;
   }
