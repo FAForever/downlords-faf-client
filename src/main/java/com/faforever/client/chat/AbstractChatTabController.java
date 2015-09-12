@@ -36,7 +36,6 @@ import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import netscape.javascript.JSObject;
-import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.pircbotx.Channel;
 import org.slf4j.Logger;
@@ -50,7 +49,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
@@ -616,7 +614,7 @@ public abstract class AbstractChatTabController {
     //Mods, friends and foes are never randomly generated
     String messageColor = "";
     if (playerInfo.getModeratorInChannels() != null && playerInfo.getModeratorInChannels().size() > 0) {
-      //FIXME this is here because there is no straightfoward way to know what channel the message came from
+      //FIXME this is here because there is no straight forward way to know what channel the message came from
       for (Channel channel : chatService.getChannelsForUser(userService.getUsername())) {
         if (chatService.getLevelsForChatUser(channel, playerInfo.getUsername()).size() > 0) {
           messageColor = chatPrefs.getModsChatColor().toString();
@@ -642,7 +640,7 @@ public abstract class AbstractChatTabController {
         messageColor = chatPrefs.getSelfChatColor().toString();
       } else {
         ChatUser chatUser = chatService.getChatUser(playerInfo.getUsername());
-        /*if chatUser is null the message is lost, this happens when application is just initalized and the message is recieved before
+        /*if chatUser is null the message is lost, this happens when application is just initialized and the message is received before
         the user is registered to chatService*/
         if (chatUser != null) {
           //FIXME chat user doesn't always have color even though it should
