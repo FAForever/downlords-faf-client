@@ -680,19 +680,21 @@
 
 /***************** Game Status Tooltip *****************/
 
-.gamestatus-container-tooltip-mapname {
+.game-status-tooltip-mapname {
   -fx-padding: 5px, 5px, 2px, 2px;
   -fx-font-size: 1.2em;
 }
 
-.gamestatus-container-tooltip-gametitle {
+.game-status-tooltip-gametitle {
   -fx-padding: 5px, 5px, 2px, 2px;
   -fx-font-size: 1.2em;
 }
 
-.gamestatus-container-tooltip-featuredmod {
+.game-status-tooltip-featuredmod {
   -fx-padding: 5px, 5px, 2px, 2px;
   -fx-font-size: 1.2em;
+}
+
 .game-tooltip .teams-pane {
   -fx-spacing: 10;
 }

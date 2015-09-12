@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.game.GameContainerTooltipController;
 import com.faforever.client.game.GameInfoBean;
+import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -24,7 +24,7 @@ public class GameStatusTooltipController {
   @FXML
   ImageView mapPreview;
   @FXML
-  VBox gameStatusContainerTooltipRoot;
+  VBox gameStatusTooltipRoot;
   @Autowired
   MapService mapService;
   @Autowired
@@ -55,13 +55,13 @@ public class GameStatusTooltipController {
       featuredModLabel.setText(gameInfoBean.getFeaturedMod());
     }
 
-    GameContainerTooltipController gameContainerTooltipController = applicationContext.getBean(GameContainerTooltipController.class);
-    gameContainerTooltipController.setGameInfoBean(gameInfoBean);
+    GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);
+    gameTooltipController.setGameInfoBean(gameInfoBean);
 
-    gameStatusContainerTooltipRoot.getChildren().add(gameContainerTooltipController.getRoot());
+    gameStatusTooltipRoot.getChildren().add(gameTooltipController.getRoot());
   }
 
   public Node getRoot() {
-    return gameStatusContainerTooltipRoot;
+    return gameStatusTooltipRoot;
   }
 }

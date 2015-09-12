@@ -181,7 +181,7 @@ public class UiConfig {
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   GameStatusTooltipController gameStatusContainerTooltipController() {
-    return loadController("gamestatus_container_tooltip.fxml");
+    return loadController("game_status_tooltip.fxml");
   }
 
   @Bean

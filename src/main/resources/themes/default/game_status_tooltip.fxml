@@ -4,9 +4,8 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<VBox fx:id="gameStatusContainerTooltipRoot" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity"
-      minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/8.0.40"
-      xmlns:fx="http://javafx.com/fxml/1"
+<VBox fx:id="gameStatusTooltipRoot" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+      minWidth="-Infinity" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.faforever.client.chat.GameStatusTooltipController">
   <children>
     <HBox prefHeight="100.0" prefWidth="200.0">
@@ -14,12 +13,11 @@
         <ImageView fx:id="mapPreview" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true"/>
         <VBox>
           <children>
-            <Label fx:id="mapNameLabel" styleClass="gamestatus-container-tooltip-mapname" text="&lt;Map Name&gt;"
-                   wrapText="true"/>
-            <Label fx:id="gameTitleLabel" layoutX="10.0" layoutY="10.0"
-                   styleClass="gamestatus-container-tooltip-gametitle" text="&lt;Game TItle&gt;" wrapText="true"/>
-            <Label fx:id="featuredModLabel" layoutX="10.0" layoutY="27.0"
-                   styleClass="gamestatus-container-tooltip-featuredmod" text="&lt;Featured Mod&gt;" wrapText="true"/>
+            <Label fx:id="mapNameLabel" styleClass="game-status-tooltip-mapname" text="&lt;Map Name&gt;"/>
+            <Label fx:id="gameTitleLabel" layoutX="10.0" layoutY="10.0" styleClass="game-status-tooltip-gametitle"
+                   text="&lt;Game TItle&gt;" wrapText="true"/>
+            <Label fx:id="featuredModLabel" layoutX="10.0" layoutY="27.0" styleClass="game-status-tooltip-featuredmod"
+                   text="&lt;Featured Mod&gt;" wrapText="true"/>
           </children>
         </VBox>
       </children>

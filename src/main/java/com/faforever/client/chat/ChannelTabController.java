@@ -88,7 +88,7 @@ public class ChannelTabController extends AbstractChatTabController {
     channelTabRoot.setText(channelName);
 
 
-    userSearchTextField.setPromptText(Integer.toString(chatService.getChatUsersForChannel(channelName).size()));
+    userSearchTextField.setPromptText(i18n.get("chat.userCount", chatService.getChatUsersForChannel(channelName).size()));
     chatService.getChatUsersForChannel(channelName).addListener((MapChangeListener<? super String, ? super ChatUser>) change -> {
       Platform.runLater(() -> userSearchTextField.setPromptText(i18n.get("chat.userCount", change.getMap().size())));
     });

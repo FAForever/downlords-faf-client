@@ -32,7 +32,7 @@ public final class RatingUtil {
   }
 
   public static int getGlobalRating(RatingInfo ratingInfo) {
-    return getRating(ratingInfo.mean, ratingInfo.dev);
+    return getRating(ratingInfo.getMean(), ratingInfo.getDev());
   }
 
   public static int getGlobalRating(PlayerInfoBean playerInfo) {

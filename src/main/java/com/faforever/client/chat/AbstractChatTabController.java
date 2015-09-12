@@ -628,18 +628,13 @@ public abstract class AbstractChatTabController {
       } else {
         ChatUser chatUser = chatService.getChatUser(playerInfo.getUsername());
         if (chatUser != null) {
-          //FIXME super ugly work around for a bug that I'm not sure about yet
-          if (chatUser.getColor() == null) {
-            chatUser.setColor(ColorGeneratorUtil.generatePrettyHexColor());
-          }
+          //FIXME chat user doesn't always have color even though it should
           logger.debug("User {}", chatUser.getUsername());
           messageColor = chatUser.getColor().toString();
         }
       }
     }
-    if (messageColor != null) {
-      cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));
-    }
+    cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));
   }
 
   private String highlightOwnUsername(String text) {

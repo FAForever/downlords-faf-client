@@ -206,7 +206,7 @@ public class GamesController {
 
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     hostLabel.textProperty().bind(gameInfoBean.hostProperty());
-    mapLabel.textProperty().bind(gameInfoBean.technicalNameProperty());
+    mapLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
 
     gameInfoBean.featuredModProperty().addListener((observable, oldValue, newValue) -> {
       updateGameType(newValue);
