@@ -627,6 +627,8 @@ public abstract class AbstractChatTabController {
         messageColor = chatPrefs.getSelfChatColor().toString();
       } else {
         ChatUser chatUser = chatService.getChatUser(playerInfo.getUsername());
+        /*if chatUser is null the message is lost, this happens when application is just initalized and the message is recieved before
+        the user is registered to chatService*/
         if (chatUser != null) {
           //FIXME chat user doesn't always have color even though it should
           logger.debug("User {}", chatUser.getUsername());
@@ -634,7 +636,9 @@ public abstract class AbstractChatTabController {
         }
       }
     }
-    cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));
+    if(messageColor != null) {
+      cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));
+    }
   }
 
   private String highlightOwnUsername(String text) {
