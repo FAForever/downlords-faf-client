@@ -39,10 +39,11 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
+import static com.faforever.client.legacy.relay.LobbyAction.AUTHENTICATE;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
+import static java.util.Arrays.asList;
 
 public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyInitializedListener {
 
@@ -169,7 +170,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
             this.fafInputStream = fafSocket.getInputStream();
             this.serverWriter = createServerWriter(fafSocket.getOutputStream());
 
-            serverWriter.write(new LobbyMessage(LobbyAction.AUTHENTICATE, Collections.singletonList(userService.getSessionId())));
+            serverWriter.write(new LobbyMessage(AUTHENTICATE, asList(userService.getSessionId(), userService.getUid())));
 
             startFaReader();
             redirectFafToFa();

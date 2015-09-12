@@ -20,7 +20,7 @@ public class Main extends Application {
 
   @Override
   public void start(Stage stage) throws Exception {
-    Font.loadFont(Main.class.getResource("/font/fontawesome-webfont.ttf").toExternalForm(), 10);
+    Font.loadFont(getClass().getResourceAsStream("/font/fontawesome-webfont.ttf"), 0);
     JavaFxUtil.fixTooltipDuration();
 
     AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();

@@ -27,13 +27,11 @@ public class CheckForUpdateTask extends PrioritizedTask<UpdateInfo> {
 
   private final Gson gson;
   private Environment environment;
-  private I18n i18n;
   private ComparableVersion currentVersion;
 
   public CheckForUpdateTask(Environment environment, I18n i18n, ComparableVersion currentVersion) {
     super(i18n.get("clientUpdateCheckTask.title"), Priority.LOW);
     this.environment = environment;
-    this.i18n = i18n;
     this.currentVersion = currentVersion;
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
@@ -61,8 +59,13 @@ public class CheckForUpdateTask extends PrioritizedTask<UpdateInfo> {
       List<GitHubRelease> releases = gson.fromJson(to.toString(), type);
       GitHubRelease gitHubRelease = releases.get(0);
 
-      boolean isNewer = new ComparableVersion(gitHubRelease.getName()).compareTo(currentVersion) > 0;
-      if (!isNewer) {
+      // Strip the "v" prefix
+      String strippedVersion = gitHubRelease.getName().substring(1);
+      ComparableVersion latestVersion = new ComparableVersion(strippedVersion);
+
+      logger.info("Current version is {}, newest version is {}", currentVersion, gitHubRelease.getName());
+
+      if (!(latestVersion.compareTo(currentVersion) > 0)) {
         return null;
       }
 
@@ -73,6 +76,9 @@ public class CheckForUpdateTask extends PrioritizedTask<UpdateInfo> {
           gitHubAsset.getBrowserDownloadUrl(),
           gitHubAsset.getSize(),
           gitHubRelease.getHtmlUrl());
+    } catch (Throwable t) {
+      logger.error("Error", t);
+      throw t;
     }
   }
 }

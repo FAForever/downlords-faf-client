@@ -74,8 +74,13 @@ public class ClientUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     }
   }
 
+  /**
+   * Never version is available on server.
+   */
   @Test
   public void testGetUpdateIsNewer() throws Exception {
+    instance.currentVersion = new ComparableVersion("0.4.8-alpha");
+
     mockTaskService();
     startFakeGitHubApiServer();
 
@@ -90,7 +95,7 @@ public class ClientUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     verify(notificationService).addNotification(captor.capture());
     PersistentNotification persistentNotification = captor.getValue();
 
-    verify(i18n).get("clientUpdateAvailable.notification", "v0.4.7-alpha", Bytes.formatSize(56079360L));
+    verify(i18n).get("clientUpdateAvailable.notification", "v0.4.8.1-alpha", Bytes.formatSize(56079360L));
     assertThat(persistentNotification.getSeverity(), is(INFO));
   }
 
@@ -137,9 +142,12 @@ public class ClientUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     });
   }
 
+  /**
+   * There is no newer version on the server.
+   */
   @Test
-  public void testGetUpdateIsOlder() throws Exception {
-    instance.currentVersion = new ComparableVersion("v1.0.0");
+  public void testGetUpdateIsCurrent() throws Exception {
+    instance.currentVersion = new ComparableVersion("0.4.8.1-alpha");
     mockTaskService();
     startFakeGitHubApiServer();
 
