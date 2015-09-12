@@ -175,17 +175,17 @@
 
 /***************** ChatUser *****************/
 .chat-user-control-avatar:hover {
-  -fx-background-color: -fx-control-inner-background
+  -fx-background-color: -fx-control-inner-background;
 }
 
 .chat-user-control-username.chat-user-control-clan.chat-user-control-country:hover {
   -fx-background-radius: 1.5, 1.5, 1.5, 1.5;
   -fx-background-insets: 1.2, 1.2, 1.2, 1.2;
-  -fx-background-color: -fx-control-inner-background
+  -fx-background-color: -fx-control-inner-background;
 }
 
 .chat-user-control-status:hover {
-  -fx-background-color: -fx-control-inner-background
+  -fx-background-color: -fx-control-inner-background;
 }
 
 /***************** Headings *****************/

@@ -80,6 +80,7 @@ a {
     max-width: 50%;
     text-align: right;
     white-space: nowrap;
+    cursor: pointer;
 }
 
 .chat-message .time {

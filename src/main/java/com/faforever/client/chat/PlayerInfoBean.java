@@ -201,7 +201,7 @@ public class PlayerInfoBean {
     return moderatorInChannels;
   }
 
-  public boolean getIrcOnly() {
+  public boolean getChatOnly() {
     return chatOnly.get();
   }
 

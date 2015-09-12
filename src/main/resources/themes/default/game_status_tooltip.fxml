@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
@@ -13,11 +14,16 @@
         <ImageView fx:id="mapPreview" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true"/>
         <VBox>
           <children>
-            <Label fx:id="mapNameLabel" styleClass="game-status-tooltip-mapname" text="&lt;Map Name&gt;"/>
-            <Label fx:id="gameTitleLabel" layoutX="10.0" layoutY="10.0" styleClass="game-status-tooltip-gametitle"
-                   text="&lt;Game TItle&gt;" wrapText="true"/>
-            <Label fx:id="featuredModLabel" layoutX="10.0" layoutY="27.0" styleClass="game-status-tooltip-featuredmod"
-                   text="&lt;Featured Mod&gt;" wrapText="true"/>
+            <Label fx:id="mapNameLabel" minWidth="200.0" styleClass="game-status-tooltip-mapname"
+                   text="&lt;Map Name&gt;">
+              <VBox.margin>
+                <Insets/>
+              </VBox.margin>
+            </Label>
+            <Label fx:id="gameTitleLabel" layoutX="10.0" layoutY="10.0" minWidth="200.0"
+                   styleClass="game-status-tooltip-gametitle" text="&lt;Game Title&gt;" wrapText="true"/>
+            <Label fx:id="featuredModLabel" layoutX="10.0" layoutY="27.0" minWidth="200.0"
+                   styleClass="game-status-tooltip-featuredmod" text="&lt;Featured Mod&gt;" wrapText="true"/>
           </children>
         </VBox>
       </children>

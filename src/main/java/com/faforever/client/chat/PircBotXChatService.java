@@ -50,6 +50,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 
 import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
@@ -104,6 +105,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   private boolean initialized;
   private String defaultChannelName;
   private Service<Void> connectionService;
+  private CountDownLatch ircConnectedLatch;
 
 
   public PircBotXChatService() {
@@ -277,6 +279,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       protected Void call() throws Exception {
         while (!isCancelled()) {
           try {
+            ircConnectedLatch = new CountDownLatch(1);
             logger.info("Connecting to IRC at {}:{}", configuration.getServerHostname(), configuration.getServerPort());
             pircBotX.startBot();
           } catch (IOException | IrcException e) {
@@ -360,6 +363,11 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void joinChannel(String channelName) {
+    try {
+      ircConnectedLatch.await();
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
     pircBotX.sendIRC().joinChannel(channelName);
   }
 
@@ -398,6 +406,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       @Override
       public void success(String message) {
         pircBotX.sendIRC().joinChannel(defaultChannelName);
+        ircConnectedLatch.countDown();
       }
 
       @Override

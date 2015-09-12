@@ -127,27 +127,32 @@ public class ChatUserControl extends HBox {
   }
 
   private void configureRatingTooltip() {
-    Tooltip userRatingTooltip = new Tooltip(playerInfoBean.getCountry());
+    playerInfoBean.chatOnlyProperty().addListener((observable1, oldValue1, newValue1) -> {
+      if (!newValue1) {
+        Tooltip userRatingTooltip = new Tooltip(playerInfoBean.getCountry());
 
-    String globalRating = i18n.get("playerRatingFormat.Global", RatingUtil.getGlobalRating(playerInfoBean));
-    String ladderRating = i18n.get("playerRatingFormat.Ladder", RatingUtil.getLadderRating(playerInfoBean));
+        String globalRating = i18n.get("playerRatingFormat.global", RatingUtil.getGlobalRating(playerInfoBean));
+        String ladderRating = i18n.get("playerRatingFormat.ladder", RatingUtil.getLadderRating(playerInfoBean));
 
-    userRatingTooltip.setText(String.format("%s\n%s", globalRating, ladderRating));
+        userRatingTooltip.setText(String.format("%s \n %s", globalRating, ladderRating));
 
-    playerInfoBean.globalRatingMeanProperty().addListener((observable, oldValue, newValue) -> {
-      String updatedGlobalRating = i18n.get("playerRatingFormat.Global", RatingUtil.getGlobalRating(playerInfoBean));
-      String oldLadderRating = i18n.get("playerRatingFormat.Ladder", RatingUtil.getLadderRating(playerInfoBean));
-      userRatingTooltip.setText(String.format("%s \n %s", updatedGlobalRating, oldLadderRating));
+        playerInfoBean.globalRatingMeanProperty().addListener((observable, oldValue, newValue) -> {
+          String updatedGlobalRating = i18n.get("playerRatingFormat.global", RatingUtil.getGlobalRating(playerInfoBean));
+          String oldLadderRating = i18n.get("playerRatingFormat.ladder", RatingUtil.getLadderRating(playerInfoBean));
+          userRatingTooltip.setText(String.format("%s \n %s", updatedGlobalRating, oldLadderRating));
+        });
+
+        playerInfoBean.ladderRatingMeanProperty().addListener((observable, oldValue, newValue) -> {
+          String oldGlobalRating = i18n.get("playerRatingFormat.global", RatingUtil.getGlobalRating(playerInfoBean));
+          String updatedLadderRating = i18n.get("playerRatingFormat.ladder", RatingUtil.getLadderRating(playerInfoBean));
+          userRatingTooltip.setText(String.format("%s \n %s", oldGlobalRating, updatedLadderRating));
+        });
+
+        Tooltip.install(clanLabel, userRatingTooltip);
+        Tooltip.install(usernameLabel, userRatingTooltip);
+      }
     });
 
-    playerInfoBean.ladderRatingMeanProperty().addListener((observable, oldValue, newValue) -> {
-      String oldGlobalRating = i18n.get("playerRatingFormat.Global", RatingUtil.getGlobalRating(playerInfoBean));
-      String updatedLadderRating = i18n.get("playerRatingFormat.Ladder", RatingUtil.getLadderRating(playerInfoBean));
-      userRatingTooltip.setText(String.format("%s \n %s", oldGlobalRating, updatedLadderRating));
-    });
-
-    Tooltip.install(clanLabel, userRatingTooltip);
-    Tooltip.install(usernameLabel, userRatingTooltip);
   }
 
   private void configureColor() {
