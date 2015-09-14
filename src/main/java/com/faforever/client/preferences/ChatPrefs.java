@@ -36,7 +36,7 @@ public class ChatPrefs {
     modsChatColor = new SimpleObjectProperty<>(Color.web("#FFFFFF"));
     ircChatColor = new SimpleObjectProperty<>(Color.web("#808080"));
     othersChatColor = new SimpleObjectProperty<>(Color.web("#BFBEBA"));
-    prettyColors = new SimpleBooleanProperty(true);
+    prettyColors = new SimpleBooleanProperty(false);
     channelTabScrollPaneWidth = new SimpleIntegerProperty(250);
 
   }
