@@ -614,7 +614,7 @@ public abstract class AbstractChatTabController {
     //Mods, friends and foes are never randomly generated
     String messageColor = "";
     if (playerInfo.getModeratorInChannels() != null && playerInfo.getModeratorInChannels().size() > 0) {
-      //FIXME this is here because there is no straight forward way to know what channel the message came from
+      //TODO this is here because there is no straight forward way to know what channel the message came from
       for (Channel channel : chatService.getChannelsForUser(userService.getUsername())) {
         if (chatService.getLevelsForChatUser(channel, playerInfo.getUsername()).size() > 0) {
           messageColor = chatPrefs.getModsChatColor().toString();
@@ -630,7 +630,7 @@ public abstract class AbstractChatTabController {
     if (!chatPrefs.getPrettyColors() && messageColor.equals("")) {
       if (playerInfo.isChatOnly()) {
         messageColor = chatPrefs.getIrcChatColor().toString();
-      } else {
+      } else if (!playerInfo.getUsername().equals(userService.getUsername())) {
         messageColor = chatPrefs.getOthersChatColor().toString();
       }
     }

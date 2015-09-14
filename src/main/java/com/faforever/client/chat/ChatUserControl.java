@@ -160,6 +160,7 @@ public class ChatUserControl extends HBox {
     ObjectProperty<Color> colorProperty = null;
     Color color = null;
 
+    //Always regardless of pretty Colors enabled
     if (playerInfoBean.getModeratorInChannels().size() > 0) {
       colorProperty = chatPrefs.modsChatColorProperty();
     } else if (playerInfoBean.isFriend()) {
@@ -170,14 +171,15 @@ public class ChatUserControl extends HBox {
       colorProperty = chatPrefs.selfChatColorProperty();
     }
 
+    //Only if pretty colors is disabled
     if (!chatPrefs.getPrettyColors() && colorProperty == null) {
-
       if (playerInfoBean.isChatOnly()) {
         colorProperty = chatPrefs.ircChatColorProperty();
       } else {
         colorProperty = chatPrefs.othersChatColorProperty();
       }
 
+      //Self color
     } else if (chatPrefs.getPrettyColors() && colorProperty == null) {
       color = ColorGeneratorUtil.generatePrettyHexColor();
       ChatUser chatUser = chatService.getChatUser(playerInfoBean.getUsername());
