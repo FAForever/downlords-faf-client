@@ -60,6 +60,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.OFF;
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.ON;
@@ -95,7 +97,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private String localIp;
   private ServerWriter serverWriter;
   private Callback<SessionInfo> loginCallback;
-  private Callback<GameLaunchInfo> gameLaunchCallback;
+  private CompletableFuture<GameLaunchInfo> gameLaunchFuture;
   // Yes I know, those aren't lists. They will become if it's necessary
   private OnLobbyConnectingListener onLobbyConnectingListener;
   private OnFafDisconnectedListener onFafDisconnectedListener;
@@ -224,20 +226,21 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchInfo> callback) {
+  public CompletionStage<GameLaunchInfo> requestNewGame(NewGameInfo newGameInfo) {
     HostGameMessage hostGameMessage = new HostGameMessage(
         StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
         newGameInfo.getMap(),
         newGameInfo.getTitle(),
         preferencesService.getPreferences().getForgedAlliance().getPort(),
         new boolean[0],
-        newGameInfo.getMod(),
+        newGameInfo.getGameType(),
         newGameInfo.getPassword(),
         newGameInfo.getVersion()
     );
 
-    gameLaunchCallback = callback;
+    gameLaunchFuture = new CompletableFuture<>();
     writeToServerInBackground(hostGameMessage);
+    return gameLaunchFuture;
   }
 
   private void writeToServerInBackground(final ClientMessage clientMessage) {
@@ -251,14 +254,15 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void requestJoinGame(GameInfoBean gameInfoBean, String password, Callback<GameLaunchInfo> callback) {
+  public CompletionStage<GameLaunchInfo> requestJoinGame(GameInfoBean gameInfoBean, String password) {
     JoinGameMessage joinGameMessage = new JoinGameMessage(
         gameInfoBean.getUid(),
         preferencesService.getPreferences().getForgedAlliance().getPort(),
         password);
 
-    gameLaunchCallback = callback;
+    gameLaunchFuture = new CompletableFuture<>();
     writeToServerInBackground(joinGameMessage);
+    return gameLaunchFuture;
   }
 
   @Override
@@ -465,7 +469,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   private void onGameLaunchInfo(GameLaunchInfo gameLaunchInfo) {
     onGameLaunchListeners.forEach(listener -> listener.onGameLaunchInfo(gameLaunchInfo));
-    gameLaunchCallback.success(gameLaunchInfo);
+    gameLaunchFuture.complete(gameLaunchInfo);
   }
 
   private void onGameTypeInfo(GameTypeInfo gameTypeInfo) {

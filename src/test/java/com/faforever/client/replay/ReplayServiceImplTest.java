@@ -1,6 +1,6 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.game.FeaturedMod;
+import com.faforever.client.game.GameType;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -23,16 +23,16 @@ public class ReplayServiceImplTest {
         0x70, 0x73, 0x2F, 0x53, 0x43, 0x4D, 0x50, 0x5F, 0x30, 0x31, 0x32, 0x2F, 0x53, 0x43, 0x4D, 0x50
     };
 
-    String version = ReplayServiceImpl.parseSupComVersion(bytes);
+    Integer version = ReplayServiceImpl.parseSupComVersion(bytes);
 
-    assertEquals("3632", version);
+    assertEquals((Integer) 3632, version);
   }
 
   @Test
   public void testGuessModByFileNameModIsMissing() throws Exception {
     String mod = ReplayServiceImpl.guessModByFileName("110621-2128 Saltrock Colony.SCFAReplay");
 
-    assertEquals(FeaturedMod.DEFAULT_MOD.getString(), mod);
+    assertEquals(GameType.DEFAULT.getString(), mod);
   }
 
   @Test

@@ -27,6 +27,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.legacy.domain.GameAccess.PASSWORD;
 import static com.faforever.client.legacy.domain.GameAccess.PUBLIC;
@@ -155,7 +157,21 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchInfo> callback) {
+  public CompletionStage<GameLaunchInfo> requestNewGame(NewGameInfo newGameInfo) {
+    CompletableFuture<GameLaunchInfo> future = new CompletableFuture<>();
+
+    Callback<GameLaunchInfo> callback = new Callback<GameLaunchInfo>() {
+      @Override
+      public void success(GameLaunchInfo result) {
+        future.complete(result);
+      }
+
+      @Override
+      public void error(Throwable e) {
+        future.completeExceptionally(e);
+      }
+    };
+
     taskService.submitTask(NET_LIGHT, new PrioritizedTask<GameLaunchInfo>(i18n.get("requestNewGameTask.title"), HIGH) {
       @Override
       protected GameLaunchInfo call() throws Exception {
@@ -166,10 +182,25 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
         return gameLaunchInfo;
       }
     }, callback);
+    return future;
   }
 
   @Override
-  public void requestJoinGame(GameInfoBean gameInfoBean, String password, Callback<GameLaunchInfo> callback) {
+  public CompletionStage<GameLaunchInfo> requestJoinGame(GameInfoBean gameInfoBean, String password) {
+    CompletableFuture<GameLaunchInfo> future = new CompletableFuture<>();
+
+    Callback<GameLaunchInfo> callback = new Callback<GameLaunchInfo>() {
+      @Override
+      public void success(GameLaunchInfo result) {
+        future.complete(result);
+      }
+
+      @Override
+      public void error(Throwable e) {
+        future.completeExceptionally(e);
+      }
+    };
+
     taskService.submitTask(NET_LIGHT, new PrioritizedTask<GameLaunchInfo>(i18n.get("requestJoinGameTask.title"), HIGH) {
       @Override
       protected GameLaunchInfo call() throws Exception {
@@ -180,6 +211,8 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
         return gameLaunchInfo;
       }
     }, callback);
+
+    return future;
   }
 
   @Override

@@ -1,5 +1,7 @@
 package com.faforever.client.game;
 
+import java.util.Set;
+
 public class NewGameInfo {
 
   private String title;
@@ -7,16 +9,18 @@ public class NewGameInfo {
   private String mod;
   private String map;
   private int version;
+  private Set<String> simMods;
 
   public NewGameInfo() {
   }
 
-  public NewGameInfo(String title, String password, String mod, String map, int version) {
-    this.setTitle(title);
-    this.setPassword(password);
-    this.setMod(mod);
-    this.setMap(map);
-    this.setVersion(version);
+  public NewGameInfo(String title, String password, String mod, String map, int version, Set<String> simMods) {
+    this.title = title;
+    this.password = password;
+    this.mod = mod;
+    this.map = map;
+    this.version = version;
+    this.simMods = simMods;
   }
 
   public String getTitle() {
@@ -35,11 +39,11 @@ public class NewGameInfo {
     this.password = password;
   }
 
-  public String getMod() {
+  public String getGameType() {
     return mod;
   }
 
-  public void setMod(String mod) {
+  public void setGameType(String mod) {
     this.mod = mod;
   }
 
@@ -57,5 +61,21 @@ public class NewGameInfo {
 
   public void setVersion(int version) {
     this.version = version;
+  }
+
+  public String getMod() {
+    return mod;
+  }
+
+  public void setMod(String mod) {
+    this.mod = mod;
+  }
+
+  public Set<String> getSimModUidsToVersions() {
+    return simMods;
+  }
+
+  public void setSimModUidsToVersions(Set<String> simMods) {
+    this.simMods = simMods;
   }
 }

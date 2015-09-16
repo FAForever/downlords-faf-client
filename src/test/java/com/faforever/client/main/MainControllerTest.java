@@ -16,7 +16,7 @@ import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotificationsController;
-import com.faforever.client.patch.PatchService;
+import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.portcheck.PortCheckService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -63,7 +63,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   PortCheckService portCheckService;
   @Mock
-  PatchService patchService;
+  GameUpdateService gameUpdateService;
   @Mock
   PlayerService playerService;
   @Mock
@@ -123,7 +123,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.sceneFactory = sceneFactory;
     instance.preferencesService = preferencesService;
     instance.portCheckService = portCheckService;
-    instance.patchService = patchService;
+    instance.gameUpdateService = gameUpdateService;
     instance.lobbyService = lobbyService;
     instance.chatService = chatService;
     instance.userService = userService;
@@ -167,7 +167,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     verify(chatService).connect();
     verify(portCheckService).checkGamePortInBackground();
-    verify(patchService).checkForUpdateInBackground();
+    verify(gameUpdateService).checkForUpdateInBackground();
     verify(lobbyService).setOnFafConnectedListener(instance);
     verify(lobbyService).setOnLobbyConnectingListener(instance);
     verify(lobbyService).setOnFafDisconnectedListener(instance);

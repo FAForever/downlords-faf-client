@@ -83,8 +83,7 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
                             i18n.get("clientUpdateAvailable.releaseNotes"),
                             Action.Type.OK_STAY,
                             event -> hostService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
-                        ),
-                        new Action(i18n.get("clientUpdateAvailable.ignore"))
+                        )
                     )
                 )
             );

@@ -11,7 +11,8 @@ public enum ClientMessageType {
   SOCIAL("social"),
   STATISTICS("stats"),
   LOGIN("hello"),
-  GAME_STATUS("fa_state");
+  GAME_STATUS("fa_state"),
+  MOD_VAULT("modvault");
 
   private static Map<String, ClientMessageType> fromString;
 

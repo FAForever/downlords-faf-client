@@ -23,7 +23,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.patch.PatchService;
+import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.portcheck.GamePortCheckListener;
 import com.faforever.client.portcheck.PortCheckService;
@@ -205,7 +205,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   CommunityHubController communityHubController;
 
   @Autowired
-  PatchService patchService;
+  GameUpdateService gameUpdateService;
 
   @Autowired
   ClientUpdateService clientUpdateService;
@@ -367,7 +367,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     usernameButton.setText(userService.getUsername());
 
     portCheckService.checkGamePortInBackground();
-    patchService.checkForUpdateInBackground();
+    gameUpdateService.checkForUpdateInBackground();
     clientUpdateService.checkForUpdateInBackground();
   }
 

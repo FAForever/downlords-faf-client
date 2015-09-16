@@ -11,7 +11,10 @@ public abstract class PrioritizedTask<V> extends Task<V> implements Comparable<P
     HIGH
   }
 
-  private final Priority priority;
+  private Priority priority;
+
+  public PrioritizedTask() {
+  }
 
   public PrioritizedTask(String title) {
     this(title, Priority.MEDIUM);
@@ -22,8 +25,16 @@ public abstract class PrioritizedTask<V> extends Task<V> implements Comparable<P
     updateTitle(title);
   }
 
+
   @Override
   public int compareTo(@NotNull PrioritizedTask other) {
     return priority.compareTo(other.priority);
+  }
+
+  public void setPriority(Priority priority) {
+    if (this.priority != null) {
+      throw new IllegalStateException("Priority has already been set");
+    }
+    this.priority = priority;
   }
 }

@@ -1,5 +1,6 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.game.GameType;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -29,8 +30,8 @@ import java.util.Collections;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static com.faforever.client.patch.GitRepositoryPatchService.InstallType.RETAIL;
-import static com.faforever.client.patch.GitRepositoryPatchService.STEAM_API_DLL;
+import static com.faforever.client.patch.GitRepositoryGameUpdateService.InstallType.RETAIL;
+import static com.faforever.client.patch.GitRepositoryGameUpdateService.STEAM_API_DLL;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -42,7 +43,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
+public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest {
 
   private static final String GIT_PATCH_URL = "git://dummy/repo.git";
 
@@ -55,7 +56,7 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
   @Rule
   public final TemporaryFolder faDirectory = new TemporaryFolder();
 
-  private GitRepositoryPatchService instance;
+  private GitRepositoryGameUpdateService instance;
   private ForgedAlliancePrefs forgedAlliancePrefs;
 
   /**
@@ -66,7 +67,7 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new GitRepositoryPatchService();
+    instance = new GitRepositoryGameUpdateService();
     instance.environment = mock(Environment.class);
     instance.preferencesService = mock(PreferencesService.class);
     instance.taskService = mock(TaskService.class);
@@ -84,7 +85,7 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
     when(forgedAlliancePrefs.getPath()).thenReturn(faDirectory.getRoot().toPath());
     mockTaskService();
 
-    binaryPatchRepoDirectory = instance.preferencesService.getFafReposDirectory().resolve(GitRepositoryPatchService.REPO_NAME);
+    binaryPatchRepoDirectory = instance.preferencesService.getFafReposDirectory().resolve(GitRepositoryGameUpdateService.REPO_NAME);
     faBinDirectory = forgedAlliancePrefs.getPath().resolve("bin");
 
     instance.postConstruct();
@@ -115,7 +116,7 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
   public void testPatchInBackgroundFaDirectoryUnspecified() throws Exception {
     when(forgedAlliancePrefs.getPath()).thenReturn(null);
 
-    instance.patchInBackground();
+    instance.updateInBackground(GameType.FAF.getString(), null, null, null);
 
     verifyZeroInteractions(instance.taskService);
   }
@@ -131,7 +132,7 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(instance.gitWrapper).clone(GIT_PATCH_URL, binaryPatchRepoDirectory);
 
-    instance.patchInBackground();
+    instance.updateInBackground(GameType.FAF.getString(), null, null, null);
 
     verify(instance.gitWrapper).clone(GIT_PATCH_URL, binaryPatchRepoDirectory);
     verify(instance.taskService).submitTask(eq(TaskGroup.NET_HEAVY), any(), any());
@@ -167,7 +168,7 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(instance.taskService).submitTask(any(), any(), any());
 
-    instance.patchInBackground();
+    instance.updateInBackground(GameType.FAF.getString(), null, null, null);
 
     verifyNotification(Severity.WARN);
   }
@@ -177,7 +178,7 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
     prepareFaBinaries();
     prepareLocalPatchRepo();
 
-    instance.patchInBackground();
+    instance.updateInBackground(GameType.FAF.getString(), null, null, null);
 
     verifyNotification(Severity.INFO);
   }
@@ -268,7 +269,7 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
     prepareLocalPatchRepo();
     prepareFaBinaries();
 
-    instance.patchInBackground();
+    instance.updateInBackground(GameType.FAF.getString(), null, null, null);
     verifyNotification(Severity.INFO);
 
     when(instance.gitWrapper.getLocalHead(binaryPatchRepoDirectory)).thenReturn("1234");
@@ -285,8 +286,8 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
 
     assertTrue(Files.notExists(faBinDirectory.resolve(STEAM_API_DLL)));
 
-    GitRepositoryPatchService.InstallType installType = instance.guessInstallType();
-    assertThat(installType, is(GitRepositoryPatchService.InstallType.RETAIL));
+    GitRepositoryGameUpdateService.InstallType installType = instance.guessInstallType();
+    assertThat(installType, is(GitRepositoryGameUpdateService.InstallType.RETAIL));
   }
 
   @Test
@@ -296,7 +297,7 @@ public class GitRepositoryPatchServiceTest extends AbstractPlainJavaFxTest {
     Files.createDirectories(faBinDirectory);
     Files.createFile(faBinDirectory.resolve(STEAM_API_DLL));
 
-    GitRepositoryPatchService.InstallType installType = instance.guessInstallType();
-    assertThat(installType, is(GitRepositoryPatchService.InstallType.STEAM));
+    GitRepositoryGameUpdateService.InstallType installType = instance.guessInstallType();
+    assertThat(installType, is(GitRepositoryGameUpdateService.InstallType.STEAM));
   }
 }

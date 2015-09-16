@@ -32,6 +32,8 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.zip.ZipInputStream;
 
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
@@ -172,8 +174,22 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public void download(String mapName, Callback<Void> callback) {
+  public CompletionStage<Void> download(String mapName) {
     String taskTitle = i18n.get("mapDownloadTask.title", mapName);
+
+    CompletableFuture<Void> future = new CompletableFuture<>();
+    Callback<Void> callback = new Callback<Void>() {
+      @Override
+      public void success(Void result) {
+        future.complete(result);
+      }
+
+      @Override
+      public void error(Throwable e) {
+        future.completeExceptionally(e);
+      }
+    };
+
     taskService.submitTask(TaskGroup.NET_HEAVY, new PrioritizedTask<Void>(taskTitle) {
       @Override
       protected Void call() throws Exception {
@@ -197,6 +213,8 @@ public class MapServiceImpl implements MapService {
         return null;
       }
     }, callback);
+
+    return future;
   }
 
   @Override
