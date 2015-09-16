@@ -13,7 +13,9 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.Callback;
+import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -67,6 +69,10 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   public void testJoinGameMapIsAvailable() throws Exception {
     GameInfoBean gameInfoBean = mock(GameInfoBean.class);
 
+    ObservableMap<String, String> simMods = FXCollections.observableHashMap();
+    simMods.put("123-456-789", "Fake mod name");
+
+    when(gameInfoBean.getSimMods()).thenReturn(simMods);
     when(gameInfoBean.getTechnicalName()).thenReturn("map");
 
     when(instance.mapService.isAvailable("map")).thenReturn(true);
