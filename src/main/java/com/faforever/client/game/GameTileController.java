@@ -14,27 +14,18 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
-
-import java.lang.invoke.MethodHandles;
 
 public class GameTileController {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @FXML
-  Label modsPrefix;
+  Label lockIconLabel;
   @FXML
-  Label gameTypePrefix;
+  Label gameTypeLabel;
   @FXML
-  ImageView mapImageCornerView;
-  @FXML
-  Label gameType;
-  @FXML
-  Node gameCardRoot;
+  Node gameTileRoot;
   @FXML
   Label gameMapLabel;
   @FXML
@@ -42,35 +33,42 @@ public class GameTileController {
   @FXML
   Label numberOfPlayersLabel;
   @FXML
-  Label hosterLabel;
+  Label hostLabel;
   @FXML
   Label modsLabel;
   @FXML
   ImageView mapImageView;
+
   @Autowired
   MapService mapService;
   @Autowired
   I18n i18n;
   @Autowired
-  Environment environment;
-  @Autowired
   ApplicationContext applicationContext;
   @Autowired
   GamesController gamesController;
+  @Autowired
+  GameService gameService;
+
   private GameInfoBean gameInfoBean;
+
+  @FXML
+  void initialize() {
+    modsLabel.managedProperty().bind(modsLabel.visibleProperty());
+    gameTypeLabel.managedProperty().bind(gameTypeLabel.visibleProperty());
+    modsLabel.managedProperty().bind(modsLabel.visibleProperty());
+    lockIconLabel.managedProperty().bind(lockIconLabel.visibleProperty());
+  }
 
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
     this.gameInfoBean = gameInfoBean;
+
+    GameTypeBean gameType = gameService.getGameTypeByString(gameInfoBean.getFeaturedMod());
+    String fullName = gameType != null ? gameType.getFullName() : null;
+    gameTypeLabel.setText(StringUtils.defaultString(fullName));
+
     gameTitleLabel.setText(gameInfoBean.getTitle());
-    hosterLabel.setText(gameInfoBean.getHost());
-    if (gameInfoBean.getFeaturedMod().equals(environment.getProperty("defaultMod"))) {
-      gameType.setText("");
-    } else {
-      gameType.setText(gameInfoBean.getFeaturedMod());
-      if (!gameType.getText().isEmpty()) {
-        gameTypePrefix.setVisible(true);
-      }
-    }
+    hostLabel.setText(gameInfoBean.getHost());
 
     gameMapLabel.setText(gameInfoBean.getMapTechnicalName());
     gameInfoBean.mapTechnicalNameProperty().addListener(((observable3, oldValue3, newValue3) -> {
@@ -97,26 +95,21 @@ public class GameTileController {
       mapImageView.setImage(newImage);
     });
 
-    if (gameInfoBean.getAccess() == GameAccess.PASSWORD) {
-      Image lockImage = new Image("/images/private_game.png");
-      mapImageCornerView.setImage(lockImage);
-    }
+    lockIconLabel.setVisible(gameInfoBean.getAccess() == GameAccess.PASSWORD);
 
     //TODO move tooltip Y position down 10 pixels
-    GameContainerTooltipController gameContainerTooltipController = applicationContext.getBean(GameContainerTooltipController.class);
-    gameContainerTooltipController.setGameInfoBean(gameInfoBean);
+    GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);
+    gameTooltipController.setGameInfoBean(gameInfoBean);
     Tooltip tooltip = new Tooltip();
-    tooltip.setGraphic(gameContainerTooltipController.getRoot());
-    Tooltip.install(gameCardRoot, tooltip);
+    tooltip.setGraphic(gameTooltipController.getRoot());
+    Tooltip.install(gameTileRoot, tooltip);
 
   }
 
   private void displaySimMods(ObservableMap<? extends String, ? extends String> simMods) {
     String stringSimMods = Joiner.on(i18n.get("textSeparator")).join(simMods.values());
     modsLabel.setText(stringSimMods);
-    if (!modsLabel.getText().isEmpty()) {
-      modsPrefix.setVisible(true);
-    }
+    modsLabel.setVisible(!modsLabel.getText().isEmpty());
   }
 
   @FXML
@@ -129,6 +122,6 @@ public class GameTileController {
   }
 
   public Node getRoot() {
-    return gameCardRoot;
+    return gameTileRoot;
   }
 }

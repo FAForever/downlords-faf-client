@@ -48,11 +48,11 @@ public class AudioControllerImpl implements AudioController {
   private void loadSounds() throws IOException {
     String theme = preferencesService.getPreferences().getTheme();
 
-    errorNotificationSound = loadSound(theme, "sounds/error.mp3");
     infoNotificationSound = loadSound(theme, "sounds/info.mp3");
+    errorNotificationSound = loadSound(theme, "sounds/info.mp3");
+    warnNotificationSound = loadSound(theme, "sounds/info.mp3");
     chatMentionSound = loadSound(theme, "sounds/mention.mp3");
     privateMessageSound = loadSound(theme, "sounds/pm.mp3");
-    warnNotificationSound = loadSound(theme, "sounds/warn.mp3");
   }
 
   private AudioClip loadSound(String theme, String sound) throws IOException {

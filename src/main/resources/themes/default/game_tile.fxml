@@ -1,114 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.geometry.Rectangle2D?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
-<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="gameCardRoot" focusTraversable="true" maxHeight="-Infinity"
-          maxWidth="-Infinity"
-          minHeight="-Infinity" minWidth="-Infinity" onMouseClicked="#onClick"
-          styleClass="game-tile-root" xmlns="http://javafx.com/javafx/8.0.40"
-          fx:controller="com.faforever.client.game.GameTileController">
-  <columnConstraints>
-    <ColumnConstraints hgrow="NEVER" minWidth="115.0"/>
-    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="250.0"/>
-  </columnConstraints>
-  <rowConstraints>
-    <RowConstraints/>
-    <RowConstraints valignment="CENTER" vgrow="SOMETIMES"/>
-    <RowConstraints vgrow="SOMETIMES"/>
-    <RowConstraints vgrow="SOMETIMES"/>
-    <RowConstraints vgrow="SOMETIMES"/>
-    <RowConstraints vgrow="SOMETIMES"/>
-    <RowConstraints vgrow="SOMETIMES"/>
-  </rowConstraints>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<HBox xmlns:fx="http://javafx.com/fxml/1" fx:id="gameTileRoot" focusTraversable="true" onMouseClicked="#onClick"
+      styleClass="game-tile-root" xmlns="http://javafx.com/javafx/8.0.40"
+      fx:controller="com.faforever.client.game.GameTileController">
   <children>
-    <Label fx:id="gameTitleLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-           styleClass="game-tile-title" text="&lt;Game Title&gt;" GridPane.columnIndex="1"
-           GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="NEVER">
-      <GridPane.margin>
-        <Insets/>
-      </GridPane.margin>
-    </Label>
-    <Label fx:id="gameMapLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-           text="&lt;Game Map&gt;" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-           GridPane.rowIndex="2" GridPane.vgrow="NEVER">
-      <GridPane.margin>
-        <Insets/>
-      </GridPane.margin>
-      <padding>
-        <Insets left="56.0"/>
-      </padding>
-    </Label>
-    <Label fx:id="numberOfPlayersLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-           text="&lt;Number of Players&gt;" GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
-           GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.vgrow="NEVER">
-      <GridPane.margin>
-        <Insets/>
-      </GridPane.margin>
-      <padding>
-        <Insets left="37.0"/>
-      </padding>
-    </Label>
-    <Label fx:id="gameType" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-           text="&lt;Game Type&gt;" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4"
-           GridPane.vgrow="NEVER">
-      <padding>
-        <Insets left="88.0"/>
-      </padding>
-    </Label>
-    <Label fx:id="modsLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="&lt;Mods&gt;"
-           GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5"
-           GridPane.vgrow="NEVER">
-      <GridPane.margin>
-        <Insets/>
-      </GridPane.margin>
-      <padding>
-        <Insets left="44.0"/>
-      </padding>
-    </Label>
-    <Label fx:id="hosterLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-           text="&lt;Hoster&gt;" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-           GridPane.rowIndex="6" GridPane.vgrow="NEVER">
-      <GridPane.margin>
-        <Insets/>
-      </GridPane.margin>
-      <padding>
-        <Insets left="27.0"/>
-      </padding>
-    </Label>
-    <ImageView fx:id="mapImageView" pickOnBounds="true" preserveRatio="true" GridPane.hgrow="NEVER"
-               GridPane.rowIndex="1" GridPane.rowSpan="2147483647" GridPane.vgrow="NEVER">
-      <GridPane.margin>
-        <Insets right="10.0"/>
-      </GridPane.margin>
-    </ImageView>
-    <AnchorPane GridPane.rowIndex="4" GridPane.rowSpan="3">
+    <StackPane>
       <children>
-        <ImageView fx:id="mapImageCornerView" pickOnBounds="true" preserveRatio="true" AnchorPane.rightAnchor="12.0">
-          <viewport>
-            <Rectangle2D/>
-          </viewport>
-        </ImageView>
+        <ImageView fx:id="mapImageView" fitHeight="115.0" fitWidth="115.0" preserveRatio="true"/>
+        <Label fx:id="lockIconLabel" styleClass="lock-icon,fontawesome" text="" StackPane.alignment="BOTTOM_RIGHT">
+          <StackPane.margin>
+            <Insets bottom="10.0" right="10.0"/>
+          </StackPane.margin>
+        </Label>
       </children>
-    </AnchorPane>
-    <Label styleClass="prefix" text="on map" GridPane.columnIndex="1" GridPane.rowIndex="2">
-      <GridPane.margin>
-        <Insets/>
-      </GridPane.margin>
-    </Label>
-    <Label styleClass="prefix" text="with" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-    <Label fx:id="gameTypePrefix" styleClass="featured-mod-prefix" text="featured mod" visible="false"
-           GridPane.columnIndex="1" GridPane.rowIndex="4"/>
-    <Label fx:id="modsPrefix" styleClass="mods-prefix" text="mods" visible="false" GridPane.columnIndex="1"
-           GridPane.rowIndex="5"/>
-    <Label styleClass="prefix" text="by" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+    </StackPane>
+    <VBox>
+      <children>
+        <Label fx:id="gameTitleLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+               styleClass="game-tile-title" text="&lt;Game Title&gt;"/>
+        <Label fx:id="gameTypeLabel" text="&lt;Game Type&gt;">
+          <VBox.margin>
+            <Insets bottom="5.0"/>
+          </VBox.margin>
+        </Label>
+        <Label fx:id="gameMapLabel" text="&lt;Game Map&gt;">
+          <graphic>
+            <Label styleClass="fontawesome" text=""/>
+          </graphic>
+        </Label>
+        <Label fx:id="numberOfPlayersLabel" text="&lt;Number of Players&gt;">
+          <graphic>
+            <Label styleClass="fontawesome" text=""/>
+          </graphic>
+        </Label>
+        <Label fx:id="modsLabel" text="&lt;Mods&gt;">
+          <graphic>
+            <Label styleClass="fontawesome" text=""/>
+          </graphic>
+        </Label>
+        <Label fx:id="hostLabel" text="&lt;Host&gt;">
+          <graphic>
+            <Label styleClass="fontawesome" text=""/>
+          </graphic>
+        </Label>
+      </children>
+    </VBox>
   </children>
-  <padding>
-    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-  </padding>
-</GridPane>
+</HBox>

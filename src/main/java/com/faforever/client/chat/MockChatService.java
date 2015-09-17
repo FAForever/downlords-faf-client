@@ -137,7 +137,10 @@ public class MockChatService implements ChatService {
 
   @Override
   public void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener) {
-    getChatUsersForChannel(channelName).addListener(listener);
+    ObservableMap<String, ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
+    synchronized (chatUsersForChannel) {
+      chatUsersForChannel.addListener(listener);
+    }
   }
 
   @Override

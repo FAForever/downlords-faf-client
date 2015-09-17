@@ -16,7 +16,7 @@ import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotificationsController;
-import com.faforever.client.patch.PatchService;
+import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.portcheck.PortCheckService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -27,6 +27,7 @@ import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
@@ -62,7 +63,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   PortCheckService portCheckService;
   @Mock
-  PatchService patchService;
+  GameUpdateService gameUpdateService;
   @Mock
   PlayerService playerService;
   @Mock
@@ -105,6 +106,9 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   TaskService taskService;
   @Mock
   ForgedAlliancePrefs forgedAlliancePrefs;
+  @Mock
+  ClientUpdateService clientUpdateService;
+
   private MainController instance;
 
   @Override
@@ -119,7 +123,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.sceneFactory = sceneFactory;
     instance.preferencesService = preferencesService;
     instance.portCheckService = portCheckService;
-    instance.patchService = patchService;
+    instance.gameUpdateService = gameUpdateService;
     instance.lobbyService = lobbyService;
     instance.chatService = chatService;
     instance.userService = userService;
@@ -136,9 +140,14 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.persistentNotificationsController = persistentNotificationsController;
     instance.notificationService = notificationService;
     instance.taskService = taskService;
+    instance.clientUpdateService = clientUpdateService;
 
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(leaderboardController.getRoot()).thenReturn(new Pane());
+    when(castsController.getRoot()).thenReturn(new Pane());
+    when(newsController.getRoot()).thenReturn(new Pane());
+    when(communityHubController.getRoot()).thenReturn(new Pane());
+
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(applicationContext.getBean(UserInfoWindowController.class)).thenReturn(userInfoWindowController);
     when(preferences.getMainWindow()).thenReturn(mainWindowPrefs);
@@ -158,7 +167,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     verify(chatService).connect();
     verify(portCheckService).checkGamePortInBackground();
-    verify(patchService).checkForUpdatesInBackground();
+    verify(gameUpdateService).checkForUpdateInBackground();
     verify(lobbyService).setOnFafConnectedListener(instance);
     verify(lobbyService).setOnLobbyConnectingListener(instance);
     verify(lobbyService).setOnFafDisconnectedListener(instance);
@@ -333,6 +342,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  @Ignore("CummintyHub is not yet available")
   public void testOnCommunityHubSelected() throws Exception {
     when(communityHubController.getRoot()).thenReturn(new Pane());
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.communityButton.getItems().get(0).fire());
@@ -341,13 +351,15 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnNewsSelected() throws Exception {
     when(newsController.getRoot()).thenReturn(new Pane());
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.communityButton.getItems().get(1).fire());
+    // TODO when community hub is added, this index needs to be 1
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.communityButton.getItems().get(0).fire());
   }
 
   @Test
   public void testOnCastsSelected() throws Exception {
     when(castsController.getRoot()).thenReturn(new Pane());
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.communityButton.getItems().get(2).fire());
+    // TODO when community hub is added, this index needs to be 2
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.communityButton.getItems().get(1).fire());
   }
 
   @Test

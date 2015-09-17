@@ -41,7 +41,7 @@ public class QStreamWriter extends Writer {
     out.close();
   }
 
-  private void writeInt32(int v) throws IOException {
+  public void writeInt32(int v) throws IOException {
     out.write((v >>> 24) & 0xFF);
     out.write((v >>> 16) & 0xFF);
     out.write((v >>> 8) & 0xFF);

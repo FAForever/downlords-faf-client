@@ -5,13 +5,13 @@ All the following applies to the content of a WebViews (chat, news), therefore i
 *****************/
 
 html, body {
-    /* TODO WebView does not yet allow transparency. As a workaround, we use a black background together with WebView set to blend mode LIGHTEN. */
-    background-color: black;
-    margin: 0;
-    padding: 0;
-    /* Use same as -fx-light-text-color */
-    color: #F5F5F5;
-    font-family: "Arial", "Tahoma", "sans-serif";
+  /* TODO JDK-8116513 WebView does not yet allow transparency. As a workaround, we use a black background together with WebView set to blend mode ADD. */
+  background-color: black;
+  margin: 0;
+  padding: 0;
+  /* Use same as -fx-light-text-color */
+  color: #F5F5F5;
+  font-family: "Segoe UI","Arial","Tahoma","sans-serif";
 }
 
 a {

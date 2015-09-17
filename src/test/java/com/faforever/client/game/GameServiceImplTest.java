@@ -10,19 +10,22 @@ import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
+import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.Callback;
+import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
@@ -50,6 +53,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.mapService = mock(MapService.class);
     instance.forgedAllianceService = mock(ForgedAllianceService.class);
     instance.proxy = mock(Proxy.class);
+    instance.gameUpdateService = mock(GameUpdateService.class);
 
     instance.postConstruct();
   }
@@ -65,6 +69,10 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   public void testJoinGameMapIsAvailable() throws Exception {
     GameInfoBean gameInfoBean = mock(GameInfoBean.class);
 
+    ObservableMap<String, String> simMods = FXCollections.observableHashMap();
+    simMods.put("123-456-789", "Fake mod name");
+
+    when(gameInfoBean.getSimMods()).thenReturn(simMods);
     when(gameInfoBean.getMapTechnicalName()).thenReturn("map");
 
     when(instance.mapService.isAvailable("map")).thenReturn(true);
@@ -72,7 +80,10 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> {
       callback.success(null);
       return null;
-    }).when(instance.lobbyServerAccessor).requestJoinGame(eq(gameInfoBean), eq(null), any(Callback.class));
+    }).when(instance.lobbyServerAccessor).requestJoinGame(eq(gameInfoBean), eq(null));
+
+    when(instance.gameUpdateService.updateInBackground(any(), any(), any(), any()))
+        .thenReturn(completedFuture(null));
 
     instance.joinGame(gameInfoBean, null, callback);
 
@@ -133,20 +144,15 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     GameLaunchInfo gameLaunchInfo = GameLaunchInfoBuilder.create().defaultValues().get();
     gameLaunchInfo.setArgs(Arrays.asList("/foo bar", "/bar foo"));
 
-    doAnswer((InvocationOnMock invocation) -> {
-      Callback<GameLaunchInfo> callback = (Callback<GameLaunchInfo>) invocation.getArguments()[1];
-      callback.success(gameLaunchInfo);
-      return null;
-    }).when(instance.lobbyServerAccessor).requestNewGame(eq(newGameInfo), any(Callback.class));
-
     when(instance.forgedAllianceService.startGame(
         eq(gameLaunchInfo.getUid()), eq(gameLaunchInfo.getMod()), eq(Arrays.asList("/foo", "bar", "/bar", "foo"))
     )).thenReturn(process);
+    when(instance.gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(instance.lobbyServerAccessor.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchInfo));
 
     instance.addOnGameStartedListener(listener);
-    instance.hostGame(newGameInfo, callback);
+    instance.hostGame(newGameInfo);
 
-    verify(callback).success(null);
     verify(listener).onGameStarted(gameLaunchInfo.getUid());
     verify(instance.lobbyServerAccessor).notifyGameStarted();
     verify(instance.forgedAllianceService).startGame(

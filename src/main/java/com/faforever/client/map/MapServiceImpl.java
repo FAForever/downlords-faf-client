@@ -1,6 +1,6 @@
 package com.faforever.client.map;
 
-import com.faforever.client.config.CacheKeys;
+import com.faforever.client.config.CacheNames;
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.map.Comment;
@@ -32,6 +32,8 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.zip.ZipInputStream;
 
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
@@ -58,7 +60,7 @@ public class MapServiceImpl implements MapService {
   I18n i18n;
 
   @Override
-  @Cacheable(CacheKeys.SMALL_MAP_PREVIEW)
+  @Cacheable(CacheNames.SMALL_MAP_PREVIEW)
   public Image loadSmallPreview(String mapName) {
     String url = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.small"));
 
@@ -68,7 +70,7 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  @Cacheable(CacheKeys.LARGE_MAP_PREVIEW)
+  @Cacheable(CacheNames.LARGE_MAP_PREVIEW)
   public Image loadLargePreview(String mapName) {
     String urlString = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.large"));
 
@@ -172,8 +174,22 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public void download(String mapName, Callback<Void> callback) {
+  public CompletionStage<Void> download(String mapName) {
     String taskTitle = i18n.get("mapDownloadTask.title", mapName);
+
+    CompletableFuture<Void> future = new CompletableFuture<>();
+    Callback<Void> callback = new Callback<Void>() {
+      @Override
+      public void success(Void result) {
+        future.complete(result);
+      }
+
+      @Override
+      public void error(Throwable e) {
+        future.completeExceptionally(e);
+      }
+    };
+
     taskService.submitTask(TaskGroup.NET_HEAVY, new PrioritizedTask<Void>(taskTitle) {
       @Override
       protected Void call() throws Exception {
@@ -197,6 +213,8 @@ public class MapServiceImpl implements MapService {
         return null;
       }
     }, callback);
+
+    return future;
   }
 
   @Override

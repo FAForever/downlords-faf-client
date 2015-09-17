@@ -38,6 +38,7 @@ import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,10 +82,10 @@ public class GamesController {
   Label numberOfPlayersLabel;
 
   @FXML
-  Label hosterLabel;
+  Label hostLabel;
 
   @FXML
-  Label gameModeLabel;
+  Label gameTypeLabel;
 
   @FXML
   VBox gamePreviewPanel;
@@ -122,14 +123,13 @@ public class GamesController {
   @Autowired
   NotificationService notificationService;
 
-
   private Popup createGamePopup;
   private Popup passwordPopup;
   private FilteredList<GameInfoBean> filteredItems;
   private Stage mapDetailPopup;
 
   //TODO Implement into options menu
-  private boolean tiledPaneSelected = false;
+  private boolean tilesPaneSelected = false;
   private boolean firstGeneratedPane = true;
   private GameInfoBean currentGameInfoBean;
 
@@ -171,14 +171,14 @@ public class GamesController {
 
   @FXML
   void onTableButtonPressed() {
-    if (tiledPaneSelected || isFirstGeneratedPane()) {
+    if (tilesPaneSelected || isFirstGeneratedPane()) {
       GamesTableController gamesTableController = applicationContext.getBean(GamesTableController.class);
       gamesTableController.initializeGameTable(filteredItems);
 
       Node root = gamesTableController.getRoot();
       populateContainer(root);
       firstGeneratedPane = false;
-      tiledPaneSelected = false;
+      tilesPaneSelected = false;
     }
   }
 
@@ -205,10 +205,21 @@ public class GamesController {
     });
 
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
-    hosterLabel.textProperty().bind(gameInfoBean.hostProperty());
-    gameModeLabel.textProperty().bind(gameInfoBean.featuredModProperty());
+    hostLabel.textProperty().bind(gameInfoBean.hostProperty());
     mapLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
+
+    gameInfoBean.featuredModProperty().addListener((observable, oldValue, newValue) -> {
+      updateGameType(newValue);
+    });
+    updateGameType(gameInfoBean.getFeaturedMod());
+    
     createTeams(gameInfoBean.getTeams());
+  }
+
+  private void updateGameType(String newValue) {
+    GameTypeBean gameType = gameService.getGameTypeByString(newValue);
+    String fullName = gameType != null ? gameType.getFullName() : null;
+    gameTypeLabel.setText(StringUtils.defaultString(fullName));
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber) {
@@ -282,15 +293,15 @@ public class GamesController {
   }
 
   @FXML
-  void onTileButtonPressed() {
-    if (!tiledPaneSelected || isFirstGeneratedPane()) {
+  void onTilesButtonPressed() {
+    if (!tilesPaneSelected || isFirstGeneratedPane()) {
       GamesTilesContainerController gamesTilesContainerController = applicationContext.getBean(GamesTilesContainerController.class);
       gamesTilesContainerController.createTiledFlowPane(filteredItems);
 
       Node root = gamesTilesContainerController.getRoot();
       populateContainer(root);
       firstGeneratedPane = false;
-      tiledPaneSelected = true;
+      tilesPaneSelected = true;
     }
   }
 

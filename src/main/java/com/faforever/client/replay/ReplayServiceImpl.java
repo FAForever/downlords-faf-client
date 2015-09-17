@@ -3,6 +3,7 @@ package com.faforever.client.replay;
 import com.faforever.client.game.FeaturedMod;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
+import com.faforever.client.game.GameType;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
@@ -51,6 +52,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 
 public class ReplayServiceImpl implements ReplayService {
 
@@ -236,15 +242,14 @@ public class ReplayServiceImpl implements ReplayService {
     } catch (IOException e) {
       logger.warn("Replay could not be started", e);
       notificationService.addNotification(new PersistentNotification(
-          i18n.get("replayCouldNotBeStarted", path.getFileName()),
-          Severity.ERROR,
+          i18n.get("replayCouldNotBeStarted.text", path.getFileName()),
+          Severity.WARN,
           Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(e)))
       ));
     }
   }
 
   private void runFafReplayFile(Path path) throws IOException {
-    String fileName = path.getFileName().toString();
     byte[] rawReplayBytes = replayFileReader.readReplayData(path);
 
     Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
@@ -253,19 +258,24 @@ public class ReplayServiceImpl implements ReplayService {
     Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
 
     LocalReplayInfo replayInfo = replayFileReader.readReplayInfo(path);
-    String featuredMod = replayInfo.getFeaturedMod();
+    String gameType = replayInfo.getFeaturedMod();
     Integer replayId = replayInfo.getUid();
-    Map<String, Integer> featuredModVersions = replayInfo.getFeaturedModVersions();
+    Map<String, Integer> modVersions = replayInfo.getFeaturedModVersions();
+    Set<String> simMods = replayInfo.getSimMods().keySet();
 
-    String version = parseSupComVersion(rawReplayBytes);
+    Integer version = parseSupComVersion(rawReplayBytes);
 
-    gameService.runWithReplay(tempSupComReplayFile, replayId);
+    gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods);
   }
 
   private void runSupComReplayFile(Path path) throws IOException {
+    byte[] rawReplayBytes = replayFileReader.readReplayData(path);
+
+    Integer version = parseSupComVersion(rawReplayBytes);
     String fileName = path.getFileName().toString();
-    String featuredMod = guessModByFileName(fileName);
-    gameService.runWithReplay(path, null);
+    String gameType = guessModByFileName(fileName);
+
+    gameService.runWithReplay(path, null, gameType, version, emptyMap(), emptySet());
   }
 
   private void runOnlineReplay(int replayId) {
@@ -323,9 +333,9 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @VisibleForTesting
-  static String parseSupComVersion(byte[] rawReplayBytes) {
+  static Integer parseSupComVersion(byte[] rawReplayBytes) {
     int versionDelimiterIndex = Bytes.indexOf(rawReplayBytes, (byte) 0x00);
-    return new String(rawReplayBytes, VERSION_OFFSET, versionDelimiterIndex - VERSION_OFFSET, StandardCharsets.US_ASCII);
+    return Integer.parseInt(new String(rawReplayBytes, VERSION_OFFSET, versionDelimiterIndex - VERSION_OFFSET, US_ASCII));
   }
 
   @VisibleForTesting
@@ -334,6 +344,6 @@ public class ReplayServiceImpl implements ReplayService {
     if (splitFileName.length > 2) {
       return splitFileName[splitFileName.length - 2];
     }
-    return FeaturedMod.DEFAULT_MOD.getString();
+    return GameType.DEFAULT.getString();
   }
 }
