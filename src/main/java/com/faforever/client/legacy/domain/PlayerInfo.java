@@ -15,9 +15,9 @@ public class PlayerInfo extends ServerMessage {
     private float ratingMean;
     private Integer numberOfGames;
     private float ratingDeviation;
-    private Double ladderRatingMean;
+    private float ladderRatingMean;
     private Map<String, String> league;
-    private Double ladderRatingDeviation;
+    private float ladderRatingDeviation;
 
     public String getClan() {
         return clan;
@@ -75,11 +75,11 @@ public class PlayerInfo extends ServerMessage {
         this.ratingDeviation = ratingDeviation;
     }
 
-    public Double getLadderRatingMean() {
+    public float getLadderRatingMean() {
         return ladderRatingMean;
     }
 
-    public void setLadderRatingMean(Double ladderRatingMean) {
+    public void setLadderRatingMean(float ladderRatingMean) {
         this.ladderRatingMean = ladderRatingMean;
     }
 
@@ -91,11 +91,11 @@ public class PlayerInfo extends ServerMessage {
         this.league = league;
     }
 
-    public Double getLadderRatingDeviation() {
+    public float getLadderRatingDeviation() {
         return ladderRatingDeviation;
     }
 
-    public void setLadderRatingDeviation(Double ladderRatingDeviation) {
+    public void setLadderRatingDeviation(float ladderRatingDeviation) {
         this.ladderRatingDeviation = ladderRatingDeviation;
     }
 }

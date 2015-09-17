@@ -7,6 +7,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+import javafx.scene.paint.Color;
 import org.pircbotx.Channel;
 import org.pircbotx.User;
 import org.pircbotx.UserLevel;
@@ -18,6 +19,8 @@ public class ChatUser {
 
   private StringProperty username;
   private SetProperty<String> moderatorInChannels;
+
+  private Color color;
 
   public ChatUser(String username) {
     this(username, new HashSet<>());
@@ -42,6 +45,14 @@ public class ChatUser {
 
   public StringProperty usernameProperty() {
     return username;
+  }
+
+  public Color getColor() {
+    return color;
+  }
+
+  public void setColor(Color color) {
+    this.color = color;
   }
 
   @Override

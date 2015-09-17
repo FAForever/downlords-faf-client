@@ -133,6 +133,9 @@ public class ChatController implements
   }
 
   public void openPrivateMessageTabForUser(String username) {
+    if (username.equals(userService.getUsername())) {
+      return;
+    }
     AbstractChatTabController controller = addAndGetPrivateMessageTab(username);
     chatsTabPane.getSelectionModel().select(controller.getRoot());
   }
@@ -146,6 +149,6 @@ public class ChatController implements
 
   @Override
   public void onJoinChannelsRequest(List<String> channelNames) {
-    Platform.runLater(() -> channelNames.forEach(this::addAndGetChannelTab));
+    channelNames.forEach(chatService::joinChannel);
   }
 }

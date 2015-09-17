@@ -80,27 +80,7 @@ a {
     max-width: 50%;
     text-align: right;
     white-space: nowrap;
-}
-
-.chat-message.self {
-    color: orange;
-}
-
-/*ugly color*/
-.chat-message.friend {
-    color: #00B7EB;
-}
-
-.chat-message.mod {
-    color: white;
-}
-
-.chat-message.others {
-    color: #BFBEBA;
-}
-
-.chat-message.irc {
-    color: #808080;
+    cursor: pointer;
 }
 
 .chat-message .time {

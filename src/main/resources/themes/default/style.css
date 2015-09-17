@@ -175,54 +175,17 @@
 
 /***************** ChatUser *****************/
 .chat-user-control-avatar:hover {
-  -fx-background-color: -fx-control-inner-background
+  -fx-background-color: -fx-control-inner-background;
 }
 
-.chat-user-control-country:hover {
-  -fx-background-color: -fx-control-inner-background
-}
-
-.chat-user-control-clan:hover {
-  -fx-background-color: -fx-control-inner-background
-}
-
-.chat-user-control-username:hover {
+.chat-user-control-username.chat-user-control-clan.chat-user-control-country:hover {
   -fx-background-radius: 1.5, 1.5, 1.5, 1.5;
   -fx-background-insets: 1.2, 1.2, 1.2, 1.2;
-  -fx-background-color: -fx-control-inner-background
+  -fx-background-color: -fx-control-inner-background;
 }
 
 .chat-user-control-status:hover {
-  -fx-background-color: -fx-control-inner-background
-}
-
-/***************** Channel Tab *****************/
-
-/* Message colors are not linked to user color,
-update corresponding selectors in style-webview */
-
-.channel-tab-moderators-title {
-  -fx-text-fill: white;
-}
-
-.channel-tab-friends-title {
-  -fx-text-fill: #00B7EB;
-}
-
-.channel-tab-friends-users {
-  -fx-text-fill: #00B7EB;
-}
-
-.channel-tab-others-title {
-  -fx-text-fill: #BFBEBA;
-}
-
-.channel-tab-irc-title {
-  -fx-text-fill: #808080;
-}
-
-.channel-tab-foes-title {
-  -fx-text-fill: red;
+  -fx-background-color: -fx-control-inner-background;
 }
 
 /***************** Headings *****************/
@@ -633,6 +596,12 @@ update corresponding selectors in style-webview */
   -fx-margin : 50, 50, 50, 50;
 }
 
+/***************** Played Card Tooltip*****************/
+
+.player-card-tooltip {
+  -fx-padding: 5, 10, 5, 10;
+}
+
 /***************** Progress bar *****************/
 
 .progress-bar {
@@ -701,6 +670,28 @@ update corresponding selectors in style-webview */
 /***************** Game Tooltip *****************/
 
 .game-tooltip {
+  -fx-font-size: 1.2em;
+}
+
+.game-tile-root .prefix {
+  -fx-text-fill: -fx-dark-text-color;
+  -fx-font-style: italic;
+}
+
+/***************** Game Status Tooltip *****************/
+
+.game-status-tooltip-mapname {
+  -fx-padding: 5px, 5px, 2px, 2px;
+  -fx-font-size: 1.2em;
+}
+
+.game-status-tooltip-gametitle {
+  -fx-padding: 5px, 5px, 2px, 2px;
+  -fx-font-size: 1.2em;
+}
+
+.game-status-tooltip-featuredmod {
+  -fx-padding: 5px, 5px, 2px, 2px;
   -fx-font-size: 1.2em;
 }
 

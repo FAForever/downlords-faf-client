@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.fx.HostService;
+import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -72,7 +73,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   PlayerService playerService;
 
   @Mock
-  PlayerInfoTooltipController playerInfoTooltipController;
+  PlayerCardTooltipController playerCardTooltipController;
 
   @Mock
   HostService hostService;
@@ -120,7 +121,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.userService = userService;
     instance.preferencesService = preferencesService;
     instance.playerService = playerService;
-    instance.playerInfoTooltipController = playerInfoTooltipController;
+    instance.playerCardTooltipController = playerCardTooltipController;
     instance.hostService = hostService;
     instance.urlPreviewResolver = urlPreviewResolver;
     instance.timeService = timeService;
@@ -135,7 +136,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getCacheDirectory()).thenReturn(tempDir.getRoot().toPath());
     when(preferences.getTheme()).thenReturn("default");
-    when(preferences.getChat()).thenReturn(chatPrefs);
+    when(preferences.getChatPrefs()).thenReturn(chatPrefs);
 
     chatReadyLatch = new CountDownLatch(1);
     instance.getMessagesWebView().getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
@@ -221,12 +222,12 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String playerName = "somePlayer";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
     when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
-    when(playerInfoTooltipController.getRoot()).thenReturn(new Pane());
+    when(playerCardTooltipController.getRoot()).thenReturn(new Pane());
 
     WaitForAsyncUtils.waitForAsyncFx(100, () -> instance.playerInfo(playerName));
 
     verify(playerService).getPlayerForUsername(playerName);
-    verify(playerInfoTooltipController).setPlayerInfoBean(eq(playerInfoBean));
+    verify(playerCardTooltipController).setPlayer(eq(playerInfoBean));
   }
 
   @Test
@@ -239,7 +240,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String playerName = "somePlayer";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
     when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
-    when(playerInfoTooltipController.getRoot()).thenReturn(new Pane());
+    when(playerCardTooltipController.getRoot()).thenReturn(new Pane());
 
     WaitForAsyncUtils.waitForAsyncFx(100, () -> {
       instance.playerInfo(playerName);

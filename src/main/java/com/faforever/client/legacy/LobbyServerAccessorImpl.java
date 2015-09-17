@@ -484,6 +484,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     } else if (socialInfo.getFoes() != null) {
       onFoeListListener.onFoeList(socialInfo.getFoes());
     } else if (socialInfo.getAutoJoin() != null) {
+
       onJoinChannelsRequestListeners.forEach(listener -> listener.onJoinChannelsRequest(socialInfo.getAutoJoin()));
     }
   }

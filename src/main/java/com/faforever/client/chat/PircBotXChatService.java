@@ -13,10 +13,14 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.scene.paint.Color;
+import org.pircbotx.Channel;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
+import org.pircbotx.UserLevel;
 import org.pircbotx.UtilSSLSocketFactory;
+import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.Listener;
 import org.pircbotx.hooks.events.ActionEvent;
@@ -42,14 +46,17 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 
 import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 import static java.lang.String.format;
+import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.synchronizedObservableMap;
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
@@ -71,6 +78,9 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
    * Maps channel names to a map containing chat users, indexed by their login name.
    */
   private final ObservableMap<String, ObservableMap<String, ChatUser>> chatUserLists;
+
+  //FIXME this shouldn't be here
+  private final Collection<Color> assignedColors;
 
   @Autowired
   Environment environment;
@@ -95,10 +105,13 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   private boolean initialized;
   private String defaultChannelName;
   private Service<Void> connectionService;
+  private CountDownLatch ircConnectedLatch;
+
 
   public PircBotXChatService() {
     eventListeners = new ConcurrentHashMap<>();
     chatUserLists = observableHashMap();
+    assignedColors = observableArrayList();
   }
 
   @Override
@@ -155,7 +168,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   private Map<String, ChatUser> chatUsers(ImmutableSortedSet<User> users) {
     Map<String, ChatUser> chatUsers = new HashMap<>();
     for (User user : users) {
-      ChatUser chatUser = ChatUser.fromIrcUser(user);
+      ChatUser chatUser = createOrGetChatUser(user);
       chatUsers.put(chatUser.getUsername(), chatUser);
     }
     return chatUsers;
@@ -231,7 +244,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       User user = event.getUser();
       listener.onUserJoinedChannel(
           event.getChannel().getName(),
-          ChatUser.fromIrcUser(user)
+          createOrGetChatUser(user)
       );
     });
   }
@@ -266,9 +279,10 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       protected Void call() throws Exception {
         while (!isCancelled()) {
           try {
+            ircConnectedLatch = new CountDownLatch(1);
             logger.info("Connecting to IRC at {}:{}", configuration.getServerHostname(), configuration.getServerPort());
             pircBotX.startBot();
-          } catch (IOException e) {
+          } catch (IOException | IrcException e) {
             int reconnectDelay = environment.getProperty("irc.reconnectDelay", int.class);
             logger.warn("Lost connection to IRC server, trying to reconnect in " + reconnectDelay / 1000 + "s");
             Thread.sleep(reconnectDelay);
@@ -349,6 +363,11 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void joinChannel(String channelName) {
+    try {
+      ircConnectedLatch.await();
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
     pircBotX.sendIRC().joinChannel(channelName);
   }
 
@@ -387,6 +406,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       @Override
       public void success(String message) {
         pircBotX.sendIRC().joinChannel(defaultChannelName);
+        ircConnectedLatch.countDown();
       }
 
       @Override
@@ -426,4 +446,42 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     }
     chatUser.getModeratorInChannels().add(channelName);
   }
+
+  @Override
+  public Collection<Color> getAssignedColors() {
+    return assignedColors;
+  }
+
+  @Override
+  public ImmutableSortedSet<Channel> getChannelsForUser(String username) {
+    return pircBotX.getUserChannelDao().getChannels(pircBotX.getUserChannelDao().getUser(username));
+  }
+
+  @Override
+  public ChatUser getChatUser(String username) {
+    for (String channel : chatUserLists.keySet()) {
+      if (chatUserLists.get(channel).containsKey(username)) {
+        return chatUserLists.get(channel).get(username);
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public ChatUser createOrGetChatUser(User user) {
+    ChatUser chatUser = getChatUser(user.getNick());
+    if(chatUser != null){
+      return chatUser;
+    } else {
+      return ChatUser.fromIrcUser(user);
+    }
+  }
+
+  @Override
+  public ImmutableSortedSet<UserLevel> getLevelsForChatUser(Channel channel, String username) {
+    User user = pircBotX.getUserChannelDao().getUser(username);
+    ImmutableSortedSet<UserLevel> levels = pircBotX.getUserChannelDao().getLevels(channel, user);
+    return levels;
+  }
+
 }

@@ -3,8 +3,10 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.HostService;
+import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
@@ -28,13 +30,14 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import netscape.javascript.JSObject;
-import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.pircbotx.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +49,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
@@ -56,6 +58,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -76,12 +79,6 @@ public abstract class AbstractChatTabController {
   private static final Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
-  private static final String FRIEND_CSS_CLASS = "friend";
-  private static final String MOD_CSS_CLASS = "mod";
-  private static final String IRC_CSS_CLASS = "irc";
-  private static final String OTHERS_CSS_CLASS = "others";
-  private static final String CSS_STYLE_SELF = "self";
-
   /**
    * This is the member name within the JavaScript code that provides access to this chat tab instance.
    */
@@ -98,7 +95,7 @@ public abstract class AbstractChatTabController {
   /**
    * Maps a user name to a css style class.
    */
-  private final Map<String, String> userToCssStyle;
+  private final Map<String, Color> userToCssStyle;
   @Autowired
   UserService userService;
   @Autowired
@@ -114,13 +111,15 @@ public abstract class AbstractChatTabController {
   @Autowired
   TimeService timeService;
   @Autowired
-  PlayerInfoTooltipController playerInfoTooltipController;
+  PlayerCardTooltipController playerCardTooltipController;
   @Autowired
   I18n i18n;
   @Autowired
   ImageUploadService imageUploadService;
   @Autowired
   UrlPreviewResolver urlPreviewResolver;
+  @Autowired
+  ChatController chatController;
   private boolean isChatReady;
   private WebEngine engine;
   private double lastMouseX;
@@ -143,8 +142,9 @@ public abstract class AbstractChatTabController {
   private int nextAutoCompleteIndex;
   private String autoCompletePartialName;
   private Pattern mentionPattern;
-  private Popup playerInfoTooltip;
+  private Popup playerCardTooltip;
   private Tooltip linkPreviewTooltip;
+  private ChatPrefs chatPrefs;
 
   public AbstractChatTabController() {
     userToCssStyle = new HashMap<>();
@@ -157,7 +157,8 @@ public abstract class AbstractChatTabController {
 
   @PostConstruct
   void postConstruct() {
-    userToCssStyle.put(userService.getUsername(), CSS_STYLE_SELF);
+    chatPrefs = preferencesService.getPreferences().getChatPrefs();
+    userToCssStyle.put(userService.getUsername(), chatPrefs.getSelfChatColor());
     mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b");
 
     initChatView();
@@ -172,11 +173,11 @@ public abstract class AbstractChatTabController {
 
     messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
     messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
+      preferencesService.getPreferences().getChatPrefs().setZoom(newValue.doubleValue());
       preferencesService.storeInBackground();
     });
 
-    Double zoom = preferencesService.getPreferences().getChat().getZoom();
+    Double zoom = preferencesService.getPreferences().getChatPrefs().getZoom();
     if (zoom != null) {
       messagesWebView.setZoom(zoom);
     }
@@ -186,7 +187,12 @@ public abstract class AbstractChatTabController {
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
       if (Worker.State.SUCCEEDED.equals(newValue)) {
         synchronized (waitingMessages) {
-          waitingMessages.forEach(this::appendMessage);
+          waitingMessages.forEach(new Consumer<ChatMessage>() {
+            @Override
+            public void accept(ChatMessage chatMessage) {
+              AbstractChatTabController.this.appendMessage(chatMessage);
+            }
+          });
           waitingMessages.clear();
           isChatReady = true;
         }
@@ -299,23 +305,33 @@ public abstract class AbstractChatTabController {
       return;
     }
 
-    playerInfoTooltipController.setPlayerInfoBean(playerInfoBean);
+    playerCardTooltipController.setPlayer(playerInfoBean);
 
-    playerInfoTooltip = new Popup();
-    playerInfoTooltip.getContent().setAll(playerInfoTooltipController.getRoot());
-    playerInfoTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
-    playerInfoTooltip.show(getRoot().getTabPane(), lastMouseX, lastMouseY - 10);
+    playerCardTooltip = new Popup();
+    playerCardTooltip.getContent().setAll(playerCardTooltipController.getRoot());
+    playerCardTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
+    playerCardTooltip.show(getRoot().getTabPane(), lastMouseX, lastMouseY - 10);
   }
 
   /**
    * Called from JavaScript when user no longer hovers over a user name.
    */
   public void hidePlayerInfo() {
-    if (playerInfoTooltip == null) {
+    if (playerCardTooltip == null) {
       return;
     }
-    playerInfoTooltip.hide();
-    playerInfoTooltip = null;
+    playerCardTooltip.hide();
+    playerCardTooltip = null;
+  }
+
+  /**
+   * Called from JavaScript when user no longer hovers over a user name.
+   */
+  public void messagePlayerFromChat(String username) {
+    if (playerCardTooltip == null) {
+      return;
+    }
+    chatController.openPrivateMessageTabForUser(username);
   }
 
   /**
@@ -522,7 +538,7 @@ public abstract class AbstractChatTabController {
   }
 
   private void removeTopmostMessages() {
-    int maxMessageItems = preferencesService.getPreferences().getChat().getMaxMessages();
+    int maxMessageItems = preferencesService.getPreferences().getChatPrefs().getMaxMessages();
 
     int numberOfMessages = (int) engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "').length");
     while (numberOfMessages > maxMessageItems) {
@@ -569,7 +585,7 @@ public abstract class AbstractChatTabController {
       Collection<String> cssClasses = new ArrayList<>();
 
       if (userToCssStyle.containsKey(login)) {
-        cssClasses.add(userToCssStyle.get(login));
+        cssClasses.add(userToCssStyle.get(login).toString());
       }
 
       if (chatMessage.isAction()) {
@@ -577,24 +593,64 @@ public abstract class AbstractChatTabController {
       } else {
         cssClasses.add(MESSAGE_CSS_CLASS);
       }
-
       PlayerInfoBean playerInfo = playerService.getPlayerForUsername(chatMessage.getUsername());
 
-      if (playerInfo != null && playerInfo.getModeratorInChannels().size() > 0) {
-        cssClasses.add(MOD_CSS_CLASS);
-      } else if (playerInfo != null && playerInfo.isFriend()) {
-        cssClasses.add(FRIEND_CSS_CLASS);
-      } else if (playerInfo.isChatOnly()) {
-        cssClasses.add(IRC_CSS_CLASS);
-      } else {
-        cssClasses.add(OTHERS_CSS_CLASS);
-      }
+      assignPlayerColor(cssClasses, playerInfo);
 
       html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
 
       addToMessageContainer(html);
+
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private void assignPlayerColor(Collection<String> cssClasses, PlayerInfoBean playerInfo) {
+    if (playerInfo == null) {
+      return;
+    }
+
+    //Mods, friends and foes are never randomly generated
+    String messageColor = "";
+    if (playerInfo.getModeratorInChannels() != null && playerInfo.getModeratorInChannels().size() > 0) {
+      //TODO this is here because there is no straight forward way to know what channel the message came from
+      for (Channel channel : chatService.getChannelsForUser(userService.getUsername())) {
+        if (chatService.getLevelsForChatUser(channel, playerInfo.getUsername()).size() > 0) {
+          messageColor = chatPrefs.getModsChatColor().toString();
+        }
+      }
+    } else if (playerInfo.isFriend()) {
+      messageColor = chatPrefs.getFriendsChatColor().toString();
+    } else if (playerInfo.isFoe()) {
+      messageColor = chatPrefs.getFoesChatColor().toString();
+    }
+
+    //
+    if (!chatPrefs.getPrettyColors() && messageColor.equals("")) {
+      if (playerInfo.isChatOnly()) {
+        messageColor = chatPrefs.getIrcChatColor().toString();
+      } else if (!playerInfo.getUsername().equals(userService.getUsername())) {
+        messageColor = chatPrefs.getOthersChatColor().toString();
+      }
+    }
+
+    if (messageColor.equals("")) {
+      if (playerInfo.getUsername().equals(userService.getUsername())) {
+        messageColor = chatPrefs.getSelfChatColor().toString();
+      } else {
+        ChatUser chatUser = chatService.getChatUser(playerInfo.getUsername());
+        /*if chatUser is null the message is lost, this happens when application is just initialized and the message is received before
+        the user is registered to chatService*/
+        if (chatUser != null) {
+          //FIXME chat user doesn't always have color even though it should
+          logger.debug("User {}", chatUser.getUsername());
+          messageColor = chatUser.getColor().toString();
+        }
+      }
+    }
+    if(messageColor != null) {
+      cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));
     }
   }
 

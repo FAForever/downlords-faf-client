@@ -34,7 +34,6 @@ public class GameInfoBean {
   private final StringProperty host;
   private final StringProperty title;
   private final StringProperty mapTechnicalName;
-  private final StringProperty mapDisplayName;
   private final StringProperty featuredMod;
   private final ObjectProperty<GameAccess> access;
   private final IntegerProperty uid;
@@ -62,7 +61,6 @@ public class GameInfoBean {
     uid = new SimpleIntegerProperty();
     host = new SimpleStringProperty();
     title = new SimpleStringProperty();
-    mapDisplayName = new SimpleStringProperty();
     mapTechnicalName = new SimpleStringProperty();
     featuredMod = new SimpleStringProperty();
     access = new SimpleObjectProperty<>();

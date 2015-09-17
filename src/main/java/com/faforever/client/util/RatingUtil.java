@@ -15,20 +15,28 @@ public final class RatingUtil {
     // Utility class
   }
 
-  public static int getRating(PlayerInfo playerInfo) {
+  public static int getGlobalRating(PlayerInfo playerInfo) {
     return getRating(playerInfo.getRatingMean(), playerInfo.getRatingDeviation());
+  }
+
+  public static int getLadderRating(PlayerInfo playerInfo) {
+    return getRating(playerInfo.getLadderRatingMean(), playerInfo.getLadderRatingDeviation());
+  }
+
+  public static int getLadderRating(PlayerInfoBean playerInfoBean) {
+    return getRating(playerInfoBean.getLadderRatingMean(), playerInfoBean.getLadderRatingDeviation());
   }
 
   private static int getRating(float ratingMean, float ratingDeviation) {
     return (int) (ratingMean - 3 * ratingDeviation);
   }
 
-  public static int getRating(RatingInfo ratingInfo) {
+  public static int getGlobalRating(RatingInfo ratingInfo) {
     return getRating(ratingInfo.getMean(), ratingInfo.getDev());
   }
 
-  public static int getRating(PlayerInfoBean playerInfo) {
-    return getRating(playerInfo.getMean(), playerInfo.getDeviation());
+  public static int getGlobalRating(PlayerInfoBean playerInfo) {
+    return getRating(playerInfo.getGlobalRatingMean(), playerInfo.getGlobalRatingDeviation());
   }
 
   public static String extractRating(String title) {

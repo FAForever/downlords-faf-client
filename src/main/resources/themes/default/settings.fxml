@@ -15,8 +15,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="settingsRoot" maxHeight="1.7976931348623157E308"
-      xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.preferences.SettingsController">
+<VBox fx:id="settingsRoot" maxHeight="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.40"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.preferences.SettingsController">
   <children>
     <HBox styleClass="settings-head">
       <children>
@@ -70,6 +70,9 @@
                         <Label text="%settings.chat.previews"/>
                         <CheckBox fx:id="imagePreviewCheckBox" mnemonicParsing="false"
                                   text="%settings.chat.previewImages"/>
+                        <Label text="%settings.chat.colors"/>
+                        <CheckBox fx:id="prettyColorsCheckBox" mnemonicParsing="false"
+                                  text="%settings.chat.prettyColors"/>
                       </children>
                     </VBox>
                   </content>
@@ -120,8 +123,7 @@
                   <content>
                     <VBox>
                       <children>
-                        <CheckBox fx:id="enableSoundsCheckBox" mnemonicParsing="false"
-                                  text="%settings.sounds.enable"/>
+                        <CheckBox fx:id="enableSoundsCheckBox" mnemonicParsing="false" text="%settings.sounds.enable"/>
                       </children>
                     </VBox>
                   </content>
@@ -154,8 +156,8 @@
                                   GridPane.columnIndex="1" GridPane.rowIndex="1"/>
                         <CheckBox fx:id="displayFriendOfflineToastCheckBox" mnemonicParsing="false"
                                   GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-                        <CheckBox fx:id="playFriendOnlineSoundCheckBox" mnemonicParsing="false"
-                                  GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                        <CheckBox fx:id="playFriendOnlineSoundCheckBox" mnemonicParsing="false" GridPane.columnIndex="2"
+                                  GridPane.rowIndex="1"/>
                         <CheckBox fx:id="playFriendOfflineSoundCheckBox" mnemonicParsing="false"
                                   GridPane.columnIndex="2" GridPane.rowIndex="2"/>
                         <CheckBox fx:id="displayFriendJoinsGameToastCheckBox" mnemonicParsing="false"

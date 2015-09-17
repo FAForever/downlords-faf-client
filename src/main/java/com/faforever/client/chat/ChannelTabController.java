@@ -1,9 +1,14 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.SetChangeListener;
@@ -13,11 +18,15 @@ import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -30,6 +39,18 @@ public class ChannelTabController extends AbstractChatTabController {
    * Keeps track of which ChatUserControl in which pane belongs to which user.
    */
   private final Map<String, Map<Pane, ChatUserControl>> userToChatUserControls;
+  @FXML
+  VBox channelTabScrollPaneVBox;
+  @FXML
+  TitledPane moderatorsTitlePane;
+  @FXML
+  TitledPane friendsTitlePane;
+  @FXML
+  TitledPane othersTitlePane;
+  @FXML
+  TitledPane ircTitlePane;
+  @FXML
+  TitledPane foesTitlePane;
   @FXML
   Tab channelTabRoot;
   @FXML
@@ -50,6 +71,10 @@ public class ChannelTabController extends AbstractChatTabController {
   TextField messageTextField;
   @Autowired
   ApplicationContext applicationContext;
+  @Autowired
+  PreferencesService preferencesService;
+  @Autowired
+  I18n i18n;
   private String channelName;
 
   public ChannelTabController() {
@@ -59,9 +84,14 @@ public class ChannelTabController extends AbstractChatTabController {
   public void setChannelName(String channelName) {
     super.setReceiver(channelName);
     this.channelName = channelName;
-
     channelTabRoot.setId(channelName);
     channelTabRoot.setText(channelName);
+
+
+    userSearchTextField.setPromptText(i18n.get("chat.userCount", chatService.getChatUsersForChannel(channelName).size()));
+    chatService.getChatUsersForChannel(channelName).addListener((MapChangeListener<? super String, ? super ChatUser>) change -> {
+      Platform.runLater(() -> userSearchTextField.setPromptText(i18n.get("chat.userCount", change.getMap().size())));
+    });
 
     chatService.addChannelUserListListener(channelName, change -> {
       if (change.wasAdded()) {
@@ -105,6 +135,30 @@ public class ChannelTabController extends AbstractChatTabController {
   void initialize() {
     userSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       filterChatUserControlsBySearchString();
+    });
+  }
+
+  @PostConstruct
+  void init() {
+    assignColors();
+    channelTabScrollPaneVBox.setMinWidth(preferencesService.getPreferences().getChatPrefs().getChannelTabScrollPaneWidth());
+    channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChatPrefs().getChannelTabScrollPaneWidth());
+  }
+
+  private void assignColors() {
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChatPrefs();
+    addColorListenerToLabels(chatPrefs.friendsChatColorProperty(), friendsTitlePane);
+    addColorListenerToLabels(chatPrefs.foesChatColorProperty(), foesTitlePane);
+    addColorListenerToLabels(chatPrefs.modsChatColorProperty(), moderatorsTitlePane);
+    addColorListenerToLabels(chatPrefs.ircChatColorProperty(), ircTitlePane);
+    addColorListenerToLabels(chatPrefs.othersChatColorProperty(), othersTitlePane);
+
+  }
+
+  private void addColorListenerToLabels(ObjectProperty<Color> colorProperty, TitledPane pane) {
+    pane.setTextFill(colorProperty.get());
+    colorProperty.addListener((observable, oldValue, newValue) -> {
+      pane.setTextFill(newValue);
     });
   }
 
@@ -282,7 +336,7 @@ public class ChannelTabController extends AbstractChatTabController {
       String username1 = chatUserControl.getPlayerInfoBean().getUsername();
       String username2 = ((ChatUserControl) child).getPlayerInfoBean().getUsername();
 
-      if (username1.compareTo(username2) < 0) {
+      if (username1.compareToIgnoreCase(username2) < 0) {
         children.add(children.indexOf(child), chatUserControl);
         return;
       }

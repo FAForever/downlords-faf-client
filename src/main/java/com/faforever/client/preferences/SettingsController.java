@@ -17,6 +17,9 @@ import java.text.NumberFormat;
 public class SettingsController {
 
   @FXML
+  CheckBox prettyColorsCheckBox;
+
+  @FXML
   TextField gamePortTextField;
 
   @FXML
@@ -105,9 +108,11 @@ public class SettingsController {
     themeComboBox.setItems(FXCollections.singletonObservableList("Default"));
 
     rememberLastTabCheckBox.selectedProperty().bindBidirectional(preferences.rememberLastTabProperty());
-    maxMessagesTextField.textProperty().bindBidirectional(preferences.getChat().maxMessagesProperty(), new NumberStringConverter(integerNumberFormat));
-    imagePreviewCheckBox.selectedProperty().bindBidirectional(preferences.getChat().previewImageUrlsProperty());
+    maxMessagesTextField.textProperty().bindBidirectional(preferences.getChatPrefs().maxMessagesProperty(), new NumberStringConverter(integerNumberFormat));
+    imagePreviewCheckBox.selectedProperty().bindBidirectional(preferences.getChatPrefs().previewImageUrlsProperty());
     enableToastsCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().toastsEnabledProperty());
+
+    prettyColorsCheckBox.selectedProperty().bindBidirectional(preferences.getChatPrefs().prettyColorsProperty());
 
     displayFriendOnlineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().displayFriendOnlineToastProperty());
     displayFriendOfflineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().displayFriendOfflineToastProperty());

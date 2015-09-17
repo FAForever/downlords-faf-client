@@ -5,6 +5,7 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.preferences.gson.ColorTypeAdapter;
 import com.faforever.client.preferences.gson.PathTypeAdapter;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
 import com.faforever.client.util.Callback;
@@ -14,6 +15,7 @@ import com.google.gson.GsonBuilder;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
 import javafx.beans.property.Property;
+import javafx.scene.paint.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -107,6 +109,7 @@ public class PreferencesService {
         .setPrettyPrinting()
         .registerTypeHierarchyAdapter(Property.class, new PropertyTypeAdapter())
         .registerTypeHierarchyAdapter(Path.class, new PathTypeAdapter())
+        .registerTypeHierarchyAdapter(Color.class, new ColorTypeAdapter())
         .create();
   }
 

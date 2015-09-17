@@ -13,7 +13,7 @@ import com.faforever.client.chat.ChatUserContextMenuController;
 import com.faforever.client.chat.ChatUserControl;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.CountryFlagServiceImpl;
-import com.faforever.client.chat.PlayerInfoTooltipController;
+import com.faforever.client.chat.GameStatusTooltipController;
 import com.faforever.client.chat.PrivateChatTabController;
 import com.faforever.client.chat.UrlPreviewResolver;
 import com.faforever.client.chat.UrlPreviewResolverImpl;
@@ -180,6 +180,12 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  GameStatusTooltipController gameStatusContainerTooltipController() {
+    return loadController("game_status_tooltip.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   CommentCardController commentCardController() {
     return loadController("comment_card.fxml");
   }
@@ -249,11 +255,6 @@ public class UiConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   ChatUserControl chatUserControl() {
     return new ChatUserControl();
-  }
-
-  @Bean
-  PlayerInfoTooltipController playerInfoTooltipController() {
-    return loadController("player_info_tooltip.fxml");
   }
 
   @Bean

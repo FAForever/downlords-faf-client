@@ -2,12 +2,20 @@ package com.faforever.client.chat;
 
 import com.faforever.client.legacy.OnJoinChannelsRequestListener;
 import com.faforever.client.util.Callback;
+import com.google.common.collect.ImmutableSortedSet;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
+import javafx.scene.paint.Color;
+import org.pircbotx.Channel;
+import org.pircbotx.User;
+import org.pircbotx.UserLevel;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ChatService {
+
+  Collection<Color> getAssignedColors();
 
   void addOnMessageListener(OnChatMessageListener listener);
 
@@ -37,6 +45,8 @@ public interface ChatService {
    */
   ObservableMap<String, ChatUser> getChatUsersForChannel(String channelName);
 
+  ChatUser getChatUser(String username);
+
   void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener);
 
   void leaveChannel(String channelName);
@@ -53,4 +63,10 @@ public interface ChatService {
   boolean isDefaultChannel(String channelName);
 
   void close();
+
+  ImmutableSortedSet<Channel> getChannelsForUser(String username);
+
+  ChatUser createOrGetChatUser(User user);
+
+  ImmutableSortedSet<UserLevel> getLevelsForChatUser(Channel channel, String username);
 }

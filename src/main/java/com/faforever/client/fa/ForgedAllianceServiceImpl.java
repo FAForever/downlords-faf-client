@@ -40,8 +40,8 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .uid(uid)
         .clan(currentPlayer.getClan())
         .country(currentPlayer.getCountry())
-        .deviation(currentPlayer.getDeviation())
-        .mean(currentPlayer.getMean())
+        .deviation(currentPlayer.getGlobalRatingDeviation())
+        .mean(currentPlayer.getGlobalRatingMean())
         .username(currentPlayer.getUsername())
         .additionalArgs(additionalArgs)
             // FIXME fix the path
