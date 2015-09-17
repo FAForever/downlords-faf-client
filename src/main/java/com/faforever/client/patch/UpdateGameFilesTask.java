@@ -67,6 +67,7 @@ public class UpdateGameFilesTask extends PrioritizedTask<Void> implements Update
   private String targetVersion;
   private ObservableList<String> filesToUpdate;
   private Map<String, Integer> modVersions;
+  private int numberOfFilesToUpdate;
 
   @PostConstruct
   public void postConstruct() {
@@ -156,10 +157,13 @@ public class UpdateGameFilesTask extends PrioritizedTask<Void> implements Update
         });
 
     filesToUpdate = FXCollections.observableList(filesToUpdateFuture.get(TIMEOUT, TIMEOUT_UNIT));
-    updateFiles(gameType, targetDirectoryName, fileGroup, targetVersion, modVersions, filesToUpdate);
+    requestFiles(targetDirectoryName, fileGroup);
+
+    numberOfFilesToUpdate = filesToUpdate.size();
 
     CountDownLatch filesUpdatedLatch = new CountDownLatch(1);
     filesToUpdate.addListener((Observable observable) -> {
+      updateProgress();
       if (filesToUpdate.isEmpty()) {
         filesUpdatedLatch.countDown();
       }
@@ -177,9 +181,8 @@ public class UpdateGameFilesTask extends PrioritizedTask<Void> implements Update
     updateServerAccessor.incrementModDownloadCount(uid);
   }
 
-  private void updateFiles(String gameType, String targetDirectoryName, String fileGroup, String targetVersion, Map<String, Integer> modVersions, List<String> filesToUpdate) throws IOException {
+  private void requestFiles(String targetDirectoryName, String fileGroup) throws IOException {
     this.targetDirectoryName = targetDirectoryName;
-    this.targetVersion = targetVersion;
     Path targetDirectory = preferencesService.getFafDataDirectory().resolve(targetDirectoryName);
 
     synchronized (FILES_TO_UPDATE_LOCK) {
@@ -214,6 +217,11 @@ public class UpdateGameFilesTask extends PrioritizedTask<Void> implements Update
         }
       }
     }
+  }
+
+  private void updateProgress() {
+    updateTitle(i18n.get("updatingGameTask.updatingFile", numberOfFilesToUpdate - filesToUpdate.size(), numberOfFilesToUpdate));
+    updateProgress(numberOfFilesToUpdate - filesToUpdate.size(), numberOfFilesToUpdate);
   }
 
   @Override
@@ -268,6 +276,22 @@ public class UpdateGameFilesTask extends PrioritizedTask<Void> implements Update
     updateServerAccessor.request(targetDirectoryName, response);
   }
 
+  private void applyPatch(Path patchFile, Path targetFile) throws IOException {
+    Path oldFile = targetFile.getParent().resolve(targetFile.getFileName().toString() + ".old");
+    Files.move(targetFile, oldFile);
+
+    try {
+      VcdiffDecoder.decode(oldFile.toFile(), patchFile.toFile(), targetFile.toFile());
+    } catch (VcdiffDecodeException e) {
+      Files.delete(targetFile);
+      Files.move(oldFile, targetFile);
+      throw new IOException(e);
+    }
+
+    Files.delete(oldFile);
+    Files.delete(patchFile);
+  }
+
   private void downloadFile(URL url, Path targetFile) throws IOException {
     logger.debug("Downloading file {} to {}", url, targetFile);
 
@@ -290,22 +314,6 @@ public class UpdateGameFilesTask extends PrioritizedTask<Void> implements Update
         logger.warn("Could not delete temporary file: " + tempFile.toAbsolutePath(), e);
       }
     }
-  }
-
-  private void applyPatch(Path patchFile, Path targetFile) throws IOException {
-    Path oldFile = targetFile.getParent().resolve(targetFile.getFileName().toString() + ".old");
-    Files.move(targetFile, oldFile);
-
-    try {
-      VcdiffDecoder.decode(oldFile.toFile(), patchFile.toFile(), targetFile.toFile());
-    } catch (VcdiffDecodeException e) {
-      Files.delete(targetFile);
-      Files.move(oldFile, targetFile);
-      throw new IOException(e);
-    }
-
-    Files.delete(oldFile);
-    Files.delete(patchFile);
   }
 
   public void setSimMods(Set<String> simMods) {
