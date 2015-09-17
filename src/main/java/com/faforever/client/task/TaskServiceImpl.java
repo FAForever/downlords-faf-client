@@ -2,17 +2,18 @@ package com.faforever.client.task;
 
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.PriorityBlockingQueue;
 
 public class TaskServiceImpl implements TaskService {
@@ -27,15 +28,19 @@ public class TaskServiceImpl implements TaskService {
   /**
    * Since there is no observable queue in JavaFX, these lists serve as target for queue listeners.
    */
-  private final Map<TaskGroup, ObservableList<PrioritizedTask<?>>> queueListsByGroup;
+  private final Map<TaskGroup, SortedSet<PrioritizedTask<?>>> queueListsByGroup;
+
+  private final Map<TaskGroup, Collection<OnTasksUpdatedListener>> onTasksUpdatedListeners;
 
   public TaskServiceImpl() {
     queuesByGroup = new HashMap<>();
     queueListsByGroup = new HashMap<>();
+    onTasksUpdatedListeners = new HashMap<>();
 
     for (TaskGroup taskGroup : TaskGroup.values()) {
       queuesByGroup.put(taskGroup, new PriorityBlockingQueue<>());
-      queueListsByGroup.put(taskGroup, FXCollections.observableArrayList());
+      queueListsByGroup.put(taskGroup, new TreeSet<>());
+      onTasksUpdatedListeners.put(taskGroup, new ArrayList<>());
     }
   }
 
@@ -50,7 +55,7 @@ public class TaskServiceImpl implements TaskService {
     logger.debug("Starting worker for task group {}", taskGroup);
 
     PriorityBlockingQueue<PrioritizedTask<?>> queue = queuesByGroup.get(taskGroup);
-    ObservableList<PrioritizedTask<?>> queueList = queueListsByGroup.get(taskGroup);
+    SortedSet<PrioritizedTask<?>> queueList = queueListsByGroup.get(taskGroup);
 
     // FIXME the task group IMMEDIATE should not use the same queueing mechanism
     ConcurrentUtil.executeInBackground(new Task<Void>() {
@@ -60,6 +65,7 @@ public class TaskServiceImpl implements TaskService {
           PrioritizedTask<?> task = queue.take();
           task.run();
           queueList.remove(task);
+          onTasksUpdatedListeners.get(taskGroup).forEach(OnTasksUpdatedListener::onTasksUpdated);
         }
         return null;
       }
@@ -71,10 +77,9 @@ public class TaskServiceImpl implements TaskService {
     ConcurrentUtil.setCallbackOnTask(task, callback);
 
     queuesByGroup.get(taskGroup).add(task);
+    queueListsByGroup.get(taskGroup).add(task);
 
-    ObservableList<PrioritizedTask<?>> tasks = queueListsByGroup.get(taskGroup);
-    tasks.add(task);
-    FXCollections.sort(tasks);
+    onTasksUpdatedListeners.get(taskGroup).forEach(OnTasksUpdatedListener::onTasksUpdated);
   }
 
   @Override
@@ -83,13 +88,16 @@ public class TaskServiceImpl implements TaskService {
   }
 
   @Override
-  public void addChangeListener(ListChangeListener<PrioritizedTask<?>> listener, TaskGroup... taskGroups) {
+  public void addListener(OnTasksUpdatedListener listener, TaskGroup... taskGroups) {
     for (TaskGroup taskGroup : taskGroups) {
-      queueListsByGroup.get(taskGroup).addListener(listener);
+      onTasksUpdatedListeners.get(taskGroup).add(listener);
     }
   }
 
-
-
-
+  @Override
+  public Collection<PrioritizedTask<?>> getRunningTasks() {
+    Collection<PrioritizedTask<?>> tasks = new ArrayList<>();
+    queueListsByGroup.values().forEach(tasks::addAll);
+    return tasks;
+  }
 }

@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletionStage;
 
 /**
  * Downloads necessary maps, mods and updates before starting
@@ -20,7 +23,7 @@ public interface GameService {
 
   void publishPotentialPlayer();
 
-  void hostGame(NewGameInfo name, Callback<Void> callback);
+  CompletionStage<Void> hostGame(NewGameInfo name);
 
   void cancelLadderSearch();
 
@@ -34,12 +37,17 @@ public interface GameService {
 
   /**
    * @param path a replay file that is readable by the game without any further conversion
+   * @param modVersions
+   * @param simMods
    */
-  void runWithReplay(Path path, @Nullable Integer replayId) throws IOException;
+  void runWithReplay(Path path, @Nullable Integer replayId, String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simMods) throws IOException;
 
   void runWithReplay(URL url, Integer replayId) throws IOException;
 
   ObservableList<GameInfoBean> getGameInfoBeans();
+
+  @Nullable
+  GameTypeBean getGameTypeByString(String gameTypeBeanName);
 
   GameInfoBean getByUid(int uid);
 }

@@ -6,6 +6,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.leaderboard.LeaderboardParser;
 import com.faforever.client.legacy.domain.ClientMessage;
+import com.faforever.client.legacy.domain.ClientMessageType;
 import com.faforever.client.legacy.domain.FoesMessage;
 import com.faforever.client.legacy.domain.FriendsMessage;
 import com.faforever.client.legacy.domain.GameAccess;
@@ -26,6 +27,7 @@ import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.legacy.domain.SocialInfo;
 import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.legacy.domain.VictoryCondition;
+import com.faforever.client.legacy.gson.ClientMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
@@ -37,7 +39,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
-import com.faforever.client.util.UID;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -59,6 +60,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.OFF;
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.ON;
@@ -69,7 +72,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int VERSION = 0;
-
   private static final long RECONNECT_DELAY = 3000;
   private final Gson gson;
   private final StringProperty sessionId;
@@ -87,13 +89,15 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   TaskService taskService;
   @Autowired
   I18n i18n;
+  @Autowired
+  UidService uidService;
   private Task<Void> fafConnectionTask;
   private String username;
   private String password;
   private String localIp;
   private ServerWriter serverWriter;
   private Callback<SessionInfo> loginCallback;
-  private Callback<GameLaunchInfo> gameLaunchCallback;
+  private CompletableFuture<GameLaunchInfo> gameLaunchFuture;
   // Yes I know, those aren't lists. They will become if it's necessary
   private OnLobbyConnectingListener onLobbyConnectingListener;
   private OnFafDisconnectedListener onFafDisconnectedListener;
@@ -113,6 +117,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
         .registerTypeAdapter(VictoryCondition.class, new VictoryConditionTypeAdapter())
         .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
         .registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter())
+        .registerTypeAdapter(ClientMessageType.class, new ClientMessageTypeTypeAdapter())
         .registerTypeAdapter(StatisticsType.class, new StatisticsTypeTypeAdapter())
         .registerTypeAdapter(ServerMessageType.class, new ServerMessageTypeTypeAdapter())
         .create();
@@ -193,7 +198,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     executeInBackground(fafConnectionTask);
   }
 
-  protected ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
+  private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
     ServerWriter serverWriter = new ServerWriter(outputStream);
     serverWriter.registerMessageSerializer(new ClientMessageSerializer(username, sessionId), ClientMessage.class);
     serverWriter.registerMessageSerializer(new PongMessageSerializer(username, sessionId), PongMessage.class);
@@ -221,20 +226,21 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchInfo> callback) {
+  public CompletionStage<GameLaunchInfo> requestNewGame(NewGameInfo newGameInfo) {
     HostGameMessage hostGameMessage = new HostGameMessage(
         StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
         newGameInfo.getMap(),
         newGameInfo.getTitle(),
         preferencesService.getPreferences().getForgedAlliance().getPort(),
         new boolean[0],
-        newGameInfo.getMod(),
+        newGameInfo.getGameType(),
         newGameInfo.getPassword(),
         newGameInfo.getVersion()
     );
 
-    gameLaunchCallback = callback;
+    gameLaunchFuture = new CompletableFuture<>();
     writeToServerInBackground(hostGameMessage);
+    return gameLaunchFuture;
   }
 
   private void writeToServerInBackground(final ClientMessage clientMessage) {
@@ -248,14 +254,15 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void requestJoinGame(GameInfoBean gameInfoBean, String password, Callback<GameLaunchInfo> callback) {
+  public CompletionStage<GameLaunchInfo> requestJoinGame(GameInfoBean gameInfoBean, String password) {
     JoinGameMessage joinGameMessage = new JoinGameMessage(
         gameInfoBean.getUid(),
         preferencesService.getPreferences().getForgedAlliance().getPort(),
         password);
 
-    gameLaunchCallback = callback;
+    gameLaunchFuture = new CompletableFuture<>();
     writeToServerInBackground(joinGameMessage);
+    return gameLaunchFuture;
   }
 
   @Override
@@ -351,7 +358,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
       case ACK:
         // Number of bytes acknowledged... as a string... I mean, why not.
         int acknowledgedBytes = Integer.parseInt(readNextString());
-        // I really don't care. This is TCP with keepalive!
+        // I really don't care. This is TCP!
         logger.debug("Server acknowledged {} bytes", acknowledgedBytes);
         break;
 
@@ -405,7 +412,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           onGameLaunchInfo(gameLaunchInfo);
           break;
 
-        case MOD_INFO:
+        case GAME_TYPE_INFO:
           GameTypeInfo gameTypeInfo = gson.fromJson(jsonString, GameTypeInfo.class);
           onGameTypeInfo(gameTypeInfo);
           break;
@@ -436,7 +443,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   private void onSessionInitiated(SessionInfo message) {
     this.sessionId.set(message.getSession());
-    String uniqueId = UID.generate(sessionId.get(), preferencesService.getFafDataDirectory().resolve("uid.log"));
+    String uniqueId = uidService.generate(sessionId.get(), preferencesService.getFafDataDirectory().resolve("uid.log"));
 
     logger.info("FAF session initiated, session ID: {}", sessionId.get());
 
@@ -462,7 +469,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   private void onGameLaunchInfo(GameLaunchInfo gameLaunchInfo) {
     onGameLaunchListeners.forEach(listener -> listener.onGameLaunchInfo(gameLaunchInfo));
-    gameLaunchCallback.success(gameLaunchInfo);
+    gameLaunchFuture.complete(gameLaunchInfo);
   }
 
   private void onGameTypeInfo(GameTypeInfo gameTypeInfo) {

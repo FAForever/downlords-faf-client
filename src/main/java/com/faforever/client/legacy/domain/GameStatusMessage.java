@@ -15,7 +15,7 @@ public class GameStatusMessage extends ClientMessage {
   private final String state;
 
   public GameStatusMessage(Status status) {
-    setCommand("fa_state");
+    setCommand(ClientMessageType.GAME_STATUS);
     state = status.string;
   }
 

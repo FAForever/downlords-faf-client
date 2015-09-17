@@ -10,6 +10,7 @@ import com.faforever.client.util.Callback;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 /**
  * Entry class for all communication with the FAF lobby server, be it reading or writing. This class should only be
@@ -29,9 +30,9 @@ public interface LobbyServerAccessor {
 
   void setOnPlayerInfoMessageListener(OnPlayerInfoListener listener);
 
-  void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchInfo> callback);
+  CompletionStage<GameLaunchInfo> requestNewGame(NewGameInfo newGameInfo);
 
-  void requestJoinGame(GameInfoBean gameInfoBean, String password, Callback<GameLaunchInfo> callback);
+  CompletionStage<GameLaunchInfo> requestJoinGame(GameInfoBean gameInfoBean, String password);
 
   void notifyGameStarted();
 
@@ -58,4 +59,5 @@ public interface LobbyServerAccessor {
   void setFoes(Collection<String> foes);
 
   void addOnGameLaunchListener(OnGameLaunchInfoListener listener);
+
 }

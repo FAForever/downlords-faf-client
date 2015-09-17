@@ -3,7 +3,7 @@ package com.faforever.client.chat;
 import javafx.scene.image.Image;
 import org.springframework.cache.annotation.Cacheable;
 
-import static com.faforever.client.config.CacheKeys.AVATARS;
+import static com.faforever.client.config.CacheNames.AVATARS;
 
 public class AvatarServiceImpl implements AvatarService {
 

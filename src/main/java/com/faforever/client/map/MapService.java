@@ -1,11 +1,13 @@
 package com.faforever.client.map;
 
 import com.faforever.client.game.MapInfoBean;
+import com.faforever.client.legacy.map.Comment;
 import com.faforever.client.util.Callback;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 
 import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 public interface MapService {
 
@@ -17,12 +19,18 @@ public interface MapService {
 
   ObservableList<MapInfoBean> getLocalMaps();
 
-  MapInfoBean getMapInfoBeanFromString(String mapName);
+  MapInfoBean getMapInfoBeanLocallyFromName(String mapName);
+
+  MapInfoBean getMapInfoBeanFromVaultFromName(String mapName);
+
+  boolean isOfficialMap(String mapName);
 
   /**
    * Returns {@code true} if the given map is available locally, {@code false} otherwise.
    */
   boolean isAvailable(String mapName);
 
-  void download(String mapName, Callback<Void> callback);
+  CompletionStage<Void> download(String mapName);
+
+  List<Comment> getComments(int mapId);
 }

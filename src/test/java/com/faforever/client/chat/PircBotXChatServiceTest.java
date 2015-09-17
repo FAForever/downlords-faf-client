@@ -12,12 +12,12 @@ import com.google.common.collect.ImmutableSortedSet;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.pircbotx.Channel;
 import org.pircbotx.Configuration;
@@ -135,8 +135,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
-
     instance = new PircBotXChatService();
     instance.lobbyServerAccessor = lobbyServerAccessor;
     instance.environment = environment;
@@ -589,8 +587,19 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnConnected() throws Exception {
-    when(userService.getPassword()).thenReturn("password");
+    String password = "123";
+    String email = "foo@example.com";
+
+    mockTaskService();
+    when(userService.getPassword()).thenReturn(password);
+    when(userService.getEmail()).thenReturn(email);
+
+    instance.connect();
     instance.onConnected();
+
+    String md5Password = DigestUtils.md5Hex(password);
+    verify(outputIrc).message("NICKSERV", String.format("REGISTER %s %s", md5Password, email));
+    verify(outputIrc).message("NICKSERV", String.format("IDENTIFY %s", md5Password));
   }
 
   @Test
@@ -625,5 +634,10 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testClose() {
     instance.close();
+  }
+
+  @Test
+  public void testOnConnectedAutomaticallyRegisters() {
+
   }
 }

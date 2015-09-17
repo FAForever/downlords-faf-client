@@ -5,18 +5,13 @@ import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ThemeUtil;
 import javafx.scene.media.AudioClip;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 
 public class AudioControllerImpl implements AudioController {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Autowired
   PreferencesService preferencesService;
@@ -53,11 +48,11 @@ public class AudioControllerImpl implements AudioController {
   private void loadSounds() throws IOException {
     String theme = preferencesService.getPreferences().getTheme();
 
-    errorNotificationSound = loadSound(theme, "sounds/error.mp3");
     infoNotificationSound = loadSound(theme, "sounds/info.mp3");
+    errorNotificationSound = loadSound(theme, "sounds/info.mp3");
+    warnNotificationSound = loadSound(theme, "sounds/info.mp3");
     chatMentionSound = loadSound(theme, "sounds/mention.mp3");
     privateMessageSound = loadSound(theme, "sounds/pm.mp3");
-    warnNotificationSound = loadSound(theme, "sounds/warn.mp3");
   }
 
   private AudioClip loadSound(String theme, String sound) throws IOException {

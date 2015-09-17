@@ -7,7 +7,7 @@ public class JoinGameMessage extends ClientMessage {
   private Integer gameport;
 
   public JoinGameMessage(int uid, int port, String password) {
-    this.setCommand("game_join");
+    this.setCommand(ClientMessageType.JOIN_GAME);
     this.setUid(uid);
     this.setPassword(password);
     this.setGameport(port);

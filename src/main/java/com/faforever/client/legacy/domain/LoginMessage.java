@@ -14,7 +14,7 @@ public class LoginMessage extends ClientMessage {
   private String userAgent;
 
   public LoginMessage(String username, String password, String session, String uniqueId, String localIp, int version) {
-    this.setCommand("hello");
+    this.setCommand(ClientMessageType.LOGIN);
     this.setLogin(username);
     this.setPassword(password);
     this.setSession(session);

@@ -6,7 +6,7 @@ public class AskPlayerStatsDaysMessage extends ClientMessage {
   private String player;
 
   public AskPlayerStatsDaysMessage(String username, StatisticsType type) {
-    setCommand("stats");
+    setCommand(ClientMessageType.STATISTICS);
     this.setType(type.getString());
     setPlayer(username);
   }

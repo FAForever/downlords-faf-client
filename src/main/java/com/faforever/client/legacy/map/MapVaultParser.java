@@ -12,4 +12,9 @@ public interface MapVaultParser {
    * stable and this code breaks whenever the returned HTML changes.
    */
   List<MapInfoBean> parseMapVault(int page, int maxEntries) throws IOException;
+
+  //FIXME change map to string
+  List<Comment> parseComments(int mapId) throws IOException;
+
+  MapInfoBean parseSingleMap(String name) throws IOException;
 }

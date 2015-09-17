@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.relay;
 
-import com.faforever.client.game.FeaturedMod;
+import com.faforever.client.game.GameType;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.io.QDataInputStream;
@@ -39,10 +39,11 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
+import static com.faforever.client.legacy.relay.LobbyAction.AUTHENTICATE;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
+import static java.util.Arrays.asList;
 
 public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyInitializedListener {
 
@@ -134,13 +135,10 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   }
 
   private void updateLobbyModeFromGameInfo(GameLaunchInfo gameLaunchInfo) {
-    FeaturedMod featuredMod = FeaturedMod.fromString(gameLaunchInfo.getMod());
-    switch (featuredMod) {
-      case LADDER_1V1:
-        lobbyMode = LobbyMode.NO_LOBBY;
-        break;
-      default:
-        lobbyMode = LobbyMode.DEFAULT_LOBBY;
+    if (GameType.LADDER_1V1.getString().equals(gameLaunchInfo.getMod())) {
+      lobbyMode = LobbyMode.NO_LOBBY;
+    } else {
+      lobbyMode = LobbyMode.DEFAULT_LOBBY;
     }
   }
 
@@ -169,7 +167,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
             this.fafInputStream = fafSocket.getInputStream();
             this.serverWriter = createServerWriter(fafSocket.getOutputStream());
 
-            serverWriter.write(new LobbyMessage(LobbyAction.AUTHENTICATE, Collections.singletonList(userService.getSessionId())));
+            serverWriter.write(new LobbyMessage(AUTHENTICATE, asList(userService.getSessionId(), userService.getUid())));
 
             startFaReader();
             redirectFafToFa();

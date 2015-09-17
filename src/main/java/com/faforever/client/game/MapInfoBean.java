@@ -1,7 +1,9 @@
 package com.faforever.client.game;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -11,7 +13,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class MapInfoBean implements Comparable<MapInfoBean> {
 
-  private final StringProperty name;
+  private final StringProperty technicalName;
+  private final StringProperty displayName;
   private final SimpleFloatProperty rating;
   private final IntegerProperty plays;
   private final StringProperty description;
@@ -19,13 +22,19 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
   private final IntegerProperty players;
   private final ObjectProperty<MapSize> size;
   private final IntegerProperty version;
+  private final IntegerProperty id;
+  private final BooleanProperty hasAiMarkers;
 
   public MapInfoBean() {
     this(null);
   }
 
-  public MapInfoBean(String name) {
-    this.name = new SimpleStringProperty(name);
+  public MapInfoBean(String technicalName) {
+    this.id = new SimpleIntegerProperty();
+
+    // FIXME
+    this.displayName = new SimpleStringProperty(technicalName);
+    this.technicalName = new SimpleStringProperty(technicalName);
     this.description = new SimpleStringProperty();
     this.plays = new SimpleIntegerProperty();
     this.downloads = new SimpleIntegerProperty();
@@ -33,11 +42,23 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
     this.players = new SimpleIntegerProperty();
     this.size = new SimpleObjectProperty<>();
     this.version = new SimpleIntegerProperty();
-
+    this.hasAiMarkers = new SimpleBooleanProperty();
   }
 
-  public StringProperty nameProperty() {
-    return name;
+  public boolean getHasAiMarkers() {
+    return hasAiMarkers.get();
+  }
+
+  public void setHasAiMarkers(boolean hasAiMarkers) {
+    this.hasAiMarkers.set(hasAiMarkers);
+  }
+
+  public BooleanProperty hasAiMarkersProperty() {
+    return hasAiMarkers;
+  }
+
+  public StringProperty displayNameProperty() {
+    return displayName;
   }
 
   public String getDescription() {
@@ -126,14 +147,38 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
 
   @Override
   public int compareTo(@NotNull MapInfoBean o) {
-    return getName().compareTo(o.getName());
+    return getDisplayName().compareTo(o.getDisplayName());
   }
 
-  public String getName() {
-    return name.get();
+  public String getDisplayName() {
+    return displayName.get();
   }
 
-  public void setName(String name) {
-    this.name.set(name);
+  public void setDisplayName(String displayName) {
+    this.displayName.set(displayName);
+  }
+
+  public IntegerProperty idProperty() {
+    return id;
+  }
+
+  public int getId() {
+    return id.get();
+  }
+
+  public void setId(int id) {
+    this.id.set(id);
+  }
+
+  public String getTechnicalName() {
+    return technicalName.get();
+  }
+
+  public void setTechnicalName(String technicalName) {
+    this.technicalName.set(technicalName);
+  }
+
+  public StringProperty technicalNameProperty() {
+    return technicalName;
   }
 }

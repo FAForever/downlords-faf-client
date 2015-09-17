@@ -24,7 +24,7 @@ public final class RatingUtil {
   }
 
   public static int getRating(RatingInfo ratingInfo) {
-    return getRating(ratingInfo.mean, ratingInfo.dev);
+    return getRating(ratingInfo.getMean(), ratingInfo.getDev());
   }
 
   public static int getRating(PlayerInfoBean playerInfo) {

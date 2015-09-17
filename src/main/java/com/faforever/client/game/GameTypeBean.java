@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.jsoup.Jsoup;
 
 public class GameTypeBean {
 
@@ -13,7 +14,7 @@ public class GameTypeBean {
   public GameTypeBean(GameTypeInfo gameTypeInfo) {
     name = new SimpleStringProperty(gameTypeInfo.getName());
     fullName = new SimpleStringProperty(gameTypeInfo.getFullname());
-    description = new SimpleStringProperty(gameTypeInfo.getDesc());
+    description = new SimpleStringProperty(Jsoup.parse(gameTypeInfo.getDesc()).text());
   }
 
   public String getName() {

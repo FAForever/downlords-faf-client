@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.FlowPane?>
-<FlowPane xmlns:fx="http://javafx.com/fxml/1" fx:id="communityHubRoot" maxHeight="1.7976931348623157E308"
-          maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.40"
-          fx:controller="com.faforever.client.hub.CommunityHubController"/>
+<ScrollPane xmlns:fx="http://javafx.com/fxml/1" fx:id="communityHubRoot" fitToWidth="true"
+            maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.40"
+            fx:controller="com.faforever.client.hub.CommunityHubController">
+   <content>
+      <FlowPane fx:id="flowPane" hgap="10.0" prefWrapLength="600.0" styleClass="communityHub" vgap="10.0">
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+         </padding>
+      </FlowPane>
+   </content>
+</ScrollPane>

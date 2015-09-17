@@ -10,6 +10,7 @@ public class EnterPasswordController {
 
     void onPasswordEntered(GameInfoBean gameInfoBean, String password, double screenX, double screenY);
   }
+
   @FXML
   Node enterPasswordRoot;
   @FXML

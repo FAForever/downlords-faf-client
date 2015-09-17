@@ -23,7 +23,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.patch.PatchService;
+import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.portcheck.GamePortCheckListener;
 import com.faforever.client.portcheck.PortCheckService;
@@ -33,8 +33,8 @@ import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.PrioritizedTask;
-import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
@@ -70,11 +70,12 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
+import static com.faforever.client.task.TaskGroup.NET_HEAVY;
+import static com.faforever.client.task.TaskGroup.NET_UPLOAD;
 
 public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnFafDisconnectedListener, GamePortCheckListener, OnChoseGameDirectoryListener {
 
@@ -183,7 +184,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   NotificationService notificationService;
 
   @Autowired
-  SettingsController settingsWindowController;
+  SettingsController settingsController;
 
   @Autowired
   ApplicationContext applicationContext;
@@ -204,9 +205,12 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   CommunityHubController communityHubController;
 
   @Autowired
-  PatchService patchService;
+  GameUpdateService gameUpdateService;
 
-  private Popup notificationsPopup;
+  @Autowired
+  ClientUpdateService clientUpdateService;
+
+  Popup notificationsPopup;
 
   @FXML
   void initialize() {
@@ -235,17 +239,19 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
    * @param task the task to set, {@code null} to unset
    */
   private void setCurrentTaskInStatusBar(PrioritizedTask<?> task) {
-    if (task == null) {
-      taskProgressBar.setVisible(false);
-      taskProgressLabel.setVisible(false);
-      return;
-    }
+    Platform.runLater(() -> {
+      if (task == null) {
+        taskProgressBar.setVisible(false);
+        taskProgressLabel.setVisible(false);
+        return;
+      }
 
-    taskProgressBar.setVisible(true);
-    taskProgressBar.progressProperty().bind(task.progressProperty());
+      taskProgressBar.setVisible(true);
+      taskProgressBar.progressProperty().bind(task.progressProperty());
 
-    taskProgressLabel.setVisible(true);
-    taskProgressLabel.setText(task.getTitle());
+      taskProgressLabel.setVisible(true);
+      taskProgressLabel.setText(task.getTitle());
+    });
   }
 
   private void showMenuDropdown(SplitMenuButton button) {
@@ -270,16 +276,14 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
         notification -> Platform.runLater(() -> displayImmediateNotification(notification))
     );
 
-    taskService.addChangeListener(change -> {
-      while (change.next()) {
-        if (change.wasAdded()) {
-          addTasks(change.getAddedSubList());
-        }
-        if (change.wasRemoved()) {
-          removeTasks(change.getRemoved());
-        }
+    taskService.addListener(() -> {
+      Collection<PrioritizedTask<?>> runningTasks = taskService.getRunningTasks();
+      if (runningTasks.isEmpty()) {
+        setCurrentTaskInStatusBar(null);
+      } else {
+        setCurrentTaskInStatusBar(runningTasks.iterator().next());
       }
-    }, TaskGroup.NET_HEAVY, TaskGroup.NET_UPLOAD);
+    }, NET_HEAVY, NET_UPLOAD);
 
     portCheckStatusButton.getTooltip().setText(
         i18n.get("statusBar.portCheckTooltip", preferencesService.getPreferences().getForgedAlliance().getPort())
@@ -324,25 +328,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     popup.show(mainRoot.getScene().getWindow());
   }
 
-  /**
-   * @param tasks a list of prioritized tasks, sorted by priority (lowest first)
-   */
-  private void addTasks(List<? extends PrioritizedTask<?>> tasks) {
-//    List<Node> taskPanes = new ArrayList<>();
-//
-//    for (PrioritizedTask<?> taskPane : tasks) {
-//      taskPanes.add(new Pane());
-//    }
-//
-//    taskPane.getChildren().setAll(taskPanes);
-
-    setCurrentTaskInStatusBar(tasks.get(tasks.size() - 1));
-  }
-
-  private void removeTasks(List<? extends PrioritizedTask<?>> removed) {
-    setCurrentTaskInStatusBar(null);
-  }
-
   public void display(Stage stage) {
     lobbyService.setOnFafConnectedListener(this);
     lobbyService.setOnLobbyConnectingListener(this);
@@ -363,7 +348,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     usernameButton.setText(userService.getUsername());
 
     portCheckService.checkGamePortInBackground();
-    patchService.checkForUpdatesInBackground();
+    gameUpdateService.checkForUpdateInBackground();
+    clientUpdateService.checkForUpdateInBackground();
   }
 
   private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {
@@ -504,7 +490,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     Stage stage = new Stage(StageStyle.UNDECORATED);
     stage.initOwner(mainRoot.getScene().getWindow());
 
-    Region root = settingsWindowController.getRoot();
+    Region root = settingsController.getRoot();
     sceneFactory.createScene(stage, root, true, CLOSE);
 
     stage.setTitle(i18n.get("settings.windowTitle"));

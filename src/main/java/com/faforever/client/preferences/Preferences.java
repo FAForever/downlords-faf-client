@@ -1,8 +1,11 @@
 package com.faforever.client.preferences;
 
+import com.faforever.client.game.GameType;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -24,6 +27,8 @@ public class Preferences {
   private final StringProperty lastMap;
   private final BooleanProperty rememberLastTab;
   private final ListProperty<String> ignoredNotifications;
+  private final IntegerProperty lastGameMinRating;
+  private final IntegerProperty lastGameMaxRating;
 
   public Preferences() {
     chat = new ChatPrefs();
@@ -31,12 +36,14 @@ public class Preferences {
     mainWindow = new WindowPrefs();
     forgedAlliance = new ForgedAlliancePrefs();
     theme = new SimpleStringProperty("default");
-    lastGameType = new SimpleStringProperty("faf");
+    lastGameType = new SimpleStringProperty(GameType.DEFAULT.getString());
     ignoredNotifications = new SimpleListProperty<>(observableArrayList());
     notification = new NotificationsPrefs();
     rememberLastTab = new SimpleBooleanProperty(false);
     lastGameTitle = new SimpleStringProperty();
     lastMap = new SimpleStringProperty();
+    lastGameMinRating = new SimpleIntegerProperty(800);
+    lastGameMaxRating = new SimpleIntegerProperty(1300);
   }
 
   public WindowPrefs getMainWindow() {
@@ -129,5 +136,29 @@ public class Preferences {
 
   public ListProperty<String> ignoredNotificationsProperty() {
     return ignoredNotifications;
+  }
+
+  public int getLastGameMinRating() {
+    return lastGameMinRating.get();
+  }
+
+  public void setLastGameMinRating(int lastGameMinRating) {
+    this.lastGameMinRating.set(lastGameMinRating);
+  }
+
+  public IntegerProperty lastGameMinRatingProperty() {
+    return lastGameMinRating;
+  }
+
+  public int getLastGameMaxRating() {
+    return lastGameMaxRating.get();
+  }
+
+  public void setLastGameMaxRating(int lastGameMaxRating) {
+    this.lastGameMaxRating.set(lastGameMaxRating);
+  }
+
+  public IntegerProperty lastGameMaxRatingProperty() {
+    return lastGameMaxRating;
   }
 }

@@ -41,10 +41,10 @@ public class MockStatisticsServerAccessor implements StatisticsServerAccessor {
 
   private RatingInfo createRatingInfo(LocalDateTime dateTime, float mean, float dev) {
     RatingInfo ratingInfo = new RatingInfo();
-    ratingInfo.date = dateTime.toLocalDate();
-    ratingInfo.time = dateTime.toLocalTime();
-    ratingInfo.mean = mean;
-    ratingInfo.dev = dev;
+    ratingInfo.setDate(dateTime.toLocalDate());
+    ratingInfo.setTime(dateTime.toLocalTime());
+    ratingInfo.setMean(mean);
+    ratingInfo.setDev(dev);
     return ratingInfo;
   }
 

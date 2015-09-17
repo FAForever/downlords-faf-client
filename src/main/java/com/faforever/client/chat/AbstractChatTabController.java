@@ -8,6 +8,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.ByteCopier;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.util.TimeService;
@@ -32,6 +33,7 @@ import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import netscape.javascript.JSObject;
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,10 +42,14 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,7 +70,9 @@ public abstract class AbstractChatTabController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private static final ClassPathResource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
+  private static final Resource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
+  private static final Resource CHAT_JS_RESOURCE = new ClassPathResource("/js/chat_container.js");
+  private static final Resource AUTOLINKER_JS_RESOURCE = new ClassPathResource("/js/Autolinker.min.js");
   private static final Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
@@ -83,6 +91,11 @@ public abstract class AbstractChatTabController {
    */
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
+  private final List<ChatMessage> waitingMessages;
+  /**
+   * Maps a user name to a css style class.
+   */
+  private final Map<String, String> userToCssStyle;
   @Autowired
   UserService userService;
   @Autowired
@@ -107,11 +120,6 @@ public abstract class AbstractChatTabController {
   UrlPreviewResolver urlPreviewResolver;
   private boolean isChatReady;
   private WebEngine engine;
-  private List<ChatMessage> waitingMessages;
-  /**
-   * Maps a user name to a css style class.
-   */
-  private Map<String, String> userToCssStyle;
   private double lastMouseX;
   private double lastMouseY;
   private final EventHandler<MouseEvent> moveHandler = (MouseEvent event) -> {
@@ -174,14 +182,23 @@ public abstract class AbstractChatTabController {
     ((JSObject) engine.executeScript("window")).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
       if (Worker.State.SUCCEEDED.equals(newValue)) {
-        waitingMessages.forEach(this::appendMessage);
-        waitingMessages.clear();
-        isChatReady = true;
+        synchronized (waitingMessages) {
+          waitingMessages.forEach(this::appendMessage);
+          waitingMessages.clear();
+          isChatReady = true;
+        }
       }
     });
 
-    try {
-      this.engine.load(CHAT_HTML_RESOURCE.getURL().toExternalForm());
+    try (InputStream inputStream = CHAT_HTML_RESOURCE.getInputStream()) {
+      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+      ByteCopier.from(inputStream).to(byteArrayOutputStream).copy();
+
+      String chatContainerHtml = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8)
+          .replace("{chat-container-js}", CHAT_JS_RESOURCE.getURL().toExternalForm())
+          .replace("{auto-linker-js}", AUTOLINKER_JS_RESOURCE.getURL().toExternalForm());
+
+      engine.loadContent(chatContainerHtml);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -222,7 +239,7 @@ public abstract class AbstractChatTabController {
   private void addImagePasteListener() {
     TextInputControl messageTextField = getMessageTextField();
     messageTextField.setOnKeyReleased(event -> {
-      if ((event.getCode() == KeyCode.V && event.isControlDown() || event.getCode() == KeyCode.INSERT && event.isShiftDown())
+      if (isPaste(event)
           && Clipboard.getSystemClipboard().hasImage()) {
         pasteImage();
       }
@@ -234,6 +251,11 @@ public abstract class AbstractChatTabController {
   public abstract Tab getRoot();
 
   protected abstract TextInputControl getMessageTextField();
+
+  private boolean isPaste(KeyEvent event) {
+    return (event.getCode() == KeyCode.V && event.isShortcutDown())
+        || (event.getCode() == KeyCode.INSERT && event.isShiftDown());
+  }
 
   private void pasteImage() {
     TextInputControl messageTextField = getMessageTextField();
@@ -405,14 +427,19 @@ public abstract class AbstractChatTabController {
   }
 
   private void initializeAutoCompletion(TextInputControl messageTextField) {
-    autoCompletePartialName = getWordBeforeCaret(messageTextField);
-
     possibleAutoCompletions = new ArrayList<>();
+
+    autoCompletePartialName = getWordBeforeCaret(messageTextField);
+    if (autoCompletePartialName.isEmpty()) {
+      return;
+    }
+
     nextAutoCompleteIndex = 0;
 
     possibleAutoCompletions.addAll(
         playerService.getPlayerNames().stream()
             .filter(playerName -> playerName.toLowerCase().startsWith(autoCompletePartialName.toLowerCase()))
+            .sorted()
             .collect(Collectors.toList())
     );
   }
@@ -469,15 +496,17 @@ public abstract class AbstractChatTabController {
     });
   }
 
-  public void onChatMessage(ChatMessage chatMessage) {
-    if (!isChatReady) {
-      waitingMessages.add(chatMessage);
-    } else {
-      Platform.runLater(() -> {
-        appendMessage(chatMessage);
-        removeTopmostMessages();
-        scrollToBottomIfDesired();
-      });
+  protected void onChatMessage(ChatMessage chatMessage) {
+    synchronized (waitingMessages) {
+      if (!isChatReady) {
+        waitingMessages.add(chatMessage);
+      } else {
+        Platform.runLater(() -> {
+          appendMessage(chatMessage);
+          removeTopmostMessages();
+          scrollToBottomIfDesired();
+        });
+      }
     }
   }
 
@@ -514,7 +543,7 @@ public abstract class AbstractChatTabController {
         avatarUrl = playerInfoBean.getAvatarUrl();
 
         if (StringUtils.isNotEmpty(playerInfoBean.getClan())) {
-          clanTag = i18n.get("chat.clanTagFormag", playerInfoBean.getClan());
+          clanTag = i18n.get("chat.clanTagFormat", playerInfoBean.getClan());
         }
       }
 

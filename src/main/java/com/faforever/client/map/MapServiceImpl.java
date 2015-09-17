@@ -1,8 +1,9 @@
 package com.faforever.client.map;
 
-import com.faforever.client.config.CacheKeys;
+import com.faforever.client.config.CacheNames;
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.legacy.map.Comment;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
@@ -28,33 +29,38 @@ import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.zip.ZipInputStream;
 
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 public class MapServiceImpl implements MapService {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  public enum officialMaps {
+    SCMP_001, SCMP_002, SCMP_003, SCMP_004, SCMP_005, SCMP_006, SCMP_007, SCMP_008, SCMP_009, SCMP_010, SCMP_011, SCMP_012, SCMP_013,
+    SCMP_014, SCMP_015, SCMP_016, SCMP_017, SCMP_018, SCMP_019, SCMP_020, SCMP_021, SCMP_022, SCMP_023, SCMP_024, SCMP_025, SCMP_026,
+    SCMP_027, SCMP_028, SCMP_029, SCMP_030, SCMP_031, SCMP_032, SCMP_033, SCMP_034, SCMP_035, SCMP_036, SCMP_037, SCMP_038, SCMP_039,
+    SCMP_040, X1MP_001, X1MP_002, X1MP_003, X1MP_004, X1MP_005, X1MP_006, X1MP_007, X1MP_008, X1MP_009, X1MP_010, X1MP_011, X1MP_012, X1MP_014, X1MP_017
+  }
 
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @Autowired
   Environment environment;
-
   @Autowired
   PreferencesService preferencesService;
-
   @Autowired
   TaskService taskService;
-
   @Autowired
   MapVaultParser mapVaultParser;
-
   @Autowired
   I18n i18n;
 
   @Override
-  @Cacheable(CacheKeys.SMALL_MAP_PREVIEW)
+  @Cacheable(CacheNames.SMALL_MAP_PREVIEW)
   public Image loadSmallPreview(String mapName) {
     String url = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.small"));
 
@@ -64,7 +70,7 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  @Cacheable(CacheKeys.LARGE_MAP_PREVIEW)
+  @Cacheable(CacheNames.LARGE_MAP_PREVIEW)
   public Image loadLargePreview(String mapName) {
     String urlString = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.large"));
 
@@ -98,7 +104,7 @@ public class MapServiceImpl implements MapService {
   public ObservableList<MapInfoBean> getLocalMaps() {
     ObservableList<MapInfoBean> maps = FXCollections.observableArrayList();
 
-    Path mapsDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
+    Path mapsDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
 
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(mapsDirectory)) {
       for (Path path : stream) {
@@ -112,11 +118,12 @@ public class MapServiceImpl implements MapService {
     return maps;
   }
 
+  //FIXME implement official map detection
   @Override
-  public MapInfoBean getMapInfoBeanFromString(String mapName) {
+  public MapInfoBean getMapInfoBeanLocallyFromName(String mapName) {
     logger.debug("Trying to return {} mapInfoBean locally", mapName);
     for (MapInfoBean mapInfoBean : getLocalMaps()) {
-      if (mapName.equalsIgnoreCase(mapInfoBean.getName())) {
+      if (mapName.equalsIgnoreCase(mapInfoBean.getDisplayName())) {
         logger.debug("Found map {} locally", mapName);
         return mapInfoBean;
       }
@@ -125,11 +132,38 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
+  public MapInfoBean getMapInfoBeanFromVaultFromName(String mapName) {
+    logger.info("Trying to return {} mapInfoBean from vault", mapName);
+    //TODO implement official map vault parser
+    if (isOfficialMap(mapName)) {
+      return null;
+    }
+    try {
+      return mapVaultParser.parseSingleMap(mapName);
+    } catch (IOException | IllegalStateException e) {
+      logger.error("Error in parsing {} from vault", mapName);
+      return null;
+    }
+  }
+
+  @Override
+  public boolean isOfficialMap(String mapName) {
+    for (officialMaps map : officialMaps.values()) {
+      if (map.name().equals(mapName.toUpperCase())) {
+        logger.debug("{} is an official map", mapName);
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+  @Override
   public boolean isAvailable(String mapName) {
     logger.debug("Trying to find map {} mapName locally", mapName);
 
     for (MapInfoBean mapInfoBean : getLocalMaps()) {
-      if (mapName.equalsIgnoreCase(mapInfoBean.getName())) {
+      if (mapName.equalsIgnoreCase(mapInfoBean.getDisplayName())) {
         logger.debug("Found map {} locally", mapName);
         return true;
       }
@@ -140,8 +174,22 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public void download(String mapName, Callback<Void> callback) {
+  public CompletionStage<Void> download(String mapName) {
     String taskTitle = i18n.get("mapDownloadTask.title", mapName);
+
+    CompletableFuture<Void> future = new CompletableFuture<>();
+    Callback<Void> callback = new Callback<Void>() {
+      @Override
+      public void success(Void result) {
+        future.complete(result);
+      }
+
+      @Override
+      public void error(Throwable e) {
+        future.completeExceptionally(e);
+      }
+    };
+
     taskService.submitTask(TaskGroup.NET_HEAVY, new PrioritizedTask<Void>(taskTitle) {
       @Override
       protected Void call() throws Exception {
@@ -152,7 +200,7 @@ public class MapServiceImpl implements MapService {
         HttpURLConnection urlConnection = (HttpURLConnection) new URL(mapUrl).openConnection();
         int bytesToRead = urlConnection.getContentLength();
 
-        Path targetDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
+        Path targetDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
 
         try (ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(urlConnection.getInputStream()))) {
           Unzipper.from(inputStream)
@@ -165,6 +213,22 @@ public class MapServiceImpl implements MapService {
         return null;
       }
     }, callback);
+
+    return future;
+  }
+
+  @Override
+  public List<Comment> getComments(int mapId) {
+    //int mapId = getMapInfoBeanFromVaultFromName(mapName).getId();
+    if (mapId == 0) {
+      return Collections.emptyList();
+    }
+    try {
+      return mapVaultParser.parseComments(mapId);
+    } catch (IOException e) {
+      logger.error("Error in parsing comment for {}", mapId);
+    }
+    return null;
   }
 
   private static String getMapUrl(String mapName, String baseUrl) {

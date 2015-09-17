@@ -39,7 +39,6 @@ public class NewsListItemController {
   @Autowired
   PreferencesService preferencesService;
 
-  private String author;
   private NewsItem newsItem;
   private OnItemSelectedListener onItemSelectedListener;
 

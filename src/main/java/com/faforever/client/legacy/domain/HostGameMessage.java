@@ -12,7 +12,7 @@ public class HostGameMessage extends ClientMessage {
   private String password;
 
   public HostGameMessage(GameAccess gameAccess, String mapName, String title, int port, boolean[] options, String mod, String password, int version) {
-    this.setCommand("game_host");
+    this.setCommand(ClientMessageType.HOST_GAME);
     this.setAccess(gameAccess);
     this.setPassword(password);
     this.setVersion(version);

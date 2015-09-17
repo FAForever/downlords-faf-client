@@ -26,18 +26,28 @@ import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.SceneFactoryImpl;
 import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
-import com.faforever.client.game.GameCardController;
-import com.faforever.client.game.GameTableController;
+import com.faforever.client.game.GameTileController;
+import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.game.GamesController;
-import com.faforever.client.game.GamesTiledController;
-import com.faforever.client.game.PopupGamePaneController;
-import com.faforever.client.game.PopupPlayerCardController;
-import com.faforever.client.game.PopupTeamCardController;
+import com.faforever.client.game.GamesTableController;
+import com.faforever.client.game.GamesTilesContainerController;
+import com.faforever.client.game.PlayerCardTooltipController;
+import com.faforever.client.game.TeamCardController;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.hub.ConcurrentUsersController;
+import com.faforever.client.hub.DonationWallController;
+import com.faforever.client.hub.LastCastController;
+import com.faforever.client.hub.LastNewsController;
+import com.faforever.client.hub.MapOfTheDayController;
+import com.faforever.client.hub.MostActivePlayersController;
+import com.faforever.client.hub.RecentForumPostsController;
+import com.faforever.client.hub.TopPlayersController;
+import com.faforever.client.hub.UpcomingEventsController;
 import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
+import com.faforever.client.map.CommentCardController;
+import com.faforever.client.map.MapPreviewLargeController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
@@ -104,6 +114,11 @@ public class UiConfig {
   }
 
   @Bean
+  MapPreviewLargeController mapPreviewLargeController() {
+    return loadController("map_preview_large.fxml");
+  }
+
+  @Bean
   ChatController chatController() {
     return loadController("chat.fxml");
   }
@@ -124,9 +139,55 @@ public class UiConfig {
   }
 
   @Bean
+  LastCastController lastCastController() {
+    return loadController("last_cast.fxml");
+  }
+
+  @Bean
+  UpcomingEventsController upcomingEventController() {
+    return loadController("upcoming_events.fxml");
+  }
+
+  @Bean
+  LastNewsController lastNewsController() {
+    return loadController("last_news.fxml");
+  }
+
+  @Bean
+  MapOfTheDayController mapOfTheDayController() {
+    return loadController("map_of_the_day.fxml");
+  }
+
+  @Bean
+  TopPlayersController topPlayersController() {
+    return loadController("top_players.fxml");
+  }
+
+  @Bean
+  DonationWallController donationWallController() {
+    return loadController("donation_wall.fxml");
+  }
+
+  @Bean
+  RecentForumPostsController recentForumPostsController() {
+    return loadController("recent_forum_posts.fxml");
+  }
+
+  @Bean
+  MostActivePlayersController mostActivePlayersController() {
+    return loadController("most_active_players.fxml");
+  }
+
+  @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  GameTableController gameTableController() {
-    return loadController("game_table.fxml");
+  CommentCardController commentCardController() {
+    return loadController("comment_card.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  GamesTableController gameTableController() {
+    return loadController("games_table.fxml");
   }
 
   @Bean
@@ -137,26 +198,26 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  PopupPlayerCardController popupPlayerCardController() {
-    return loadController("popup_player_card.fxml");
+  PlayerCardTooltipController playerCardTooltipController() {
+    return loadController("player_card_tooltip.fxml");
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  PopupTeamCardController popupTeamCardController() {
-    return loadController("popup_team_card.fxml");
+  TeamCardController teamCardController() {
+    return loadController("team_card.fxml");
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  PopupGamePaneController popupGamePaneController() {
-    return loadController("popup_game_pane.fxml");
+  GameTooltipController gameContainerTooltipController() {
+    return loadController("game_tooltip.fxml");
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  GamesTiledController gamesTiledController() {
-    return loadController("games_tiled.fxml");
+  GamesTilesContainerController gamesTiledController() {
+    return loadController("games_tiles_container.fxml");
   }
 
   @Bean
@@ -167,12 +228,13 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  GameCardController gameCardController() {
-    return loadController("game_card.fxml");
+  GameTileController gameCardController() {
+    return loadController("game_tile.fxml");
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    // TODO @mj: naming consistency
   NewsListItemController newsTileController() {
     return loadController("news_list_item.fxml");
   }
