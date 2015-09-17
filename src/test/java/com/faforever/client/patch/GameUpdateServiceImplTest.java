@@ -98,7 +98,7 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(taskService).submitTask(eq(TaskGroup.NET_HEAVY), eq(updateGameFilesTask), any());
+    verify(taskService).submitTask(eq(TaskGroup.NET_LIGHT), eq(updateGameFilesTask), any());
   }
 
   @Test
@@ -121,7 +121,7 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
     instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(taskService, only()).submitTask(eq(TaskGroup.NET_HEAVY), eq(updateGameFilesTask), any());
+    verify(taskService, only()).submitTask(eq(TaskGroup.NET_LIGHT), eq(updateGameFilesTask), any());
   }
 
   @Test

@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
@@ -40,19 +41,22 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   private static final KeyEvent keyDownPressed = new KeyEvent(KeyEvent.KEY_PRESSED, "0", "", KeyCode.DOWN, false, false, false, false);
   private static final KeyEvent keyDownReleased = new KeyEvent(KeyEvent.KEY_RELEASED, "0", "", KeyCode.DOWN, false, false, false, false);
   @Mock
-  PreferencesService preferencesService;
+  private PreferencesService preferencesService;
   @Mock
-  MapService mapService;
+  private MapService mapService;
   @Mock
-  GameService gameService;
+  private GameService gameService;
   @Mock
-  ModService modService;
+  private ModService modService;
   @Mock
-  Preferences preferences;
+  private Preferences preferences;
   @Mock
-  ForgedAlliancePrefs forgedAlliancePrefs;
+  private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
-  Environment environment;
+  private Environment environment;
+  @Mock
+  private I18n i18n;
+
   private CreateGameController instance;
   private ObservableList<MapInfoBean> mapList;
 
@@ -64,6 +68,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     instance.gameService = gameService;
     instance.modService = modService;
     instance.environment = environment;
+    instance.i18n = i18n;
 
     mapList = FXCollections.observableArrayList();
 
