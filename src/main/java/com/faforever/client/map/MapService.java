@@ -30,7 +30,7 @@ public interface MapService {
    */
   boolean isAvailable(String mapName);
 
-  CompletionStage<Void> download(String mapName);
+  CompletionStage<Void> download(String technicalMapName);
 
   List<Comment> getComments(int mapId);
 }

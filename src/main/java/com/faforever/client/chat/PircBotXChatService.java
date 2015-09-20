@@ -47,7 +47,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
-import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 import static java.lang.String.format;
 import static javafx.collections.FXCollections.observableHashMap;
@@ -304,9 +303,11 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void sendMessageInBackground(String target, String message, Callback<String> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<String>(i18n.get("chat.sendMessageTask.title"), HIGH) {
+    taskService.submitTask(new PrioritizedTask<String>(HIGH) {
       @Override
       protected String call() throws Exception {
+        updateTitle(i18n.get("chat.sendMessageTask.title"));
+
         pircBotX.sendIRC().message(target, message);
         return message;
       }
@@ -338,9 +339,11 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void sendActionInBackground(String target, String action, Callback<String> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<String>(i18n.get("chat.sendActionTask.title")) {
+    taskService.submitTask(new PrioritizedTask<String>(HIGH) {
       @Override
       protected String call() throws Exception {
+        updateTitle(i18n.get("chat.sendActionTask.title"));
+
         pircBotX.sendIRC().action(target, action);
         return action;
       }

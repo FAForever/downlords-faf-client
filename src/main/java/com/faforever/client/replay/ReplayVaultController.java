@@ -8,8 +8,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.task.PrioritizedTask;
-import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.TimeService;
@@ -33,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.lang.invoke.MethodHandles;
@@ -94,6 +93,9 @@ public class ReplayVaultController {
 
   @Autowired
   FxmlLoader fxmlLoader;
+
+  @Autowired
+  ApplicationContext applicationContext;
 
   private TreeItem<ReplayInfoBean> localReplaysRoot;
 
@@ -262,12 +264,10 @@ public class ReplayVaultController {
   }
 
   public void loadLocalReplaysInBackground() {
-    taskService.submitTask(TaskGroup.DISK, new PrioritizedTask<Collection<ReplayInfoBean>>(i18n.get("replays.loadingLocalTask.title")) {
-      @Override
-      protected Collection<ReplayInfoBean> call() throws Exception {
-        return replayService.getLocalReplays();
-      }
-    }, new Callback<Collection<ReplayInfoBean>>() {
+
+    LoadLocalReplaysTask task = applicationContext.getBean(LoadLocalReplaysTask.class);
+
+    taskService.submitTask(task, new Callback<Collection<ReplayInfoBean>>() {
       @Override
       public void success(Collection<ReplayInfoBean> result) {
         addLocalReplays(result);

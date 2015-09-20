@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
-import static com.faforever.client.task.TaskGroup.NET_LIGHT;
+import static com.faforever.client.task.PrioritizedTask.Priority.MEDIUM;
 
 public class MockStatisticsServerAccessor implements StatisticsServerAccessor {
 
@@ -20,9 +20,11 @@ public class MockStatisticsServerAccessor implements StatisticsServerAccessor {
 
   @Override
   public void requestPlayerStatistics(String username, Callback<PlayerStatistics> callback, StatisticsType type) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<PlayerStatistics>("Fetching player statistics") {
+    taskService.submitTask(new PrioritizedTask<PlayerStatistics>(MEDIUM) {
       @Override
       protected PlayerStatistics call() throws Exception {
+        updateTitle("Fetching player statistics");
+
         ArrayList<RatingInfo> ratings = new ArrayList<>();
         for (int day = 0; day < 90; day++) {
           LocalDateTime localDateTime = LocalDateTime.now().plusDays(day);

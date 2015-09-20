@@ -74,8 +74,6 @@ import java.util.Collection;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
-import static com.faforever.client.task.TaskGroup.NET_HEAVY;
-import static com.faforever.client.task.TaskGroup.NET_UPLOAD;
 
 public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnFafDisconnectedListener, GamePortCheckListener, OnChoseGameDirectoryListener {
 
@@ -283,7 +281,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
       } else {
         setCurrentTaskInStatusBar(runningTasks.iterator().next());
       }
-    }, NET_HEAVY, NET_UPLOAD);
+    });
 
     portCheckStatusButton.getTooltip().setText(
         i18n.get("statusBar.portCheckTooltip", preferencesService.getPreferences().getForgedAlliance().getPort())

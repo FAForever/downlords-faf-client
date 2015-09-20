@@ -3,7 +3,6 @@ package com.faforever.client.mod;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
 import org.slf4j.Logger;
@@ -77,7 +76,7 @@ public class ModServiceImpl implements ModService {
     task.setModPath(modPath);
 
 
-    taskService.submitTask(TaskGroup.NET_HEAVY, task, new Callback<Void>() {
+    taskService.submitTask(task, new Callback<Void>() {
       @Override
       public void success(Void result) {
         future.complete(result);

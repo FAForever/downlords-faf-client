@@ -13,18 +13,9 @@ public abstract class PrioritizedTask<V> extends Task<V> implements Comparable<P
 
   private Priority priority;
 
-  public PrioritizedTask() {
-  }
-
-  public PrioritizedTask(String title) {
-    this(title, Priority.MEDIUM);
-  }
-
-  public PrioritizedTask(String title, Priority priority) {
+  public PrioritizedTask(Priority priority) {
     this.priority = priority;
-    updateTitle(title);
   }
-
 
   @Override
   public int compareTo(@NotNull PrioritizedTask other) {

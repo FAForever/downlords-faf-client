@@ -7,6 +7,7 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.ByteCopier;
 import com.faforever.client.util.OperatingSystem;
 import javafx.beans.Observable;
@@ -19,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
 
 import static com.faforever.client.game.GameType.FAF;
 import static com.faforever.client.game.GameType.LADDER_1V1;
-import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
 
 public class UpdateGameFilesTask extends PrioritizedTask<Void> implements UpdateServerResponseListener {
 
@@ -69,9 +68,8 @@ public class UpdateGameFilesTask extends PrioritizedTask<Void> implements Update
   private Map<String, Integer> modVersions;
   private int numberOfFilesToUpdate;
 
-  @PostConstruct
-  public void postConstruct() {
-    setPriority(HIGH);
+  public UpdateGameFilesTask() {
+    super(Priority.HIGH);
   }
 
   @Override
@@ -300,6 +298,8 @@ public class UpdateGameFilesTask extends PrioritizedTask<Void> implements Update
 
     try (InputStream inputStream = url.openStream();
          OutputStream outputStream = Files.newOutputStream(tempFile)) {
+      ResourceLocks.aquireDownloadLock();
+
       updateTitle(i18n.get("downloadingGamePatchTask.downloadingFile", url));
       ByteCopier.from(inputStream)
           .to(outputStream)
@@ -308,6 +308,7 @@ public class UpdateGameFilesTask extends PrioritizedTask<Void> implements Update
 
       Files.move(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
     } finally {
+      ResourceLocks.freeDiskLock();
       try {
         Files.deleteIfExists(tempFile);
       } catch (IOException e) {
@@ -326,5 +327,9 @@ public class UpdateGameFilesTask extends PrioritizedTask<Void> implements Update
 
   public void setGameType(String gameType) {
     this.gameType = gameType;
+  }
+
+  public void setTargetVersion(String targetVersion) {
+    this.targetVersion = targetVersion;
   }
 }

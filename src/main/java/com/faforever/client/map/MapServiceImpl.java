@@ -6,12 +6,9 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.map.Comment;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.PrioritizedTask;
-import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
 import com.faforever.client.util.ThemeUtil;
-import com.faforever.client.util.Unzipper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -19,9 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
@@ -34,20 +31,19 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.zip.ZipInputStream;
-
-import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 public class MapServiceImpl implements MapService {
 
   public enum officialMaps {
-    SCMP_001, SCMP_002, SCMP_003, SCMP_004, SCMP_005, SCMP_006, SCMP_007, SCMP_008, SCMP_009, SCMP_010, SCMP_011, SCMP_012, SCMP_013,
-    SCMP_014, SCMP_015, SCMP_016, SCMP_017, SCMP_018, SCMP_019, SCMP_020, SCMP_021, SCMP_022, SCMP_023, SCMP_024, SCMP_025, SCMP_026,
-    SCMP_027, SCMP_028, SCMP_029, SCMP_030, SCMP_031, SCMP_032, SCMP_033, SCMP_034, SCMP_035, SCMP_036, SCMP_037, SCMP_038, SCMP_039,
-    SCMP_040, X1MP_001, X1MP_002, X1MP_003, X1MP_004, X1MP_005, X1MP_006, X1MP_007, X1MP_008, X1MP_009, X1MP_010, X1MP_011, X1MP_012, X1MP_014, X1MP_017
+    SCMP_001, SCMP_002, SCMP_003, SCMP_004, SCMP_005, SCMP_006, SCMP_007, SCMP_008, SCMP_009, SCMP_010, SCMP_011,
+    SCMP_012, SCMP_013, SCMP_014, SCMP_015, SCMP_016, SCMP_017, SCMP_018, SCMP_019, SCMP_020, SCMP_021, SCMP_022,
+    SCMP_023, SCMP_024, SCMP_025, SCMP_026, SCMP_027, SCMP_028, SCMP_029, SCMP_030, SCMP_031, SCMP_032, SCMP_033,
+    SCMP_034, SCMP_035, SCMP_036, SCMP_037, SCMP_038, SCMP_039, SCMP_040, X1MP_001, X1MP_002, X1MP_003, X1MP_004,
+    X1MP_005, X1MP_006, X1MP_007, X1MP_008, X1MP_009, X1MP_010, X1MP_011, X1MP_012, X1MP_014, X1MP_017
   }
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   @Autowired
   Environment environment;
   @Autowired
@@ -58,6 +54,8 @@ public class MapServiceImpl implements MapService {
   MapVaultParser mapVaultParser;
   @Autowired
   I18n i18n;
+  @Autowired
+  ApplicationContext applicationContext;
 
   @Override
   @Cacheable(CacheNames.SMALL_MAP_PREVIEW)
@@ -92,12 +90,10 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public void readMapVaultInBackground(int page, int maxEntries, Callback<List<MapInfoBean>> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<MapInfoBean>>(i18n.get("readMapVaultTask.title")) {
-      @Override
-      protected List<MapInfoBean> call() throws Exception {
-        return mapVaultParser.parseMapVault(page, maxEntries);
-      }
-    }, callback);
+    MapVaultParseTask task = applicationContext.getBean(MapVaultParseTask.class);
+    task.setMaxEntries(maxEntries);
+    task.setPage(page);
+    taskService.submitTask(task, callback);
   }
 
   @Override
@@ -174,9 +170,7 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public CompletionStage<Void> download(String mapName) {
-    String taskTitle = i18n.get("mapDownloadTask.title", mapName);
-
+  public CompletionStage<Void> download(String technicalMapName) {
     CompletableFuture<Void> future = new CompletableFuture<>();
     Callback<Void> callback = new Callback<Void>() {
       @Override
@@ -190,29 +184,12 @@ public class MapServiceImpl implements MapService {
       }
     };
 
-    taskService.submitTask(TaskGroup.NET_HEAVY, new PrioritizedTask<Void>(taskTitle) {
-      @Override
-      protected Void call() throws Exception {
-        String mapUrl = getMapUrl(mapName, environment.getProperty("vault.mapDownloadUrl"));
+    String mapUrl = getMapUrl(technicalMapName, environment.getProperty("vault.mapDownloadUrl"));
 
-        logger.info("Downloading map {} from {}", mapName, mapUrl);
-
-        HttpURLConnection urlConnection = (HttpURLConnection) new URL(mapUrl).openConnection();
-        int bytesToRead = urlConnection.getContentLength();
-
-        Path targetDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
-
-        try (ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(urlConnection.getInputStream()))) {
-          Unzipper.from(inputStream)
-              .to(targetDirectory)
-              .totalBytes(bytesToRead)
-              .listener(this::updateProgress)
-              .unzip();
-        }
-
-        return null;
-      }
-    }, callback);
+    DownloadMapTask task = applicationContext.getBean(DownloadMapTask.class);
+    task.setMapUrl(mapUrl);
+    task.setTechnicalMapName(technicalMapName);
+    taskService.submitTask(task, callback);
 
     return future;
   }

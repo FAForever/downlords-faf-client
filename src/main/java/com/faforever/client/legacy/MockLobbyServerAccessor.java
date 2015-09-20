@@ -16,7 +16,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.task.PrioritizedTask;
-import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Callback;
@@ -33,7 +32,6 @@ import java.util.concurrent.CompletionStage;
 import static com.faforever.client.legacy.domain.GameAccess.PASSWORD;
 import static com.faforever.client.legacy.domain.GameAccess.PUBLIC;
 import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
-import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
@@ -58,9 +56,11 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
   @Override
   public void connectAndLogInInBackground(Callback<SessionInfo> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<SessionInfo>(i18n.get("login.progress.message")) {
+    taskService.submitTask(new PrioritizedTask<SessionInfo>(HIGH) {
       @Override
       protected SessionInfo call() throws Exception {
+        updateTitle(i18n.get("login.progress.message"));
+
         for (OnGameTypeInfoListener onModInfoMessageListener : onModInfoMessageListeners) {
           GameTypeInfo gameTypeInfo = new GameTypeInfo();
           gameTypeInfo.setFullname("Forged Alliance Forever");
@@ -96,9 +96,10 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
                 Severity.INFO,
                 Arrays.asList(
                     new Action("Execute", event ->
-                        taskService.submitTask(TaskGroup.NET_HEAVY, new PrioritizedTask<Void>("Mock task") {
+                        taskService.submitTask(new PrioritizedTask<Void>(HIGH) {
                           @Override
                           protected Void call() throws Exception {
+                            updateTitle("Mock task");
                             Thread.sleep(2000);
                             for (int i = 0; i < 5; i++) {
                               updateProgress(i, 5);
@@ -172,9 +173,11 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
       }
     };
 
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<GameLaunchInfo>(i18n.get("requestNewGameTask.title"), HIGH) {
+    taskService.submitTask(new PrioritizedTask<GameLaunchInfo>(HIGH) {
       @Override
       protected GameLaunchInfo call() throws Exception {
+        updateTitle(i18n.get("requestNewGameTask.title"));
+
         GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
         gameLaunchInfo.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));
         gameLaunchInfo.setMod("faf");
@@ -201,9 +204,11 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
       }
     };
 
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<GameLaunchInfo>(i18n.get("requestJoinGameTask.title"), HIGH) {
+    taskService.submitTask(new PrioritizedTask<GameLaunchInfo>(HIGH) {
       @Override
       protected GameLaunchInfo call() throws Exception {
+        updateTitle(i18n.get("requestJoinGameTask.title"));
+
         GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
         gameLaunchInfo.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));
         gameLaunchInfo.setMod("faf");

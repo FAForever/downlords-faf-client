@@ -5,8 +5,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Bytes;
 import com.faforever.client.util.Callback;
@@ -15,7 +13,7 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -33,9 +31,6 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   private static final String DEVELOPMENT_VERSION_STRING = "dev";
 
   @Autowired
-  Environment environment;
-
-  @Autowired
   TaskService taskService;
 
   @Autowired
@@ -48,7 +43,7 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   HostService hostService;
 
   @Autowired
-  PreferencesService preferencesService;
+  ApplicationContext applicationContext;
 
   @VisibleForTesting
   ComparableVersion currentVersion;
@@ -61,7 +56,10 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
 
   @Override
   public void checkForUpdateInBackground() {
-    taskService.submitTask(TaskGroup.NET_LIGHT, new CheckForUpdateTask(environment, i18n, currentVersion),
+    CheckForUpdateTask task = applicationContext.getBean(CheckForUpdateTask.class);
+    task.setCurrentVersion(currentVersion);
+
+    taskService.submitTask(task,
         new Callback<UpdateInfo>() {
 
           @Override
@@ -114,7 +112,10 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   }
 
   private void downloadAndInstallInBackground(UpdateInfo updateInfo) {
-    taskService.submitTask(TaskGroup.NET_HEAVY, new DownloadUpdateTask(i18n, preferencesService, updateInfo), new Callback<Path>() {
+    DownloadUpdateTask task = applicationContext.getBean(DownloadUpdateTask.class);
+    task.setUpdateInfo(updateInfo);
+
+    taskService.submitTask(task, new Callback<Path>() {
       @Override
       public void success(Path result) {
         install(result);

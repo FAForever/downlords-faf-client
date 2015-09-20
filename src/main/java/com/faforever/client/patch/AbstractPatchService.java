@@ -11,13 +11,10 @@ import java.nio.file.Path;
 public class AbstractPatchService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   @Autowired
   PreferencesService preferencesService;
-  /**
-   * Path to the FAF "bin" directory (e. g. "%PROGRAMDATA\FAForever\bin")
-   */
-  private Path fafBinDirectory;
-  private Path faBinDirectory;
+
 
   /**
    * Since it's possible that the user has changed or never specified the game path, this method needs to be called
@@ -25,21 +22,11 @@ public class AbstractPatchService {
    *
    * @return {@code true} if directories are set up correctly
    */
-  protected boolean initAndCheckDirectories() {
-    fafBinDirectory = preferencesService.getFafBinDirectory();
+  protected boolean checkDirectories() {
     Path faDirectory = preferencesService.getPreferences().getForgedAlliance().getPath();
     if (faDirectory == null) {
       return false;
     }
-    faBinDirectory = faDirectory.resolve("bin");
     return true;
-  }
-
-  protected Path getFafBinDirectory() {
-    return fafBinDirectory;
-  }
-
-  protected Path getFaBinDirectory() {
-    return faBinDirectory;
   }
 }

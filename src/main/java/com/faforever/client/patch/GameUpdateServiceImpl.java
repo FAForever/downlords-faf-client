@@ -1,6 +1,5 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
 import org.slf4j.Logger;
@@ -27,7 +26,7 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
 
   @Override
   public CompletableFuture<Void> updateInBackground(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUids) {
-    if (!initAndCheckDirectories()) {
+    if (!checkDirectories()) {
       logger.warn("Aborted patching since directories aren't initialized properly");
       return CompletableFuture.completedFuture(null);
     }
@@ -44,8 +43,7 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
 
     CompletableFuture<Void> future = new CompletableFuture<>();
 
-    // TODO replace TaskGroups by some resource locking mechanism. This has been changed to NET_LIGHT because a sub-task using NET_HEAVY would be blocked otherwise
-    taskService.submitTask(TaskGroup.NET_LIGHT, updateTask, new Callback<Void>() {
+    taskService.submitTask(updateTask, new Callback<Void>() {
       @Override
       public void success(Void result) {
         future.complete(result);
@@ -61,7 +59,8 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
   }
 
   @Override
-  public void checkForUpdateInBackground() {
+  public CompletableFuture<Void> checkForUpdateInBackground() {
     logger.info("Ignoring update check since the current server implementation doesn't allow to do so easily");
+    return null;
   }
 }

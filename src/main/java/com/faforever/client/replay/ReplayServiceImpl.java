@@ -9,10 +9,7 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.task.PrioritizedTask;
-import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.ByteCopier;
 import com.faforever.client.util.Callback;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
@@ -20,17 +17,13 @@ import com.google.common.primitives.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 import java.awt.Desktop;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -62,7 +55,6 @@ public class ReplayServiceImpl implements ReplayService {
   private static final String FAF_LIFE_PROTOCOL = "faflive";
   private static final String GPGNET_SCHEME = "gpgnet";
   private static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
-  private static final String TEMP_FAF_REPLAY_FILE_NAME = "temp.fafreplay";
 
   @Autowired
   Environment environment;
@@ -90,6 +82,9 @@ public class ReplayServiceImpl implements ReplayService {
 
   @Autowired
   ReplayServerAccessor replayServerAccessor;
+
+  @Autowired
+  ApplicationContext applicationContext;
 
   @Override
   public Collection<ReplayInfoBean> getLocalReplays() throws IOException {
@@ -244,39 +239,10 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   private void downloadReplayToTemporaryDirectory(int replayId, Callback<Path> callback) {
-    String taskTitle = i18n.get("mapReplayTask.title", replayId);
+    ReplayDownloadTask task = applicationContext.getBean(ReplayDownloadTask.class);
+    task.setReplayId(replayId);
 
-    taskService.submitTask(TaskGroup.NET_HEAVY, new PrioritizedTask<Path>(taskTitle) {
-      @Override
-      protected Path call() throws Exception {
-        String replayUrl = getReplayUrl(replayId, environment.getProperty("vault.replayDownloadUrl"));
-
-        logger.info("Downloading replay {} from {}", replayId, replayUrl);
-
-        HttpURLConnection urlConnection = (HttpURLConnection) new URL(replayUrl).openConnection();
-        int bytesToRead = urlConnection.getContentLength();
-
-        Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_FAF_REPLAY_FILE_NAME);
-
-        Files.createDirectories(tempSupComReplayFile.getParent());
-
-        try (InputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
-             OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(tempSupComReplayFile))) {
-
-          ByteCopier.from(inputStream)
-              .to(outputStream)
-              .totalBytes(bytesToRead)
-              .listener(this::updateProgress)
-              .copy();
-
-          return tempSupComReplayFile;
-        }
-      }
-    }, callback);
-  }
-
-  private String getReplayUrl(int replayId, String baseUrl) {
-    return String.format(baseUrl, replayId);
+    taskService.submitTask(task, callback);
   }
 
   @VisibleForTesting

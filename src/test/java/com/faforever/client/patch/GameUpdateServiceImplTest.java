@@ -5,7 +5,6 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
-import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.Callback;
@@ -73,10 +72,10 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
   @SuppressWarnings("unchecked")
   private void mockTaskService() throws Exception {
     doAnswer((InvocationOnMock invocation) -> {
-      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(1, PrioritizedTask.class);
+      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(0, PrioritizedTask.class);
       prioritizedTask.run();
 
-      Callback<Boolean> callback = invocation.getArgumentAt(2, Callback.class);
+      Callback<Boolean> callback = invocation.getArgumentAt(1, Callback.class);
 
       Future<Throwable> throwableFuture = WaitForAsyncUtils.asyncFx(prioritizedTask::getException);
       Throwable throwable = throwableFuture.get(TIMEOUT, TIMEOUT_UNIT);
@@ -88,7 +87,7 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
       }
 
       return null;
-    }).when(instance.taskService).submitTask(any(), any(), any());
+    }).when(instance.taskService).submitTask(any(), any());
   }
 
   @Test
@@ -98,7 +97,7 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(taskService).submitTask(eq(TaskGroup.NET_LIGHT), eq(updateGameFilesTask), any());
+    verify(taskService).submitTask(eq(updateGameFilesTask), any());
   }
 
   @Test
@@ -121,7 +120,7 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
     instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(taskService, only()).submitTask(eq(TaskGroup.NET_LIGHT), eq(updateGameFilesTask), any());
+    verify(taskService, only()).submitTask(eq(updateGameFilesTask), any());
   }
 
   @Test

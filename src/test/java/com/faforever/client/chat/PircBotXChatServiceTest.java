@@ -473,10 +473,10 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @SuppressWarnings("unchecked")
   private void mockTaskService() {
     doAnswer((InvocationOnMock invocation) -> {
-      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(1, PrioritizedTask.class);
+      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(0, PrioritizedTask.class);
       prioritizedTask.run();
 
-      Callback<Boolean> callback = invocation.getArgumentAt(2, Callback.class);
+      Callback<Boolean> callback = invocation.getArgumentAt(1, Callback.class);
 
       Future<Throwable> throwableFuture = WaitForAsyncUtils.asyncFx(prioritizedTask::getException);
       Throwable throwable = throwableFuture.get(1, TimeUnit.SECONDS);
@@ -488,7 +488,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
       }
 
       return null;
-    }).when(instance.taskService).submitTask(any(), any(), any());
+    }).when(instance.taskService).submitTask(any(), any());
   }
 
   @Test

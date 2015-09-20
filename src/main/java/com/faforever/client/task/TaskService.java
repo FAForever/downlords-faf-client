@@ -16,24 +16,20 @@ public interface TaskService {
   /**
    * Submits a task for execution in background and calls the specified callback on completion. The task must not have
    * {@link Task#onSucceededProperty()} or {@link Task#onFailedProperty()} set.
-   *
-   * @param <T> the task's result type
-   * @param taskGroup the task group this task should be assigned to
+   *  @param <T> the task's result type
    * @param task the task to execute
    * @param callback the callback to call on completion
    */
-  <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task, Callback<T> callback);
+  <T> void submitTask(PrioritizedTask<T> task, Callback<T> callback);
 
   /**
    * Submits a task for execution in background.
-   *
-   * @param <T> the task's result type
-   * @param taskGroup the task group this task should be assigned to
+   *  @param <T> the task's result type
    * @param task the task to execute
    */
-  <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task);
+  <T> void submitTask(PrioritizedTask<T> task);
 
-  void addListener(OnTasksUpdatedListener listener, TaskGroup... taskGroups);
+  void addListener(OnTasksUpdatedListener listener);
 
   Collection<PrioritizedTask<?>> getRunningTasks();
 }

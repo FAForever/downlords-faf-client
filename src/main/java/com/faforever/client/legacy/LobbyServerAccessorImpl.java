@@ -65,7 +65,7 @@ import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.OFF;
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.ON;
-import static com.faforever.client.task.TaskGroup.NET_LIGHT;
+import static com.faforever.client.task.PrioritizedTask.Priority.MEDIUM;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
 public class LobbyServerAccessorImpl extends AbstractServerAccessor implements LobbyServerAccessor {
@@ -307,9 +307,11 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   @Override
   public void requestLadderInfoInBackground(Callback<List<LeaderboardEntryBean>> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LeaderboardEntryBean>>(i18n.get("readLadderTask.title")) {
+    taskService.submitTask(new PrioritizedTask<List<LeaderboardEntryBean>>(MEDIUM) {
       @Override
       protected List<LeaderboardEntryBean> call() throws Exception {
+        updateTitle(i18n.get("readLadderTask.title"));
+
         return leaderboardParser.parseLadder();
       }
     }, callback);

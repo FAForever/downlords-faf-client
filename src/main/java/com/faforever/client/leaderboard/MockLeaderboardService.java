@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
-import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
 public class MockLeaderboardService implements LeaderboardService {
 
@@ -23,9 +22,11 @@ public class MockLeaderboardService implements LeaderboardService {
 
   @Override
   public void getLadderInfo(Callback<List<LeaderboardEntryBean>> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LeaderboardEntryBean>>(i18n.get("readLadderTask.title"), HIGH) {
+    taskService.submitTask(new PrioritizedTask<List<LeaderboardEntryBean>>(HIGH) {
       @Override
       protected List<LeaderboardEntryBean> call() throws Exception {
+        updateTitle(i18n.get("readLadderTask.title"));
+
         List<LeaderboardEntryBean> list = new ArrayList<>();
         for (int i = 1; i <= 10000; i++) {
           String name = RandomStringUtils.random(10);
