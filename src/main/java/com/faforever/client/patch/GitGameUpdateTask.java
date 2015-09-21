@@ -55,7 +55,7 @@ public class GitGameUpdateTask extends PrioritizedTask<Void> {
 
   @PostConstruct
   void postConstruct() {
-    i18n.get("patchTask.title");
+    updateTitle(i18n.get("patchTask.title"));
     patchRepositoryUri = environment.getProperty("patch.git.url");
   }
 

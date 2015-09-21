@@ -1,25 +1,113 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.task.TaskService;
+import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.util.TestResources;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.springframework.core.env.Environment;
 
-import static org.mockito.Matchers.any;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static com.faforever.client.patch.GitRepositoryGameUpdateService.InstallType.RETAIL;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-public class GitGameUpdateTaskTest {
+public class GitGameUpdateTaskTest extends AbstractPlainJavaFxTest {
 
+  private static final String GIT_PATCH_URL = "git://dummy/repo.git";
+
+  @Rule
+  public final TemporaryFolder faDirectory = new TemporaryFolder();
+
+  @Rule
+  public final TemporaryFolder fafBinDirectory = new TemporaryFolder();
+
+  @Mock
+  private GitWrapper gitWrapper;
+  @Mock
+  private TaskService taskService;
+  @Mock
+  private PreferencesService preferencesService;
+  @Mock
+  private Environment environment;
+  @Mock
+  private I18n i18n;
+  @Mock
+  private Preferences preferences;
+  @Mock
+  private ForgedAlliancePrefs forgedAlliancePrefs;
+
+  /**
+   * The directory containing the cloned patch repository
+   */
+  private Path binaryPatchRepoDirectory;
   private GitGameUpdateTask instance;
 
   @Before
   public void setUp() throws Exception {
     instance = new GitGameUpdateTask();
+    instance.preferencesService = preferencesService;
+    instance.gitWrapper = gitWrapper;
+    instance.environment = environment;
+    instance.i18n = i18n;
+
+    Path reposDirectory = faDirectory.getRoot().toPath().resolve("repos");
+    binaryPatchRepoDirectory = reposDirectory.resolve(GitRepositoryGameUpdateService.REPO_NAME);
+
+    instance.setBinaryPatchRepoDirectory(binaryPatchRepoDirectory);
+    instance.setMigrationDataFile(binaryPatchRepoDirectory.resolve(RETAIL.migrationDataFileName));
+
+    when(preferencesService.getFafReposDirectory()).thenReturn(reposDirectory);
+    when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
+    when(environment.getProperty("patch.git.url")).thenReturn(GIT_PATCH_URL);
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
+    when(forgedAlliancePrefs.getPath()).thenReturn(faDirectory.getRoot().toPath());
+
+    instance.postConstruct();
   }
 
   @Test
-  public void testAvailable() throws Exception {
-    instance.call();
+  public void testUpdateInBackgroundRepoDirectoryDoesNotExist() throws Exception {
+    assertTrue("Repo directory was expected to be inexistent, but it existed", Files.notExists(binaryPatchRepoDirectory));
+
+    prepareFaBinaries();
+
+    doAnswer(invocation -> {
+      prepareLocalPatchRepo();
+      return null;
+    }).when(gitWrapper).clone(GIT_PATCH_URL, binaryPatchRepoDirectory);
+
+    assertThat(instance.call(), is(nullValue()));
 
     verify(gitWrapper).clone(GIT_PATCH_URL, binaryPatchRepoDirectory);
-    verify(taskService).submitTask(any(), any());
+  }
+
+  private void prepareFaBinaries() throws IOException {
+    Path faBinDirectory = faDirectory.getRoot().toPath().resolve("bin");
+    Files.createDirectories(faBinDirectory);
+
+    TestResources.copyResource("/patch/GDFBinary.dll", faBinDirectory.resolve("GDFBinary.dll"));
+    TestResources.copyResource("/patch/testFile1.txt", faBinDirectory.resolve("testFile1.txt"));
+    TestResources.copyResource("/patch/testFile2.txt", faBinDirectory.resolve("testFile2.txt"));
+  }
+
+  private void prepareLocalPatchRepo() throws IOException {
+    TestResources.copyResource("/patch/retail.json", binaryPatchRepoDirectory.resolve(RETAIL.migrationDataFileName));
+    TestResources.copyResource("/patch/bsdiff4/040943c20d9e1f7de7f496b1202a600d", binaryPatchRepoDirectory.resolve("bsdiff4/040943c20d9e1f7de7f496b1202a600d"));
   }
 }

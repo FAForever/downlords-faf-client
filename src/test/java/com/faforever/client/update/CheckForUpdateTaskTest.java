@@ -1,13 +1,13 @@
 package com.faforever.client.update;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.io.CharStreams;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -20,7 +20,7 @@ import java.net.Socket;
 
 import static org.mockito.Mockito.when;
 
-public class CheckForUpdateTaskTest {
+public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
 
   private ServerSocket fafLobbyServerSocket;
   private CheckForUpdateTask instance;
@@ -33,8 +33,6 @@ public class CheckForUpdateTaskTest {
 
   @Before
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
-
     instance = new CheckForUpdateTask();
     instance.i18n = i18n;
     instance.environment = environment;
@@ -52,19 +50,7 @@ public class CheckForUpdateTaskTest {
    */
   @Test
   public void testIsNewer() throws Exception {
-    int port = fafLobbyServerSocket.getLocalPort();
-    when(environment.getProperty("github.releases.url")).thenReturn("http://localhost:" + port);
-    when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(100);
-
-    instance.call();
-  }
-
-  /**
-   * There is no newer version on the server.
-   */
-  @Test
-  public void testGetUpdateIsCurrent() throws Exception {
-    instance.setCurrentVersion(new ComparableVersion("0.4.8.1-alpha"));
+    instance.setCurrentVersion(new ComparableVersion("0.4.8-alpha"));
     startFakeGitHubApiServer();
 
     int port = fafLobbyServerSocket.getLocalPort();
@@ -93,5 +79,20 @@ public class CheckForUpdateTaskTest {
         throw new RuntimeException(e);
       }
     });
+  }
+
+  /**
+   * There is no newer version on the server.
+   */
+  @Test
+  public void testGetUpdateIsCurrent() throws Exception {
+    instance.setCurrentVersion(new ComparableVersion("0.4.8.1-alpha"));
+    startFakeGitHubApiServer();
+
+    int port = fafLobbyServerSocket.getLocalPort();
+    when(environment.getProperty("github.releases.url")).thenReturn("http://localhost:" + port);
+    when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(100);
+
+    instance.call();
   }
 }
