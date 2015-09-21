@@ -10,7 +10,10 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.Callback;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.springframework.context.ApplicationContext;
@@ -19,6 +22,7 @@ import org.springframework.core.env.Environment;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static com.faforever.client.patch.GitRepositoryGameUpdateService.STEAM_API_DLL;
@@ -35,6 +39,14 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
 
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
+  @Rule
+  public final TemporaryFolder reposDirectory = new TemporaryFolder();
+  @Rule
+  public TemporaryFolder faDirectory = new TemporaryFolder();
+  @Rule
+  public ExpectedException exception = ExpectedException.none();
+
+
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
@@ -53,6 +65,7 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
   private NotificationService notificationService;
   @Mock
   private Preferences preferences;
+
   private Path faBinDirectory;
   private GitRepositoryGameUpdateService instance;
 
@@ -68,10 +81,13 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
 
     GitCheckGameUpdateTask gameUpdateTask = mock(GitCheckGameUpdateTask.class, withSettings().useConstructor());
     when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(preferencesService.getFafReposDirectory()).thenReturn(reposDirectory.getRoot().toPath());
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
+    when(forgedAlliancePrefs.getPath()).thenReturn(faDirectory.getRoot().toPath());
     when(applicationContext.getBean(GitCheckGameUpdateTask.class)).thenReturn(gameUpdateTask);
 
-    faBinDirectory = forgedAlliancePrefs.getPath().resolve("bin");
+    faBinDirectory = faDirectory.getRoot().toPath().resolve("bin");
+    Files.createDirectories(faBinDirectory);
 
     instance.postConstruct();
   }
@@ -95,8 +111,10 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
 
     CompletableFuture<Void> future = instance.updateInBackground(GameType.FAF.getString(), null, null, null);
 
+    exception.expect(ExecutionException.class);
+    exception.expectMessage("This exception mimicks that something went wrong");
+
     future.get(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(future.isCompletedExceptionally(), is(true));
   }
 
   @Test
@@ -123,8 +141,10 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
 
     CompletableFuture<Void> future = instance.checkForUpdateInBackground();
 
+    exception.expect(ExecutionException.class);
+    exception.expectMessage("This exception mimicks that something went wrong");
+
     future.get(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(future.isCompletedExceptionally(), is(false));
   }
 
   @Test

@@ -1,6 +1,8 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -52,6 +54,10 @@ public class GitCheckGameUpdateTaskTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private Preferences preferences;
+  @Mock
+  private ForgedAlliancePrefs forgedAlliancePrefs;
 
   @Before
   public void setUp() throws Exception {
@@ -65,8 +71,13 @@ public class GitCheckGameUpdateTaskTest extends AbstractPlainJavaFxTest {
     binaryPatchRepoDirectory = reposDirectory.resolve(GitRepositoryGameUpdateService.REPO_NAME);
 
     instance.setBinaryPatchRepoDirectory(binaryPatchRepoDirectory);
+    instance.setMigrationDataFile(binaryPatchRepoDirectory.resolve(RETAIL.migrationDataFileName));
 
     when(preferencesService.getFafReposDirectory()).thenReturn(reposDirectory);
+    when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
+    when(forgedAlliancePrefs.getPath()).thenReturn(faDirectory.getRoot().toPath());
     when(environment.getProperty("patch.git.url")).thenReturn(GIT_PATCH_URL);
   }
 
@@ -151,6 +162,8 @@ public class GitCheckGameUpdateTaskTest extends AbstractPlainJavaFxTest {
     gitGameUpdateTask.environment = environment;
     gitGameUpdateTask.gitWrapper = gitWrapper;
     gitGameUpdateTask.i18n = i18n;
+    gitGameUpdateTask.preferencesService = preferencesService;
+    gitGameUpdateTask.setMigrationDataFile(binaryPatchRepoDirectory.resolve(RETAIL.migrationDataFileName));
     gitGameUpdateTask.setBinaryPatchRepoDirectory(binaryPatchRepoDirectory);
     gitGameUpdateTask.call();
 
