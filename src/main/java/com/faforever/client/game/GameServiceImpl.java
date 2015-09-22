@@ -46,6 +46,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
+import static java.util.Collections.emptyMap;
+
 public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnGameInfoListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -99,9 +101,10 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   public CompletionStage<Void> hostGame(NewGameInfo newGameInfo) {
     cancelLadderSearch();
 
+
     CompletableFuture<Void> future = new CompletableFuture<>();
 
-    updateGameIfNecessary(newGameInfo.getGameType(), newGameInfo.getVersion(), Collections.emptyMap(), Collections.<String>emptySet())
+    updateGameIfNecessary(newGameInfo.getGameType(), newGameInfo.getVersion(), emptyMap(), newGameInfo.getSimModUidsToVersions())
         .thenRun(() -> lobbyServerAccessor.requestNewGame(newGameInfo)
             .thenAccept((gameLaunchInfo) -> startGame(gameLaunchInfo, future))
             .exceptionally(throwable -> {

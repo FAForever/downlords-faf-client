@@ -81,6 +81,7 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
     updateServerAccessor.connect(this);
 
     downloadMissingSimMods();
+    modService.enableSimMods(simMods);
 
     try {
       if (FAF.getString().equals(gameType) || LADDER_1V1.getString().equals(gameType)) {
@@ -174,7 +175,7 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
   private void downloadMod(String uid) throws ExecutionException, InterruptedException, TimeoutException {
     String modPath = updateServerAccessor.requestSimPath(uid).get(TIMEOUT, TIMEOUT_UNIT);
 
-    modService.downloadAndInstallMod(modPath).get(TIMEOUT, TIMEOUT_UNIT);
+    modService.downloadAndInstallMod(modPath).get();
 
     updateServerAccessor.incrementModDownloadCount(uid);
   }

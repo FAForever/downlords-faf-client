@@ -8,6 +8,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 import java.nio.file.Path;
+import java.util.Objects;
 
 public class ModInfoBean {
 
@@ -139,5 +140,22 @@ public class ModInfoBean {
 
   public StringProperty uidProperty() {
     return uid;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(uid.get());
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ModInfoBean that = (ModInfoBean) o;
+    return Objects.equals(uid.get(), that.uid.get());
   }
 }

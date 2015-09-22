@@ -21,7 +21,6 @@ import org.mockito.Mock;
 import org.springframework.core.env.Environment;
 
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
@@ -250,7 +249,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     ModInfoBean modInfoBean1 = mock(ModInfoBean.class);
     ModInfoBean modInfoBean2 = mock(ModInfoBean.class);
 
-    when(modService.getInstalledMods()).thenReturn(Arrays.asList(
+    when(modService.getInstalledMods()).thenReturn(FXCollections.observableArrayList(
         modInfoBean1, modInfoBean2
     ));
 

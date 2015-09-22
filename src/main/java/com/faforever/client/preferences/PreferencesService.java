@@ -217,10 +217,6 @@ public class PreferencesService {
     return getFafDataDirectory().resolve("repos");
   }
 
-  public Path getFafGameDataDirectory() {
-    return getFafDataDirectory().resolve("gamedata");
-  }
-
   private void initDefaultPreferences() {
     if (preferences != null) {
       throw new IllegalStateException("Preferences have already been initialized");
