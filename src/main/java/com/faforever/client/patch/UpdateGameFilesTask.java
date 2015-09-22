@@ -309,7 +309,7 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
 
       Files.move(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
     } finally {
-      ResourceLocks.freeDiskLock();
+      ResourceLocks.freeDownloadLock();
       try {
         Files.deleteIfExists(tempFile);
       } catch (IOException e) {
