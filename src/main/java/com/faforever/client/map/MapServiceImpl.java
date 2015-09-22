@@ -100,6 +100,10 @@ public class MapServiceImpl implements MapService {
     ObservableList<MapInfoBean> maps = FXCollections.observableArrayList();
 
     Path mapsDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
+    if (Files.notExists(mapsDirectory)) {
+      logger.warn("Local map directory does not exist: ", mapsDirectory);
+      return FXCollections.emptyObservableList();
+    }
 
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(mapsDirectory)) {
       for (Path path : stream) {
