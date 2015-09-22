@@ -1,7 +1,6 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,21 +40,7 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
     updateTask.setSimMods(simModUids);
     updateTask.setModVersions(modVersions);
 
-    CompletableFuture<Void> future = new CompletableFuture<>();
-
-    taskService.submitTask(updateTask, new Callback<Void>() {
-      @Override
-      public void success(Void result) {
-        future.complete(result);
-      }
-
-      @Override
-      public void error(Throwable e) {
-        future.completeExceptionally(e);
-      }
-    });
-
-    return future;
+    return taskService.submitTask(updateTask);
   }
 
   @Override

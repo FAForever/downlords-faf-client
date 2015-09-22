@@ -4,7 +4,6 @@ import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,25 +69,9 @@ public class ModServiceImpl implements ModService {
 
   @Override
   public CompletableFuture<Void> downloadAndInstallMod(String modPath) {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-
     DownloadModTask task = applicationContext.getBean(DownloadModTask.class);
     task.setModPath(modPath);
-
-
-    taskService.submitTask(task, new Callback<Void>() {
-      @Override
-      public void success(Void result) {
-        future.complete(result);
-      }
-
-      @Override
-      public void error(Throwable e) {
-        future.completeExceptionally(e);
-      }
-    });
-
-    return future;
+    return taskService.submitTask(task);
   }
 
   @Override

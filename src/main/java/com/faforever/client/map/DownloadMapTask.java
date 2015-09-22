@@ -2,7 +2,7 @@ package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.util.Unzipper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.zip.ZipInputStream;
 
-public class DownloadMapTask extends PrioritizedTask<Void> {
+public class DownloadMapTask extends AbstractPrioritizedTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

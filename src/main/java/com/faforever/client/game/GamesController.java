@@ -14,7 +14,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.RatingUtil;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -278,18 +277,11 @@ public class GamesController {
       enterPasswordController.setGameInfoBean(gameInfoBean);
       passwordPopup.show(gamesRoot.getScene().getWindow(), screenX, screenY);
     } else {
-      gameService.joinGame(gameInfoBean, password, new Callback<Void>() {
-        @Override
-        public void success(Void result) {
-          // Cool.
-        }
-
-        @Override
-        public void error(Throwable e) {
-          // FIXME implement
-          logger.warn("Game could not be joined", e);
-        }
-      });
+      gameService.joinGame(gameInfoBean, password)
+          .exceptionally(throwable -> {
+            logger.warn("Game could not be joined", throwable);
+            return null;
+          });
     }
   }
 

@@ -15,7 +15,6 @@ import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.util.Callback;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -153,19 +152,11 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testConnectAndLogInInBackground() throws Exception {
-    CompletableFuture<SessionInfo> sessionInfoFuture = new CompletableFuture<>();
-    @SuppressWarnings("unchecked")
-    Callback<SessionInfo> callback = mock(Callback.class);
-    doAnswer(invocation -> {
-      sessionInfoFuture.complete(invocation.getArgumentAt(0, SessionInfo.class));
-      return null;
-    }).when(callback).success(any());
-
     int playerUid = 123;
     String sessionId = "456";
     String email = "test@example.com";
 
-    instance.connectAndLogInInBackground(callback);
+    CompletableFuture<SessionInfo> sessionInfoFuture = instance.connectAndLogInInBackground();
 
     String json = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     InitSessionMessage initSessionMessage = gson.fromJson(json, InitSessionMessage.class);
@@ -253,15 +244,8 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   private void connectAndLogIn() throws InterruptedException {
     CountDownLatch connectedLatch = new CountDownLatch(1);
-    @SuppressWarnings("unchecked")
-    Callback<SessionInfo> connectionCallback = mock(Callback.class);
-    doAnswer(invocation -> {
-      connectedLatch.countDown();
-      return null;
-    }).when(connectionCallback).success(any());
 
-
-    instance.connectAndLogInInBackground(connectionCallback);
+    instance.connectAndLogInInBackground().thenRun(connectedLatch::countDown);
 
     assertNotNull(messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT));
 

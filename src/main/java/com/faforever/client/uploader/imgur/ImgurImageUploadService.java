@@ -2,10 +2,11 @@ package com.faforever.client.uploader.imgur;
 
 import com.faforever.client.task.TaskService;
 import com.faforever.client.uploader.ImageUploadService;
-import com.faforever.client.util.Callback;
 import javafx.scene.image.Image;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+
+import java.util.concurrent.CompletableFuture;
 
 public class ImgurImageUploadService implements ImageUploadService {
 
@@ -16,9 +17,9 @@ public class ImgurImageUploadService implements ImageUploadService {
   ApplicationContext applicationContext;
 
   @Override
-  public void uploadImageInBackground(Image image, Callback<String> callback) {
+  public CompletableFuture<String> uploadImageInBackground(Image image) {
     ImgurUploadTask imgurUploadTask = applicationContext.getBean(ImgurUploadTask.class);
     imgurUploadTask.setImage(image);
-    taskService.submitTask(new ImgurUploadTask(), callback);
+    return taskService.submitTask(imgurUploadTask);
   }
 }

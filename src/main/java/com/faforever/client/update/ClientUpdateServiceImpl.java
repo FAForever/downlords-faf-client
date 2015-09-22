@@ -7,7 +7,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Bytes;
-import com.faforever.client.util.Callback;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
@@ -59,40 +58,32 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
     CheckForUpdateTask task = applicationContext.getBean(CheckForUpdateTask.class);
     task.setCurrentVersion(currentVersion);
 
-    taskService.submitTask(task,
-        new Callback<UpdateInfo>() {
+    taskService.submitTask(task).thenAccept(updateInfo -> {
+      if (updateInfo == null) {
+        return;
+      }
 
-          @Override
-          public void success(UpdateInfo updateInfo) {
-            if (updateInfo == null) {
-              return;
-            }
-
-            notificationService.addNotification(
-                new PersistentNotification(
-                    i18n.get("clientUpdateAvailable.notification", updateInfo.getName(), Bytes.formatSize(updateInfo.getSize())),
-                    INFO,
-                    Arrays.asList(
-                        new Action(
-                            i18n.get("clientUpdateAvailable.downloadAndInstall"),
-                            event -> downloadAndInstallInBackground(updateInfo)
-                        ),
-                        new Action(
-                            i18n.get("clientUpdateAvailable.releaseNotes"),
-                            Action.Type.OK_STAY,
-                            event -> hostService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
-                        )
-                    )
-                )
-            );
-          }
-
-          @Override
-          public void error(Throwable e) {
-            logger.warn("Client update check failed", e);
-          }
-        }
-    );
+      notificationService.addNotification(
+          new PersistentNotification(
+              i18n.get("clientUpdateAvailable.notification", updateInfo.getName(), Bytes.formatSize(updateInfo.getSize())),
+              INFO,
+              Arrays.asList(
+                  new Action(
+                      i18n.get("clientUpdateAvailable.downloadAndInstall"),
+                      event -> downloadAndInstallInBackground(updateInfo)
+                  ),
+                  new Action(
+                      i18n.get("clientUpdateAvailable.releaseNotes"),
+                      Action.Type.OK_STAY,
+                      event -> hostService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
+                  )
+              )
+          )
+      );
+    }).exceptionally(throwable -> {
+      logger.warn("Client update check failed", throwable);
+      return null;
+    });
   }
 
   @Override
@@ -115,23 +106,18 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
     DownloadUpdateTask task = applicationContext.getBean(DownloadUpdateTask.class);
     task.setUpdateInfo(updateInfo);
 
-    taskService.submitTask(task, new Callback<Path>() {
-      @Override
-      public void success(Path result) {
-        install(result);
-      }
-
-      @Override
-      public void error(Throwable e) {
-        notificationService.addNotification(
-            new PersistentNotification(i18n.get("clientUpdateDownloadFailed.notification"),
-                WARN,
-                singletonList(
-                    new Action(i18n.get("clientUpdateDownloadFailed.retry"), event -> downloadAndInstallInBackground(updateInfo))
-                )
-            )
-        );
-      }
-    });
+    taskService.submitTask(task)
+        .thenAccept(this::install)
+        .exceptionally(throwable -> {
+          notificationService.addNotification(
+              new PersistentNotification(i18n.get("clientUpdateDownloadFailed.notification"),
+                  WARN,
+                  singletonList(
+                      new Action(i18n.get("clientUpdateDownloadFailed.retry"), event -> downloadAndInstallInBackground(updateInfo))
+                  )
+              )
+          );
+          return null;
+        });
   }
 }

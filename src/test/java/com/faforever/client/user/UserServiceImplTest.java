@@ -1,58 +1,89 @@
 package com.faforever.client.user;
 
 import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.legacy.domain.SessionInfo;
+import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.util.Callback;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class UserServiceImplTest {
 
-  private UserServiceImpl userService;
+  @Mock
+  private Preferences preferences;
+  @Mock
+  private LobbyServerAccessor lobbyServerAccessor;
+  @Mock
+  private PreferencesService preferencesService;
+  @Mock
+  private LoginPrefs login;
+
+  private UserServiceImpl instance;
 
   @Before
   public void setUp() throws Exception {
-    userService = new UserServiceImpl();
-    userService.lobbyServerAccessor = mock(LobbyServerAccessor.class);
-    userService.preferencesService = mock(PreferencesService.class);
+    MockitoAnnotations.initMocks(this);
 
-    when(userService.preferencesService.getPreferences()).thenReturn(new Preferences());
+    instance = new UserServiceImpl();
+    instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.preferencesService = preferencesService;
+
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(preferences.getLogin()).thenReturn(login);
+    when(login.setPassword(any())).thenReturn(login);
+    when(login.setUsername(any())).thenReturn(login);
+    when(login.setAutoLogin(anyBoolean())).thenReturn(login);
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testLogin() throws Exception {
-    Callback<Void> callback = mock(Callback.class);
-    userService.login("junit", "junitPw", true, callback);
+    SessionInfo sessionInfo = new SessionInfo();
+    sessionInfo.setSession("session");
+    sessionInfo.setId(1234);
+    sessionInfo.setEmail("junit@example.com");
 
-    verify(userService.lobbyServerAccessor).connectAndLogInInBackground(any(Callback.class));
-    verify(userService.preferencesService).storeInBackground();
+    when(lobbyServerAccessor.connectAndLogInInBackground()).thenReturn(CompletableFuture.completedFuture(sessionInfo));
 
-    assertEquals("junit", userService.getUsername());
-    assertEquals("junitPw", userService.getPassword());
+    instance.login("junit", "junitPw", true);
+
+    verify(login).setUsername("junit");
+    verify(login).setPassword("junitPw");
+    verify(login).setAutoLogin(true);
+    verify(preferencesService).storeInBackground();
+    verify(lobbyServerAccessor).connectAndLogInInBackground();
+
+    assertEquals("junit", instance.getUsername());
+    assertEquals("junitPw", instance.getPassword());
+    assertEquals("session", instance.getSessionId());
+    assertEquals(1234, instance.getUid());
+    assertEquals("junit@example.com", instance.getEmail());
   }
 
   @Test
   public void testGetUsername() throws Exception {
-    assertNull(userService.getUsername());
+    assertNull(instance.getUsername());
   }
 
   @Test
   public void testGetPassword() throws Exception {
-    assertNull(userService.getPassword());
+    assertNull(instance.getPassword());
   }
 
   @Test
   public void testCancelLogin() throws Exception {
-    userService.cancelLogin();
+    instance.cancelLogin();
 
-    verify(userService.lobbyServerAccessor).disconnect();
+    verify(lobbyServerAccessor).disconnect();
   }
 }

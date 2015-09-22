@@ -6,7 +6,6 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.util.Callback;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -14,11 +13,10 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
@@ -68,14 +66,11 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     UpdateGameFilesTask updateGameFilesTask = mock(UpdateGameFilesTask.class, withSettings().useConstructor());
     when(applicationContext.getBean(UpdateGameFilesTask.class)).thenReturn(updateGameFilesTask);
 
-    doAnswer(invocation -> {
-      invocation.getArgumentAt(1, Callback.class).success(null);
-      return null;
-    }).when(taskService).submitTask(eq(updateGameFilesTask), any());
+    when(taskService.submitTask(eq(updateGameFilesTask))).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(taskService).submitTask(eq(updateGameFilesTask), any());
+    verify(taskService).submitTask(updateGameFilesTask);
 
     verify(updateGameFilesTask).setGameType(GameType.DEFAULT.getString());
     verify(updateGameFilesTask).setSimMods(null);
@@ -100,15 +95,12 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
 
     when(updateGameFilesTask.isDone()).thenReturn(false);
 
-    doAnswer(invocation -> {
-      invocation.getArgumentAt(1, Callback.class).success(null);
-      return null;
-    }).when(taskService).submitTask(eq(updateGameFilesTask), any());
+    when(taskService.submitTask(eq(updateGameFilesTask))).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
     instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(taskService, only()).submitTask(eq(updateGameFilesTask), any());
+    verify(taskService, only()).submitTask(updateGameFilesTask);
   }
 
   @Test

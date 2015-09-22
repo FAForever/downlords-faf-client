@@ -16,7 +16,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
@@ -56,6 +55,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   // values as an observable list (in order to display it in the games table)
   private final ObservableList<GameInfoBean> gameInfoBeans;
   private final Map<Integer, GameInfoBean> uidToGameInfoBean;
+
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
   @Autowired
@@ -116,7 +116,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     return future;
   }
 
-  private CompletionStage<Void> updateGameIfNecessary(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUIds) {
+  private CompletableFuture<Void> updateGameIfNecessary(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUIds) {
     return gameUpdateService.updateInBackground(gameType, version, modVersions, simModUIds);
   }
 
@@ -169,7 +169,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
-  public void joinGame(GameInfoBean gameInfoBean, String password, Callback<Void> callback) {
+  public CompletableFuture<Void> joinGame(GameInfoBean gameInfoBean, String password) {
     logger.info("Joining game {} ({})", gameInfoBean.getTitle(), gameInfoBean.getUid());
 
     cancelLadderSearch();
@@ -178,7 +178,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     Set<String> simModUIds = gameInfoBean.getSimMods().keySet();
 
     CompletableFuture<Void> future = new CompletableFuture<>();
-    updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
+    return updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
         .thenRun(() -> downloadMapIfNecessary(gameInfoBean.getTechnicalName())
             .thenRun(() -> lobbyServerAccessor.requestJoinGame(gameInfoBean, password)
                 .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, future))));

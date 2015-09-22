@@ -7,7 +7,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.Callback;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,85 +82,61 @@ public class GitRepositoryGameUpdateService extends AbstractPatchService impleme
       return CompletableFuture.completedFuture(null);
     }
 
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    Callback<Void> callback = new Callback<Void>() {
-      @Override
-      public void success(Void result) {
-        notificationService.addNotification(
-            new PersistentNotification(
-                i18n.get("faUpdateSucceeded.notification"),
-                Severity.INFO
-            )
-        );
-        future.complete(null);
-      }
-
-      @Override
-      public void error(Throwable e) {
-        notificationService.addNotification(
-            new PersistentNotification(
-                i18n.get("updateFailed.notification"),
-                Severity.WARN,
-                Collections.singletonList(
-                    new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdateInBackground())
-                )
-            )
-        );
-        future.completeExceptionally(e);
-      }
-    };
-
-
-    GitGameUpdateTask task = new GitGameUpdateTask();
+    GitGameUpdateTask task = applicationContext.getBean(GitGameUpdateTask.class);
     task.setBinaryPatchRepoDirectory(binaryPatchRepoDirectory);
     task.setMigrationDataFile(getMigrationDataFile());
-    taskService.submitTask(task, callback);
-    return future;
+
+    return taskService.submitTask(task).thenAccept(aVoid -> notificationService.addNotification(
+        new PersistentNotification(
+            i18n.get("faUpdateSucceeded.notification"),
+            Severity.INFO
+        )
+    )).exceptionally(throwable -> {
+      notificationService.addNotification(
+          new PersistentNotification(
+              i18n.get("updateFailed.notification"),
+              Severity.WARN,
+              Collections.singletonList(
+                  new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdateInBackground())
+              )
+          )
+      );
+      return null;
+    });
   }
 
   @Override
   public CompletableFuture<Void> checkForUpdateInBackground() {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-
-    Callback<Boolean> callback = new Callback<Boolean>() {
-      @Override
-      public void success(Boolean needsPatching) {
-        if (needsPatching) {
-          notificationService.addNotification(
-              new PersistentNotification(
-                  i18n.get("faUpdateAvailable.notification"),
-                  Severity.INFO,
-                  Arrays.asList(
-                      new Action(i18n.get("faUpdateAvailable.updateLater")),
-                      new Action(i18n.get("faUpdateAvailable.updateNow"),
-                          event -> updateInBackground(GameType.DEFAULT.getString(), null, null, null))
-                  )
-              )
-          );
-        }
-        future.complete(null);
-      }
-
-      @Override
-      public void error(Throwable e) {
-        notificationService.addNotification(
-            new PersistentNotification(
-                i18n.get("updateCheckFailed.notification"),
-                Severity.WARN,
-                Collections.singletonList(
-                    new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdateInBackground())
-                )
-            )
-        );
-        future.completeExceptionally(e);
-      }
-    };
-
     GitCheckGameUpdateTask task = applicationContext.getBean(GitCheckGameUpdateTask.class);
     task.setBinaryPatchRepoDirectory(binaryPatchRepoDirectory);
     task.setMigrationDataFile(getMigrationDataFile());
-    taskService.submitTask(task, callback);
-    return future;
+
+    return taskService.submitTask(task).thenAccept(needsPatching -> {
+      if (needsPatching) {
+        notificationService.addNotification(
+            new PersistentNotification(
+                i18n.get("faUpdateAvailable.notification"),
+                Severity.INFO,
+                Arrays.asList(
+                    new Action(i18n.get("faUpdateAvailable.updateLater")),
+                    new Action(i18n.get("faUpdateAvailable.updateNow"),
+                        event -> updateInBackground(GameType.DEFAULT.getString(), null, null, null))
+                )
+            )
+        );
+      }
+    }).exceptionally(throwable -> {
+      notificationService.addNotification(
+          new PersistentNotification(
+              i18n.get("updateCheckFailed.notification"),
+              Severity.WARN,
+              Collections.singletonList(
+                  new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdateInBackground())
+              )
+          )
+      );
+      return null;
+    });
   }
 
   private Path getMigrationDataFile() {

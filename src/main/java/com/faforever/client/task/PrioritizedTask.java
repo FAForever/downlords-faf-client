@@ -1,31 +1,22 @@
 package com.faforever.client.task;
 
-import javafx.concurrent.Task;
-import org.jetbrains.annotations.NotNull;
+import javafx.concurrent.Worker;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventHandler;
 
-public abstract class PrioritizedTask<V> extends Task<V> implements Comparable<PrioritizedTask> {
+public interface PrioritizedTask<V> extends Comparable<AbstractPrioritizedTask>, Worker<V>, Runnable {
 
-  public enum Priority {
-    LOW,
-    MEDIUM,
-    HIGH
-  }
+  EventHandler<WorkerStateEvent> getOnSucceeded();
 
-  private Priority priority;
+  void setOnSucceeded(EventHandler<WorkerStateEvent> value);
 
-  public PrioritizedTask(Priority priority) {
-    this.priority = priority;
-  }
+  EventHandler<WorkerStateEvent> getOnFailed();
 
-  @Override
-  public int compareTo(@NotNull PrioritizedTask other) {
-    return priority.compareTo(other.priority);
-  }
+  void setOnFailed(EventHandler<WorkerStateEvent> value);
 
-  public void setPriority(Priority priority) {
-    if (this.priority != null) {
-      throw new IllegalStateException("Priority has already been set");
-    }
-    this.priority = priority;
-  }
+  V getValue();
+
+  Throwable getException();
+
+  String getTitle();
 }

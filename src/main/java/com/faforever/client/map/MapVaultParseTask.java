@@ -3,12 +3,12 @@ package com.faforever.client.map;
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.map.MapVaultParser;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-public class MapVaultParseTask extends PrioritizedTask<List<MapInfoBean>> {
+public class MapVaultParseTask extends AbstractPrioritizedTask<List<MapInfoBean>> {
 
   @Autowired
   I18n i18n;

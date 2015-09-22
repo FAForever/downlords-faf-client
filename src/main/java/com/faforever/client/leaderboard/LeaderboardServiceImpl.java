@@ -1,10 +1,10 @@
 package com.faforever.client.leaderboard;
 
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.util.Callback;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class LeaderboardServiceImpl implements LeaderboardService {
 
@@ -12,7 +12,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
   LobbyServerAccessor lobbyServerAccessor;
 
   @Override
-  public void getLadderInfo(Callback<List<LeaderboardEntryBean>> callback) {
-    lobbyServerAccessor.requestLadderInfoInBackground(callback);
+  public CompletableFuture<List<LeaderboardEntryBean>> getLadderInfo() {
+    return lobbyServerAccessor.requestLadderInfoInBackground();
   }
 }

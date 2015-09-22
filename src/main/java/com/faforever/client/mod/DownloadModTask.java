@@ -2,7 +2,7 @@ package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.ByteCopier;
 import com.faforever.client.util.Unzipper;
@@ -21,9 +21,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.zip.ZipInputStream;
 
-import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
+import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
 
-public class DownloadModTask extends PrioritizedTask<Void> {
+public class DownloadModTask extends AbstractPrioritizedTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

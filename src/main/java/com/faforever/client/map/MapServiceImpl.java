@@ -7,7 +7,6 @@ import com.faforever.client.legacy.map.Comment;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.ThemeUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -89,11 +88,11 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public void readMapVaultInBackground(int page, int maxEntries, Callback<List<MapInfoBean>> callback) {
+  public CompletableFuture<List<MapInfoBean>> readMapVaultInBackground(int page, int maxEntries) {
     MapVaultParseTask task = applicationContext.getBean(MapVaultParseTask.class);
     task.setMaxEntries(maxEntries);
     task.setPage(page);
-    taskService.submitTask(task, callback);
+    return taskService.submitTask(task);
   }
 
   @Override
@@ -171,27 +170,12 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public CompletionStage<Void> download(String technicalMapName) {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    Callback<Void> callback = new Callback<Void>() {
-      @Override
-      public void success(Void result) {
-        future.complete(result);
-      }
-
-      @Override
-      public void error(Throwable e) {
-        future.completeExceptionally(e);
-      }
-    };
-
     String mapUrl = getMapUrl(technicalMapName, environment.getProperty("vault.mapDownloadUrl"));
 
     DownloadMapTask task = applicationContext.getBean(DownloadMapTask.class);
     task.setMapUrl(mapUrl);
     task.setTechnicalMapName(technicalMapName);
-    taskService.submitTask(task, callback);
-
-    return future;
+    return taskService.submitTask(task);
   }
 
   @Override

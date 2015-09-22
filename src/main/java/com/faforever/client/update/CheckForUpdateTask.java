@@ -1,7 +1,7 @@
 package com.faforever.client.update;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import com.google.common.io.CharStreams;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.FieldNamingPolicy;
@@ -22,14 +22,16 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-public class CheckForUpdateTask extends PrioritizedTask<UpdateInfo> {
+public class CheckForUpdateTask extends AbstractPrioritizedTask<UpdateInfo> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final Gson gson;
+
   @Autowired
   Environment environment;
   @Autowired
   I18n i18n;
+
   private ComparableVersion currentVersion;
 
   public CheckForUpdateTask() {

@@ -6,7 +6,6 @@ import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Strings;
 import javafx.fxml.FXML;
@@ -105,17 +104,12 @@ public class LoginController {
   private void login(String username, String password, boolean autoLogin) {
     onLoginProgress();
 
-    userService.login(username, password, autoLogin, new Callback<Void>() {
-      @Override
-      public void success(Void result) {
-        onLoginSucceeded();
-      }
-
-      @Override
-      public void error(Throwable e) {
-        onLoginFailed(e);
-      }
-    });
+    userService.login(username, password, autoLogin)
+        .thenAccept(aVoid -> onLoginSucceeded())
+        .exceptionally(throwable -> {
+          onLoginFailed(throwable);
+          return null;
+        });
   }
 
   private void onLoginProgress() {

@@ -1,11 +1,10 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.util.Callback;
-
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface LeaderboardService {
 
-  void getLadderInfo(Callback<List<LeaderboardEntryBean>> callback);
+  CompletableFuture<List<LeaderboardEntryBean>> getLadderInfo();
 
 }

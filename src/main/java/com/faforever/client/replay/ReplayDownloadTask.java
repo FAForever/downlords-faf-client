@@ -2,7 +2,7 @@ package com.faforever.client.replay;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.util.ByteCopier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class ReplayDownloadTask extends PrioritizedTask<Path> {
+public class ReplayDownloadTask extends AbstractPrioritizedTask<Path> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String TEMP_FAF_REPLAY_FILE_NAME = "temp.fafreplay";

@@ -25,10 +25,10 @@ public class ResourceLocks {
   }
 
   public static void acquireDiskLock() {
-    NETWORK_LOCK.writeLock().unlock();
+    DISK_LOCK.unlock();
   }
 
   public static void freeDiskLock() {
-    NETWORK_LOCK.writeLock().unlock();
+    DISK_LOCK.unlock();
   }
 }

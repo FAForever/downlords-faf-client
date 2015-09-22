@@ -15,10 +15,9 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -31,7 +30,7 @@ import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.legacy.domain.GameAccess.PASSWORD;
 import static com.faforever.client.legacy.domain.GameAccess.PUBLIC;
-import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
+import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
 
 public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
@@ -55,8 +54,8 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void connectAndLogInInBackground(Callback<SessionInfo> callback) {
-    taskService.submitTask(new PrioritizedTask<SessionInfo>(HIGH) {
+  public CompletableFuture<SessionInfo> connectAndLogInInBackground() {
+    return taskService.submitTask(new AbstractPrioritizedTask<SessionInfo>(HIGH) {
       @Override
       protected SessionInfo call() throws Exception {
         updateTitle(i18n.get("login.progress.message"));
@@ -96,7 +95,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
                 Severity.INFO,
                 Arrays.asList(
                     new Action("Execute", event ->
-                        taskService.submitTask(new PrioritizedTask<Void>(HIGH) {
+                        taskService.submitTask(new AbstractPrioritizedTask<Void>(HIGH) {
                           @Override
                           protected Void call() throws Exception {
                             updateTitle("Mock task");
@@ -120,7 +119,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
         return sessionInfo;
       }
-    }, callback);
+    });
   }
 
   private GameInfo createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
@@ -159,21 +158,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
   @Override
   public CompletionStage<GameLaunchInfo> requestNewGame(NewGameInfo newGameInfo) {
-    CompletableFuture<GameLaunchInfo> future = new CompletableFuture<>();
-
-    Callback<GameLaunchInfo> callback = new Callback<GameLaunchInfo>() {
-      @Override
-      public void success(GameLaunchInfo result) {
-        future.complete(result);
-      }
-
-      @Override
-      public void error(Throwable e) {
-        future.completeExceptionally(e);
-      }
-    };
-
-    taskService.submitTask(new PrioritizedTask<GameLaunchInfo>(HIGH) {
+    return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchInfo>(HIGH) {
       @Override
       protected GameLaunchInfo call() throws Exception {
         updateTitle(i18n.get("requestNewGameTask.title"));
@@ -184,27 +169,12 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
         gameLaunchInfo.setUid(1234);
         return gameLaunchInfo;
       }
-    }, callback);
-    return future;
+    });
   }
 
   @Override
   public CompletionStage<GameLaunchInfo> requestJoinGame(GameInfoBean gameInfoBean, String password) {
-    CompletableFuture<GameLaunchInfo> future = new CompletableFuture<>();
-
-    Callback<GameLaunchInfo> callback = new Callback<GameLaunchInfo>() {
-      @Override
-      public void success(GameLaunchInfo result) {
-        future.complete(result);
-      }
-
-      @Override
-      public void error(Throwable e) {
-        future.completeExceptionally(e);
-      }
-    };
-
-    taskService.submitTask(new PrioritizedTask<GameLaunchInfo>(HIGH) {
+    return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchInfo>(HIGH) {
       @Override
       protected GameLaunchInfo call() throws Exception {
         updateTitle(i18n.get("requestJoinGameTask.title"));
@@ -215,9 +185,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
         gameLaunchInfo.setUid(1234);
         return gameLaunchInfo;
       }
-    }, callback);
-
-    return future;
+    });
   }
 
   @Override
@@ -261,8 +229,9 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void requestLadderInfoInBackground(Callback<List<LeaderboardEntryBean>> callback) {
+  public CompletableFuture<List<LeaderboardEntryBean>> requestLadderInfoInBackground() {
 
+    return null;
   }
 
   @Override

@@ -9,7 +9,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Worker;
@@ -29,12 +28,12 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 
 import static java.util.Collections.emptyList;
@@ -153,13 +152,11 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String message = "Some message";
     instance.getMessageTextField().setText(message);
     instance.setReceiver(receiver);
+    when(chatService.sendMessageInBackground(eq(receiver), any())).thenReturn(CompletableFuture.completedFuture(message));
 
     instance.onSendMessage();
 
-    ArgumentCaptor<Callback<String>> argumentCaptor = ArgumentCaptor.forClass(Callback.class);
-    verify(chatService).sendMessageInBackground(eq(receiver), any(), argumentCaptor.capture());
-
-    argumentCaptor.getValue().success(message);
+    verify(chatService).sendMessageInBackground(eq(receiver), eq(message));
     assertThat(instance.getMessageTextField().getText(), isEmptyString());
     assertThat(instance.getMessageTextField().isDisable(), is(false));
   }
@@ -171,12 +168,13 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.getMessageTextField().setText(message);
     instance.setReceiver(receiver);
 
+    CompletableFuture<String> future = new CompletableFuture<>();
+    future.completeExceptionally(new Exception("junit fake exception"));
+    when(chatService.sendMessageInBackground(eq(receiver), any())).thenReturn(future);
+
     instance.onSendMessage();
 
-    ArgumentCaptor<Callback<String>> argumentCaptor = ArgumentCaptor.forClass(Callback.class);
-    verify(chatService).sendMessageInBackground(eq(receiver), any(), argumentCaptor.capture());
-
-    argumentCaptor.getValue().error(new Exception("junit fake exception"));
+    verify(chatService).sendMessageInBackground(receiver, message);
     assertThat(instance.getMessageTextField().getText(), is(message));
     assertThat(instance.getMessageTextField().isDisable(), is(false));
   }
@@ -188,13 +186,11 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.getMessageTextField().setText(message);
     instance.setReceiver(receiver);
     when(timeService.asShortTime(any())).thenReturn("123");
+    when(chatService.sendActionInBackground(eq(receiver), any())).thenReturn(CompletableFuture.completedFuture(message));
 
     instance.onSendMessage();
 
-    ArgumentCaptor<Callback<String>> argumentCaptor = ArgumentCaptor.forClass(Callback.class);
-    verify(chatService).sendActionInBackground(eq(receiver), any(), argumentCaptor.capture());
-
-    argumentCaptor.getValue().success(message);
+    verify(chatService).sendActionInBackground(eq(receiver), eq("is happy"));
     assertThat(instance.getMessageTextField().getText(), isEmptyString());
     assertThat(instance.getMessageTextField().isDisable(), is(false));
   }
@@ -206,12 +202,13 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.getMessageTextField().setText(message);
     instance.setReceiver(receiver);
 
+    CompletableFuture<String> future = new CompletableFuture<>();
+    future.completeExceptionally(new Exception("junit fake exception"));
+    when(chatService.sendActionInBackground(eq(receiver), any())).thenReturn(future);
+
     instance.onSendMessage();
 
-    ArgumentCaptor<Callback<String>> argumentCaptor = ArgumentCaptor.forClass(Callback.class);
-    verify(chatService).sendActionInBackground(eq(receiver), any(), argumentCaptor.capture());
-
-    argumentCaptor.getValue().error(new Exception("junit test exception"));
+    verify(chatService).sendActionInBackground(receiver, "is happy");
     assertThat(instance.getMessageTextField().getText(), is(message));
     assertThat(instance.getMessageTextField().isDisable(), is(false));
   }
@@ -424,9 +421,12 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPasteImageCtrlV() throws Exception {
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> {
-      Image image = new Image(getClass().getResourceAsStream("/images/tray_icon.png"));
+    Image image = new Image(getClass().getResourceAsStream("/images/tray_icon.png"));
 
+    String url = "http://www.example.com/fake.png";
+    when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));
+
+    WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
       ClipboardContent clipboardContent = new ClipboardContent();
       clipboardContent.putImage(image);
       Clipboard.getSystemClipboard().setContent(clipboardContent);
@@ -436,20 +436,17 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
       );
     });
 
-    ArgumentCaptor<Callback<String>> argumentCaptor = ArgumentCaptor.forClass(Callback.class);
-    verify(imageUploadService).uploadImageInBackground(any(), argumentCaptor.capture());
-
-    String url = "http://www.example.com/fake.png";
-    argumentCaptor.getValue().success(url);
-
     assertThat(instance.getMessageTextField().getText(), is(url));
   }
 
   @Test
   public void testPasteImageShiftInsert() throws Exception {
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> {
-      Image image = new Image(getClass().getResourceAsStream("/images/tray_icon.png"));
+    Image image = new Image(getClass().getResourceAsStream("/images/tray_icon.png"));
 
+    String url = "http://www.example.com/fake.png";
+    when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));
+
+    WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
       ClipboardContent clipboardContent = new ClipboardContent();
       clipboardContent.putImage(image);
       Clipboard.getSystemClipboard().setContent(clipboardContent);
@@ -458,12 +455,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
           keyEvent(KeyCode.INSERT, singletonList(KeyCode.SHIFT))
       );
     });
-
-    ArgumentCaptor<Callback<String>> argumentCaptor = ArgumentCaptor.forClass(Callback.class);
-    verify(imageUploadService).uploadImageInBackground(any(), argumentCaptor.capture());
-
-    String url = "http://www.example.com/fake.png";
-    argumentCaptor.getValue().success(url);
 
     assertThat(instance.getMessageTextField().getText(), is(url));
   }

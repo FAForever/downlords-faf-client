@@ -1,7 +1,7 @@
 package com.faforever.client.uploader.imgur;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.ByteCopier;
 import com.faforever.client.util.Bytes;
@@ -26,7 +26,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-public class ImgurUploadTask extends PrioritizedTask<String> {
+public class ImgurUploadTask extends AbstractPrioritizedTask<String> {
 
   private final Gson gson;
   @Autowired

@@ -1,72 +1,45 @@
 package com.faforever.client.task;
 
-import com.faforever.client.util.Callback;
-import com.faforever.client.util.ConcurrentUtil;
-import javafx.concurrent.Task;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
-import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class TaskServiceImpl implements TaskService {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  /**
-   * Holds one queue for each TaskGroup.
-   */
-  private final PriorityBlockingQueue<PrioritizedTask<?>> queue;
-
-  private final Collection<OnTasksUpdatedListener> onTasksUpdatedListeners;
+  private final ObservableList<PrioritizedTask<?>> activeTasks;
+  @Autowired
+  ThreadPoolExecutor threadPoolExecutor;
+  private ObservableList<PrioritizedTask<?>> unmodifiableObservableList;
 
   public TaskServiceImpl() {
-    queue = new PriorityBlockingQueue<>();
-    onTasksUpdatedListeners = new HashSet<>();
+    activeTasks = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
+    unmodifiableObservableList = FXCollections.unmodifiableObservableList(activeTasks);
   }
 
-  @PostConstruct
-  void startWorkers() {
-    logger.debug("Starting task queue");
+  @Override
+  public <T> CompletableFuture<T> submitTask(PrioritizedTask<T> task) {
+    CompletableFuture<T> future = new CompletableFuture<>();
 
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        while (!isCancelled()) {
-          PrioritizedTask<?> task = queue.take();
-          task.run();
-          onTasksUpdatedListeners.forEach(OnTasksUpdatedListener::onTasksUpdated);
-        }
-        return null;
-      }
+    task.setOnFailed(event -> {
+      future.completeExceptionally(task.getException());
+      activeTasks.remove(task);
     });
+    task.setOnSucceeded(event -> {
+      future.complete(task.getValue());
+      activeTasks.remove(task);
+    });
+
+    activeTasks.add(task);
+    threadPoolExecutor.submit(task);
+
+    return future;
   }
 
   @Override
-  public <T> void submitTask(PrioritizedTask<T> task, Callback<T> callback) {
-    ConcurrentUtil.setCallbackOnTask(task, callback);
-    queue.add(task);
-    onTasksUpdatedListeners.forEach(OnTasksUpdatedListener::onTasksUpdated);
-  }
-
-  @Override
-  public <T> void submitTask(PrioritizedTask<T> task) {
-    submitTask(task, null);
-  }
-
-  @Override
-  public void addListener(OnTasksUpdatedListener listener) {
-    onTasksUpdatedListeners.add(listener);
-  }
-
-  @Override
-  public Collection<PrioritizedTask<?>> getRunningTasks() {
-    Collection<PrioritizedTask<?>> tasks = new ArrayList<>();
-    queue.forEach(tasks::add);
-    return tasks;
+  public ObservableList<PrioritizedTask<?>> getActiveTasks() {
+    return unmodifiableObservableList;
   }
 }

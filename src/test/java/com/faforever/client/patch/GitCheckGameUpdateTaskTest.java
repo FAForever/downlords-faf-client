@@ -81,27 +81,6 @@ public class GitCheckGameUpdateTaskTest extends AbstractPlainJavaFxTest {
     when(environment.getProperty("patch.git.url")).thenReturn(GIT_PATCH_URL);
   }
 
-  //  @SuppressWarnings("unchecked")
-//  private void mockTaskService() throws Exception {
-//    doAnswer((InvocationOnMock invocation) -> {
-//      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(0, PrioritizedTask.class);
-//      prioritizedTask.run();
-//
-//      Callback<Boolean> callback = invocation.getArgumentAt(1, Callback.class);
-//
-//      Future<Throwable> throwableFuture = WaitForAsyncUtils.asyncFx(prioritizedTask::getException);
-//      Throwable throwable = throwableFuture.get(1, TimeUnit.SECONDS);
-//      if (throwable != null) {
-//        callback.error(throwable);
-//      } else {
-//        Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
-//        callback.success(result.get(1, TimeUnit.SECONDS));
-//      }
-//
-//      return null;
-//    }).when(instance.taskService).submitTask(any(), any());
-//  }
-
   @Test
   public void testCheckForUpdatesInBackgroundRepoDirectoryMissing() throws Exception {
     assertTrue(Files.notExists(binaryPatchRepoDirectory));

@@ -9,7 +9,6 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.TimeService;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
@@ -41,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class ReplayVaultController {
 
@@ -263,26 +263,21 @@ public class ReplayVaultController {
     return new SimpleObjectProperty<>(Duration.between(startTime, endTime));
   }
 
-  public void loadLocalReplaysInBackground() {
-
+  public CompletableFuture<Void> loadLocalReplaysInBackground() {
     LoadLocalReplaysTask task = applicationContext.getBean(LoadLocalReplaysTask.class);
 
-    taskService.submitTask(task, new Callback<Collection<ReplayInfoBean>>() {
-      @Override
-      public void success(Collection<ReplayInfoBean> result) {
-        addLocalReplays(result);
-      }
-
-      @Override
-      public void error(Throwable e) {
-        logger.warn("Error while loading local replays", e);
-        notificationService.addNotification(new PersistentNotification(
-            i18n.get("replays.loadingLocalTask.failed"),
-            Severity.ERROR,
-            Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(e)))
-        ));
-      }
-    });
+    return taskService.submitTask(task)
+        .thenAccept(this::addLocalReplays)
+        .exceptionally(throwable -> {
+              logger.warn("Error while loading local replays", throwable);
+              notificationService.addNotification(new PersistentNotification(
+                  i18n.get("replays.loadingLocalTask.failed"),
+                  Severity.ERROR,
+                  Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(throwable)))
+              ));
+              return null;
+            }
+        );
   }
 
   private void addLocalReplays(Collection<ReplayInfoBean> result) {
@@ -296,21 +291,16 @@ public class ReplayVaultController {
   }
 
   public void loadOnlineReplaysInBackground() {
-    replayService.getOnlineReplays(new Callback<List<ReplayInfoBean>>() {
-      @Override
-      public void success(List<ReplayInfoBean> result) {
-        addOnlineReplays(result);
-      }
-
-      @Override
-      public void error(Throwable e) {
-        logger.warn("Error while loading online replays", e);
-        notificationService.addNotification(new PersistentNotification(
-            i18n.get("replays.loadingOnlineTask.failed"),
-            Severity.ERROR,
-            Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(e)))
-        ));
-      }
+    replayService.getOnlineReplays()
+        .thenAccept(this::addOnlineReplays)
+        .exceptionally(throwable -> {
+          logger.warn("Error while loading online replays", throwable);
+          notificationService.addNotification(new PersistentNotification(
+              i18n.get("replays.loadingOnlineTask.failed"),
+              Severity.ERROR,
+              Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(throwable)))
+          ));
+          return null;
     });
   }
 

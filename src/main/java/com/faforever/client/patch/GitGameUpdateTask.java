@@ -2,7 +2,7 @@ package com.faforever.client.patch;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.util.OperatingSystem;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -29,7 +29,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.Set;
 
-public class GitGameUpdateTask extends PrioritizedTask<Void> {
+public class GitGameUpdateTask extends AbstractPrioritizedTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String BINARY_PATCH_DIRECTORY = "bsdiff4";

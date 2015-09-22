@@ -3,34 +3,34 @@ package com.faforever.client.patch;
 import com.faforever.client.game.GameType;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.util.Callback;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static com.faforever.client.patch.GitRepositoryGameUpdateService.STEAM_API_DLL;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
@@ -43,9 +43,6 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
   public final TemporaryFolder reposDirectory = new TemporaryFolder();
   @Rule
   public TemporaryFolder faDirectory = new TemporaryFolder();
-  @Rule
-  public ExpectedException exception = ExpectedException.none();
-
 
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
@@ -103,54 +100,55 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
 
   @Test
   public void testUpdateInBackgroundThrowsException() throws Exception {
-    doAnswer((InvocationOnMock invocation) -> {
-      Callback callback = invocation.getArgumentAt(1, Callback.class);
-      callback.error(new Exception("This exception mimicks that something went wrong"));
-      return null;
-    }).when(instance.taskService).submitTask(any(), any());
+    GitGameUpdateTask task = mock(GitGameUpdateTask.class, withSettings().useConstructor());
+    when(applicationContext.getBean(GitGameUpdateTask.class)).thenReturn(task);
 
-    CompletableFuture<Void> future = instance.updateInBackground(GameType.FAF.getString(), null, null, null);
+    CompletableFuture<Void> future = new CompletableFuture<>();
+    future.completeExceptionally(new Exception("This exception mimicks that something went wrong"));
 
-    exception.expect(ExecutionException.class);
-    exception.expectMessage("This exception mimicks that something went wrong");
+    when(taskService.submitTask(task)).thenReturn(future);
+
+    future = instance.updateInBackground(GameType.FAF.getString(), null, null, null);
 
     future.get(TIMEOUT, TIMEOUT_UNIT);
+
+    ArgumentCaptor<PersistentNotification> captor = ArgumentCaptor.forClass(PersistentNotification.class);
+    verify(notificationService).addNotification(captor.capture());
+    assertThat(captor.getValue().getSeverity(), is(Severity.WARN));
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void testCheckForUpdatesInBackgroundPatchingIsNeeded() throws Exception {
-    doAnswer((InvocationOnMock invocation) -> {
-      invocation.getArgumentAt(1, Callback.class).success(true);
-      return null;
-    }).when(instance.taskService).submitTask(any(), any());
+    when(taskService.submitTask(any())).thenReturn(CompletableFuture.completedFuture(true));
 
     CompletableFuture<Void> future = instance.checkForUpdateInBackground();
 
-    future.get(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(nullValue()));
     assertThat(future.isCompletedExceptionally(), is(false));
   }
 
   @Test
   public void testCheckForUpdatesInBackgroundThrowsException() throws Exception {
-    doAnswer((InvocationOnMock invocation) -> {
-      Callback callback = invocation.getArgumentAt(1, Callback.class);
-      callback.error(new Exception("This exception mimicks that something went wrong"));
-      return null;
-    }).when(instance.taskService).submitTask(any(), any());
+    GitCheckGameUpdateTask task = mock(GitCheckGameUpdateTask.class, withSettings().useConstructor());
+    when(applicationContext.getBean(GitCheckGameUpdateTask.class)).thenReturn(task);
+
+    CompletableFuture<Boolean> exceptionFuture = new CompletableFuture<>();
+    exceptionFuture.completeExceptionally(new Exception("This exception mimicks that something went wrong"));
+
+    when(taskService.submitTask(task)).thenReturn(exceptionFuture);
 
     CompletableFuture<Void> future = instance.checkForUpdateInBackground();
 
-    exception.expect(ExecutionException.class);
-    exception.expectMessage("This exception mimicks that something went wrong");
-
     future.get(TIMEOUT, TIMEOUT_UNIT);
+
+    ArgumentCaptor<PersistentNotification> captor = ArgumentCaptor.forClass(PersistentNotification.class);
+    verify(notificationService).addNotification(captor.capture());
+    assertThat(captor.getValue().getSeverity(), is(Severity.WARN));
   }
 
   @Test
   public void testGuessInstallTypeRetail() throws Exception {
-    instance.checkForUpdateInBackground();
-
     assertTrue(Files.notExists(faBinDirectory.resolve(STEAM_API_DLL)));
 
     GitRepositoryGameUpdateService.InstallType installType = instance.guessInstallType();
@@ -159,8 +157,6 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
 
   @Test
   public void testGuessInstallTypeSteam() throws Exception {
-    instance.checkForUpdateInBackground();
-
     Files.createDirectories(faBinDirectory);
     Files.createFile(faBinDirectory.resolve(STEAM_API_DLL));
 

@@ -7,7 +7,6 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.gson.PathTypeAdapter;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.OperatingSystem;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -160,21 +159,16 @@ public class PreferencesService {
       throw new IllegalStateException("No listener has been specified");
     }
 
-    onChoseGameDirectoryListener.onChoseGameDirectory(new Callback<Path>() {
-      @Override
-      public void success(Path result) {
-        boolean isPathValid = storeGamePathIfValid(result);
+    onChoseGameDirectoryListener.onChoseGameDirectory().thenAccept(path -> {
+      boolean isPathValid = storeGamePathIfValid(path);
 
-        if (!isPathValid) {
-          logger.info("User specified game path does not seem to be valid: {}", result);
-          notifyMissingGamePath();
-        }
+      if (!isPathValid) {
+        logger.info("User specified game path does not seem to be valid: {}", path);
+        notifyMissingGamePath();
       }
-
-      @Override
-      public void error(Throwable e) {
-        throw new IllegalStateException("Unexpected exception", e);
-      }
+    }).exceptionally(throwable -> {
+      logger.warn("Unexpected exception", throwable);
+      return null;
     });
   }
 
