@@ -12,7 +12,6 @@ import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.util.Callback;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -26,9 +25,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsEmptyCollection.emptyCollectionOf;
 import static org.junit.Assert.*;
@@ -41,19 +42,30 @@ import static org.mockito.Mockito.when;
 
 public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
-  private GameServiceImpl instance;
+  private static final long TIMEOUT = 5000;
+  private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
 
   @Mock
-  private Callback<Void> callback;
+  private LobbyServerAccessor lobbyServerAccessor;
+  @Mock
+  private MapService mapService;
+  @Mock
+  private ForgedAllianceService forgedAllianceService;
+  @Mock
+  private Proxy proxy;
+  @Mock
+  private GameUpdateService gameUpdateService;
+
+  private GameServiceImpl instance;
 
   @Before
   public void setUp() throws Exception {
     instance = new GameServiceImpl();
-    instance.lobbyServerAccessor = mock(LobbyServerAccessor.class);
-    instance.mapService = mock(MapService.class);
-    instance.forgedAllianceService = mock(ForgedAllianceService.class);
-    instance.proxy = mock(Proxy.class);
-    instance.gameUpdateService = mock(GameUpdateService.class);
+    instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.mapService = mapService;
+    instance.forgedAllianceService = forgedAllianceService;
+    instance.proxy = proxy;
+    instance.gameUpdateService = gameUpdateService;
 
     instance.postConstruct();
   }
@@ -75,19 +87,13 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(gameInfoBean.getSimMods()).thenReturn(simMods);
     when(gameInfoBean.getTechnicalName()).thenReturn("map");
 
-    when(instance.mapService.isAvailable("map")).thenReturn(true);
+    when(mapService.isAvailable("map")).thenReturn(true);
+    when(lobbyServerAccessor.requestJoinGame(gameInfoBean, null)).thenReturn(completedFuture(null));
+    when(instance.gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
 
-    doAnswer(invocation -> {
-      callback.success(null);
-      return null;
-    }).when(instance.lobbyServerAccessor).requestJoinGame(eq(gameInfoBean), eq(null));
+    CompletableFuture<Void> future = instance.joinGame(gameInfoBean, null);
 
-    when(instance.gameUpdateService.updateInBackground(any(), any(), any(), any()))
-        .thenReturn(completedFuture(null));
-
-    instance.joinGame(gameInfoBean, null, callback);
-
-    verify(callback).success(null);
+    assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
   }
 
   @Test

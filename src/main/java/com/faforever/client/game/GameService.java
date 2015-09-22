@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.util.Callback;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -12,6 +11,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -27,7 +27,7 @@ public interface GameService {
 
   void cancelLadderSearch();
 
-  void joinGame(GameInfoBean gameInfoBean, String password, Callback<Void> callback);
+  CompletableFuture<Void> joinGame(GameInfoBean gameInfoBean, String password);
 
   List<GameTypeBean> getGameTypes();
 

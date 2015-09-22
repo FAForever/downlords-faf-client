@@ -36,9 +36,8 @@ import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.Callback;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -65,7 +64,7 @@ import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.OFF;
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.ON;
-import static com.faforever.client.task.TaskGroup.NET_LIGHT;
+import static com.faforever.client.task.AbstractPrioritizedTask.Priority.MEDIUM;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
 public class LobbyServerAccessorImpl extends AbstractServerAccessor implements LobbyServerAccessor {
@@ -96,7 +95,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private String password;
   private String localIp;
   private ServerWriter serverWriter;
-  private Callback<SessionInfo> loginCallback;
+  private CompletableFuture<SessionInfo> loginFuture;
   private CompletableFuture<GameLaunchInfo> gameLaunchFuture;
   // Yes I know, those aren't lists. They will become if it's necessary
   private OnLobbyConnectingListener onLobbyConnectingListener;
@@ -124,8 +123,8 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void connectAndLogInInBackground(Callback<SessionInfo> callback) {
-    loginCallback = callback;
+  public CompletableFuture<SessionInfo> connectAndLogInInBackground() {
+    loginFuture = new CompletableFuture<>();
 
     LoginPrefs login = preferencesService.getPreferences().getLogin();
     username = login.getUsername();
@@ -196,6 +195,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
       }
     };
     executeInBackground(fafConnectionTask);
+    return loginFuture;
   }
 
   private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
@@ -306,13 +306,15 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void requestLadderInfoInBackground(Callback<List<LeaderboardEntryBean>> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LeaderboardEntryBean>>(i18n.get("readLadderTask.title")) {
+  public CompletableFuture<List<LeaderboardEntryBean>> requestLadderInfoInBackground() {
+    return taskService.submitTask(new AbstractPrioritizedTask<List<LeaderboardEntryBean>>(MEDIUM) {
       @Override
       protected List<LeaderboardEntryBean> call() throws Exception {
+        updateTitle(i18n.get("readLadderTask.title"));
+
         return leaderboardParser.parseLadder();
       }
-    }, callback);
+    });
   }
 
   @Override
@@ -454,9 +456,9 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     logger.info("FAF login succeeded");
 
     Platform.runLater(() -> {
-      if (loginCallback != null) {
-        loginCallback.success(sessionInfo);
-        loginCallback = null;
+      if (loginFuture != null) {
+        loginFuture.complete(sessionInfo);
+        loginFuture = null;
       }
     });
   }

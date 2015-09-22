@@ -4,26 +4,19 @@ import com.faforever.client.game.GameType;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.PrioritizedTask;
-import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.util.Callback;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.springframework.context.ApplicationContext;
-import org.testfx.util.WaitForAsyncUtils;
 
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
@@ -38,11 +31,8 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Rule
   public final TemporaryFolder fafBinDirectory = new TemporaryFolder();
-
   @Rule
   public final TemporaryFolder faDirectory = new TemporaryFolder();
-
-  private GameUpdateServiceImpl instance;
 
   @Mock
   private TaskService taskService;
@@ -55,6 +45,8 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
 
+  private GameUpdateServiceImpl instance;
+
   @Before
   public void setUp() throws Exception {
     instance = new GameUpdateServiceImpl();
@@ -66,39 +58,23 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPath()).thenReturn(faDirectory.getRoot().toPath());
-
-    mockTaskService();
-  }
-
-  @SuppressWarnings("unchecked")
-  private void mockTaskService() throws Exception {
-    doAnswer((InvocationOnMock invocation) -> {
-      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(1, PrioritizedTask.class);
-      prioritizedTask.run();
-
-      Callback<Boolean> callback = invocation.getArgumentAt(2, Callback.class);
-
-      Future<Throwable> throwableFuture = WaitForAsyncUtils.asyncFx(prioritizedTask::getException);
-      Throwable throwable = throwableFuture.get(TIMEOUT, TIMEOUT_UNIT);
-      if (throwable != null) {
-        callback.error(throwable);
-      } else {
-        Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
-        callback.success(result.get(TIMEOUT, TIMEOUT_UNIT));
-      }
-
-      return null;
-    }).when(instance.taskService).submitTask(any(), any(), any());
   }
 
   @Test
-  public void testPatchInBackground() throws Exception {
+  @SuppressWarnings("unchecked")
+  public void testPatchInBackgroundSubmitsTask() throws Exception {
     UpdateGameFilesTask updateGameFilesTask = mock(UpdateGameFilesTask.class, withSettings().useConstructor());
     when(applicationContext.getBean(UpdateGameFilesTask.class)).thenReturn(updateGameFilesTask);
 
+    when(taskService.submitTask(eq(updateGameFilesTask))).thenReturn(CompletableFuture.completedFuture(null));
+
     instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(taskService).submitTask(eq(TaskGroup.NET_LIGHT), eq(updateGameFilesTask), any());
+    verify(taskService).submitTask(updateGameFilesTask);
+
+    verify(updateGameFilesTask).setGameType(GameType.DEFAULT.getString());
+    verify(updateGameFilesTask).setSimMods(null);
+    verify(updateGameFilesTask).setModVersions(null);
   }
 
   @Test
@@ -112,16 +88,19 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testPatchInBackgroundAlreadyRunning() throws Exception {
     UpdateGameFilesTask updateGameFilesTask = mock(UpdateGameFilesTask.class, withSettings().useConstructor());
     when(applicationContext.getBean(UpdateGameFilesTask.class)).thenReturn(updateGameFilesTask);
 
     when(updateGameFilesTask.isDone()).thenReturn(false);
 
+    when(taskService.submitTask(eq(updateGameFilesTask))).thenReturn(CompletableFuture.completedFuture(null));
+
     instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
     instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(taskService, only()).submitTask(eq(TaskGroup.NET_LIGHT), eq(updateGameFilesTask), any());
+    verify(taskService, only()).submitTask(updateGameFilesTask);
   }
 
   @Test

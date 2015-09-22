@@ -2,7 +2,8 @@ package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.AbstractPrioritizedTask;
+import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.ByteCopier;
 import com.faforever.client.util.Unzipper;
 import com.google.common.net.UrlEscapers;
@@ -11,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -21,9 +21,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.zip.ZipInputStream;
 
-import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
+import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
 
-public class DownloadModTask extends PrioritizedTask<Void> {
+public class DownloadModTask extends AbstractPrioritizedTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -38,9 +38,8 @@ public class DownloadModTask extends PrioritizedTask<Void> {
 
   private String modPath;
 
-  @PostConstruct
-  public void postConstruct() {
-    setPriority(HIGH);
+  public DownloadModTask() {
+    super(HIGH);
   }
 
   @Override
@@ -58,6 +57,8 @@ public class DownloadModTask extends PrioritizedTask<Void> {
 
     try (InputStream inputStream = url.openStream();
          OutputStream outputStream = Files.newOutputStream(tempFile)) {
+      ResourceLocks.aquireDownloadLock();
+
       ByteCopier.from(inputStream)
           .to(outputStream)
           .listener(this::updateProgress)
@@ -65,6 +66,7 @@ public class DownloadModTask extends PrioritizedTask<Void> {
 
       extractMod(tempFile);
     } finally {
+      ResourceLocks.freeDownloadLock();
       try {
         Files.deleteIfExists(tempFile);
       } catch (IOException e) {

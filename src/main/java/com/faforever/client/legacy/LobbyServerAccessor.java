@@ -6,10 +6,10 @@ import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.util.Callback;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -19,10 +19,9 @@ import java.util.concurrent.CompletionStage;
 public interface LobbyServerAccessor {
 
   /**
-   * Connects to the FAF server and logs in using the credentials from {@link PreferencesService}. This method runs in
-   * background, the callback however is called on the FX application thread.
+   * Connects to the FAF server and logs in using the credentials from {@link PreferencesService}.
    */
-  void connectAndLogInInBackground(Callback<SessionInfo> callback);
+  CompletableFuture<SessionInfo> connectAndLogInInBackground();
 
   void addOnGameTypeInfoListener(OnGameTypeInfoListener listener);
 
@@ -50,7 +49,7 @@ public interface LobbyServerAccessor {
 
   void setOnLobbyConnectedListener(OnLobbyConnectedListener onLobbyConnectedListener);
 
-  void requestLadderInfoInBackground(Callback<List<LeaderboardEntryBean>> callback);
+  CompletableFuture<List<LeaderboardEntryBean>> requestLadderInfoInBackground();
 
   void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener);
 

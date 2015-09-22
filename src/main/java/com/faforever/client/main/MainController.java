@@ -25,7 +25,6 @@ import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.portcheck.GamePortCheckListener;
 import com.faforever.client.portcheck.PortCheckService;
 import com.faforever.client.preferences.OnChoseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
@@ -36,9 +35,9 @@ import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
+import javafx.beans.Observable;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
@@ -70,14 +69,13 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
-import static com.faforever.client.task.TaskGroup.NET_HEAVY;
-import static com.faforever.client.task.TaskGroup.NET_UPLOAD;
 
-public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnFafDisconnectedListener, GamePortCheckListener, OnChoseGameDirectoryListener {
+public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnFafDisconnectedListener, OnChoseGameDirectoryListener {
 
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_CLASS = PseudoClass.getPseudoClass("info");
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_CLASS = PseudoClass.getPseudoClass("warn");
@@ -250,7 +248,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
       taskProgressBar.progressProperty().bind(task.progressProperty());
 
       taskProgressLabel.setVisible(true);
-      taskProgressLabel.setText(task.getTitle());
+      taskProgressLabel.textProperty().bind(task.titleProperty());
     });
   }
 
@@ -276,19 +274,18 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
         notification -> Platform.runLater(() -> displayImmediateNotification(notification))
     );
 
-    taskService.addListener(() -> {
-      Collection<PrioritizedTask<?>> runningTasks = taskService.getRunningTasks();
+    taskService.getActiveTasks().addListener((Observable observable) -> {
+      Collection<PrioritizedTask<?>> runningTasks = taskService.getActiveTasks();
       if (runningTasks.isEmpty()) {
         setCurrentTaskInStatusBar(null);
       } else {
         setCurrentTaskInStatusBar(runningTasks.iterator().next());
       }
-    }, NET_HEAVY, NET_UPLOAD);
+    });
 
     portCheckStatusButton.getTooltip().setText(
         i18n.get("statusBar.portCheckTooltip", preferencesService.getPreferences().getForgedAlliance().getPort())
     );
-    portCheckService.addGamePortCheckListener(this);
 
     preferencesService.setOnChoseGameDirectoryListener(this);
   }
@@ -347,7 +344,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     usernameButton.setText(userService.getUsername());
 
-    portCheckService.checkGamePortInBackground();
+    checkGamePortInBackground();
     gameUpdateService.checkForUpdateInBackground();
     clientUpdateService.checkForUpdateInBackground();
   }
@@ -415,6 +412,20 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     });
   }
 
+  private void checkGamePortInBackground() {
+    portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
+    portCheckService.checkGamePortInBackground().thenAccept(result -> {
+      if (result) {
+        portCheckStatusButton.setText(i18n.get("statusBar.portReachable"));
+      } else {
+        portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
+      }
+    }).exceptionally(throwable -> {
+      portCheckStatusButton.setText(i18n.get("statusBar.portCheckFailed"));
+      return null;
+    });
+  }
+
   @Override
   public void onFaConnected() {
     fafConnectionButton.setText(i18n.get("statusBar.fafConnected"));
@@ -447,7 +458,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   void onPortCheckRetryClicked() {
-    portCheckService.checkGamePortInBackground();
+    checkGamePortInBackground();
   }
 
   @FXML
@@ -464,20 +475,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   void onNotificationsButtonClicked() {
     Bounds screenBounds = notificationsButton.localToScreen(notificationsButton.getBoundsInLocal());
     notificationsPopup.show(notificationsButton.getScene().getWindow(), screenBounds.getMaxX(), screenBounds.getMaxY());
-  }
-
-  @Override
-  public void onGamePortCheckResult(Boolean result) {
-    if (result) {
-      portCheckStatusButton.setText(i18n.get("statusBar.portReachable"));
-    } else {
-      portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
-    }
-  }
-
-  @Override
-  public void onGamePortCheckStarted() {
-    portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
   }
 
   @FXML
@@ -503,18 +500,20 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   @Override
-  public void onChoseGameDirectory(Callback<Path> callback) {
+  public CompletableFuture<Path> onChoseGameDirectory() {
+    CompletableFuture<Path> future = new CompletableFuture<>();
     Platform.runLater(() -> {
       DirectoryChooser directoryChooser = new DirectoryChooser();
       directoryChooser.setTitle(i18n.get("missingGamePath.locate"));
       File result = directoryChooser.showDialog(getRoot().getScene().getWindow());
 
       if (result == null) {
-        callback.success(null);
+        future.complete(null);
       } else {
-        callback.success(result.toPath());
+        future.complete(result.toPath());
       }
     });
+    return future;
   }
 
   public Pane getRoot() {
