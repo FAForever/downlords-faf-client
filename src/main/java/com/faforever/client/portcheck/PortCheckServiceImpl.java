@@ -49,7 +49,7 @@ public class PortCheckServiceImpl implements PortCheckService {
     int port = preferencesService.getPreferences().getForgedAlliance().getPort();
 
     PortCheckTask task = applicationContext.getBean(PortCheckTask.class);
-
+    task.setPort(port);
 
     return taskService.submitTask(task).thenApply(result -> {
       if (!result) {
