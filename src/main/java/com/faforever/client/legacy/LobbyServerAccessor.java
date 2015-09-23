@@ -8,10 +8,11 @@ import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
-import com.faforever.client.util.Callback;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 /**
  * Entry class for all communication with the FAF lobby server, be it reading or writing. This class should only be
@@ -20,10 +21,9 @@ import java.util.List;
 public interface LobbyServerAccessor {
 
   /**
-   * Connects to the FAF server and logs in using the credentials from {@link PreferencesService}. This method runs in
-   * background, the callback however is called on the FX application thread.
+   * Connects to the FAF server and logs in using the credentials from {@link PreferencesService}.
    */
-  void connectAndLogInInBackground(Callback<SessionInfo> callback);
+  CompletableFuture<SessionInfo> connectAndLogInInBackground();
 
   void addOnGameTypeInfoListener(OnGameTypeInfoListener listener);
 
@@ -31,9 +31,9 @@ public interface LobbyServerAccessor {
 
   void setOnPlayerInfoMessageListener(OnPlayerInfoListener listener);
 
-  void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchInfo> callback);
+  CompletionStage<GameLaunchInfo> requestNewGame(NewGameInfo newGameInfo);
 
-  void requestJoinGame(GameInfoBean gameInfoBean, String password, Callback<GameLaunchInfo> callback);
+  CompletionStage<GameLaunchInfo> requestJoinGame(GameInfoBean gameInfoBean, String password);
 
   void notifyGameStarted();
 
@@ -51,7 +51,7 @@ public interface LobbyServerAccessor {
 
   void setOnLobbyConnectedListener(OnLobbyConnectedListener onLobbyConnectedListener);
 
-  void requestLadderInfoInBackground(Callback<List<LeaderboardEntryBean>> callback);
+  CompletableFuture<List<LeaderboardEntryBean>> requestLadderInfoInBackground();
 
   void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener);
 
@@ -61,11 +61,9 @@ public interface LobbyServerAccessor {
 
   void addOnGameLaunchListener(OnGameLaunchInfoListener listener);
 
-  void accept1v1Match(Faction faction, int gamePort);
-
   void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener);
 
-  void startSearchRanked1v1(Faction faction, int gamePort, Callback<GameLaunchInfo> callback);
+  CompletableFuture<GameLaunchInfo> startSearchRanked1v1(Faction faction, int gamePort);
 
   void stopSearchingRanked();
 }

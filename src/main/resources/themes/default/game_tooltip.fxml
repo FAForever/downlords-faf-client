@@ -7,7 +7,7 @@
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="teamListRoot" styleClass="game-tooltip" xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.game.GameTooltipController">
   <children>
     <HBox fx:id="teamsPane" prefWidth="200.0" spacing="10.0" styleClass="teams-pane" />
-      <TitledPane collapsible="false" text="%game.mods">
+    <TitledPane fx:id="modsPane" collapsible="false" text="%game.mods">
          <content>
             <VBox>
                <children>

@@ -2,8 +2,6 @@ package com.faforever.client.rankedmatch;
 
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
-import com.faforever.client.legacy.domain.GameLaunchInfo;
-import com.faforever.client.util.Callback;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -27,6 +25,15 @@ public class Ranked1v1Controller {
     startSearchRanked1v1(Faction.AEON);
   }
 
+  private void startSearchRanked1v1(Faction faction) {
+    gameService.startSearchRanked1v1(faction).thenAccept(gameLaunchInfo -> {
+      // FIXME implement
+    }).exceptionally(throwable -> {
+      // FIXME implement
+      return null;
+    });
+  }
+
   @FXML
   void onUefButtonClicked(ActionEvent event) {
     startSearchRanked1v1(Faction.UEF);
@@ -40,19 +47,5 @@ public class Ranked1v1Controller {
   @FXML
   void onSeraphimButtonClicked(ActionEvent event) {
     startSearchRanked1v1(Faction.SERAPHIM);
-  }
-
-  private void startSearchRanked1v1(Faction faction) {
-    gameService.startSearchRanked1v1(faction, new Callback<GameLaunchInfo>() {
-      @Override
-      public void success(GameLaunchInfo result) {
-        // FIXME implement
-      }
-
-      @Override
-      public void error(Throwable e) {
-        // FIXME implement
-      }
-    });
   }
 }

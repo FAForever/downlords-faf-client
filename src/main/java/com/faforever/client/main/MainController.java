@@ -25,9 +25,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.patch.PatchService;
+import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.portcheck.GamePortCheckListener;
 import com.faforever.client.portcheck.PortCheckService;
 import com.faforever.client.preferences.OnChoseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
@@ -38,13 +37,12 @@ import com.faforever.client.rankedmatch.Ranked1v1Controller;
 import com.faforever.client.rankedmatch.RankedMatchNotification;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.PrioritizedTask;
-import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
+import javafx.beans.Observable;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
@@ -76,14 +74,13 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
-public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnFafDisconnectedListener,
-    GamePortCheckListener, OnChoseGameDirectoryListener, OnRankedMatchNotificationListener {
+public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnFafDisconnectedListener, OnChoseGameDirectoryListener, OnRankedMatchNotificationListener {
 
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_CLASS = PseudoClass.getPseudoClass("info");
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_CLASS = PseudoClass.getPseudoClass("warn");
@@ -220,7 +217,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   CommunityHubController communityHubController;
 
   @Autowired
-  PatchService patchService;
+  GameUpdateService gameUpdateService;
 
   @Autowired
   GameService gameService;
@@ -260,17 +257,19 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
    * @param task the task to set, {@code null} to unset
    */
   private void setCurrentTaskInStatusBar(PrioritizedTask<?> task) {
-    if (task == null) {
-      taskProgressBar.setVisible(false);
-      taskProgressLabel.setVisible(false);
-      return;
-    }
+    Platform.runLater(() -> {
+      if (task == null) {
+        taskProgressBar.setVisible(false);
+        taskProgressLabel.setVisible(false);
+        return;
+      }
 
-    taskProgressBar.setVisible(true);
-    taskProgressBar.progressProperty().bind(task.progressProperty());
+      taskProgressBar.setVisible(true);
+      taskProgressBar.progressProperty().bind(task.progressProperty());
 
-    taskProgressLabel.setVisible(true);
-    taskProgressLabel.setText(task.getTitle());
+      taskProgressLabel.setVisible(true);
+      taskProgressLabel.textProperty().bind(task.titleProperty());
+    });
   }
 
   private void showMenuDropdown(SplitMenuButton button) {
@@ -295,21 +294,18 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
         notification -> Platform.runLater(() -> displayImmediateNotification(notification))
     );
 
-    taskService.addChangeListener(change -> {
-      while (change.next()) {
-        if (change.wasAdded()) {
-          addTasks(change.getAddedSubList());
-        }
-        if (change.wasRemoved()) {
-          removeTasks(change.getRemoved());
-        }
+    taskService.getActiveTasks().addListener((Observable observable) -> {
+      Collection<PrioritizedTask<?>> runningTasks = taskService.getActiveTasks();
+      if (runningTasks.isEmpty()) {
+        setCurrentTaskInStatusBar(null);
+      } else {
+        setCurrentTaskInStatusBar(runningTasks.iterator().next());
       }
-    }, TaskGroup.NET_HEAVY, TaskGroup.NET_UPLOAD);
+    });
 
     portCheckStatusButton.getTooltip().setText(
         i18n.get("statusBar.portCheckTooltip", preferencesService.getPreferences().getForgedAlliance().getPort())
     );
-    portCheckService.addGamePortCheckListener(this);
 
     preferencesService.setOnChoseGameDirectoryListener(this);
     gameService.addOnRankedMatchNotificationListener(this);
@@ -350,25 +346,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     popup.show(mainRoot.getScene().getWindow());
   }
 
-  /**
-   * @param tasks a list of prioritized tasks, sorted by priority (lowest first)
-   */
-  private void addTasks(List<? extends PrioritizedTask<?>> tasks) {
-//    List<Node> taskPanes = new ArrayList<>();
-//
-//    for (PrioritizedTask<?> taskPane : tasks) {
-//      taskPanes.add(new Pane());
-//    }
-//
-//    taskPane.getChildren().setAll(taskPanes);
-
-    setCurrentTaskInStatusBar(tasks.get(tasks.size() - 1));
-  }
-
-  private void removeTasks(List<? extends PrioritizedTask<?>> removed) {
-    setCurrentTaskInStatusBar(null);
-  }
-
   public void display(Stage stage) {
     lobbyService.setOnFafConnectedListener(this);
     lobbyService.setOnLobbyConnectingListener(this);
@@ -388,8 +365,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     usernameButton.setText(userService.getUsername());
 
-    portCheckService.checkGamePortInBackground();
-    patchService.checkForUpdateInBackground();
+    checkGamePortInBackground();
+    gameUpdateService.checkForUpdateInBackground();
     clientUpdateService.checkForUpdateInBackground();
   }
 
@@ -456,6 +433,20 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     });
   }
 
+  private void checkGamePortInBackground() {
+    portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
+    portCheckService.checkGamePortInBackground().thenAccept(result -> {
+      if (result) {
+        portCheckStatusButton.setText(i18n.get("statusBar.portReachable"));
+      } else {
+        portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
+      }
+    }).exceptionally(throwable -> {
+      portCheckStatusButton.setText(i18n.get("statusBar.portCheckFailed"));
+      return null;
+    });
+  }
+
   @Override
   public void onFaConnected() {
     fafConnectionButton.setText(i18n.get("statusBar.fafConnected"));
@@ -488,7 +479,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   void onPortCheckRetryClicked() {
-    portCheckService.checkGamePortInBackground();
+    checkGamePortInBackground();
   }
 
   @FXML
@@ -505,20 +496,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   void onNotificationsButtonClicked() {
     Bounds screenBounds = notificationsButton.localToScreen(notificationsButton.getBoundsInLocal());
     notificationsPopup.show(notificationsButton.getScene().getWindow(), screenBounds.getMaxX(), screenBounds.getMaxY());
-  }
-
-  @Override
-  public void onGamePortCheckResult(Boolean result) {
-    if (result) {
-      portCheckStatusButton.setText(i18n.get("statusBar.portReachable"));
-    } else {
-      portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
-    }
-  }
-
-  @Override
-  public void onGamePortCheckStarted() {
-    portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
   }
 
   @FXML
@@ -544,18 +521,20 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   @Override
-  public void onChoseGameDirectory(Callback<Path> callback) {
+  public CompletableFuture<Path> onChoseGameDirectory() {
+    CompletableFuture<Path> future = new CompletableFuture<>();
     Platform.runLater(() -> {
       DirectoryChooser directoryChooser = new DirectoryChooser();
       directoryChooser.setTitle(i18n.get("missingGamePath.locate"));
       File result = directoryChooser.showDialog(getRoot().getScene().getWindow());
 
       if (result == null) {
-        callback.success(null);
+        future.complete(null);
       } else {
-        callback.success(result.toPath());
+        future.complete(result.toPath());
       }
     });
+    return future;
   }
 
   public Pane getRoot() {
@@ -733,21 +712,21 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   void onAeonButtonClicked(ActionEvent event) {
-    gameService.accept1v1Match(Faction.AEON);
+    gameService.startSearchRanked1v1(Faction.AEON);
   }
 
   @FXML
   void onUefButtonClicked(ActionEvent event) {
-    gameService.accept1v1Match(Faction.UEF);
+    gameService.startSearchRanked1v1(Faction.UEF);
   }
 
   @FXML
   void onCybranButtonClicked(ActionEvent event) {
-    gameService.accept1v1Match(Faction.CYBRAN);
+    gameService.startSearchRanked1v1(Faction.CYBRAN);
   }
 
   @FXML
   void onSeraphimButtonClicked(ActionEvent event) {
-    gameService.accept1v1Match(Faction.SERAPHIM);
+    gameService.startSearchRanked1v1(Faction.SERAPHIM);
   }
 }

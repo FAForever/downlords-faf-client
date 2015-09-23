@@ -2,6 +2,7 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameInfoBean;
+import com.faforever.client.game.GameType;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
@@ -18,11 +19,9 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 import com.faforever.client.rankedmatch.RankedMatchNotification;
-import com.faforever.client.task.PrioritizedTask;
-import com.faforever.client.task.TaskGroup;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,11 +34,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.legacy.domain.GameAccess.PASSWORD;
 import static com.faforever.client.legacy.domain.GameAccess.PUBLIC;
-import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
-import static com.faforever.client.task.TaskGroup.NET_LIGHT;
+import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
 
 public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
@@ -66,10 +66,12 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void connectAndLogInInBackground(Callback<SessionInfo> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<SessionInfo>(i18n.get("login.progress.message")) {
+  public CompletableFuture<SessionInfo> connectAndLogInInBackground() {
+    return taskService.submitTask(new AbstractPrioritizedTask<SessionInfo>(HIGH) {
       @Override
       protected SessionInfo call() throws Exception {
+        updateTitle(i18n.get("login.progress.message"));
+
         for (OnGameTypeInfoListener onModInfoMessageListener : onModInfoMessageListeners) {
           GameTypeInfo gameTypeInfo = new GameTypeInfo();
           gameTypeInfo.setFullname("Forged Alliance Forever");
@@ -114,9 +116,10 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
                 Severity.INFO,
                 Arrays.asList(
                     new Action("Execute", event ->
-                        taskService.submitTask(TaskGroup.NET_HEAVY, new PrioritizedTask<Void>("Mock task") {
+                        taskService.submitTask(new AbstractPrioritizedTask<Void>(HIGH) {
                           @Override
                           protected Void call() throws Exception {
+                            updateTitle("Mock task");
                             Thread.sleep(2000);
                             for (int i = 0; i < 5; i++) {
                               updateProgress(i, 5);
@@ -137,7 +140,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
         return sessionInfo;
       }
-    }, callback);
+    });
   }
 
   private GameInfo createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
@@ -175,31 +178,35 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchInfo> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<GameLaunchInfo>(i18n.get("requestNewGameTask.title"), HIGH) {
+  public CompletionStage<GameLaunchInfo> requestNewGame(NewGameInfo newGameInfo) {
+    return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchInfo>(HIGH) {
       @Override
       protected GameLaunchInfo call() throws Exception {
+        updateTitle(i18n.get("requestNewGameTask.title"));
+
         GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
         gameLaunchInfo.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));
         gameLaunchInfo.setMod("faf");
         gameLaunchInfo.setUid(1234);
         return gameLaunchInfo;
       }
-    }, callback);
+    });
   }
 
   @Override
-  public void requestJoinGame(GameInfoBean gameInfoBean, String password, Callback<GameLaunchInfo> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<GameLaunchInfo>(i18n.get("requestJoinGameTask.title"), HIGH) {
+  public CompletionStage<GameLaunchInfo> requestJoinGame(GameInfoBean gameInfoBean, String password) {
+    return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchInfo>(HIGH) {
       @Override
       protected GameLaunchInfo call() throws Exception {
+        updateTitle(i18n.get("requestJoinGameTask.title"));
+
         GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
         gameLaunchInfo.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));
         gameLaunchInfo.setMod("faf");
         gameLaunchInfo.setUid(1234);
         return gameLaunchInfo;
       }
-    }, callback);
+    });
   }
 
   @Override
@@ -243,8 +250,9 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void requestLadderInfoInBackground(Callback<List<LeaderboardEntryBean>> callback) {
+  public CompletableFuture<List<LeaderboardEntryBean>> requestLadderInfoInBackground() {
 
+    return null;
   }
 
   @Override
@@ -268,18 +276,17 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void accept1v1Match(Faction faction, int gamePort) {
-    logger.debug("Accepting 1v1 match with faction: {}", faction);
-  }
-
-  @Override
   public void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener) {
     onRankedMatchNotificationListeners.add(listener);
   }
 
   @Override
-  public void startSearchRanked1v1(Faction faction, int gamePort, Callback<GameLaunchInfo> callback) {
+  public CompletableFuture<GameLaunchInfo> startSearchRanked1v1(Faction faction, int gamePort) {
     logger.debug("Searching 1v1 match with faction: {}", faction);
+    GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
+    gameLaunchInfo.setUid(123);
+    gameLaunchInfo.setMod(GameType.DEFAULT.getString());
+    return CompletableFuture.completedFuture(gameLaunchInfo);
   }
 
   @Override

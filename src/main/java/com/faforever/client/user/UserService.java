@@ -1,10 +1,10 @@
 package com.faforever.client.user;
 
-import com.faforever.client.util.Callback;
+import java.util.concurrent.CompletableFuture;
 
 public interface UserService {
 
-  void login(String username, String password, boolean autoLogin, Callback<Void> callback);
+  CompletableFuture<Void> login(String username, String password, boolean autoLogin);
 
   String getUsername();
 

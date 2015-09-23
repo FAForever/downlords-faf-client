@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fa.ForgedAllianceService;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
@@ -10,10 +11,13 @@ import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.Severity;
+import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
@@ -40,6 +44,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+
+import static java.util.Collections.emptyMap;
 
 public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnGameInfoListener {
 
@@ -50,6 +59,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   // values as an observable list (in order to display it in the games table)
   private final ObservableList<GameInfoBean> gameInfoBeans;
   private final Map<Integer, GameInfoBean> uidToGameInfoBean;
+
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
   @Autowired
@@ -62,6 +72,12 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   Proxy proxy;
   @Autowired
   PreferencesService preferencesService;
+  @Autowired
+  GameUpdateService gameUpdateService;
+  @Autowired
+  NotificationService notificationService;
+  @Autowired
+  I18n i18n;
 
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
@@ -86,48 +102,43 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
-  public void hostGame(NewGameInfo newGameInfo, Callback<Void> callback) {
+  public CompletionStage<Void> hostGame(NewGameInfo newGameInfo) {
     cancelLadderSearch();
-    updateGameIfNecessary(newGameInfo.getMod(), new Callback<Void>() {
-      @Override
-      public void success(Void result) {
-        lobbyServerAccessor.requestNewGame(newGameInfo, gameLaunchCallback(callback));
-      }
 
-      @Override
-      public void error(Throwable e) {
-        callback.error(e);
-      }
-    });
+
+    CompletableFuture<Void> future = new CompletableFuture<>();
+
+    updateGameIfNecessary(newGameInfo.getGameType(), newGameInfo.getVersion(), emptyMap(), newGameInfo.getSimModUidsToVersions())
+        .thenRun(() -> lobbyServerAccessor.requestNewGame(newGameInfo)
+            .thenAccept((gameLaunchInfo) -> startGame(gameLaunchInfo, future))
+            .exceptionally(throwable -> {
+              logger.warn("Could not start game", throwable);
+              return null;
+            }))
+        .exceptionally(throwable -> {
+          logger.warn("Game could not be updated", throwable);
+          return null;
+        });
+
+    return future;
   }
 
-  private void updateGameIfNecessary(String modName, Callback<Void> callback) {
-    callback.success(null);
+  private CompletableFuture<Void> updateGameIfNecessary(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUIds) {
+    return gameUpdateService.updateInBackground(gameType, version, modVersions, simModUIds);
   }
 
-  private Callback<GameLaunchInfo> gameLaunchCallback(final Callback<Void> callback) {
-    return new Callback<GameLaunchInfo>() {
-      @Override
-      public void success(GameLaunchInfo gameLaunchInfo) {
-        List<String> args = fixMalformedArgs(gameLaunchInfo.getArgs());
-        try {
-          Process process = forgedAllianceService.startGame(gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), args);
-          onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(gameLaunchInfo.getUid()));
-          lobbyServerAccessor.notifyGameStarted();
+  private void startGame(GameLaunchInfo gameLaunchInfo, CompletableFuture<Void> future) {
+    List<String> args = fixMalformedArgs(gameLaunchInfo.getArgs());
+    try {
+      Process process = forgedAllianceService.startGame(gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), args);
+      onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(gameLaunchInfo.getUid()));
+      lobbyServerAccessor.notifyGameStarted();
 
-          waitForProcessTerminationInBackground(process);
-          callback.success(null);
-        } catch (Exception e) {
-          callback.error(e);
-        }
-      }
-
-      @Override
-      public void error(Throwable e) {
-        // FIXME implement
-        logger.warn("Could not create game", e);
-      }
-    };
+      waitForProcessTerminationInBackground(process);
+      future.complete(null);
+    } catch (Exception e) {
+      future.completeExceptionally(e);
+    }
   }
 
   /**
@@ -165,43 +176,31 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
-  public void joinGame(GameInfoBean gameInfoBean, String password, Callback<Void> callback) {
+  public CompletableFuture<Void> joinGame(GameInfoBean gameInfoBean, String password) {
     logger.info("Joining game {} ({})", gameInfoBean.getTitle(), gameInfoBean.getUid());
 
     cancelLadderSearch();
 
-    Callback<Void> mapDownloadCallback = new Callback<Void>() {
-      @Override
-      public void success(Void result) {
-        lobbyServerAccessor.requestJoinGame(gameInfoBean, password, gameLaunchCallback(callback));
-      }
+    Map<String, Integer> simModVersions = gameInfoBean.getFeaturedModVersions();
+    Set<String> simModUIds = gameInfoBean.getSimMods().keySet();
 
-      @Override
-      public void error(Throwable e) {
-        callback.error(e);
-      }
-    };
-
-    updateGameIfNecessary(gameInfoBean.getFeaturedMod(), new Callback<Void>() {
-      @Override
-      public void success(Void result) {
-        downloadMapIfNecessary(gameInfoBean.getTechnicalName(), mapDownloadCallback);
-      }
-
-      @Override
-      public void error(Throwable e) {
-        callback.error(e);
-      }
-    });
+    CompletableFuture<Void> future = new CompletableFuture<>();
+    return updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
+        .thenRun(() -> downloadMapIfNecessary(gameInfoBean.getTechnicalName())
+            .thenRun(() -> lobbyServerAccessor.requestJoinGame(gameInfoBean, password)
+                .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, future))));
   }
 
-  private void downloadMapIfNecessary(String mapName, Callback<Void> callback) {
+  private CompletionStage<Void> downloadMapIfNecessary(String mapName) {
+    CompletableFuture<Void> future = new CompletableFuture<>();
+
     if (mapService.isAvailable(mapName)) {
-      callback.success(null);
-      return;
+      future.complete(null);
+    } else {
+      return mapService.download(mapName);
     }
 
-    mapService.download(mapName, callback);
+    return future;
   }
 
   @Override
@@ -220,13 +219,22 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
-  public void runWithReplay(Path path, @Nullable Integer replayId) throws IOException {
-    Process process = forgedAllianceService.startReplay(path, replayId);
-    onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
-    // TODO is this needed when watching a replay?
-    lobbyServerAccessor.notifyGameStarted();
-
-    waitForProcessTerminationInBackground(process);
+  public void runWithReplay(Path path, @Nullable Integer replayId, String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simMods) {
+    updateGameIfNecessary(gameType, version, modVersions, simMods)
+        .thenRun(() -> {
+          try {
+            Process process = forgedAllianceService.startReplay(path, replayId);
+            onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
+            waitForProcessTerminationInBackground(process);
+          } catch (IOException e) {
+            notificationService.addNotification(new ImmediateNotification(
+                i18n.get("replayCouldNotBeStarted.title", path),
+                i18n.get("replayCouldNotBeStarted.text"),
+                Severity.ERROR
+                // TODO add detail
+            ));
+          }
+        });
   }
 
   @Override
@@ -255,20 +263,14 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
-  public void accept1v1Match(Faction faction) {
-    lobbyServerAccessor.accept1v1Match(faction, preferencesService.getPreferences().getForgedAlliance().getPort());
-    lobbyServerAccessor.stopSearchingRanked();
-  }
-
-  @Override
   public void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener) {
     lobbyServerAccessor.addOnRankedMatchNotificationListener(listener);
   }
 
   @Override
-  public void startSearchRanked1v1(Faction faction, Callback<GameLaunchInfo> callback) {
+  public CompletableFuture<GameLaunchInfo> startSearchRanked1v1(Faction faction) {
     lobbyServerAccessor.stopSearchingRanked();
-    lobbyServerAccessor.startSearchRanked1v1(faction, preferencesService.getPreferences().getForgedAlliance().getPort(), callback);
+    return lobbyServerAccessor.startSearchRanked1v1(faction, preferencesService.getPreferences().getForgedAlliance().getPort());
   }
 
   @PostConstruct

@@ -3,31 +3,31 @@ package com.faforever.client.game;
 import java.util.HashMap;
 
 public enum Faction {
-  UEF("uef"),
-  AEON("aeon"),
-  CYBRAN("cybran"),
-  SERAPHIM("seraphim");
+  UEF(1),
+  AEON(2),
+  CYBRAN(3),
+  SERAPHIM(4);
 
-  private static final HashMap<String, Faction> fromId;
+  private static final HashMap<Integer, Faction> fromId;
 
   static {
     fromId = new HashMap<>();
     for (Faction faction : values()) {
-      fromId.put(faction.string, faction);
+      fromId.put(faction.id, faction);
     }
   }
 
-  private String string;
+  private int id;
 
-  Faction(String string) {
-    this.string = string;
+  Faction(int id) {
+    this.id = id;
   }
 
-  public String getString() {
-    return string;
+  public int getId() {
+    return id;
   }
 
-  public static Faction fromString(String factionId) {
+  public static Faction fromId(int factionId) {
     return fromId.get(factionId);
   }
 }

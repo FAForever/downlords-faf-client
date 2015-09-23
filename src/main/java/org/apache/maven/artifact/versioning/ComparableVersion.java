@@ -43,7 +43,7 @@ import java.util.Stack;
  * preceded with a dot.</li> </ul></p>
  *
  * @author <a href="mailto:kenney@apache.org">Kenney Westerhof</a>
- * @author <a href="mailto:hboutemy@apache.org">Hervé Boutemy</a>
+ * @author <a href="mailto:hboutemy@apache.org">Hervï¿½ Boutemy</a>
  * @see <a href="https://cwiki.apache.org/confluence/display/MAVENOLD/Versioning">"Versioning" on Maven Wiki</a>
  */
 public class ComparableVersion
@@ -232,10 +232,6 @@ public class ComparableVersion
       }
     }
 
-    public int getType() {
-      return LIST_ITEM;
-    }
-
     public String toString() {
       StringBuilder buffer = new StringBuilder();
       for (Item item : this) {
@@ -246,6 +242,11 @@ public class ComparableVersion
       }
       return buffer.toString();
     }
+
+    public int getType() {
+      return LIST_ITEM;
+    }
+
 
     public boolean isNull() {
       return (size() == 0);
@@ -384,43 +385,17 @@ public class ComparableVersion
     return (o instanceof ComparableVersion) && canonical.equals(((ComparableVersion) o).canonical);
   }
 
-  public String toString() {
-    return value;
-  }
-
-  /**
-   * Main to test version parsing and comparison.
-   *
-   * @param args the version strings to parse and compare
-   */
-  public static void main(String... args) {
-    System.out.println("Display parameters as parsed by Maven (in canonical form) and comparison result:");
-    if (args.length == 0) {
-      return;
-    }
-
-    ComparableVersion prev = null;
-    int i = 1;
-    for (String version : args) {
-      ComparableVersion c = new ComparableVersion(version);
-
-      if (prev != null) {
-        int compare = prev.compareTo(c);
-        System.out.println("   " + prev.toString() + ' '
-            + ((compare == 0) ? "==" : ((compare < 0) ? "<" : ">")) + ' ' + version);
-      }
-
-      System.out.println(String.valueOf(i++) + ". " + version + " == " + c.getCanonical());
-
-      prev = c;
-    }
-  }
-
   public int compareTo(ComparableVersion o) {
     return items.compareTo(o.items);
+  }
+
+  public String toString() {
+    return value;
   }
 
   public String getCanonical() {
     return canonical;
   }
+
+
 }

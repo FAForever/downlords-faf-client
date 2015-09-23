@@ -17,12 +17,10 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.rankedmatch.Accept1v1MatchMessage;
 import com.faforever.client.rankedmatch.RankedMatchNotification;
 import com.faforever.client.rankedmatch.SearchRanked1v1Message;
 import com.faforever.client.rankedmatch.StopSearchRanked1v1Message;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.util.Callback;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -168,19 +166,11 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testConnectAndLogInInBackground() throws Exception {
-    CompletableFuture<SessionInfo> sessionInfoFuture = new CompletableFuture<>();
-    @SuppressWarnings("unchecked")
-    Callback<SessionInfo> callback = mock(Callback.class);
-    doAnswer(invocation -> {
-      sessionInfoFuture.complete(invocation.getArgumentAt(0, SessionInfo.class));
-      return null;
-    }).when(callback).success(any());
-
     int playerUid = 123;
     String sessionId = "456";
     String email = "test@example.com";
 
-    instance.connectAndLogInInBackground(callback);
+    CompletableFuture<SessionInfo> sessionInfoFuture = instance.connectAndLogInInBackground();
 
     String json = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     InitSessionMessage initSessionMessage = gson.fromJson(json, InitSessionMessage.class);
@@ -266,14 +256,8 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   private void connectAndLogIn() throws InterruptedException {
     CountDownLatch connectedLatch = new CountDownLatch(1);
-    @SuppressWarnings("unchecked")
-    Callback<SessionInfo> connectionCallback = mock(Callback.class);
-    doAnswer(invocation -> {
-      connectedLatch.countDown();
-      return null;
-    }).when(connectionCallback).success(any());
 
-    instance.connectAndLogInInBackground(connectionCallback);
+    instance.connectAndLogInInBackground().thenRun(connectedLatch::countDown);
 
     assertNotNull(messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT));
 
@@ -290,19 +274,6 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     sendFromServer(sessionInfo);
 
     assertTrue(connectedLatch.await(TIMEOUT, TIMEOUT_UNIT));
-  }
-
-  @Test
-  public void testAccept1v1Match() throws Exception {
-    connectAndLogIn();
-
-    instance.accept1v1Match(Faction.AEON, GAME_PORT);
-
-    String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    Accept1v1MatchMessage accept1v1MatchMessage = gson.fromJson(clientMessage, Accept1v1MatchMessage.class);
-    assertThat(accept1v1MatchMessage, instanceOf(Accept1v1MatchMessage.class));
-    assertThat(accept1v1MatchMessage.getFaction(), is(Faction.AEON));
-    assertThat(accept1v1MatchMessage.getGameport(), is(GAME_PORT));
   }
 
   @Test
@@ -328,16 +299,20 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
   public void startSearchRanked1v1WithAeon() throws Exception {
     connectAndLogIn();
 
-    instance.startSearchRanked1v1(Faction.AEON, GAME_PORT, null);
+    CompletableFuture<GameLaunchInfo> future = instance.startSearchRanked1v1(Faction.AEON, GAME_PORT);
 
     String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     SearchRanked1v1Message searchRanked1v1Message = gson.fromJson(clientMessage, SearchRanked1v1Message.class);
 
     assertThat(searchRanked1v1Message, instanceOf(SearchRanked1v1Message.class));
-    assertEquals(searchRanked1v1Message.getFaction(), Faction.AEON.getString());
-    assertEquals(searchRanked1v1Message.getGameport(), GAME_PORT);
+    assertThat(searchRanked1v1Message.getFaction(), is(Faction.AEON));
+    assertThat(searchRanked1v1Message.getGameport(), is(GAME_PORT));
 
-    sendFromServer(new GameLaunchInfo());
+    GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
+    gameLaunchInfo.setUid(1234);
+    sendFromServer(gameLaunchInfo);
+
+    assertThat(future.get(TIMEOUT, TIMEOUT_UNIT).getUid(), is(gameLaunchInfo.getUid()));
   }
 
   @Test

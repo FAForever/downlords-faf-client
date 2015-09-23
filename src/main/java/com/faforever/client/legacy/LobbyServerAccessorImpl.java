@@ -37,14 +37,12 @@ import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.rankedmatch.Accept1v1MatchMessage;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 import com.faforever.client.rankedmatch.RankedMatchNotification;
 import com.faforever.client.rankedmatch.SearchRanked1v1Message;
 import com.faforever.client.rankedmatch.StopSearchRanked1v1Message;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.Callback;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -66,10 +64,12 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.OFF;
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.ON;
-import static com.faforever.client.task.TaskGroup.NET_LIGHT;
+import static com.faforever.client.task.AbstractPrioritizedTask.Priority.MEDIUM;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
 public class LobbyServerAccessorImpl extends AbstractServerAccessor implements LobbyServerAccessor {
@@ -100,10 +100,9 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private String password;
   private String localIp;
   private ServerWriter serverWriter;
-  private Callback<SessionInfo> loginCallback;
-  private Callback<GameLaunchInfo> gameLaunchCallback;
+  private CompletableFuture<SessionInfo> loginFuture;
+  private CompletableFuture<GameLaunchInfo> gameLaunchFuture;
   private Collection<OnRankedMatchNotificationListener> onRankedMatchNotificationListeners;
-
   // Yes I know, those aren't lists. They will become if it's necessary
   private OnLobbyConnectingListener onLobbyConnectingListener;
   private OnFafDisconnectedListener onFafDisconnectedListener;
@@ -131,8 +130,8 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void connectAndLogInInBackground(Callback<SessionInfo> callback) {
-    loginCallback = callback;
+  public CompletableFuture<SessionInfo> connectAndLogInInBackground() {
+    loginFuture = new CompletableFuture<>();
 
     LoginPrefs login = preferencesService.getPreferences().getLogin();
     username = login.getUsername();
@@ -203,6 +202,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
       }
     };
     executeInBackground(fafConnectionTask);
+    return loginFuture;
   }
 
   private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
@@ -233,20 +233,21 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void requestNewGame(NewGameInfo newGameInfo, Callback<GameLaunchInfo> callback) {
+  public CompletionStage<GameLaunchInfo> requestNewGame(NewGameInfo newGameInfo) {
     HostGameMessage hostGameMessage = new HostGameMessage(
         StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
         newGameInfo.getMap(),
         newGameInfo.getTitle(),
         preferencesService.getPreferences().getForgedAlliance().getPort(),
         new boolean[0],
-        newGameInfo.getMod(),
+        newGameInfo.getGameType(),
         newGameInfo.getPassword(),
         newGameInfo.getVersion()
     );
 
-    gameLaunchCallback = callback;
+    gameLaunchFuture = new CompletableFuture<>();
     writeToServerInBackground(hostGameMessage);
+    return gameLaunchFuture;
   }
 
   private void writeToServerInBackground(final ClientMessage clientMessage) {
@@ -260,14 +261,15 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void requestJoinGame(GameInfoBean gameInfoBean, String password, Callback<GameLaunchInfo> callback) {
+  public CompletionStage<GameLaunchInfo> requestJoinGame(GameInfoBean gameInfoBean, String password) {
     JoinGameMessage joinGameMessage = new JoinGameMessage(
         gameInfoBean.getUid(),
         preferencesService.getPreferences().getForgedAlliance().getPort(),
         password);
 
-    gameLaunchCallback = callback;
+    gameLaunchFuture = new CompletableFuture<>();
     writeToServerInBackground(joinGameMessage);
+    return gameLaunchFuture;
   }
 
   @Override
@@ -311,13 +313,15 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void requestLadderInfoInBackground(Callback<List<LeaderboardEntryBean>> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LeaderboardEntryBean>>(i18n.get("readLadderTask.title")) {
+  public CompletableFuture<List<LeaderboardEntryBean>> requestLadderInfoInBackground() {
+    return taskService.submitTask(new AbstractPrioritizedTask<List<LeaderboardEntryBean>>(MEDIUM) {
       @Override
       protected List<LeaderboardEntryBean> call() throws Exception {
+        updateTitle(i18n.get("readLadderTask.title"));
+
         return leaderboardParser.parseLadder();
       }
-    }, callback);
+    });
   }
 
   @Override
@@ -341,20 +345,15 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void accept1v1Match(Faction faction, int gamePort) {
-    writeToServer(new Accept1v1MatchMessage(faction, gamePort));
-  }
-
-  @Override
   public void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener) {
     onRankedMatchNotificationListeners.add(listener);
   }
 
   @Override
-  public void startSearchRanked1v1(Faction faction, int gamePort, Callback<GameLaunchInfo> callback) {
+  public CompletableFuture<GameLaunchInfo> startSearchRanked1v1(Faction faction, int gamePort) {
+    gameLaunchFuture = new CompletableFuture<>();
     writeToServer(new SearchRanked1v1Message(gamePort, faction));
-
-    gameLaunchCallback = callback;
+    return gameLaunchFuture;
   }
 
   @Override
@@ -482,9 +481,9 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     logger.info("FAF login succeeded");
 
     Platform.runLater(() -> {
-      if (loginCallback != null) {
-        loginCallback.success(sessionInfo);
-        loginCallback = null;
+      if (loginFuture != null) {
+        loginFuture.complete(sessionInfo);
+        loginFuture = null;
       }
     });
   }
@@ -495,7 +494,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   private void onGameLaunchInfo(GameLaunchInfo gameLaunchInfo) {
     onGameLaunchListeners.forEach(listener -> listener.onGameLaunchInfo(gameLaunchInfo));
-    gameLaunchCallback.success(gameLaunchInfo);
+    gameLaunchFuture.complete(gameLaunchInfo);
   }
 
   private void onGameTypeInfo(GameTypeInfo gameTypeInfo) {

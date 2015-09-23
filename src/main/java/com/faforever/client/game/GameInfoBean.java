@@ -45,8 +45,12 @@ public class GameInfoBean {
   private final ObjectProperty<GameState> status;
   private final ObjectProperty<VictoryCondition> victoryCondition;
   private final ListProperty<Boolean> options;
+  /**
+   * Maps a sim mod's UID to its name.
+   */
   private final MapProperty<String, String> simMods;
   private final MapProperty<String, List<String>> teams;
+  /** Maps an index (1,2,3,4...) to a version number. Don't ask me what this index maps to. */
   private final MapProperty<String, Integer> featuredModVersions;
 
   public GameInfoBean(GameInfo gameInfo) {

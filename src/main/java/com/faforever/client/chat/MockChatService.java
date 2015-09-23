@@ -2,10 +2,9 @@ package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.OnJoinChannelsRequestListener;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.ConcurrentUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -21,8 +20,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 
-import static com.faforever.client.task.TaskGroup.NET_LIGHT;
+import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
 
 // NOSONAR
 public class MockChatService implements ChatService {
@@ -119,14 +119,16 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public void sendMessageInBackground(String target, String message, Callback<String> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<String>(i18n.get("chat.sendMessageTask.title")) {
+  public CompletableFuture<String> sendMessageInBackground(String target, String message) {
+    return taskService.submitTask(new AbstractPrioritizedTask<String>(HIGH) {
       @Override
       protected String call() throws Exception {
+        updateTitle(i18n.get("chat.sendMessageTask.title"));
+
         Thread.sleep(200);
         return message;
       }
-    }, callback);
+    });
   }
 
   @Override
@@ -137,7 +139,10 @@ public class MockChatService implements ChatService {
 
   @Override
   public void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener) {
-    getChatUsersForChannel(channelName).addListener(listener);
+    ObservableMap<String, ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
+    synchronized (chatUsersForChannel) {
+      chatUsersForChannel.addListener(listener);
+    }
   }
 
   @Override
@@ -146,8 +151,8 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public void sendActionInBackground(String target, String action, Callback<String> callback) {
-    sendMessageInBackground(target, action, callback);
+  public CompletableFuture<String> sendActionInBackground(String target, String action) {
+    return sendMessageInBackground(target, action);
   }
 
   @Override

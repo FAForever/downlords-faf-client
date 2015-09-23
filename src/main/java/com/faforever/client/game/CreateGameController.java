@@ -1,89 +1,100 @@
 package com.faforever.client.game;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.ComboBox;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseEvent;
+import javafx.util.Callback;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.util.List;
+import java.util.Collections;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.faforever.client.notification.Severity.WARN;
 
 public class CreateGameController {
 
   public static final int MAX_RATING_LENGTH = 4;
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  @FXML
+  Label mapSizeLabel;
+  @FXML
+  Label mapPlayersLabel;
+  @FXML
+  Label mapAiMarkersLabel;
+  @FXML
+  Label mapDescriptionLabel;
   @FXML
   Label mapNameLabel;
-
   @FXML
   TextField mapSearchTextField;
-
   @FXML
   ImageView mapImageView;
-
   @FXML
   TextField titleTextField;
-
   @FXML
   ListView<ModInfoBean> modListView;
-
   @FXML
   TextField passwordTextField;
-
   @FXML
   TextField minRankingTextField;
-
   @FXML
   TextField maxRankingTextField;
-
   @FXML
-  ComboBox<GameTypeBean> gameTypeComboBox;
-
+  ListView<GameTypeBean> gameTypeListView;
   @FXML
   ListView<MapInfoBean> mapListView;
+  @FXML
+  Node createGameRoot;
+  @FXML
+  Button createGameButton;
 
   @Autowired
   Environment environment;
-
   @Autowired
   MapService mapService;
-
   @Autowired
   ModService modService;
-
   @Autowired
   GameService gameService;
-
   @Autowired
   PreferencesService preferencesService;
-
-  @FXML
-  Node createGameRoot;
+  @Autowired
+  I18n i18n;
+  @Autowired
+  NotificationService notificationService;
 
   @VisibleForTesting
   FilteredList<MapInfoBean> filteredMaps;
@@ -119,8 +130,7 @@ public class CreateGameController {
       mapListView.scrollTo(newMapIndex);
     });
 
-    gameTypeComboBox.setCellFactory(param -> gameTypeCell());
-    gameTypeComboBox.setButtonCell(gameTypeCell());
+    gameTypeListView.setCellFactory(param -> gameTypeCell());
 
     JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH);
     JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH);
@@ -168,22 +178,24 @@ public class CreateGameController {
       preferencesService.getPreferences().setLastGameTitle(newValue);
       preferencesService.storeInBackground();
     });
+    createGameButton.disableProperty().bind(titleTextField.textProperty().isEmpty());
   }
 
   private void initModList() {
-    modListView.setCellFactory(param -> modListCell());
+    modListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    modListView.setCellFactory(modListCellFactory());
 
-    modService.getInstalledModsInBackground(new Callback<List<ModInfoBean>>() {
-      @Override
-      public void success(List<ModInfoBean> result) {
-        modListView.setItems(FXCollections.observableList(result));
-      }
-
-      @Override
-      public void error(Throwable e) {
-        logger.warn("Could not load mod list", e);
-      }
-    });
+    try {
+      modListView.setItems(modService.getInstalledMods());
+    } catch (IOException e) {
+      logger.warn("Installed mods could not be loaded", e);
+      notificationService.addNotification(
+          new PersistentNotification(
+              i18n.get("loadingInstalledModsFailed.notification", e.getLocalizedMessage()),
+              WARN,
+              Collections.singletonList(new Action(i18n.get("loadingInstalledModsFailed.retry"))))
+      );
+    }
   }
 
   private void initMapSelection() {
@@ -198,12 +210,22 @@ public class CreateGameController {
         mapNameLabel.setText("");
         return;
       }
-      String mapName = newValue.getDisplayName();
 
-      mapNameLabel.setText(mapName);
-      mapImageView.setImage(mapService.loadLargePreview(mapName));
-      preferencesService.getPreferences().setLastMap(mapName);
+      preferencesService.getPreferences().setLastMap(newValue.getTechnicalName());
       preferencesService.storeInBackground();
+
+      String mapDisplayName = newValue.getDisplayName();
+      mapNameLabel.setText(newValue.getDisplayName());
+      mapImageView.setImage(mapService.loadLargePreview(mapDisplayName));
+      mapSizeLabel.setText(i18n.get("mapPreview.size", newValue.getSize()));
+      mapPlayersLabel.setText(i18n.get("mapPreview.maxPlayers", newValue.getPlayers()));
+      mapDescriptionLabel.setText(newValue.getDescription());
+
+      if (newValue.getHasAiMarkers()) {
+        mapAiMarkersLabel.setText(i18n.get("yes"));
+      } else {
+        mapAiMarkersLabel.setText(i18n.get("no"));
+      }
     });
   }
 
@@ -211,8 +233,13 @@ public class CreateGameController {
     gameService.addOnGameTypeInfoListener(change -> {
       change.getValueAdded();
 
-      gameTypeComboBox.getItems().add(change.getValueAdded());
+      gameTypeListView.getItems().add(change.getValueAdded());
       selectLastOrDefaultGameType();
+    });
+
+    gameTypeListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+      preferencesService.getPreferences().setLastGameType(newValue.getName());
+      preferencesService.storeInBackground();
     });
   }
 
@@ -221,7 +248,16 @@ public class CreateGameController {
     int lastGameMaxRating = preferencesService.getPreferences().getLastGameMaxRating();
 
     minRankingTextField.setText(String.valueOf(lastGameMinRating));
-    minRankingTextField.setText(String.valueOf(lastGameMaxRating));
+    maxRankingTextField.setText(String.valueOf(lastGameMaxRating));
+
+    minRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+      preferencesService.getPreferences().setLastGameMinRating(Integer.parseInt(newValue));
+      preferencesService.storeInBackground();
+    });
+    maxRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+      preferencesService.getPreferences().setLastGameMaxRating(Integer.parseInt(newValue));
+      preferencesService.storeInBackground();
+    });
   }
 
   private void selectLastMap() {
@@ -239,20 +275,36 @@ public class CreateGameController {
   }
 
   @NotNull
-  private ListCell<ModInfoBean> modListCell() {
-    return new ListCell<ModInfoBean>() {
+  private Callback<ListView<ModInfoBean>, ListCell<ModInfoBean>> modListCellFactory() {
+    return param -> {
+      ListCell<ModInfoBean> cell = new ListCell<ModInfoBean>() {
 
-      @Override
-      protected void updateItem(ModInfoBean item, boolean empty) {
-        super.updateItem(item, empty);
+        @Override
+        protected void updateItem(ModInfoBean item, boolean empty) {
+          super.updateItem(item, empty);
 
-        if (empty || item == null) {
-          setText(null);
-          setGraphic(null);
-        } else {
-          setText(item.getName());
+          if (empty || item == null) {
+            setText(null);
+            setGraphic(null);
+          } else {
+            setText(item.getName());
+          }
         }
-      }
+      };
+      cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+        modListView.requestFocus();
+        MultipleSelectionModel<ModInfoBean> selectionModel = modListView.getSelectionModel();
+        if (!cell.isEmpty()) {
+          int index = cell.getIndex();
+          if (selectionModel.getSelectedIndices().contains(index)) {
+            selectionModel.clearSelection(index);
+          } else {
+            selectionModel.select(index);
+          }
+          event.consume();
+        }
+      });
+      return cell;
     };
   }
 
@@ -276,12 +328,12 @@ public class CreateGameController {
   private void selectLastOrDefaultGameType() {
     String lastGameMod = preferencesService.getPreferences().getLastGameType();
     if (lastGameMod == null) {
-      lastGameMod = FeaturedMod.DEFAULT_MOD.getString();
+      lastGameMod = GameType.DEFAULT.getString();
     }
 
-    for (GameTypeBean mod : gameTypeComboBox.getItems()) {
+    for (GameTypeBean mod : gameTypeListView.getItems()) {
       if (Objects.equals(mod.getName(), lastGameMod)) {
-        gameTypeComboBox.getSelectionModel().select(mod);
+        gameTypeListView.getSelectionModel().select(mod);
         break;
       }
     }
@@ -296,33 +348,44 @@ public class CreateGameController {
 
   @FXML
   void onCreateButtonClicked() {
-    if (StringUtils.isEmpty(titleTextField.getText())) {
-      // TODO tell the user
-      return;
-    }
+    ObservableList<ModInfoBean> selectedMods = modListView.getSelectionModel().getSelectedItems();
+
+    Set<String> simMods = selectedMods.stream()
+        .map(ModInfoBean::getUid)
+        .collect(Collectors.toSet());
 
     NewGameInfo newGameInfo = new NewGameInfo(
         titleTextField.getText(),
         Strings.emptyToNull(passwordTextField.getText()),
-        gameTypeComboBox.getSelectionModel().getSelectedItem().getName(),
+        gameTypeListView.getSelectionModel().getSelectedItem().getName(),
         mapListView.getSelectionModel().getSelectedItem().getDisplayName(),
-        0);
+        0,
+        simMods);
 
-    gameService.hostGame(newGameInfo, new Callback<Void>() {
-          @Override
-          public void success(Void result) {
-            // FIXME do something or remove the callback
-          }
-
-          @Override
-          public void error(Throwable e) {
-            // FIXME do something or remove the callback
-          }
-        }
-    );
+    gameService.hostGame(newGameInfo);
   }
 
   public Node getRoot() {
     return createGameRoot;
+  }
+
+  @FXML
+  void onSelectDefaultGameTypeButtonClicked(ActionEvent event) {
+    for (GameTypeBean gameTypeBean : gameTypeListView.getItems()) {
+      if (GameType.FAF.getString().equals(gameTypeBean.getName())) {
+        gameTypeListView.getSelectionModel().select(gameTypeBean);
+        return;
+      }
+    }
+  }
+
+  @FXML
+  void onDeselectModsButtonClicked(ActionEvent event) {
+    modListView.getSelectionModel().clearSelection();
+  }
+
+  @FXML
+  void onReloadModsButtonClicked(ActionEvent event) {
+    modService.loadInstalledMods();
   }
 }

@@ -40,14 +40,16 @@ import com.faforever.client.news.LegacyNewsService;
 import com.faforever.client.news.NewsService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
-import com.faforever.client.patch.GitRepositoryPatchService;
+import com.faforever.client.patch.GameUpdateService;
+import com.faforever.client.patch.GameUpdateServiceImpl;
 import com.faforever.client.patch.GitWrapper;
 import com.faforever.client.patch.JGitWrapper;
-import com.faforever.client.patch.PatchService;
+import com.faforever.client.patch.UpdateServerAccessor;
+import com.faforever.client.patch.UpdateServerAccessorImpl;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
-import com.faforever.client.portcheck.DownlordsPortCheckServiceImpl;
 import com.faforever.client.portcheck.PortCheckService;
+import com.faforever.client.portcheck.PortCheckServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayFileReader;
 import com.faforever.client.replay.ReplayFileReaderImpl;
@@ -123,6 +125,11 @@ public class ServiceConfig {
   }
 
   @Bean
+  UpdateServerAccessor updateServerAccessor() {
+    return new UpdateServerAccessorImpl();
+  }
+
+  @Bean
   ChatService chatService() {
     if (environment.containsProperty("faf.testing")) {
       return new MockChatService();
@@ -167,7 +174,7 @@ public class ServiceConfig {
 
   @Bean
   PortCheckService portCheckService() {
-    return new DownlordsPortCheckServiceImpl();
+    return new PortCheckServiceImpl();
   }
 
   @Bean
@@ -219,8 +226,8 @@ public class ServiceConfig {
   }
 
   @Bean
-  PatchService patchService() {
-    return new GitRepositoryPatchService();
+  GameUpdateService patchService() {
+    return new GameUpdateServiceImpl();
   }
 
   @Bean

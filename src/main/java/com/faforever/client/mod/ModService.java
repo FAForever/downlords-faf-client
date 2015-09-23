@@ -1,13 +1,22 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.legacy.OnGameTypeInfoListener;
-import com.faforever.client.util.Callback;
+import javafx.collections.ObservableList;
 
-import java.util.List;
+import java.io.IOException;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 public interface ModService {
 
-  void addOnModInfoListener(OnGameTypeInfoListener onGameTypeInfoListener);
+  void loadInstalledMods();
 
-  void getInstalledModsInBackground(Callback<List<ModInfoBean>> callback);
+  ObservableList<ModInfoBean> getInstalledMods() throws IOException;
+
+  CompletableFuture<Void> downloadAndInstallMod(String modPath);
+
+  Set<String> getInstalledModUids() throws IOException;
+
+  Set<String> getInstalledUiModsUids() throws IOException;
+
+  void enableSimMods(Set<String> simMods) throws IOException;
 }

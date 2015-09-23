@@ -12,6 +12,6 @@ public class FactionSerializer implements JsonSerializer<Faction> {
 
   @Override
   public JsonElement serialize(Faction src, Type typeOfSrc, JsonSerializationContext context) {
-    return new JsonPrimitive(src.getString());
+    return new JsonPrimitive(src.getId());
   }
 }

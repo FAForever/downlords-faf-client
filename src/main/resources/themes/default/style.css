@@ -302,7 +302,7 @@
 
 .popup {
   -fx-background-color: -fx-background;
-  -fx-effect: -fx-drop-shadow;
+  -fx-effect: null;
 }
 
 /***************** Tooltip *****************/
@@ -818,4 +818,15 @@
 
 .axis {
   -fx-tick-label-font-size: 1em;
+}
+
+/***************** Create game *****************/
+
+.create-game-root {
+  -fx-background-color: -fx-background;
+  -fx-border-color: -fx-box-border;
+}
+
+.game-title-input {
+  -fx-font-size: 2em;
 }

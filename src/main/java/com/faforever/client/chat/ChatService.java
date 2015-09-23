@@ -1,11 +1,11 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.legacy.OnJoinChannelsRequestListener;
-import com.faforever.client.util.Callback;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface ChatService {
 
@@ -29,7 +29,8 @@ public interface ChatService {
 
   void connect();
 
-  void sendMessageInBackground(String target, String message, Callback<String> callback);
+
+  CompletableFuture<String> sendMessageInBackground(String target, String message);
 
   /**
    * Gets the list of chat users for the given channel as soon as it is available. <p> <strong>IMPORTANT:</strong> All
@@ -41,7 +42,7 @@ public interface ChatService {
 
   void leaveChannel(String channelName);
 
-  void sendActionInBackground(String target, String action, Callback<String> callback);
+  CompletableFuture<String> sendActionInBackground(String target, String action);
 
   void joinChannel(String channelName);
 

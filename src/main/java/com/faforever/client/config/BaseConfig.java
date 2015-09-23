@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean;
 
 import java.lang.invoke.MethodHandles;
 import java.util.Locale;
@@ -44,5 +45,13 @@ public class BaseConfig {
   @Bean
   I18n i18n() {
     return new I18nImpl();
+  }
+
+  @Bean
+  ThreadPoolExecutorFactoryBean threadPoolExecutorFactoryBean() {
+    ThreadPoolExecutorFactoryBean threadPoolExecutorFactoryBean = new ThreadPoolExecutorFactoryBean();
+    threadPoolExecutorFactoryBean.setCorePoolSize(Runtime.getRuntime().availableProcessors());
+    threadPoolExecutorFactoryBean.setDaemon(true);
+    return threadPoolExecutorFactoryBean;
   }
 }
