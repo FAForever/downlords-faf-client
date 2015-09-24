@@ -15,6 +15,7 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.RatingUtil;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.transformation.FilteredList;
@@ -38,13 +39,10 @@ import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
-import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +51,6 @@ import java.util.function.Predicate;
 // TODO rename all Game* things to "Play" to be consistent with the menu
 public class GamesController {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final Predicate<GameInfoBean> OPEN_GAMES_PREDICATE = gameInfoBean -> gameInfoBean.getStatus() == GameState.OPEN;
 
   @FXML
@@ -172,12 +169,14 @@ public class GamesController {
   void onTableButtonPressed() {
     if (tilesPaneSelected || isFirstGeneratedPane()) {
       GamesTableController gamesTableController = applicationContext.getBean(GamesTableController.class);
-      gamesTableController.initializeGameTable(filteredItems);
+      Platform.runLater(() -> {
+        gamesTableController.initializeGameTable(filteredItems);
 
-      Node root = gamesTableController.getRoot();
-      populateContainer(root);
-      firstGeneratedPane = false;
-      tilesPaneSelected = false;
+        Node root = gamesTableController.getRoot();
+        populateContainer(root);
+        firstGeneratedPane = false;
+        tilesPaneSelected = false;
+      });
     }
   }
 

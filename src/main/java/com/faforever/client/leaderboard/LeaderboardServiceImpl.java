@@ -14,8 +14,6 @@ import java.util.concurrent.CompletableFuture;
 
 public class LeaderboardServiceImpl implements LeaderboardService {
 
-  private static final int RATING_INCREMENTS = 100;
-
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
 
@@ -29,6 +27,19 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     CompletableFuture<List<RatingDistribution>> future = new CompletableFuture<>();
     getLeaderboardEntries().thenAcceptAsync(result -> future.complete(calculateRatingDistributions(result)));
     return future;
+  }
+
+  @Override
+  public CompletableFuture<LeaderboardEntryBean> getEntryForPlayer(String username) {
+    // TODO server side support would be nice
+    return getLeaderboardEntries().thenApply(leaderboardEntryBeans -> {
+      for (LeaderboardEntryBean leaderboardEntryBean : leaderboardEntryBeans) {
+        if (username.equals(leaderboardEntryBean.getUsername())) {
+          return leaderboardEntryBean;
+        }
+      }
+      return null;
+    });
   }
 
   @NotNull

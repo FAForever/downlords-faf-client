@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.chart.BarChart?>
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.NumberAxis?>
@@ -75,6 +76,80 @@
                    GridPane.halignment="CENTER" GridPane.rowIndex="4"/>
           </children>
         </GridPane>
+        <GridPane>
+          <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+          </columnConstraints>
+          <rowConstraints>
+            <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+          </rowConstraints>
+          <children>
+            <GridPane prefWidth="250.0" styleClass="tile">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
+              </rowConstraints>
+              <children>
+                <Label styleClass="h2" text="%ranked1v1.rating.title"/>
+                <Label fx:id="ratingLabel" prefHeight="80.0" styleClass="ranked1v1-big-value" text="0000"
+                       GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER"/>
+                <ProgressIndicator fx:id="ratingProgressIndicator" prefWidth="244.0" progress="0.66"
+                                   styleClass="ranked1v1-progress-indicator" GridPane.rowIndex="2"/>
+                <Label fx:id="ratingHintLabel" text="&lt;rating hint&gt;" wrapText="true" GridPane.rowIndex="1"/>
+              </children>
+            </GridPane>
+            <GridPane prefWidth="250.0" styleClass="tile" GridPane.columnIndex="1">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
+                <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+              </rowConstraints>
+              <children>
+                <Label styleClass="h2" text="%ranked1v1.ranking"/>
+                <Label fx:id="rankingLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="80.0"
+                       styleClass="ranked1v1-big-value" text="#0" GridPane.rowIndex="1"/>
+                <Label fx:id="rankingOutOfLabel" text="&lt;out of #&gt;" GridPane.rowIndex="2"/>
+              </children>
+            </GridPane>
+            <GridPane prefWidth="250.0" styleClass="tile" GridPane.columnIndex="1" GridPane.rowIndex="1">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
+              </rowConstraints>
+              <children>
+                <Label styleClass="h2" text="%ranked1v1.gamesPlayed"/>
+                <Label fx:id="gamesPlayedLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="80.0"
+                       styleClass="ranked1v1-big-value" text="000" GridPane.rowIndex="1"/>
+              </children>
+            </GridPane>
+            <GridPane prefWidth="250.0" styleClass="tile" GridPane.rowIndex="1">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+                <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
+              </rowConstraints>
+              <children>
+                <Label styleClass="h2" text="%ranked1v1.winLossRation"/>
+                <Label fx:id="winLossRationLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="80.0"
+                       styleClass="ranked1v1-big-value" text="0%" GridPane.rowIndex="1"/>
+              </children>
+            </GridPane>
+          </children>
+        </GridPane>
         <GridPane styleClass="tile">
           <columnConstraints>
             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
@@ -83,7 +158,7 @@
             <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
           </rowConstraints>
           <children>
-            <BarChart fx:id="ratingDistributionChart" categoryGap="5.0" prefHeight="300.0" prefWidth="800.0"
+            <BarChart fx:id="ratingDistributionChart" categoryGap="5.0" prefHeight="300.0" prefWidth="898.0"
                       title="%ranked1v1.rankingDistribution">
               <xAxis>
                 <CategoryAxis fx:id="ratingDistributionXAxis" animated="false" label="%ranked1v1.rankingDistribution.x"
@@ -95,61 +170,13 @@
             </BarChart>
           </children>
         </GridPane>
-        <GridPane prefWidth="250.0" styleClass="tile">
-          <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
-          </columnConstraints>
-          <rowConstraints>
-            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-            <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
-          </rowConstraints>
-          <children>
-            <Label styleClass="h2" text="%ranked1v1.rating.title"/>
-            <Label fx:id="ratingLabel" prefHeight="80.0" styleClass="ranked1v1-big-value" text="0000"
-                   GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER"/>
-            <ProgressIndicator fx:id="ratingProgressIndicator" prefWidth="244.0" progress="0.66"
-                               styleClass="ranked1v1-progress-indicator" GridPane.rowIndex="2"/>
-            <Label fx:id="ratingHintLabel" text="&lt;rating hint&gt;" wrapText="true" GridPane.rowIndex="1"/>
-          </children>
-        </GridPane>
-        <GridPane prefWidth="250.0" styleClass="tile">
-          <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
-          </columnConstraints>
-          <rowConstraints>
-            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-            <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
-          </rowConstraints>
-          <children>
-            <VBox prefWidth="200.0" styleClass="tile">
-              <children>
-                <Label styleClass="h2" text="%ranked1v1.gamesPlayed"/>
-              </children>
-            </VBox>
-            <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="80.0"
-                   styleClass="ranked1v1-big-value" text="000" GridPane.rowIndex="1"/>
-          </children>
-        </GridPane>
-        <GridPane prefWidth="250.0" styleClass="tile">
-          <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
-          </columnConstraints>
-          <rowConstraints>
-            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-            <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
-          </rowConstraints>
-          <children>
-            <VBox prefWidth="200.0" styleClass="tile">
-              <children>
-                <Label styleClass="h2" text="%ranked1v1.ranking"/>
-              </children>
-            </VBox>
-            <Label alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="80.0"
-                   styleClass="ranked1v1-big-value" text="#0" GridPane.rowIndex="1"/>
-          </children>
-        </GridPane>
       </children>
+      <padding>
+        <Insets top="5.0"/>
+      </padding>
     </FlowPane>
   </children>
+  <padding>
+    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+  </padding>
 </VBox>

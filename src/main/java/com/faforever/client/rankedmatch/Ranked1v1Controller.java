@@ -24,7 +24,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +75,14 @@ public class Ranked1v1Controller {
   Button playButton;
   @FXML
   Pane ranked1v1Root;
+  @FXML
+  Label gamesPlayedLabel;
+  @FXML
+  Label rankingLabel;
+  @FXML
+  Label winLossRationLabel;
+  @FXML
+  Label rankingOutOfLabel;
 
   @Autowired
   GameService gameService;
@@ -107,41 +114,13 @@ public class Ranked1v1Controller {
     ratingLabel.managedProperty().bind(ratingLabel.visibleProperty());
     ratingProgressIndicator.managedProperty().bind(ratingProgressIndicator.visibleProperty());
 
-    cancelButton.setVisible(false);
-    playButton.setVisible(true);
-    searchProgressIndicator.setVisible(false);
-    searchingForOpponentLabel.setVisible(false);
-    ratingLabel.setVisible(false);
-
     factionsToButtons = new HashMap<>();
     factionsToButtons.put(Faction.AEON, aeonButton);
     factionsToButtons.put(Faction.UEF, uefButton);
     factionsToButtons.put(Faction.CYBRAN, cybranButton);
     factionsToButtons.put(Faction.SERAPHIM, seraphimButton);
-  }
 
-  @PostConstruct
-  void postConstruct() {
-    gameService.searching1v1Property().addListener((observable, oldValue, newValue) -> {
-      setSearching(newValue);
-    });
-
-    ObservableList<Faction> factions = preferencesService.getPreferences().getRanked1v1().getFactions();
-    for (Faction faction : factions) {
-      factionsToButtons.get(faction).setSelected(true);
-    }
-
-    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
-      playButton.setDisable(true);
-      playButton.setTooltip(new Tooltip(i18n.get("missingGamePath.notification")));
-    }
-
-    preferencesService.addUpdateListener(preferences -> {
-      if (preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
-        playButton.setDisable(false);
-        playButton.setTooltip(null);
-      }
-    });
+    setSearching(false);
   }
 
   private void setSearching(boolean searching) {
@@ -156,8 +135,23 @@ public class Ranked1v1Controller {
     factionsToButtons.values().forEach(button -> button.setDisable(disabled));
   }
 
-  public Node getRoot() {
-    return ranked1v1Root;
+  @PostConstruct
+  void postConstruct() {
+    gameService.searching1v1Property().addListener((observable, oldValue, newValue) -> {
+      setSearching(newValue);
+    });
+
+    ObservableList<Faction> factions = preferencesService.getPreferences().getRanked1v1().getFactions();
+    for (Faction faction : factions) {
+      factionsToButtons.get(faction).setSelected(true);
+    }
+    playButton.setDisable(factions.isEmpty());
+
+    preferencesService.addUpdateListener(preferences -> {
+      if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
+        onCancelButtonClicked();
+      }
+    });
   }
 
   @FXML
@@ -166,12 +160,18 @@ public class Ranked1v1Controller {
     setSearching(false);
   }
 
+  public Node getRoot() {
+    return ranked1v1Root;
+  }
+
   @FXML
   void onPlayButtonClicked() {
-    cancelButton.setVisible(true);
-    playButton.setVisible(false);
-    searchProgressIndicator.setVisible(true);
-    searchingForOpponentLabel.setVisible(true);
+    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
+      // FIXME implement user notification
+      return;
+    }
+
+    setSearching(true);
     setFactionButtonsDisabled(true);
 
     ObservableList<Faction> factions = preferencesService.getPreferences().getRanked1v1().getFactions();
@@ -205,6 +205,7 @@ public class Ranked1v1Controller {
     currentPlayer.leaderboardRatingDeviationProperty().addListener(playerRatingListener);
     currentPlayer.leaderboardRatingMeanProperty().addListener(playerRatingListener);
     updateRating(currentPlayer);
+    updateOtherValues(currentPlayer);
   }
 
   private void updateRating(PlayerInfoBean player) {
@@ -227,11 +228,27 @@ public class Ranked1v1Controller {
     }
 
     leaderboardService.getRatingDistributions()
-        .thenAccept(ratingDistributions -> plotRatingDistributions(ratingDistributions, player))
+        .thenAccept(ratingDistributions -> {
+          int totalPlayers = 0;
+          for (RatingDistribution ratingDistribution : ratingDistributions) {
+            totalPlayers += ratingDistribution.getPlayers();
+          }
+          plotRatingDistributions(ratingDistributions, player);
+          String rankingOutOfText = i18n.get("ranked1v1.rankingOutOf", totalPlayers);
+          Platform.runLater(() -> rankingOutOfLabel.setText(rankingOutOfText));
+        })
         .exceptionally(throwable -> {
           logger.warn("Could not plot rating distribution", throwable);
           return null;
         });
+  }
+
+  private void updateOtherValues(PlayerInfoBean currentPlayer) {
+    leaderboardService.getEntryForPlayer(currentPlayer.getUsername()).thenAccept(leaderboardEntryBean -> {
+      rankingLabel.setText(i18n.get("ranked1v1.rankingFormat", leaderboardEntryBean.getRating()));
+      gamesPlayedLabel.setText(String.format("%d", leaderboardEntryBean.getGamesPlayed()));
+      winLossRationLabel.setText(i18n.get("percentage", leaderboardEntryBean.getWinLossRatio()));
+    });
   }
 
   private void updateRatingHint(int rating) {
@@ -258,7 +275,6 @@ public class Ranked1v1Controller {
           int maxRating = item.getMaxRating();
           XYChart.Data<String, Integer> data = new XYChart.Data<>(String.valueOf(maxRating), item.getPlayers());
           if (maxRating == RatingUtil.getRoundedLeaderboardRating(player)) {
-            data.setExtraValue("You");
             data.nodeProperty().addListener((observable, oldValue, newValue) -> {
               newValue.pseudoClassStateChanged(NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS, true);
             });

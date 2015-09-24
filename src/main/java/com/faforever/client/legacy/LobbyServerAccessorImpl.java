@@ -321,7 +321,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
       @Override
       protected List<LeaderboardEntryBean> call() throws Exception {
         updateTitle(i18n.get("readLadderTask.title"));
-
+        // TODO move this to leaderboard service
         return leaderboardParser.parseLadder();
       }
     });

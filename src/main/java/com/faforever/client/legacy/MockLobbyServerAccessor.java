@@ -92,6 +92,8 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
           playerInfo.setCountry("A1");
           playerInfo.setRatingMean(1500);
           playerInfo.setRatingDeviation(220);
+          playerInfo.setLadderRatingMean(1500);
+          playerInfo.setLadderRatingDeviation(220);
           onPlayerInfoListener.onPlayerInfo(playerInfo);
         }
 
@@ -105,12 +107,12 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
 
         for (OnGameInfoListener onGameInfoListener : onGameInfoListeners) {
-          onGameInfoListener.onGameInfo(createGameInfo(1, "Mock game 1 500 - 800", PUBLIC, "faf", "scmp_010", 3, 6, "Mock user"));
-          onGameInfoListener.onGameInfo(createGameInfo(2, "Mock game 2 500+", PUBLIC, "faf", "scmp_011", 3, 6, "Mock user"));
-          onGameInfoListener.onGameInfo(createGameInfo(3, "Mock game 3 +500", PUBLIC, "faf", "scmp_012", 3, 6, "Mock user"));
-          onGameInfoListener.onGameInfo(createGameInfo(4, "Mock game 4 <1000", PUBLIC, "faf", "scmp_013", 3, 6, "Mock user"));
-          onGameInfoListener.onGameInfo(createGameInfo(5, "Mock game 5 >1000", PUBLIC, "faf", "scmp_014", 3, 6, "Mock user"));
-          onGameInfoListener.onGameInfo(createGameInfo(6, "Mock game 6", PASSWORD, "faf", "scmp_015", 3, 6, "Mock user"));
+          onGameInfoListener.onGameInfo(createGameInfo(1, "Mock game 500 - 800", PUBLIC, "faf", "scmp_010", 3, 6, "Mock user"));
+          onGameInfoListener.onGameInfo(createGameInfo(2, "Mock game 500+", PUBLIC, "faf", "scmp_011", 3, 6, "Mock user"));
+          onGameInfoListener.onGameInfo(createGameInfo(3, "Mock game +500", PUBLIC, "faf", "scmp_012", 3, 6, "Mock user"));
+          onGameInfoListener.onGameInfo(createGameInfo(4, "Mock game <1000", PUBLIC, "faf", "scmp_013", 3, 6, "Mock user"));
+          onGameInfoListener.onGameInfo(createGameInfo(5, "Mock game >1000", PUBLIC, "faf", "scmp_014", 3, 6, "Mock user"));
+          onGameInfoListener.onGameInfo(createGameInfo(6, "Mock game ~600", PASSWORD, "faf", "scmp_015", 3, 6, "Mock user"));
           onGameInfoListener.onGameInfo(createGameInfo(7, "Mock game 7", PASSWORD, "faf", "scmp_016", 3, 6, "Mock user"));
         }
 

@@ -897,11 +897,14 @@
   -fx-min-width: 160;
   -fx-min-height: 160;
 }
-.ranked1v1-flow-pane > .tile > * {
+
+.ranked1v1-flow-pane * {
   -fx-spacing: 10;
+  -fx-hgap: 10;
+  -fx-vgap: 10;
 }
 
-.ranked1v1-flow-pane > .tile {
+.ranked1v1-flow-pane .tile {
   -fx-background-color: -fx-tile-background;
   -fx-border-width: 1;
   -fx-border-color: -fx-box-border;

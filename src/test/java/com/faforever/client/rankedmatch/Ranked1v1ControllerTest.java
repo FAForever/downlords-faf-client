@@ -4,6 +4,7 @@ import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.RatingDistribution;
 import com.faforever.client.player.PlayerService;
@@ -21,6 +22,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.springframework.core.env.Environment;
 
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
@@ -37,6 +39,7 @@ import static org.mockito.Mockito.when;
 
 public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
 
+  public static final String USERNAME = "junit";
   @Mock
   private Ranked1v1Controller instance;
   @Mock
@@ -62,6 +65,7 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
 
   private PlayerInfoBean currentPlayer;
   private ObservableList<Faction> factionList;
+  private LeaderboardEntryBean leaderboardEntryBean;
 
   @Before
   public void setUp() throws Exception {
@@ -74,7 +78,13 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     instance.i18n = i18n;
 
     factionList = FXCollections.observableArrayList();
-    currentPlayer = new PlayerInfoBean("junit");
+    currentPlayer = new PlayerInfoBean(USERNAME);
+    leaderboardEntryBean = new LeaderboardEntryBean();
+    leaderboardEntryBean.setRating(500);
+    leaderboardEntryBean.setWinLossRatio(12.23f);
+    leaderboardEntryBean.setRank(100);
+    leaderboardEntryBean.setGamesPlayed(412);
+    leaderboardEntryBean.setUsername(USERNAME);
 
     when(gameService.searching1v1Property()).thenReturn(searching1v1Property);
     when(preferencesService.getPreferences()).thenReturn(preferences);
@@ -89,6 +99,7 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     when(environment.getProperty("rating.top", int.class)).thenReturn(500);
     when(environment.getProperty("rating.beta", int.class)).thenReturn(10);
     when(leaderboardService.getRatingDistributions()).thenReturn(CompletableFuture.completedFuture(Collections.<RatingDistribution>emptyList()));
+    when(leaderboardService.getEntryForPlayer(USERNAME)).thenReturn(CompletableFuture.completedFuture(leaderboardEntryBean));
 
     instance.postConstruct();
   }
@@ -132,6 +143,8 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnPlayButtonClicked() throws Exception {
+    when(forgedAlliancePrefs.getPath()).thenReturn(Paths.get("."));
+
     instance.aeonButton.setSelected(true);
     instance.onFactionButtonClicked();
 
