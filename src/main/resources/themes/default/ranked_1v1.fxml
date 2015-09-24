@@ -117,7 +117,8 @@
                 <Label styleClass="h2" text="%ranked1v1.ranking"/>
                 <Label fx:id="rankingLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="80.0"
                        styleClass="ranked1v1-big-value" text="#0" GridPane.rowIndex="1"/>
-                <Label fx:id="rankingOutOfLabel" text="&lt;out of #&gt;" GridPane.rowIndex="2"/>
+                <Label fx:id="rankingOutOfLabel" text="&lt;out of #&gt;" GridPane.halignment="RIGHT"
+                       GridPane.rowIndex="2"/>
               </children>
             </GridPane>
             <GridPane prefWidth="250.0" styleClass="tile" GridPane.columnIndex="1" GridPane.rowIndex="1">
