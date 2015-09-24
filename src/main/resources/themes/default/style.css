@@ -691,6 +691,7 @@
 }
 
 /***************** Large Map Preview *****************/
+
 .map-preview-large {
   -fx-padding: 10px,5px,5px,5px;
 }
@@ -765,6 +766,7 @@
 
 .map-preview {
   -fx-effect: -fx-drop-shadow;
+  -fx-cursor: hand;
 }
 
 /***************** Window decoration *****************/
