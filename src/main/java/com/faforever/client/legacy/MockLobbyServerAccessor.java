@@ -45,6 +45,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final Timer timer;
+
   @Autowired
   UserService userService;
   @Autowired
@@ -53,6 +54,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   NotificationService notificationService;
   @Autowired
   I18n i18n;
+
   private Collection<OnGameTypeInfoListener> onModInfoMessageListeners;
   private OnPlayerInfoListener onPlayerInfoListener;
   private Collection<OnGameInfoListener> onGameInfoListeners;
@@ -88,6 +90,8 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
           playerInfo.setLogin(userService.getUsername());
           playerInfo.setClan("ABC");
           playerInfo.setCountry("A1");
+          playerInfo.setRatingMean(1500);
+          playerInfo.setRatingDeviation(220);
           onPlayerInfoListener.onPlayerInfo(playerInfo);
         }
 
@@ -250,7 +254,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public CompletableFuture<List<LeaderboardEntryBean>> requestLadderInfoInBackground() {
+  public CompletableFuture<List<LeaderboardEntryBean>> requestLeaderboardEntries() {
 
     return null;
   }
@@ -292,5 +296,9 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   @Override
   public void stopSearchingRanked() {
     logger.debug("Stopping searching 1v1 match");
+  }
+
+  @Override
+  public void expand1v1Search(float radius) {
   }
 }

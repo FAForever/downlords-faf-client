@@ -5,13 +5,15 @@ import javafx.collections.ObservableList;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 public class TaskServiceImpl implements TaskService {
 
   private final ObservableList<PrioritizedTask<?>> activeTasks;
+
   @Autowired
-  ThreadPoolExecutor threadPoolExecutor;
+  ScheduledThreadPoolExecutor threadPoolExecutor;
+
   private ObservableList<PrioritizedTask<?>> unmodifiableObservableList;
 
   public TaskServiceImpl() {

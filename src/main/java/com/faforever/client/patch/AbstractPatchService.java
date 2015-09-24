@@ -15,7 +15,6 @@ public class AbstractPatchService {
   @Autowired
   PreferencesService preferencesService;
 
-
   /**
    * Since it's possible that the user has changed or never specified the game path, this method needs to be called
    * every time before any work is done.

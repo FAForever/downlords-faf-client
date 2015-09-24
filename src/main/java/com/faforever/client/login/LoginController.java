@@ -17,14 +17,19 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+
+import java.lang.invoke.MethodHandles;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class LoginController {
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
   Pane loginFormPane;
@@ -52,9 +57,6 @@ public class LoginController {
 
   @Autowired
   I18n i18n;
-
-  @Autowired
-  Environment environment;
 
   @Autowired
   UserService userService;
@@ -121,6 +123,8 @@ public class LoginController {
   }
 
   private void onLoginFailed(Throwable e) {
+    logger.warn("Login failed", e);
+
     Dialog<Void> loginFailedDialog = new Dialog<>();
     loginFailedDialog.setTitle(i18n.get("login.failed.title"));
     loginFailedDialog.setContentText(i18n.get("login.failed.message"));

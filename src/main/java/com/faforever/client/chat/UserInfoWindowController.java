@@ -35,7 +35,6 @@ import java.util.concurrent.CompletableFuture;
 public class UserInfoWindowController {
 
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM");
-
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML

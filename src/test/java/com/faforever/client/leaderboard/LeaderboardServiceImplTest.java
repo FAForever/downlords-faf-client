@@ -34,11 +34,11 @@ public class LeaderboardServiceImplTest {
   @Test
   public void testGetLadderInfo() throws Exception {
     List<LeaderboardEntryBean> entries = Collections.emptyList();
-    when(lobbyServerAccessor.requestLadderInfoInBackground()).thenReturn(CompletableFuture.completedFuture(entries));
+    when(lobbyServerAccessor.requestLeaderboardEntries()).thenReturn(CompletableFuture.completedFuture(entries));
 
-    CompletableFuture<List<LeaderboardEntryBean>> future = instance.getLadderInfo();
+    CompletableFuture<List<LeaderboardEntryBean>> future = instance.getLeaderboardEntries();
 
-    verify(lobbyServerAccessor).requestLadderInfoInBackground();
+    verify(lobbyServerAccessor).requestLeaderboardEntries();
     assertThat(future, is(notNullValue()));
   }
 }

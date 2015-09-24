@@ -1,5 +1,6 @@
 package com.faforever.client.config;
 
+import com.faforever.client.game.SearchExpansionTask;
 import com.faforever.client.map.DownloadMapTask;
 import com.faforever.client.map.MapVaultParseTask;
 import com.faforever.client.mod.DownloadModTask;
@@ -85,6 +86,12 @@ public class TaskConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   DownloadMapTask downloadMapTask() {
     return new DownloadMapTask();
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  SearchExpansionTask searchExpansionTask() {
+    return new SearchExpansionTask();
   }
 
 }

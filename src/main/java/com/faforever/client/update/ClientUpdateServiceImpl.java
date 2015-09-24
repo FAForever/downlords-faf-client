@@ -109,6 +109,7 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
     taskService.submitTask(task)
         .thenAccept(this::install)
         .exceptionally(throwable -> {
+          logger.warn("Error while downloading client update", throwable);
           notificationService.addNotification(
               new PersistentNotification(i18n.get("clientUpdateDownloadFailed.notification"),
                   WARN,

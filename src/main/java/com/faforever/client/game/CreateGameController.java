@@ -359,7 +359,7 @@ public class CreateGameController {
         Strings.emptyToNull(passwordTextField.getText()),
         gameTypeListView.getSelectionModel().getSelectedItem().getName(),
         mapListView.getSelectionModel().getSelectedItem().getDisplayName(),
-        0,
+        null,
         simMods);
 
     gameService.hostGame(newGameInfo);

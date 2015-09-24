@@ -16,6 +16,7 @@ import javafx.collections.ObservableList;
 import net.dongliu.vcdiff.VcdiffDecoder;
 import net.dongliu.vcdiff.exception.VcdiffDecodeException;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,7 +106,7 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
   }
 
   protected void copyGameFilesToFafBinDirectory() throws IOException {
-    logger.info("Copying game files from FA to FAF folder, if necessary", gameType, targetVersion);
+    logger.info("Copying game files from FA to FAF folder");
 
     Path faBinDirectory = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("bin");
     try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(faBinDirectory)) {
@@ -319,19 +320,19 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
     }
   }
 
-  public void setSimMods(Set<String> simMods) {
+  public void setSimMods(@NotNull Set<String> simMods) {
     this.simMods = simMods;
   }
 
-  public void setModVersions(Map<String, Integer> modVersions) {
+  public void setModVersions(@NotNull Map<String, Integer> modVersions) {
     this.modVersions = modVersions;
   }
 
-  public void setGameType(String gameType) {
+  public void setGameType(@NotNull String gameType) {
     this.gameType = gameType;
   }
 
-  public void setTargetVersion(String targetVersion) {
+  public void setTargetVersion(@NotNull String targetVersion) {
     this.targetVersion = targetVersion;
   }
 }

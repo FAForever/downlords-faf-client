@@ -102,7 +102,7 @@ public class LeaderboardController {
       return;
     }
 
-    leaderboardService.getLadderInfo().thenAccept(leaderboardEntryBeans1 -> {
+    leaderboardService.getLeaderboardEntries().thenAccept(leaderboardEntryBeans1 -> {
       LeaderboardController.this.leaderboardEntryBeans = leaderboardEntryBeans1;
       filteredList = new FilteredList<>(observableArrayList(leaderboardEntryBeans1));
       ratingTable.setItems(filteredList);

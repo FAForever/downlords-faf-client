@@ -114,13 +114,25 @@
    */
   -fx-text-box-border: transparent;
 
+  /* Lighter than -fx-background and used to provide a small highlight when
+   * needed on top of -fx-background.
+   */
+  -fx-shadow-highlight-color: ladder(
+    -fx-background,
+    rgba(255,255,255,0.07) 0%,
+    rgba(255,255,255,0.07) 20%,
+    rgba(255,255,255,0.07) 70%,
+    rgba(255,255,255,0.7) 90%,
+    rgba(255,255,255,0.75) 100%
+  );
+
   /* The color to use as -fx-text-fill when painting text on top of
    * backgrounds filled with -fx-base, -fx-color, and -fx-body-color.
    */
   -fx-text-base-color: ladder(
-      -fx-color,
-      -fx-mid-text-color   30%,
-      -fx-light-text-color 40%
+    -fx-color,
+    -fx-mid-text-color   30%,
+    -fx-light-text-color 40%
   );
 
 
@@ -138,19 +150,19 @@
   -fx-selection-bar-non-focused: derive(-fx-accent, -50%);
 
   -fx-focused-text-base-color: ladder(
-      -fx-selection-bar,
-      -fx-dark-text-color 40%,
-      -fx-mid-text-color 50%,
-      -fx-light-text-color 60%
+    -fx-selection-bar,
+    -fx-dark-text-color 40%,
+    -fx-mid-text-color 50%,
+    -fx-light-text-color 60%
   );
 
   /* A little brighter than -fx-color and used to draw boxes around objects such
    * as progress bars, scroll bars, scroll panes, trees, tables, and lists.
    */
   -fx-box-border: ladder(
-      -fx-color,
-      derive(-fx-color,20%) 20%,
-      derive(-fx-color,40%) 30%
+    -fx-color,
+    derive(-fx-color,20%) 20%,
+    derive(-fx-color,40%) 30%
   );
 
   /* These are NOT from modena. */
@@ -162,21 +174,25 @@
 
 .scroll-bar > .increment-button > .increment-arrow,
 .scroll-bar > .decrement-button > .decrement-arrow {
-    -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,45%);
+  -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,45%);
 }
 .scroll-bar > .increment-button:hover > .increment-arrow,
 .scroll-bar > .decrement-button:hover > .decrement-arrow {
-    -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,50%);
+  -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,50%);
 }
 .scroll-bar > .increment-button:pressed > .increment-arrow,
 .scroll-bar > .decrement-button:pressed > .decrement-arrow {
-    -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,55%);
+  -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,55%);
 }
 
 /***************** Headings *****************/
 
 .h1 {
   -fx-font-size: 24px;
+}
+
+.h2 {
+  -fx-font-size: 20px;
 }
 
 /***************** Icons (FontAwesome) *****************/
@@ -191,16 +207,16 @@
 
 .chart-vertical-grid-lines,
 .chart-horizontal-grid-lines {
-    -fx-stroke: derive(-fx-background,10%);
-    -fx-stroke-dash-array: 0.25em, 0.25em;
+  -fx-stroke: derive(-fx-background,10%);
+  -fx-stroke-dash-array: 0.25em, 0.25em;
 }
 .chart-vertical-zero-line,
 .chart-horizontal-zero-line {
-    -fx-stroke: derive(-fx-text-background-color, 40%);
+  -fx-stroke: derive(-fx-text-background-color, 40%);
 }
 
 .axis {
-    -fx-font-size: 1.2em;
+  -fx-font-size: 1.2em;
 }
 
 /***************** Text field *****************/
@@ -240,8 +256,8 @@
 .color-picker.split-button > .color-picker-label,
 .combo-box-base,
 .combo-box-base:editable > .arrow-button {
-    -fx-background-color: -fx-body-color;
-    -fx-background-insets: 0;
+  -fx-background-color: -fx-body-color;
+  -fx-background-insets: 0;
 }
 .button:hover,
 .toggle-button:hover,
@@ -262,7 +278,7 @@
 .spinner .increment-arrow-button:hover,
 .spinner .decrement-arrow-button:hover,
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:hover {
-    -fx-color: -fx-hover-base;
+  -fx-color: -fx-hover-base;
 }
 .button:armed,
 .toggle-button:armed,
@@ -282,7 +298,7 @@
 .spinner .increment-arrow-button:pressed,
 .spinner .decrement-arrow-button:pressed,
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:pressed {
-    -fx-color: -fx-pressed-base;
+  -fx-color: -fx-pressed-base;
 }
 .button:focused,
 .toggle-button:focused,
@@ -293,9 +309,49 @@
 .color-picker.split-button:focused > .color-picker-label,
 .combo-box-base:focused,
 .slider:focused .thumb {
-    -fx-background-color: -fx-focus-color, -fx-inner-border, -fx-body-color, -fx-faint-focus-color, -fx-body-color;
-    -fx-background-insets: -0.2, 1, 2, -1.4, 2.6;
-    -fx-background-radius: 3, 2, 1, 4, 1;
+  -fx-background-color: -fx-accent, -fx-inner-border, -fx-body-color, -fx-faint-focus-color, -fx-body-color;
+  -fx-background-insets: -0.2, 1, 2, -1.4, 2.6;
+  -fx-background-radius: 3, 2, 1, 4, 1;
+}
+
+/***************** Toggle button *****************/
+
+.toggle-button:selected {
+  -fx-background-color:
+    -fx-accent,
+    linear-gradient(to bottom,
+      derive(-fx-color, -22%) 0%,
+      derive(-fx-color, -13%) 20%,
+      derive(-fx-color, -11%) 50%),
+    -fx-faint-focus-color,
+    linear-gradient(to bottom,
+      derive(-fx-color, -22%) 0%,
+      derive(-fx-color, -13%) 20%,
+      derive(-fx-color, -11%) 50%);
+  -fx-background-insets: -0.2, 1, -1.4, 2.6;
+  -fx-background-radius: 3, 2, 4, 0;
+}
+
+.toggle-button:selected:focused {
+  -fx-background-color:
+    -fx-focus-color,
+    linear-gradient(to bottom,
+      derive(-fx-color, -22%) 0%,
+      derive(-fx-color, -13%) 20%,
+      derive(-fx-color, -11%) 50%),
+    -fx-faint-focus-color,
+    linear-gradient(to bottom,
+      derive(-fx-color, -22%) 0%,
+      derive(-fx-color, -13%) 20%,
+      derive(-fx-color, -11%) 50%);
+  -fx-background-insets: -0.2, 1, -1.4, 2.6;
+  -fx-background-radius: 3, 2, 4, 0;
+}
+
+/***************** Progress indicator *****************/
+
+.determinate-indicator > .percentage {
+  -fx-fill: -fx-text-base-color;
 }
 
 /***************** Popup *****************/
@@ -443,13 +499,14 @@
 }
 
 .large-faction-button {
-  -fx-background-size: 48px, 48px;
+  -fx-background-size: 48, 48;
   -fx-background-position: center;
   -fx-background-repeat: no-repeat;
-  -fx-min-width: 48px;
-  -fx-max-width: 48px;
-  -fx-min-height: 48px;
-  -fx-max-height: 48px;
+  -fx-min-width: 60;
+  -fx-max-width: 60;
+  -fx-min-height: 60;
+  -fx-max-height: 60;
+  -fx-focus-traversable: false;
 }
 
 .aeon-button {
@@ -659,6 +716,7 @@
 .comment-card {
   -fx-background-color: -fx-control-inner-background-alt;
 }
+
 /***************** Game Tile *****************/
 
 .game-tile-root {
@@ -805,7 +863,7 @@
 }
 
 .settings .tab {
-  /* Since the text is rotated 90�, these values are as well (right is top, width is height) */
+  /* Since the text is rotated 90°, these values are as well (right is top, width is height) */
   -fx-pref-height: 20em;
   -fx-vpos: top;
 }
@@ -829,4 +887,37 @@
 
 .game-title-input {
   -fx-font-size: 2em;
+}
+
+/***************** Ranked 1v1 *****************/
+
+.ranked1v1-progress-indicator {
+  -fx-min-width: 160;
+  -fx-min-height: 160;
+}
+.ranked1v1-flow-pane > .tile > * {
+  -fx-spacing: 10;
+}
+
+.ranked1v1-flow-pane > .tile {
+  -fx-background-color: -fx-tile-background;
+  -fx-border-width: 1;
+  -fx-border-color: -fx-box-border;
+  -fx-padding: 10;
+  -fx-spacing: 10;
+  -fx-hgap: 10;
+  -fx-vgap: 10;
+}
+
+.ranked1v1-big-value {
+  -fx-font-size: 3em;
+}
+
+.ranked1v1-play-button {
+  -fx-font-size: 2em;
+  -fx-padding: 10 20;
+}
+
+.chart-bar:highlighted-bar {
+  -fx-bar-fill: -fx-accent;
 }

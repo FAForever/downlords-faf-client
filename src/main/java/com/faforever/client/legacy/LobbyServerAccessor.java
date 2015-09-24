@@ -51,7 +51,7 @@ public interface LobbyServerAccessor {
 
   void setOnLobbyConnectedListener(OnLobbyConnectedListener onLobbyConnectedListener);
 
-  CompletableFuture<List<LeaderboardEntryBean>> requestLadderInfoInBackground();
+  CompletableFuture<List<LeaderboardEntryBean>> requestLeaderboardEntries();
 
   void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener);
 
@@ -66,4 +66,6 @@ public interface LobbyServerAccessor {
   CompletableFuture<GameLaunchInfo> startSearchRanked1v1(Faction faction, int gamePort);
 
   void stopSearchingRanked();
+
+  void expand1v1Search(float radius);
 }

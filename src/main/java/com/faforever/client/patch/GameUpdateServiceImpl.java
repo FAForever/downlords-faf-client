@@ -1,6 +1,8 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.task.TaskService;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +26,7 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
   private UpdateGameFilesTask updateTask;
 
   @Override
-  public CompletableFuture<Void> updateInBackground(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUids) {
+  public CompletableFuture<Void> updateInBackground(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUids) {
     if (!checkDirectories()) {
       logger.warn("Aborted patching since directories aren't initialized properly");
       return CompletableFuture.completedFuture(null);

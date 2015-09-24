@@ -7,6 +7,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -21,7 +22,7 @@ public class MockLeaderboardService implements LeaderboardService {
   I18n i18n;
 
   @Override
-  public CompletableFuture<List<LeaderboardEntryBean>> getLadderInfo() {
+  public CompletableFuture<List<LeaderboardEntryBean>> getLeaderboardEntries() {
     return taskService.submitTask(new AbstractPrioritizedTask<List<LeaderboardEntryBean>>(HIGH) {
       @Override
       protected List<LeaderboardEntryBean> call() throws Exception {
@@ -42,6 +43,11 @@ public class MockLeaderboardService implements LeaderboardService {
         return list;
       }
     });
+  }
+
+  @Override
+  public CompletableFuture<List<RatingDistribution>> getRatingDistributions() {
+    return CompletableFuture.completedFuture(Collections.<RatingDistribution>emptyList());
   }
 
 

@@ -5,6 +5,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface LeaderboardService {
 
-  CompletableFuture<List<LeaderboardEntryBean>> getLadderInfo();
+  CompletableFuture<List<LeaderboardEntryBean>> getLeaderboardEntries();
 
+  CompletableFuture<List<RatingDistribution>> getRatingDistributions();
 }

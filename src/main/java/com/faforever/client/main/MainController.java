@@ -673,6 +673,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   void onPlayRanked1v1Selected(ActionEvent event) {
+    ranked1v1Controller.setUpIfNecessary();
     setContent(ranked1v1Controller.getRoot());
     setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }

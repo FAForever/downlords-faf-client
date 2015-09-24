@@ -1,6 +1,8 @@
 package com.faforever.client.preferences;
 
+import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.legacy.gson.FactionTypeAdapter;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -106,6 +108,7 @@ public class PreferencesService {
         .setPrettyPrinting()
         .registerTypeHierarchyAdapter(Property.class, new PropertyTypeAdapter())
         .registerTypeHierarchyAdapter(Path.class, new PathTypeAdapter())
+        .registerTypeAdapter(Faction.class, new FactionTypeAdapter())
         .create();
   }
 
@@ -306,6 +309,10 @@ public class PreferencesService {
 
   public Path getCacheDirectory() {
     return getFafDataDirectory().resolve(CACHE_SUB_FOLDER);
+  }
+
+  public Path getFafLogDirectory() {
+    return getFafDataDirectory().resolve("log");
   }
 
   public static void configureLogging() {

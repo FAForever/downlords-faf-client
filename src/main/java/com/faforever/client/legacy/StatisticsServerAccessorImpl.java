@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
@@ -43,6 +44,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   Environment environment;
   private CompletableFuture<PlayerStatistics> playerStatisticsCallback;
   private ServerWriter serverWriter;
+  private Task<Void> connectionTask;
 
   public StatisticsServerAccessorImpl() {
     gson = new GsonBuilder()
@@ -64,7 +66,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   }
 
   private void writeToServer(ClientMessage clientMessage) {
-    Task<Void> connectionTask = new Task<Void>() {
+    connectionTask = new Task<Void>() {
       Socket serverSocket;
 
       @Override
@@ -161,5 +163,12 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
         playerStatisticsCallback = null;
       }
     });
+  }
+
+  @PreDestroy
+  void disconnect() {
+    if (connectionTask != null) {
+      connectionTask.cancel(true);
+    }
   }
 }

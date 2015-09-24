@@ -29,6 +29,7 @@ public class Preferences {
   private final ListProperty<String> ignoredNotifications;
   private final IntegerProperty lastGameMinRating;
   private final IntegerProperty lastGameMaxRating;
+  private Ranked1v1Prefs ranked1v1;
 
   public Preferences() {
     chat = new ChatPrefs();
@@ -44,6 +45,7 @@ public class Preferences {
     lastMap = new SimpleStringProperty();
     lastGameMinRating = new SimpleIntegerProperty(800);
     lastGameMaxRating = new SimpleIntegerProperty(1300);
+    ranked1v1 = new Ranked1v1Prefs();
   }
 
   public WindowPrefs getMainWindow() {
@@ -160,5 +162,9 @@ public class Preferences {
 
   public IntegerProperty lastGameMaxRatingProperty() {
     return lastGameMaxRating;
+  }
+
+  public Ranked1v1Prefs getRanked1v1() {
+    return ranked1v1;
   }
 }

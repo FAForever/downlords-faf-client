@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -65,6 +66,7 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
   ClientUpdateService clientUpdateService;
 
   private LocalReplayInfo replayInfo;
+  private Task<Void> task;
 
   @PostConstruct
   void postConstruct() {
@@ -72,8 +74,13 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
     startInBackground();
   }
 
+  @PreDestroy
+  public void close() {
+    task.cancel(true);
+  }
+
   void startInBackground() {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
+    task = new Task<Void>() {
       @Override
       protected Void call() throws Exception {
         Integer localReplayServerPort = environment.getProperty("localReplayServer.port", Integer.class);
@@ -98,7 +105,8 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
         }
         return null;
       }
-    });
+    };
+    ConcurrentUtil.executeInBackground(task);
   }
 
   private void recordAndRelay(ServerSocket serverSocket, OutputStream fafReplayOutputStream) throws IOException {

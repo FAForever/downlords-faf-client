@@ -151,14 +151,14 @@ public class GamesController {
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
       createGameButton.setDisable(true);
       createGameButton.setTooltip(new Tooltip(i18n.get("missingGamePath.notification")));
-
-      preferencesService.addUpdateListener(preferences -> {
-        if (preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
-          createGameButton.setDisable(false);
-          createGameButton.setTooltip(null);
-        }
-      });
     }
+
+    preferencesService.addUpdateListener(preferences -> {
+      if (preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
+        createGameButton.setDisable(false);
+        createGameButton.setTooltip(null);
+      }
+    });
 
     ObservableList<GameInfoBean> gameInfoBeans = gameService.getGameInfoBeans();
 
@@ -249,7 +249,7 @@ public class GamesController {
 
   public void onJoinGame(GameInfoBean gameInfoBean, String password, double screenX, double screenY) {
     PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
-    int playerRating = RatingUtil.getRating(currentPlayer);
+    int playerRating = RatingUtil.getGlobalRating(currentPlayer);
 
     if ((playerRating < gameInfoBean.getMinRating() || playerRating > gameInfoBean.getMaxRating())) {
       showRatingOutOfBoundsConfirmation(playerRating, gameInfoBean, screenX, screenY);
@@ -277,11 +277,7 @@ public class GamesController {
       enterPasswordController.setGameInfoBean(gameInfoBean);
       passwordPopup.show(gamesRoot.getScene().getWindow(), screenX, screenY);
     } else {
-      gameService.joinGame(gameInfoBean, password)
-          .exceptionally(throwable -> {
-            logger.warn("Game could not be joined", throwable);
-            return null;
-          });
+      gameService.joinGame(gameInfoBean, password);
     }
   }
 

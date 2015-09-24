@@ -15,20 +15,40 @@ public final class RatingUtil {
     // Utility class
   }
 
-  public static int getRating(PlayerInfo playerInfo) {
-    return getRating(playerInfo.getRatingMean(), playerInfo.getRatingDeviation());
+  public static int getRoundedGlobalRating(PlayerInfoBean player) {
+    return getRoundedRating(getGlobalRating(player));
+  }
+
+  public static int getRoundedRating(int rating) {
+    return (rating + 50) / 100 * 100;
+  }
+
+  public static int getGlobalRating(PlayerInfoBean playerInfo) {
+    return getRating(playerInfo.getGlobalRatingMean(), playerInfo.getGlobalRatingDeviation());
   }
 
   private static int getRating(float ratingMean, float ratingDeviation) {
     return (int) (ratingMean - 3 * ratingDeviation);
   }
 
-  public static int getRating(RatingInfo ratingInfo) {
-    return getRating(ratingInfo.getMean(), ratingInfo.getDev());
+  public static int getRoundedLeaderboardRating(PlayerInfoBean player) {
+    return getRoundedRating(getLeaderboardRating(player));
   }
 
-  public static int getRating(PlayerInfoBean playerInfo) {
-    return getRating(playerInfo.getMean(), playerInfo.getDeviation());
+  public static int getLeaderboardRating(PlayerInfoBean playerInfoBean) {
+    return getRating(playerInfoBean.getLeaderboardRatingMean(), playerInfoBean.getLeaderboardRatingDeviation());
+  }
+
+  public static int getGlobalRating(PlayerInfo playerInfo) {
+    return getRating(playerInfo.getRatingMean(), playerInfo.getRatingDeviation());
+  }
+
+  public static int getLeaderboardRating(PlayerInfo playerInfo) {
+    return getRating(playerInfo.getLadderRatingMean(), playerInfo.getLadderRatingDeviation());
+  }
+
+  public static int getRating(RatingInfo ratingInfo) {
+    return getRating(ratingInfo.getMean(), ratingInfo.getDev());
   }
 
   public static String extractRating(String title) {

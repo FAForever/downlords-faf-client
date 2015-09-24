@@ -16,6 +16,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 public class DownloadUpdateTask extends AbstractPrioritizedTask<Path> {
 
@@ -38,13 +39,14 @@ public class DownloadUpdateTask extends AbstractPrioritizedTask<Path> {
     updateTitle(i18n.get("clientUpdateDownloadTask.title"));
     URL url = updateInfo.getUrl();
 
-    Path targetFile = preferencesService.getCacheDirectory().resolve("update").resolve(updateInfo.getFileName());
+    Path updateDirectory = preferencesService.getCacheDirectory().resolve("update");
+    Path targetFile = updateDirectory.resolve(updateInfo.getFileName());
     Files.createDirectories(targetFile.getParent());
 
     Path tempFile = Files.createTempFile(targetFile.getParent(), "update", null);
 
     try (InputStream inputStream = url.openStream();
-         OutputStream outputStream = Files.newOutputStream(targetFile)) {
+         OutputStream outputStream = Files.newOutputStream(tempFile)) {
       ResourceLocks.aquireDownloadLock();
       ByteCopier.from(inputStream)
           .to(outputStream)
@@ -52,7 +54,7 @@ public class DownloadUpdateTask extends AbstractPrioritizedTask<Path> {
           .listener(this::updateProgress)
           .copy();
 
-      Files.move(tempFile, targetFile);
+      Files.move(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
     } finally {
       ResourceLocks.freeDownloadLock();
       try {

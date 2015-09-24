@@ -21,6 +21,7 @@ import com.faforever.client.legacy.domain.InitSessionMessage;
 import com.faforever.client.legacy.domain.JoinGameMessage;
 import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.legacy.domain.Ranked1v1SearchExpansionMessage;
 import com.faforever.client.legacy.domain.ServerCommand;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
@@ -57,6 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
@@ -303,8 +305,9 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
+  @PreDestroy
   public void disconnect() {
-    fafConnectionTask.cancel();
+    fafConnectionTask.cancel(true);
   }
 
   @Override
@@ -313,7 +316,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public CompletableFuture<List<LeaderboardEntryBean>> requestLadderInfoInBackground() {
+  public CompletableFuture<List<LeaderboardEntryBean>> requestLeaderboardEntries() {
     return taskService.submitTask(new AbstractPrioritizedTask<List<LeaderboardEntryBean>>(MEDIUM) {
       @Override
       protected List<LeaderboardEntryBean> call() throws Exception {
@@ -359,6 +362,11 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   @Override
   public void stopSearchingRanked() {
     writeToServer(new StopSearchRanked1v1Message());
+  }
+
+  @Override
+  public void expand1v1Search(float radius) {
+    writeToServer(new Ranked1v1SearchExpansionMessage(radius));
   }
 
   public void onServerMessage(String message) throws IOException {
@@ -495,6 +503,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private void onGameLaunchInfo(GameLaunchInfo gameLaunchInfo) {
     onGameLaunchListeners.forEach(listener -> listener.onGameLaunchInfo(gameLaunchInfo));
     gameLaunchFuture.complete(gameLaunchInfo);
+    gameLaunchFuture = null;
   }
 
   private void onGameTypeInfo(GameTypeInfo gameTypeInfo) {

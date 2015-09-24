@@ -10,10 +10,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.env.Environment;
-import org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean;
 
+import javax.annotation.PreDestroy;
 import java.lang.invoke.MethodHandles;
 import java.util.Locale;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * This configuration has to be imported by other configurations and should only contain beans that are necessary to run
@@ -29,6 +31,9 @@ public class BaseConfig {
 
   @Autowired
   Environment environment;
+
+  @Autowired
+  ScheduledExecutorService scheduledExecutorService;
 
   @Bean
   Locale locale() {
@@ -48,10 +53,12 @@ public class BaseConfig {
   }
 
   @Bean
-  ThreadPoolExecutorFactoryBean threadPoolExecutorFactoryBean() {
-    ThreadPoolExecutorFactoryBean threadPoolExecutorFactoryBean = new ThreadPoolExecutorFactoryBean();
-    threadPoolExecutorFactoryBean.setCorePoolSize(Runtime.getRuntime().availableProcessors());
-    threadPoolExecutorFactoryBean.setDaemon(true);
-    return threadPoolExecutorFactoryBean;
+  ScheduledExecutorService scheduledExecutorService() {
+    return Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+  }
+
+  @PreDestroy
+  void shutdown(){
+    scheduledExecutorService.shutdown();
   }
 }

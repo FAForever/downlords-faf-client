@@ -26,8 +26,10 @@ public class PlayerInfoBean {
   private final BooleanProperty foe;
   private final SetProperty<String> moderatorInChannels;
   private final BooleanProperty chatOnly;
-  private final FloatProperty deviation;
-  private final FloatProperty mean;
+  private final FloatProperty globalRatingDeviation;
+  private final FloatProperty globalRatingMean;
+  private final FloatProperty leaderboardRatingDeviation;
+  private final FloatProperty leaderboardRatingMean;
 
   public PlayerInfoBean(PlayerInfo playerInfo) {
     this();
@@ -52,8 +54,10 @@ public class PlayerInfoBean {
     foe = new SimpleBooleanProperty();
     moderatorInChannels = new SimpleSetProperty<>();
     chatOnly = new SimpleBooleanProperty(true);
-    deviation = new SimpleFloatProperty();
-    mean = new SimpleFloatProperty();
+    globalRatingDeviation = new SimpleFloatProperty();
+    globalRatingMean = new SimpleFloatProperty();
+    leaderboardRatingDeviation = new SimpleFloatProperty();
+    leaderboardRatingMean = new SimpleFloatProperty();
   }
 
   public PlayerInfoBean(String username) {
@@ -189,37 +193,62 @@ public class PlayerInfoBean {
     return chatOnly.get();
   }
 
-  public float getDeviation() {
-    return deviation.get();
+  public float getGlobalRatingDeviation() {
+    return globalRatingDeviation.get();
   }
 
-  public void setDeviation(float deviation) {
-    this.deviation.set(deviation);
+  public void setGlobalRatingDeviation(float globalRatingDeviation) {
+    this.globalRatingDeviation.set(globalRatingDeviation);
   }
 
-  public FloatProperty deviationProperty() {
-    return deviation;
+  public FloatProperty globalRatingDeviationProperty() {
+    return globalRatingDeviation;
   }
 
-  public float getMean() {
-    return mean.get();
+  public float getGlobalRatingMean() {
+    return globalRatingMean.get();
   }
 
-  public void setMean(float mean) {
-    this.mean.set(mean);
+  public void setGlobalRatingMean(float globalRatingMean) {
+    this.globalRatingMean.set(globalRatingMean);
   }
 
-  public FloatProperty meanProperty() {
-    return mean;
+  public FloatProperty globalRatingMeanProperty() {
+    return globalRatingMean;
+  }
+
+  public float getLeaderboardRatingDeviation() {
+    return leaderboardRatingDeviation.get();
+  }
+
+  public void setLeaderboardRatingDeviation(float leaderboardRatingDeviation) {
+    this.leaderboardRatingDeviation.set(leaderboardRatingDeviation);
+  }
+
+  public FloatProperty leaderboardRatingDeviationProperty() {
+    return leaderboardRatingDeviation;
+  }
+
+  public float getLeaderboardRatingMean() {
+    return leaderboardRatingMean.get();
+  }
+
+  public void setLeaderboardRatingMean(float leaderboardRatingMean) {
+    this.leaderboardRatingMean.set(leaderboardRatingMean);
+  }
+
+  public FloatProperty leaderboardRatingMeanProperty() {
+    return leaderboardRatingMean;
   }
 
   public void updateFromPlayerInfo(PlayerInfo playerInfo) {
     setChatOnly(false);
-    setDeviation(playerInfo.getRatingDeviation());
     setClan(playerInfo.getClan());
     setCountry(playerInfo.getCountry());
-    setMean(playerInfo.getRatingMean());
-    setDeviation(playerInfo.getRatingDeviation());
+    setGlobalRatingMean(playerInfo.getRatingMean());
+    setGlobalRatingDeviation(playerInfo.getRatingDeviation());
+    setLeaderboardRatingDeviation(playerInfo.getLadderRatingDeviation());
+    setLeaderboardRatingMean(playerInfo.getLadderRatingMean());
     if (playerInfo.getAvatar() != null) {
       setAvatarUrl(playerInfo.getAvatar().getUrl());
       setAvatarTooltip(playerInfo.getAvatar().getTooltip());

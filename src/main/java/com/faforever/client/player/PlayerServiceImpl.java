@@ -17,8 +17,12 @@ import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, OnFoeListListener, OnFriendListListener {
+
+  private static final Lock CURRENT_PLAYER_LOCK = new ReentrantLock();
 
   private final ObservableMap<String, PlayerInfoBean> players;
   @Autowired
@@ -101,20 +105,25 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   @Override
   public PlayerInfoBean getCurrentPlayer() {
+    CURRENT_PLAYER_LOCK.lock();
+    if (currentPlayer == null) {
+      currentPlayer = registerAndGetPlayerForUsername(userService.getUsername());
+    }
+    CURRENT_PLAYER_LOCK.unlock();
     return currentPlayer;
   }
 
   @Override
   public void onPlayerInfo(PlayerInfo playerInfo) {
-    PlayerInfoBean playerInfoBean = registerAndGetPlayerForUsername(playerInfo.getLogin());
-    playerInfoBean.updateFromPlayerInfo(playerInfo);
-
+    PlayerInfoBean playerInfoBean;
     if (playerInfo.getLogin().equals(userService.getUsername())) {
-      this.currentPlayer = playerInfoBean;
+      playerInfoBean = getCurrentPlayer();
     } else {
+      playerInfoBean = registerAndGetPlayerForUsername(playerInfo.getLogin());
       playerInfoBean.setFriend(friendList.contains(playerInfo.getLogin()));
       playerInfoBean.setFoe(foeList.contains(playerInfo.getLogin()));
     }
+    playerInfoBean.updateFromPlayerInfo(playerInfo);
   }
 
   @Override
