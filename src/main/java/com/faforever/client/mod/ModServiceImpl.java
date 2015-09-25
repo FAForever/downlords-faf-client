@@ -126,6 +126,7 @@ public class ModServiceImpl implements ModService {
       return null;
     }
 
+    logger.debug("Reading mod {}", path);
     try (InputStream inputStream = Files.newInputStream(modInfoLua)) {
       Properties properties = new Properties();
       properties.load(inputStream);
