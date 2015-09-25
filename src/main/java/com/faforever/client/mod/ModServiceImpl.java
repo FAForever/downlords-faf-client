@@ -7,6 +7,7 @@ import com.faforever.client.util.ConcurrentUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,7 @@ public class ModServiceImpl implements ModService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private static final Pattern QUOTED_TEXT_PATTERN = Pattern.compile("\"(.+)\"");
+  private static final Pattern QUOTED_TEXT_PATTERN = Pattern.compile("\"(.*?)\"");
   private static final Pattern ACTIVE_MODS_PATTERN = Pattern.compile("active_mods\\s*=\\s*\\{.*?}", Pattern.DOTALL);
   private static final Pattern ACTIVE_MOD_PATTERN = Pattern.compile("\\['(.*?)']\\s*=\\s*(true|false)", Pattern.DOTALL);
 
@@ -164,6 +165,10 @@ public class ModServiceImpl implements ModService {
     }
 
     icon = stripQuotes(icon);
+
+    if (StringUtils.isEmpty(icon)) {
+      return null;
+    }
 
     if (icon.startsWith("/")) {
       icon = icon.substring(1);
