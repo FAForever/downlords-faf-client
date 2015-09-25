@@ -680,6 +680,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   void onMapsSelected(ActionEvent event) {
+    mapMapVaultController.setUpIfNecessary();
     setContent(mapMapVaultController.getRoot());
     setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
