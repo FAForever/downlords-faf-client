@@ -151,7 +151,7 @@ public class ModServiceImpl implements ModService {
     }
 
     Matcher matcher = QUOTED_TEXT_PATTERN.matcher(string);
-    if (matcher.matches()) {
+    if (matcher.find()) {
       return matcher.group(1);
     }
 
