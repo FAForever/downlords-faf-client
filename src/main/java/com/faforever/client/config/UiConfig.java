@@ -49,6 +49,7 @@ import com.faforever.client.main.MainController;
 import com.faforever.client.map.CommentCardController;
 import com.faforever.client.map.MapPreviewLargeController;
 import com.faforever.client.map.MapVaultController;
+import com.faforever.client.mod.ModTileController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.news.NewsListItemController;
@@ -182,6 +183,12 @@ public class UiConfig {
   @Bean
   MostActivePlayersController mostActivePlayersController() {
     return loadController("most_active_players.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  ModTileController modTileController() {
+    return loadController("mod_tile.fxml");
   }
 
   @Bean

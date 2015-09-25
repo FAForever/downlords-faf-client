@@ -686,6 +686,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   void onModsSelected(ActionEvent event) {
+    modVaultController.setUpIfNecessary();
     setContent(modVaultController.getRoot());
     setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }

@@ -20,8 +20,10 @@ import com.faforever.client.legacy.domain.HostGameMessage;
 import com.faforever.client.legacy.domain.InitSessionMessage;
 import com.faforever.client.legacy.domain.JoinGameMessage;
 import com.faforever.client.legacy.domain.LoginMessage;
+import com.faforever.client.legacy.domain.ModInfo;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.legacy.domain.Ranked1v1SearchExpansionMessage;
+import com.faforever.client.legacy.domain.RequestModsMessage;
 import com.faforever.client.legacy.domain.ServerCommand;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
@@ -52,6 +54,7 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.concurrent.Task;
+import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +71,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Consumer;
 
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.OFF;
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.ON;
@@ -112,6 +116,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private OnPlayerInfoListener onPlayerInfoListener;
   private OnFriendListListener onFriendListListener;
   private OnFoeListListener onFoeListListener;
+  private Consumer<ModInfo> onModInfoListener;
 
   public LobbyServerAccessorImpl() {
     onGameInfoListeners = new ArrayList<>();
@@ -177,7 +182,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
             if (isCancelled()) {
-              logger.debug("Login has been cancelled");
+              logger.debug("Connection to FAF server has been closed");
             } else {
               logger.warn("Lost connection to FAF server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
               if (onFafDisconnectedListener != null) {
@@ -192,15 +197,9 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
       @Override
       protected void cancelled() {
-        try {
-          if (fafServerSocket != null) {
-            serverWriter.close();
-            fafServerSocket.close();
-          }
-          logger.debug("Closed connection to FAF lobby server");
-        } catch (IOException e) {
-          logger.warn("Could not close fafServerSocket", e);
-        }
+        IOUtils.closeQuietly(serverWriter);
+        IOUtils.closeQuietly(fafServerSocket);
+        logger.debug("Closed connection to FAF lobby server");
       }
     };
     executeInBackground(fafConnectionTask);
@@ -369,6 +368,16 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     writeToServer(new Ranked1v1SearchExpansionMessage(radius));
   }
 
+  @Override
+  public void requestMods() {
+    writeToServer(new RequestModsMessage());
+  }
+
+  @Override
+  public void setOnModInfoListener(Consumer<ModInfo> listener) {
+    this.onModInfoListener = listener;
+  }
+
   public void onServerMessage(String message) throws IOException {
     ServerCommand serverCommand = ServerCommand.fromString(message);
     if (serverCommand != null) {
@@ -464,6 +473,12 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           SocialInfo socialInfo = gson.fromJson(jsonString, SocialInfo.class);
           dispatchSocialInfo(socialInfo);
           break;
+
+        case MOD_VAULT_INFO:
+          ModInfo modInfo = gson.fromJson(jsonString, ModInfo.class);
+          onModInfoListener.accept(modInfo);
+          break;
+
         default:
           logger.warn("Missing case for server object type: " + serverMessageType);
       }

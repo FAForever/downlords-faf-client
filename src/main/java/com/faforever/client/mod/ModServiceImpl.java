@@ -6,6 +6,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ConcurrentUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,14 +60,145 @@ public class ModServiceImpl implements ModService {
   private Path modsDirectory;
   private Map<Path, ModInfoBean> pathToMod;
   private ObservableList<ModInfoBean> installedMods;
+  private ObservableSet<ModInfoBean> availableMods;
+  private ObservableSet<ModInfoBean> readOnlyAvailableMods;
 
   public ModServiceImpl() {
     pathToMod = new HashMap<>();
     installedMods = FXCollections.observableArrayList();
+    availableMods = FXCollections.observableSet();
+    readOnlyAvailableMods = FXCollections.unmodifiableObservableSet(availableMods);
+  }
+
+  @Override
+  public ObservableSet<ModInfoBean> getAvailableMods() {
+    return readOnlyAvailableMods;
+  }
+
+  @Override
+  public void loadInstalledMods() {
+    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(modsDirectory)) {
+      for (Path path : directoryStream) {
+        addMod(path);
+      }
+    } catch (IOException e) {
+      logger.warn("Mods could not be read from: " + modsDirectory, e);
+    }
+  }
+
+  @Override
+  public ObservableList<ModInfoBean> getInstalledMods() throws IOException {
+    return installedMods;
+  }
+
+  @Override
+  public CompletableFuture<Void> downloadAndInstallMod(String modPath) {
+    DownloadModTask task = applicationContext.getBean(DownloadModTask.class);
+    task.setModPath(modPath);
+    return taskService.submitTask(task)
+        .thenAccept(aVoid -> loadInstalledMods());
+  }
+
+  @Override
+  public Set<String> getInstalledModUids() throws IOException {
+    return getInstalledMods().stream()
+        .map(ModInfoBean::getUid)
+        .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<String> getInstalledUiModsUids() throws IOException {
+    return getInstalledMods().stream()
+        .filter(ModInfoBean::getUiOnly)
+        .map(ModInfoBean::getUid)
+        .collect(Collectors.toSet());
+  }
+
+  @Override
+  public void enableSimMods(Set<String> simMods) throws IOException {
+    Map<String, Boolean> modStates = readModStates();
+
+    Set<String> installedUiMods = getInstalledUiModsUids();
+
+    for (Map.Entry<String, Boolean> entry : modStates.entrySet()) {
+      String uid = entry.getKey();
+
+      if (!installedUiMods.contains(uid)) {
+        // Only disable it if it's a sim mod; because it has not been selected
+        entry.setValue(false);
+      }
+    }
+    for (String simModUid : simMods) {
+      modStates.put(simModUid, true);
+    }
+
+    writeModStates(modStates);
+  }
+
+  @Override
+  public void requestMods() {
+    lobbyServerAccessor.requestMods();
+  }
+
+  private Map<String, Boolean> readModStates() throws IOException {
+    Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
+    Map<String, Boolean> mods = new HashMap<>();
+
+    String preferencesContent = new String(Files.readAllBytes(preferencesFile), US_ASCII);
+    Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
+    if (matcher.find()) {
+      Matcher activeModMatcher = ACTIVE_MOD_PATTERN.matcher(matcher.group(0));
+      while (activeModMatcher.find()) {
+        String modUid = activeModMatcher.group(1);
+        boolean enabled = Boolean.parseBoolean(activeModMatcher.group(2));
+
+        mods.put(modUid, enabled);
+      }
+    }
+
+    return mods;
+  }
+
+  private void writeModStates(Map<String, Boolean> modStates) throws IOException {
+    Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
+    String preferencesContent = new String(Files.readAllBytes(preferencesFile), US_ASCII);
+
+    String currentActiveModsContent = null;
+    Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
+    if (matcher.find()) {
+      currentActiveModsContent = matcher.group(0);
+    }
+
+    StringBuilder newActiveModsContentBuilder = new StringBuilder("active_mods = {");
+
+    Iterator<Map.Entry<String, Boolean>> iterator = modStates.entrySet().iterator();
+    while (iterator.hasNext()) {
+      Map.Entry<String, Boolean> entry = iterator.next();
+      if (!entry.getValue()) {
+        continue;
+      }
+
+      newActiveModsContentBuilder.append("\n    ['");
+      newActiveModsContentBuilder.append(entry.getKey());
+      newActiveModsContentBuilder.append("'] = true");
+      if (iterator.hasNext()) {
+        newActiveModsContentBuilder.append(",");
+      }
+    }
+    newActiveModsContentBuilder.append("\n}");
+
+    if (currentActiveModsContent != null) {
+      preferencesContent = preferencesContent.replace(currentActiveModsContent, newActiveModsContentBuilder);
+    } else {
+      preferencesContent += newActiveModsContentBuilder.toString();
+    }
+
+    Files.write(preferencesFile, preferencesContent.getBytes(US_ASCII));
   }
 
   @PostConstruct
   void postConstruct() throws IOException, InterruptedException {
+    lobbyServerAccessor.setOnModInfoListener(modInfo -> availableMods.add(ModInfoBean.fromModInfo(modInfo)));
     modsDirectory = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
     startDirectoryWatcher(modsDirectory);
     loadInstalledMods();
@@ -90,17 +222,6 @@ public class ModServiceImpl implements ModService {
         }
       }
     });
-  }
-
-  @Override
-  public void loadInstalledMods() {
-    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(modsDirectory)) {
-      for (Path path : directoryStream) {
-        addMod(path);
-      }
-    } catch (IOException e) {
-      logger.warn("Mods could not be read from: " + modsDirectory, e);
-    }
   }
 
   private void removeMod(Path path) throws IOException {
@@ -173,110 +294,5 @@ public class ModServiceImpl implements ModService {
     iconPath = iconPath.subpath(2, iconPath.getNameCount());
 
     return path.resolve(iconPath);
-  }
-
-  @Override
-  public ObservableList<ModInfoBean> getInstalledMods() throws IOException {
-    return installedMods;
-  }
-
-  @Override
-  public CompletableFuture<Void> downloadAndInstallMod(String modPath) {
-    DownloadModTask task = applicationContext.getBean(DownloadModTask.class);
-    task.setModPath(modPath);
-    return taskService.submitTask(task)
-        .thenAccept(aVoid -> loadInstalledMods());
-  }
-
-  @Override
-  public Set<String> getInstalledModUids() throws IOException {
-    return getInstalledMods().stream()
-        .map(ModInfoBean::getUid)
-        .collect(Collectors.toSet());
-  }
-
-  @Override
-  public Set<String> getInstalledUiModsUids() throws IOException {
-    return getInstalledMods().stream()
-        .filter(ModInfoBean::getUiOnly)
-        .map(ModInfoBean::getUid)
-        .collect(Collectors.toSet());
-  }
-
-  @Override
-  public void enableSimMods(Set<String> simMods) throws IOException {
-    Map<String, Boolean> modStates = readModStates();
-
-    Set<String> installedUiMods = getInstalledUiModsUids();
-
-    for (Map.Entry<String, Boolean> entry : modStates.entrySet()) {
-      String uid = entry.getKey();
-
-      if (!installedUiMods.contains(uid)) {
-        // Only disable it if it's a sim mod; because it has not been selected
-        entry.setValue(false);
-      }
-    }
-    for (String simModUid : simMods) {
-      modStates.put(simModUid, true);
-    }
-
-    writeModStates(modStates);
-  }
-
-  private Map<String, Boolean> readModStates() throws IOException {
-    Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
-    Map<String, Boolean> mods = new HashMap<>();
-
-    String preferencesContent = new String(Files.readAllBytes(preferencesFile), US_ASCII);
-    Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
-    if (matcher.find()) {
-      Matcher activeModMatcher = ACTIVE_MOD_PATTERN.matcher(matcher.group(0));
-      while (activeModMatcher.find()) {
-        String modUid = activeModMatcher.group(1);
-        boolean enabled = Boolean.parseBoolean(activeModMatcher.group(2));
-
-        mods.put(modUid, enabled);
-      }
-    }
-
-    return mods;
-  }
-
-  private void writeModStates(Map<String, Boolean> modStates) throws IOException {
-    Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
-    String preferencesContent = new String(Files.readAllBytes(preferencesFile), US_ASCII);
-
-    String currentActiveModsContent = null;
-    Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
-    if (matcher.find()) {
-      currentActiveModsContent = matcher.group(0);
-    }
-
-    StringBuilder newActiveModsContentBuilder = new StringBuilder("active_mods = {");
-
-    Iterator<Map.Entry<String, Boolean>> iterator = modStates.entrySet().iterator();
-    while (iterator.hasNext()) {
-      Map.Entry<String, Boolean> entry = iterator.next();
-      if (!entry.getValue()) {
-        continue;
-      }
-
-      newActiveModsContentBuilder.append("\n    ['");
-      newActiveModsContentBuilder.append(entry.getKey());
-      newActiveModsContentBuilder.append("'] = true");
-      if (iterator.hasNext()) {
-        newActiveModsContentBuilder.append(",");
-      }
-    }
-    newActiveModsContentBuilder.append("\n}");
-
-    if (currentActiveModsContent != null) {
-      preferencesContent = preferencesContent.replace(currentActiveModsContent, newActiveModsContentBuilder);
-    } else {
-      preferencesContent += newActiveModsContentBuilder.toString();
-    }
-
-    Files.write(preferencesFile, preferencesContent.getBytes(US_ASCII));
   }
 }

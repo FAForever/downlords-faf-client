@@ -16,6 +16,8 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 
+import static com.faforever.client.util.TimeUtil.fromPythonTime;
+
 public class ReplayInfoBean {
 
   private final IntegerProperty id;
@@ -55,10 +57,6 @@ public class ReplayInfoBean {
     if (replayInfo.getTeams() != null) {
       teams.putAll(replayInfo.getTeams());
     }
-  }
-
-  private static Instant fromPythonTime(double time) {
-    return Instant.ofEpochMilli((long) (time * 1000));
   }
 
   public ReplayInfoBean(ServerReplayInfo replayInfo) {

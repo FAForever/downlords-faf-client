@@ -11,6 +11,7 @@ import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeInfo;
+import com.faforever.client.legacy.domain.ModInfo;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.notification.Action;
@@ -36,6 +37,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Consumer;
 
 import static com.faforever.client.legacy.domain.GameAccess.PASSWORD;
 import static com.faforever.client.legacy.domain.GameAccess.PUBLIC;
@@ -302,5 +304,15 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
   @Override
   public void expand1v1Search(float radius) {
+  }
+
+  @Override
+  public void requestMods() {
+
+  }
+
+  @Override
+  public void setOnModInfoListener(Consumer<ModInfo> listener) {
+
   }
 }
