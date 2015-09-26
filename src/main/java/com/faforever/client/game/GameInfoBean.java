@@ -154,7 +154,7 @@ public class GameInfoBean {
       String[] split = string.replace("k", "").split("\\.");
       rating = Integer.parseInt(split[0]) * 1000;
       if (split.length == 2) {
-        rating *= Integer.parseInt(split[1]) * 100;
+        rating += Integer.parseInt(split[1]) * 100;
       }
       return rating;
     }

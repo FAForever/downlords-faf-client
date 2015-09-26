@@ -8,6 +8,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.concurrent.Task;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +42,7 @@ public class ModServiceImpl implements ModService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private static final Pattern QUOTED_TEXT_PATTERN = Pattern.compile("\"(.+)\"");
+  private static final Pattern QUOTED_TEXT_PATTERN = Pattern.compile("\"(.*?)\"");
   private static final Pattern ACTIVE_MODS_PATTERN = Pattern.compile("active_mods\\s*=\\s*\\{.*?}", Pattern.DOTALL);
   private static final Pattern ACTIVE_MOD_PATTERN = Pattern.compile("\\['(.*?)']\\s*=\\s*(true|false)", Pattern.DOTALL);
 
@@ -196,38 +197,6 @@ public class ModServiceImpl implements ModService {
     Files.write(preferencesFile, preferencesContent.getBytes(US_ASCII));
   }
 
-  @PostConstruct
-  void postConstruct() throws IOException, InterruptedException {
-    lobbyServerAccessor.setOnModInfoListener(modInfo -> availableMods.add(ModInfoBean.fromModInfo(modInfo)));
-    modsDirectory = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
-    startDirectoryWatcher(modsDirectory);
-    loadInstalledMods();
-  }
-
-  private void startDirectoryWatcher(Path modsDirectory) throws IOException, InterruptedException {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        WatchService watcher = modsDirectory.getFileSystem().newWatchService();
-        modsDirectory.register(watcher, ENTRY_DELETE);
-
-        while (true) {
-          WatchKey key = watcher.take();
-          for (WatchEvent<?> event : key.pollEvents()) {
-            if (event.kind() == ENTRY_DELETE) {
-              removeMod(modsDirectory.resolve((Path) event.context()));
-            }
-          }
-          key.reset();
-        }
-      }
-    });
-  }
-
-  private void removeMod(Path path) throws IOException {
-    installedMods.remove(pathToMod.remove(path));
-  }
-
   private void addMod(Path path) throws IOException {
     ModInfoBean modInfoBean = extractModInfo(path);
     if (modInfoBean == null) {
@@ -270,7 +239,7 @@ public class ModServiceImpl implements ModService {
     }
 
     Matcher matcher = QUOTED_TEXT_PATTERN.matcher(string);
-    if (matcher.matches()) {
+    if (matcher.find()) {
       return matcher.group(1);
     }
 
@@ -285,6 +254,10 @@ public class ModServiceImpl implements ModService {
 
     icon = stripQuotes(icon);
 
+    if (StringUtils.isEmpty(icon)) {
+      return null;
+    }
+
     if (icon.startsWith("/")) {
       icon = icon.substring(1);
     }
@@ -294,5 +267,37 @@ public class ModServiceImpl implements ModService {
     iconPath = iconPath.subpath(2, iconPath.getNameCount());
 
     return path.resolve(iconPath);
+  }
+
+  @PostConstruct
+  void postConstruct() throws IOException, InterruptedException {
+    lobbyServerAccessor.setOnModInfoListener(modInfo -> availableMods.add(ModInfoBean.fromModInfo(modInfo)));
+    modsDirectory = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
+    startDirectoryWatcher(modsDirectory);
+    loadInstalledMods();
+  }
+
+  private void startDirectoryWatcher(Path modsDirectory) throws IOException, InterruptedException {
+    ConcurrentUtil.executeInBackground(new Task<Void>() {
+      @Override
+      protected Void call() throws Exception {
+        WatchService watcher = modsDirectory.getFileSystem().newWatchService();
+        modsDirectory.register(watcher, ENTRY_DELETE);
+
+        while (true) {
+          WatchKey key = watcher.take();
+          for (WatchEvent<?> event : key.pollEvents()) {
+            if (event.kind() == ENTRY_DELETE) {
+              removeMod(modsDirectory.resolve((Path) event.context()));
+            }
+          }
+          key.reset();
+        }
+      }
+    });
+  }
+
+  private void removeMod(Path path) throws IOException {
+    installedMods.remove(pathToMod.remove(path));
   }
 }

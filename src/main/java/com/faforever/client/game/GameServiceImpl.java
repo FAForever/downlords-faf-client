@@ -98,6 +98,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   private Process process;
   private BooleanProperty searching1v1;
+  private ScheduledFuture<?> searchExpansionFuture;
 
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
@@ -249,7 +250,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
     searching1v1.set(true);
 
-    ScheduledFuture<?> searchExpansionFuture = scheduleSearchExpansionTask();
+    searchExpansionFuture = scheduleSearchExpansionTask();
 
     return updateGameIfNecessary(GameType.LADDER_1V1.getString(), null, emptyMap(), emptySet())
         .thenRun(() -> lobbyServerAccessor.startSearchRanked1v1(faction, preferencesService.getPreferences().getForgedAlliance().getPort())
@@ -281,6 +282,9 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   @Override
   public void stopSearchRanked1v1() {
+    if (searchExpansionFuture != null) {
+      searchExpansionFuture.cancel(true);
+    }
     if (searching1v1.get()) {
       lobbyServerAccessor.stopSearchingRanked();
       searching1v1.set(false);
