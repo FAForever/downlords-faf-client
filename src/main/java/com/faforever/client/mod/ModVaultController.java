@@ -19,14 +19,14 @@ import java.util.List;
 
 public class ModVaultController {
 
+  private static final int TOP_ELEMENT_COUNT = 7;
+
   @FXML
   FlowPane recommendedModsPane;
   @FXML
   FlowPane newestModsPane;
   @FXML
   FlowPane popularModsPane;
-  @FXML
-  FlowPane highestRatedModsPane;
   @FXML
   Node modVaultRoot;
 
@@ -63,7 +63,7 @@ public class ModVaultController {
 
   private void populateMods(List<ModInfoBean> modInfoBeans, Comparator<? super ModInfoBean> comparator, FlowPane popularModsPane) {
     ObservableList<Node> children = popularModsPane.getChildren();
-    List<ModInfoBean> mods = getTopFiveElements(modInfoBeans, comparator);
+    List<ModInfoBean> mods = getTopElements(modInfoBeans, comparator);
     Platform.runLater(() -> {
       children.clear();
       for (ModInfoBean mod : mods) {
@@ -74,12 +74,12 @@ public class ModVaultController {
     });
   }
 
-  private List<ModInfoBean> getTopFiveElements(List<ModInfoBean> modInfoBeans, Comparator<? super ModInfoBean> comparator) {
-    Collections.sort(modInfoBeans, comparator);
+  private List<ModInfoBean> getTopElements(List<ModInfoBean> modInfoBeans, Comparator<? super ModInfoBean> comparator) {
+    Collections.sort(modInfoBeans, comparator.reversed());
     List<ModInfoBean> newestMods = new ArrayList<>();
     for (ModInfoBean modInfoBean : modInfoBeans) {
       newestMods.add(modInfoBean);
-      if (newestMods.size() == 5) {
+      if (newestMods.size() == TOP_ELEMENT_COUNT) {
         return newestMods;
       }
     }

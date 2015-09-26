@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.VBox?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="modVaultRoot" xmlns="http://javafx.com/javafx/8.0.40"
-      fx:controller="com.faforever.client.mod.ModVaultController">
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="modVaultRoot" spacing="5.0" styleClass="mod-vault"
+      xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.mod.ModVaultController">
    <children>
       <Label styleClass="h1" text="%modVault.recommendedMods"/>
-      <FlowPane fx:id="recommendedModsPane"/>
+      <FlowPane fx:id="recommendedModsPane" hgap="10.0" vgap="10.0"/>
       <Label styleClass="h1" text="%modVault.newestMods"/>
-      <FlowPane fx:id="newestModsPane"/>
+      <FlowPane fx:id="newestModsPane" hgap="10.0" vgap="10.0"/>
       <Label styleClass="h1" text="%modVault.popularMods"/>
-      <FlowPane fx:id="popularModsPane"/>
-      <Label styleClass="h1" text="%modVault.highestRatedMods"/>
-      <FlowPane fx:id="highestRatedModsPane"/>
+      <FlowPane fx:id="popularModsPane" hgap="10.0" vgap="10.0"/>
    </children>
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+   </padding>
 </VBox>

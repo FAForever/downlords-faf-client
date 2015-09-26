@@ -5,12 +5,10 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import org.controlsfx.control.Rating?>
-<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modTileRoot" maxHeight="-Infinity" maxWidth="-Infinity"
-          minHeight="-Infinity" minWidth="-Infinity" styleClass="tile" xmlns="http://javafx.com/javafx/8.0.40"
-          fx:controller="com.faforever.client.mod.ModTileController">
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modTileRoot" prefWidth="200.0" styleClass="tile"
+          xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.mod.ModTileController">
   <columnConstraints>
-    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
   </columnConstraints>
   <rowConstraints>
@@ -20,14 +18,19 @@
     <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
   </rowConstraints>
   <children>
-    <ImageView fitHeight="128.0" fitWidth="128.0" pickOnBounds="true" preserveRatio="true" GridPane.columnSpan="2"/>
-    <Label fx:id="nameLabel" text="Label" GridPane.rowIndex="1"/>
-    <Label fx:id="authorLabel" text="Label" GridPane.rowIndex="2"/>
-    <Label fx:id="likesLabel" text="1" GridPane.columnIndex="1" GridPane.rowIndex="3">
+    <ImageView fx:id="modImageView" fitHeight="128.0" fitWidth="128.0" pickOnBounds="true" preserveRatio="true"
+               GridPane.columnSpan="2" GridPane.halignment="CENTER"/>
+    <Label fx:id="nameLabel" text="Label" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
+    <Label fx:id="authorLabel" text="Label" GridPane.columnSpan="2147483647" GridPane.rowIndex="2"/>
+    <Label fx:id="commentsLabel" text="1" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
       <graphic>
-        <Label text="&#xf087;"/>
+        <Label styleClass="fontawesome" text=""/>
       </graphic>
     </Label>
-    <Rating GridPane.rowIndex="3"/>
+    <Label fx:id="likesLabel" text="1" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
+      <graphic>
+        <Label styleClass="fontawesome" text=""/>
+      </graphic>
+    </Label>
   </children>
 </GridPane>

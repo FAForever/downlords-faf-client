@@ -3,12 +3,16 @@ package com.faforever.client.mod;
 import com.faforever.client.legacy.domain.ModInfo;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 import java.nio.file.Path;
 import java.time.Instant;
@@ -27,6 +31,8 @@ public class ModInfoBean {
   private final BooleanProperty selectable;
   private final BooleanProperty uiOnly;
   private final StringProperty version;
+  private final StringProperty thumbnailUrl;
+  private final ListProperty<String> comments;
   private final BooleanProperty selected;
   private final IntegerProperty likes;
   public static final Comparator<? super ModInfoBean> LIKES_COMPARATOR = (o1, o2) -> Integer.compare(o1.getLikes(), o2.getLikes());
@@ -50,6 +56,8 @@ public class ModInfoBean {
     played = new SimpleIntegerProperty();
     publishDate = new SimpleObjectProperty<>();
     downloads = new SimpleIntegerProperty();
+    thumbnailUrl = new SimpleStringProperty();
+    comments = new SimpleListProperty<>(FXCollections.observableArrayList());
   }
 
   public boolean getSelected() {
@@ -208,6 +216,22 @@ public class ModInfoBean {
     return downloads;
   }
 
+  public String getThumbnailUrl() {
+    return thumbnailUrl.get();
+  }
+
+  public void setThumbnailUrl(String thumbnailUrl) {
+    this.thumbnailUrl.set(thumbnailUrl);
+  }
+
+  public StringProperty thumbnailUrlProperty() {
+    return thumbnailUrl;
+  }
+
+  public ListProperty<String> commentsProperty() {
+    return comments;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(uid.get());
@@ -237,6 +261,16 @@ public class ModInfoBean {
     modInfoBean.setDescription(modInfo.getDescription());
     modInfoBean.setUid(modInfo.getUid());
     modInfoBean.setDownloads(modInfo.getDownloads());
+    modInfoBean.setThumbnailUrl(modInfo.getThumbnail());
+    modInfoBean.getComments().setAll(modInfo.getComments());
     return modInfoBean;
+  }
+
+  public ObservableList<String> getComments() {
+    return comments.get();
+  }
+
+  public void setComments(ObservableList<String> comments) {
+    this.comments.set(comments);
   }
 }
