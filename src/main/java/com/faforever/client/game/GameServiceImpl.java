@@ -248,11 +248,9 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   //FIXME check this, I think we should return null on not finding it
   @Override
   public GameInfoBean getByUid(int uid) {
-    GameInfoBean gameInfoBean = null;
-    try {
-      gameInfoBean = uidToGameInfoBean.get(uid);
-    }catch(NullPointerException e){
-      logger.error("Can't find {} in gameInfoBean map",uid);
+    GameInfoBean gameInfoBean = uidToGameInfoBean.get(uid);
+    if (gameInfoBean == null) {
+      logger.warn("Can't find {} in gameInfoBean map", uid);
     }
     return gameInfoBean;
   }

@@ -22,8 +22,8 @@ public class ColorGeneratorUtil {
   private static float randFloat(float min, float max) {
     if (Math.random() < 0.5) {
       return (float) (((1 - Math.random()) * (max - min)) + min);
-    } else {
-      return (float) ((Math.random() * (max - min)) + min);
     }
+
+    return (float) ((Math.random() * (max - min)) + min);
   }
 }

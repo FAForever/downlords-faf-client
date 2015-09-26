@@ -18,6 +18,7 @@ import org.pircbotx.Channel;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
+import org.pircbotx.UserChannelDao;
 import org.pircbotx.UserLevel;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.exception.IrcException;
@@ -158,13 +159,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     defaultChannelName = environment.getProperty("irc.defaultChannel");
   }
 
-  private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
-    if (!eventListeners.containsKey(eventClass)) {
-      eventListeners.put(eventClass, new ArrayList<>());
-    }
-    eventListeners.get(eventClass).add(listener);
-  }
-
   private Map<String, ChatUser> chatUsers(ImmutableSortedSet<User> users) {
     Map<String, ChatUser> chatUsers = new HashMap<>();
     for (User user : users) {
@@ -182,6 +176,70 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     } catch (IllegalAccessException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void onEvent(Event event) throws Exception {
+    if (!eventListeners.containsKey(event.getClass())) {
+      return;
+    }
+
+    for (ChatEventListener listener : eventListeners.get(event.getClass())) {
+      listener.onEvent(event);
+    }
+  }
+
+  @Override
+  public void onConnected() {
+    Callback<String> callback = new Callback<String>() {
+      @Override
+      public void success(String message) {
+        pircBotX.sendIRC().joinChannel(defaultChannelName);
+        ircConnectedLatch.countDown();
+      }
+
+      @Override
+      public void error(Throwable e) {
+        throw new RuntimeException(e);
+      }
+    };
+
+    sendMessageInBackground("NICKSERV",
+        format("REGISTER %s %s", md5Hex(userService.getPassword()), userService.getEmail()),
+        new Callback<String>() {
+          @Override
+          public void success(String result) {
+            sendMessageInBackground("NICKSERV", "IDENTIFY " + md5Hex(userService.getPassword()), callback);
+          }
+
+          @Override
+          public void error(Throwable e) {
+            callback.error(e);
+          }
+        }
+    );
+  }
+
+  @Override
+  public void onDisconnected(Exception e) {
+    synchronized (chatUserLists) {
+      chatUserLists.values().forEach(ObservableMap::clear);
+    }
+  }
+
+  @Override
+  public void onModeratorSet(String channelName, String username) {
+    ChatUser chatUser = getChatUsersForChannel(channelName).get(username);
+    if (chatUser == null) {
+      return;
+    }
+    chatUser.getModeratorInChannels().add(channelName);
+  }
+
+  @Override
+  public Collection<Color> getAssignedColors() {
+    return assignedColors;
   }
 
   @Override
@@ -203,6 +261,13 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
           )
       );
     });
+  }
+
+  private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
+    if (!eventListeners.containsKey(eventClass)) {
+      eventListeners.put(eventClass, new ArrayList<>());
+    }
+    eventListeners.get(eventClass).add(listener);
   }
 
   @Override
@@ -258,7 +323,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   public void addOnModeratorSetListener(OnModeratorSetListener listener) {
     addEventListener(OpEvent.class, event -> listener.onModeratorSet(event.getChannel().getName(), event.getRecipient().getNick()));
   }
-
 
   @Override
   public void addOnChatUserQuitListener(final OnChatUserQuitListener listener) {
@@ -338,6 +402,17 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
+  public ChatUser getChatUser(String username) {
+    for (Map.Entry<String, ObservableMap<String, ChatUser>> entry : chatUserLists.entrySet()) {
+      ObservableMap<String, ChatUser> channel = entry.getValue();
+      if (channel.containsKey(username)) {
+        return channel.get(username);
+      }
+    }
+    return null;
+  }
+
+  @Override
   public void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener) {
     ObservableMap<String, ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
     synchronized (chatUsersForChannel) {
@@ -389,97 +464,24 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public void onEvent(Event event) throws Exception {
-    if (!eventListeners.containsKey(event.getClass())) {
-      return;
-    }
-
-    for (ChatEventListener listener : eventListeners.get(event.getClass())) {
-      listener.onEvent(event);
-    }
-  }
-
-  @Override
-  public void onConnected() {
-    Callback<String> callback = new Callback<String>() {
-      @Override
-      public void success(String message) {
-        pircBotX.sendIRC().joinChannel(defaultChannelName);
-        ircConnectedLatch.countDown();
-      }
-
-      @Override
-      public void error(Throwable e) {
-        throw new RuntimeException(e);
-      }
-    };
-
-    sendMessageInBackground("NICKSERV",
-        format("REGISTER %s %s", md5Hex(userService.getPassword()), userService.getEmail()),
-        new Callback<String>() {
-          @Override
-          public void success(String result) {
-            sendMessageInBackground("NICKSERV", "IDENTIFY " + md5Hex(userService.getPassword()), callback);
-          }
-
-          @Override
-          public void error(Throwable e) {
-            callback.error(e);
-          }
-        }
-    );
-  }
-
-  @Override
-  public void onDisconnected(Exception e) {
-    synchronized (chatUserLists) {
-      chatUserLists.values().forEach(ObservableMap::clear);
-    }
-  }
-
-  @Override
-  public void onModeratorSet(String channelName, String username) {
-    ChatUser chatUser = getChatUsersForChannel(channelName).get(username);
-    if (chatUser == null) {
-      return;
-    }
-    chatUser.getModeratorInChannels().add(channelName);
-  }
-
-  @Override
-  public Collection<Color> getAssignedColors() {
-    return assignedColors;
-  }
-
-  @Override
   public ImmutableSortedSet<Channel> getChannelsForUser(String username) {
-    return pircBotX.getUserChannelDao().getChannels(pircBotX.getUserChannelDao().getUser(username));
-  }
-
-  @Override
-  public ChatUser getChatUser(String username) {
-    for (String channel : chatUserLists.keySet()) {
-      if (chatUserLists.get(channel).containsKey(username)) {
-        return chatUserLists.get(channel).get(username);
-      }
-    }
-    return null;
+    UserChannelDao<User, Channel> userChannelDao = pircBotX.getUserChannelDao();
+    return userChannelDao.getChannels(pircBotX.getUserChannelDao().getUser(username));
   }
 
   @Override
   public ChatUser createOrGetChatUser(User user) {
     ChatUser chatUser = getChatUser(user.getNick());
-    if(chatUser != null){
+    if (chatUser != null) {
       return chatUser;
-    } else {
-      return ChatUser.fromIrcUser(user);
     }
+    return ChatUser.fromIrcUser(user);
   }
 
   @Override
   public ImmutableSortedSet<UserLevel> getLevelsForChatUser(Channel channel, String username) {
-    User user = pircBotX.getUserChannelDao().getUser(username);
+    UserChannelDao<User, Channel> userChannelDao = pircBotX.getUserChannelDao();
+    User user = userChannelDao.getUser(username);
     ImmutableSortedSet<UserLevel> levels = pircBotX.getUserChannelDao().getLevels(channel, user);
     return levels;
   }

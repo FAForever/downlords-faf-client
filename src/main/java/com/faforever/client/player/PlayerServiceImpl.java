@@ -39,15 +39,6 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   private List<String> foeList;
   private List<String> friendList;
   private PlayerInfoBean currentPlayer;
-
-  public GameStatus getGamestatus() {
-    return gamestatus;
-  }
-
-  public void setGamestatus(GameStatus gamestatus) {
-    this.gamestatus = gamestatus;
-  }
-
   private GameStatus gamestatus;
 
   public PlayerServiceImpl() {
@@ -55,6 +46,14 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     friendList = new ArrayList<>();
     foeList = new ArrayList<>();
     gamestatus = GameStatus.NONE;
+  }
+
+  public GameStatus getGamestatus() {
+    return gamestatus;
+  }
+
+  public void setGamestatus(GameStatus gamestatus) {
+    this.gamestatus = gamestatus;
   }
 
   @PostConstruct
@@ -86,7 +85,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
         continue;
       }
       updatePlayerGameStatus(playerInfoBean, GameStatus.getFromGameState(gameInfoBean.getStatus()));
-      playerInfoBean.setGameUID(gameInfoBean.getUid());
+      playerInfoBean.setGameUid(gameInfoBean.getUid());
     }
     if (GameStatus.getFromGameState(gameInfoBean.getStatus()) == GameStatus.LOBBY) {
       PlayerInfoBean host = getPlayerForUsername(gameInfoBean.getHost());
@@ -97,7 +96,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   @Override
   public void updatePlayerGameStatus(PlayerInfoBean playerInfoBean, GameStatus gameStatus) {
     if (playerInfoBean != null && playerInfoBean.getGameStatus() != gameStatus) {
-      //FIXME until api, host is set twice or ugly code, I chose host set twice
+      //FIXME until api, host is set twice or ugly code, I chose to set twice
       playerInfoBean.setGameStatus(gameStatus);
     }
   }
@@ -105,8 +104,9 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   @Override
   public PlayerInfoBean getPlayerForUsername(String username) {
     PlayerInfoBean playerInfoBean = players.get(username);
-    if(playerInfoBean == null)
-      logger.warn("Error returning playerInfoBean of {}", username);
+    if (playerInfoBean == null) {
+      logger.warn("Unknown user: {}", username);
+    }
     return playerInfoBean;
   }
 

@@ -6,9 +6,9 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.SetChangeListener;
@@ -89,8 +89,8 @@ public class ChannelTabController extends AbstractChatTabController {
 
 
     userSearchTextField.setPromptText(i18n.get("chat.userCount", chatService.getChatUsersForChannel(channelName).size()));
-    chatService.getChatUsersForChannel(channelName).addListener((MapChangeListener<? super String, ? super ChatUser>) change -> {
-      Platform.runLater(() -> userSearchTextField.setPromptText(i18n.get("chat.userCount", change.getMap().size())));
+    chatService.getChatUsersForChannel(channelName).addListener((InvalidationListener) change -> {
+      Platform.runLater(() -> userSearchTextField.setPromptText(i18n.get("chat.userCount", chatService.getChatUsersForChannel(channelName).size())));
     });
 
     chatService.addChannelUserListListener(channelName, change -> {
@@ -138,30 +138,6 @@ public class ChannelTabController extends AbstractChatTabController {
     });
   }
 
-  @PostConstruct
-  void init() {
-    assignColors();
-    channelTabScrollPaneVBox.setMinWidth(preferencesService.getPreferences().getChatPrefs().getChannelTabScrollPaneWidth());
-    channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChatPrefs().getChannelTabScrollPaneWidth());
-  }
-
-  private void assignColors() {
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChatPrefs();
-    addColorListenerToLabels(chatPrefs.friendsChatColorProperty(), friendsTitlePane);
-    addColorListenerToLabels(chatPrefs.foesChatColorProperty(), foesTitlePane);
-    addColorListenerToLabels(chatPrefs.modsChatColorProperty(), moderatorsTitlePane);
-    addColorListenerToLabels(chatPrefs.ircChatColorProperty(), ircTitlePane);
-    addColorListenerToLabels(chatPrefs.othersChatColorProperty(), othersTitlePane);
-
-  }
-
-  private void addColorListenerToLabels(ObjectProperty<Color> colorProperty, TitledPane pane) {
-    pane.setTextFill(colorProperty.get());
-    colorProperty.addListener((observable, oldValue, newValue) -> {
-      pane.setTextFill(newValue);
-    });
-  }
-
   /**
    * Hides all chat user controls whose username does not contain the string entered in the {@link
    * #userSearchTextField}.
@@ -185,13 +161,37 @@ public class ChannelTabController extends AbstractChatTabController {
     chatUserControl.setManaged(display);
   }
 
+  @PostConstruct
+  void init() {
+    assignColors();
+    channelTabScrollPaneVBox.setMinWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
+    channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
+  }
+
+  private void assignColors() {
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    addColorListenerToLabels(chatPrefs.friendsChatColorProperty(), friendsTitlePane);
+    addColorListenerToLabels(chatPrefs.foesChatColorProperty(), foesTitlePane);
+    addColorListenerToLabels(chatPrefs.modsChatColorProperty(), moderatorsTitlePane);
+    addColorListenerToLabels(chatPrefs.ircChatColorProperty(), ircTitlePane);
+    addColorListenerToLabels(chatPrefs.othersChatColorProperty(), othersTitlePane);
+
+  }
+
+  private void addColorListenerToLabels(ObjectProperty<Color> colorProperty, TitledPane pane) {
+    pane.setTextFill(colorProperty.get());
+    colorProperty.addListener((observable, oldValue, newValue) -> {
+      pane.setTextFill(newValue);
+    });
+  }
+
   private void onUserJoinedChannel(ChatUser chatUser) {
     JavaFxUtil.assertBackgroundThread();
 
     String username = chatUser.getUsername();
     PlayerInfoBean playerInfoBean = playerService.registerAndGetPlayerForUsername(username);
 
-    playerInfoBean.moderatorInChannelsProperty().bind(chatUser.moderatorInChannelsProperty());
+    playerInfoBean.moderatorForChannelsProperty().bind(chatUser.moderatorInChannelsProperty());
     playerInfoBean.usernameProperty().bind(chatUser.usernameProperty());
     playerInfoBean.usernameProperty().addListener((observable, oldValue, newValue) -> {
       for (Map.Entry<Pane, ChatUserControl> entry : userToChatUserControls.get(oldValue).entrySet()) {
@@ -235,12 +235,12 @@ public class ChannelTabController extends AbstractChatTabController {
         removeFromPane(playerInfoBean, othersPane);
       } else {
         removeFromPane(playerInfoBean, chatOnlyPane);
-        if (!playerInfoBean.isFoe() && !playerInfoBean.isFriend() && !playerInfoBean.getModeratorInChannels().contains(channelName)) {
+        if (!playerInfoBean.isFoe() && !playerInfoBean.isFriend() && !playerInfoBean.getModeratorForChannels().contains(channelName)) {
           addToPane(playerInfoBean, othersPane);
         }
       }
     });
-    playerInfoBean.getModeratorInChannels().addListener((SetChangeListener<String>) change -> {
+    playerInfoBean.getModeratorForChannels().addListener((SetChangeListener<String>) change -> {
       if (change.wasAdded()) {
         addToPane(playerInfoBean, moderatorsPane);
         removeFromPane(playerInfoBean, othersPane);
@@ -354,7 +354,7 @@ public class ChannelTabController extends AbstractChatTabController {
       panes.add(foesPane);
     }
 
-    if (playerInfoBean.getModeratorInChannels().contains(channelName)) {
+    if (playerInfoBean.getModeratorForChannels().contains(channelName)) {
       panes.add(moderatorsPane);
     }
 

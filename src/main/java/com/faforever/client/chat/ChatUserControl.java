@@ -8,7 +8,9 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.RatingUtil;
+import com.faforever.client.util.ThemeUtil;
 import javafx.application.Platform;
+import javafx.beans.property.FloatProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -26,68 +28,48 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
 public class ChatUserControl extends HBox {
 
   private static final String CLAN_TAG_FORMAT = "[%s]";
-
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @Autowired
   ApplicationContext applicationContext;
-
   @Autowired
   FxmlLoader fxmlLoader;
-
   @Autowired
   AvatarService avatarService;
-
   @Autowired
   CountryFlagService countryFlagService;
-
   @Autowired
   ChatController chatController;
-
   @Autowired
   GameService gameService;
-
   @Autowired
   PreferencesService preferencesService;
-
   @Autowired
   UserService userService;
-
   @Autowired
   ChatService chatService;
-
   @Autowired
   Environment environment;
-
   @Autowired
   I18n i18n;
-
   @FXML
   ImageView countryImageView;
-
   @FXML
   ImageView avatarImageView;
-
   @FXML
   Label usernameLabel;
-
   @FXML
   Label clanLabel;
-
   @FXML
   ImageView statusImageView;
-
   private PlayerInfoBean playerInfoBean;
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
   void onContextMenuRequested(ContextMenuEvent event) {
@@ -126,42 +108,13 @@ public class ChatUserControl extends HBox {
     usernameLabel.setText(playerInfoBean.getUsername());
   }
 
-  private void configureRatingTooltip() {
-    playerInfoBean.chatOnlyProperty().addListener((observable1, oldValue1, newValue1) -> {
-      if (!newValue1) {
-        Tooltip userRatingTooltip = new Tooltip(playerInfoBean.getCountry());
-
-        String globalRating = i18n.get("playerRatingFormat.global", RatingUtil.getGlobalRating(playerInfoBean));
-        String ladderRating = i18n.get("playerRatingFormat.ladder", RatingUtil.getLadderRating(playerInfoBean));
-
-        userRatingTooltip.setText(String.format("%s \n %s", globalRating, ladderRating));
-
-        playerInfoBean.globalRatingMeanProperty().addListener((observable, oldValue, newValue) -> {
-          String updatedGlobalRating = i18n.get("playerRatingFormat.global", RatingUtil.getGlobalRating(playerInfoBean));
-          String oldLadderRating = i18n.get("playerRatingFormat.ladder", RatingUtil.getLadderRating(playerInfoBean));
-          userRatingTooltip.setText(String.format("%s \n %s", updatedGlobalRating, oldLadderRating));
-        });
-
-        playerInfoBean.ladderRatingMeanProperty().addListener((observable, oldValue, newValue) -> {
-          String oldGlobalRating = i18n.get("playerRatingFormat.global", RatingUtil.getGlobalRating(playerInfoBean));
-          String updatedLadderRating = i18n.get("playerRatingFormat.ladder", RatingUtil.getLadderRating(playerInfoBean));
-          userRatingTooltip.setText(String.format("%s \n %s", oldGlobalRating, updatedLadderRating));
-        });
-
-        Tooltip.install(clanLabel, userRatingTooltip);
-        Tooltip.install(usernameLabel, userRatingTooltip);
-      }
-    });
-
-  }
-
   private void configureColor() {
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChatPrefs();
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     ObjectProperty<Color> colorProperty = null;
     Color color = null;
 
-    //Always regardless of pretty Colors enabled
-    if (playerInfoBean.getModeratorInChannels().size() > 0) {
+    // Always regardless of pretty Colors enabled
+    if (playerInfoBean.getModeratorForChannels().isEmpty()) {
       colorProperty = chatPrefs.modsChatColorProperty();
     } else if (playerInfoBean.isFriend()) {
       colorProperty = chatPrefs.friendsChatColorProperty();
@@ -171,7 +124,7 @@ public class ChatUserControl extends HBox {
       colorProperty = chatPrefs.selfChatColorProperty();
     }
 
-    //Only if pretty colors is disabled
+    // Only if pretty colors is disabled
     if (!chatPrefs.getPrettyColors() && colorProperty == null) {
       if (playerInfoBean.isChatOnly()) {
         colorProperty = chatPrefs.ircChatColorProperty();
@@ -179,11 +132,12 @@ public class ChatUserControl extends HBox {
         colorProperty = chatPrefs.othersChatColorProperty();
       }
 
-      //Self color
+      // Self color
     } else if (chatPrefs.getPrettyColors() && colorProperty == null) {
       color = ColorGeneratorUtil.generatePrettyHexColor();
       ChatUser chatUser = chatService.getChatUser(playerInfoBean.getUsername());
 
+      //FIXME result of chatUser color not being generated on chatUser being initialized
       try {
         if (chatUser.getColor() == null) {
           chatUser.setColor(color);
@@ -205,25 +159,14 @@ public class ChatUserControl extends HBox {
     clanLabel.setTextFill(color);
   }
 
-  private void addColorListenerToLabels(ObjectProperty<Color> colorProperty) {
-    colorProperty.addListener((observable, oldValue, newValue) -> {
-      usernameLabel.setTextFill(newValue);
-      clanLabel.setTextFill(newValue);
-    });
-  }
-
   private void addPrettyColorListener() {
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChatPrefs();
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     chatPrefs.prettyColorsProperty().addListener((observable, oldValue, newValue) -> {
       configureColor();
     });
   }
 
   private void configureCountryImageView() {
-    //FIXME is this really necessary, when will someone's country change in a single session?
-/*    playerInfoBean.countryProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> setCountry(newValue));
-    });*/
     setCountry(playerInfoBean.getCountry());
 
     Tooltip countryTooltip = new Tooltip(playerInfoBean.getCountry());
@@ -245,6 +188,13 @@ public class ChatUserControl extends HBox {
     Tooltip.install(avatarImageView, avatarTooltip);
   }
 
+  private void configureClanLabel() {
+    setClanTag(playerInfoBean.getClan());
+    playerInfoBean.clanProperty().addListener((observable, oldValue, newValue) -> {
+      Platform.runLater(() -> setClanTag(newValue));
+    });
+  }
+
   private void configureGameStatusView() {
     setGameStatus(playerInfoBean.getGameStatus());
     playerInfoBean.gameStatusProperty().addListener((observable, oldValue, newValue) -> {
@@ -252,22 +202,27 @@ public class ChatUserControl extends HBox {
     });
   }
 
-  @FXML
-  void onMouseEnterGameStatus() {
-    if (playerInfoBean.getGameStatus() != GameStatus.NONE) {
-      GameStatusTooltipController gameStatusTooltipController = applicationContext.getBean(GameStatusTooltipController.class);
-      gameStatusTooltipController.setGameInfoBean(gameService.getByUid(playerInfoBean.getGameUID()));
+  private void configureRatingTooltip() {
+    playerInfoBean.chatOnlyProperty().addListener((observable1, oldValue1, newValue1) -> {
+      if (!newValue1) {
+        Tooltip userRatingTooltip = new Tooltip();
 
-      Tooltip statusTooltip = new Tooltip();
-      statusTooltip.setGraphic(gameStatusTooltipController.getRoot());
-      Tooltip.install(statusImageView, statusTooltip);
-    }
+        String leaderboardRating = i18n.get("playerRatingFormat", RatingUtil.getGlobalRating(playerInfoBean), RatingUtil.getLadderRating(playerInfoBean));
+        userRatingTooltip.setText(leaderboardRating);
+
+        addRatingListenerToTooltip(playerInfoBean.globalRatingMeanProperty(), userRatingTooltip);
+        addRatingListenerToTooltip(playerInfoBean.leaderboardRatingMeanProperty(), userRatingTooltip);
+
+        Tooltip.install(clanLabel, userRatingTooltip);
+        Tooltip.install(usernameLabel, userRatingTooltip);
+      }
+    });
   }
 
-  private void configureClanLabel() {
-    setClanTag(playerInfoBean.getClan());
-    playerInfoBean.clanProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> setClanTag(newValue));
+  private void addColorListenerToLabels(ObjectProperty<Color> colorProperty) {
+    colorProperty.addListener((observable, oldValue, newValue) -> {
+      usernameLabel.setTextFill(newValue);
+      clanLabel.setTextFill(newValue);
     });
   }
 
@@ -298,26 +253,43 @@ public class ChatUserControl extends HBox {
     }
   }
 
-  String path = "themes/default/images/chat/";
-
   public void setGameStatus(GameStatus gameStatus) {
-    try {
-      switch (gameStatus) {
-        case PLAYING:
-          statusImageView.setImage(new Image(new ClassPathResource(path + "playing.png").getURL().toString(), true));
-          break;
-        case HOST:
-          statusImageView.setImage(new Image(new ClassPathResource(path + "host.png").getURL().toString(), true));
-          break;
-        case LOBBY:
-          statusImageView.setImage(new Image(new ClassPathResource(path + "lobby.png").getURL().toString(), true));
-          break;
-        default:
-          statusImageView.setImage(new Image(new ClassPathResource(path + "none.png").getURL().toString(), true));
-      }
-    } catch (IOException e) {
-      //fixme log
+    String theme = preferencesService.getPreferences().getTheme();
+    switch (gameStatus) {
+      case PLAYING:
+        statusImageView.setImage(new Image(ThemeUtil.themeFile(theme, "images/chat/playing.png")));
+        break;
+      case HOST:
+        statusImageView.setImage(new Image(ThemeUtil.themeFile(theme, "images/chat/host.png")));
+        break;
+      case LOBBY:
+        statusImageView.setImage(new Image(ThemeUtil.themeFile(theme, "images/chat/lobby.png")));
+        break;
+      // None case
+      default:
+        statusImageView.setImage(new Image(ThemeUtil.themeFile(theme, "images/chat/none.png")));
     }
     statusImageView.setVisible(true);
+  }
+
+  private void addRatingListenerToTooltip(FloatProperty ratingProperty, Tooltip tooltip) {
+    ratingProperty.addListener((observable, oldValue, newValue) -> {
+      String updatedRating = i18n.get("playerRatingFormat", RatingUtil.getGlobalRating(playerInfoBean), RatingUtil.getLadderRating(playerInfoBean));
+      tooltip.setText(updatedRating);
+    });
+  }
+
+  @FXML
+  void onMouseEnterGameStatus() {
+    if (playerInfoBean.getGameStatus() == GameStatus.NONE) {
+      return;
+    }
+
+    GameStatusTooltipController gameStatusTooltipController = applicationContext.getBean(GameStatusTooltipController.class);
+    gameStatusTooltipController.setGameInfoBean(gameService.getByUid(playerInfoBean.getGameUid()));
+
+    Tooltip statusTooltip = new Tooltip();
+    statusTooltip.setGraphic(gameStatusTooltipController.getRoot());
+    Tooltip.install(statusImageView, statusTooltip);
   }
 }

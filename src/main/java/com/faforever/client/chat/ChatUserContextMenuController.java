@@ -5,14 +5,12 @@ import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.GameStatus;
-import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.util.Callback;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -152,7 +150,7 @@ public class ChatUserContextMenuController {
   @FXML
   void onWatchGame() {
     try {
-      replayService.runLiveReplay(playerInfoBean.getGameUID(),playerInfoBean.getUsername());
+      replayService.runLiveReplay(playerInfoBean.getGameUid(), playerInfoBean.getUsername());
     } catch (IOException e) {
       logger.error("Cannot load live replay {}", e.getCause());
       String title = i18n.get("replays.live.loadFailure.title");
@@ -183,7 +181,7 @@ public class ChatUserContextMenuController {
 
   @FXML
   void onJoinGame() {
-    GameInfoBean gameInfoBean = gameService.getByUid(playerInfoBean.getGameUID());
+    GameInfoBean gameInfoBean = gameService.getByUid(playerInfoBean.getGameUid());
     gameService.joinGame(gameInfoBean,null,new Callback<Void>() {
       @Override
       public void success(Void result) {

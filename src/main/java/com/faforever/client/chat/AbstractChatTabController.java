@@ -37,6 +37,7 @@ import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import netscape.javascript.JSObject;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.pircbotx.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -95,7 +95,7 @@ public abstract class AbstractChatTabController {
   /**
    * Maps a user name to a css style class.
    */
-  private final Map<String, Color> userToCssStyle;
+  private final Map<String, Color> userToColor;
   @Autowired
   UserService userService;
   @Autowired
@@ -144,10 +144,9 @@ public abstract class AbstractChatTabController {
   private Pattern mentionPattern;
   private Popup playerCardTooltip;
   private Tooltip linkPreviewTooltip;
-  private ChatPrefs chatPrefs;
 
   public AbstractChatTabController() {
-    userToCssStyle = new HashMap<>();
+    userToColor = new HashMap<>();
     waitingMessages = new ArrayList<>();
   }
 
@@ -157,8 +156,8 @@ public abstract class AbstractChatTabController {
 
   @PostConstruct
   void postConstruct() {
-    chatPrefs = preferencesService.getPreferences().getChatPrefs();
-    userToCssStyle.put(userService.getUsername(), chatPrefs.getSelfChatColor());
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    userToColor.put(userService.getUsername(), chatPrefs.getSelfChatColor());
     mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b");
 
     initChatView();
@@ -173,11 +172,11 @@ public abstract class AbstractChatTabController {
 
     messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
     messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().getChatPrefs().setZoom(newValue.doubleValue());
+      preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
       preferencesService.storeInBackground();
     });
 
-    Double zoom = preferencesService.getPreferences().getChatPrefs().getZoom();
+    Double zoom = preferencesService.getPreferences().getChat().getZoom();
     if (zoom != null) {
       messagesWebView.setZoom(zoom);
     }
@@ -187,12 +186,7 @@ public abstract class AbstractChatTabController {
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
       if (Worker.State.SUCCEEDED.equals(newValue)) {
         synchronized (waitingMessages) {
-          waitingMessages.forEach(new Consumer<ChatMessage>() {
-            @Override
-            public void accept(ChatMessage chatMessage) {
-              AbstractChatTabController.this.appendMessage(chatMessage);
-            }
-          });
+          waitingMessages.forEach(AbstractChatTabController.this::appendMessage);
           waitingMessages.clear();
           isChatReady = true;
         }
@@ -325,9 +319,9 @@ public abstract class AbstractChatTabController {
   }
 
   /**
-   * Called from JavaScript when user no longer hovers over a user name.
+   * Called from JavaScript when user clicks on user name in chat
    */
-  public void messagePlayerFromChat(String username) {
+  public void openPrivateMessageTab(String username) {
     if (playerCardTooltip == null) {
       return;
     }
@@ -538,7 +532,7 @@ public abstract class AbstractChatTabController {
   }
 
   private void removeTopmostMessages() {
-    int maxMessageItems = preferencesService.getPreferences().getChatPrefs().getMaxMessages();
+    int maxMessageItems = preferencesService.getPreferences().getChat().getMaxMessages();
 
     int numberOfMessages = (int) engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "').length");
     while (numberOfMessages > maxMessageItems) {
@@ -583,9 +577,9 @@ public abstract class AbstractChatTabController {
           .replace("{text}", text);
 
       Collection<String> cssClasses = new ArrayList<>();
-
-      if (userToCssStyle.containsKey(login)) {
-        cssClasses.add(userToCssStyle.get(login).toString());
+      String color = "";
+      if (userToColor.containsKey(login)) {
+        color = userToColor.get(login).toString();
       }
 
       if (chatMessage.isAction()) {
@@ -595,10 +589,13 @@ public abstract class AbstractChatTabController {
       }
       PlayerInfoBean playerInfo = playerService.getPlayerForUsername(chatMessage.getUsername());
 
-      assignPlayerColor(cssClasses, playerInfo);
-
       html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
+      String inlineStyle = getPlayerColorInlineStyle(playerInfo);
+      if (!inlineStyle.equals("")) {
+        color = inlineStyle;
+      }
 
+      html = html.replace("{color}", color);
       addToMessageContainer(html);
 
     } catch (IOException e) {
@@ -606,14 +603,14 @@ public abstract class AbstractChatTabController {
     }
   }
 
-  private void assignPlayerColor(Collection<String> cssClasses, PlayerInfoBean playerInfo) {
+  private String getPlayerColorInlineStyle(PlayerInfoBean playerInfo) {
     if (playerInfo == null) {
-      return;
+      return "";
     }
-
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     //Mods, friends and foes are never randomly generated
     String messageColor = "";
-    if (playerInfo.getModeratorInChannels() != null && playerInfo.getModeratorInChannels().size() > 0) {
+    if (playerInfo.getModeratorForChannels() != null && playerInfo.getModeratorForChannels().size() > 0) {
       //TODO this is here because there is no straight forward way to know what channel the message came from
       for (Channel channel : chatService.getChannelsForUser(userService.getUsername())) {
         if (chatService.getLevelsForChatUser(channel, playerInfo.getUsername()).size() > 0) {
@@ -650,8 +647,15 @@ public abstract class AbstractChatTabController {
       }
     }
     if(messageColor != null) {
-      cssClasses.add("\" style=\"color:#" + messageColor.substring(2, 8));
+      return createInlineStyleFromHexColor(messageColor);
+    } else {
+      return "";
     }
+  }
+
+  @NotNull
+  private String createInlineStyleFromHexColor(String messageColor) {
+    return "\" style=\"color:#" + messageColor.substring(2, 8);
   }
 
   private String highlightOwnUsername(String text) {

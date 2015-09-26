@@ -17,9 +17,8 @@ public class Preferences {
   private final WindowPrefs mainWindow;
   private final ForgedAlliancePrefs forgedAlliance;
   private final LoginPrefs login;
-  private final ChatPrefs chatPrefs;
+  private final ChatPrefs chat;
   private final NotificationsPrefs notification;
-
   private final StringProperty theme;
   private final StringProperty lastGameType;
   private final StringProperty lastGameTitle;
@@ -30,7 +29,7 @@ public class Preferences {
   private final IntegerProperty lastGameMaxRating;
 
   public Preferences() {
-    chatPrefs = new ChatPrefs();
+    chat = new ChatPrefs();
     login = new LoginPrefs();
     mainWindow = new WindowPrefs();
     forgedAlliance = new ForgedAlliancePrefs();
@@ -57,8 +56,8 @@ public class Preferences {
     return login;
   }
 
-  public ChatPrefs getChatPrefs() {
-    return chatPrefs;
+  public ChatPrefs getChat() {
+    return chat;
   }
 
   public NotificationsPrefs getNotification() {

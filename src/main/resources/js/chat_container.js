@@ -33,7 +33,7 @@ function hidePlayerInfo(node) {
 }
 
 function messagePlayer(node) {
-    chatTab.messagePlayerFromChat(node.textContent);
+    chatTab.openPrivateMessageTab(node.textContent);
 }
 
 function scrollToBottomIfDesired() {

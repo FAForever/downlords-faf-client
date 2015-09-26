@@ -34,30 +34,17 @@ public class GameStatusTooltipController {
 
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
     mapPreview.setImage(mapService.loadSmallPreview(gameInfoBean.getMapTechnicalName()));
-
     MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultFromName(gameInfoBean.getMapTechnicalName());
 
-    if (gameInfoBean.getTeams().size() > 1) {
-      gameTitleLabel.setText(i18n.get("chat.gameStatus.gameTitle", gameInfoBean.getTitle()));
-      try {
-        mapNameLabel.setText(i18n.get("chat.gameStatus.mapName", mapInfoBean.getDisplayName()));
-      } catch (NullPointerException e) {
-        //TODO remove once server side support
-      }
-      featuredModLabel.setText(i18n.get("chat.gameStatus.featuredMod", gameInfoBean.getFeaturedMod()));
-    } else {
-      gameTitleLabel.setText(gameInfoBean.getTitle());
-      try {
-        mapNameLabel.setText(mapInfoBean.getDisplayName());
-      } catch (NullPointerException e) {
-        //TODO remove once server side support
-      }
-      featuredModLabel.setText(gameInfoBean.getFeaturedMod());
+    gameTitleLabel.setText(i18n.get("chat.gameStatus.gameTitle", gameInfoBean.getTitle()));
+    featuredModLabel.setText(i18n.get("chat.gameStatus.featuredMod", gameInfoBean.getFeaturedMod()));
+
+    if (mapInfoBean != null) {
+      mapNameLabel.setText(i18n.get("chat.gameStatus.mapName", mapInfoBean.getDisplayName()));
     }
 
     GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);
     gameTooltipController.setGameInfoBean(gameInfoBean);
-
     gameStatusTooltipRoot.getChildren().add(gameTooltipController.getRoot());
   }
 

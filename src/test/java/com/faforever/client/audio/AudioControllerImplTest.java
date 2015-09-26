@@ -37,7 +37,7 @@ public class AudioControllerImplTest extends AbstractPlainJavaFxTest {
     when(notificationsPrefs.soundsEnabledProperty()).thenReturn(new SimpleBooleanProperty());
     when(instance.mainController.getRoot()).thenReturn(getRoot());
     when(preferences.getNotification()).thenReturn(notificationsPrefs);
-    when(preferences.getChatPrefs()).thenReturn(chatPrefs);
+    when(preferences.getChat()).thenReturn(chatPrefs);
     when(preferences.getTheme()).thenReturn("default");
     when(instance.preferencesService.getPreferences()).thenReturn(preferences);
 

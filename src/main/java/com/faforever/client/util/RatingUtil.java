@@ -19,16 +19,16 @@ public final class RatingUtil {
     return getRating(playerInfo.getRatingMean(), playerInfo.getRatingDeviation());
   }
 
+  private static int getRating(float ratingMean, float ratingDeviation) {
+    return (int) (ratingMean - 3 * ratingDeviation);
+  }
+
   public static int getLadderRating(PlayerInfo playerInfo) {
     return getRating(playerInfo.getLadderRatingMean(), playerInfo.getLadderRatingDeviation());
   }
 
   public static int getLadderRating(PlayerInfoBean playerInfoBean) {
-    return getRating(playerInfoBean.getLadderRatingMean(), playerInfoBean.getLadderRatingDeviation());
-  }
-
-  private static int getRating(float ratingMean, float ratingDeviation) {
-    return (int) (ratingMean - 3 * ratingDeviation);
+    return getRating(playerInfoBean.getLeaderboardRatingMean(), playerInfoBean.getLeaderboardRatingDeviation());
   }
 
   public static int getGlobalRating(RatingInfo ratingInfo) {
