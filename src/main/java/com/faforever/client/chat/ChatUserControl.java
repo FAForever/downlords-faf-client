@@ -114,7 +114,7 @@ public class ChatUserControl extends HBox {
     Color color = null;
 
     // Always regardless of pretty Colors enabled
-    if (playerInfoBean.getModeratorForChannels().isEmpty()) {
+    if (!playerInfoBean.getModeratorForChannels().isEmpty()) {
       colorProperty = chatPrefs.modsChatColorProperty();
     } else if (playerInfoBean.isFriend()) {
       colorProperty = chatPrefs.friendsChatColorProperty();
@@ -203,20 +203,18 @@ public class ChatUserControl extends HBox {
   }
 
   private void configureRatingTooltip() {
-    playerInfoBean.chatOnlyProperty().addListener((observable1, oldValue1, newValue1) -> {
-      if (!newValue1) {
-        Tooltip userRatingTooltip = new Tooltip();
+    if (!playerInfoBean.getChatOnly()) {
+      Tooltip userRatingTooltip = new Tooltip();
 
-        String leaderboardRating = i18n.get("playerRatingFormat", RatingUtil.getGlobalRating(playerInfoBean), RatingUtil.getLadderRating(playerInfoBean));
-        userRatingTooltip.setText(leaderboardRating);
+      String leaderboardRating = i18n.get("playerRatingFormat", RatingUtil.getGlobalRating(playerInfoBean), RatingUtil.getLeaderboardRating(playerInfoBean));
+      userRatingTooltip.setText(leaderboardRating);
 
-        addRatingListenerToTooltip(playerInfoBean.globalRatingMeanProperty(), userRatingTooltip);
-        addRatingListenerToTooltip(playerInfoBean.leaderboardRatingMeanProperty(), userRatingTooltip);
+      addRatingListenerToTooltip(playerInfoBean.leaderboardRatingMeanProperty(), userRatingTooltip);
+      addRatingListenerToTooltip(playerInfoBean.globalRatingMeanProperty(), userRatingTooltip);
 
-        Tooltip.install(clanLabel, userRatingTooltip);
-        Tooltip.install(usernameLabel, userRatingTooltip);
-      }
-    });
+      Tooltip.install(clanLabel, userRatingTooltip);
+      Tooltip.install(usernameLabel, userRatingTooltip);
+    }
   }
 
   private void addColorListenerToLabels(ObjectProperty<Color> colorProperty) {
@@ -274,7 +272,7 @@ public class ChatUserControl extends HBox {
 
   private void addRatingListenerToTooltip(FloatProperty ratingProperty, Tooltip tooltip) {
     ratingProperty.addListener((observable, oldValue, newValue) -> {
-      String updatedRating = i18n.get("playerRatingFormat", RatingUtil.getGlobalRating(playerInfoBean), RatingUtil.getLadderRating(playerInfoBean));
+      String updatedRating = i18n.get("playerRatingFormat", RatingUtil.getGlobalRating(playerInfoBean), RatingUtil.getLeaderboardRating(playerInfoBean));
       tooltip.setText(updatedRating);
     });
   }

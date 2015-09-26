@@ -23,11 +23,11 @@ public final class RatingUtil {
     return (int) (ratingMean - 3 * ratingDeviation);
   }
 
-  public static int getLadderRating(PlayerInfo playerInfo) {
+  public static int getLeaderboardRating(PlayerInfo playerInfo) {
     return getRating(playerInfo.getLadderRatingMean(), playerInfo.getLadderRatingDeviation());
   }
 
-  public static int getLadderRating(PlayerInfoBean playerInfoBean) {
+  public static int getLeaderboardRating(PlayerInfoBean playerInfoBean) {
     return getRating(playerInfoBean.getLeaderboardRatingMean(), playerInfoBean.getLeaderboardRatingDeviation());
   }
 
