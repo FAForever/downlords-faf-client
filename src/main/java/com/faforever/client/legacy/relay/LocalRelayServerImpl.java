@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.relay;
 
-import com.faforever.client.game.FeaturedMod;
+import com.faforever.client.game.GameType;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.io.QDataInputStream;
@@ -135,13 +135,10 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   }
 
   private void updateLobbyModeFromGameInfo(GameLaunchInfo gameLaunchInfo) {
-    FeaturedMod featuredMod = FeaturedMod.fromString(gameLaunchInfo.getMod());
-    switch (featuredMod) {
-      case LADDER_1V1:
-        lobbyMode = LobbyMode.NO_LOBBY;
-        break;
-      default:
-        lobbyMode = LobbyMode.DEFAULT_LOBBY;
+    if (GameType.LADDER_1V1.getString().equals(gameLaunchInfo.getMod())) {
+      lobbyMode = LobbyMode.NO_LOBBY;
+    } else {
+      lobbyMode = LobbyMode.DEFAULT_LOBBY;
     }
   }
 

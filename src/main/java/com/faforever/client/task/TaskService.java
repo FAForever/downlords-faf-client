@@ -1,8 +1,9 @@
 package com.faforever.client.task;
 
 import com.faforever.client.util.Callback;
-import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
+
+import java.util.Collection;
 
 /**
  * Enqueues and runs tasks in background. Services that need to run a task (tasks that finish, not long-running
@@ -32,5 +33,7 @@ public interface TaskService {
    */
   <T> void submitTask(TaskGroup taskGroup, PrioritizedTask<T> task);
 
-  void addChangeListener(ListChangeListener<PrioritizedTask<?>> listener, TaskGroup... taskGroups);
+  void addListener(OnTasksUpdatedListener listener, TaskGroup... taskGroups);
+
+  Collection<PrioritizedTask<?>> getRunningTasks();
 }

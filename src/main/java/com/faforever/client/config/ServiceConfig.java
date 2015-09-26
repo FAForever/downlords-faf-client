@@ -34,16 +34,20 @@ import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.lobby.LobbyServiceImpl;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl;
+import com.faforever.client.mod.DownloadModTask;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModServiceImpl;
 import com.faforever.client.news.LegacyNewsService;
 import com.faforever.client.news.NewsService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
-import com.faforever.client.patch.GitRepositoryPatchService;
+import com.faforever.client.patch.GameUpdateService;
+import com.faforever.client.patch.GameUpdateServiceImpl;
 import com.faforever.client.patch.GitWrapper;
 import com.faforever.client.patch.JGitWrapper;
-import com.faforever.client.patch.PatchService;
+import com.faforever.client.patch.UpdateGameFilesTask;
+import com.faforever.client.patch.UpdateServerAccessor;
+import com.faforever.client.patch.UpdateServerAccessorImpl;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.portcheck.DownlordsPortCheckServiceImpl;
@@ -78,8 +82,10 @@ import com.faforever.client.util.OperatingSystem;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.util.TimeServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
@@ -120,6 +126,11 @@ public class ServiceConfig {
   @Bean
   ReplayServerAccessor replayServerAccessor() {
     return new ReplayServerAccessorImpl();
+  }
+
+  @Bean
+  UpdateServerAccessor updateServerAccessor() {
+    return new UpdateServerAccessorImpl();
   }
 
   @Bean
@@ -219,8 +230,20 @@ public class ServiceConfig {
   }
 
   @Bean
-  PatchService patchService() {
-    return new GitRepositoryPatchService();
+  GameUpdateService patchService() {
+    return new GameUpdateServiceImpl();
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  UpdateGameFilesTask updateGameFilesTask() {
+    return new UpdateGameFilesTask();
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  DownloadModTask downloadModTask() {
+    return new DownloadModTask();
   }
 
   @Bean

@@ -3,7 +3,7 @@
   <logger name="org.pircbotx" level="info"/>
   <logger name="com.faforever.client.preferences" level="info"/>
   <logger name="com.faforever.client.map" level="info"/>
-  <logger name="com.faforever.client.patch" level="info"/>
+  <logger name="com.faforever.client.patch" level="debug"/>
   <logger name="com.faforever.client.legacy" level="debug"/>
   <logger name="com.faforever.client.legacy.io" level="info"/>
   <logger name="com.faforever.client.legacy.map" level="info"/>

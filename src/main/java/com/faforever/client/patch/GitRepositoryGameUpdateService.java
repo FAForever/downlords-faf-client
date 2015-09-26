@@ -1,11 +1,11 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.game.GameType;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.Callback;
@@ -37,12 +37,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.task.PrioritizedTask.Priority.LOW;
 import static com.faforever.client.task.TaskGroup.NET_HEAVY;
 import static com.faforever.client.task.TaskGroup.NET_LIGHT;
 
-public class GitRepositoryPatchService implements PatchService {
+public class GitRepositoryGameUpdateService extends AbstractPatchService implements GameUpdateService {
 
   @VisibleForTesting
   enum InstallType {
@@ -58,6 +59,7 @@ public class GitRepositoryPatchService implements PatchService {
 
   @VisibleForTesting
   static final String REPO_NAME = "binary-patch";
+
   @VisibleForTesting
   static final String STEAM_API_DLL = "steam_api.dll";
 
@@ -68,9 +70,6 @@ public class GitRepositoryPatchService implements PatchService {
 
   @Autowired
   Environment environment;
-
-  @Autowired
-  PreferencesService preferencesService;
 
   @Autowired
   TaskService taskService;
@@ -84,10 +83,7 @@ public class GitRepositoryPatchService implements PatchService {
   @Autowired
   GitWrapper gitWrapper;
 
-  /**
-   * Path containing the FAF "bin" directory (e. g. "%PROGRAMDATA\FAForever\bin")
-   */
-  private Path fafBinDirectory;
+  private String patchRepositoryUri;
   /**
    * Path to the local binary-patch Git repository.
    */
@@ -96,10 +92,8 @@ public class GitRepositoryPatchService implements PatchService {
    * Path containing the binary patch files within the binary-patch Git repository.
    */
   private Path patchSourceDirectory;
-  private Path faBinDirectory;
-  private String patchRepositoryUri;
 
-  public GitRepositoryPatchService() {
+  public GitRepositoryGameUpdateService() {
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .create();
@@ -111,12 +105,20 @@ public class GitRepositoryPatchService implements PatchService {
   }
 
   @Override
-  public void patchInBackground() {
+  protected boolean initAndCheckDirectories() {
+    binaryPatchRepoDirectory = preferencesService.getFafReposDirectory().resolve(REPO_NAME);
+    patchSourceDirectory = binaryPatchRepoDirectory.resolve(BINARY_PATCH_DIRECTORY);
+    return super.initAndCheckDirectories();
+  }
+
+  @Override
+  public CompletableFuture<Void> updateInBackground(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUids) {
     if (!initAndCheckDirectories()) {
       logger.warn("Aborted patching since directories aren't initialized properly");
-      return;
+      return CompletableFuture.completedFuture(null);
     }
 
+    CompletableFuture<Void> future = new CompletableFuture<>();
     Callback<Void> callback = new Callback<Void>() {
       @Override
       public void success(Void result) {
@@ -126,6 +128,7 @@ public class GitRepositoryPatchService implements PatchService {
                 Severity.INFO
             )
         );
+        future.complete(null);
       }
 
       @Override
@@ -139,9 +142,9 @@ public class GitRepositoryPatchService implements PatchService {
                 )
             )
         );
+        future.completeExceptionally(e);
       }
     };
-
 
     taskService.submitTask(NET_HEAVY, new PrioritizedTask<Void>(i18n.get("patchTask.title"), LOW) {
       @Override
@@ -167,7 +170,7 @@ public class GitRepositoryPatchService implements PatchService {
             String fileName = entry.getKey();
             String expectedMd5AfterPatch = entry.getValue();
 
-            Path fileToPatch = fafBinDirectory.resolve(fileName);
+            Path fileToPatch = getFafBinDirectory().resolve(fileName);
             byte[] bytesOfFileToPatch = Files.readAllBytes(fileToPatch);
             Path patchFile = getPatchFile(bytesOfFileToPatch);
 
@@ -189,6 +192,7 @@ public class GitRepositoryPatchService implements PatchService {
         return null;
       }
     }, callback);
+    return future;
   }
 
   @Override
@@ -206,7 +210,8 @@ public class GitRepositoryPatchService implements PatchService {
                 Severity.INFO,
                 Arrays.asList(
                     new Action(i18n.get("faUpdateAvailable.updateLater")),
-                    new Action(i18n.get("faUpdateAvailable.updateNow"), event -> patchInBackground())
+                    new Action(i18n.get("faUpdateAvailable.updateNow"),
+                        event -> updateInBackground(GameType.DEFAULT.getString(), null, null, null))
                 )
             )
         );
@@ -239,24 +244,6 @@ public class GitRepositoryPatchService implements PatchService {
     }, callback);
   }
 
-  /**
-   * Since it's possible that the user has changed or never specified the game path, this method needs to be called
-   * every time before any work is done.
-   *
-   * @return {@code true} if directories are set up correctly
-   */
-  private boolean initAndCheckDirectories() {
-    fafBinDirectory = preferencesService.getFafBinDirectory();
-    binaryPatchRepoDirectory = preferencesService.getFafReposDirectory().resolve(REPO_NAME);
-    patchSourceDirectory = binaryPatchRepoDirectory.resolve(BINARY_PATCH_DIRECTORY);
-    Path faDirectory = preferencesService.getPreferences().getForgedAlliance().getPath();
-    if (faDirectory == null) {
-      return false;
-    }
-    faBinDirectory = faDirectory.resolve("bin");
-    return true;
-  }
-
   private void clonePatchRepository() {
     gitWrapper.clone(patchRepositoryUri, binaryPatchRepoDirectory);
   }
@@ -264,26 +251,6 @@ public class GitRepositoryPatchService implements PatchService {
   private Path getMigrationDataFile() {
     String migrationDataFileName = guessInstallType().migrationDataFileName;
     return binaryPatchRepoDirectory.resolve(migrationDataFileName);
-  }
-
-  private void copyGameFilesToFafBinDirectory(MigrationData migrationData) throws IOException {
-    Files.createDirectories(fafBinDirectory);
-
-    for (Map.Entry<String, String> entry : migrationData.prePatchCopyRename.entrySet()) {
-      String oldName = entry.getKey();
-      String newName = entry.getValue() != null ? entry.getValue() : oldName;
-
-      Path source = faBinDirectory.resolve(oldName);
-      Path destination = fafBinDirectory.resolve(newName);
-
-      logger.debug("Copying file '{}' to '{}'", source, destination);
-
-      Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
-
-      if (OperatingSystem.current() == OperatingSystem.WINDOWS) {
-        Files.setAttribute(destination, "dos:readonly", false);
-      }
-    }
   }
 
   private Path getPatchFile(byte[] bytesOfFileToPatch) {
@@ -315,7 +282,7 @@ public class GitRepositoryPatchService implements PatchService {
 
   @VisibleForTesting
   InstallType guessInstallType() {
-    if (Files.exists(faBinDirectory.resolve(STEAM_API_DLL))) {
+    if (Files.exists(getFaBinDirectory().resolve(STEAM_API_DLL))) {
       return InstallType.STEAM;
     } else {
       return InstallType.RETAIL;
@@ -350,7 +317,7 @@ public class GitRepositoryPatchService implements PatchService {
         String fileName = entry.getKey();
         String expectedMd5 = entry.getValue();
 
-        Path fileToCheck = fafBinDirectory.resolve(fileName);
+        Path fileToCheck = getFafBinDirectory().resolve(fileName);
 
         if (Files.notExists(fileToCheck)) {
           logger.info("Missing file: {}", fileToCheck);
@@ -370,5 +337,25 @@ public class GitRepositoryPatchService implements PatchService {
     logger.info("All binary files are up to date");
 
     return true;
+  }
+
+  protected void copyGameFilesToFafBinDirectory(MigrationData migrationData) throws IOException {
+    Files.createDirectories(getFafBinDirectory());
+
+    for (Map.Entry<String, String> entry : migrationData.prePatchCopyRename.entrySet()) {
+      String oldName = entry.getKey();
+      String newName = entry.getValue() != null ? entry.getValue() : oldName;
+
+      Path source = getFaBinDirectory().resolve(oldName);
+      Path destination = getFafBinDirectory().resolve(newName);
+
+      logger.debug("Copying file '{}' to '{}'", source, destination);
+
+      Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+
+      if (OperatingSystem.current() == OperatingSystem.WINDOWS) {
+        Files.setAttribute(destination, "dos:readonly", false);
+      }
+    }
   }
 }

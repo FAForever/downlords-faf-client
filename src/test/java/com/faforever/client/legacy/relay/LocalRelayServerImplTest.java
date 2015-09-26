@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.relay;
 
-import com.faforever.client.game.FeaturedMod;
+import com.faforever.client.game.GameType;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameLaunchInfoListener;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
@@ -109,7 +109,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     verify(instance.lobbyServerAccessor).addOnGameLaunchListener(captor.capture());
 
     GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
-    gameLaunchInfo.setMod(FeaturedMod.DEFAULT_MOD.getString());
+    gameLaunchInfo.setMod(GameType.DEFAULT.getString());
     captor.getValue().onGameLaunchInfo(gameLaunchInfo);
 
     localRelayServerReadyLatch.await(TIMEOUT, TIMEOUT_UNIT);

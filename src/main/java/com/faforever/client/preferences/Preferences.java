@@ -1,5 +1,6 @@
 package com.faforever.client.preferences;
 
+import com.faforever.client.game.GameType;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
@@ -34,7 +35,7 @@ public class Preferences {
     mainWindow = new WindowPrefs();
     forgedAlliance = new ForgedAlliancePrefs();
     theme = new SimpleStringProperty("default");
-    lastGameType = new SimpleStringProperty("faf");
+    lastGameType = new SimpleStringProperty(GameType.DEFAULT.getString());
     ignoredNotifications = new SimpleListProperty<>(observableArrayList());
     notification = new NotificationsPrefs();
     rememberLastTab = new SimpleBooleanProperty(false);

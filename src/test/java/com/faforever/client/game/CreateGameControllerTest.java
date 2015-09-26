@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
@@ -7,7 +8,6 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.util.Callback;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.MapChangeListener.Change;
@@ -21,12 +21,10 @@ import org.mockito.Mock;
 import org.springframework.core.env.Environment;
 
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.Arrays;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
@@ -43,19 +41,22 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   private static final KeyEvent keyDownPressed = new KeyEvent(KeyEvent.KEY_PRESSED, "0", "", KeyCode.DOWN, false, false, false, false);
   private static final KeyEvent keyDownReleased = new KeyEvent(KeyEvent.KEY_RELEASED, "0", "", KeyCode.DOWN, false, false, false, false);
   @Mock
-  PreferencesService preferencesService;
+  private PreferencesService preferencesService;
   @Mock
-  MapService mapService;
+  private MapService mapService;
   @Mock
-  GameService gameService;
+  private GameService gameService;
   @Mock
-  ModService modService;
+  private ModService modService;
   @Mock
-  Preferences preferences;
+  private Preferences preferences;
   @Mock
-  ForgedAlliancePrefs forgedAlliancePrefs;
+  private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
-  Environment environment;
+  private Environment environment;
+  @Mock
+  private I18n i18n;
+
   private CreateGameController instance;
   private ObservableList<MapInfoBean> mapList;
 
@@ -67,6 +68,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     instance.gameService = gameService;
     instance.modService = modService;
     instance.environment = environment;
+    instance.i18n = i18n;
 
     mapList = FXCollections.observableArrayList();
 
@@ -168,7 +170,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testInitGameTypeComboBoxEmpty() throws Exception {
     instance = loadController("create_game.fxml");
 
-    assertThat(instance.gameTypeComboBox.getItems(), empty());
+    assertThat(instance.gameTypeListView.getItems(), empty());
   }
 
   @Test
@@ -178,8 +180,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     GameTypeBean gameTypeBean = mock(GameTypeBean.class);
     onGameTypeAdded(gameTypeBean);
 
-    assertThat(instance.gameTypeComboBox.getItems(), hasSize(1));
-    assertThat(instance.gameTypeComboBox.getItems().get(0), is(gameTypeBean));
+    assertThat(instance.gameTypeListView.getItems(), hasSize(1));
+    assertThat(instance.gameTypeListView.getItems().get(0), is(gameTypeBean));
   }
 
   private void onGameTypeAdded(GameTypeBean gameTypeBean) {
@@ -207,7 +209,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     GameTypeBean gameTypeBean = mock(GameTypeBean.class);
     GameTypeBean gameTypeBean2 = mock(GameTypeBean.class);
     when(preferences.getLastGameType()).thenReturn(null);
-    when(gameTypeBean.getName()).thenReturn(FeaturedMod.DEFAULT_MOD.getString());
+    when(gameTypeBean.getName()).thenReturn(GameType.DEFAULT.getString());
     when(gameTypeBean2.getName()).thenReturn(null);
 
     instance.postConstruct();
@@ -215,7 +217,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     onGameTypeAdded(gameTypeBean2);
     onGameTypeAdded(gameTypeBean);
 
-    assertThat(instance.gameTypeComboBox.getSelectionModel().getSelectedItem(), is(gameTypeBean));
+    assertThat(instance.gameTypeListView.getSelectionModel().getSelectedItem(), is(gameTypeBean));
   }
 
   @Test
@@ -231,17 +233,13 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     onGameTypeAdded(gameTypeBean);
     onGameTypeAdded(gameTypeBean2);
 
-    assertThat(instance.gameTypeComboBox.getSelectionModel().getSelectedItem(), is(gameTypeBean2));
+    assertThat(instance.gameTypeListView.getSelectionModel().getSelectedItem(), is(gameTypeBean2));
   }
 
   @Test
   public void testInitModListEmpty() throws Exception {
     assertThat(instance.modListView.getItems(), empty());
-
-    ArgumentCaptor<Callback<List<ModInfoBean>>> callbackCaptor = ArgumentCaptor.forClass(Callback.class);
-    verify(modService).getInstalledModsInBackground(callbackCaptor.capture());
-
-    callbackCaptor.getValue().success(emptyList());
+    instance.postConstruct();
     assertThat(instance.modListView.getItems(), empty());
   }
 
@@ -249,34 +247,16 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testInitModListPopulated() throws Exception {
     assertThat(instance.modListView.getItems(), empty());
 
-    ModInfoBean modInfoBean = mock(ModInfoBean.class);
-    List<ModInfoBean> result = singletonList(modInfoBean);
+    ModInfoBean modInfoBean1 = mock(ModInfoBean.class);
+    ModInfoBean modInfoBean2 = mock(ModInfoBean.class);
 
-    ArgumentCaptor<Callback<List<ModInfoBean>>> callbackCaptor = ArgumentCaptor.forClass(Callback.class);
-    verify(modService).getInstalledModsInBackground(callbackCaptor.capture());
-    callbackCaptor.getValue().success(result);
+    when(modService.getInstalledMods()).thenReturn(Arrays.asList(
+        modInfoBean1, modInfoBean2
+    ));
 
-    assertThat(instance.modListView.getItems(), hasItem(modInfoBean));
-  }
+    instance.postConstruct();
 
-
-  @Test
-  public void testPostConstruct() throws Exception {
-
-  }
-
-  @Test
-  public void testOnRandomMapButtonClicked() throws Exception {
-
-  }
-
-  @Test
-  public void testOnCreateButtonClicked() throws Exception {
-
-  }
-
-  @Test
-  public void testGetRoot() throws Exception {
-
+    assertThat(instance.modListView.getItems(), hasSize(2));
+    assertThat(instance.modListView.getItems(), contains(modInfoBean1, modInfoBean2));
   }
 }
