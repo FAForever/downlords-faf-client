@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
@@ -13,8 +8,8 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-
-<GridPane fx:id="root" styleClass="map-preview-large" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.map.MapPreviewLargeController">
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="root" styleClass="map-preview-large"
+          xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.map.MapPreviewLargeController">
   <columnConstraints>
     <ColumnConstraints />
     <ColumnConstraints />
@@ -36,12 +31,26 @@
       <GridPane.margin>
         <Insets />
       </GridPane.margin></ImageView>
-    <Label fx:id="mapNameLabel" styleClass="map-displayName-label" text="&lt;Map Name&gt;" GridPane.columnIndex="1" GridPane.vgrow="NEVER" />
+    <Label fx:id="mapNameLabel" styleClass="map-displayName-label" text="&lt;Map Name&gt;" GridPane.columnIndex="1"
+           GridPane.vgrow="NEVER">
+      <graphic>
+        <Label styleClass="fontawesome" text="&#xf02b;"/>
+      </graphic>
+    </Label>
     <Label fx:id="maxPlayerLabel" styleClass="max-player-label" text="&lt;Max Player&gt;" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.vgrow="NEVER">
       <GridPane.margin>
         <Insets />
-      </GridPane.margin></Label>
-    <Label fx:id="mapSizeLabel" styleClass="map-size-label" text="&lt;Map Size&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.vgrow="NEVER" />
+      </GridPane.margin>
+      <graphic>
+        <Label styleClass="fontawesome" text="&#xf234;"/>
+      </graphic>
+    </Label>
+    <Label fx:id="mapSizeLabel" styleClass="map-size-label" text="&lt;Map Size&gt;" GridPane.columnIndex="1"
+           GridPane.rowIndex="1" GridPane.vgrow="NEVER">
+      <graphic>
+        <Label styleClass="fontawesome" text="&#xf0b2;"/>
+      </graphic>
+    </Label>
     <Label fx:id="mapDescriptionLabel" styleClass="map-description-label" text="&lt;Map Description&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="3" GridPane.valignment="TOP" />
     <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="comment-container-scroll-pane" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="4">
       <content>

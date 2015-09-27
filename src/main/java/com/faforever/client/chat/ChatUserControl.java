@@ -1,11 +1,14 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.fx.FxmlLoader;
+import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
+import com.faforever.client.game.GamesController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.GameStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.replay.ReplayService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.ThemeUtil;
@@ -31,6 +34,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
 public class ChatUserControl extends HBox {
@@ -55,6 +59,10 @@ public class ChatUserControl extends HBox {
   UserService userService;
   @Autowired
   ChatService chatService;
+  @Autowired
+  GamesController gamesController;
+  @Autowired
+  ReplayService replayService;
   @Autowired
   Environment environment;
   @Autowired
@@ -200,6 +208,7 @@ public class ChatUserControl extends HBox {
     playerInfoBean.gameStatusProperty().addListener((observable, oldValue, newValue) -> {
       Platform.runLater(() -> setGameStatus(newValue));
     });
+
   }
 
   private void configureRatingTooltip() {
@@ -289,5 +298,26 @@ public class ChatUserControl extends HBox {
     Tooltip statusTooltip = new Tooltip();
     statusTooltip.setGraphic(gameStatusTooltipController.getRoot());
     Tooltip.install(statusImageView, statusTooltip);
+  }
+
+  @FXML
+  void onMouseClickGameStatus(MouseEvent mouseEvent) {
+    GameStatus gameStatus = playerInfoBean.getGameStatus();
+    if (gameStatus == GameStatus.NONE) {
+      return;
+    }
+    if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
+      int uid = playerInfoBean.getGameUid();
+      if (gameStatus == GameStatus.LOBBY || gameStatus == GameStatus.HOST) {
+        GameInfoBean gameInfoBean = gameService.getByUid(uid);
+        gamesController.onJoinGame(gameInfoBean, null, mouseEvent.getScreenX(), mouseEvent.getScreenY());
+      } else if (gameStatus == GameStatus.PLAYING) {
+        try {
+          replayService.runLiveReplay(uid, playerInfoBean.getUsername());
+        } catch (IOException e) {
+          //FIXME log
+        }
+      }
+    }
   }
 }

@@ -649,6 +649,7 @@
   -fx-pref-width: 360;
   -fx-max-width: 360;
   -fx-padding: 10;
+  -fx-cursor: hand;
 }
 
 .game-tile-root .lock-icon {
@@ -710,6 +711,7 @@
 /***************** Map Preview *****************/
 
 .map-preview {
+  -fx-cursor: hand;
   -fx-effect: -fx-drop-shadow;
 }
 
