@@ -6,22 +6,24 @@ import com.faforever.client.legacy.StringSerializer;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.ServerCommand;
 import com.faforever.client.legacy.writer.ServerWriter;
-import com.faforever.client.util.Callback;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import javafx.concurrent.Task;
+import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
@@ -34,7 +36,7 @@ public class ReplayServerAccessorImpl extends AbstractServerAccessor implements 
   Environment environment;
   private Task<Void> connectionTask;
   private ServerWriter serverWriter;
-  private Callback<List<ReplayInfoBean>> replayListCallback;
+  private CompletableFuture<List<ReplayInfoBean>> replayListCallback;
 
   public ReplayServerAccessorImpl() {
     gson = new GsonBuilder()
@@ -43,10 +45,11 @@ public class ReplayServerAccessorImpl extends AbstractServerAccessor implements 
   }
 
   @Override
-  public void requestOnlineReplays(Callback<List<ReplayInfoBean>> callback) {
+  public CompletableFuture<List<ReplayInfoBean>> requestOnlineReplays() {
     // FIXME this is not safe (as well aren't similar implementations in other accessors)
-    replayListCallback = callback;
+    replayListCallback = new CompletableFuture<>();
     writeToServer(new ListReplaysMessage());
+    return replayListCallback;
   }
 
   private void writeToServer(ClientMessage clientMessage) {
@@ -78,15 +81,9 @@ public class ReplayServerAccessorImpl extends AbstractServerAccessor implements 
 
       @Override
       protected void cancelled() {
-        try {
-          if (serverSocket != null) {
-            serverWriter.close();
-            serverSocket.close();
-          }
-          logger.debug("Closed connection to statistics server");
-        } catch (IOException e) {
-          logger.warn("Could not close statistics socket", e);
-        }
+        IOUtils.closeQuietly(serverSocket);
+        IOUtils.closeQuietly(serverSocket);
+        logger.debug("Closed connection to statistics server");
       }
     };
     executeInBackground(connectionTask);
@@ -111,7 +108,7 @@ public class ReplayServerAccessorImpl extends AbstractServerAccessor implements 
       ReplayServerObject replayServerObject = gson.fromJson(message, ReplayServerObject.class);
 
       if (replayListCallback != null) {
-        replayListCallback.success(replayInfoBeans(replayServerObject.getReplays()));
+        replayListCallback.complete(replayInfoBeans(replayServerObject.getReplays()));
       }
     } catch (JsonSyntaxException e) {
       logger.warn("Could not deserialize message: " + message, e);
@@ -122,5 +119,12 @@ public class ReplayServerAccessorImpl extends AbstractServerAccessor implements 
     return replayInfos.stream()
         .map(ReplayInfoBean::new)
         .collect(Collectors.toList());
+  }
+
+  @PreDestroy
+  void disconnect() {
+    if (connectionTask != null) {
+      connectionTask.cancel(true);
+    }
   }
 }

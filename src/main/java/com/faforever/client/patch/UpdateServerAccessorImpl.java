@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
@@ -126,10 +127,6 @@ public class UpdateServerAccessorImpl extends AbstractServerAccessor implements 
     }
   }
 
-  private void onPathToSimMod(String path) {
-
-  }
-
   @Override
   public void connect(UpdateServerResponseListener updateServerResponseListener) {
     this.updateServerResponseListener = updateServerResponseListener;
@@ -153,10 +150,12 @@ public class UpdateServerAccessorImpl extends AbstractServerAccessor implements 
   }
 
   @Override
+  @PreDestroy
   public void disconnect() {
     disconnectedGracefully = true;
     updateServerResponseListener = null;
     IOUtils.closeQuietly(socket);
+    logger.info("Disconnected from update server");
   }
 
   @Override

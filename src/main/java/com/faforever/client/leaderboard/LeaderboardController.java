@@ -1,6 +1,5 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.Validator;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
@@ -103,18 +102,13 @@ public class LeaderboardController {
       return;
     }
 
-    leaderboardService.getLadderInfo(new Callback<List<LeaderboardEntryBean>>() {
-      @Override
-      public void success(List<LeaderboardEntryBean> result) {
-        leaderboardEntryBeans = result;
-        filteredList = new FilteredList<>(observableArrayList(result));
-        ratingTable.setItems(filteredList);
-      }
-
-      @Override
-      public void error(Throwable e) {
-        // FIXME implement
-      }
+    leaderboardService.getLeaderboardEntries().thenAccept(leaderboardEntryBeans1 -> {
+      LeaderboardController.this.leaderboardEntryBeans = leaderboardEntryBeans1;
+      filteredList = new FilteredList<>(observableArrayList(leaderboardEntryBeans1));
+      ratingTable.setItems(filteredList);
+    }).exceptionally(throwable -> {
+      // FIXME implement
+      return null;
     });
   }
 

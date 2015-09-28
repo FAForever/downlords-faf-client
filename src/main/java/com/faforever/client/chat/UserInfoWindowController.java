@@ -4,7 +4,6 @@ import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.stats.StatisticsService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.RatingUtil;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
@@ -31,11 +30,11 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class UserInfoWindowController {
 
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM");
-
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
@@ -121,19 +120,14 @@ public class UserInfoWindowController {
     loadStatistics(StatisticsType.GLOBAL_90_DAYS);
   }
 
-  private void loadStatistics(StatisticsType type) {
-    statisticsService.getStatisticsForPlayer(type, playerInfoBean.getUsername(), new Callback<PlayerStatistics>() {
-      @Override
-      public void success(PlayerStatistics result) {
-        Platform.runLater(() -> plotPlayerStatistics(result));
-      }
-
-      @Override
-      public void error(Throwable e) {
-        // FIXME display to user
-        logger.warn("Statistics could not be loaded", e);
-      }
-    });
+  private CompletableFuture<Void> loadStatistics(StatisticsType type) {
+    return statisticsService.getStatisticsForPlayer(type, playerInfoBean.getUsername())
+        .thenAccept(playerStatistics -> Platform.runLater(() -> plotPlayerStatistics(playerStatistics)))
+        .exceptionally(throwable -> {
+          // FIXME display to user
+          logger.warn("Statistics could not be loaded", throwable);
+          return null;
+        });
   }
 
   @SuppressWarnings("unchecked")

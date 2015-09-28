@@ -3,9 +3,11 @@ package com.faforever.client.legacy;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.io.QDataInputStream;
 import com.faforever.client.util.JavaFxUtil;
+import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PreDestroy;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -31,16 +33,14 @@ public abstract class AbstractServerAccessor {
   protected void blockingReadServer(Socket socket) throws IOException {
     JavaFxUtil.assertBackgroundThread();
 
-    try (QDataInputStream dataInput = new QDataInputStream(new DataInputStream(new BufferedInputStream(socket.getInputStream())))) {
-      this.dataInput = dataInput;
-      while (!stopped && !socket.isInputShutdown()) {
-        dataInput.skipBlockSize();
-        String message = dataInput.readQString();
+    dataInput = new QDataInputStream(new DataInputStream(new BufferedInputStream(socket.getInputStream())));
+    while (!stopped && !socket.isInputShutdown()) {
+      dataInput.skipBlockSize();
+      String message = dataInput.readQString();
 
-        logger.debug("Message from server: {}", message);
+      logger.debug("Message from server: {}", message);
 
-        onServerMessage(message);
-      }
+      onServerMessage(message);
     }
 
     logger.info("Connection to server {} has been closed", socket.getRemoteSocketAddress());
@@ -50,5 +50,11 @@ public abstract class AbstractServerAccessor {
 
   protected String readNextString() throws IOException {
     return dataInput.readQString();
+  }
+
+  @PreDestroy
+  void close() throws IOException {
+    stopped = true;
+    IOUtils.closeQuietly(dataInput);
   }
 }

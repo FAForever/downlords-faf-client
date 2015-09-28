@@ -8,6 +8,10 @@ public class GameLaunchInfo extends ServerMessage {
   private int uid;
   private String mod;
 
+  public GameLaunchInfo() {
+    super(ServerMessageType.GAME_LAUNCH);
+  }
+
   /**
    * Stores game launch arguments, like "/ratingcolor d8d8d8d8 /numgames 236".
    */

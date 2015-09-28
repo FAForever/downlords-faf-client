@@ -2,10 +2,11 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.stats.PlayerStatistics;
-import com.faforever.client.util.Callback;
+
+import java.util.concurrent.CompletableFuture;
 
 public interface StatisticsServerAccessor {
 
-  void requestPlayerStatistics(String username, Callback<PlayerStatistics> callback, StatisticsType type);
+  CompletableFuture<PlayerStatistics> requestPlayerStatistics(String username, StatisticsType type);
 
 }

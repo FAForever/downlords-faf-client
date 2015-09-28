@@ -8,13 +8,13 @@ public class NewGameInfo {
   private String password;
   private String mod;
   private String map;
-  private int version;
+  private Integer version;
   private Set<String> simMods;
 
   public NewGameInfo() {
   }
 
-  public NewGameInfo(String title, String password, String mod, String map, int version, Set<String> simMods) {
+  public NewGameInfo(String title, String password, String mod, String map, Integer version, Set<String> simMods) {
     this.title = title;
     this.password = password;
     this.mod = mod;
@@ -55,11 +55,11 @@ public class NewGameInfo {
     this.map = map;
   }
 
-  public int getVersion() {
+  public Integer getVersion() {
     return version;
   }
 
-  public void setVersion(int version) {
+  public void setVersion(Integer version) {
     this.version = version;
   }
 

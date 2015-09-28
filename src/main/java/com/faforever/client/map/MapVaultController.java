@@ -2,7 +2,6 @@ package com.faforever.client.map;
 
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.game.MapSize;
-import com.faforever.client.util.Callback;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -14,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.invoke.MethodHandles;
-import java.util.List;
 
 public class MapVaultController {
 
@@ -75,16 +73,11 @@ public class MapVaultController {
 
   public void setUpIfNecessary() {
     // FIXME test code so far
-    mapService.readMapVaultInBackground(0, 100, new Callback<List<MapInfoBean>>() {
-      @Override
-      public void success(List<MapInfoBean> result) {
-        mapTableView.setItems(FXCollections.observableList(result));
-      }
-
-      @Override
-      public void error(Throwable e) {
-        logger.warn("Failed", e);
-      }
-    });
+    mapService.readMapVaultInBackground(0, 100)
+        .thenAccept(mapInfoBeans -> mapTableView.setItems(FXCollections.observableList(mapInfoBeans)))
+        .exceptionally(throwable -> {
+          logger.warn("Failed", throwable);
+          return null;
+        });
   }
 }

@@ -1,6 +1,7 @@
 package com.faforever.client.fa;
 
 import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.game.Faction;
 import com.faforever.client.legacy.relay.LocalRelayServer;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -30,22 +31,36 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   LocalRelayServer localRelayServer;
 
   @Override
-  public Process startGame(int uid, String mod, List<String> additionalArgs) throws IOException {
+  public Process startGame(int uid, @NotNull String gameType, @Nullable Faction faction, @Nullable List<String> additionalArgs, RatingMode ratingMode) throws IOException {
     Path executable = getExecutable();
 
     PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
 
+    float deviation;
+    float mean;
+
+    switch (ratingMode) {
+      case RANKED_1V1:
+        deviation = currentPlayer.getLeaderboardRatingDeviation();
+        mean = currentPlayer.getLeaderboardRatingMean();
+        break;
+      default:
+        deviation = currentPlayer.getGlobalRatingDeviation();
+        mean = currentPlayer.getGlobalRatingMean();
+    }
+
     List<String> launchCommand = LaunchCommandBuilder.create()
         .executable(executable)
+        .gameType(gameType)
         .uid(uid)
+        .faction(faction)
         .clan(currentPlayer.getClan())
         .country(currentPlayer.getCountry())
-        .deviation(currentPlayer.getGlobalRatingDeviation())
-        .mean(currentPlayer.getGlobalRatingMean())
+        .deviation(deviation)
+        .mean(mean)
         .username(currentPlayer.getUsername())
         .additionalArgs(additionalArgs)
-            // FIXME fix the path
-        .logFile(preferencesService.getFafDataDirectory().resolve("logs/game.log"))
+        .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
         .localGpgPort(localRelayServer.getPort())
         .build();
 

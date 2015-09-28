@@ -10,11 +10,7 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.task.PrioritizedTask;
-import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.ByteCopier;
-import com.faforever.client.util.Callback;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.primitives.Bytes;
@@ -22,17 +18,13 @@ import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 import java.awt.Desktop;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -50,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.Collections.emptyMap;
@@ -68,7 +61,6 @@ public class ReplayServiceImpl implements ReplayService {
   private static final String FAF_LIFE_PROTOCOL = "faflive";
   private static final String GPGNET_SCHEME = "gpgnet";
   private static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
-  private static final String TEMP_FAF_REPLAY_FILE_NAME = "temp.fafreplay";
 
   @Autowired
   Environment environment;
@@ -96,6 +88,9 @@ public class ReplayServiceImpl implements ReplayService {
 
   @Autowired
   ReplayServerAccessor replayServerAccessor;
+
+  @Autowired
+  ApplicationContext applicationContext;
 
   boolean urlFactoryHasBeenSet = false;
 
@@ -153,8 +148,8 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public void getOnlineReplays(Callback<List<ReplayInfoBean>> callback) {
-    replayServerAccessor.requestOnlineReplays(callback);
+  public CompletableFuture<List<ReplayInfoBean>> getOnlineReplays() {
+    return replayServerAccessor.requestOnlineReplays();
   }
 
   @Override
@@ -229,104 +224,23 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   private void runOnlineReplay(int replayId) {
-    downloadReplayToTemporaryDirectory(replayId, new Callback<Path>() {
-      @Override
-      public void success(Path replayFile) {
-        runReplayFile(replayFile);
-      }
+    downloadReplayToTemporaryDirectory(replayId)
+        .thenAccept(replayFile -> runReplayFile(replayFile))
+        .exceptionally(throwable -> {
+          notificationService.addNotification(new PersistentNotification(
+              i18n.get("replayCouldNotBeDownloaded", replayId),
+              Severity.ERROR,
+              Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(throwable)))
+          ));
 
-      @Override
-      public void error(Throwable e) {
-        notificationService.addNotification(new PersistentNotification(
-            i18n.get("replayCouldNotBeDownloaded", replayId),
-            Severity.ERROR,
-            Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(e)))
-        ));
-      }
-    });
+          return null;
+        });
   }
 
-  private void downloadReplayToTemporaryDirectory(int replayId, Callback<Path> callback) {
-    String taskTitle = i18n.get("mapReplayTask.title", replayId);
-
-    taskService.submitTask(TaskGroup.NET_HEAVY, new PrioritizedTask<Path>(taskTitle) {
-      @Override
-      protected Path call() throws Exception {
-        String replayUrl = getReplayUrl(replayId, environment.getProperty("vault.replayDownloadUrl"));
-
-        logger.info("Downloading replay {} from {}", replayId, replayUrl);
-
-        HttpURLConnection urlConnection = (HttpURLConnection) new URL(replayUrl).openConnection();
-        int bytesToRead = urlConnection.getContentLength();
-
-        Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_FAF_REPLAY_FILE_NAME);
-
-        Files.createDirectories(tempSupComReplayFile.getParent());
-
-        try (InputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
-             OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(tempSupComReplayFile))) {
-
-          ByteCopier.from(inputStream)
-              .to(outputStream)
-              .totalBytes(bytesToRead)
-              .listener(this::updateProgress)
-              .copy();
-
-          return tempSupComReplayFile;
-        }
-      }
-    }, callback);
-  }
-
-  private void runReplayFile(Path path) {
-    try {
-      String fileName = path.getFileName().toString();
-      if (fileName.endsWith(FAF_REPLAY_FILE_ENDING)) {
-        runFafReplayFile(path);
-      } else if (fileName.endsWith(SUP_COM_REPLAY_FILE_ENDING)) {
-        runSupComReplayFile(path);
-      }
-    } catch (IOException e) {
-      logger.warn("Replay could not be started", e);
-      notificationService.addNotification(new PersistentNotification(
-          i18n.get("replayCouldNotBeStarted.text", path.getFileName()),
-          Severity.WARN,
-          Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(e)))
-      ));
-    }
-  }
-
-  private String getReplayUrl(int replayId, String baseUrl) {
-    return String.format(baseUrl, replayId);
-  }
-
-  private void runFafReplayFile(Path path) throws IOException {
-    byte[] rawReplayBytes = replayFileReader.readReplayData(path);
-
-    Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
-
-    Files.createDirectories(tempSupComReplayFile.getParent());
-    Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
-
-    LocalReplayInfo replayInfo = replayFileReader.readReplayInfo(path);
-    String gameType = replayInfo.getFeaturedMod();
-    Integer replayId = replayInfo.getUid();
-    Map<String, Integer> modVersions = replayInfo.getFeaturedModVersions();
-    Set<String> simMods = replayInfo.getSimMods().keySet();
-
-    Integer version = parseSupComVersion(rawReplayBytes);
-
-    gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods);
-  }
-
-  private void runSupComReplayFile(Path path) throws IOException {
-    byte[] rawReplayBytes = replayFileReader.readReplayData(path);
-
-    Integer version = parseSupComVersion(rawReplayBytes);
-    String fileName = path.getFileName().toString();
-    String gameType = guessModByFileName(fileName);
-
-    gameService.runWithReplay(path, null, gameType, version, emptyMap(), emptySet());
+  private CompletableFuture<Path> downloadReplayToTemporaryDirectory(int replayId) {
+    ReplayDownloadTask task = applicationContext.getBean(ReplayDownloadTask.class);
+    task.setReplayId(replayId);
+    return taskService.submitTask(task);
   }
 
   @VisibleForTesting

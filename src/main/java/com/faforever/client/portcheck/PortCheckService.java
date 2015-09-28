@@ -1,8 +1,9 @@
 package com.faforever.client.portcheck;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface PortCheckService {
 
-  void checkGamePortInBackground();
+  CompletableFuture<Boolean> checkGamePortInBackground();
 
-  void addGamePortCheckListener(GamePortCheckListener listener);
 }

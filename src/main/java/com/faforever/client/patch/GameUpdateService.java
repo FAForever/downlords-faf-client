@@ -13,7 +13,7 @@ public interface GameUpdateService {
    */
   CompletableFuture<Void> updateInBackground(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUids);
 
-  void checkForUpdateInBackground();
+  CompletableFuture<Void> checkForUpdateInBackground();
 
 
 }

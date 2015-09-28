@@ -11,8 +11,8 @@ public class HostGameMessage extends ClientMessage {
   private Integer version;
   private String password;
 
-  public HostGameMessage(GameAccess gameAccess, String mapName, String title, int port, boolean[] options, String mod, String password, int version) {
-    this.setCommand(ClientMessageType.HOST_GAME);
+  public HostGameMessage(GameAccess gameAccess, String mapName, String title, int port, boolean[] options, String mod, String password, Integer version) {
+    super(ClientMessageType.HOST_GAME);
     this.setAccess(gameAccess);
     this.setPassword(password);
     this.setVersion(version);

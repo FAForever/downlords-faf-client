@@ -1,5 +1,6 @@
 package com.faforever.client.fa;
 
+import com.faforever.client.game.Faction;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -13,7 +14,7 @@ import java.util.List;
  */
 public interface ForgedAllianceService {
 
-  Process startGame(int uid, String mod, List<String> additionalArgs) throws IOException;
+  Process startGame(int uid, String gameType, Faction faction, List<String> additionalArgs, RatingMode ratingMode) throws IOException;
 
   Process startReplay(Path path, @Nullable Integer replayId) throws IOException;
 

@@ -13,7 +13,6 @@ import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.stats.StatisticsMessage;
-import com.faforever.client.util.Callback;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -25,12 +24,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.legacy.domain.ServerMessageType.STATS;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
@@ -41,8 +42,9 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   private final Gson gson;
   @Autowired
   Environment environment;
-  private Callback<PlayerStatistics> playerStatisticsCallback;
+  private CompletableFuture<PlayerStatistics> playerStatisticsCallback;
   private ServerWriter serverWriter;
+  private Task<Void> connectionTask;
 
   public StatisticsServerAccessorImpl() {
     gson = new GsonBuilder()
@@ -55,14 +57,16 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   }
 
   @Override
-  public void requestPlayerStatistics(String username, Callback<PlayerStatistics> callback, StatisticsType type) {
+  public CompletableFuture<PlayerStatistics> requestPlayerStatistics(String username, StatisticsType type) {
     // FIXME this is not safe (as well aren't similar implementations in other accessors)
-    playerStatisticsCallback = callback;
+    playerStatisticsCallback = new CompletableFuture<>();
+
     writeToServer(new AskPlayerStatsDaysMessage(username, type));
+    return playerStatisticsCallback;
   }
 
   private void writeToServer(ClientMessage clientMessage) {
-    Task<Void> connectionTask = new Task<Void>() {
+    connectionTask = new Task<Void>() {
       Socket serverSocket;
 
       @Override
@@ -155,9 +159,16 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   private void onPlayerStats(PlayerStatistics playerStatistics) {
     Platform.runLater(() -> {
       if (playerStatisticsCallback != null) {
-        playerStatisticsCallback.success(playerStatistics);
+        playerStatisticsCallback.complete(playerStatistics);
         playerStatisticsCallback = null;
       }
     });
+  }
+
+  @PreDestroy
+  void disconnect() {
+    if (connectionTask != null) {
+      connectionTask.cancel(true);
+    }
   }
 }

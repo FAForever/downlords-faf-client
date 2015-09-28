@@ -11,7 +11,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ByteCopier;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.util.TimeService;
 import com.google.common.base.Joiner;
@@ -269,18 +268,13 @@ public abstract class AbstractChatTabController {
     Clipboard clipboard = Clipboard.getSystemClipboard();
     Image image = clipboard.getImage();
 
-    imageUploadService.uploadImageInBackground(image, new Callback<String>() {
-      @Override
-      public void success(String url) {
-        messageTextField.insertText(currentCaretPosition, url);
-        messageTextField.setDisable(false);
-        messageTextField.requestFocus();
-      }
-
-      @Override
-      public void error(Throwable e) {
-        messageTextField.setDisable(false);
-      }
+    imageUploadService.uploadImageInBackground(image).thenAccept(url -> {
+      messageTextField.insertText(currentCaretPosition, url);
+      messageTextField.setDisable(false);
+      messageTextField.requestFocus();
+    }).exceptionally(throwable -> {
+      messageTextField.setDisable(false);
+      return null;
     });
   }
 
@@ -469,43 +463,34 @@ public abstract class AbstractChatTabController {
     messageTextField.setDisable(true);
 
     final String text = messageTextField.getText();
-    chatService.sendMessageInBackground(receiver, text, new Callback<String>() {
-      @Override
-      public void success(String message) {
-        messageTextField.clear();
-        messageTextField.setDisable(false);
-        messageTextField.requestFocus();
-        onChatMessage(new ChatMessage(Instant.now(), userService.getUsername(), message));
-      }
-
-      @Override
-      public void error(Throwable e) {
-        // TODO display error to user somehow
-        logger.warn("Message could not be sent: {}", text, e);
-        messageTextField.setDisable(false);
-        messageTextField.requestFocus();
-      }
+    chatService.sendMessageInBackground(receiver, text).thenAccept(message -> {
+      messageTextField.clear();
+      messageTextField.setDisable(false);
+      messageTextField.requestFocus();
+      onChatMessage(new ChatMessage(Instant.now(), userService.getUsername(), message));
+    }).exceptionally(throwable -> {
+      // TODO display error to user somehow
+      logger.warn("Message could not be sent: {}", text, throwable);
+      messageTextField.setDisable(false);
+      messageTextField.requestFocus();
+      return null;
     });
   }
 
   private void sendAction(final TextInputControl messageTextField, final String text) {
     messageTextField.setDisable(true);
 
-    chatService.sendActionInBackground(receiver, text.replaceFirst(Pattern.quote(ACTION_PREFIX), ""), new Callback<String>() {
-      @Override
-      public void success(String message) {
-        messageTextField.clear();
-        messageTextField.setDisable(false);
-        messageTextField.requestFocus();
-        onChatMessage(new ChatMessage(Instant.now(), userService.getUsername(), message, true));
-      }
-
-      @Override
-      public void error(Throwable e) {
-        // TODO display error to user somehow
-        logger.warn("Message could not be sent: {}", text, e);
-        messageTextField.setDisable(false);
-      }
+    chatService.sendActionInBackground(receiver, text.replaceFirst(Pattern.quote(ACTION_PREFIX), ""))
+        .thenAccept(message -> {
+          messageTextField.clear();
+          messageTextField.setDisable(false);
+          messageTextField.requestFocus();
+          onChatMessage(new ChatMessage(Instant.now(), userService.getUsername(), message, true));
+        }).exceptionally(throwable -> {
+      // TODO display error to user somehow
+      logger.warn("Message could not be sent: {}", text, throwable);
+      messageTextField.setDisable(false);
+      return null;
     });
   }
 

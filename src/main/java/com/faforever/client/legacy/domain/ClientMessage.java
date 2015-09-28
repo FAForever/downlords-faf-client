@@ -5,15 +5,14 @@ import java.util.Collections;
 
 public class ClientMessage implements SerializableMessage {
 
-  private String action;
   private ClientMessageType command;
+
+  protected ClientMessage(ClientMessageType command) {
+    this.command = command;
+  }
 
   public Collection<String> getStringsToMask() {
     return Collections.emptyList();
-  }
-
-  public String getAction() {
-    return action;
   }
 
   public ClientMessageType getCommand() {

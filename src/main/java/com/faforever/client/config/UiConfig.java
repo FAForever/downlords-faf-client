@@ -56,6 +56,7 @@ import com.faforever.client.notification.ImmediateNotificationController;
 import com.faforever.client.notification.PersistentNotificationController;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.preferences.SettingsController;
+import com.faforever.client.rankedmatch.Ranked1v1Controller;
 import com.faforever.client.replay.ReplayVaultController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -111,6 +112,11 @@ public class UiConfig {
   @Bean
   GamesController gamesController() {
     return loadController("games.fxml");
+  }
+
+  @Bean
+  Ranked1v1Controller ranked1v1Controller() {
+    return loadController("ranked_1v1.fxml");
   }
 
   @Bean

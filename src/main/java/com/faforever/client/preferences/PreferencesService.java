@@ -1,6 +1,8 @@
 package com.faforever.client.preferences;
 
+import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.legacy.gson.FactionTypeAdapter;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -8,7 +10,6 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.gson.ColorTypeAdapter;
 import com.faforever.client.preferences.gson.PathTypeAdapter;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.OperatingSystem;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -110,6 +111,7 @@ public class PreferencesService {
         .registerTypeHierarchyAdapter(Property.class, new PropertyTypeAdapter())
         .registerTypeHierarchyAdapter(Path.class, new PathTypeAdapter())
         .registerTypeHierarchyAdapter(Color.class, new ColorTypeAdapter())
+        .registerTypeAdapter(Faction.class, new FactionTypeAdapter())
         .create();
   }
 
@@ -163,21 +165,16 @@ public class PreferencesService {
       throw new IllegalStateException("No listener has been specified");
     }
 
-    onChoseGameDirectoryListener.onChoseGameDirectory(new Callback<Path>() {
-      @Override
-      public void success(Path result) {
-        boolean isPathValid = storeGamePathIfValid(result);
+    onChoseGameDirectoryListener.onChoseGameDirectory().thenAccept(path -> {
+      boolean isPathValid = storeGamePathIfValid(path);
 
-        if (!isPathValid) {
-          logger.info("User specified game path does not seem to be valid: {}", result);
-          notifyMissingGamePath();
-        }
+      if (!isPathValid) {
+        logger.info("User specified game path does not seem to be valid: {}", path);
+        notifyMissingGamePath();
       }
-
-      @Override
-      public void error(Throwable e) {
-        throw new IllegalStateException("Unexpected exception", e);
-      }
+    }).exceptionally(throwable -> {
+      logger.warn("Unexpected exception", throwable);
+      return null;
     });
   }
 
@@ -224,10 +221,6 @@ public class PreferencesService {
 
   public Path getFafReposDirectory() {
     return getFafDataDirectory().resolve("repos");
-  }
-
-  public Path getFafGameDataDirectory() {
-    return getFafDataDirectory().resolve("gamedata");
   }
 
   private void initDefaultPreferences() {
@@ -319,6 +312,10 @@ public class PreferencesService {
 
   public Path getCacheDirectory() {
     return getFafDataDirectory().resolve(CACHE_SUB_FOLDER);
+  }
+
+  public Path getFafLogDirectory() {
+    return getFafDataDirectory().resolve("log");
   }
 
   public static void configureLogging() {

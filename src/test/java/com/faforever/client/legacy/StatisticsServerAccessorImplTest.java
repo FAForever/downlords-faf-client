@@ -13,7 +13,6 @@ import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.stats.StatisticsMessage;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.util.Callback;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.compress.utils.IOUtils;
@@ -40,12 +39,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
@@ -120,18 +115,8 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testRequestPlayerStatistics() throws Exception {
-    CompletableFuture<PlayerStatistics> playerStatisticsFuture = new CompletableFuture<>();
-
-    @SuppressWarnings("unchecked")
-    Callback<PlayerStatistics> callback = mock(Callback.class);
-    doAnswer(invocation -> {
-      playerStatisticsFuture.complete(invocation.getArgumentAt(0, PlayerStatistics.class));
-      return null;
-    }).when(callback).success(any());
-
-
     String username = "junit";
-    instance.requestPlayerStatistics(username, callback, StatisticsType.GLOBAL_90_DAYS);
+    CompletableFuture<PlayerStatistics> future = instance.requestPlayerStatistics(username, StatisticsType.GLOBAL_90_DAYS);
 
     PlayerStatistics playerStatistics = new PlayerStatistics();
     playerStatistics.setPlayer(username);
@@ -143,9 +128,8 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
     ClientMessage clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(clientMessage.getCommand(), is(ClientMessageType.STATISTICS));
-    assertThat(clientMessage.getAction(), nullValue());
 
-    PlayerStatistics result = playerStatisticsFuture.get(TIMEOUT, TIMEOUT_UNIT);
+    PlayerStatistics result = future.get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(result.getValues(), hasSize(2));
     assertThat(result.getStatisticsType(), is(StatisticsType.GLOBAL_90_DAYS));

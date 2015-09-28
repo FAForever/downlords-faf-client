@@ -11,4 +11,10 @@ public final class Assert {
       throw new NullPointerException(message);
     }
   }
+
+  public static void checkNullIllegalState(Object object, String message) {
+    if (object == null) {
+      throw new IllegalStateException(message);
+    }
+  }
 }

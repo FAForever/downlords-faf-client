@@ -1,5 +1,6 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -20,6 +21,7 @@ import com.faforever.client.legacy.domain.InitSessionMessage;
 import com.faforever.client.legacy.domain.JoinGameMessage;
 import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.legacy.domain.Ranked1v1SearchExpansionMessage;
 import com.faforever.client.legacy.domain.ServerCommand;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
@@ -36,9 +38,12 @@ import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
+import com.faforever.client.rankedmatch.RankedMatchNotification;
+import com.faforever.client.rankedmatch.SearchRanked1v1Message;
+import com.faforever.client.rankedmatch.StopSearchRanked1v1Message;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.Callback;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -53,6 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
@@ -65,7 +71,7 @@ import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.OFF;
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.ON;
-import static com.faforever.client.task.TaskGroup.NET_LIGHT;
+import static com.faforever.client.task.AbstractPrioritizedTask.Priority.MEDIUM;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
 public class LobbyServerAccessorImpl extends AbstractServerAccessor implements LobbyServerAccessor {
@@ -96,8 +102,9 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private String password;
   private String localIp;
   private ServerWriter serverWriter;
-  private Callback<SessionInfo> loginCallback;
+  private CompletableFuture<SessionInfo> loginFuture;
   private CompletableFuture<GameLaunchInfo> gameLaunchFuture;
+  private Collection<OnRankedMatchNotificationListener> onRankedMatchNotificationListeners;
   // Yes I know, those aren't lists. They will become if it's necessary
   private OnLobbyConnectingListener onLobbyConnectingListener;
   private OnFafDisconnectedListener onFafDisconnectedListener;
@@ -111,6 +118,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     onGameTypeInfoListeners = new ArrayList<>();
     onJoinChannelsRequestListeners = new ArrayList<>();
     onGameLaunchListeners = new ArrayList<>();
+    onRankedMatchNotificationListeners = new ArrayList<>();
     sessionId = new SimpleStringProperty();
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
@@ -124,8 +132,8 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void connectAndLogInInBackground(Callback<SessionInfo> callback) {
-    loginCallback = callback;
+  public CompletableFuture<SessionInfo> connectAndLogInInBackground() {
+    loginFuture = new CompletableFuture<>();
 
     LoginPrefs login = preferencesService.getPreferences().getLogin();
     username = login.getUsername();
@@ -155,16 +163,16 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
             fafServerSocket.setKeepAlive(true);
 
-            logger.info("FAF server connection established");
-            if (onLobbyConnectedListener != null) {
-              Platform.runLater(onLobbyConnectedListener::onFaConnected);
-            }
-
             localIp = fafServerSocket.getLocalAddress().getHostAddress();
 
             serverWriter = createServerWriter(outputStream);
 
             writeToServer(new InitSessionMessage());
+
+            logger.info("FAF server connection established");
+            if (onLobbyConnectedListener != null) {
+              Platform.runLater(onLobbyConnectedListener::onFaConnected);
+            }
 
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
@@ -196,6 +204,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
       }
     };
     executeInBackground(fafConnectionTask);
+    return loginFuture;
   }
 
   private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
@@ -296,8 +305,9 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
+  @PreDestroy
   public void disconnect() {
-    fafConnectionTask.cancel();
+    fafConnectionTask.cancel(true);
   }
 
   @Override
@@ -306,13 +316,15 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void requestLadderInfoInBackground(Callback<List<LeaderboardEntryBean>> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<List<LeaderboardEntryBean>>(i18n.get("readLadderTask.title")) {
+  public CompletableFuture<List<LeaderboardEntryBean>> requestLeaderboardEntries() {
+    return taskService.submitTask(new AbstractPrioritizedTask<List<LeaderboardEntryBean>>(MEDIUM) {
       @Override
       protected List<LeaderboardEntryBean> call() throws Exception {
+        updateTitle(i18n.get("readLadderTask.title"));
+        // TODO move this to leaderboard service
         return leaderboardParser.parseLadder();
       }
-    }, callback);
+    });
   }
 
   @Override
@@ -333,6 +345,28 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   @Override
   public void addOnGameLaunchListener(OnGameLaunchInfoListener listener) {
     onGameLaunchListeners.add(listener);
+  }
+
+  @Override
+  public void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener) {
+    onRankedMatchNotificationListeners.add(listener);
+  }
+
+  @Override
+  public CompletableFuture<GameLaunchInfo> startSearchRanked1v1(Faction faction, int gamePort) {
+    gameLaunchFuture = new CompletableFuture<>();
+    writeToServer(new SearchRanked1v1Message(gamePort, faction));
+    return gameLaunchFuture;
+  }
+
+  @Override
+  public void stopSearchingRanked() {
+    writeToServer(new StopSearchRanked1v1Message());
+  }
+
+  @Override
+  public void expand1v1Search(float radius) {
+    writeToServer(new Ranked1v1SearchExpansionMessage(radius));
   }
 
   public void onServerMessage(String message) throws IOException {
@@ -422,7 +456,8 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           break;
 
         case MATCHMAKER_INFO:
-          logger.warn("Matchmaker info still unhandled: " + jsonString);
+          RankedMatchNotification rankedMatchNotification = gson.fromJson(jsonString, RankedMatchNotification.class);
+          onRankedMatchInfo(rankedMatchNotification);
           break;
 
         case SOCIAL:
@@ -454,28 +489,29 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     logger.info("FAF login succeeded");
 
     Platform.runLater(() -> {
-      if (loginCallback != null) {
-        loginCallback.success(sessionInfo);
-        loginCallback = null;
+      if (loginFuture != null) {
+        loginFuture.complete(sessionInfo);
+        loginFuture = null;
       }
     });
   }
 
   private void onGameInfo(GameInfo gameInfo) {
-    for (OnGameInfoListener listener : onGameInfoListeners) {
-      Platform.runLater(() -> listener.onGameInfo(gameInfo));
-    }
+    onGameInfoListeners.forEach(listener -> listener.onGameInfo(gameInfo));
   }
 
   private void onGameLaunchInfo(GameLaunchInfo gameLaunchInfo) {
     onGameLaunchListeners.forEach(listener -> listener.onGameLaunchInfo(gameLaunchInfo));
     gameLaunchFuture.complete(gameLaunchInfo);
+    gameLaunchFuture = null;
   }
 
   private void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
-    for (OnGameTypeInfoListener listener : onGameTypeInfoListeners) {
-      Platform.runLater(() -> listener.onGameTypeInfo(gameTypeInfo));
-    }
+    onGameTypeInfoListeners.forEach(listener -> listener.onGameTypeInfo(gameTypeInfo));
+  }
+
+  private void onRankedMatchInfo(RankedMatchNotification gameTypeInfo) {
+    onRankedMatchNotificationListeners.forEach(listener -> listener.onRankedMatchInfo(gameTypeInfo));
   }
 
   private void dispatchSocialInfo(SocialInfo socialInfo) {
