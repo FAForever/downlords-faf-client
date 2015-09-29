@@ -71,13 +71,13 @@ import static org.mockito.Mockito.when;
 public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   public static final String CHAT_USER_NAME = "junit";
+  public static final String CHAT_PASSWORD = "123";
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final String DEFAULT_CHANNEL_NAME = "#defaultChannel";
   private static final String OTHER_CHANNEL_NAME = "#otherChannel";
   private static final int IRC_SERVER_PORT = 123;
-
   private PircBotXChatService instance;
 
   private ChatUser chatUser1;
@@ -151,6 +151,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     botShutdownLatch = new CountDownLatch(1);
 
     when(userService.getUsername()).thenReturn(CHAT_USER_NAME);
+    when(userService.getPassword()).thenReturn(CHAT_PASSWORD);
 
     when(user1.getNick()).thenReturn(chatUser1.getUsername());
     when(user1.getChannels()).thenReturn(ImmutableSortedSet.of(defaultChannel));
@@ -567,10 +568,22 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testJoinChannel() throws Exception {
+    CountDownLatch connectedLatch = new CountDownLatch(1);
+    String channelToJoin = "#anotherChannel";
+    doAnswer(invocation -> {
+      connectedLatch.countDown();
+      return null;
+    }).when(outputIrc).joinChannel(DEFAULT_CHANNEL_NAME);
+    when(taskService.submitTask(any())).thenReturn(CompletableFuture.completedFuture(null));
     instance.connect();
-    instance.joinChannel(DEFAULT_CHANNEL_NAME);
+    instance.onConnected();
+
+    connectedLatch.await();
+
+    instance.joinChannel(channelToJoin);
 
     verify(outputIrc).joinChannel(DEFAULT_CHANNEL_NAME);
+    verify(outputIrc).joinChannel(channelToJoin);
   }
 
   @Test
@@ -613,6 +626,10 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     verify(outputIrc).message("NICKSERV", String.format("IDENTIFY %s", md5Password));
 
     assertTrue("Channel has not been joined within timeout", latch.await(TIMEOUT, TIMEOUT_UNIT));
+  }
+
+  private String asdf() {
+    return null;
   }
 
   @Test

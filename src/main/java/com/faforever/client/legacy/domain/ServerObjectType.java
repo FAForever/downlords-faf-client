@@ -16,11 +16,6 @@ public enum ServerObjectType {
   STATS("stats");
 
   private static final Map<String, ServerObjectType> fromString;
-  private String string;
-
-  ServerObjectType(String string) {
-    this.string = string;
-  }
 
   static {
     fromString = new HashMap<>(values().length, 1);
@@ -29,11 +24,17 @@ public enum ServerObjectType {
     }
   }
 
-  public static ServerObjectType fromString(String string) {
-    return fromString.get(string);
+  private String string;
+
+  ServerObjectType(String string) {
+    this.string = string;
   }
 
   public String getString() {
     return string;
+  }
+
+  public static ServerObjectType fromString(String string) {
+    return fromString.get(string);
   }
 }

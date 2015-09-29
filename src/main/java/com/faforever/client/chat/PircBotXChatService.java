@@ -196,44 +196,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  public void onConnected() {
-    Callback<String> callback = new Callback<String>() {
-      @Override
-      public void success(String message) {
-        pircBotX.sendIRC().joinChannel(defaultChannelName);
-        ircConnectedLatch.countDown();
-      }
-
-      @Override
-      public void error(Throwable e) {
-        throw new RuntimeException(e);
-      }
-    };
-
-    sendMessageInBackground("NICKSERV",
-        format("REGISTER %s %s", md5Hex(userService.getPassword()), userService.getEmail()),
-        new Callback<String>() {
-          @Override
-          public void success(String result) {
-            sendMessageInBackground("NICKSERV", "IDENTIFY " + md5Hex(userService.getPassword()), callback);
-          }
-
-          @Override
-          public void error(Throwable e) {
-            callback.error(e);
-          }
-        }
-    );
-  }
-
-  @Override
-  public void onDisconnected(Exception e) {
-    synchronized (chatUserLists) {
-      chatUserLists.values().forEach(ObservableMap::clear);
-    }
-  }
-
-  @Override
   public void onModeratorSet(String channelName, String username) {
     ChatUser chatUser = getChatUsersForChannel(channelName).get(username);
     if (chatUser == null) {
@@ -478,12 +440,32 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
+  public ChatUser createOrGetChatUser(User user) {
+    ChatUser chatUser = getChatUser(user.getNick());
+    if (chatUser != null) {
+      return chatUser;
+    }
+    return ChatUser.fromIrcUser(user);
+  }
+
+  @Override
+  public ImmutableSortedSet<UserLevel> getLevelsForChatUser(Channel channel, String username) {
+    UserChannelDao<User, Channel> userChannelDao = pircBotX.getUserChannelDao();
+    User user = userChannelDao.getUser(username);
+    ImmutableSortedSet<UserLevel> levels = pircBotX.getUserChannelDao().getLevels(channel, user);
+    return levels;
+  }
+
+  @Override
   public void onConnected() {
     sendMessageInBackground(
         "NICKSERV",
         format("REGISTER %s %s", md5Hex(userService.getPassword()), userService.getEmail())
     ).thenAccept(s -> sendMessageInBackground("NICKSERV", "IDENTIFY " + md5Hex(userService.getPassword()))
-            .thenAccept(s1 -> pircBotX.sendIRC().joinChannel(defaultChannelName))
+            .thenAccept(s1 -> {
+              ircConnectedLatch.countDown();
+              pircBotX.sendIRC().joinChannel(defaultChannelName);
+            })
             .exceptionally(throwable -> {
               notificationService.addNotification(
                   new PersistentNotification(i18n.get("irc.identificationFailed", throwable.getLocalizedMessage()), Severity.WARN)
@@ -503,23 +485,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     synchronized (chatUserLists) {
       chatUserLists.values().forEach(ObservableMap::clear);
     }
-  }
-
-  @Override
-  public ChatUser createOrGetChatUser(User user) {
-    ChatUser chatUser = getChatUser(user.getNick());
-    if (chatUser != null) {
-      return chatUser;
-    }
-    return ChatUser.fromIrcUser(user);
-  }
-
-  @Override
-  public ImmutableSortedSet<UserLevel> getLevelsForChatUser(Channel channel, String username) {
-    UserChannelDao<User, Channel> userChannelDao = pircBotX.getUserChannelDao();
-    User user = userChannelDao.getUser(username);
-    ImmutableSortedSet<UserLevel> levels = pircBotX.getUserChannelDao().getLevels(channel, user);
-    return levels;
   }
 
 }

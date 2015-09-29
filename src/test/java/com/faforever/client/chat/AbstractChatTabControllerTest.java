@@ -10,6 +10,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.OperatingSystem;
 import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Worker;
@@ -50,6 +51,7 @@ import static org.mockito.Mockito.when;
 
 public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
+  private static final long TIMEOUT = 5000;
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
@@ -102,11 +104,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
       private final TextInputControl messageTextField = new TextField();
 
       @Override
-      protected WebView getMessagesWebView() {
-        return webView;
-      }
-
-      @Override
       public Tab getRoot() {
         return root;
       }
@@ -114,6 +111,11 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
       @Override
       protected TextInputControl getMessageTextField() {
         return messageTextField;
+      }
+
+      @Override
+      protected WebView getMessagesWebView() {
+        return webView;
       }
     };
     instance.chatService = chatService;
@@ -221,7 +223,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
     when(playerCardTooltipController.getRoot()).thenReturn(new Pane());
 
-    WaitForAsyncUtils.waitForAsyncFx(100, () -> instance.playerInfo(playerName));
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> instance.playerInfo(playerName));
 
     verify(playerService).getPlayerForUsername(playerName);
     verify(playerCardTooltipController).setPlayer(eq(playerInfoBean));
@@ -239,7 +241,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
     when(playerCardTooltipController.getRoot()).thenReturn(new Pane());
 
-    WaitForAsyncUtils.waitForAsyncFx(100, () -> {
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       instance.playerInfo(playerName);
       instance.hidePlayerInfo();
     });
@@ -287,7 +289,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     UrlPreviewResolver.Preview preview = mock(UrlPreviewResolver.Preview.class);
     when(urlPreviewResolver.resolvePreview(url)).thenReturn(preview);
 
-    WaitForAsyncUtils.waitForAsyncFx(100, () -> {
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       instance.previewUrl(url);
       instance.hideUrlPreview();
     });
@@ -422,18 +424,27 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPasteImageCtrlV() throws Exception {
+    KeyCode modifier;
+    switch (OperatingSystem.current()) {
+      case MAC:
+        modifier = KeyCode.META;
+        break;
+      default:
+        modifier = KeyCode.CONTROL;
+    }
+
     Image image = new Image(getClass().getResourceAsStream("/images/tray_icon.png"));
 
     String url = "http://www.example.com/fake.png";
     when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));
 
-    WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       ClipboardContent clipboardContent = new ClipboardContent();
       clipboardContent.putImage(image);
       Clipboard.getSystemClipboard().setContent(clipboardContent);
 
       instance.getMessageTextField().getOnKeyReleased().handle(
-          keyEvent(KeyCode.V, singletonList(KeyCode.CONTROL))
+          keyEvent(KeyCode.V, singletonList(modifier))
       );
     });
 
@@ -447,7 +458,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String url = "http://www.example.com/fake.png";
     when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));
 
-    WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       ClipboardContent clipboardContent = new ClipboardContent();
       clipboardContent.putImage(image);
       Clipboard.getSystemClipboard().setContent(clipboardContent);

@@ -243,6 +243,53 @@ public class ReplayServiceImpl implements ReplayService {
     return taskService.submitTask(task);
   }
 
+  private void runReplayFile(Path path) {
+    try {
+      String fileName = path.getFileName().toString();
+      if (fileName.endsWith(FAF_REPLAY_FILE_ENDING)) {
+        runFafReplayFile(path);
+      } else if (fileName.endsWith(SUP_COM_REPLAY_FILE_ENDING)) {
+        runSupComReplayFile(path);
+      }
+    } catch (IOException e) {
+      logger.warn("Replay could not be started", e);
+      notificationService.addNotification(new PersistentNotification(
+          i18n.get("replayCouldNotBeStarted.text", path.getFileName()),
+          Severity.WARN,
+          Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(e)))
+      ));
+    }
+  }
+
+  private void runFafReplayFile(Path path) throws IOException {
+    byte[] rawReplayBytes = replayFileReader.readReplayData(path);
+
+    Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
+
+    Files.createDirectories(tempSupComReplayFile.getParent());
+    Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
+
+    LocalReplayInfo replayInfo = replayFileReader.readReplayInfo(path);
+    String gameType = replayInfo.getFeaturedMod();
+    Integer replayId = replayInfo.getUid();
+    Map<String, Integer> modVersions = replayInfo.getFeaturedModVersions();
+    Set<String> simMods = replayInfo.getSimMods().keySet();
+
+    Integer version = parseSupComVersion(rawReplayBytes);
+
+    gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods);
+  }
+
+  private void runSupComReplayFile(Path path) throws IOException {
+    byte[] rawReplayBytes = replayFileReader.readReplayData(path);
+
+    Integer version = parseSupComVersion(rawReplayBytes);
+    String fileName = path.getFileName().toString();
+    String gameType = guessModByFileName(fileName);
+
+    gameService.runWithReplay(path, null, gameType, version, emptyMap(), emptySet());
+  }
+
   @VisibleForTesting
   static Integer parseSupComVersion(byte[] rawReplayBytes) {
     int versionDelimiterIndex = Bytes.indexOf(rawReplayBytes, (byte) 0x00);

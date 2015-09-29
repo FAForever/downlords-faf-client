@@ -221,7 +221,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @Autowired
   GameService gameService;
-  
+
   @Autowired
   ClientUpdateService clientUpdateService;
 

@@ -40,12 +40,12 @@ import java.util.Set;
 
 public class PropertyTypeAdapter implements JsonSerializer<Property>, JsonDeserializer<Property> {
 
-  private class CustomType implements ParameterizedType{
+  private class CustomType implements ParameterizedType {
 
     private final Class<?> rawType;
     private final Type[] typeArguments;
 
-    public CustomType(Class<?> rawType, Type[] typeArguments){
+    public CustomType(Class<?> rawType, Type[] typeArguments) {
       this.rawType = rawType;
       this.typeArguments = typeArguments;
     }

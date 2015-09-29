@@ -230,19 +230,13 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     return gameTypeBeans.get(gameTypeName);
   }
 
- @Override
+  @Override
   public GameInfoBean getByUid(int uid) {
     GameInfoBean gameInfoBean = uidToGameInfoBean.get(uid);
     if (gameInfoBean == null) {
       logger.warn("Can't find {} in gameInfoBean map", uid);
     }
     return gameInfoBean;
-  }
-
-  @PostConstruct
-  void postConstruct() {
-    lobbyServerAccessor.addOnGameTypeInfoListener(this);
-    lobbyServerAccessor.addOnGameInfoListener(this);
   }
 
   @Override
@@ -354,6 +348,12 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
         return null;
       }
     });
+  }
+
+  @PostConstruct
+  void postConstruct() {
+    lobbyServerAccessor.addOnGameTypeInfoListener(this);
+    lobbyServerAccessor.addOnGameInfoListener(this);
   }
 
   @Override

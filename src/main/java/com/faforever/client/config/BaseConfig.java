@@ -58,7 +58,7 @@ public class BaseConfig {
   }
 
   @PreDestroy
-  void shutdown(){
+  void shutdown() {
     scheduledExecutorService.shutdown();
   }
 }

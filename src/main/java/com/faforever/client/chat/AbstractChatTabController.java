@@ -159,51 +159,10 @@ public abstract class AbstractChatTabController {
     userToColor.put(userService.getUsername(), chatPrefs.getSelfChatColor());
     mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b");
 
-    initChatView();
+    Platform.runLater(this::initChatView);
 
     addFocusListeners();
     addImagePasteListener();
-  }
-
-  private void initChatView() {
-    WebView messagesWebView = getMessagesWebView();
-    JavaFxUtil.configureWebView(messagesWebView, preferencesService);
-
-    messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
-    messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
-      preferencesService.storeInBackground();
-    });
-
-    Double zoom = preferencesService.getPreferences().getChat().getZoom();
-    if (zoom != null) {
-      messagesWebView.setZoom(zoom);
-    }
-
-    engine = messagesWebView.getEngine();
-    ((JSObject) engine.executeScript("window")).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
-    engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
-      if (Worker.State.SUCCEEDED.equals(newValue)) {
-        synchronized (waitingMessages) {
-          waitingMessages.forEach(AbstractChatTabController.this::appendMessage);
-          waitingMessages.clear();
-          isChatReady = true;
-        }
-      }
-    });
-
-    try (InputStream inputStream = CHAT_HTML_RESOURCE.getInputStream()) {
-      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-      ByteCopier.from(inputStream).to(byteArrayOutputStream).copy();
-
-      String chatContainerHtml = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8)
-          .replace("{chat-container-js}", CHAT_JS_RESOURCE.getURL().toExternalForm())
-          .replace("{auto-linker-js}", AUTOLINKER_JS_RESOURCE.getURL().toExternalForm());
-
-      engine.loadContent(chatContainerHtml);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   /**
@@ -248,8 +207,6 @@ public abstract class AbstractChatTabController {
     });
   }
 
-  protected abstract WebView getMessagesWebView();
-
   public abstract Tab getRoot();
 
   protected abstract TextInputControl getMessageTextField();
@@ -277,6 +234,49 @@ public abstract class AbstractChatTabController {
       return null;
     });
   }
+
+  private void initChatView() {
+    WebView messagesWebView = getMessagesWebView();
+    JavaFxUtil.configureWebView(messagesWebView, preferencesService);
+
+    messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
+    messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
+      preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
+      preferencesService.storeInBackground();
+    });
+
+    Double zoom = preferencesService.getPreferences().getChat().getZoom();
+    if (zoom != null) {
+      messagesWebView.setZoom(zoom);
+    }
+
+    engine = messagesWebView.getEngine();
+    ((JSObject) engine.executeScript("window")).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
+    engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
+      if (Worker.State.SUCCEEDED.equals(newValue)) {
+        synchronized (waitingMessages) {
+          waitingMessages.forEach(AbstractChatTabController.this::appendMessage);
+          waitingMessages.clear();
+          isChatReady = true;
+        }
+      }
+    });
+
+    try (InputStream inputStream = CHAT_HTML_RESOURCE.getInputStream()) {
+      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+      ByteCopier.from(inputStream).to(byteArrayOutputStream).copy();
+
+      String chatContainerHtml = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8)
+          .replace("{chat-container-js}", CHAT_JS_RESOURCE.getURL().toExternalForm())
+          .replace("{auto-linker-js}", AUTOLINKER_JS_RESOURCE.getURL().toExternalForm());
+
+      engine.loadContent(chatContainerHtml);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  protected abstract WebView getMessagesWebView();
 
   private void resetAutoCompletion() {
     possibleAutoCompletions = null;

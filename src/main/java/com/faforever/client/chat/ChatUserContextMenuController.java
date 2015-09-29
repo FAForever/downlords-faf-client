@@ -10,7 +10,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.util.Callback;
 import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -182,17 +181,11 @@ public class ChatUserContextMenuController {
   @FXML
   void onJoinGame() {
     GameInfoBean gameInfoBean = gameService.getByUid(playerInfoBean.getGameUid());
-    gameService.joinGame(gameInfoBean,null,new Callback<Void>() {
-      @Override
-      public void success(Void result) {
-        // Cool.
-      }
-
-      @Override
-      public void error(Throwable e) {
-        // FIXME implement
-        logger.warn("Game could not be joined", e);
-      }
+    gameService.joinGame(gameInfoBean, null)
+        .exceptionally(throwable -> {
+          // FIXME implement
+          logger.warn("Game could not be joined", throwable);
+          return null;
     });
   }
 }

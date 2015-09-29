@@ -2,7 +2,6 @@ package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
@@ -72,8 +71,6 @@ public class ChannelTabController extends AbstractChatTabController {
   @Autowired
   ApplicationContext applicationContext;
   @Autowired
-  PreferencesService preferencesService;
-  @Autowired
   I18n i18n;
   private String channelName;
 
@@ -117,11 +114,6 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @Override
-  protected WebView getMessagesWebView() {
-    return messagesWebView;
-  }
-
-  @Override
   public Tab getRoot() {
     return channelTabRoot;
   }
@@ -129,6 +121,11 @@ public class ChannelTabController extends AbstractChatTabController {
   @Override
   protected TextInputControl getMessageTextField() {
     return messageTextField;
+  }
+
+  @Override
+  protected WebView getMessagesWebView() {
+    return messagesWebView;
   }
 
   @FXML
