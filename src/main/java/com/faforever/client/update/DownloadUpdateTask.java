@@ -47,7 +47,7 @@ public class DownloadUpdateTask extends AbstractPrioritizedTask<Path> {
 
     try (InputStream inputStream = url.openStream();
          OutputStream outputStream = Files.newOutputStream(tempFile)) {
-      ResourceLocks.aquireDownloadLock();
+      ResourceLocks.acquireDownloadLock();
       ByteCopier.from(inputStream)
           .to(outputStream)
           .totalBytes(updateInfo.getSize())

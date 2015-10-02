@@ -90,7 +90,7 @@ public class GamesTableController {
       if (newValue == null && !gameInfoBeans.isEmpty()) {
         gamesTable.getSelectionModel().select(gameInfoBeans.get(0));
       } else {
-        gamesController.displayGameDetail(newValue);
+        Platform.runLater(() -> gamesController.displayGameDetail(newValue));
       }
     });
 

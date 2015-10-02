@@ -1,7 +1,11 @@
 package com.faforever.client.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.zip.ZipEntry;
@@ -16,6 +20,7 @@ public final class Unzipper {
     void updateBytesWritten(long written, long total);
   }
 
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final ZipInputStream zipInputStream;
   private ByteCountListener byteCountListener;
   private int byteCountInterval;
@@ -51,7 +56,7 @@ public final class Unzipper {
     return this;
   }
 
-  public Unzipper totalBytes(int totalBytes) {
+  public Unzipper totalBytes(long totalBytes) {
     this.totalBytes = totalBytes;
     return this;
   }
@@ -59,26 +64,33 @@ public final class Unzipper {
   public void unzip() throws IOException {
     byte[] buffer = new byte[bufferSize];
 
-    int bytesDone = 0;
+    long bytesDone = 0;
 
     ZipEntry zipEntry;
     while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+      Path targetFile = targetDirectory.resolve(zipEntry.getName());
       if (zipEntry.isDirectory()) {
-        Files.createDirectories(targetDirectory.resolve(zipEntry.getName()));
+        logger.trace("Creating directory {}", targetFile);
+        Files.createDirectories(targetFile);
         continue;
       }
 
-      Path targetFile = targetDirectory.resolve(zipEntry.getName());
-
-      if (Files.notExists(targetFile.getParent())) {
-        Files.createDirectories(targetFile.getParent());
+      Path parentDirectory = targetFile.getParent();
+      if (Files.notExists(parentDirectory)) {
+        logger.trace("Creating directory {}", parentDirectory);
+        Files.createDirectories(parentDirectory);
       }
 
+      long compressedSize = zipEntry.getCompressedSize();
+      if (compressedSize != -1) {
+        bytesDone += compressedSize;
+      }
+
+      logger.trace("Writing file {}", targetFile);
       try (OutputStream outputStream = Files.newOutputStream(targetFile, CREATE)) {
         int length;
         while ((length = zipInputStream.read(buffer)) != -1) {
           outputStream.write(buffer, 0, length);
-          bytesDone += zipEntry.getCompressedSize();
 
           long now = System.currentTimeMillis();
           if (byteCountListener != null && lastCountUpdate < now - byteCountInterval) {

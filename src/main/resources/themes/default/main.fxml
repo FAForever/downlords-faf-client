@@ -114,13 +114,13 @@
         <HBox fx:id="rankedMatchNotificationPane" alignment="CENTER">
           <children>
             <Separator focusTraversable="false" orientation="VERTICAL"/>
-            <Button mnemonicParsing="false" onAction="#onAeonButtonClicked"
+            <Button focusTraversable="false" mnemonicParsing="false" onAction="#onAeonButtonClicked"
                     styleClass="small-faction-button, aeon-button"/>
-            <Button mnemonicParsing="false" onAction="#onUefButtonClicked"
+            <Button focusTraversable="false" mnemonicParsing="false" onAction="#onUefButtonClicked"
                     styleClass="small-faction-button, uef-button"/>
-            <Button mnemonicParsing="false" onAction="#onCybranButtonClicked"
+            <Button focusTraversable="false" mnemonicParsing="false" onAction="#onCybranButtonClicked"
                     styleClass="small-faction-button, cybran-button"/>
-            <Button mnemonicParsing="false" onAction="#onSeraphimButtonClicked"
+            <Button focusTraversable="false" mnemonicParsing="false" onAction="#onSeraphimButtonClicked"
                     styleClass="small-faction-button, seraphim-button"/>
           </children>
         </HBox>

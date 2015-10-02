@@ -334,16 +334,16 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   private void displayImmediateNotification(ImmediateNotification notification) {
-    Popup popup = new Popup();
-    popup.setAutoFix(true);
-    popup.setAutoHide(true);
-
     ImmediateNotificationController controller = applicationContext.getBean(ImmediateNotificationController.class);
     controller.setNotification(notification);
 
-    popup.getContent().setAll(controller.getRoot());
-    popup.centerOnScreen();
-    popup.show(mainRoot.getScene().getWindow());
+    Stage userInfoWindow = new Stage(StageStyle.TRANSPARENT);
+    userInfoWindow.initModality(Modality.NONE);
+    userInfoWindow.initOwner(mainRoot.getScene().getWindow());
+
+    sceneFactory.createScene(userInfoWindow, controller.getRoot(), false, CLOSE);
+
+    userInfoWindow.show();
   }
 
   public void display(Stage stage) {
@@ -687,6 +687,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   void onModsSelected(ActionEvent event) {
+    modVaultController.setUpIfNecessary();
     setContent(modVaultController.getRoot());
     setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }

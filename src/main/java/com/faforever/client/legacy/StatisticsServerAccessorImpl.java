@@ -19,6 +19,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,15 +95,9 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
 
       @Override
       protected void cancelled() {
-        try {
-          if (serverSocket != null) {
-            serverWriter.close();
-            serverSocket.close();
-          }
+        IOUtils.closeQuietly(serverWriter);
+        IOUtils.closeQuietly(serverSocket);
           logger.debug("Closed connection to statistics server");
-        } catch (IOException e) {
-          logger.warn("Could not close statistics socket", e);
-        }
       }
     };
     executeInBackground(connectionTask);

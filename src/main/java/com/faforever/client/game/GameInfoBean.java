@@ -30,6 +30,7 @@ public class GameInfoBean {
   private static final Pattern MAX_RATING_PATTERN = Pattern.compile("<\\s*(" + RATING_NUMBER + ")");
   private static final Pattern ABOUT_RATING_PATTERN = Pattern.compile("~\\s*(" + RATING_NUMBER + ")");
   private static final Pattern BETWEEN_RATING_PATTERN = Pattern.compile("(" + RATING_NUMBER + ")\\s*-\\s*(" + RATING_NUMBER + ")");
+  private static final Pattern INTEGER_PATTERN_MATCHER = Pattern.compile("\\d+");
 
   private final StringProperty host;
   private final StringProperty title;
@@ -115,32 +116,47 @@ public class GameInfoBean {
     String titleString = title.get();
     Matcher matcher = BETWEEN_RATING_PATTERN.matcher(titleString);
     if (matcher.find()) {
-      minRating.set(Integer.parseInt(matcher.group(1)));
-      maxRating.set(Integer.parseInt(matcher.group(2)));
+      minRating.set(parseRating(matcher.group(1)));
+      maxRating.set(parseRating(matcher.group(2)));
     } else {
       matcher = MIN_RATING_PATTERN.matcher(titleString);
       if (matcher.find()) {
         if (matcher.group(1) != null) {
-          minRating.set(Integer.parseInt(matcher.group(1)));
+          minRating.set(parseRating(matcher.group(1)));
         }
         if (matcher.group(2) != null) {
-          minRating.set(Integer.parseInt(matcher.group(2)));
+          minRating.set(parseRating(matcher.group(2)));
         }
         maxRating.set(3000);
       } else {
         matcher = MAX_RATING_PATTERN.matcher(titleString);
         if (matcher.find()) {
           minRating.set(0);
-          maxRating.setValue(Integer.parseInt(matcher.group(1)));
+          maxRating.setValue(parseRating(matcher.group(1)));
         } else {
           matcher = ABOUT_RATING_PATTERN.matcher(titleString);
           if (matcher.find()) {
-            int rating = Integer.parseInt(matcher.group(1));
+            int rating = parseRating(matcher.group(1));
             minRating.set(rating - 300);
             maxRating.set(rating + 300);
           }
         }
       }
+    }
+  }
+
+  private int parseRating(String string) {
+    Matcher matcher = INTEGER_PATTERN_MATCHER.matcher(string);
+    if (matcher.matches()) {
+      return Integer.parseInt(string);
+    } else {
+      int rating;
+      String[] split = string.replace("k", "").split("\\.");
+      rating = Integer.parseInt(split[0]) * 1000;
+      if (split.length == 2) {
+        rating += Integer.parseInt(split[1]) * 100;
+      }
+      return rating;
     }
   }
 
