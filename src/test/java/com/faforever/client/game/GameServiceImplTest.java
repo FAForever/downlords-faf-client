@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fa.ForgedAllianceService;
+import com.faforever.client.fa.RatingMode;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
@@ -217,7 +218,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     Process process = mock(Process.class);
 
-    instance.spawnTerminationListener(process);
+    instance.spawnTerminationListener(process, RatingMode.NONE);
 
     serviceStateDoneFuture.get(500, TimeUnit.MILLISECONDS);
 

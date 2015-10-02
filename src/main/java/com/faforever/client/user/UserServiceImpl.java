@@ -2,6 +2,7 @@ package com.faforever.client.user;
 
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.parsecom.CloudService;
+import com.faforever.client.play.PlayServices;
 import com.faforever.client.preferences.PreferencesService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -18,6 +19,9 @@ public class UserServiceImpl implements UserService {
 
   @Resource
   CloudService cloudService;
+
+  @Resource
+  PlayServices playServices;
 
   private String username;
   private String password;

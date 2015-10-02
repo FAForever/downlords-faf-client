@@ -135,7 +135,7 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
       try {
         fafReplayOutputStream.flush();
       } catch (IOException e) {
-        logger.warn("Could not flus FAF replay output stream", e);
+        logger.warn("Could not flush FAF replay output stream", e);
       }
     }
 

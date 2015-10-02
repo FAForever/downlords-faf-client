@@ -17,6 +17,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdateService;
+import com.faforever.client.play.PlayServices;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 import com.faforever.client.user.UserService;
@@ -44,6 +46,9 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -95,9 +100,14 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   ApplicationContext applicationContext;
   @Autowired
   ScheduledExecutorService scheduledExecutorService;
+  @Autowired
+  PlayerService playerService;
+  @Autowired
+  PlayServices playServices;
 
   private Process process;
   private BooleanProperty searching1v1;
+  private Instant gameStartedTime;
 
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
@@ -198,7 +208,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
           try {
             Process process = forgedAllianceService.startReplay(path, replayId);
             onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
-            spawnTerminationListener(process);
+            spawnTerminationListener(process, RatingMode.NONE);
           } catch (IOException e) {
             notificationService.addNotification(new ImmediateNotification(
                 i18n.get("replayCouldNotBeStarted.title", path),
@@ -217,7 +227,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     // TODO is this needed when watching a replay?
     lobbyServerAccessor.notifyGameStarted();
 
-    spawnTerminationListener(process);
+    spawnTerminationListener(process, RatingMode.NONE);
   }
 
   @Override
@@ -301,6 +311,8 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   private void startGame(GameLaunchInfo gameLaunchInfo, Faction faction, RatingMode ratingMode) {
+    gameStartedTime = Instant.now();
+
     stopSearchRanked1v1();
     List<String> args = fixMalformedArgs(gameLaunchInfo.getArgs());
     try {
@@ -308,7 +320,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
       onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(gameLaunchInfo.getUid()));
       lobbyServerAccessor.notifyGameStarted();
 
-      spawnTerminationListener(process);
+      spawnTerminationListener(process, ratingMode);
     } catch (IOException e) {
       logger.warn("Game could not be started", e);
       notificationService.addNotification(
@@ -333,17 +345,37 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @VisibleForTesting
-  void spawnTerminationListener(Process process) {
+  void spawnTerminationListener(Process process, RatingMode ratingMode) {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
         int exitCode = process.waitFor();
         logger.info("Forged Alliance terminated with exit code {}", exitCode);
         proxy.close();
+
+        recordGamePlayedIfApplicable(ratingMode);
+
         lobbyServerAccessor.notifyGameTerminated();
         return null;
       }
     });
+  }
+
+  private void recordGamePlayedIfApplicable(RatingMode ratingMode) throws IOException {
+    if (ratingMode != null) {
+      Duration gameDuration = Duration.between(gameStartedTime, Instant.now());
+      // FIXME MINUTES
+      if (gameDuration.compareTo(Duration.of(5, ChronoUnit.SECONDS)) > 0) {
+        switch (ratingMode) {
+          case GLOBAL:
+            playServices.incrementPlayedCustomGames();
+            break;
+          case RANKED_1V1:
+            playServices.incrementPlayedRanked1v1Games();
+            break;
+        }
+      }
+    }
   }
 
   @PostConstruct
@@ -363,7 +395,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   @Override
   public void onGameInfo(GameInfo gameInfo) {
-    logger.debug("Received game info from server: {}", gameInfo);
     if (GameState.CLOSED.equals(gameInfo.getState())) {
       gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfo.getUid()));
       return;

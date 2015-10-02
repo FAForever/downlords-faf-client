@@ -48,6 +48,8 @@ import com.faforever.client.patch.GitWrapper;
 import com.faforever.client.patch.JGitWrapper;
 import com.faforever.client.patch.UpdateServerAccessor;
 import com.faforever.client.patch.UpdateServerAccessorImpl;
+import com.faforever.client.play.GooglePlayServices;
+import com.faforever.client.play.PlayServices;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.portcheck.PortCheckService;
@@ -309,5 +311,10 @@ public class ServiceConfig {
   @Bean
   CloudService parseComService() {
     return new ParseCloudService();
+  }
+
+  @Bean
+  PlayServices playServices() {
+    return new GooglePlayServices();
   }
 }
