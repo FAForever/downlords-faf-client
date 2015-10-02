@@ -5,6 +5,7 @@ import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.ModInfo;
 import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
@@ -13,6 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Consumer;
 
 /**
  * Entry class for all communication with the FAF lobby server, be it reading or writing. This class should only be
@@ -68,4 +70,11 @@ public interface LobbyServerAccessor {
   void stopSearchingRanked();
 
   void expand1v1Search(float radius);
+
+  /**
+   * Returns the 100 most liked mods.
+   */
+  void requestMods();
+
+  void setOnModInfoListener(Consumer<ModInfo> listener);
 }

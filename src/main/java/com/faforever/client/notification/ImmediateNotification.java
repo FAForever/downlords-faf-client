@@ -11,17 +11,23 @@ public class ImmediateNotification {
   private final String title;
   private final String text;
   private final List<Action> actions;
+  private final Throwable throwable;
   private final Severity severity;
 
   public ImmediateNotification(String title, String text, Severity severity) {
-    this(title, text, severity, null);
+    this(title, text, severity, null, null);
   }
 
-  public ImmediateNotification(String title, String text, Severity severity, List<Action> actions) {
+  public ImmediateNotification(String title, String text, Severity severity, Throwable throwable, List<Action> actions) {
     this.title = title;
     this.text = text;
     this.severity = severity;
     this.actions = actions;
+    this.throwable = throwable;
+  }
+
+  public ImmediateNotification(String title, String text, Severity severity, List<Action> actions) {
+    this(title, text, severity, null, actions);
   }
 
   public String getTitle() {
@@ -38,5 +44,9 @@ public class ImmediateNotification {
 
   public Severity getSeverity() {
     return severity;
+  }
+
+  public Throwable getThrowable() {
+    return throwable;
   }
 }

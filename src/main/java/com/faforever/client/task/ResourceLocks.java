@@ -8,7 +8,7 @@ public class ResourceLocks {
   private static final ReentrantReadWriteLock NETWORK_LOCK = new ReentrantReadWriteLock();
   private static final ReentrantLock DISK_LOCK = new ReentrantLock();
 
-  public static void aquireDownloadLock() {
+  public static void acquireDownloadLock() {
     NETWORK_LOCK.readLock().lock();
   }
 
@@ -16,7 +16,7 @@ public class ResourceLocks {
     NETWORK_LOCK.readLock().unlock();
   }
 
-  public static void aquireUploadLock() {
+  public static void acquireUploadLock() {
     NETWORK_LOCK.writeLock().lock();
   }
 
@@ -25,7 +25,7 @@ public class ResourceLocks {
   }
 
   public static void acquireDiskLock() {
-    DISK_LOCK.unlock();
+    DISK_LOCK.lock();
   }
 
   public static void freeDiskLock() {

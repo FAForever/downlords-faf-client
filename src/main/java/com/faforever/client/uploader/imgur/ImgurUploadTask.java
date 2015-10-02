@@ -76,7 +76,7 @@ public class ImgurUploadTask extends AbstractPrioritizedTask<String> {
     urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
     urlConnection.connect();
 
-    ResourceLocks.aquireUploadLock();
+    ResourceLocks.acquireUploadLock();
     try (OutputStream outputStream = urlConnection.getOutputStream()) {
       byte[] bytes = data.getBytes(StandardCharsets.UTF_8);
       ByteCopier.from(new ByteArrayInputStream(bytes))

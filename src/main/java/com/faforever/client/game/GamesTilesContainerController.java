@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -36,8 +37,10 @@ public class GamesTilesContainerController {
 
     gameInfoBeans.addListener((ListChangeListener<GameInfoBean>) change -> {
       while (change.next()) {
-        change.getRemoved().forEach(gameInfoBean -> tiledFlowPane.getChildren().remove(uidToGameCard.get(gameInfoBean.getUid())));
-        change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
+        Platform.runLater(() -> {
+          change.getRemoved().forEach(gameInfoBean -> tiledFlowPane.getChildren().remove(uidToGameCard.get(gameInfoBean.getUid())));
+          change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
+        });
       }
     });
   }

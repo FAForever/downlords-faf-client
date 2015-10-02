@@ -170,6 +170,7 @@
   -fx-tile-background: #FFFFFF11;
   -fx-transparent-hover: rgba(255, 255, 255, .1);
   -fx-drop-shadow: dropshadow(gaussian, #ffffff66, 5, 0.5, 0, 0);
+  -fx-dim-color: #00000099;
 }
 
 .scroll-bar > .increment-button > .increment-arrow,
@@ -314,6 +315,10 @@
   -fx-background-radius: 3, 2, 1, 4, 1;
 }
 
+.highlighted-button {
+  -fx-base: -fx-default-button;
+}
+
 /***************** Toggle button *****************/
 
 .toggle-button:selected {
@@ -382,6 +387,13 @@
 
 .decorated-window:maximized {
   -fx-border-width: 0;
+}
+
+/***************** Dimmer *****************/
+
+/* Dims the background of a modal window */
+.dimmer {
+  -fx-background-color: -fx-dim-color;
 }
 
 /***************** Main window header *****************/
@@ -647,16 +659,12 @@
   -fx-text-fill : #cb3d3d;
 }
 
-.immediate-notification {
-  -fx-background-image: url('images/background.png');
-}
-
 .immediate-notification > *.header,
 .immediate-notification > *.content {
   -fx-padding: 1.6em;
 }
 
-.immediate-notification > *.button-bar{
+.immediate-notification > *.button-bar {
   -fx-padding: 0 1.6em 1.6em 1.6em;
 }
 
@@ -682,6 +690,7 @@
 .progress-bar {
   -fx-indeterminate-bar-length: 40;
   -fx-indeterminate-bar-animation-time: 1.5;
+  -fx-pref-height: 10;
 }
 .progress-bar > .bar {
   -fx-padding: 0;
@@ -787,33 +796,33 @@
   -fx-background-color: derive(-fx-body-color, -10%);
 }
 
-#minimizeButton {
+.minimize-button {
   -fx-background-image: url('images/minimize.png');
   -fx-min-width: 28px;
   -fx-max-width: 28px;
 }
 
-#maximizeButton {
+.maximize-button {
   -fx-background-image: url('images/maximize.png');
   -fx-min-width: 27px;
   -fx-max-width: 27px;
 }
 
-#restoreButton {
+.restore-button {
   -fx-background-image: url('images/restore.png');
   -fx-min-width: 27px;
   -fx-max-width: 27px;
 }
 
-#closeButton {
+.close-button {
   -fx-background-image: url('images/close.png');
   -fx-min-width: 48px;
   -fx-max-width: 48px;
 }
-#closeButton:hover {
+.close-button:hover {
   -fx-background-color: #D32F2F;
 }
-#closeButton:pressed {
+.close-button:pressed {
   -fx-background-color: derive(#D32F2F, -40%);
 }
 
@@ -926,3 +935,24 @@
 .chart-bar:highlighted-bar {
   -fx-bar-fill: -fx-accent;
 }
+
+/***************** Mod vault *****************/
+
+.mod-vault .tile {
+  -fx-background-color: -fx-tile-background;
+  -fx-border-width: 1;
+  -fx-border-color: -fx-box-border;
+  -fx-padding: 10;
+  -fx-spacing: 10;
+  -fx-hgap: 10;
+  -fx-vgap: 10;
+}
+
+.mod-vault .tile:hover {
+  -fx-background-color: -fx-transparent-hover;
+  -fx-color: -fx-hover-base;
+  -fx-text-fill: -fx-light-text-color;
+  -fx-cursor: hand;
+}
+
+

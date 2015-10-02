@@ -20,11 +20,13 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -42,6 +44,7 @@ import java.util.stream.Collectors;
 
 import static com.faforever.client.game.GameType.FAF;
 import static com.faforever.client.game.GameType.LADDER_1V1;
+import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
 
 public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implements UpdateServerResponseListener {
 
@@ -60,6 +63,8 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
   UpdateServerAccessor updateServerAccessor;
   @Autowired
   PreferencesService preferencesService;
+  @Autowired
+  Environment environment;
 
   private String targetDirectoryName;
   private String gameType;
@@ -173,10 +178,11 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
     logger.debug("File group '{}' for game type '{}' has been updated", fileGroup, gameType);
   }
 
-  private void downloadMod(String uid) throws ExecutionException, InterruptedException, TimeoutException {
+  private void downloadMod(String uid) throws ExecutionException, InterruptedException, TimeoutException, MalformedURLException {
     String modPath = updateServerAccessor.requestSimPath(uid).get(TIMEOUT, TIMEOUT_UNIT);
+    URL url = new URL(environment.getProperty("vault.modRoot") + urlPathSegmentEscaper().escape(modPath.replace("mods/", "")));
 
-    modService.downloadAndInstallMod(modPath).get();
+    modService.downloadAndInstallMod(url).get();
 
     updateServerAccessor.incrementModDownloadCount(uid);
   }
@@ -301,7 +307,7 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
 
     try (InputStream inputStream = url.openStream();
          OutputStream outputStream = Files.newOutputStream(tempFile)) {
-      ResourceLocks.aquireDownloadLock();
+      ResourceLocks.acquireDownloadLock();
 
       updateTitle(i18n.get("downloadingGamePatchTask.downloadingFile", url));
       ByteCopier.from(inputStream)
