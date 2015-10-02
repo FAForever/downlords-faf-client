@@ -4,8 +4,10 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameType;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
+import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
@@ -191,6 +193,21 @@ public class ReplayServiceImpl implements ReplayService {
     }
   }
 
+  private void runOnlineReplay(int replayId) {
+    downloadReplayToTemporaryDirectory(replayId)
+        .thenAccept(this::runReplayFile)
+        .exceptionally(throwable -> {
+          notificationService.addNotification(new ImmediateNotification(
+                  i18n.get("replaceCouldNotBeDownloaded.title"),
+                  i18n.get("replayCouldNotBeDownloaded.text", replayId),
+                  Severity.ERROR, throwable,
+                  Collections.singletonList(new ReportAction(i18n, reportingService, throwable)))
+          );
+
+          return null;
+        });
+  }
+
   private void runFafReplayFile(Path path) throws IOException {
     byte[] rawReplayBytes = replayFileReader.readReplayData(path);
 
@@ -218,20 +235,6 @@ public class ReplayServiceImpl implements ReplayService {
     String gameType = guessModByFileName(fileName);
 
     gameService.runWithReplay(path, null, gameType, version, emptyMap(), emptySet());
-  }
-
-  private void runOnlineReplay(int replayId) {
-    downloadReplayToTemporaryDirectory(replayId)
-        .thenAccept(replayFile -> runReplayFile(replayFile))
-        .exceptionally(throwable -> {
-          notificationService.addNotification(new PersistentNotification(
-              i18n.get("replayCouldNotBeDownloaded", replayId),
-              Severity.ERROR,
-              Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(throwable)))
-          ));
-
-          return null;
-        });
   }
 
   private CompletableFuture<Path> downloadReplayToTemporaryDirectory(int replayId) {

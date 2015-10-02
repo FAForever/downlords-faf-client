@@ -1,26 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
-<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modTileRoot" prefWidth="200.0" styleClass="tile"
-          xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.mod.ModTileController">
+<?import javafx.scene.layout.VBox?>
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modTileRoot" onMouseClicked="#onShowModDetail" prefWidth="200.0"
+          styleClass="tile" xmlns="http://javafx.com/javafx/8.0.40"
+          fx:controller="com.faforever.client.mod.ModTileController">
   <columnConstraints>
     <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+    <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
   </columnConstraints>
   <rowConstraints>
     <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
     <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
     <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
     <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+    <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
   </rowConstraints>
   <children>
-    <ImageView fx:id="modImageView" fitHeight="128.0" fitWidth="128.0" pickOnBounds="true" preserveRatio="true"
-               GridPane.columnSpan="2" GridPane.halignment="CENTER"/>
-    <Label fx:id="nameLabel" text="Label" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
+    <ImageView fx:id="modImageView" fitHeight="128.0" fitWidth="128.0" onMouseClicked="#onShowModDetail"
+               pickOnBounds="true" preserveRatio="true" GridPane.columnSpan="2" GridPane.halignment="CENTER"/>
+    <Label fx:id="nameLabel" onMouseClicked="#onShowModDetail" text="Label" GridPane.columnSpan="2147483647"
+           GridPane.rowIndex="1"/>
     <Label fx:id="authorLabel" text="Label" GridPane.columnSpan="2147483647" GridPane.rowIndex="2"/>
     <Label fx:id="commentsLabel" text="1" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
       <graphic>
@@ -32,5 +39,20 @@
         <Label styleClass="fontawesome" text=""/>
       </graphic>
     </Label>
+    <Button fx:id="uninstallButton" focusTraversable="false" mnemonicParsing="false"
+            onAction="#onUninstallButtonClicked" text="%modVault.uninstall" visible="false"
+            GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="4"/>
+    <Button fx:id="installButton" focusTraversable="false" mnemonicParsing="false" onAction="#onInstallButtonClicked"
+            text="%modVault.install" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT"
+            GridPane.rowIndex="4"/>
+    <VBox GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
+      <GridPane.margin>
+        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+      </GridPane.margin>
+      <children>
+        <Label fx:id="progressLabel" text="Label"/>
+        <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" progress="0.0" visible="false"/>
+      </children>
+    </VBox>
   </children>
 </GridPane>

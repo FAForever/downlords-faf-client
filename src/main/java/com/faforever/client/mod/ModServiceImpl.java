@@ -1,14 +1,19 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ConcurrentUtil;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.concurrent.Task;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +23,7 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
+import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,17 +64,25 @@ public class ModServiceImpl implements ModService {
   @Autowired
   ApplicationContext applicationContext;
 
+  @Autowired
+  NotificationService notificationService;
+
+  @Autowired
+  I18n i18n;
+
   private Path modsDirectory;
   private Map<Path, ModInfoBean> pathToMod;
   private ObservableList<ModInfoBean> installedMods;
   private ObservableSet<ModInfoBean> availableMods;
   private ObservableSet<ModInfoBean> readOnlyAvailableMods;
+  private ObservableList<ModInfoBean> readOnlyInstalledMods;
 
   public ModServiceImpl() {
     pathToMod = new HashMap<>();
     installedMods = FXCollections.observableArrayList();
     availableMods = FXCollections.observableSet();
     readOnlyAvailableMods = FXCollections.unmodifiableObservableSet(availableMods);
+    readOnlyInstalledMods = FXCollections.unmodifiableObservableList(installedMods);
   }
 
   @Override
@@ -88,27 +102,44 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public ObservableList<ModInfoBean> getInstalledMods() throws IOException {
-    return installedMods;
+  public ObservableList<ModInfoBean> getInstalledMods() {
+    return readOnlyInstalledMods;
   }
 
   @Override
-  public CompletableFuture<Void> downloadAndInstallMod(String modPath) {
-    DownloadModTask task = applicationContext.getBean(DownloadModTask.class);
-    task.setModPath(modPath);
+  public CompletableFuture<Void> downloadAndInstallMod(URL url) {
+    return downloadAndInstallMod(url, null, null);
+  }
+
+  @Override
+  public CompletableFuture<Void> downloadAndInstallMod(URL url, @Nullable DoubleProperty progressProperty, StringProperty titleProperty) {
+    InstallModTask task = applicationContext.getBean(InstallModTask.class);
+    task.setUrl(url);
+    if (progressProperty != null) {
+      progressProperty.bind(task.progressProperty());
+    }
+    if (titleProperty != null) {
+      titleProperty.bind(task.titleProperty());
+    }
+
     return taskService.submitTask(task)
         .thenAccept(aVoid -> loadInstalledMods());
   }
 
   @Override
-  public Set<String> getInstalledModUids() throws IOException {
+  public CompletableFuture<Void> downloadAndInstallMod(ModInfoBean modInfoBean, @Nullable DoubleProperty progressProperty, StringProperty titleProperty) {
+    return downloadAndInstallMod(modInfoBean.getDownloadUrl(), progressProperty, titleProperty);
+  }
+
+  @Override
+  public Set<String> getInstalledModUids() {
     return getInstalledMods().stream()
         .map(ModInfoBean::getUid)
         .collect(Collectors.toSet());
   }
 
   @Override
-  public Set<String> getInstalledUiModsUids() throws IOException {
+  public Set<String> getInstalledUiModsUids() {
     return getInstalledMods().stream()
         .filter(ModInfoBean::getUiOnly)
         .map(ModInfoBean::getUid)
@@ -139,6 +170,30 @@ public class ModServiceImpl implements ModService {
   @Override
   public void requestMods() {
     lobbyServerAccessor.requestMods();
+  }
+
+  @Override
+  public boolean isModInstalled(String uid) {
+    return getInstalledUiModsUids().contains(uid) || getInstalledModUids().contains(uid);
+  }
+
+  @Override
+  public CompletableFuture<Void> uninstallMod(ModInfoBean mod) {
+    UninstallModTask task = applicationContext.getBean(UninstallModTask.class);
+    task.setMod(mod);
+    return taskService.submitTask(task);
+  }
+
+  @Override
+  public Path getPathForMod(ModInfoBean mod) {
+    for (Map.Entry<Path, ModInfoBean> entry : pathToMod.entrySet()) {
+      ModInfoBean modInfoBean = entry.getValue();
+
+      if (mod.getUid().equals(modInfoBean.getUid())) {
+        return entry.getKey();
+      }
+    }
+    return null;
   }
 
   private Map<String, Boolean> readModStates() throws IOException {

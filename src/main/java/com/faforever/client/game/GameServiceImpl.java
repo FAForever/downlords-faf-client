@@ -12,6 +12,7 @@ import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
+import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -59,6 +60,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnGameInfoListener {
@@ -208,6 +210,16 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
                 // TODO add detail
             ));
           }
+        })
+        .exceptionally(throwable -> {
+          notificationService.addNotification(
+              new ImmediateNotification(
+                  i18n.get("replayCouldNotBeStarted.title"),
+                  i18n.get("replayCouldNotBeStarted.text"),
+                  Severity.ERROR,
+                  singletonList(new Action(i18n.get("report"))))
+          );
+          return null;
         });
   }
 

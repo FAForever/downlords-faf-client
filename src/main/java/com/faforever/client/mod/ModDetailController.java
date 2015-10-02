@@ -7,7 +7,6 @@ import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import javafx.collections.ListChangeListener;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -15,15 +14,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.web.WebView;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 import static java.util.Collections.singletonList;
 
-public class ModTileController {
+public class ModDetailController {
 
   @FXML
   Label progressLabel;
@@ -32,19 +31,17 @@ public class ModTileController {
   @FXML
   Button installButton;
   @FXML
-  Label commentsLabel;
-  @FXML
   ImageView modImageView;
   @FXML
   Label nameLabel;
   @FXML
   Label authorLabel;
   @FXML
-  Label likesLabel;
-  @FXML
-  Node modTileRoot;
-  @FXML
   ProgressBar progressBar;
+  @FXML
+  WebView modDescriptionWebView;
+  @FXML
+  Node modDetailRoot;
 
   @Autowired
   ModService modService;
@@ -56,7 +53,16 @@ public class ModTileController {
   ReportingService reportingService;
 
   private ModInfoBean mod;
-  private Consumer<ModInfoBean> onOpenDetailListener;
+
+  @FXML
+  void initialize() {
+    uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
+    installButton.managedProperty().bind(installButton.visibleProperty());
+    progressBar.managedProperty().bind(progressBar.visibleProperty());
+    progressLabel.managedProperty().bind(progressLabel.visibleProperty());
+    progressLabel.visibleProperty().bind(progressBar.visibleProperty());
+    progressBar.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
+  }
 
   public void setMod(ModInfoBean mod) {
     this.mod = mod;
@@ -65,13 +71,12 @@ public class ModTileController {
     }
     nameLabel.setText(mod.getName());
     authorLabel.setText(mod.getAuthor());
-    likesLabel.setText(String.format("%d", mod.getLikes()));
-    commentsLabel.setText(String.format("%d", mod.getComments().size()));
 
     boolean modInstalled = modService.isModInstalled(mod.getUid());
     installButton.setVisible(!modInstalled);
     uninstallButton.setVisible(modInstalled);
-    progressBar.setVisible(false);
+
+    modDescriptionWebView.getEngine().loadContent(mod.getDescription());
 
     modService.getInstalledMods().addListener((ListChangeListener<ModInfoBean>) change -> {
       while (change.next()) {
@@ -94,16 +99,10 @@ public class ModTileController {
   private void setInstalled(boolean installed) {
     installButton.setVisible(!installed);
     uninstallButton.setVisible(installed);
-    progressBar.setVisible(false);
-  }
-
-  public Node getRoot() {
-    return modTileRoot;
   }
 
   @FXML
   void onInstallButtonClicked() {
-    progressBar.setVisible(true);
     installButton.setVisible(false);
 
     CompletableFuture<Void> future = modService.downloadAndInstallMod(mod, progressBar.progressProperty(), progressLabel.textProperty());
@@ -120,7 +119,6 @@ public class ModTileController {
   void onUninstallButtonClicked() {
     progressBar.progressProperty().unbind();
     progressBar.setProgress(-1);
-    progressBar.setVisible(true);
     uninstallButton.setVisible(false);
 
     modService.uninstallMod(mod).exceptionally(throwable -> {
@@ -132,12 +130,11 @@ public class ModTileController {
     });
   }
 
-  public void setOnOpenDetailListener(Consumer<ModInfoBean> onOpenDetailListener) {
-    this.onOpenDetailListener = onOpenDetailListener;
+  public void onCloseButtonClicked() {
+    getRoot().setVisible(false);
   }
 
-  @FXML
-  void onShowModDetail(Event event) {
-    onOpenDetailListener.accept(mod);
+  public Node getRoot() {
+    return modDetailRoot;
   }
 }

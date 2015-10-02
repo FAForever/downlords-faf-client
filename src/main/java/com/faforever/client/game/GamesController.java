@@ -55,67 +55,47 @@ public class GamesController {
 
   @FXML
   VBox teamListPane;
-
   @FXML
   Label mapLabel;
-
   @FXML
   Button createGameButton;
-
   @FXML
   Pane gameViewContainer;
-
   @FXML
   Node gamesRoot;
-
   @FXML
   ImageView mapImageView;
-
   @FXML
   Label gameTitleLabel;
-
   @FXML
   Label numberOfPlayersLabel;
-
   @FXML
   Label hostLabel;
-
   @FXML
   Label gameTypeLabel;
-
   @FXML
   VBox gamePreviewPanel;
-
   @FXML
   MenuButton switchViewButton;
 
   @Autowired
   ApplicationContext applicationContext;
-
   @Autowired
   I18n i18n;
-
   @Autowired
   PlayerService playerService;
-
   @Autowired
   GameService gameService;
-
   @Autowired
   MapService mapService;
-
   @Autowired
   CreateGameController createGameController;
-
   @Autowired
   EnterPasswordController enterPasswordController;
-
   @Autowired
   PreferencesService preferencesService;
-
   @Autowired
   SceneFactory sceneFactory;
-
   @Autowired
   NotificationService notificationService;
 

@@ -117,6 +117,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private OnFriendListListener onFriendListListener;
   private OnFoeListListener onFoeListListener;
   private Consumer<ModInfo> onModInfoListener;
+  private CompletableFuture<Void> downloadModFuture;
 
   public LobbyServerAccessorImpl() {
     onGameInfoListeners = new ArrayList<>();

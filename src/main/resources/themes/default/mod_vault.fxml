@@ -1,20 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="modVaultRoot" spacing="5.0" styleClass="mod-vault"
-      xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.mod.ModVaultController">
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modVaultRoot" maxHeight="1.7976931348623157E308"
+            maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.40"
+            fx:controller="com.faforever.client.mod.ModVaultController">
    <children>
-      <Label styleClass="h1" text="%modVault.recommendedMods"/>
-      <FlowPane fx:id="recommendedModsPane" hgap="10.0" vgap="10.0"/>
-      <Label styleClass="h1" text="%modVault.newestMods"/>
-      <FlowPane fx:id="newestModsPane" hgap="10.0" vgap="10.0"/>
-      <Label styleClass="h1" text="%modVault.popularMods"/>
-      <FlowPane fx:id="popularModsPane" hgap="10.0" vgap="10.0"/>
+      <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                  AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                  AnchorPane.topAnchor="0.0">
+         <content>
+            <VBox spacing="5.0" styleClass="mod-vault">
+               <children>
+                  <Label styleClass="h1" text="%modVault.title"/>
+                  <Label text="%modVault.description"/>
+                  <HBox maxWidth="1.7976931348623157E308" spacing="10.0">
+                     <children>
+                        <TextField promptText="%modVault.searchPrompt" HBox.hgrow="ALWAYS"/>
+                        <Button maxHeight="1.7976931348623157E308" mnemonicParsing="false" styleClass="fontawesome"
+                                text="">
+                           <padding>
+                              <Insets left="20.0" right="20.0"/>
+                           </padding>
+                        </Button>
+                     </children>
+                  </HBox>
+                  <Label styleClass="h2" text="%modVault.recommendedUidMods"/>
+                  <FlowPane fx:id="recommendedUiModsPane" hgap="10.0" vgap="10.0"/>
+                  <Label styleClass="h2" text="%modVault.newestMods"/>
+                  <FlowPane fx:id="newestModsPane" hgap="10.0" vgap="10.0"/>
+                  <Label styleClass="h2" text="%modVault.popularMods"/>
+                  <FlowPane fx:id="popularModsPane" hgap="10.0" vgap="10.0"/>
+               </children>
+               <padding>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+               </padding>
+            </VBox>
+         </content>
+      </ScrollPane>
    </children>
-   <padding>
-      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
-   </padding>
-</VBox>
+</AnchorPane>

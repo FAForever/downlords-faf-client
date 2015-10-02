@@ -1,13 +1,14 @@
 package com.faforever.client.mod;
 
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.Pane;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
@@ -16,25 +17,27 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ModVaultController {
 
   private static final int TOP_ELEMENT_COUNT = 7;
 
   @FXML
-  FlowPane recommendedModsPane;
+  FlowPane recommendedUiModsPane;
   @FXML
   FlowPane newestModsPane;
   @FXML
   FlowPane popularModsPane;
   @FXML
-  Node modVaultRoot;
+  Pane modVaultRoot;
 
   @Resource
   ModService modService;
-
   @Resource
   ApplicationContext applicationContext;
+  @Resource
+  ModDetailController modDetailController;
 
   public Node getRoot() {
     return modVaultRoot;
@@ -42,14 +45,19 @@ public class ModVaultController {
 
   @PostConstruct
   void postConstruct() {
-    modService.getAvailableMods().addListener(new InvalidationListener() {
-      @Override
-      public void invalidated(Observable observable) {
-        ObservableSet<ModInfoBean> availableMods = modService.getAvailableMods();
-        // TODO after writing this code, I had to take a shower. If you read this, please help me getting a proper server API
-        if (availableMods.size() % 25 == 0) {
-          displayMods(availableMods);
-        }
+    Node modDetailRoot = modDetailController.getRoot();
+    modVaultRoot.getChildren().add(modDetailRoot);
+    AnchorPane.setTopAnchor(modDetailRoot, 0d);
+    AnchorPane.setRightAnchor(modDetailRoot, 0d);
+    AnchorPane.setBottomAnchor(modDetailRoot, 0d);
+    AnchorPane.setLeftAnchor(modDetailRoot, 0d);
+    modDetailRoot.setVisible(false);
+
+    modService.getAvailableMods().addListener((Observable observable) -> {
+      ObservableSet<ModInfoBean> availableMods = modService.getAvailableMods();
+      // TODO after writing this code, I had to take a shower. If you read this, please help me getting a proper server API
+      if (availableMods.size() % (3 * TOP_ELEMENT_COUNT) == 0) {
+        displayMods(availableMods);
       }
     });
   }
@@ -58,7 +66,9 @@ public class ModVaultController {
     List<ModInfoBean> mods = new ArrayList<>(modInfoBeans);
     populateMods(mods, ModInfoBean.DOWNLOADS_COMPARATOR, popularModsPane);
     populateMods(mods, ModInfoBean.PUBLISH_DATE_COMPARATOR, newestModsPane);
-    populateMods(mods, ModInfoBean.LIKES_COMPARATOR, recommendedModsPane);
+
+    List<ModInfoBean> uiMods = mods.stream().filter(ModInfoBean::getUiOnly).collect(Collectors.toList());
+    populateMods(uiMods, ModInfoBean.LIKES_COMPARATOR, recommendedUiModsPane);
   }
 
   private void populateMods(List<ModInfoBean> modInfoBeans, Comparator<? super ModInfoBean> comparator, FlowPane popularModsPane) {
@@ -69,6 +79,7 @@ public class ModVaultController {
       for (ModInfoBean mod : mods) {
         ModTileController controller = applicationContext.getBean(ModTileController.class);
         controller.setMod(mod);
+        controller.setOnOpenDetailListener(this::onShowModDetail);
         children.add(controller.getRoot());
       }
     });
@@ -88,5 +99,11 @@ public class ModVaultController {
 
   public void setUpIfNecessary() {
     modService.requestMods();
+  }
+
+  @FXML
+  void onShowModDetail(ModInfoBean mod) {
+    modDetailController.setMod(mod);
+    modDetailController.getRoot().setVisible(true);
   }
 }

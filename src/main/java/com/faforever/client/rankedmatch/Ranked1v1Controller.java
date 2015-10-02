@@ -268,8 +268,7 @@ public class Ranked1v1Controller {
   @SuppressWarnings("unchecked")
   private void plotRatingDistributions(List<RatingDistribution> ratingDistributionMap, PlayerInfoBean player) {
     XYChart.Series<String, Integer> series = new XYChart.Series<>();
-    // FIXME i18n
-    series.setName("ranked1v1");
+    series.setName(i18n.get("ranked1v1.players"));
     series.getData().addAll(ratingDistributionMap.stream()
         .map(item -> {
           int maxRating = item.getMaxRating();

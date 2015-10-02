@@ -14,6 +14,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.net.URL;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Comparator;
@@ -41,6 +42,7 @@ public class ModInfoBean {
   public static final Comparator<? super ModInfoBean> PUBLISH_DATE_COMPARATOR = (o1, o2) -> o1.getPublishDate().compareTo(o2.getPublishDate());
   private final IntegerProperty downloads;
   public static final Comparator<? super ModInfoBean> DOWNLOADS_COMPARATOR = (o1, o2) -> Integer.compare(o1.getDownloads(), o2.getDownloads());
+  private final ObjectProperty<URL> downloadUrl;
 
   public ModInfoBean() {
     name = new SimpleStringProperty();
@@ -58,6 +60,19 @@ public class ModInfoBean {
     downloads = new SimpleIntegerProperty();
     thumbnailUrl = new SimpleStringProperty();
     comments = new SimpleListProperty<>(FXCollections.observableArrayList());
+    downloadUrl = new SimpleObjectProperty<>();
+  }
+
+  public URL getDownloadUrl() {
+    return downloadUrl.get();
+  }
+
+  public void setDownloadUrl(URL downloadUrl) {
+    this.downloadUrl.set(downloadUrl);
+  }
+
+  public ObjectProperty<URL> downloadUrlProperty() {
+    return downloadUrl;
   }
 
   public boolean getSelected() {
@@ -263,6 +278,7 @@ public class ModInfoBean {
     modInfoBean.setDownloads(modInfo.getDownloads());
     modInfoBean.setThumbnailUrl(modInfo.getThumbnail());
     modInfoBean.getComments().setAll(modInfo.getComments());
+    modInfoBean.setDownloadUrl(modInfo.getLink());
     return modInfoBean;
   }
 

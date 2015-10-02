@@ -49,6 +49,7 @@ import com.faforever.client.main.MainController;
 import com.faforever.client.map.CommentCardController;
 import com.faforever.client.map.MapPreviewLargeController;
 import com.faforever.client.map.MapVaultController;
+import com.faforever.client.mod.ModDetailController;
 import com.faforever.client.mod.ModTileController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
@@ -297,6 +298,11 @@ public class UiConfig {
   @Bean
   ModVaultController modVaultController() {
     return loadController("mod_vault.fxml");
+  }
+
+  @Bean
+  ModDetailController modDetailController() {
+    return loadController("mod_detail.fxml");
   }
 
   @Bean

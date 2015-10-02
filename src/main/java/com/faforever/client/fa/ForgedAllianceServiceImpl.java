@@ -75,8 +75,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .executable(executable)
         .replayFile(path)
         .replayId(replayId)
-            // FIXME fix the path
-        .logFile(preferencesService.getFafDataDirectory().resolve("logs/replay.log"))
+        .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
         .build();
 
     return launch(executable, launchCommand);
