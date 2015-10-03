@@ -49,6 +49,8 @@ import com.faforever.client.main.MainController;
 import com.faforever.client.map.CommentCardController;
 import com.faforever.client.map.MapPreviewLargeController;
 import com.faforever.client.map.MapVaultController;
+import com.faforever.client.mod.ModDetailController;
+import com.faforever.client.mod.ModTileController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.news.NewsListItemController;
@@ -186,6 +188,12 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  ModTileController modTileController() {
+    return loadController("mod_tile.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   GameStatusTooltipController gameStatusContainerTooltipController() {
     return loadController("game_status_tooltip.fxml");
   }
@@ -291,6 +299,11 @@ public class UiConfig {
   @Bean
   ModVaultController modVaultController() {
     return loadController("mod_vault.fxml");
+  }
+
+  @Bean
+  ModDetailController modDetailController() {
+    return loadController("mod_detail.fxml");
   }
 
   @Bean

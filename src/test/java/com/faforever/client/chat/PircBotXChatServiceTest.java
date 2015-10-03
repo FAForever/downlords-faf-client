@@ -578,7 +578,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.connect();
     instance.onConnected();
 
-    connectedLatch.await();
+    assertTrue(connectedLatch.await(TIMEOUT, TIMEOUT_UNIT));
 
     instance.joinChannel(channelToJoin);
 

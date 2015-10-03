@@ -18,6 +18,7 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -130,18 +131,18 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   public void testDownloadAndInstallMod() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    DownloadModTask task = mock(DownloadModTask.class, withSettings().useConstructor());
-    when(applicationContext.getBean(DownloadModTask.class)).thenReturn(task);
+    InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
+    when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
     when(taskService.submitTask(task)).thenReturn(CompletableFuture.completedFuture(null));
 
-    String modPath = "some/mod.zip";
+    URL modUrl = new URL("http://example.com/some/mod.zip");
 
     copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    instance.downloadAndInstallMod(modPath).get(TIMEOUT, TIMEOUT_UNIT);
+    instance.downloadAndInstallMod(modUrl).get(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(task).setModPath(modPath);
+    verify(task).setUrl(modUrl);
     assertThat(instance.getInstalledMods().size(), is(2));
   }
 

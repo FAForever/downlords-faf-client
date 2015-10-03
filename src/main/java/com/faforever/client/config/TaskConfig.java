@@ -3,7 +3,8 @@ package com.faforever.client.config;
 import com.faforever.client.game.SearchExpansionTask;
 import com.faforever.client.map.DownloadMapTask;
 import com.faforever.client.map.MapVaultParseTask;
-import com.faforever.client.mod.DownloadModTask;
+import com.faforever.client.mod.InstallModTask;
+import com.faforever.client.mod.UninstallModTask;
 import com.faforever.client.patch.GitCheckGameUpdateTask;
 import com.faforever.client.patch.UpdateGameFilesTask;
 import com.faforever.client.portcheck.DownlordsPortCheckTask;
@@ -30,8 +31,8 @@ public class TaskConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  DownloadModTask downloadModTask() {
-    return new DownloadModTask();
+  InstallModTask downloadModTask() {
+    return new InstallModTask();
   }
 
   @Bean
@@ -92,6 +93,12 @@ public class TaskConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   SearchExpansionTask searchExpansionTask() {
     return new SearchExpansionTask();
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  UninstallModTask uninstallModTask() {
+    return new UninstallModTask();
   }
 
 }

@@ -2,6 +2,7 @@ package com.faforever.client.replay;
 
 import com.faforever.client.legacy.io.QtCompress;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.util.Bytes;
 import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ public class ReplayFileWriterImpl implements ReplayFileWriter {
     String fileName = String.format(environment.getProperty("replayFileFormat"), replayInfo.getUid(), replayInfo.getRecorder());
     Path replayFile = preferencesService.getReplaysDirectory().resolve(fileName);
 
-    logger.info("Writing replay file to {} ({} bytes)", replayFile, replayData.size());
+    logger.info("Writing replay file to {} ({})", replayFile, Bytes.formatSize(replayData.size()));
 
     Files.createDirectories(replayFile.getParent());
 

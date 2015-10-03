@@ -4,9 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -34,14 +32,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.faforever.client.notification.Severity.WARN;
 
 public class CreateGameController {
 
@@ -184,18 +178,7 @@ public class CreateGameController {
   private void initModList() {
     modListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     modListView.setCellFactory(modListCellFactory());
-
-    try {
-      modListView.setItems(modService.getInstalledMods());
-    } catch (IOException e) {
-      logger.warn("Installed mods could not be loaded", e);
-      notificationService.addNotification(
-          new PersistentNotification(
-              i18n.get("loadingInstalledModsFailed.notification", e.getLocalizedMessage()),
-              WARN,
-              Collections.singletonList(new Action(i18n.get("loadingInstalledModsFailed.retry"))))
-      );
-    }
+    modListView.setItems(modService.getInstalledMods());
   }
 
   private void initMapSelection() {
