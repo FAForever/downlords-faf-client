@@ -1,8 +1,7 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.legacy.ModsServerAccessor;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ConcurrentUtil;
@@ -33,6 +32,7 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -54,21 +54,14 @@ public class ModServiceImpl implements ModService {
 
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
-
+  @Autowired
+  ModsServerAccessor modsServerAccessor;
   @Autowired
   PreferencesService preferencesService;
-
   @Autowired
   TaskService taskService;
-
   @Autowired
   ApplicationContext applicationContext;
-
-  @Autowired
-  NotificationService notificationService;
-
-  @Autowired
-  I18n i18n;
 
   private Path modsDirectory;
   private Map<Path, ModInfoBean> pathToMod;
@@ -196,6 +189,16 @@ public class ModServiceImpl implements ModService {
     return null;
   }
 
+  @Override
+  public CompletableFuture<List<ModInfoBean>> searchMod(String name) {
+    modsServerAccessor.connect();
+    return modsServerAccessor.searchMod(name)
+        .thenApply(modInfos -> modInfos.stream()
+                .map(ModInfoBean::fromModInfo)
+                .collect(Collectors.toList())
+        );
+  }
+
   private Map<String, Boolean> readModStates() throws IOException {
     Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
     Map<String, Boolean> mods = new HashMap<>();
@@ -295,7 +298,7 @@ public class ModServiceImpl implements ModService {
     }
 
     Matcher matcher = QUOTED_TEXT_PATTERN.matcher(string);
-    if (matcher.matches()) {
+    if (matcher.find()) {
       return matcher.group(1);
     }
 

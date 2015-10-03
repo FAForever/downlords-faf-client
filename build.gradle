@@ -138,4 +138,5 @@ dependencies {
   compile 'com.github.thiagolocatelli:parse4j:1.4'
   compile 'com.google.apis:google-api-services-games:v1-rev132-1.20.0'
   compile 'com.google.oauth-client:google-oauth-client-java7:1.16.0-rc'
+  compile 'com.timgroup:jgravatar:1.0'
 }

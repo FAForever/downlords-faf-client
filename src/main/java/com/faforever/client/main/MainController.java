@@ -41,6 +41,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.JavaFxUtil;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.collections.ObservableList;
@@ -49,6 +50,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
@@ -89,143 +91,101 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @FXML
   HBox mainNavigation;
-
   @FXML
   Pane mainHeaderPane;
-
   @FXML
   ButtonBase notificationsButton;
-
   @FXML
   Pane contentPane;
-
   @FXML
   SplitMenuButton communityButton;
-
   @FXML
   SplitMenuButton chatButton;
-
   @FXML
   SplitMenuButton playButton;
-
   @FXML
   SplitMenuButton vaultButton;
-
   @FXML
   SplitMenuButton leaderboardButton;
-
   @FXML
   ProgressBar taskProgressBar;
-
   @FXML
   Pane mainRoot;
-
   @FXML
-  MenuButton usernameButton;
-
+  Button usernameButton;
   @FXML
   Pane taskPane;
-
   @FXML
   Labeled portCheckStatusButton;
-
   @FXML
   MenuButton fafConnectionButton;
-
   @FXML
   MenuButton ircConnectionButton;
-
   @FXML
   Label taskProgressLabel;
-
-  @FXML
-  Pane rankedMatchNotificationContainer;
-
   @FXML
   Pane rankedMatchNotificationPane;
 
   @Autowired
   Environment environment;
-
   @Autowired
   NewsController newsController;
-
   @Autowired
   ChatController chatController;
-
   @Autowired
   GamesController gamesController;
-
   @Autowired
   Ranked1v1Controller ranked1v1Controller;
-
   @Autowired
   LeaderboardController leaderboardController;
-
   @Autowired
   ReplayVaultController replayVaultController;
-
   @Autowired
   PersistentNotificationsController persistentNotificationsController;
-
   @Autowired
   PreferencesService preferencesService;
-
   @Autowired
   SceneFactory sceneFactory;
-
   @Autowired
   LobbyService lobbyService;
-
   @Autowired
   PortCheckService portCheckService;
-
   @Autowired
   ChatService chatService;
-
   @Autowired
   I18n i18n;
-
   @Autowired
   UserService userService;
-
   @Autowired
   TaskService taskService;
-
   @Autowired
   NotificationService notificationService;
-
   @Autowired
   SettingsController settingsController;
-
   @Autowired
   ApplicationContext applicationContext;
-
   @Autowired
   PlayerService playerService;
-
   @Autowired
   ModVaultController modVaultController;
-
   @Autowired
   MapVaultController mapMapVaultController;
-
   @Autowired
   CastsController castsController;
-
   @Autowired
   CommunityHubController communityHubController;
-
   @Autowired
   GameUpdateService gameUpdateService;
-
   @Autowired
   GameService gameService;
-  
   @Autowired
   ClientUpdateService clientUpdateService;
+  @Autowired
+  UserMenuController userMenuController;
 
+  @VisibleForTesting
   Popup notificationsPopup;
+  private Popup userMenuPopup;
 
   @FXML
   void initialize() {
@@ -286,6 +246,12 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     notificationsPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
     notificationsPopup.setAutoFix(false);
     notificationsPopup.setAutoHide(true);
+
+    userMenuPopup = new Popup();
+    userMenuPopup.setAutoFix(false);
+    userMenuPopup.setAutoHide(true);
+    userMenuPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
+    userMenuPopup.getContent().setAll(userMenuController.getRoot());
 
     notificationService.addPersistentNotificationListener(
         change -> Platform.runLater(() -> updateNotificationsButton(change.getSet()))
@@ -714,22 +680,29 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   @FXML
-  void onAeonButtonClicked(ActionEvent event) {
+  void onAeonButtonClicked() {
     gameService.startSearchRanked1v1(Faction.AEON);
   }
 
   @FXML
-  void onUefButtonClicked(ActionEvent event) {
+  void onUefButtonClicked() {
     gameService.startSearchRanked1v1(Faction.UEF);
   }
 
   @FXML
-  void onCybranButtonClicked(ActionEvent event) {
+  void onCybranButtonClicked() {
     gameService.startSearchRanked1v1(Faction.CYBRAN);
   }
 
   @FXML
-  void onSeraphimButtonClicked(ActionEvent event) {
+  void onSeraphimButtonClicked() {
     gameService.startSearchRanked1v1(Faction.SERAPHIM);
+  }
+
+  public void onUsernameButtonClicked(ActionEvent event) {
+    Button button = (Button) event.getSource();
+
+    Bounds screenBounds = button.localToScreen(button.getBoundsInLocal());
+    userMenuPopup.show(button.getScene().getWindow(), screenBounds.getMaxX(), screenBounds.getMaxY());
   }
 }

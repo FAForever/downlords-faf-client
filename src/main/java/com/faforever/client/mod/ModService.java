@@ -8,6 +8,7 @@ import javafx.collections.ObservableSet;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -43,4 +44,6 @@ public interface ModService {
   CompletableFuture<Void> uninstallMod(ModInfoBean mod);
 
   Path getPathForMod(ModInfoBean mod);
+
+  CompletableFuture<List<ModInfoBean>> searchMod(String name);
 }

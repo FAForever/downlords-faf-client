@@ -198,14 +198,22 @@ public class Ranked1v1Controller {
       return;
     }
 
-    initialized = true;
-    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
-    playerRatingListener = observable -> Platform.runLater(() -> updateRating(currentPlayer));
+    playerService.currentPlayerProperty().addListener((observable, oldValue, newValue) -> {
+      setCurrentPlayer(newValue);
+    });
+    setCurrentPlayer(playerService.getCurrentPlayer());
 
-    currentPlayer.leaderboardRatingDeviationProperty().addListener(playerRatingListener);
-    currentPlayer.leaderboardRatingMeanProperty().addListener(playerRatingListener);
-    updateRating(currentPlayer);
-    updateOtherValues(currentPlayer);
+
+    initialized = true;
+  }
+
+  private void setCurrentPlayer(PlayerInfoBean newValue) {
+    playerRatingListener = ratingObservable -> Platform.runLater(() -> updateRating(newValue));
+
+    newValue.leaderboardRatingDeviationProperty().addListener(playerRatingListener);
+    newValue.leaderboardRatingMeanProperty().addListener(playerRatingListener);
+    updateRating(newValue);
+    updateOtherValues(newValue);
   }
 
   private void updateRating(PlayerInfoBean player) {

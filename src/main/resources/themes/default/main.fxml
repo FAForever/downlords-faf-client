@@ -32,9 +32,6 @@
                 <SeparatorMenuItem mnemonicParsing="false"/>
                 <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
               </items>
-              <HBox.margin>
-                <Insets left="20.0" right="10.0"/>
-              </HBox.margin>
             </MenuButton>
             <HBox fx:id="mainNavigation" styleClass="main-navigation">
               <children>
@@ -85,16 +82,11 @@
                 <Insets right="10.0"/>
               </HBox.margin>
             </Button>
-            <MenuButton fx:id="usernameButton" focusTraversable="false" mnemonicParsing="false"
-                        styleClass="username-button" text="Username">
-              <items>
-                <MenuItem mnemonicParsing="false" onAction="#onShowUserInfoClicked" text="%chat.userContext.userInfo"/>
-                <MenuItem mnemonicParsing="false" text="%menu.logOut"/>
-              </items>
-            </MenuButton>
+            <Button fx:id="usernameButton" onAction="#onUsernameButtonClicked" focusTraversable="false"
+                    mnemonicParsing="false" styleClass="username-button" text="&lt;Username&gt;"/>
           </children>
           <padding>
-            <Insets bottom="12.0" top="12.0"/>
+            <Insets bottom="12.0" left="20.0" right="20.0" top="12.0"/>
           </padding>
         </HBox>
         <Separator prefWidth="200.0"/>

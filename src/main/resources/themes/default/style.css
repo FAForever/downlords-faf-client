@@ -319,6 +319,12 @@
   -fx-base: -fx-default-button;
 }
 
+/***************** Hand cursor *****************/
+
+.pointable {
+  -fx-cursor: hand;
+}
+
 /***************** Toggle button *****************/
 
 .toggle-button:selected {
@@ -644,19 +650,19 @@
 }
 
 .notification-icon {
-  -fx-font-size : 2.5em;
+  -fx-font-size: 2.5em;
 }
 
 .notification-icon.info {
-  -fx-text-fill : -fx-accent;
+  -fx-text-fill: -fx-accent;
 }
 
 .notification-icon.warn {
-  -fx-text-fill : #e2932c;
+  -fx-text-fill: #e2932c;
 }
 
 .notification-icon.error {
-  -fx-text-fill : #cb3d3d;
+  -fx-text-fill: #cb3d3d;
 }
 
 .immediate-notification > *.header,
@@ -900,6 +906,17 @@
   -fx-font-size: 2em;
 }
 
+/***************** User menu *****************/
+
+.user-menu-root {
+  -fx-background-color: -fx-background;
+  -fx-border-color: -fx-box-border;
+}
+
+.logout-icon {
+  -fx-font-size: 2em;
+}
+
 /***************** Ranked 1v1 *****************/
 
 .ranked1v1-progress-indicator {
@@ -952,7 +969,6 @@
   -fx-background-color: -fx-transparent-hover;
   -fx-color: -fx-hover-base;
   -fx-text-fill: -fx-light-text-color;
-  -fx-cursor: hand;
 }
 
 

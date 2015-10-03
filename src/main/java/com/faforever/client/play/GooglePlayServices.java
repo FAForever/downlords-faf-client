@@ -6,7 +6,6 @@ import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInsta
 import com.google.api.client.extensions.java6.auth.oauth2.VerificationCodeReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.batch.BatchRequest;
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -24,6 +23,8 @@ import com.google.api.services.games.model.EventPeriodUpdate;
 import com.google.api.services.games.model.EventRecordRequest;
 import com.google.api.services.games.model.EventUpdateRequest;
 import com.google.api.services.games.model.EventUpdateResponse;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import org.apache.commons.compress.utils.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -47,8 +48,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GooglePlayServices implements PlayServices {
 
@@ -68,6 +69,7 @@ public class GooglePlayServices implements PlayServices {
    */
   private static final String APPLICATION_NAME = "downlords-faf-client";
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+  private static final Pattern AUTHORIZATION_CODE_PATTERN = Pattern.compile("\\?code=(.*?)&");
 
   @Resource
   PreferencesService preferencesService;
@@ -77,6 +79,11 @@ public class GooglePlayServices implements PlayServices {
   private Games games;
   private NetHttpTransport httpTransport;
   private ServerSocket verificationCodeServerSocket;
+  private BooleanProperty authorized;
+
+  public GooglePlayServices() {
+    authorized = new SimpleBooleanProperty();
+  }
 
   @PostConstruct
   void postConstruct() throws GeneralSecurityException, IOException {
@@ -84,17 +91,12 @@ public class GooglePlayServices implements PlayServices {
 
     httpTransport = GoogleNetHttpTransport.newTrustedTransport();
     dataStoreFactory = new FileDataStoreFactory(playServicesDirectory.toFile());
-
-    GoogleCredential credential = new GoogleCredential();
-    games = new Games.Builder(httpTransport, JSON_FACTORY, credential)
-        .setApplicationName(APPLICATION_NAME)
-        .build();
   }
 
   @Override
-  public Future<Credential> authorize(String uid) {
-    Callable<Credential> callable = new Callable<Credential>() {
-      public Credential call() throws Exception {
+  public void authorize(String uid) {
+    Callable<Void> callable = new Callable<Void>() {
+      public Void call() throws Exception {
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,
             new InputStreamReader(getClass().getResourceAsStream("/client_secrets.json")));
 
@@ -103,10 +105,18 @@ public class GooglePlayServices implements PlayServices {
             .setDataStoreFactory(dataStoreFactory)
             .build();
 
-        return new AuthorizationCodeInstalledApp(flow, verificationCodeReceiver()).authorize(uid);
+        Credential credential = new AuthorizationCodeInstalledApp(flow, verificationCodeReceiver()).authorize(uid);
+
+        games = new Games.Builder(httpTransport, JSON_FACTORY, credential)
+            .setApplicationName(APPLICATION_NAME)
+            .build();
+
+        authorized.set(true);
+
+        return null;
       }
     };
-    return threadPoolExecutor.submit(callable);
+    threadPoolExecutor.submit(callable);
   }
 
   @Override
@@ -127,6 +137,11 @@ public class GooglePlayServices implements PlayServices {
     games.events().record(createEventRequest(EVENT_NUMBER_OF_RANKED_1V1_GAMES, 1L)).queue(batchRequest, eventCallback());
 
     batchRequest.execute();
+  }
+
+  @Override
+  public BooleanProperty authorizedProperty() {
+    return authorized;
   }
 
   @NotNull
@@ -197,8 +212,8 @@ public class GooglePlayServices implements PlayServices {
         CompletableFuture<Integer> portFuture = startReceiver();
 
         try {
-          return "http://localhost:" + portFuture.get(5000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+          return "http://localhost:" + portFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
           throw new IOException("Receiver could not be started", e);
         }
       }
@@ -206,8 +221,8 @@ public class GooglePlayServices implements PlayServices {
       @Override
       public String waitForCode() throws IOException {
         try {
-          return codeFuture.get(10000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+          return codeFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
           throw new IOException("Code could not be received", e);
         }
       }
@@ -229,8 +244,15 @@ public class GooglePlayServices implements PlayServices {
               BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
               String line = reader.readLine();
 
-              logger.debug("Received code: {}", line);
-              return line;
+              Matcher matcher = AUTHORIZATION_CODE_PATTERN.matcher(line);
+              if (!matcher.find()) {
+                throw new IOException("Could not extract code from: " + line);
+              }
+
+              String code = matcher.group(1);
+              logger.debug("Received code: {}", code);
+
+              return code;
             }
           }
         };

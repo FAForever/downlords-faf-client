@@ -8,6 +8,9 @@ import com.faforever.client.legacy.OnPlayerInfoListener;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
@@ -31,12 +34,13 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   UserService userService;
   private List<String> foeList;
   private List<String> friendList;
-  private PlayerInfoBean currentPlayer;
+  private ObjectProperty<PlayerInfoBean> currentPlayer;
 
   public PlayerServiceImpl() {
     players = FXCollections.observableHashMap();
     friendList = new ArrayList<>();
     foeList = new ArrayList<>();
+    currentPlayer = new SimpleObjectProperty<>();
   }
 
   @PostConstruct
@@ -106,10 +110,18 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   @Override
   public PlayerInfoBean getCurrentPlayer() {
     CURRENT_PLAYER_LOCK.lock();
-    if (currentPlayer == null) {
-      currentPlayer = registerAndGetPlayerForUsername(userService.getUsername());
+    try {
+      if (currentPlayer.get() == null) {
+        currentPlayer.set(registerAndGetPlayerForUsername(userService.getUsername()));
+      }
+    } finally {
+      CURRENT_PLAYER_LOCK.unlock();
     }
-    CURRENT_PLAYER_LOCK.unlock();
+    return currentPlayer.get();
+  }
+
+  @Override
+  public ReadOnlyObjectProperty<PlayerInfoBean> currentPlayerProperty() {
     return currentPlayer;
   }
 

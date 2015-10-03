@@ -15,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -25,6 +26,8 @@ import static java.util.Collections.singletonList;
 
 public class ModTileController {
 
+  @FXML
+  Pane progressLayout;
   @FXML
   Label progressLabel;
   @FXML
@@ -57,6 +60,13 @@ public class ModTileController {
 
   private ModInfoBean mod;
   private Consumer<ModInfoBean> onOpenDetailListener;
+
+  @FXML
+  void initialize() {
+    uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
+    installButton.managedProperty().bind(installButton.visibleProperty());
+    progressLayout.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
+  }
 
   public void setMod(ModInfoBean mod) {
     this.mod = mod;
@@ -139,5 +149,6 @@ public class ModTileController {
   @FXML
   void onShowModDetail(Event event) {
     onOpenDetailListener.accept(mod);
+    event.consume();
   }
 }

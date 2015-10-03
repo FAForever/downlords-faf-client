@@ -29,11 +29,16 @@ public class ImmediateNotificationController {
 
   public void setNotification(ImmediateNotification notification) {
     StringWriter writer = new StringWriter();
-    notification.getThrowable().printStackTrace(new PrintWriter(writer));
+    Throwable throwable = notification.getThrowable();
+    if (throwable != null) {
+      throwable.printStackTrace(new PrintWriter(writer));
+      exceptionTextArea.setText(writer.toString());
+    } else {
+      exceptionTextArea.setVisible(false);
+    }
 
     titleLabel.setText(notification.getTitle());
     messageLabel.setText(notification.getText());
-    exceptionTextArea.setText(writer.toString());
 
     if (notification.getActions() != null) {
       for (Action action : notification.getActions()) {

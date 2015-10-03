@@ -209,28 +209,26 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     updateGameIfNecessary(gameType, version, modVersions, simMods)
         .thenRun(() -> {
           try {
-            Process process = forgedAllianceService.startReplay(path, replayId);
+            Process process = forgedAllianceService.startReplay(path, replayId, gameType);
             onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
             spawnTerminationListener(process, RatingMode.NONE);
           } catch (IOException e) {
-            notificationService.addNotification(new ImmediateNotification(
-                i18n.get("replayCouldNotBeStarted.title", path),
-                i18n.get("replayCouldNotBeStarted.text"),
-                Severity.ERROR
-                // TODO add detail
-            ));
+            notifyCantPlayReplay(replayId, e);
           }
         })
         .exceptionally(throwable -> {
-          notificationService.addNotification(
-              new ImmediateNotification(
-                  i18n.get("replayCouldNotBeStarted.title"),
-                  i18n.get("replayCouldNotBeStarted.text"),
-                  Severity.ERROR,
-                  singletonList(new Action(i18n.get("report"))))
-          );
+          notifyCantPlayReplay(replayId, throwable);
           return null;
         });
+  }
+
+  private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
+    notificationService.addNotification(new ImmediateNotification(
+            i18n.get("replayCouldNotBeStarted.title"),
+            i18n.get("replayCouldNotBeStarted.text", replayId),
+            Severity.ERROR, throwable,
+            singletonList(new Action(i18n.get("report"))))
+    );
   }
 
   @Override
@@ -378,7 +376,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   private void recordGamePlayedIfApplicable(RatingMode ratingMode) throws IOException {
-    if (ratingMode != null) {
+    if (ratingMode != null && gameStartedTime != null) {
       Duration gameDuration = Duration.between(gameStartedTime, Instant.now());
       // FIXME MINUTES
       if (gameDuration.compareTo(Duration.of(5, ChronoUnit.SECONDS)) > 0) {
