@@ -7,7 +7,6 @@ import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import javafx.collections.ListChangeListener;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -34,7 +33,7 @@ public class ModTileController {
   @FXML
   Label commentsLabel;
   @FXML
-  ImageView modImageView;
+  ImageView thumbnailImageView;
   @FXML
   Label nameLabel;
   @FXML
@@ -61,7 +60,7 @@ public class ModTileController {
   public void setMod(ModInfoBean mod) {
     this.mod = mod;
     if (StringUtils.isNotEmpty(mod.getThumbnailUrl())) {
-      modImageView.setImage(new Image(mod.getThumbnailUrl()));
+      thumbnailImageView.setImage(new Image(mod.getThumbnailUrl()));
     }
     nameLabel.setText(mod.getName());
     authorLabel.setText(mod.getAuthor());
@@ -137,7 +136,7 @@ public class ModTileController {
   }
 
   @FXML
-  void onShowModDetail(Event event) {
+  void onShowModDetail() {
     onOpenDetailListener.accept(mod);
   }
 }

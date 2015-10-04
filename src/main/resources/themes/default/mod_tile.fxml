@@ -24,7 +24,7 @@
     <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
   </rowConstraints>
   <children>
-    <ImageView fx:id="modImageView" fitHeight="128.0" fitWidth="128.0" onMouseClicked="#onShowModDetail"
+    <ImageView fx:id="thumbnailImageView" fitHeight="128.0" fitWidth="128.0" onMouseClicked="#onShowModDetail"
                pickOnBounds="true" preserveRatio="true" GridPane.columnSpan="2" GridPane.halignment="CENTER"/>
     <Label fx:id="nameLabel" onMouseClicked="#onShowModDetail" text="Label" GridPane.columnSpan="2147483647"
            GridPane.rowIndex="1"/>

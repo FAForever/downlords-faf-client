@@ -46,7 +46,8 @@
           <children>
             <Label fx:id="nameLabel" maxWidth="1.7976931348623157E308" styleClass="h1" text="&lt;Name&gt;"
                    GridPane.columnIndex="1" GridPane.columnSpan="2"/>
-            <ImageView fx:id="modImageView" fitHeight="128.0" fitWidth="128.0" pickOnBounds="true" preserveRatio="true"
+            <ImageView fx:id="thumbnailImageView" fitHeight="128.0" fitWidth="128.0" pickOnBounds="true"
+                       preserveRatio="true"
                        GridPane.rowSpan="2"/>
             <Label fx:id="authorLabel" text="&lt;Author&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1"
                    GridPane.valignment="TOP"/>

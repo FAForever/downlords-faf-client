@@ -2,7 +2,6 @@ package com.faforever.client.mod;
 
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.ResourceLocks;
-import com.faforever.client.util.Assert;
 import com.faforever.client.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
+import java.util.Objects;
 
 public class UninstallModTask extends AbstractPrioritizedTask<Void> {
 
@@ -30,7 +30,7 @@ public class UninstallModTask extends AbstractPrioritizedTask<Void> {
 
   @Override
   protected Void call() throws Exception {
-    Assert.checkNull(mod, "mod has not been set");
+    Objects.requireNonNull(mod, "mod has not been set");
 
     logger.info("Uninstalling mod '{}' ({})", mod.getName(), mod.getUid());
     Path modPath = modService.getPathForMod(mod);

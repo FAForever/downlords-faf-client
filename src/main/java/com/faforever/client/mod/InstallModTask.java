@@ -18,6 +18,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.zip.ZipInputStream;
 
 import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
@@ -40,6 +41,8 @@ public class InstallModTask extends AbstractPrioritizedTask<Void> {
 
   @Override
   protected Void call() throws Exception {
+    Objects.requireNonNull(url, "url has not been set");
+
     Path tempFile = Files.createTempFile(preferencesService.getCacheDirectory(), "mod", null);
 
     logger.info("Downloading mod {} to {}", url, tempFile);

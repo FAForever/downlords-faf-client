@@ -1,14 +1,13 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.*;
@@ -21,12 +20,8 @@ public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTes
 
   @Before
   public void setUp() throws Exception {
-    instance = new PersistentNotificationController();
+    instance = loadController("persistent_notification.fxml");
     instance.notificationService = mock(NotificationService.class);
-    instance.messageLabel = new Label();
-    instance.actionButtonsContainer = new HBox();
-    instance.iconLabel = new Label();
-    instance.iconLabel.setStyle("");
   }
 
   @Test
@@ -71,8 +66,8 @@ public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTes
 
   @Test
   public void testGetRoot() throws Exception {
-    instance.notificationRoot = new Pane();
-    assertEquals(instance.notificationRoot, instance.getRoot());
+    assertThat(instance.getRoot(), is(instance.notificationRoot));
+    assertThat(instance.getRoot().getParent(), is(nullValue()));
   }
 
   @Test

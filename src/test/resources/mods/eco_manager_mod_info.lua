@@ -5,6 +5,7 @@ copyright = "Crotalus"
 description = "EcoManager v3, more efficient energy throttling"
 author = "Crotalus"
 url = ""
+icon = ""
 selectable = true
 enabled = true
 exclusive = false

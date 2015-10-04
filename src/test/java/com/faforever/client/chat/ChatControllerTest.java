@@ -2,7 +2,6 @@ package com.faforever.client.chat;
 
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
-import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.stage.Stage;
 import org.junit.Test;
@@ -15,7 +14,8 @@ import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -90,7 +90,8 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetRoot() throws Exception {
-    assertThat(instance.getRoot(), instanceOf(Node.class));
+    assertThat(instance.getRoot(), is(instance.chatRoot));
+    assertThat(instance.getRoot().getParent(), is(nullValue()));
   }
 
   @Test(expected = IllegalStateException.class)

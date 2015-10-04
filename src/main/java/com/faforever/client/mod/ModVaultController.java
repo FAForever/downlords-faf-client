@@ -1,9 +1,7 @@
 package com.faforever.client.mod;
 
 import javafx.application.Platform;
-import javafx.beans.Observable;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
@@ -52,22 +50,13 @@ public class ModVaultController {
     AnchorPane.setBottomAnchor(modDetailRoot, 0d);
     AnchorPane.setLeftAnchor(modDetailRoot, 0d);
     modDetailRoot.setVisible(false);
-
-    modService.getAvailableMods().addListener((Observable observable) -> {
-      ObservableSet<ModInfoBean> availableMods = modService.getAvailableMods();
-      // TODO after writing this code, I had to take a shower. If you read this, please help me getting a proper server API
-      if (availableMods.size() % (3 * TOP_ELEMENT_COUNT) == 0) {
-        displayMods(availableMods);
-      }
-    });
   }
 
-  private void displayMods(ObservableSet<ModInfoBean> modInfoBeans) {
-    List<ModInfoBean> mods = new ArrayList<>(modInfoBeans);
-    populateMods(mods, ModInfoBean.DOWNLOADS_COMPARATOR, popularModsPane);
-    populateMods(mods, ModInfoBean.PUBLISH_DATE_COMPARATOR, newestModsPane);
+  private void displayMods(List<ModInfoBean> modInfoBeans) {
+    populateMods(modInfoBeans, ModInfoBean.DOWNLOADS_COMPARATOR, popularModsPane);
+    populateMods(modInfoBeans, ModInfoBean.PUBLISH_DATE_COMPARATOR, newestModsPane);
 
-    List<ModInfoBean> uiMods = mods.stream().filter(ModInfoBean::getUiOnly).collect(Collectors.toList());
+    List<ModInfoBean> uiMods = modInfoBeans.stream().filter(ModInfoBean::getUiOnly).collect(Collectors.toList());
     populateMods(uiMods, ModInfoBean.LIKES_COMPARATOR, recommendedUiModsPane);
   }
 
@@ -98,7 +87,7 @@ public class ModVaultController {
   }
 
   public void setUpIfNecessary() {
-    modService.requestMods();
+    modService.requestMods().thenAccept(this::displayMods);
   }
 
   @FXML

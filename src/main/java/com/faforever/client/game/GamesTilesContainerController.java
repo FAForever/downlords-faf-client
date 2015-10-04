@@ -7,18 +7,13 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.FlowPane;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 
 public class GamesTilesContainerController {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
   public FlowPane tiledFlowPane;
@@ -48,8 +43,10 @@ public class GamesTilesContainerController {
   private void addGameCard(GameInfoBean gameInfoBean) {
     GameTileController gameTileController = applicationContext.getBean(GameTileController.class);
     gameTileController.setGameInfoBean(gameInfoBean);
-    tiledFlowPane.getChildren().add(gameTileController.getRoot());
-    uidToGameCard.put(gameInfoBean.getUid(), gameTileController.getRoot());
+
+    Node root = gameTileController.getRoot();
+    tiledFlowPane.getChildren().add(root);
+    uidToGameCard.put(gameInfoBean.getUid(), root);
   }
 
   public Node getRoot() {

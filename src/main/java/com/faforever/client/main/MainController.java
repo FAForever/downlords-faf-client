@@ -139,9 +139,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   Label taskProgressLabel;
 
   @FXML
-  Pane rankedMatchNotificationContainer;
-
-  @FXML
   Pane rankedMatchNotificationPane;
 
   @Autowired

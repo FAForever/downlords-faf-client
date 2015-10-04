@@ -1,5 +1,6 @@
 package com.faforever.client.test;
 
+import com.faforever.client.util.ThemeUtil;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -11,12 +12,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.core.io.ClassPathResource;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.net.URL;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.concurrent.Callable;
 
 public class AbstractPlainJavaFxTest extends ApplicationTest {
 
@@ -36,7 +41,7 @@ public class AbstractPlainJavaFxTest extends ApplicationTest {
   public void start(Stage stage) throws Exception {
     this.stage = stage;
     MockitoAnnotations.initMocks(this);
-    Thread.setDefaultUncaughtExceptionHandler(this::uncaughtException);
+    Thread.setDefaultUncaughtExceptionHandler(AbstractPlainJavaFxTest::uncaughtException);
 
     scene = new Scene(getRoot(), 1, 1);
     stage.setScene(scene);
@@ -47,26 +52,31 @@ public class AbstractPlainJavaFxTest extends ApplicationTest {
     return root;
   }
 
-  private void uncaughtException(Thread t, Throwable e) {
-    logger.warn("Uncaught exception", e);
-    Assert.fail(e.getMessage());
-  }
-
-  protected <T> T loadController(String fileName) throws IOException {
-    ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-    messageSource.setBasename("i18n.Messages");
-
-    FXMLLoader loader = new FXMLLoader();
-    loader.setResources(new MessageSourceResourceBundle(messageSource, Locale.US));
-    loader.load(getClass().getResourceAsStream("/themes/default/" + fileName));
-    return loader.getController();
-  }
-
   protected Scene getScene() {
     return scene;
   }
 
   protected Stage getStage() {
     return stage;
+  }
+
+  private static void uncaughtException(Thread t, Throwable e) {
+    logger.warn("Uncaught exception", e);
+    Assert.fail(e.getMessage());
+  }
+
+  protected static <T> T loadController(String fileName) throws IOException {
+    ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+    messageSource.setBasename("i18n.Messages");
+
+    FXMLLoader loader = new FXMLLoader();
+    loader.setLocation(buildResourceUrl(fileName));
+    loader.setResources(new MessageSourceResourceBundle(messageSource, Locale.US));
+    WaitForAsyncUtils.waitForAsyncFx(5000, (Callable<Object>) loader::load);
+    return loader.getController();
+  }
+
+  private static URL buildResourceUrl(String file) throws IOException {
+    return new ClassPathResource(ThemeUtil.themeFile("default", file)).getURL();
   }
 }

@@ -37,7 +37,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.function.Consumer;
 
 import static com.faforever.client.legacy.domain.GameAccess.PASSWORD;
 import static com.faforever.client.legacy.domain.GameAccess.PUBLIC;
@@ -307,12 +306,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void requestMods() {
-
-  }
-
-  @Override
-  public void setOnModInfoListener(Consumer<ModInfo> listener) {
-
+  public CompletableFuture<List<ModInfo>> requestMods() {
+    return CompletableFuture.completedFuture(null);
   }
 }

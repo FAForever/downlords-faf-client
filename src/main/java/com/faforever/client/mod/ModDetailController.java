@@ -6,6 +6,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
+import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -31,7 +32,7 @@ public class ModDetailController {
   @FXML
   Button installButton;
   @FXML
-  ImageView modImageView;
+  ImageView thumbnailImageView;
   @FXML
   Label nameLabel;
   @FXML
@@ -67,7 +68,7 @@ public class ModDetailController {
   public void setMod(ModInfoBean mod) {
     this.mod = mod;
     if (StringUtils.isNotEmpty(mod.getThumbnailUrl())) {
-      modImageView.setImage(new Image(mod.getThumbnailUrl()));
+      thumbnailImageView.setImage(new Image(mod.getThumbnailUrl()));
     }
     nameLabel.setText(mod.getName());
     authorLabel.setText(mod.getAuthor());
@@ -76,7 +77,7 @@ public class ModDetailController {
     installButton.setVisible(!modInstalled);
     uninstallButton.setVisible(modInstalled);
 
-    modDescriptionWebView.getEngine().loadContent(mod.getDescription());
+    Platform.runLater(() -> modDescriptionWebView.getEngine().loadContent(mod.getDescription()));
 
     modService.getInstalledMods().addListener((ListChangeListener<ModInfoBean>) change -> {
       while (change.next()) {
@@ -94,6 +95,7 @@ public class ModDetailController {
         }
       }
     });
+    setInstalled(modService.isModInstalled(mod.getUid()));
   }
 
   private void setInstalled(boolean installed) {
