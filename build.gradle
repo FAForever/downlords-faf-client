@@ -136,4 +136,5 @@ dependencies {
   compile 'com.rometools:rome:1.5.0'
   compile 'org.jsoup:jsoup:1.8.2'
   compile 'net.dongliu:jvcdiff:2.0.2'
+  compile 'com.github.thiagolocatelli:parse4j:1.4'
 }

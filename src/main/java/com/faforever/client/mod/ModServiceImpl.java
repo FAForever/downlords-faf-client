@@ -144,8 +144,59 @@ public class ModServiceImpl implements ModService {
       titleProperty.bind(task.titleProperty());
     }
 
+    logger.debug("Reading mod {}", path);
+    try (InputStream inputStream = Files.newInputStream(modInfoLua)) {
+      Properties properties = new Properties();
+      properties.load(inputStream);
+
+      modInfoBean.setUid(stripQuotes(properties.getProperty("uid")));
+      modInfoBean.setName(stripQuotes(properties.getProperty("name")));
+      modInfoBean.setDescription(stripQuotes(properties.getProperty("description")));
+      modInfoBean.setAuthor(stripQuotes(properties.getProperty("author")));
+      modInfoBean.setVersion(stripQuotes(properties.getProperty("version")));
+      modInfoBean.setSelectable(Boolean.parseBoolean(stripQuotes(properties.getProperty("selectable"))));
+      modInfoBean.setUiOnly(Boolean.parseBoolean(stripQuotes(properties.getProperty("ui_only"))));
+      modInfoBean.setImagePath(extractIconPath(path, properties));
+    }
+
     return taskService.submitTask(task)
         .thenAccept(aVoid -> loadInstalledMods());
+  }
+
+  private static String stripQuotes(String string) {
+    if (string == null) {
+      return null;
+    }
+
+    Matcher matcher = QUOTED_TEXT_PATTERN.matcher(string);
+    if (matcher.matches()) {
+      return matcher.group(1);
+    }
+
+    return string;
+  }
+
+  private static Path extractIconPath(Path path, Properties properties) {
+    String icon = properties.getProperty("icon");
+    if (icon == null) {
+      return null;
+    }
+
+    icon = stripQuotes(icon);
+
+    if (StringUtils.isEmpty(icon)) {
+      return null;
+    }
+
+    if (icon.startsWith("/")) {
+      icon = icon.substring(1);
+    }
+
+    Path iconPath = Paths.get(icon);
+    // mods/BlackOpsUnleashed/icons/yoda_icon.bmp -> icons/yoda_icon.bmp
+    iconPath = iconPath.subpath(2, iconPath.getNameCount());
+
+    return path.resolve(iconPath);
   }
 
   @Override

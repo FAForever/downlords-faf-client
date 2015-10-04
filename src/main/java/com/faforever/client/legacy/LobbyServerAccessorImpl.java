@@ -488,19 +488,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     }
   }
 
-  /**
-   * Instead of sending a list of mod info, the server sends one mod after another. This is very inconvenient since we
-   * don't really know how many there will be. However, at the moment, we "know" that the server sends 100 mods. So
-   * let's wait for these and pray that this number will never change until we get a proper server API.
-   */
-  private void onModInfo(ModInfo modInfo) {
-    collectedModInfos.add(modInfo);
-    if (collectedModInfos.size() == 100) {
-      modListFuture.complete(new ArrayList<>(collectedModInfos));
-    }
-    collectedModInfos.clear();
-  }
-
   private void onServerPing() {
     writeToServer(new PongMessage());
   }
@@ -543,6 +530,16 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     onRankedMatchNotificationListeners.forEach(listener -> listener.onRankedMatchInfo(gameTypeInfo));
   }
 
+  private void dispatchSocialInfo(SocialInfo socialInfo) {
+    if (socialInfo.getFriends() != null) {
+      onFriendListListener.onFriendList(socialInfo.getFriends());
+    } else if (socialInfo.getFoes() != null) {
+      onFoeListListener.onFoeList(socialInfo.getFoes());
+    } else if (socialInfo.getAutoJoin() != null) {
+      onJoinChannelsRequestListeners.forEach(listener -> listener.onJoinChannelsRequest(socialInfo.getAutoJoin()));
+    }
+  }
+
   /**
    * Instead of sending a list of mod info, the server sends one mod after another. This is very inconvenient since we
    * don't really know how many there will be. However, at the moment, we "know" that the server sends 100 mods. So
@@ -554,15 +551,5 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
       modListFuture.complete(new ArrayList<>(collectedModInfos));
     }
     collectedModInfos.clear();
-  }
-
-  private void dispatchSocialInfo(SocialInfo socialInfo) {
-    if (socialInfo.getFriends() != null) {
-      onFriendListListener.onFriendList(socialInfo.getFriends());
-    } else if (socialInfo.getFoes() != null) {
-      onFoeListListener.onFoeList(socialInfo.getFoes());
-    } else if (socialInfo.getAutoJoin() != null) {
-      onJoinChannelsRequestListeners.forEach(listener -> listener.onJoinChannelsRequest(socialInfo.getAutoJoin()));
-    }
   }
 }
