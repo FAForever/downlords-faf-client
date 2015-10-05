@@ -58,7 +58,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
 
     int port = fafLobbyServerSocket.getLocalPort();
     when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
-    when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(100);
+    when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(3000);
 
     instance.call();
   }
@@ -94,7 +94,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
 
     int port = fafLobbyServerSocket.getLocalPort();
     when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
-    when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(100);
+    when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(3000);
 
     instance.call();
   }
