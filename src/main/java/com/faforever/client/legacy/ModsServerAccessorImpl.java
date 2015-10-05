@@ -8,7 +8,6 @@ import com.faforever.client.legacy.domain.SearchModMessage;
 import com.faforever.client.legacy.domain.ServerCommand;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
-import com.faforever.client.legacy.gson.ModTypeTypeAdapter;
 import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.notification.NotificationService;
@@ -54,7 +53,6 @@ public class ModsServerAccessorImpl extends AbstractServerAccessor implements Mo
   public ModsServerAccessorImpl() {
     gson = new GsonBuilder()
         .registerTypeAdapter(ServerMessageType.class, new ServerMessageTypeTypeAdapter())
-        .registerTypeAdapter(SearchModMessage.ModType.class, new ModTypeTypeAdapter())
         .create();
   }
 

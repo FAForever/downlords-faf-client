@@ -14,7 +14,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.function.Consumer;
 
 /**
  * Entry class for all communication with the FAF lobby server, be it reading or writing. This class should only be
@@ -74,7 +73,5 @@ public interface LobbyServerAccessor {
   /**
    * Returns the 100 most liked mods.
    */
-  void requestMods();
-
-  void setOnModInfoListener(Consumer<ModInfo> listener);
+  CompletableFuture<List<ModInfo>> requestMods();
 }

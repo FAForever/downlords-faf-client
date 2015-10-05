@@ -82,8 +82,8 @@
                 <Insets right="10.0"/>
               </HBox.margin>
             </Button>
-            <Button fx:id="usernameButton" onAction="#onUsernameButtonClicked" focusTraversable="false"
-                    mnemonicParsing="false" styleClass="username-button" text="&lt;Username&gt;"/>
+            <Button fx:id="usernameButton" focusTraversable="false" minWidth="100.0" mnemonicParsing="false"
+                    onAction="#onUsernameButtonClicked" styleClass="username-button" text="&lt;Username&gt;"/>
           </children>
           <padding>
             <Insets bottom="12.0" left="20.0" right="20.0" top="12.0"/>

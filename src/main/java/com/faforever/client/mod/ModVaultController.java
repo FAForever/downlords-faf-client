@@ -7,9 +7,7 @@ import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import javafx.application.Platform;
-import javafx.beans.Observable;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -78,18 +76,9 @@ public class ModVaultController {
     AnchorPane.setBottomAnchor(modDetailRoot, 0d);
     AnchorPane.setLeftAnchor(modDetailRoot, 0d);
     modDetailRoot.setVisible(false);
-
-
-    modService.getAvailableMods().addListener((Observable observable) -> {
-      ObservableSet<ModInfoBean> availableMods = modService.getAvailableMods();
-      // TODO I had to take a shower after writing this code. Please help me getting a proper server API
-      if (availableMods.size() % (3 * TOP_ELEMENT_COUNT) == 0) {
-        displayShowroomMods(availableMods);
-      }
-    });
   }
 
-  private void displayShowroomMods(ObservableSet<ModInfoBean> modInfoBeans) {
+  private void displayShowroomMods(List<ModInfoBean> modInfoBeans) {
     showroomGroup.setVisible(true);
     searchResultGroup.setVisible(false);
 
@@ -128,7 +117,7 @@ public class ModVaultController {
   }
 
   public void setUpIfNecessary() {
-    modService.requestMods();
+    modService.requestMods().thenAccept(this::displayShowroomMods);
   }
 
   @FXML

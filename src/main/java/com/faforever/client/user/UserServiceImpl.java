@@ -48,7 +48,6 @@ public class UserServiceImpl implements UserService {
           UserServiceImpl.this.email = sessionInfo.getEmail();
 
           cloudService.signUpOrLogIn(username, password, email, uid);
-          playServices.authorize(String.valueOf(uid));
         });
   }
 

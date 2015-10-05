@@ -5,11 +5,13 @@ import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.ClientMessageType;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameState;
+import com.faforever.client.legacy.domain.SearchModMessage;
 import com.faforever.client.legacy.domain.VictoryCondition;
 import com.faforever.client.legacy.gson.ClientMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.FactionTypeAdapter;
 import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
+import com.faforever.client.legacy.gson.ModTypeTypeAdapter;
 import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.io.QStreamWriter;
 import com.faforever.client.legacy.writer.JsonMessageSerializer;
@@ -53,10 +55,12 @@ public class ClientMessageSerializer extends JsonMessageSerializer<ClientMessage
 
   @Override
   protected void addTypeAdapters(GsonBuilder gsonBuilder) {
-    gsonBuilder.registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter());
-    gsonBuilder.registerTypeAdapter(GameState.class, new GameStateTypeAdapter());
-    gsonBuilder.registerTypeAdapter(ClientMessageType.class, new ClientMessageTypeTypeAdapter());
-    gsonBuilder.registerTypeAdapter(VictoryCondition.class, new VictoryConditionTypeAdapter());
-    gsonBuilder.registerTypeAdapter(Faction.class, new FactionTypeAdapter());
+    gsonBuilder.registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter())
+        .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
+        .registerTypeAdapter(ClientMessageType.class, new ClientMessageTypeTypeAdapter())
+        .registerTypeAdapter(VictoryCondition.class, new VictoryConditionTypeAdapter())
+        .registerTypeAdapter(Faction.class, new FactionTypeAdapter())
+        .registerTypeAdapter(Faction.class, new FactionTypeAdapter())
+        .registerTypeAdapter(SearchModMessage.ModType.class, new ModTypeTypeAdapter());
   }
 }

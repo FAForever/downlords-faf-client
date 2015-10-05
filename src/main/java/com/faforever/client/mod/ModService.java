@@ -3,7 +3,6 @@ package com.faforever.client.mod;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 
 import java.io.IOException;
 import java.net.URL;
@@ -13,8 +12,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public interface ModService {
-
-  ObservableSet<ModInfoBean> getAvailableMods();
 
   void loadInstalledMods();
 
@@ -32,12 +29,7 @@ public interface ModService {
 
   void enableSimMods(Set<String> simMods) throws IOException;
 
-  /**
-   * Requests the server to send mod information. Since the server sends them one by one and it's unknown how many, this
-   * method does not return a future. Instead, callers should listen on the set returned by {@link
-   * #getAvailableMods()}.
-   */
-  void requestMods();
+  CompletableFuture<List<ModInfoBean>> requestMods();
 
   boolean isModInstalled(String uid);
 
