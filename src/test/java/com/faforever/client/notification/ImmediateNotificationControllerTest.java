@@ -24,7 +24,7 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
 
   @Before
   public void setUp() throws Exception {
-    instance = new ImmediateNotificationController();
+    instance = loadController("immediate_notification.fxml");
     instance.titleLabel = new Label();
     instance.messageLabel = new Label();
     instance.buttonBar = new ButtonBar();
