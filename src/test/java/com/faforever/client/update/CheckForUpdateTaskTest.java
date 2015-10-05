@@ -15,12 +15,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 import static org.mockito.Mockito.when;
 
 public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
+
+  private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
 
   private ServerSocket fafLobbyServerSocket;
   private CheckForUpdateTask instance;
@@ -54,7 +57,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
     startFakeGitHubApiServer();
 
     int port = fafLobbyServerSocket.getLocalPort();
-    when(environment.getProperty("github.releases.url")).thenReturn("http://localhost:" + port);
+    when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
     when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(100);
 
     instance.call();
@@ -90,7 +93,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
     startFakeGitHubApiServer();
 
     int port = fafLobbyServerSocket.getLocalPort();
-    when(environment.getProperty("github.releases.url")).thenReturn("http://localhost:" + port);
+    when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
     when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(100);
 
     instance.call();
