@@ -28,6 +28,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -281,7 +282,9 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     copyMod("EM", ECO_MANAGER_MOD_INFO);
     instance.loadInstalledMods();
 
-    ObservableList<ModInfoBean> installedMods = instance.getInstalledMods();
+    ArrayList<ModInfoBean> installedMods = new ArrayList<>(instance.getInstalledMods());
+    Collections.sort(installedMods, (lhs, rhs) -> lhs.getName().compareTo(rhs.getName()));
+
     ModInfoBean modInfoBean = installedMods.get(0);
 
     assertThat(modInfoBean.getName(), is("BlackOps Unleashed"));
