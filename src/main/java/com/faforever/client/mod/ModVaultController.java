@@ -129,7 +129,9 @@ public class ModVaultController {
   void onSearchModButtonClicked() {
     if (searchTextField.getText().isEmpty()) {
       onResetButtonClicked();
+      return;
     }
+
     modService.searchMod(searchTextField.getText())
         .thenAccept(this::displaySearchResult)
         .exceptionally(throwable -> {
