@@ -132,6 +132,8 @@ public class ModVaultController {
       return;
     }
 
+    // TODO waiting for server response
+
     modService.searchMod(searchTextField.getText())
         .thenAccept(this::displaySearchResult)
         .exceptionally(throwable -> {
