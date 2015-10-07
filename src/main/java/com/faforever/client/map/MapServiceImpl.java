@@ -2,7 +2,6 @@ package com.faforever.client.map;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.game.MapInfoBean;
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.map.Comment;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.preferences.PreferencesService;
@@ -51,8 +50,6 @@ public class MapServiceImpl implements MapService {
   TaskService taskService;
   @Autowired
   MapVaultParser mapVaultParser;
-  @Autowired
-  I18n i18n;
   @Autowired
   ApplicationContext applicationContext;
 

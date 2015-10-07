@@ -30,12 +30,10 @@ public class ParseCloudService implements CloudService {
   }
 
   @Override
-  public CompletableFuture<String> signUpOrLogIn(String username, String password, String email, int uid) {
+  public CompletableFuture<String> signUpOrLogIn(String username, String password) {
     HashMap<String, Object> params = new HashMap<>();
     params.put("username", username);
     params.put("password", password);
-    params.put("email", email);
-    params.put("uid", uid);
 
     return callCloudFunction("signUpIfNecessary", params)
         .exceptionally(throwable -> {

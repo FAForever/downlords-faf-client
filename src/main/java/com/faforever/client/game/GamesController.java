@@ -178,8 +178,10 @@ public class GamesController {
     mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getTechnicalName()));
 
     gameInfoBean.technicalNameProperty().addListener((observable, oldValue, newValue) -> {
-      gameTitleLabel.setText(newValue);
-      mapImageView.setImage(mapService.loadLargePreview(newValue));
+      Platform.runLater(() -> {
+        gameTitleLabel.setText(newValue);
+        mapImageView.setImage(mapService.loadLargePreview(newValue));
+      });
     });
 
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
@@ -190,7 +192,6 @@ public class GamesController {
       updateGameType(newValue);
     });
     updateGameType(gameInfoBean.getFeaturedMod());
-
 
     createTeams(gameInfoBean.getTeams());
   }

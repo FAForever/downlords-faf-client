@@ -4,5 +4,5 @@ import java.util.concurrent.CompletableFuture;
 
 public interface CloudService {
 
-  CompletableFuture<String> signUpOrLogIn(String username, String password, String email, int uid);
+  CompletableFuture<String> signUpOrLogIn(String username, String password);
 }

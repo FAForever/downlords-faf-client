@@ -9,6 +9,7 @@ import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
+import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardController;
@@ -58,6 +59,7 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SplitMenuButton;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -89,6 +91,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_CLASS = PseudoClass.getPseudoClass("error");
   private static final PseudoClass NAVIGATION_ACTIVE_PSEUDO_CLASS = PseudoClass.getPseudoClass("active");
 
+  @FXML
+  ImageView userImageView;
   @FXML
   HBox mainNavigation;
   @FXML
@@ -156,6 +160,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   I18n i18n;
   @Autowired
   UserService userService;
+  @Autowired
+  GravatarService gravatarService;
   @Autowired
   TaskService taskService;
   @Autowired
@@ -330,6 +336,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     registerWindowListeners(stage, mainWindowPrefs);
 
     usernameButton.setText(userService.getUsername());
+    userImageView.setImage(gravatarService.getGravatar(userService.getEmail()));
 
     checkGamePortInBackground();
     gameUpdateService.checkForUpdateInBackground();

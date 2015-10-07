@@ -11,9 +11,12 @@ import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.stats.StatisticsService;
+import com.faforever.client.stats.domain.GameStats;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.SocketAddressUtil;
+import com.google.common.io.Resources;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.compress.utils.IOUtils;
@@ -21,6 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -33,11 +37,13 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -46,6 +52,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -71,6 +78,21 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private ServerSocket fafRelayServerSocket;
   private Socket localToServerSocket;
 
+  @Mock
+  private Consumer<GameStats> gameStatsConsumer;
+  @Mock
+  private StatisticsService statisticsService;
+  @Mock
+  private Proxy proxy;
+  @Mock
+  private Environment environment;
+  @Mock
+  private UserService userService;
+  @Mock
+  private PreferencesService preferencesService;
+  @Mock
+  private LobbyServerAccessor lobbyServerAccessor;
+
   @Before
   public void setUp() throws Exception {
     messagesReceivedByFafServer = new ArrayBlockingQueue<>(10);
@@ -82,11 +104,12 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     CountDownLatch gameConnectedLatch = new CountDownLatch(1);
 
     instance = new LocalRelayServerImpl();
-    instance.proxy = mock(Proxy.class);
-    instance.environment = mock(Environment.class);
-    instance.userService = mock(UserService.class);
-    instance.preferencesService = mock(PreferencesService.class);
-    instance.lobbyServerAccessor = mock(LobbyServerAccessor.class);
+    instance.proxy = proxy;
+    instance.environment = environment;
+    instance.userService = userService;
+    instance.preferencesService = preferencesService;
+    instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.statisticsService = statisticsService;
 
     ForgedAlliancePrefs forgedAlliancePrefs = mock(ForgedAlliancePrefs.class);
     Preferences preferences = mock(Preferences.class);
@@ -94,19 +117,19 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     instance.addOnReadyListener(localRelayServerReadyLatch::countDown);
     instance.addOnConnectionAcceptedListener(gameConnectedLatch::countDown);
 
-    when(instance.environment.getProperty("relay.host")).thenReturn(LOOPBACK_ADDRESS.getHostAddress());
-    when(instance.environment.getProperty("relay.port", int.class)).thenReturn(fafRelayServerSocket.getLocalPort());
+    when(environment.getProperty("relay.host")).thenReturn(LOOPBACK_ADDRESS.getHostAddress());
+    when(environment.getProperty("relay.port", int.class)).thenReturn(fafRelayServerSocket.getLocalPort());
     when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
-    when(instance.preferencesService.getPreferences()).thenReturn(preferences);
-    when(instance.userService.getSessionId()).thenReturn(SESSION_ID);
-    when(instance.userService.getUid()).thenReturn((int) USER_ID);
-    when(instance.userService.getUsername()).thenReturn("junit");
-    when(instance.proxy.getPort()).thenReturn(GAME_PORT);
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(userService.getSessionId()).thenReturn(SESSION_ID);
+    when(userService.getUid()).thenReturn((int) USER_ID);
+    when(userService.getUsername()).thenReturn("junit");
+    when(proxy.getPort()).thenReturn(GAME_PORT);
 
     instance.postConstruct();
     ArgumentCaptor<OnGameLaunchInfoListener> captor = ArgumentCaptor.forClass(OnGameLaunchInfoListener.class);
-    verify(instance.lobbyServerAccessor).addOnGameLaunchListener(captor.capture());
+    verify(lobbyServerAccessor).addOnGameLaunchListener(captor.capture());
 
     GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
     gameLaunchInfo.setMod(GameType.DEFAULT.getString());
@@ -269,7 +292,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSendNatPacketP2pProxyEnabled() throws Exception {
-    when(instance.proxy.translateToLocal("37.58.123.2:6112")).thenReturn("127.0.0.1:53214");
+    when(proxy.translateToLocal("37.58.123.2:6112")).thenReturn("127.0.0.1:53214");
 
     verifyAuthenticateMessage();
     enableP2pProxy();
@@ -280,14 +303,14 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     RelayServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(instance.proxy).registerP2pPeerIfNecessary("37.58.123.2:6112");
+    verify(proxy).registerP2pPeerIfNecessary("37.58.123.2:6112");
     assertThat(relayMessage.getCommand(), is(RelayServerCommand.SEND_NAT_PACKET));
     assertThat(relayMessage.getArgs(), contains("127.0.0.1:53214"));
   }
 
   @Test
   public void testHandleConnectToPeerP2pProxyEnabled() throws Exception {
-    when(instance.proxy.translateToLocal("37.58.123.2:6112")).thenReturn("127.0.0.1:53214");
+    when(proxy.translateToLocal("37.58.123.2:6112")).thenReturn("127.0.0.1:53214");
 
     verifyAuthenticateMessage();
     enableP2pProxy();
@@ -300,8 +323,8 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     RelayServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(instance.proxy).registerP2pPeerIfNecessary("37.58.123.2:6112");
-    verify(instance.proxy).setUidForPeer("37.58.123.2:6112", 4);
+    verify(proxy).registerP2pPeerIfNecessary("37.58.123.2:6112");
+    verify(proxy).setUidForPeer("37.58.123.2:6112", 4);
     assertThat(relayMessage.getCommand(), is(RelayServerCommand.CONNECT_TO_PEER));
     assertThat(relayMessage.getArgs(), contains("127.0.0.1:53214", "junit", 4));
   }
@@ -345,7 +368,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testJoinGameP2pProxyEnabled() throws Exception {
-    when(instance.proxy.translateToLocal("37.58.123.2:6112")).thenReturn("127.0.0.1:53214");
+    when(proxy.translateToLocal("37.58.123.2:6112")).thenReturn("127.0.0.1:53214");
 
     verifyAuthenticateMessage();
     enableP2pProxy();
@@ -358,8 +381,8 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     RelayServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(instance.proxy).registerP2pPeerIfNecessary("37.58.123.2:6112");
-    verify(instance.proxy).setUidForPeer("37.58.123.2:6112", 4);
+    verify(proxy).registerP2pPeerIfNecessary("37.58.123.2:6112");
+    verify(proxy).setUidForPeer("37.58.123.2:6112", 4);
     assertThat(relayMessage.getCommand(), is(RelayServerCommand.JOIN_GAME));
     assertThat(relayMessage.getArgs(), contains("127.0.0.1:53214", "junit", 4));
   }
@@ -399,7 +422,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     verifyAuthenticateMessage();
 
-    when(instance.proxy.bindAndGetProxySocketAddress(playerNumber, peerUid)).thenReturn(
+    when(proxy.bindAndGetProxySocketAddress(playerNumber, peerUid)).thenReturn(
         inetSocketAddress
     );
 
@@ -421,7 +444,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     verifyAuthenticateMessage();
 
-    when(instance.proxy.bindAndGetProxySocketAddress(playerNumber, peerUid)).thenReturn(
+    when(proxy.bindAndGetProxySocketAddress(playerNumber, peerUid)).thenReturn(
         inetSocketAddress
     );
 
@@ -486,7 +509,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testUpdateProxyStateProcessNatPacket() throws Exception {
-    when(instance.proxy.translateToPublic("127.0.0.1:53214")).thenReturn("37.58.123.2:6112");
+    when(proxy.translateToPublic("127.0.0.1:53214")).thenReturn("37.58.123.2:6112");
 
     verifyAuthenticateMessage();
     enableP2pProxy();
@@ -508,7 +531,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(lobbyMessage.getAction(), is(LobbyAction.DISCONNECTED));
     assertThat(lobbyMessage.getChunks(), contains(4.0));
-    verify(instance.proxy).updateConnectedState(4, false);
+    verify(proxy).updateConnectedState(4, false);
   }
 
   @Test
@@ -521,7 +544,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(lobbyMessage.getAction(), is(LobbyAction.CONNECTED));
     assertThat(lobbyMessage.getChunks(), contains(4.0));
-    verify(instance.proxy).updateConnectedState(4, true);
+    verify(proxy).updateConnectedState(4, true);
   }
 
   @Test
@@ -534,7 +557,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(lobbyMessage.getAction(), is(LobbyAction.GAME_STATE));
     assertThat(lobbyMessage.getChunks(), contains(LocalRelayServerImpl.GAME_STATE_LAUNCHING));
-    verify(instance.proxy).setGameLaunched(true);
+    verify(proxy).setGameLaunched(true);
   }
 
   @Test
@@ -547,7 +570,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(lobbyMessage.getAction(), is(LobbyAction.GAME_STATE));
     assertThat(lobbyMessage.getChunks(), contains(LocalRelayServerImpl.GAME_STATE_LOBBY));
-    verify(instance.proxy).setGameLaunched(false);
+    verify(proxy).setGameLaunched(false);
   }
 
   @Test
@@ -559,7 +582,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(lobbyMessage.getAction(), is(LobbyAction.BOTTLENECK));
-    verify(instance.proxy).setBottleneck(true);
+    verify(proxy).setBottleneck(true);
   }
 
   @Test
@@ -571,6 +594,23 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(lobbyMessage.getAction(), is(LobbyAction.BOTTLENECK_CLEARED));
-    verify(instance.proxy).setBottleneck(false);
+    verify(proxy).setBottleneck(false);
+  }
+
+  @Test
+  public void testSetGameStatsListener() throws Exception {
+    verifyAuthenticateMessage();
+
+    instance.setGameStatsListener(gameStatsConsumer);
+
+    String statsXml = Resources.toString(getClass().getResource("/stats/stats.xml"), StandardCharsets.UTF_8);
+    LobbyMessage statsMessage = new LobbyMessage(LobbyAction.STATS, singletonList(statsXml));
+    sendFromGame(statsMessage);
+
+    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(lobbyMessage.getAction(), is(LobbyAction.STATS));
+
+    verify(gameStatsConsumer).accept(any());
+    verify(statisticsService).parseStatistics(statsXml);
   }
 }

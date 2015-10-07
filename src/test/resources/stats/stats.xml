@@ -1,0 +1,149 @@
+<?xml version="1.0" ?>
+<GameStats>
+  <Army index="0" name="Downlord">
+    <UnitStats>
+      <Unit id="url0001" type="<LOC url0001_desc>Armored Command Unit" built="0" lost="1" killed="2"
+            damagedealt="1477756.00" damagereceived="5900.00" masscost="18000.00" energycost="5000000.00"
+            buildtime="6000000.00"/>
+      <Unit id="xsl0105" type="<LOC xsl0105_desc>Engineer" built="0" lost="0" killed="2" damagedealt="0.00"
+            damagereceived="0.00" masscost="52.00" energycost="260.00" buildtime="260.00"/>
+      <Unit id="xsl0201" type="<LOC xsl0201_desc>Medium Tank" built="0" lost="0" killed="1" damagedealt="0.00"
+            damagereceived="0.00" masscost="54.00" energycost="270.00" buildtime="270.00"/>
+    </UnitStats>
+    <SummaryStats>
+      <Category type="AIR" built="123" killed="51"/>
+      <Category type="LAND" built="0" killed="3"/>
+      <Category type="NAVAL" built="0" killed="0"/>
+      <Category type="ENGINEER" built="0" killed="2"/>
+      <Category type="ARTILLERY" built="0" killed="0"/>
+      <Category type="ANTIAIR" built="0" killed="0"/>
+      <Category type="TRANSPORTATION" built="0" killed="0"/>
+      <Category type="STRUCTURE" built="0" killed="0"/>
+      <Category type="FACTORY" built="0" killed="0"/>
+      <Category type="ENERGYPRODUCTION" built="0" killed="0"/>
+      <Category type="MASSPRODUCTION" built="0" killed="0"/>
+      <Category type="DEFENSE" built="0" killed="0"/>
+      <Category type="TECH1" built="0" killed="3"/>
+      <Category type="TECH2" built="0" killed="0"/>
+      <Category type="TECH3" built="0" killed="0"/>
+    </SummaryStats>
+    <EconomyStats>
+      <Energy produced="6118.00" consumed="5132.31" storage="6132.51"/>
+      <Mass produced="975.86" consumed="4120.00" storage="523.13"/>
+    </EconomyStats>
+  </Army>
+  <Army index="1" name="Zan-Uushen (AI: Rush)">
+    <UnitStats>
+      <Unit id="xsb0101" type="<LOC xsb0101_desc>Land Factory" built="1" lost="0" killed="0" damagedealt="0.00"
+            damagereceived="82.00" masscost="240.00" energycost="2100.00" buildtime="300.00"/>
+      <Unit id="xsb1101" type="<LOC xsb1101_desc>Power Generator" built="2" lost="0" killed="0" damagedealt="0.00"
+            damagereceived="165.00" masscost="75.00" energycost="750.00" buildtime="125.00"/>
+      <Unit id="xsb1103" type="<LOC xsb1103_desc>Mass Extractor" built="1" lost="0" killed="0" damagedealt="0.00"
+            damagereceived="16.00" masscost="36.00" energycost="360.00" buildtime="60.00"/>
+      <Unit id="xsl0001" type="<LOC xsl0001_desc>Armored Command Unit" built="1" lost="0" killed="0"
+            damagedealt="3400.00" damagereceived="9002.00" masscost="18000.00" energycost="5000000.00"
+            buildtime="6000000.00"/>
+      <Unit id="xsl0105" type="<LOC xsl0105_desc>Engineer" built="1" lost="2" killed="0" damagedealt="0.00"
+            damagereceived="5002.00" masscost="52.00" energycost="260.00" buildtime="260.00"/>
+    </UnitStats>
+    <SummaryStats>
+      <Category type="AIR" built="0" killed="0"/>
+      <Category type="LAND" built="3" killed="0"/>
+      <Category type="NAVAL" built="0" killed="0"/>
+      <Category type="ENGINEER" built="2" killed="0"/>
+      <Category type="ARTILLERY" built="0" killed="0"/>
+      <Category type="ANTIAIR" built="0" killed="0"/>
+      <Category type="TRANSPORTATION" built="0" killed="0"/>
+      <Category type="STRUCTURE" built="4" killed="0"/>
+      <Category type="FACTORY" built="1" killed="0"/>
+      <Category type="ENERGYPRODUCTION" built="3" killed="0"/>
+      <Category type="MASSPRODUCTION" built="2" killed="0"/>
+      <Category type="DEFENSE" built="0" killed="0"/>
+      <Category type="TECH1" built="5" killed="0"/>
+      <Category type="TECH2" built="0" killed="0"/>
+      <Category type="TECH3" built="0" killed="0"/>
+    </SummaryStats>
+    <EconomyStats>
+      <Energy produced="7573.13" consumed="5129.06" storage="4000.00"/>
+      <Mass produced="812.73" consumed="650.20" storage="740.00"/>
+    </EconomyStats>
+  </Army>
+  <Army index="2" name="civilian">
+    <UnitStats>
+      <Unit id="uab2302" type="<LOC uab2302_desc>Heavy Artillery Installation" built="0" lost="0" killed="0"
+            damagedealt="0.00" damagereceived="0.00" masscost="73200.00" energycost="915000.00" buildtime="30764.00"/>
+      <Unit id="ual0111" type="<LOC ual0111_desc>Mobile Missile Launcher" built="0" lost="0" killed="0"
+            damagedealt="0.00" damagereceived="0.00" masscost="200.00" energycost="1500.00" buildtime="1000.00"/>
+      <Unit id="ual0201" type="<LOC ual0201_desc>Light Tank" built="0" lost="0" killed="0" damagedealt="0.00"
+            damagereceived="0.00" masscost="52.00" energycost="260.00" buildtime="260.00"/>
+      <Unit id="ual0202" type="<LOC ual0202_desc>Heavy Tank" built="0" lost="0" killed="0" damagedealt="0.00"
+            damagereceived="0.00" masscost="360.00" energycost="1800.00" buildtime="1600.00"/>
+      <Unit id="ual0303" type="<LOC ual0303_desc>Heavy Assault Bot" built="0" lost="0" killed="0" damagedealt="0.00"
+            damagereceived="0.00" masscost="840.00" energycost="9600.00" buildtime="4500.00"/>
+      <Unit id="ual0401" type="<LOC ual0401_desc>Experimental Assault Bot" built="0" lost="0" killed="0"
+            damagedealt="0.00" damagereceived="0.00" masscost="27500.00" energycost="343750.00" buildtime="20625.00"/>
+      <Unit id="uel0111" type="<LOC uel0111_desc>Mobile Missile Launcher" built="0" lost="0" killed="0"
+            damagedealt="0.00" damagereceived="0.00" masscost="200.00" energycost="1500.00" buildtime="1000.00"/>
+      <Unit id="uel0201" type="<LOC uel0201_desc>Medium Tank" built="0" lost="0" killed="0" damagedealt="0.00"
+            damagereceived="0.00" masscost="56.00" energycost="266.00" buildtime="280.00"/>
+      <Unit id="uel0202" type="<LOC uel0202_desc>Heavy Tank" built="0" lost="0" killed="0" damagedealt="0.00"
+            damagereceived="0.00" masscost="198.00" energycost="990.00" buildtime="880.00"/>
+      <Unit id="uel0303" type="<LOC uel0303_desc>Heavy Assault Bot" built="0" lost="0" killed="0" damagedealt="0.00"
+            damagereceived="0.00" masscost="480.00" energycost="5400.00" buildtime="2400.00"/>
+      <Unit id="ura0401" type="<LOC ura0401_desc>Experimental Gunship" built="0" lost="0" killed="0" damagedealt="0.00"
+            damagereceived="0.00" masscost="34000.00" energycost="480000.00" buildtime="20000.00"/>
+      <Unit id="urb2305" type="<LOC urb2305_desc>Strategic Missile Launcher" built="0" lost="0" killed="0"
+            damagedealt="0.00" damagereceived="0.00" masscost="15000.00" energycost="210000.00" buildtime="10453.00"/>
+      <Unit id="url0401" type="<LOC url0401_desc>Experimental Mobile Rapid-Fire Artillery" built="0" lost="0" killed="0"
+            damagedealt="0.00" damagereceived="0.00" masscost="85000.00" energycost="1500000.00" buildtime="31500.00"/>
+      <Unit id="url0402" type="<LOC url0402_desc>Experimental Spiderbot" built="0" lost="0" killed="0"
+            damagedealt="0.00" damagereceived="0.00" masscost="19000.00" energycost="260000.00" buildtime="15750.00"/>
+    </UnitStats>
+    <SummaryStats>
+      <Category type="AIR" built="0" killed="0"/>
+      <Category type="LAND" built="0" killed="0"/>
+      <Category type="NAVAL" built="0" killed="0"/>
+      <Category type="ENGINEER" built="0" killed="0"/>
+      <Category type="ARTILLERY" built="0" killed="0"/>
+      <Category type="ANTIAIR" built="0" killed="0"/>
+      <Category type="TRANSPORTATION" built="0" killed="0"/>
+      <Category type="STRUCTURE" built="0" killed="0"/>
+      <Category type="FACTORY" built="0" killed="0"/>
+      <Category type="ENERGYPRODUCTION" built="0" killed="0"/>
+      <Category type="MASSPRODUCTION" built="0" killed="0"/>
+      <Category type="DEFENSE" built="0" killed="0"/>
+      <Category type="TECH1" built="0" killed="0"/>
+      <Category type="TECH2" built="0" killed="0"/>
+      <Category type="TECH3" built="0" killed="0"/>
+    </SummaryStats>
+    <EconomyStats>
+      <Energy produced="0.00" consumed="0.00" storage="0.00"/>
+      <Mass produced="0.00" consumed="0.00" storage="0.00"/>
+    </EconomyStats>
+  </Army>
+  <Army index="3" name="civilian">
+    <UnitStats>
+    </UnitStats>
+    <SummaryStats>
+      <Category type="AIR" built="0" killed="0"/>
+      <Category type="LAND" built="0" killed="0"/>
+      <Category type="NAVAL" built="0" killed="0"/>
+      <Category type="ENGINEER" built="0" killed="0"/>
+      <Category type="ARTILLERY" built="0" killed="0"/>
+      <Category type="ANTIAIR" built="0" killed="0"/>
+      <Category type="TRANSPORTATION" built="0" killed="0"/>
+      <Category type="STRUCTURE" built="0" killed="0"/>
+      <Category type="FACTORY" built="0" killed="0"/>
+      <Category type="ENERGYPRODUCTION" built="0" killed="0"/>
+      <Category type="MASSPRODUCTION" built="0" killed="0"/>
+      <Category type="DEFENSE" built="0" killed="0"/>
+      <Category type="TECH1" built="0" killed="0"/>
+      <Category type="TECH2" built="0" killed="0"/>
+      <Category type="TECH3" built="0" killed="0"/>
+    </SummaryStats>
+    <EconomyStats>
+      <Energy produced="0.00" consumed="0.00" storage="0.00"/>
+      <Mass produced="0.00" consumed="0.00" storage="0.00"/>
+    </EconomyStats>
+  </Army>
+</GameStats>

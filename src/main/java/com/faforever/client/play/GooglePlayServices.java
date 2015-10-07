@@ -1,6 +1,7 @@
 package com.faforever.client.play;
 
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.user.UserService;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.java6.auth.oauth2.VerificationCodeReceiver;
@@ -17,14 +18,10 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.games.Games;
 import com.google.api.services.games.GamesScopes;
-import com.google.api.services.games.model.AchievementIncrementResponse;
 import com.google.api.services.games.model.EventPeriodRange;
 import com.google.api.services.games.model.EventPeriodUpdate;
 import com.google.api.services.games.model.EventRecordRequest;
 import com.google.api.services.games.model.EventUpdateRequest;
-import com.google.api.services.games.model.EventUpdateResponse;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import org.apache.commons.compress.utils.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -46,8 +43,10 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,13 +54,22 @@ public class GooglePlayServices implements PlayServices {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  private static final Lock BATCH_REQUEST_LOCK = new ReentrantLock();
   private static final String ACH_GETTING_STARTED = "CgkI9r3Q7egOEAIQAw";
   private static final String ACH_GLOBAL_500 = "CgkI9r3Q7egOEAIQBA";
   private static final String ACH_RANKED_1V1_500 = "CgkI9r3Q7egOEAIQBQ";
   private static final String ACH_PLAY_100_GAMES = "CgkI9r3Q7egOEAIQBg";
   private static final String ACH_PLAY_500_GAMES = "CgkI9r3Q7egOEAIQBw";
+  private static final String ACH_KILL_3_ENEMIES_IN_ONE_GAME = "CgkI9r3Q7egOEAIQDQ";
+  private static final String ACH_SURVIVE_12000_DAMAGE = "CgkI9r3Q7egOEAIQDg";
+  private static final String ACH_TOP_SCORING_PLAYER = "CgkI9r3Q7egOEAIQDw";
   private static final String EVENT_NUMBER_OF_CUSTOM_GAMES = "CgkI9r3Q7egOEAIQAQ";
   private static final String EVENT_NUMBER_OF_RANKED_1V1_GAMES = "CgkI9r3Q7egOEAIQAg";
+  private static final String EVENT_FALLEN_ACUS = "CgkI9r3Q7egOEAIQCA";
+  private static final String EVENT_FALLEN_AIR_UNITS = "CgkI9r3Q7egOEAIQCQ";
+  private static final String EVENT_FALLEN_LAND_UNITS = "CgkI9r3Q7egOEAIQCg";
+  private static final String EVENT_FALLEN_NAVAL_UNITS = "CgkI9r3Q7egOEAIQCw";
+  private static final String EVENT_FALLEN_ENGINEERS = "CgkI9r3Q7egOEAIQDA";
 
   /**
    * Be sure to specify the name of your application. If the application name is {@code null} or blank, the application
@@ -74,16 +82,15 @@ public class GooglePlayServices implements PlayServices {
   @Resource
   PreferencesService preferencesService;
   @Resource
-  ThreadPoolExecutor threadPoolExecutor;
+  ExecutorService executorService;
+  @Resource
+  UserService userService;
+
   private FileDataStoreFactory dataStoreFactory;
   private Games games;
   private NetHttpTransport httpTransport;
   private ServerSocket verificationCodeServerSocket;
-  private BooleanProperty authorized;
-
-  public GooglePlayServices() {
-    authorized = new SimpleBooleanProperty();
-  }
+  private BatchRequest batchRequest;
 
   @PostConstruct
   void postConstruct() throws GeneralSecurityException, IOException {
@@ -93,11 +100,17 @@ public class GooglePlayServices implements PlayServices {
     dataStoreFactory = new FileDataStoreFactory(playServicesDirectory.toFile());
   }
 
+  @PreDestroy
+  void shutDown() {
+    IOUtils.closeQuietly(verificationCodeServerSocket);
+  }
+
   @Override
-  public void authorize(String uid) {
-    Callable<Void> callable = new Callable<Void>() {
-      public Void call() throws Exception {
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,
+  public CompletableFuture<Void> authorize() {
+    Runnable runnable = () -> {
+      GoogleClientSecrets clientSecrets = null;
+      try {
+        clientSecrets = GoogleClientSecrets.load(JSON_FACTORY,
             new InputStreamReader(getClass().getResourceAsStream("/client_secrets.json")));
 
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
@@ -105,62 +118,146 @@ public class GooglePlayServices implements PlayServices {
             .setDataStoreFactory(dataStoreFactory)
             .build();
 
-        Credential credential = new AuthorizationCodeInstalledApp(flow, verificationCodeReceiver()).authorize(uid);
+        Credential credential = new AuthorizationCodeInstalledApp(flow, verificationCodeReceiver()).authorize(String.valueOf(userService.getUid()));
 
         games = new Games.Builder(httpTransport, JSON_FACTORY, credential)
             .setApplicationName(APPLICATION_NAME)
             .build();
-
-        authorized.set(true);
-
-        return null;
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     };
-    threadPoolExecutor.submit(callable);
+
+    return CompletableFuture.runAsync(runnable, executorService);
   }
 
   @Override
-  public void incrementPlayedCustomGames() throws IOException {
-    BatchRequest batchRequest = games.batch();
-    games.achievements().increment(ACH_PLAY_100_GAMES, 1).queue(batchRequest, achievementCallback());
-    games.achievements().increment(ACH_PLAY_500_GAMES, 1).queue(batchRequest, achievementCallback());
-    games.events().record(createEventRequest(EVENT_NUMBER_OF_CUSTOM_GAMES, 1L)).queue(batchRequest, eventCallback());
-
-    batchRequest.execute();
+  public void startBatchUpdate() {
+    BATCH_REQUEST_LOCK.lock();
+    try {
+      authorize().get();
+      if (batchRequest != null) {
+        throw new IllegalStateException("Batch update has already been started");
+      }
+      logger.debug("Starting batch update");
+      batchRequest = games.batch();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new RuntimeException(e);
+    } finally {
+      BATCH_REQUEST_LOCK.unlock();
+    }
   }
 
   @Override
-  public void incrementPlayedRanked1v1Games() throws IOException {
-    BatchRequest batchRequest = games.batch();
-    games.achievements().increment(ACH_PLAY_100_GAMES, 1).queue(batchRequest, achievementCallback());
-    games.achievements().increment(ACH_PLAY_500_GAMES, 1).queue(batchRequest, achievementCallback());
-    games.events().record(createEventRequest(EVENT_NUMBER_OF_RANKED_1V1_GAMES, 1L)).queue(batchRequest, eventCallback());
-
-    batchRequest.execute();
+  public void executeBatchUpdate() throws IOException {
+    BATCH_REQUEST_LOCK.lock();
+    try {
+      checkBatchRequest();
+      logger.debug("Executing {} updates", batchRequest.size());
+      batchRequest.execute();
+      resetBatchUpdate();
+    } finally {
+      BATCH_REQUEST_LOCK.unlock();
+    }
   }
 
   @Override
-  public BooleanProperty authorizedProperty() {
-    return authorized;
+  public void customGamePlayed() throws IOException {
+    checkBatchRequest();
+    games.achievements().increment(ACH_GETTING_STARTED, 1).queue(batchRequest, batchCallback());
+    games.achievements().increment(ACH_PLAY_100_GAMES, 1).queue(batchRequest, batchCallback());
+    games.achievements().increment(ACH_PLAY_500_GAMES, 1).queue(batchRequest, batchCallback());
+    games.events().record(createEventRequest(EVENT_NUMBER_OF_CUSTOM_GAMES, 1L)).queue(batchRequest, batchCallback());
+  }
+
+  @Override
+  public void ranked1v1GamePlayed() throws IOException {
+    checkBatchRequest();
+    games.achievements().increment(ACH_GETTING_STARTED, 1).queue(batchRequest, batchCallback());
+    games.achievements().increment(ACH_PLAY_100_GAMES, 1).queue(batchRequest, batchCallback());
+    games.achievements().increment(ACH_PLAY_500_GAMES, 1).queue(batchRequest, batchCallback());
+    games.events().record(createEventRequest(EVENT_NUMBER_OF_RANKED_1V1_GAMES, 1L)).queue(batchRequest, batchCallback());
+  }
+
+  @Override
+  public void killedCommanders(int number, boolean survived) throws IOException {
+    checkBatchRequest();
+    if (number >= 3 && survived) {
+      games.achievements().unlock(ACH_KILL_3_ENEMIES_IN_ONE_GAME).queue(batchRequest, batchCallback());
+    }
+    games.events().record(createEventRequest(EVENT_FALLEN_ACUS, 1L)).queue(batchRequest, batchCallback());
+  }
+
+  @Override
+  public void acuDamageReceived(double damage, boolean survived) throws IOException {
+    if (damage < 12_000 || !survived) {
+      return;
+    }
+    checkBatchRequest();
+    games.achievements().unlock(ACH_SURVIVE_12000_DAMAGE).queue(batchRequest, batchCallback());
+  }
+
+  @Override
+  public void airUnitStats(long built, long killed) throws IOException {
+    checkBatchRequest();
+    games.events().record(createEventRequest(EVENT_FALLEN_AIR_UNITS, killed)).queue(batchRequest, batchCallback());
+  }
+
+  @Override
+  public void landUnitStats(long built, long killed) throws IOException {
+    checkBatchRequest();
+    games.events().record(createEventRequest(EVENT_FALLEN_LAND_UNITS, killed)).queue(batchRequest, batchCallback());
+  }
+
+  @Override
+  public void navalUnitStats(long built, long killed) throws IOException {
+    checkBatchRequest();
+    games.events().record(createEventRequest(EVENT_FALLEN_NAVAL_UNITS, killed)).queue(batchRequest, batchCallback());
+  }
+
+  @Override
+  public void engineerStats(long built, long killed) throws IOException {
+    checkBatchRequest();
+    games.events().record(createEventRequest(EVENT_FALLEN_ENGINEERS, killed)).queue(batchRequest, batchCallback());
+  }
+
+  @Override
+  public void techUnitsBuilt(int builtTech1Units, int builtTech2Units, int builtTech3Units) throws IOException {
+    checkBatchRequest();
+    games.achievements().unlock(ACH_KILL_3_ENEMIES_IN_ONE_GAME).queue(batchRequest, batchCallback());
+  }
+
+  @Override
+  public void resetBatchUpdate() {
+    batchRequest = null;
+  }
+
+  @Override
+  public void topScoringPlayer(int totalPlayers) throws IOException {
+    if (totalPlayers < 8) {
+      return;
+    }
+    checkBatchRequest();
+    games.achievements().unlock(ACH_TOP_SCORING_PLAYER).queue(batchRequest, batchCallback());
   }
 
   @NotNull
-  private JsonBatchCallback<AchievementIncrementResponse> achievementCallback() {
-    return new JsonBatchCallback<AchievementIncrementResponse>() {
+  private <T> JsonBatchCallback<T> batchCallback() {
+    return new JsonBatchCallback<T>() {
       @Override
       public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
         logger.warn("Event could not be updated: {}", e);
       }
 
       @Override
-      public void onSuccess(AchievementIncrementResponse achievementIncrementResponse, HttpHeaders responseHeaders) throws IOException {
+      public void onSuccess(T response, HttpHeaders responseHeaders) throws IOException {
 
       }
     };
   }
 
   @NotNull
-  private EventRecordRequest createEventRequest(String eventId, Long updateCount) {
+  private EventRecordRequest createEventRequest(String eventId, long updateCount) {
     // The event that occurred, and how many times
     EventUpdateRequest updateRequest = new EventUpdateRequest();
     updateRequest.setDefinitionId(eventId);
@@ -184,18 +281,10 @@ public class GooglePlayServices implements PlayServices {
     return eventRecordRequest;
   }
 
-  private JsonBatchCallback<EventUpdateResponse> eventCallback() {
-    return new JsonBatchCallback<EventUpdateResponse>() {
-      @Override
-      public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-        logger.warn("Event could not be updated: {}", e);
-      }
-
-      @Override
-      public void onSuccess(EventUpdateResponse eventUpdateResponse, HttpHeaders responseHeaders) throws IOException {
-
-      }
-    };
+  private void checkBatchRequest() {
+    if (batchRequest == null) {
+      throw new IllegalStateException("Batch update has not been started");
+    }
   }
 
   /**
@@ -257,15 +346,12 @@ public class GooglePlayServices implements PlayServices {
           }
         };
 
-        codeFuture = threadPoolExecutor.submit(callable);
+        codeFuture = executorService.submit(callable);
         return portFuture;
       }
     };
   }
 
-  @PreDestroy
-  void shutDown() {
-    IOUtils.closeQuietly(verificationCodeServerSocket);
-  }
+
 }
 

@@ -8,6 +8,7 @@ import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
+import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardController;
@@ -55,65 +56,69 @@ import static org.mockito.Mockito.when;
 public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
-  PersistentNotificationsController persistentNotificationsController;
+  private PersistentNotificationsController persistentNotificationsController;
   @Mock
-  PreferencesService preferencesService;
+  private PreferencesService preferencesService;
   @Mock
-  LeaderboardController leaderboardController;
+  private LeaderboardController leaderboardController;
   @Mock
-  ChatService chatService;
+  private ChatService chatService;
   @Mock
-  SceneFactory sceneFactory;
+  private SceneFactory sceneFactory;
   @Mock
-  PortCheckService portCheckService;
+  private PortCheckService portCheckService;
   @Mock
-  GameUpdateService gameUpdateService;
+  private GameUpdateService gameUpdateService;
   @Mock
-  PlayerService playerService;
+  private PlayerService playerService;
   @Mock
-  CommunityHubController communityHubController;
+  private CommunityHubController communityHubController;
   @Mock
-  MapVaultController mapMapVaultController;
+  private MapVaultController mapMapVaultController;
   @Mock
-  GamesController gamesController;
+  private GamesController gamesController;
   @Mock
-  NewsController newsController;
+  private NewsController newsController;
   @Mock
-  CastsController castsController;
+  private CastsController castsController;
   @Mock
-  ModVaultController modVaultController;
+  private ModVaultController modVaultController;
   @Mock
-  ReplayVaultController replayVaultController;
+  private ReplayVaultController replayVaultController;
   @Mock
-  ChatController chatController;
+  private ChatController chatController;
   @Mock
-  SettingsController settingsController;
+  private SettingsController settingsController;
   @Mock
-  UserInfoWindowController userInfoWindowController;
+  private UserInfoWindowController userInfoWindowController;
   @Mock
-  Preferences preferences;
+  private Preferences preferences;
   @Mock
-  ApplicationContext applicationContext;
+  private ApplicationContext applicationContext;
   @Mock
-  I18n i18n;
+  private I18n i18n;
   @Mock
-  WindowPrefs mainWindowPrefs;
+  private WindowPrefs mainWindowPrefs;
   @Mock
-  LobbyService lobbyService;
+  private LobbyService lobbyService;
   @Mock
-  Environment environment;
+  private Environment environment;
   @Mock
-  UserService userService;
+  private UserService userService;
   @Mock
-  NotificationService notificationService;
+  private NotificationService notificationService;
   @Mock
-  TaskService taskService;
+  private TaskService taskService;
   @Mock
-  ForgedAlliancePrefs forgedAlliancePrefs;
+  private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
-  ClientUpdateService clientUpdateService;
+  private ClientUpdateService clientUpdateService;
   @Mock
-  GameService gameService;
+  private GameService gameService;
+  @Mock
+  private UserMenuController userMenuController;
+  @Mock
+  private GravatarService gravatarService;
 
   private MainController instance;
 
@@ -146,10 +151,13 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.taskService = taskService;
     instance.clientUpdateService = clientUpdateService;
     instance.gameService = gameService;
+    instance.userMenuController = userMenuController;
+    instance.gravatarService = gravatarService;
 
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(leaderboardController.getRoot()).thenReturn(new Pane());
     when(castsController.getRoot()).thenReturn(new Pane());
+    when(userMenuController.getRoot()).thenReturn(new Pane());
     when(newsController.getRoot()).thenReturn(new Pane());
     when(communityHubController.getRoot()).thenReturn(new Pane());
     when(taskService.getActiveTasks()).thenReturn(FXCollections.emptyObservableList());

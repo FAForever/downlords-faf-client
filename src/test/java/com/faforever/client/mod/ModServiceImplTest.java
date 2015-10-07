@@ -287,17 +287,6 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
 
     ModInfoBean modInfoBean = installedMods.get(0);
 
-    assertThat(modInfoBean.getName(), is("BlackOps Unleashed"));
-    assertThat(modInfoBean.getVersion(), is("8"));
-    assertThat(modInfoBean.getAuthor(), is("Lt_hawkeye"));
-    assertThat(modInfoBean.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
-    assertThat(modInfoBean.getImagePath(), is(modsDirectory.getRoot().toPath().resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
-    assertThat(modInfoBean.getSelectable(), is(true));
-    assertThat(modInfoBean.getUid(), is("9e8ea941-c306-4751-b367-a11000000502"));
-    assertThat(modInfoBean.getUiOnly(), is(false));
-
-    modInfoBean = installedMods.get(1);
-
     assertThat(modInfoBean.getName(), is("BlackOps Global Icon Support Mod"));
     assertThat(modInfoBean.getVersion(), is("5"));
     assertThat(modInfoBean.getAuthor(), is("Exavier Macbeth, DeadMG"));
@@ -305,6 +294,17 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(modInfoBean.getImagePath(), nullValue());
     assertThat(modInfoBean.getSelectable(), is(true));
     assertThat(modInfoBean.getUid(), is("9e8ea941-c306-4751-b367-f00000000005"));
+    assertThat(modInfoBean.getUiOnly(), is(false));
+
+    modInfoBean = installedMods.get(1);
+
+    assertThat(modInfoBean.getName(), is("BlackOps Unleashed"));
+    assertThat(modInfoBean.getVersion(), is("8"));
+    assertThat(modInfoBean.getAuthor(), is("Lt_hawkeye"));
+    assertThat(modInfoBean.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
+    assertThat(modInfoBean.getImagePath(), is(modsDirectory.getRoot().toPath().resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
+    assertThat(modInfoBean.getSelectable(), is(true));
+    assertThat(modInfoBean.getUid(), is("9e8ea941-c306-4751-b367-a11000000502"));
     assertThat(modInfoBean.getUiOnly(), is(false));
 
     modInfoBean = installedMods.get(2);

@@ -8,6 +8,8 @@ import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.legacy.proxy.ProxyUtils;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.stats.StatisticsService;
+import com.faforever.client.stats.domain.GameStats;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.SocketAddressUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -41,6 +43,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.faforever.client.legacy.relay.LobbyAction.AUTHENTICATE;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
@@ -53,10 +56,12 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   @VisibleForTesting
   static final String GAME_STATE_LOBBY = "Lobby";
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   private final BooleanProperty p2pProxyEnabled;
   private final Gson gson;
   private final Collection<OnReadyListener> onReadyListeners;
   private final Collection<OnConnectionAcceptedListener> onConnectionAcceptedListeners;
+
   @Autowired
   Proxy proxy;
   @Autowired
@@ -67,6 +72,9 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   PreferencesService preferencesService;
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
+  @Autowired
+  StatisticsService statisticsService;
+
   private int port;
   private FaDataOutputStream faOutputStream;
   private FaDataInputStream faInputStream;
@@ -77,6 +85,8 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   private boolean stopped;
   private Socket fafSocket;
   private Socket faSocket;
+  private Consumer<GameStats> gameStatsListener;
+  private Consumer<Void> gameLaunchedListener;
 
   public LocalRelayServerImpl() {
     gson = new GsonBuilder()
@@ -128,6 +138,16 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
     IOUtils.closeQuietly(serverSocket);
     IOUtils.closeQuietly(fafSocket);
     IOUtils.closeQuietly(faSocket);
+  }
+
+  @Override
+  public void setGameStatsListener(Consumer<GameStats> gameStatsListener) {
+    this.gameStatsListener = gameStatsListener;
+  }
+
+  @Override
+  public void setGameLaunchedListener(Consumer<Void> gameLaunchedListener) {
+    this.gameLaunchedListener = gameLaunchedListener;
   }
 
   @PostConstruct
@@ -267,9 +287,23 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
       }
 
       handleCreateLobby(new CreateLobbyServerMessage(lobbyMode, gamePort, username, userService.getUid(), 1));
+    } else if (lobbyMessage.getAction() == LobbyAction.STATS) {
+      handleStats(lobbyMessage);
+    } else if (gameLaunchedListener != null
+        && lobbyMessage.getAction() == LobbyAction.GAME_STATE
+        && GAME_STATE_LAUNCHING.equals(lobbyMessage.getChunks().get(0))) {
+      gameLaunchedListener.accept(null);
     }
 
     serverWriter.write(lobbyMessage);
+  }
+
+  private void handleStats(LobbyMessage lobbyMessage) {
+    try {
+      gameStatsListener.accept(statisticsService.parseStatistics((String) lobbyMessage.getChunks().get(0)));
+    } catch (Exception e) {
+      logger.error("Error while handling game stats", e);
+    }
   }
 
   private boolean isHostGameMessage(LobbyMessage lobbyMessage) {
@@ -277,7 +311,6 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
         && lobbyMessage.getChunks().get(0).equals("Idle");
   }
 
-  // TODO find a better name
   private void updateProxyState(LobbyMessage lobbyMessage) {
     LobbyAction action = lobbyMessage.getAction();
     List<Object> chunks = lobbyMessage.getChunks();

@@ -2,17 +2,17 @@ package com.faforever.client.config;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.i18n.I18nImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.faforever.client.stats.domain.GameStats;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.env.Environment;
+import org.springframework.oxm.Unmarshaller;
+import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
 import javax.annotation.PreDestroy;
-import java.lang.invoke.MethodHandles;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,8 +24,6 @@ import java.util.concurrent.ScheduledExecutorService;
 @org.springframework.context.annotation.Configuration
 @PropertySource("classpath:/faf_client.properties")
 public class BaseConfig {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final java.lang.String PROPERTY_LOCALE = "locale";
 
@@ -57,8 +55,15 @@ public class BaseConfig {
     return Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
   }
 
+  @Bean
+  public Unmarshaller unmarshaller() {
+    Jaxb2Marshaller jaxbMarshaller = new Jaxb2Marshaller();
+    jaxbMarshaller.setPackagesToScan(new String[]{GameStats.class.getPackage().getName()});
+    return jaxbMarshaller;
+  }
+
   @PreDestroy
-  void shutdown(){
+  void shutdown() {
     scheduledExecutorService.shutdown();
   }
 }

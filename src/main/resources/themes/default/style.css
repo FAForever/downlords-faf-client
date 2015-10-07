@@ -577,7 +577,6 @@
 /***************** Notification button *****************/
 
 .notification-button {
-  -fx-min-width: 2.5em;
   -fx-min-height: 2.5em;
 }
 
@@ -911,6 +910,7 @@
 .user-menu-root {
   -fx-background-color: -fx-background;
   -fx-border-color: -fx-box-border;
+  -fx-min-width: 400px;
 }
 
 .logout-icon {

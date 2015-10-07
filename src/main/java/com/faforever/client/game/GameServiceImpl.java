@@ -11,6 +11,7 @@ import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
+import com.faforever.client.legacy.relay.LocalRelayServer;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
@@ -22,8 +23,14 @@ import com.faforever.client.play.PlayServices;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
-import com.faforever.client.user.UserService;
-import com.faforever.client.util.ConcurrentUtil;
+import com.faforever.client.stats.domain.Army;
+import com.faforever.client.stats.domain.EconomyStat;
+import com.faforever.client.stats.domain.EconomyStats;
+import com.faforever.client.stats.domain.GameStats;
+import com.faforever.client.stats.domain.SummaryStat;
+import com.faforever.client.stats.domain.UnitCategory;
+import com.faforever.client.stats.domain.UnitStat;
+import com.faforever.client.stats.domain.UnitType;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
@@ -33,7 +40,6 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.concurrent.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -62,6 +68,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -80,8 +88,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
-  @Autowired
-  UserService userService;
   @Autowired
   ForgedAllianceService forgedAllianceService;
   @Autowired
@@ -106,11 +112,16 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   PlayerService playerService;
   @Autowired
   PlayServices playServices;
+  @Autowired
+  LocalRelayServer localRelayServer;
 
   private Process process;
   private BooleanProperty searching1v1;
   private Instant gameStartedTime;
   private ScheduledFuture<?> searchExpansionFuture;
+  private RatingMode ratingMode;
+  private GameLaunchInfo gameLaunchInfo;
+  private GameStats gameStats;
 
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
@@ -126,13 +137,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   @Override
   public void addOnGameInfoBeanListener(ListChangeListener<GameInfoBean> listener) {
     gameInfoBeans.addListener(listener);
-  }
-
-  @Override
-  public void publishPotentialPlayer() {
-    String username = userService.getUsername();
-    // FIXME implement
-//    serverAccessor.publishPotentialPlayer(username);
   }
 
   @Override
@@ -325,7 +329,8 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   private void startGame(GameLaunchInfo gameLaunchInfo, Faction faction, RatingMode ratingMode) {
-    gameStartedTime = Instant.now();
+    this.ratingMode = ratingMode;
+    this.gameLaunchInfo = gameLaunchInfo;
 
     stopSearchRanked1v1();
     List<String> args = fixMalformedArgs(gameLaunchInfo.getArgs());
@@ -360,42 +365,154 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   @VisibleForTesting
   void spawnTerminationListener(Process process, RatingMode ratingMode) {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
+    CompletableFuture.runAsync(() -> {
+      try {
         int exitCode = process.waitFor();
         logger.info("Forged Alliance terminated with exit code {}", exitCode);
-        proxy.close();
-
-        recordGamePlayedIfApplicable(ratingMode);
-
         lobbyServerAccessor.notifyGameTerminated();
-        return null;
+
+        proxy.close();
+        updatePlayServices(ratingMode);
+      } catch (InterruptedException | IOException e) {
+        logger.warn("Error during post-game processing", e);
       }
-    });
+    }, scheduledExecutorService);
+  }
+
+  private void updatePlayServices(RatingMode ratingMode) throws IOException {
+    try {
+      playServices.startBatchUpdate();
+
+      recordGamePlayedIfApplicable(ratingMode);
+      processPlayerStats();
+
+      playServices.executeBatchUpdate();
+    } finally {
+      playServices.resetBatchUpdate();
+    }
   }
 
   private void recordGamePlayedIfApplicable(RatingMode ratingMode) throws IOException {
-    if (ratingMode != null && gameStartedTime != null) {
-      Duration gameDuration = Duration.between(gameStartedTime, Instant.now());
-      // FIXME MINUTES
-      if (gameDuration.compareTo(Duration.of(5, ChronoUnit.SECONDS)) > 0) {
-        switch (ratingMode) {
-          case GLOBAL:
-            playServices.incrementPlayedCustomGames();
-            break;
-          case RANKED_1V1:
-            playServices.incrementPlayedRanked1v1Games();
-            break;
-        }
+    if (ratingMode == null || gameStartedTime == null) {
+      return;
+    }
+
+    Duration gameDuration = Duration.between(gameStartedTime, Instant.now());
+    if (gameDuration.compareTo(Duration.of(5, ChronoUnit.SECONDS)) <= 0) {
+      return;
+    }
+
+    switch (ratingMode) {
+      case GLOBAL:
+        playServices.customGamePlayed();
+        break;
+      case RANKED_1V1:
+        playServices.ranked1v1GamePlayed();
+        break;
+    }
+  }
+
+  private void processPlayerStats() throws IOException {
+    int highScore = 0;
+    boolean isTopScoringPlayer = false;
+
+    String currentPlayerName = playerService.getCurrentPlayer().getUsername();
+    List<Army> armies = gameStats.getArmies();
+    for (Army army : armies) {
+      boolean isCurrentPlayer = currentPlayerName.equals(army.getName());
+
+      int score = calculateScore(army);
+      if (score > highScore) {
+        highScore = score;
+        isTopScoringPlayer = isCurrentPlayer;
+      }
+
+      if (isCurrentPlayer) {
+        processCurrentPlayerStats(army);
       }
     }
+
+    if (isTopScoringPlayer) {
+      playServices.topScoringPlayer(armies.size());
+    }
+  }
+
+  private static int calculateScore(Army army) {
+    EconomyStats economyStats = army.getEconomyStats();
+    EconomyStat energyStats = economyStats.getEnergy();
+    EconomyStat massStats = economyStats.getMass();
+
+    int commanderKills = 0;
+    double massValueDestroyed = 0;
+    double massValueLost = 0;
+    double energyValueDestroyed = 0;
+    double energyValueLost = 0;
+
+    for (UnitStat unitStat : army.getUnitStats()) {
+      if (unitStat.getType() == UnitType.ACU) {
+        commanderKills += unitStat.getKilled();
+      }
+      massValueDestroyed += unitStat.getKilled() * unitStat.getMasscost();
+      massValueLost += unitStat.getLost() * unitStat.getMasscost();
+      energyValueDestroyed += unitStat.getKilled() * unitStat.getEnergycost();
+      energyValueLost += unitStat.getLost() * unitStat.getEnergycost();
+    }
+
+    double energyValueCoefficient = 20;
+    double resourceProduction = ((massStats.getConsumed()) + (energyStats.getConsumed() / energyValueCoefficient)) / 2;
+    double battleResults = (((massValueDestroyed - massValueLost - (commanderKills * 18000)) + ((energyValueDestroyed - energyValueLost - (commanderKills * 5000000)) / energyValueCoefficient)) / 2);
+    battleResults = Math.max(0, battleResults);
+
+    return (int) Math.floor(resourceProduction + battleResults + (commanderKills * 5000));
+  }
+
+  private void processCurrentPlayerStats(Army army) throws IOException {
+    if (!preferencesService.getPreferences().getConnectedToGooglePlay()) {
+      logger.debug("Not recording to play services since used is not connected");
+      return;
+    }
+
+    Map<UnitCategory, SummaryStat> categories = army.getSummaryStats().stream()
+        .collect(Collectors.toMap(SummaryStat::getType, Function.identity()));
+
+    SummaryStat airUnitStats = categories.get(UnitCategory.AIR);
+    SummaryStat landUnitStats = categories.get(UnitCategory.LAND);
+    SummaryStat navalUnitStats = categories.get(UnitCategory.NAVAL);
+    SummaryStat engineerStats = categories.get(UnitCategory.ENGINEER);
+    SummaryStat tech1UnitStats = categories.get(UnitCategory.TECH1);
+    SummaryStat tech2UnitStats = categories.get(UnitCategory.TECH2);
+    SummaryStat tech3UnitStats = categories.get(UnitCategory.TECH3);
+
+    boolean survived = true;
+    int commanderKills = 0;
+    double acuDamageReceived = 0;
+
+    for (UnitStat unitStat : army.getUnitStats()) {
+      switch (unitStat.getType()) {
+        case ACU:
+          survived &= unitStat.getLost() == 0;
+          commanderKills += unitStat.getKilled();
+          acuDamageReceived += unitStat.getDamagereceived();
+          break;
+      }
+    }
+
+    playServices.killedCommanders(commanderKills, survived);
+    playServices.acuDamageReceived(acuDamageReceived, survived);
+    playServices.engineerStats(engineerStats.getBuilt(), engineerStats.getKilled());
+    playServices.airUnitStats(airUnitStats.getBuilt(), airUnitStats.getKilled());
+    playServices.landUnitStats(landUnitStats.getBuilt(), landUnitStats.getKilled());
+    playServices.navalUnitStats(navalUnitStats.getBuilt(), navalUnitStats.getKilled());
+    playServices.techUnitsBuilt(tech1UnitStats.getBuilt(), tech2UnitStats.getBuilt(), tech3UnitStats.getBuilt());
   }
 
   @PostConstruct
   void postConstruct() {
     lobbyServerAccessor.addOnGameTypeInfoListener(this);
     lobbyServerAccessor.addOnGameInfoListener(this);
+    localRelayServer.setGameStatsListener(this::onGameStats);
+    localRelayServer.setGameLaunchedListener(aVoid -> gameStartedTime = Instant.now());
+
   }
 
   @Override
@@ -422,5 +539,11 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     } else {
       uidToGameInfoBean.get(gameInfo.getUid()).updateFromGameInfo(gameInfo);
     }
+  }
+
+  private void onGameStats(GameStats gameStats) {
+    // CAVEAT: Game stats are received twice; when the player is defeated and when the game ends. So keep the latest
+    // stats which are processed when the player closes the game.
+    this.gameStats = gameStats;
   }
 }

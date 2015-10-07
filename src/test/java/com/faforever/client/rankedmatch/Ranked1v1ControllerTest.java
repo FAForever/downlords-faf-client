@@ -14,6 +14,8 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.Ranked1v1Prefs;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ToggleButton;
@@ -63,7 +65,7 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
 
-  private PlayerInfoBean currentPlayer;
+  private ObjectProperty<PlayerInfoBean> currentPlayerProperty;
   private ObservableList<Faction> factionList;
   private LeaderboardEntryBean leaderboardEntryBean;
 
@@ -78,7 +80,7 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     instance.i18n = i18n;
 
     factionList = FXCollections.observableArrayList();
-    currentPlayer = new PlayerInfoBean(USERNAME);
+    currentPlayerProperty = new SimpleObjectProperty<>(new PlayerInfoBean(USERNAME));
     leaderboardEntryBean = new LeaderboardEntryBean();
     leaderboardEntryBean.setRating(500);
     leaderboardEntryBean.setWinLossRatio(12.23f);
@@ -91,7 +93,8 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getRanked1v1()).thenReturn(ranked1v1Prefs);
     when(ranked1v1Prefs.getFactions()).thenReturn(factionList);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
-    when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
+    when(playerService.getCurrentPlayer()).thenReturn(currentPlayerProperty.get());
+    when(playerService.currentPlayerProperty()).thenReturn(currentPlayerProperty);
     when(environment.getProperty("rating.low", int.class)).thenReturn(100);
     when(environment.getProperty("rating.moderate", int.class)).thenReturn(200);
     when(environment.getProperty("rating.good", int.class)).thenReturn(300);
@@ -181,8 +184,8 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
   private void testUpdateRating(int leaderboardRatingMean, String key) {
     reset(i18n);
 
-    currentPlayer.setLeaderboardRatingDeviation(1);
-    currentPlayer.setLeaderboardRatingMean(leaderboardRatingMean);
+    currentPlayerProperty.get().setLeaderboardRatingDeviation(1);
+    currentPlayerProperty.get().setLeaderboardRatingMean(leaderboardRatingMean);
 
     instance.setUpIfNecessary();
 
@@ -215,8 +218,8 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     when(environment.getProperty("rating.beta", int.class)).thenReturn(10);
     when(environment.getProperty("rating.initialStandardDeviation", int.class)).thenReturn(50);
 
-    currentPlayer.setLeaderboardRatingDeviation(45);
-    currentPlayer.setLeaderboardRatingMean(100);
+    currentPlayerProperty.get().setLeaderboardRatingDeviation(45);
+    currentPlayerProperty.get().setLeaderboardRatingMean(100);
 
     instance.setUpIfNecessary();
 
@@ -229,6 +232,7 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     verifyZeroInteractions(playerService);
     instance.setUpIfNecessary();
     verify(playerService).getCurrentPlayer();
+    verify(playerService).currentPlayerProperty();
     instance.setUpIfNecessary();
     verifyNoMoreInteractions(playerService);
   }

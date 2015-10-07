@@ -29,7 +29,8 @@ public class Preferences {
   private final ListProperty<String> ignoredNotifications;
   private final IntegerProperty lastGameMinRating;
   private final IntegerProperty lastGameMaxRating;
-  private Ranked1v1Prefs ranked1v1;
+  private final BooleanProperty connectedToGooglePlay;
+  private final Ranked1v1Prefs ranked1v1;
 
   public Preferences() {
     chat = new ChatPrefs();
@@ -45,7 +46,20 @@ public class Preferences {
     lastMap = new SimpleStringProperty();
     lastGameMinRating = new SimpleIntegerProperty(800);
     lastGameMaxRating = new SimpleIntegerProperty(1300);
+    connectedToGooglePlay = new SimpleBooleanProperty();
     ranked1v1 = new Ranked1v1Prefs();
+  }
+
+  public boolean getConnectedToGooglePlay() {
+    return connectedToGooglePlay.get();
+  }
+
+  public void setConnectedToGooglePlay(boolean connectedToGooglePlay) {
+    this.connectedToGooglePlay.set(connectedToGooglePlay);
+  }
+
+  public BooleanProperty connectedToGooglePlayProperty() {
+    return connectedToGooglePlay;
   }
 
   public WindowPrefs getMainWindow() {

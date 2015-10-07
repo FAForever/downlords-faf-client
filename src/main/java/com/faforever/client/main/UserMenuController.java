@@ -2,9 +2,11 @@ package com.faforever.client.main;
 
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.fx.HostService;
 import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.play.PlayServices;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.beans.binding.ObjectBinding;
@@ -44,6 +46,10 @@ public class UserMenuController {
   UserService userService;
   @Resource
   GravatarService gravatarService;
+  @Resource
+  HostService hostService;
+  @Resource
+  PreferencesService preferencesService;
 
   public Node getRoot() {
     return userMenuRoot;
@@ -56,13 +62,23 @@ public class UserMenuController {
 
   @PostConstruct
   void postConstruct() {
-    connectToGoogleButton.visibleProperty().bind(playServices.authorizedProperty().not());
+    connectToGoogleButton.visibleProperty().bind(preferencesService.getPreferences().connectedToGooglePlayProperty().not());
 
     playerService.currentPlayerProperty().addListener((observable, oldValue, newValue) -> {
       countryLabel.textProperty().bind(countryLabelBinding(newValue));
       usernameLabel.textProperty().bind(newValue.usernameProperty());
       countryImageView.imageProperty().bind(countryImageBinding(newValue));
-      userImageView.setImage(gravatarService.getGravatar(userService.getEmail()));
+    });
+
+    userImageView.imageProperty().bind(new ObjectBinding<Image>() {
+      @Override
+      protected Image computeValue() {
+        return gravatarService.getGravatar(userService.emailProperty().get());
+      }
+
+      {
+        bind(userService.emailProperty());
+      }
     });
   }
 
@@ -88,24 +104,34 @@ public class UserMenuController {
   @NotNull
   private ObjectBinding<Image> countryImageBinding(final PlayerInfoBean newValue) {
     return new ObjectBinding<Image>() {
+      {
+        bind(newValue.countryProperty());
+      }
+
       @Override
       protected Image computeValue() {
         return countryFlagService.loadCountryFlag(newValue.getCountry());
       }
 
-      {
-        bind(newValue.countryProperty());
-      }
+
     };
   }
 
   @FXML
   void onConnectToGoogleButtonClicked() {
-    playServices.authorize(String.valueOf(userService.getUid()));
+    playServices.authorize().whenComplete((aVoid, throwable) -> {
+      preferencesService.getPreferences().setConnectedToGooglePlay(throwable == null);
+      preferencesService.storeInBackground();
+    });
   }
 
   @FXML
   void onLogOutButtonClicked() {
 
+  }
+
+  @FXML
+  void onUserImageClicked() {
+    hostService.showDocument(gravatarService.getProfileUrl(userService.getEmail()));
   }
 }

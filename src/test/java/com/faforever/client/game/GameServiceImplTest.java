@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.legacy.LobbyServerAccessor;
@@ -10,17 +11,29 @@ import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
+import com.faforever.client.legacy.relay.LocalRelayServer;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
+import com.faforever.client.play.PlayServices;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.stats.domain.ArmyBuilder;
+import com.faforever.client.stats.domain.EconomyStatBuilder;
+import com.faforever.client.stats.domain.GameStats;
+import com.faforever.client.stats.domain.GameStatsBuilder;
+import com.faforever.client.stats.domain.SummaryStatBuilder;
+import com.faforever.client.stats.domain.UnitStatBuilder;
+import com.faforever.client.stats.domain.UnitType;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
@@ -32,8 +45,16 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static com.faforever.client.fa.RatingMode.GLOBAL;
+import static com.faforever.client.stats.domain.UnitCategory.AIR;
+import static com.faforever.client.stats.domain.UnitCategory.ENGINEER;
+import static com.faforever.client.stats.domain.UnitCategory.LAND;
+import static com.faforever.client.stats.domain.UnitCategory.NAVAL;
+import static com.faforever.client.stats.domain.UnitCategory.TECH1;
+import static com.faforever.client.stats.domain.UnitCategory.TECH2;
+import static com.faforever.client.stats.domain.UnitCategory.TECH3;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -50,6 +71,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class GameServiceImplTest extends AbstractPlainJavaFxTest {
@@ -60,6 +83,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   private static final int SEARCH_EXPANSION_DELAY = 3000;
   private static final float SEARCH_MAX_RADIUS = .10f;
   private static final float SEARCH_RADIUS_INCREMENT = .01f;
+
+  private GameServiceImpl instance;
 
   @Mock
   private PreferencesService preferencesService;
@@ -82,11 +107,17 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private SearchExpansionTask searchExpansionTask;
   @Mock
-  private ScheduledExecutorService scheduledExecutorService;
-  @Mock
   private Environment environment;
-
-  private GameServiceImpl instance;
+  @Mock
+  private LocalRelayServer localRelayServer;
+  @Mock
+  private PlayServices playServices;
+  @Mock
+  private PlayerService playerService;
+  @Mock
+  private ScheduledExecutorService scheduledExecutorService;
+  @Captor
+  private ArgumentCaptor<Consumer<GameStats>> gameStatsListenerCaptor;
 
   @Before
   public void setUp() throws Exception {
@@ -98,8 +129,11 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.gameUpdateService = gameUpdateService;
     instance.preferencesService = preferencesService;
     instance.applicationContext = applicationContext;
-    instance.scheduledExecutorService = scheduledExecutorService;
     instance.environment = environment;
+    instance.localRelayServer = localRelayServer;
+    instance.playServices = playServices;
+    instance.playerService = playerService;
+    instance.scheduledExecutorService = scheduledExecutorService;
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
@@ -108,7 +142,14 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(environment.getProperty("ranked1v1.search.maxRadius", float.class)).thenReturn(SEARCH_MAX_RADIUS);
     when(environment.getProperty("ranked1v1.search.radiusIncrement", float.class)).thenReturn(SEARCH_RADIUS_INCREMENT);
 
+    doAnswer(invocation -> {
+      invocation.getArgumentAt(0, Runnable.class).run();
+      return null;
+    }).when(scheduledExecutorService).execute(any());
+
     instance.postConstruct();
+
+    verify(localRelayServer).setGameStatsListener(gameStatsListenerCaptor.capture());
   }
 
   @Test
@@ -220,7 +261,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.spawnTerminationListener(process, RatingMode.NONE);
 
-    serviceStateDoneFuture.get(500, TimeUnit.MILLISECONDS);
+    serviceStateDoneFuture.get(5000, TimeUnit.MILLISECONDS);
 
     verify(process).waitFor();
     verify(proxy).close();
@@ -338,5 +379,73 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.stopSearchRanked1v1();
     assertThat(instance.searching1v1Property().get(), is(false));
     verify(lobbyServerAccessor, never()).stopSearchingRanked();
+  }
+
+  @Test
+  public void testOnGameStatsGoogleNotConnectedDoesNotInteractWithPlayServices() throws Exception {
+    when(preferences.getConnectedToGooglePlay()).thenReturn(false);
+    when(playerService.getCurrentPlayer()).thenReturn(new PlayerInfoBean("junit"));
+
+    Consumer<GameStats> gameStatsListener = gameStatsListenerCaptor.getValue();
+    GameStats gameStats = GameStatsBuilder.create().army(ArmyBuilder.create("junit").get()).get();
+    gameStatsListener.accept(gameStats);
+
+    verifyZeroInteractions(playServices);
+  }
+
+  @Test
+  public void testOnGameStatsTopPlayerAndSurvived() throws Exception {
+    when(preferences.getConnectedToGooglePlay()).thenReturn(true);
+    when(playerService.getCurrentPlayer()).thenReturn(new PlayerInfoBean("junit"));
+
+    Consumer<GameStats> gameStatsListener = gameStatsListenerCaptor.getValue();
+
+    GameStats gameStats = GameStatsBuilder.create()
+        .army(ArmyBuilder.create("junit")
+            .unitStat(UnitStatBuilder.create().unitType(UnitType.ACU).killed(2).lost(0).damageReceived(200).damageDealt(12000).get())
+            .unitStat(UnitStatBuilder.create().unitType(UnitType.ENGINEER).built(20).get())
+            .unitStat(UnitStatBuilder.create().unitType(UnitType.MEDIUM_TANK).damageReceived(100).damageDealt(500).lost(0).killed(1).get())
+            .summaryStat(SummaryStatBuilder.create().type(AIR).built(1).killed(2).get())
+            .summaryStat(SummaryStatBuilder.create().type(LAND).built(3).killed(4).get())
+            .summaryStat(SummaryStatBuilder.create().type(NAVAL).built(5).killed(6).get())
+            .summaryStat(SummaryStatBuilder.create().type(ENGINEER).built(7).killed(8).get())
+            .summaryStat(SummaryStatBuilder.create().type(TECH1).built(9).killed(1).get())
+            .summaryStat(SummaryStatBuilder.create().type(TECH2).built(2).killed(3).get())
+            .summaryStat(SummaryStatBuilder.create().type(TECH3).built(4).killed(5).get())
+            .massStat(EconomyStatBuilder.create().produced(100).consumed(100).storage(10).get())
+            .energyStat(EconomyStatBuilder.create().produced(300).consumed(300).storage(30).get())
+            .get())
+        .army(ArmyBuilder.create("another1").defaultValues().get())
+        .army(ArmyBuilder.create("another2").defaultValues().get())
+        .get();
+
+    // Stats are sent twice by the game
+    gameStatsListener.accept(gameStats);
+    gameStatsListener.accept(gameStats);
+
+    // Processing is done after game has terminated, so simulate this
+    CompletableFuture<Void> statsSubmittedFuture = new CompletableFuture<>();
+    doAnswer(invocation -> {
+      statsSubmittedFuture.complete(null);
+      return null;
+    }).when(playServices).resetBatchUpdate();
+
+    instance.spawnTerminationListener(mock(Process.class), RatingMode.NONE);
+
+    statsSubmittedFuture.get(5000, TimeUnit.MILLISECONDS);
+
+    verify(playServices).startBatchUpdate();
+    verify(playServices).killedCommanders(2, true);
+    verify(playServices).acuDamageReceived(200, true);
+    verify(playServices).engineerStats(7, 8);
+    verify(playServices).airUnitStats(1, 2);
+    verify(playServices).landUnitStats(3, 4);
+    verify(playServices).navalUnitStats(5, 6);
+    verify(playServices).techUnitsBuilt(9, 2, 4);
+    verify(playServices).topScoringPlayer(3);
+    verify(playServices).executeBatchUpdate();
+    verify(playServices).resetBatchUpdate();
+
+    verifyNoMoreInteractions(playServices);
   }
 }
