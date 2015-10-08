@@ -6,6 +6,7 @@ import com.faforever.client.legacy.OnFoeListListener;
 import com.faforever.client.legacy.OnFriendListListener;
 import com.faforever.client.legacy.OnPlayerInfoListener;
 import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.parsecom.CloudAccessor;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
 import javafx.beans.property.ObjectProperty;
@@ -14,9 +15,9 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -28,10 +29,12 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   private static final Lock CURRENT_PLAYER_LOCK = new ReentrantLock();
 
   private final ObservableMap<String, PlayerInfoBean> players;
-  @Autowired
+  @Resource
   LobbyServerAccessor lobbyServerAccessor;
-  @Autowired
+  @Resource
   UserService userService;
+  @Resource
+  CloudAccessor cloudAccessor;
   private List<String> foeList;
   private List<String> friendList;
   private ObjectProperty<PlayerInfoBean> currentPlayer;

@@ -405,6 +405,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
             .unitStat(UnitStatBuilder.create().unitType(UnitType.ACU).killed(2).lost(0).damageReceived(200).damageDealt(12000).get())
             .unitStat(UnitStatBuilder.create().unitType(UnitType.ENGINEER).built(20).get())
             .unitStat(UnitStatBuilder.create().unitType(UnitType.MEDIUM_TANK).damageReceived(100).damageDealt(500).lost(0).killed(1).get())
+            .unitStat(UnitStatBuilder.create().unitType(UnitType.AHWASSA).damageReceived(100).damageDealt(500).built(1).killed(1).get())
+            .unitStat(UnitStatBuilder.create().unitType(UnitType.YTHOTHA).damageReceived(100).damageDealt(500).built(1).killed(1).get())
             .summaryStat(SummaryStatBuilder.create().type(AIR).built(1).killed(2).get())
             .summaryStat(SummaryStatBuilder.create().type(LAND).built(3).killed(4).get())
             .summaryStat(SummaryStatBuilder.create().type(NAVAL).built(5).killed(6).get())
@@ -441,7 +443,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     verify(playServices).airUnitStats(1, 2);
     verify(playServices).landUnitStats(3, 4);
     verify(playServices).navalUnitStats(5, 6);
-    verify(playServices).techUnitsBuilt(9, 2, 4);
+    verify(playServices).techUnitsBuilt(9, 2, 4, 2);
     verify(playServices).topScoringPlayer(3);
     verify(playServices).executeBatchUpdate();
     verify(playServices).resetBatchUpdate();

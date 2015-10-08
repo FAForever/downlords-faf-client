@@ -1,26 +1,31 @@
 package com.faforever.client.user;
 
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.parsecom.CloudService;
+import com.faforever.client.parsecom.CloudAccessor;
+import com.faforever.client.play.PlayServices;
 import com.faforever.client.preferences.PreferencesService;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import java.lang.invoke.MethodHandles;
 import java.util.concurrent.CompletableFuture;
 
 public class UserServiceImpl implements UserService {
 
-  @Autowired
-  LobbyServerAccessor lobbyServerAccessor;
-
-  @Autowired
-  PreferencesService preferencesService;
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Resource
-  CloudService cloudService;
+  LobbyServerAccessor lobbyServerAccessor;
+  @Resource
+  PreferencesService preferencesService;
+  @Resource
+  CloudAccessor cloudAccessor;
+  @Resource
+  PlayServices playServices;
 
   private String username;
   private String password;
@@ -50,7 +55,14 @@ public class UserServiceImpl implements UserService {
           UserServiceImpl.this.sessionId = sessionInfo.getSession();
           UserServiceImpl.this.email.set(sessionInfo.getEmail());
 
-          cloudService.signUpOrLogIn(username, password);
+          cloudAccessor.signUpOrLogIn(username, password, uid).thenAccept(s -> {
+            if (preferencesService.getPreferences().getConnectedToGooglePlay()) {
+              playServices.authorize();
+            }
+          }).exceptionally(throwable -> {
+            logger.warn("Login to cloud services failed", throwable);
+            return null;
+          });
         });
   }
 

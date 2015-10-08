@@ -61,6 +61,7 @@ import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.rankedmatch.Ranked1v1Controller;
 import com.faforever.client.replay.ReplayVaultController;
+import com.faforever.client.user.AchievementItemController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -250,6 +251,12 @@ public class UiConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   GameTileController gameCardController() {
     return loadController("game_tile.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  AchievementItemController achievementItemController() {
+    return loadController("achievement_item.fxml");
   }
 
   @Bean

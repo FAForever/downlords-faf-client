@@ -9,6 +9,21 @@ public enum UnitType {
   ACU("Armored Command Unit"),
   ENGINEER("Engineer"),
   MEDIUM_TANK("Medium Tank"),
+  PARAGON("Experimental Resource Generator"),
+  MAVOR("Experimental Artillery"),
+  YOLONA_OSS("Experimental Missile Launcher"),
+  CZAR("Experimental Aircraft Carrier"),
+  SOUL_RIPPER("Experimental Gunship"),
+  AHWASSA("Experimental Bomber"),
+  SCATHIS("Experimental Mobile Rapid-Fire Artillery"),
+  GALACTIC_COLOSSUS("Experimental Assault Bot"),
+  MONKEYLORD("Experimental Spiderbot"),
+  MEGALITH("Experimental Megabot"),
+  FATBOY("Experimental Mobile Factory"),
+  YTHOTHA("Experimental Assault Bot"),
+  TEMPEST("Experimental Battleship"),
+  ATLANTIS("Experimental Aircraft Carrier"),
+  NOVAX_CENTER("Experimental Satellite System"),
   UNKNOWN(null);
 
   private static final Pattern TYPE_PATTERN = Pattern.compile("<LOC.*?>(.*)");

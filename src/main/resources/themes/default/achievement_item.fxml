@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="achievementItemRoot" hgap="10.0" maxHeight="-Infinity"
+          maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity"
+          xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.user.AchievementItemController">
+  <columnConstraints>
+    <ColumnConstraints hgrow="NEVER"/>
+    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+    <ColumnConstraints hgrow="NEVER" minWidth="100.0"/>
+  </columnConstraints>
+  <rowConstraints>
+    <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+    <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+    <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+  </rowConstraints>
+  <children>
+    <Label fx:id="nameLabel" styleClass="achievement-title" text="&lt;Name&gt;" wrapText="true"
+           GridPane.columnIndex="1"/>
+    <Label fx:id="descriptionLabel" text="&lt;description&gt;" wrapText="true" GridPane.columnIndex="1"
+           GridPane.rowIndex="1"/>
+    <Label fx:id="pointsLabel" text="&lt;Points&gt;" GridPane.columnIndex="2"/>
+    <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" progress="0.0" GridPane.columnIndex="1"
+                 GridPane.rowIndex="2"/>
+    <Label fx:id="progressLabel" text="&lt;progress&gt;" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+    <ImageView fx:id="imageView" fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true"
+               GridPane.halignment="CENTER" GridPane.rowSpan="2147483647" GridPane.valignment="CENTER"/>
+  </children>
+</GridPane>

@@ -3,6 +3,10 @@ package com.faforever.client.config;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.i18n.I18nImpl;
 import com.faforever.client.stats.domain.GameStats;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -60,6 +64,16 @@ public class BaseConfig {
     Jaxb2Marshaller jaxbMarshaller = new Jaxb2Marshaller();
     jaxbMarshaller.setPackagesToScan(new String[]{GameStats.class.getPackage().getName()});
     return jaxbMarshaller;
+  }
+
+  @Bean
+  HttpTransport httpTransport() {
+    return new NetHttpTransport();
+  }
+
+  @Bean
+  JsonFactory jsonFactory() {
+    return new JacksonFactory();
   }
 
   @PreDestroy

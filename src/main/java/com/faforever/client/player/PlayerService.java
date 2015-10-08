@@ -32,4 +32,5 @@ public interface PlayerService {
   PlayerInfoBean getCurrentPlayer();
 
   ReadOnlyObjectProperty<PlayerInfoBean> currentPlayerProperty();
+
 }

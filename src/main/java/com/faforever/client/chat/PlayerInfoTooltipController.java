@@ -26,7 +26,7 @@ public class PlayerInfoTooltipController {
   public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
     ((ImageView) tooltipLabel.getGraphic()).setImage(countryFlagService.loadCountryFlag(playerInfoBean.getCountry()));
     tooltipLabel.setText(
-        i18n.get("playerInfoTooltipFormat", playerInfoBean.getUsername(), RatingUtil.getGlobalRating(playerInfoBean))
+        i18n.get("userInfoTooltipFormat", playerInfoBean.getUsername(), RatingUtil.getGlobalRating(playerInfoBean))
     );
   }
 

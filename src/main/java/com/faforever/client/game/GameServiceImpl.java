@@ -384,7 +384,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
       playServices.startBatchUpdate();
 
       recordGamePlayedIfApplicable(ratingMode);
-      processPlayerStats();
+      processGameStats(ratingMode);
 
       playServices.executeBatchUpdate();
     } finally {
@@ -412,7 +412,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     }
   }
 
-  private void processPlayerStats() throws IOException {
+  private void processGameStats(RatingMode ratingMode) throws IOException {
     int highScore = 0;
     boolean isTopScoringPlayer = false;
 
@@ -428,7 +428,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
       }
 
       if (isCurrentPlayer) {
-        processCurrentPlayerStats(army);
+        processCurrentPlayerStats(army, ratingMode);
       }
     }
 
@@ -466,7 +466,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     return (int) Math.floor(resourceProduction + battleResults + (commanderKills * 5000));
   }
 
-  private void processCurrentPlayerStats(Army army) throws IOException {
+  private void processCurrentPlayerStats(Army army, RatingMode ratingMode) throws IOException {
     if (!preferencesService.getPreferences().getConnectedToGooglePlay()) {
       logger.debug("Not recording to play services since used is not connected");
       return;
@@ -486,6 +486,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     boolean survived = true;
     int commanderKills = 0;
     double acuDamageReceived = 0;
+    int builtExperimentals = 0;
 
     for (UnitStat unitStat : army.getUnitStats()) {
       switch (unitStat.getType()) {
@@ -494,16 +495,38 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
           commanderKills += unitStat.getKilled();
           acuDamageReceived += unitStat.getDamagereceived();
           break;
+
+        case PARAGON:
+        case MAVOR:
+        case YOLONA_OSS:
+        case CZAR:
+        case SOUL_RIPPER:
+        case AHWASSA:
+        case SCATHIS:
+        case GALACTIC_COLOSSUS:
+        case MONKEYLORD:
+        case MEGALITH:
+        case FATBOY:
+        case YTHOTHA:
+        case TEMPEST:
+        case ATLANTIS:
+        case NOVAX_CENTER:
+          builtExperimentals += unitStat.getBuilt();
+          break;
       }
     }
 
+    if (survived && ratingMode == RatingMode.RANKED_1V1) {
+      playServices.ranked1v1GameWon();
+    }
+    playServices.connectedToGoogle();
     playServices.killedCommanders(commanderKills, survived);
     playServices.acuDamageReceived(acuDamageReceived, survived);
     playServices.engineerStats(engineerStats.getBuilt(), engineerStats.getKilled());
     playServices.airUnitStats(airUnitStats.getBuilt(), airUnitStats.getKilled());
     playServices.landUnitStats(landUnitStats.getBuilt(), landUnitStats.getKilled());
     playServices.navalUnitStats(navalUnitStats.getBuilt(), navalUnitStats.getKilled());
-    playServices.techUnitsBuilt(tech1UnitStats.getBuilt(), tech2UnitStats.getBuilt(), tech3UnitStats.getBuilt());
+    playServices.techUnitsBuilt(tech1UnitStats.getBuilt(), tech2UnitStats.getBuilt(), tech3UnitStats.getBuilt(), builtExperimentals);
   }
 
   @PostConstruct
