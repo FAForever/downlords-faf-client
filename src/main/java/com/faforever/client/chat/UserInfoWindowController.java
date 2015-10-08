@@ -13,6 +13,7 @@ import com.google.api.services.games.model.AchievementDefinition;
 import com.google.api.services.games.model.PlayerAchievement;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
+import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -20,14 +21,16 @@ import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -52,6 +55,14 @@ public class UserInfoWindowController {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String UNLOCKED = "UNLOCKED";
 
+  @FXML
+  ImageView mostRecentAchievementImageView;
+  @FXML
+  ProgressIndicator loadingProgressIndicator;
+  @FXML
+  Label loadingProgressLabel;
+  @FXML
+  Button connectGoogleButton;
   @FXML
   Label achievementsProgressLabel;
   @FXML
@@ -109,17 +120,17 @@ public class UserInfoWindowController {
 
   @FXML
   void initialize() {
-    mostRecentAchievementPane.managedProperty().bindBidirectional(mostRecentAchievementPane.visibleProperty());
-    notConnectedContainer.managedProperty().bindBidirectional(notConnectedContainer.visibleProperty());
-    notUsingClientLabel.managedProperty().bindBidirectional(notUsingClientLabel.visibleProperty());
-    notUsingClientLabel.managedProperty().bindBidirectional(notUsingClientLabel.visibleProperty());
-    notUsingClientLabel.setVisible(false);
+    loadingProgressLabel.managedProperty().bind(loadingProgressLabel.visibleProperty());
+    loadingProgressIndicator.managedProperty().bind(loadingProgressIndicator.visibleProperty());
+    loadingProgressIndicator.visibleProperty().bind(loadingProgressLabel.visibleProperty());
+    notConnectedContainer.managedProperty().bind(notConnectedContainer.visibleProperty());
+    mostRecentAchievementPane.managedProperty().bind(mostRecentAchievementPane.visibleProperty());
+    achievedAchievementsContainer.managedProperty().bind(achievedAchievementsContainer.visibleProperty());
+    availableAchievementsContainer.managedProperty().bind(availableAchievementsContainer.visibleProperty());
+    notUsingClientLabel.managedProperty().bind(notUsingClientLabel.visibleProperty());
 
-    rating90DaysYAxis.setForceZeroInRange(false);
-    rating90DaysYAxis.setAutoRanging(true);
+    enterAchievementsLoadedState();
 
-    rating90DaysXAxis.setForceZeroInRange(false);
-    rating90DaysXAxis.setAutoRanging(true);
     rating90DaysXAxis.setTickLabelFormatter(new StringConverter<Number>() {
       @Override
       public String toString(Number object) {
@@ -134,6 +145,32 @@ public class UserInfoWindowController {
     });
   }
 
+  private void enterAchievementsLoadedState() {
+    notConnectedContainer.setVisible(false);
+    loadingProgressLabel.setVisible(false);
+    mostRecentAchievementPane.setVisible(true);
+    achievedAchievementsContainer.setVisible(true);
+    availableAchievementsContainer.setVisible(true);
+  }
+
+  private void enterNotConnectedState() {
+    notConnectedContainer.setVisible(true);
+    loadingProgressLabel.setVisible(false);
+    mostRecentAchievementPane.setVisible(false);
+    achievedAchievementsContainer.setVisible(false);
+    availableAchievementsContainer.setVisible(false);
+    notUsingClientLabel.setVisible(false);
+  }
+
+  private void enterAchievementsLoadingState() {
+    notConnectedContainer.setVisible(false);
+    loadingProgressLabel.setVisible(true);
+    mostRecentAchievementPane.setVisible(false);
+    achievedAchievementsContainer.setVisible(false);
+    availableAchievementsContainer.setVisible(false);
+    notUsingClientLabel.setVisible(false);
+  }
+
   private void loadAchievements() {
     if (!preferencesService.getPreferences().getConnectedToGooglePlay()) {
       preferencesService.getPreferences().connectedToGooglePlayProperty().addListener((observable, oldValue, newValue) -> {
@@ -141,34 +178,41 @@ public class UserInfoWindowController {
           loadAchievements();
         }
       });
-      notUsingClientLabel.setVisible(false);
-      notConnectedContainer.setVisible(true);
+      enterNotConnectedState();
       return;
     }
 
-    notConnectedContainer.setVisible(false);
-
-    playServices.authorize().thenRun(() -> playServices.getAchievementDefinitions()
-        .thenAccept(UserInfoWindowController.this::displayAvailableAchievements)
-        .exceptionally(throwable -> {
-          logger.warn("Error while loading achievement definitions", throwable);
-          return null;
-        })
-        .thenRun(() -> playServices.getAchievements(playerInfoBean.getUsername())
-            .thenAccept(UserInfoWindowController.this::displayAchievedAchievements)
-            .exceptionally(throwable -> {
-              logger.warn("Error while loading achievements", throwable);
-              return null;
-            }))
-        .exceptionally(throwable -> {
-          logger.warn("Error while loading player achievements", throwable);
-          return null;
-        }));
+    playServices.authorize().thenRun(() -> {
+      enterAchievementsLoadingState();
+      playServices.getAchievementDefinitions()
+          .exceptionally(throwable -> {
+            logger.warn("Could not authorize to play services", throwable);
+            return null;
+          })
+          .thenAccept(this::displayAvailableAchievements)
+          .thenRun(() -> {
+            ObservableList<PlayerAchievement> playerAchievements = playServices.getPlayerAchievements(playerInfoBean.getUsername());
+            playerAchievements.addListener((Observable observable) -> {
+              updatePlayerAchievements(playerAchievements);
+            });
+            updatePlayerAchievements(playerAchievements);
+            enterAchievementsLoadedState();
+          });
+    }).exceptionally(throwable -> {
+      enterNotConnectedState();
+      logger.warn("Error while loading achievements", throwable);
+      return null;
+    });
   }
 
   private void displayAvailableAchievements(List<AchievementDefinition> achievementDefinitions) {
-    ObservableList<Node> children = availableAchievementsContainer.getChildren();
+    if (achievementDefinitions == null) {
+      notUsingClientLabel.setVisible(true);
+      return;
+    }
+    notConnectedContainer.setVisible(false);
 
+    ObservableList<Node> children = availableAchievementsContainer.getChildren();
     Platform.runLater(children::clear);
 
     achievementDefinitions.forEach(achievementDefinition -> {
@@ -180,13 +224,7 @@ public class UserInfoWindowController {
     });
   }
 
-  private void displayAchievedAchievements(@Nullable List<PlayerAchievement> playerAchievements) {
-    if (playerAchievements == null) {
-      notUsingClientLabel.setVisible(true);
-      return;
-    }
-    notUsingClientLabel.setVisible(false);
-
+  private void updatePlayerAchievements(List<? extends PlayerAchievement> playerAchievements) {
     AchievementDefinition mostRecentAchievement = null;
     long mostRecentAchievementTimestamp = 0;
     int unlockedAchievements = 0;
@@ -196,32 +234,34 @@ public class UserInfoWindowController {
 
     for (PlayerAchievement playerAchievement : playerAchievements) {
       AchievementItemController achievementItemController = achievementItemById.get(playerAchievement.getId());
-      Platform.runLater(() -> children.add(achievementItemController.getRoot()));
       achievementItemController.setPlayerAchievement(playerAchievement);
 
       if (isUnlocked(playerAchievement)) {
         unlockedAchievements++;
+        Platform.runLater(() -> children.add(achievementItemController.getRoot()));
         if (playerAchievement.getLastUpdatedTimestamp() > mostRecentAchievementTimestamp) {
           mostRecentAchievement = achievementDefinitionById.get(playerAchievement.getId());
         }
       }
     }
+
     int numberOfAchievements = achievementDefinitionById.size();
     double percentageUnlocked = (double) unlockedAchievements / numberOfAchievements;
-    achievementsProgressLabel.setText(
-        i18n.get("achievements.unlockedTotal", unlockedAchievements, numberOfAchievements, percentageUnlocked)
-    );
+    String achievementProgressText = i18n.get("achievements.unlockedTotal", unlockedAchievements, numberOfAchievements, percentageUnlocked);
+    Platform.runLater(() -> achievementsProgressLabel.setText(achievementProgressText));
 
     if (mostRecentAchievement == null) {
       mostRecentAchievementPane.setVisible(false);
     } else {
       mostRecentAchievementPane.setVisible(true);
-      mostRecentAchievementNameLabel.setText(mostRecentAchievement.getName());
-    }
-  }
+      String mostRecentAchievementName = mostRecentAchievement.getName();
+      String unlockedIconUrl = mostRecentAchievement.getUnlockedIconUrl();
 
-  private static boolean isUnlocked(PlayerAchievement playerAchievement) {
-    return UNLOCKED.equals(playerAchievement.getAchievementState());
+      Platform.runLater(() -> {
+        mostRecentAchievementNameLabel.setText(mostRecentAchievementName);
+        mostRecentAchievementImageView.setImage(new Image(unlockedIconUrl, true));
+      });
+    }
   }
 
   public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
@@ -288,9 +328,17 @@ public class UserInfoWindowController {
 
   @FXML
   void onConnectToGoogleButtonClicked() {
+    connectGoogleButton.setDisable(true);
     playServices.authorize().whenComplete((aVoid, throwable) -> {
       preferencesService.getPreferences().setConnectedToGooglePlay(throwable == null);
       preferencesService.storeInBackground();
+    }).exceptionally(throwable -> {
+      connectGoogleButton.setDisable(false);
+      return null;
     });
+  }
+
+  private static boolean isUnlocked(PlayerAchievement playerAchievement) {
+    return UNLOCKED.equals(playerAchievement.getAchievementState());
   }
 }

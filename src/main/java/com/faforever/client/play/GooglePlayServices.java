@@ -30,6 +30,8 @@ import com.google.api.services.games.model.EventUpdateResponse;
 import com.google.api.services.games.model.Player;
 import com.google.api.services.games.model.PlayerAchievement;
 import com.google.common.io.Resources;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -40,10 +42,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.lang.invoke.MethodHandles;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -153,6 +153,8 @@ public class GooglePlayServices implements PlayServices {
   private static final JsonBatchCallback<AchievementUnlockResponse> UNLOCK_CALLBACK = batchCallback();
   private static final JsonBatchCallback<AchievementIncrementResponse> INCREMENT_CALLBACK = batchCallback();
   private static final JsonBatchCallback<EventUpdateResponse> RECORD_CALLBACK = batchCallback();
+  private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements;
+  private final ObservableList<PlayerAchievement> playerAchievements;
 
   @Resource
   PreferencesService preferencesService;
@@ -168,6 +170,11 @@ public class GooglePlayServices implements PlayServices {
   private NetHttpTransport httpTransport;
   private ServerSocket verificationCodeServerSocket;
   private BatchRequest batchRequest;
+
+  public GooglePlayServices() {
+    playerAchievements = FXCollections.observableArrayList();
+    readOnlyPlayerAchievements = FXCollections.unmodifiableObservableList(playerAchievements);
+  }
 
   @PostConstruct
   void postConstruct() throws GeneralSecurityException, IOException {
@@ -217,12 +224,30 @@ public class GooglePlayServices implements PlayServices {
 
         Player currentPlayer = games.players().get("me").execute();
         cloudAccessor.setPlayerId(currentPlayer.getPlayerId()).get();
+
+        games.achievements().unlock(ACH_WELCOME_COMMANDER).execute();
+
+        loadCurrentPlayerAchievements();
       } catch (IOException | InterruptedException | ExecutionException e) {
         throw new RuntimeException(e);
       }
     };
 
     return CompletableFuture.runAsync(runnable, executorService);
+  }
+
+  private void loadCurrentPlayerAchievements() {
+    cloudAccessor.getPlayerIdForUsername(userService.getUsername()).thenAccept(playerId -> {
+      if (StringUtils.isEmpty(playerId)) {
+        playerAchievements.clear();
+      }
+
+      try {
+        playerAchievements.setAll(games.achievements().list(playerId).execute().getItems());
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   @Override
@@ -250,6 +275,8 @@ public class GooglePlayServices implements PlayServices {
       logger.debug("Executing {} updates", batchRequest.size());
       batchRequest.execute();
       resetBatchUpdate();
+
+      loadCurrentPlayerAchievements();
     } finally {
       BATCH_REQUEST_LOCK.unlock();
     }
@@ -351,18 +378,25 @@ public class GooglePlayServices implements PlayServices {
   }
 
   @Override
-  public CompletableFuture<List<PlayerAchievement>> getAchievements(String username) {
-    return cloudAccessor.getPlayerIdForUsername(username).thenApply(playerId -> {
-      if (StringUtils.isEmpty(playerId)) {
-        return null;
-      }
+  public ObservableList<PlayerAchievement> getPlayerAchievements(String username) {
+    if (userService.getUsername().equals(username)) {
+      return readOnlyPlayerAchievements;
+    }
 
+    ObservableList<PlayerAchievement> playerAchievements = FXCollections.observableArrayList();
+
+    cloudAccessor.getPlayerIdForUsername(username).thenAccept(playerId -> {
       try {
-        return games.achievements().list(playerId).execute().getItems();
+        if (StringUtils.isEmpty(playerId)) {
+          return;
+        }
+        playerAchievements.setAll(games.achievements().list(playerId).execute().getItems());
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        logger.warn("Could not load achievements", e);
       }
     });
+
+    return playerAchievements;
   }
 
   @Override
@@ -375,13 +409,6 @@ public class GooglePlayServices implements PlayServices {
       }
     };
     return CompletableFuture.supplyAsync(supplier, executorService);
-  }
-
-  @Override
-  public void connectedToGoogle() throws IOException {
-    checkBatchRequest();
-    unlockAchievement(ACH_TOP_SCORE);
-    ;
   }
 
   @NotNull

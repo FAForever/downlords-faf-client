@@ -9,6 +9,7 @@ public final class CacheNames {
   public static final String URL_PREVIEW = "urlPreview";
   public static final String STATISTICS = "statistics";
   public static final String GRAVATAR = "gravatar";
+  public static final String ACHIEVEMENTS = "achievements";
 
   private CacheNames() {
     throw new AssertionError("Not instantiatable");

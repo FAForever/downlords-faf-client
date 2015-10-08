@@ -55,7 +55,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -71,6 +70,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
@@ -119,8 +119,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   private BooleanProperty searching1v1;
   private Instant gameStartedTime;
   private ScheduledFuture<?> searchExpansionFuture;
-  private RatingMode ratingMode;
-  private GameLaunchInfo gameLaunchInfo;
   private GameStats gameStats;
 
   public GameServiceImpl() {
@@ -329,9 +327,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   private void startGame(GameLaunchInfo gameLaunchInfo, Faction faction, RatingMode ratingMode) {
-    this.ratingMode = ratingMode;
-    this.gameLaunchInfo = gameLaunchInfo;
-
     stopSearchRanked1v1();
     List<String> args = fixMalformedArgs(gameLaunchInfo.getArgs());
     try {
@@ -372,47 +367,35 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
         lobbyServerAccessor.notifyGameTerminated();
 
         proxy.close();
-        updatePlayServices(ratingMode);
+        updatePlayServicesIfApplicable(ratingMode);
       } catch (InterruptedException | IOException e) {
         logger.warn("Error during post-game processing", e);
       }
     }, scheduledExecutorService);
   }
 
-  private void updatePlayServices(RatingMode ratingMode) throws IOException {
+  private void updatePlayServicesIfApplicable(RatingMode ratingMode) throws IOException {
+    if (ratingMode == null || gameStartedTime == null) {
+      return;
+    }
+
+    Duration gameDuration = Duration.between(gameStartedTime, Instant.now());
+    Duration minDuration = Duration.of(environment.getProperty("playServices.minGameTime", int.class), MILLIS);
+    if (gameDuration.compareTo(minDuration) <= 0) {
+      logger.debug("Not updating play services since game time was too short ({}s)", gameDuration.getSeconds());
+      return;
+    }
+
     try {
       playServices.startBatchUpdate();
-
-      recordGamePlayedIfApplicable(ratingMode);
-      processGameStats(ratingMode);
-
+      updatePlayServices(ratingMode, gameStats);
       playServices.executeBatchUpdate();
     } finally {
       playServices.resetBatchUpdate();
     }
   }
 
-  private void recordGamePlayedIfApplicable(RatingMode ratingMode) throws IOException {
-    if (ratingMode == null || gameStartedTime == null) {
-      return;
-    }
-
-    Duration gameDuration = Duration.between(gameStartedTime, Instant.now());
-    if (gameDuration.compareTo(Duration.of(5, ChronoUnit.SECONDS)) <= 0) {
-      return;
-    }
-
-    switch (ratingMode) {
-      case GLOBAL:
-        playServices.customGamePlayed();
-        break;
-      case RANKED_1V1:
-        playServices.ranked1v1GamePlayed();
-        break;
-    }
-  }
-
-  private void processGameStats(RatingMode ratingMode) throws IOException {
+  private void updatePlayServices(RatingMode ratingMode, GameStats gameStats) throws IOException {
     int highScore = 0;
     boolean isTopScoringPlayer = false;
 
@@ -434,6 +417,15 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
     if (isTopScoringPlayer) {
       playServices.topScoringPlayer(armies.size());
+    }
+
+    switch (ratingMode) {
+      case GLOBAL:
+        playServices.customGamePlayed();
+        break;
+      case RANKED_1V1:
+        playServices.ranked1v1GamePlayed();
+        break;
     }
   }
 
@@ -519,7 +511,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     if (survived && ratingMode == RatingMode.RANKED_1V1) {
       playServices.ranked1v1GameWon();
     }
-    playServices.connectedToGoogle();
     playServices.killedCommanders(commanderKills, survived);
     playServices.acuDamageReceived(acuDamageReceived, survived);
     playServices.engineerStats(engineerStats.getBuilt(), engineerStats.getKilled());
@@ -535,7 +526,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     lobbyServerAccessor.addOnGameInfoListener(this);
     localRelayServer.setGameStatsListener(this::onGameStats);
     localRelayServer.setGameLaunchedListener(aVoid -> gameStartedTime = Instant.now());
-
   }
 
   @Override

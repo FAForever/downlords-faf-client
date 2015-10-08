@@ -1,7 +1,10 @@
 package com.faforever.client.play;
 
+import com.faforever.client.config.CacheNames;
 import com.google.api.services.games.model.AchievementDefinition;
 import com.google.api.services.games.model.PlayerAchievement;
+import javafx.collections.ObservableList;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,9 +42,9 @@ public interface PlayServices {
 
   void topScoringPlayer(int totalPlayers) throws IOException;
 
-  CompletableFuture<List<PlayerAchievement>> getAchievements(String username);
+  ObservableList<PlayerAchievement> getPlayerAchievements(String username);
 
+  @Cacheable(CacheNames.ACHIEVEMENTS)
   CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions();
 
-  void connectedToGoogle() throws IOException;
 }

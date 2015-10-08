@@ -732,6 +732,18 @@
   -fx-background-color: -fx-control-inner-background-alt;
 }
 
+/***************** Tiles *****************/
+
+.tile {
+  -fx-background-color: -fx-tile-background;
+  -fx-border-width: 1;
+  -fx-border-color: -fx-box-border;
+  -fx-padding: 10;
+  -fx-spacing: 10;
+  -fx-hgap: 10;
+  -fx-vgap: 10;
+}
+
 /***************** Game Tile *****************/
 
 .game-tile-root {
@@ -930,16 +942,6 @@
   -fx-vgap: 10;
 }
 
-.ranked1v1-flow-pane .tile {
-  -fx-background-color: -fx-tile-background;
-  -fx-border-width: 1;
-  -fx-border-color: -fx-box-border;
-  -fx-padding: 10;
-  -fx-spacing: 10;
-  -fx-hgap: 10;
-  -fx-vgap: 10;
-}
-
 .ranked1v1-big-value {
   -fx-font-size: 3em;
 }
@@ -954,16 +956,6 @@
 }
 
 /***************** Mod vault *****************/
-
-.mod-vault .tile {
-  -fx-background-color: -fx-tile-background;
-  -fx-border-width: 1;
-  -fx-border-color: -fx-box-border;
-  -fx-padding: 10;
-  -fx-spacing: 10;
-  -fx-hgap: 10;
-  -fx-vgap: 10;
-}
 
 .mod-vault .tile:hover {
   -fx-background-color: -fx-transparent-hover;

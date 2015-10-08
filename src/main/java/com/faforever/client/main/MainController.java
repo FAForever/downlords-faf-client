@@ -3,7 +3,6 @@ package com.faforever.client.main;
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
-import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.Faction;
@@ -45,6 +44,8 @@ import com.faforever.client.util.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
 import javafx.beans.Observable;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
@@ -192,6 +193,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @VisibleForTesting
   Popup notificationsPopup;
   private Popup userMenuPopup;
+  private ChangeListener<Boolean> windowFocusListener;
 
   @FXML
   void initialize() {
@@ -209,6 +211,12 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     addHoverListener(leaderboardButton);
 
     setCurrentTaskInStatusBar(null);
+
+    windowFocusListener = (observable, oldValue, newValue) -> {
+      if (!newValue) {
+        hideAllMenuDropdowns();
+      }
+    };
   }
 
   private void addHoverListener(SplitMenuButton button) {
@@ -236,6 +244,10 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
       taskProgressLabel.setVisible(true);
       taskProgressLabel.textProperty().bind(task.titleProperty());
     });
+  }
+
+  private void hideAllMenuDropdowns() {
+    mainNavigation.getChildren().forEach(item -> ((SplitMenuButton) item).hide());
   }
 
   private void showMenuDropdown(SplitMenuButton button) {
@@ -404,6 +416,10 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
         preferencesService.storeInBackground();
       }
     });
+
+    ReadOnlyBooleanProperty focusedProperty = stage.focusedProperty();
+    focusedProperty.removeListener(windowFocusListener);
+    focusedProperty.addListener(windowFocusListener);
   }
 
   private void checkGamePortInBackground() {
@@ -512,20 +528,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   public Pane getRoot() {
     return mainRoot;
-  }
-
-  @FXML
-  void onShowUserInfoClicked() {
-    UserInfoWindowController userInfoWindowController = applicationContext.getBean(UserInfoWindowController.class);
-    userInfoWindowController.setPlayerInfoBean(playerService.getCurrentPlayer());
-
-    Stage userInfoWindow = new Stage(StageStyle.TRANSPARENT);
-    userInfoWindow.initModality(Modality.NONE);
-    userInfoWindow.initOwner(getRoot().getScene().getWindow());
-
-    sceneFactory.createScene(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
-
-    userInfoWindow.show();
   }
 
   @FXML

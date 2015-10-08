@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Arrays;
 
+import static com.faforever.client.config.CacheNames.ACHIEVEMENTS;
 import static com.faforever.client.config.CacheNames.AVATARS;
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
 import static com.faforever.client.config.CacheNames.GRAVATAR;
@@ -37,7 +38,8 @@ public class CacheConfig implements CachingConfigurer {
         new GuavaCache(AVATARS, newBuilder().maximumSize(30).build()),
         new GuavaCache(URL_PREVIEW, newBuilder().maximumSize(10).expireAfterAccess(30, MINUTES).build()),
         new GuavaCache(STATISTICS, newBuilder().maximumSize(10).expireAfterAccess(20, MINUTES).build()),
-        new GuavaCache(GRAVATAR, newBuilder().maximumSize(10).expireAfterAccess(120, MINUTES).build())
+        new GuavaCache(GRAVATAR, newBuilder().maximumSize(10).expireAfterAccess(120, MINUTES).build()),
+        new GuavaCache(ACHIEVEMENTS, newBuilder().maximumSize(1).expireAfterAccess(120, MINUTES).build())
     ));
     return simpleCacheManager;
   }

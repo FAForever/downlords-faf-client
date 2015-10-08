@@ -88,10 +88,11 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
 
           blockingReadServer(fafServerSocket);
         } catch (IOException e) {
-          if (!isCancelled()) {
+          if (isCancelled()) {
             logger.info("Disconnected from statistics server");
+          } else {
+            logger.warn("Lost connection to statistics server", e);
           }
-          logger.warn("Lost connection to statistics server", e);
         }
         return null;
       }

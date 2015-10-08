@@ -353,19 +353,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnShowUserInfoClicked() throws Exception {
-    attachToRoot();
-    Pane root = new Pane();
-    when(userInfoWindowController.getRoot()).thenReturn(root);
-    WaitForAsyncUtils.waitForAsyncFx(1000, instance::onShowUserInfoClicked);
-
-    verify(sceneFactory).createScene(
-        any(), eq(root), eq(true), eq(WindowDecorator.WindowButtonType.CLOSE)
-    );
-    verify(playerService).getCurrentPlayer();
-  }
-
-  @Test
   public void testOnCommunitySelected() throws Exception {
     attachToRoot();
     when(communityHubController.getRoot()).thenReturn(new Pane());
