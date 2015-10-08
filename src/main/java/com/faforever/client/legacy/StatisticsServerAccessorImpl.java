@@ -88,6 +88,9 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
 
           blockingReadServer(fafServerSocket);
         } catch (IOException e) {
+          if (!isCancelled()) {
+            logger.info("Disconnected from statistics server");
+          }
           logger.warn("Lost connection to statistics server", e);
         }
         return null;
@@ -97,7 +100,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
       protected void cancelled() {
         IOUtils.closeQuietly(serverWriter);
         IOUtils.closeQuietly(serverSocket);
-          logger.debug("Closed connection to statistics server");
+        logger.debug("Closed connection to statistics server");
       }
     };
     executeInBackground(connectionTask);

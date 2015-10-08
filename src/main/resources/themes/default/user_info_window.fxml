@@ -1,17 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.chart.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
@@ -25,8 +19,9 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-
-<GridPane fx:id="userInfoRoot" minHeight="256.0" minWidth="256.0" prefHeight="700.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.UserInfoWindowController">
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="userInfoRoot" minHeight="256.0" minWidth="256.0" prefHeight="700.0"
+          prefWidth="900.0" xmlns="http://javafx.com/javafx/8.0.40"
+          fx:controller="com.faforever.client.chat.UserInfoWindowController">
   <columnConstraints>
     <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
     <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
@@ -83,13 +78,38 @@
           <content>
             <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER">
               <content>
-                <VBox fx:id="achievementsContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
+                <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
                   <children>
                     <Label fx:id="notUsingClientLabel" maxHeight="1.7976931348623157E308" text="%userInfo.notUsingClient" wrapText="true" />
-                    <VBox fx:id="noAchievementsLayout" alignment="CENTER" spacing="20.0" VBox.vgrow="ALWAYS">
+                    <GridPane fx:id="mostRecentAchievementPane" hgap="20.0" VBox.vgrow="NEVER">
+                      <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER"/>
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
+                      </columnConstraints>
+                      <rowConstraints>
+                        <RowConstraints vgrow="NEVER"/>
+                        <RowConstraints vgrow="NEVER"/>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+                        <RowConstraints vgrow="NEVER"/>
+                        <RowConstraints vgrow="NEVER"/>
+                      </rowConstraints>
                       <children>
-                        <Label fx:id="connectToGoogleLabel" maxHeight="1.7976931348623157E308" text="%userInfo.googleConnectionRequired" wrapText="true" />
-                        <Button fx:id="connectToGoogleButton" focusTraversable="false" graphicTextGap="12.0" mnemonicParsing="false" onAction="#onConnectToGoogleButtonClicked" text="%currentUser.connectGoogle">
+                        <ImageView fitHeight="128.0" fitWidth="128.0" pickOnBounds="true" preserveRatio="true"
+                                   GridPane.rowSpan="3"/>
+                        <Label text="%achievements.mostRecent" GridPane.columnIndex="1"/>
+                        <Label fx:id="mostRecentAchievementNameLabel" styleClass="achievement-title" text="Label"
+                               GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.valignment="TOP"/>
+                        <ProgressBar maxWidth="1.7976931348623157E308" progress="0.0" GridPane.columnSpan="2147483647"
+                                     GridPane.rowIndex="4"/>
+                        <Label fx:id="achievementsProgressLabel" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                      </children>
+                    </GridPane>
+                    <VBox fx:id="notConnectedContainer" alignment="CENTER" spacing="20.0" VBox.vgrow="ALWAYS">
+                      <children>
+                        <Label maxHeight="1.7976931348623157E308" text="%userInfo.googleConnectionRequired"
+                               wrapText="true"/>
+                        <Button focusTraversable="false" graphicTextGap="12.0" mnemonicParsing="false"
+                                onAction="#onConnectToGoogleButtonClicked" text="%currentUser.connectGoogle">
                           <graphic>
                             <ImageView fitHeight="36.0" fitWidth="36.0" pickOnBounds="true" preserveRatio="true">
                               <image>
@@ -100,11 +120,18 @@
                         </Button>
                       </children>
                     </VBox>
-                              <VBox fx:id="achievementsContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS" />
+                    <VBox fx:id="achievedAchievementsContainer" maxHeight="1.7976931348623157E308"
+                          maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS"/>
+                    <VBox fx:id="availableAchievementsContainer" maxHeight="1.7976931348623157E308"
+                          maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+                      <VBox.margin>
+                        <Insets top="20.0"/>
+                      </VBox.margin>
+                    </VBox>
                   </children>
-                           <padding>
-                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                           </padding>
+                  <padding>
+                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                  </padding>
                 </VBox>
               </content>
             </ScrollPane>

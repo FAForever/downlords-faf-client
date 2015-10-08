@@ -971,4 +971,9 @@
   -fx-text-fill: -fx-light-text-color;
 }
 
+/***************** Achievements *****************/
 
+.achievement-title {
+  -fx-font-size: 1.2em;
+  -fx-font-weight: bold;
+}

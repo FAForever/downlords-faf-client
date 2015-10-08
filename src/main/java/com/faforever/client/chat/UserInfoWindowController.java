@@ -1,8 +1,8 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.play.PlayServices;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.stats.RatingInfo;
@@ -20,12 +20,12 @@ import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -50,17 +50,22 @@ public class UserInfoWindowController {
 
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM");
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String UNLOCKED = "UNLOCKED";
 
+  @FXML
+  Label achievementsProgressLabel;
+  @FXML
+  Pane mostRecentAchievementPane;
+  @FXML
+  Label mostRecentAchievementNameLabel;
+  @FXML
+  VBox availableAchievementsContainer;
+  @FXML
+  VBox achievedAchievementsContainer;
   @FXML
   Label notUsingClientLabel;
   @FXML
-  Label connectToGoogleLabel;
-  @FXML
-  Button connectToGoogleButton;
-  @FXML
-  Pane achievementsContainer;
-  @FXML
-  Pane noAchievementsLayout;
+  Pane notConnectedContainer;
   @FXML
   ToggleButton ratingOver365DaysButton;
   @FXML
@@ -89,22 +94,26 @@ public class UserInfoWindowController {
   @Resource
   PreferencesService preferencesService;
   @Resource
-  PlayerService playerService;
-  @Resource
   ApplicationContext applicationContext;
+  @Resource
+  I18n i18n;
 
   private PlayerInfoBean playerInfoBean;
   private Map<String, AchievementItemController> achievementItemById;
+  private Map<String, AchievementDefinition> achievementDefinitionById;
 
   public UserInfoWindowController() {
     achievementItemById = new HashMap<>();
+    achievementDefinitionById = new HashMap<>();
   }
 
   @FXML
   void initialize() {
-    connectToGoogleButton.managedProperty().bindBidirectional(connectToGoogleButton.visibleProperty());
-    connectToGoogleLabel.managedProperty().bindBidirectional(connectToGoogleLabel.visibleProperty());
+    mostRecentAchievementPane.managedProperty().bindBidirectional(mostRecentAchievementPane.visibleProperty());
+    notConnectedContainer.managedProperty().bindBidirectional(notConnectedContainer.visibleProperty());
     notUsingClientLabel.managedProperty().bindBidirectional(notUsingClientLabel.visibleProperty());
+    notUsingClientLabel.managedProperty().bindBidirectional(notUsingClientLabel.visibleProperty());
+    notUsingClientLabel.setVisible(false);
 
     rating90DaysYAxis.setForceZeroInRange(false);
     rating90DaysYAxis.setAutoRanging(true);
@@ -133,13 +142,11 @@ public class UserInfoWindowController {
         }
       });
       notUsingClientLabel.setVisible(false);
-      connectToGoogleButton.setVisible(true);
-      connectToGoogleLabel.setVisible(true);
+      notConnectedContainer.setVisible(true);
       return;
     }
 
-    connectToGoogleButton.setVisible(false);
-    connectToGoogleLabel.setVisible(false);
+    notConnectedContainer.setVisible(false);
 
     playServices.authorize().thenRun(() -> playServices.getAchievementDefinitions()
         .thenAccept(UserInfoWindowController.this::displayAvailableAchievements)
@@ -148,7 +155,7 @@ public class UserInfoWindowController {
           return null;
         })
         .thenRun(() -> playServices.getAchievements(playerInfoBean.getUsername())
-            .thenAccept(UserInfoWindowController.this::displayAchievements)
+            .thenAccept(UserInfoWindowController.this::displayAchievedAchievements)
             .exceptionally(throwable -> {
               logger.warn("Error while loading achievements", throwable);
               return null;
@@ -160,25 +167,61 @@ public class UserInfoWindowController {
   }
 
   private void displayAvailableAchievements(List<AchievementDefinition> achievementDefinitions) {
-    ObservableList<Node> children = achievementsContainer.getChildren();
+    ObservableList<Node> children = availableAchievementsContainer.getChildren();
 
     Platform.runLater(children::clear);
 
-    for (AchievementDefinition achievementDefinition : achievementDefinitions) {
+    achievementDefinitions.forEach(achievementDefinition -> {
       AchievementItemController controller = applicationContext.getBean(AchievementItemController.class);
       controller.setAchievementDefinition(achievementDefinition);
+      achievementDefinitionById.put(achievementDefinition.getId(), achievementDefinition);
       achievementItemById.put(achievementDefinition.getId(), controller);
       Platform.runLater(() -> children.add(controller.getRoot()));
-    }
+    });
   }
 
-  private void displayAchievements(@Nullable List<PlayerAchievement> playerAchievements) {
+  private void displayAchievedAchievements(@Nullable List<PlayerAchievement> playerAchievements) {
     if (playerAchievements == null) {
       notUsingClientLabel.setVisible(true);
       return;
     }
     notUsingClientLabel.setVisible(false);
-    playerAchievements.forEach(item -> achievementItemById.get(item.getId()).setPlayerAchievement(item));
+
+    AchievementDefinition mostRecentAchievement = null;
+    long mostRecentAchievementTimestamp = 0;
+    int unlockedAchievements = 0;
+
+    ObservableList<Node> children = achievedAchievementsContainer.getChildren();
+    Platform.runLater(children::clear);
+
+    for (PlayerAchievement playerAchievement : playerAchievements) {
+      AchievementItemController achievementItemController = achievementItemById.get(playerAchievement.getId());
+      Platform.runLater(() -> children.add(achievementItemController.getRoot()));
+      achievementItemController.setPlayerAchievement(playerAchievement);
+
+      if (isUnlocked(playerAchievement)) {
+        unlockedAchievements++;
+        if (playerAchievement.getLastUpdatedTimestamp() > mostRecentAchievementTimestamp) {
+          mostRecentAchievement = achievementDefinitionById.get(playerAchievement.getId());
+        }
+      }
+    }
+    int numberOfAchievements = achievementDefinitionById.size();
+    double percentageUnlocked = (double) unlockedAchievements / numberOfAchievements;
+    achievementsProgressLabel.setText(
+        i18n.get("achievements.unlockedTotal", unlockedAchievements, numberOfAchievements, percentageUnlocked)
+    );
+
+    if (mostRecentAchievement == null) {
+      mostRecentAchievementPane.setVisible(false);
+    } else {
+      mostRecentAchievementPane.setVisible(true);
+      mostRecentAchievementNameLabel.setText(mostRecentAchievement.getName());
+    }
+  }
+
+  private static boolean isUnlocked(PlayerAchievement playerAchievement) {
+    return UNLOCKED.equals(playerAchievement.getAchievementState());
   }
 
   public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
