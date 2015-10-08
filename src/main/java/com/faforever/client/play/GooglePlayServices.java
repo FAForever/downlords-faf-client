@@ -29,6 +29,7 @@ import com.google.api.services.games.model.EventUpdateRequest;
 import com.google.api.services.games.model.EventUpdateResponse;
 import com.google.api.services.games.model.Player;
 import com.google.api.services.games.model.PlayerAchievement;
+import com.google.common.io.Resources;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -39,8 +40,10 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.lang.invoke.MethodHandles;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -478,6 +481,8 @@ public class GooglePlayServices implements PlayServices {
               String code = matcher.group(1);
               logger.debug("Received code: {}", code);
 
+              socket.getOutputStream().write(Resources.toByteArray(getClass().getResource("/google_auth_answer.txt")));
+
               return code;
             }
           }
@@ -488,7 +493,5 @@ public class GooglePlayServices implements PlayServices {
       }
     };
   }
-
-
 }
 

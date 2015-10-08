@@ -132,6 +132,7 @@ public class UserInfoWindowController {
           loadAchievements();
         }
       });
+      notUsingClientLabel.setVisible(false);
       connectToGoogleButton.setVisible(true);
       connectToGoogleLabel.setVisible(true);
       return;
