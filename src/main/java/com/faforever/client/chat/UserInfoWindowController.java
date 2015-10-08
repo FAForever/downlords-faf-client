@@ -58,7 +58,7 @@ public class UserInfoWindowController {
   @FXML
   Button connectToGoogleButton;
   @FXML
-  Pane achievementsLayout;
+  Pane achievementsContainer;
   @FXML
   Pane noAchievementsLayout;
   @FXML
@@ -160,7 +160,7 @@ public class UserInfoWindowController {
   }
 
   private void displayAvailableAchievements(List<AchievementDefinition> achievementDefinitions) {
-    ObservableList<Node> children = achievementsLayout.getChildren();
+    ObservableList<Node> children = achievementsContainer.getChildren();
 
     Platform.runLater(children::clear);
 
