@@ -28,6 +28,7 @@ import com.faforever.client.stats.domain.EconomyStat;
 import com.faforever.client.stats.domain.EconomyStats;
 import com.faforever.client.stats.domain.GameStats;
 import com.faforever.client.stats.domain.SummaryStat;
+import com.faforever.client.stats.domain.Unit;
 import com.faforever.client.stats.domain.UnitCategory;
 import com.faforever.client.stats.domain.UnitStat;
 import com.faforever.client.stats.domain.UnitType;
@@ -79,6 +80,8 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnGameInfoListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String CIVILIAN = "civilian";
+  private static final String AI_INDICATOR = "AI: ";
   private final Collection<OnGameStartedListener> onGameLaunchingListeners;
   private final ObservableMap<String, GameTypeBean> gameTypeBeans;
   // It is indeed ugly to keep references in both, a list and a map, however I don't see how I can populate the map
@@ -388,20 +391,25 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
     try {
       playServices.startBatchUpdate();
-      updatePlayServices(ratingMode, gameStats);
+      updatePlayServices(ratingMode, gameStats, gameDuration);
       playServices.executeBatchUpdate();
     } finally {
       playServices.resetBatchUpdate();
     }
   }
 
-  private void updatePlayServices(RatingMode ratingMode, GameStats gameStats) throws IOException {
+  private void updatePlayServices(RatingMode ratingMode, GameStats gameStats, Duration gameDuration) throws IOException {
+    int numberOfActualPlayers = 0;
     int highScore = 0;
     boolean isTopScoringPlayer = false;
 
     String currentPlayerName = playerService.getCurrentPlayer().getUsername();
     List<Army> armies = gameStats.getArmies();
     for (Army army : armies) {
+      if (CIVILIAN.equals(army.getName()) || army.getName().contains(AI_INDICATOR)) {
+        continue;
+      }
+      numberOfActualPlayers++;
       boolean isCurrentPlayer = currentPlayerName.equals(army.getName());
 
       int score = calculateScore(army);
@@ -411,12 +419,12 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
       }
 
       if (isCurrentPlayer) {
-        processCurrentPlayerStats(army, ratingMode);
+        processCurrentPlayerStats(army, ratingMode, gameDuration);
       }
     }
 
     if (isTopScoringPlayer) {
-      playServices.topScoringPlayer(armies.size());
+      playServices.topScoringPlayer(numberOfActualPlayers);
     }
 
     switch (ratingMode) {
@@ -458,7 +466,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     return (int) Math.floor(resourceProduction + battleResults + (commanderKills * 5000));
   }
 
-  private void processCurrentPlayerStats(Army army, RatingMode ratingMode) throws IOException {
+  private void processCurrentPlayerStats(Army army, RatingMode ratingMode, Duration gameDuration) throws IOException {
     if (!preferencesService.getPreferences().getConnectedToGooglePlay()) {
       logger.debug("Not recording to play services since used is not connected");
       return;
@@ -475,49 +483,164 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     SummaryStat tech2UnitStats = categories.get(UnitCategory.TECH2);
     SummaryStat tech3UnitStats = categories.get(UnitCategory.TECH3);
 
+    Faction faction = null;
     boolean survived = true;
     int commanderKills = 0;
     double acuDamageReceived = 0;
+    int killedExperimentals = 0;
     int builtExperimentals = 0;
+    int builtSalvations = 0;
+    int builtTransports = 0;
+    int builtYolonaOss = 0;
+    int builtParagons = 0;
+    int builtAtlantis = 0;
+    int builtTempest = 0;
+    int builtScathis = 0;
+    int builtMavors = 0;
+    int asfBuilt = 0;
+    int builtCzars = 0;
+    int builtAhwasshas = 0;
+    int builtYthothas = 0;
+    int builtFatBoys = 0;
+    int builtMonkeyLords = 0;
+    int builtGalacticColossus = 0;
+    int builtSoulRippers = 0;
+    int builtMercies = 0;
+    int builtFireBeetles = 0;
+    int builtSupportCommanders = 0;
+    int builtMegaliths = 0;
 
     for (UnitStat unitStat : army.getUnitStats()) {
+      switch (Unit.fromId(unitStat.getId())) {
+        case AEON_ACU:
+          if (unitStat.getBuilt() == 1) {
+            faction = Faction.AEON;
+          }
+          break;
+
+        case CYBRAN_ACU:
+          if (unitStat.getBuilt() == 1) {
+            faction = Faction.CYBRAN;
+          }
+          break;
+
+        case UEF_ACU:
+          if (unitStat.getBuilt() == 1) {
+            faction = Faction.UEF;
+          }
+          break;
+
+        case SERAPHIM_ACU:
+          if (unitStat.getBuilt() == 1) {
+            faction = Faction.SERAPHIM;
+          }
+          break;
+
+        case CORONA:
+        case GEMINI:
+        case WASP:
+        case IAZYNE:
+          asfBuilt += unitStat.getBuilt();
+          break;
+
+        case CHARIOT:
+        case ALUMINAR:
+        case SKYHOOK:
+        case DRAGON_FLY:
+        case C6_COURIER:
+        case C14_STAR_LIFTER:
+        case CONTINENTAL:
+        case VISH:
+        case VISHALA:
+          builtTransports += unitStat.getBuilt();
+          break;
+
+        case SALVATION:
+          builtSalvations += unitStat.getBuilt();
+          break;
+
+        case PARAGON:
+          builtParagons += unitStat.getBuilt();
+        case MAVOR:
+          builtMavors += unitStat.getBuilt();
+        case YOLONA_OSS:
+          builtYolonaOss += unitStat.getBuilt();
+        case CZAR:
+          builtCzars += unitStat.getBuilt();
+        case SOUL_RIPPER:
+          builtSoulRippers += unitStat.getBuilt();
+        case AHWASSA:
+          builtAhwasshas += unitStat.getBuilt();
+        case SCATHIS:
+          builtScathis += unitStat.getBuilt();
+        case GALACTIC_COLOSSUS:
+          builtGalacticColossus += unitStat.getBuilt();
+        case MONKEYLORD:
+          builtMonkeyLords += unitStat.getBuilt();
+        case MEGALITH:
+          builtMegaliths += unitStat.getBuilt();
+        case FATBOY:
+          builtFatBoys += unitStat.getBuilt();
+        case YTHOTHA:
+          builtYthothas += unitStat.getBuilt();
+        case TEMPEST:
+          builtTempest += unitStat.getBuilt();
+        case ATLANTIS:
+          builtAtlantis += unitStat.getBuilt();
+        case NOVAX_CENTER:
+          killedExperimentals += unitStat.getKilled();
+          builtExperimentals += unitStat.getBuilt();
+          break;
+      }
+
       switch (unitStat.getType()) {
         case ACU:
           survived &= unitStat.getLost() == 0;
           commanderKills += unitStat.getKilled();
           acuDamageReceived += unitStat.getDamagereceived();
           break;
-
-        case PARAGON:
-        case MAVOR:
-        case YOLONA_OSS:
-        case CZAR:
-        case SOUL_RIPPER:
-        case AHWASSA:
-        case SCATHIS:
-        case GALACTIC_COLOSSUS:
-        case MONKEYLORD:
-        case MEGALITH:
-        case FATBOY:
-        case YTHOTHA:
-        case TEMPEST:
-        case ATLANTIS:
-        case NOVAX_CENTER:
-          builtExperimentals += unitStat.getBuilt();
-          break;
       }
     }
 
     if (survived && ratingMode == RatingMode.RANKED_1V1) {
       playServices.ranked1v1GameWon();
+      playServices.wonWithinDuration(gameDuration);
     }
+
+    playServices.timePlayed(gameDuration, survived);
+    playServices.builtMegaliths(builtMegaliths, survived);
+    playServices.builtCzars(builtCzars, survived);
+    playServices.builtAhwasshas(builtAhwasshas, survived);
+    playServices.builtYthothas(builtYthothas, survived);
+    playServices.builtFatboys(builtFatBoys, survived);
+    playServices.builtMonkeylords(builtMonkeyLords, survived);
+    playServices.builtGalacticColossus(builtGalacticColossus, survived);
+    playServices.builtSoulRippers(builtSoulRippers, survived);
+    playServices.builtMercies(builtMercies, survived);
+    playServices.builtFireBeetles(builtFireBeetles, survived);
+    playServices.builtSupportCommanders(builtSupportCommanders, survived);
+    playServices.builtTempests(builtTempest, survived);
+    playServices.builtAtlantis(builtAtlantis, survived);
+    playServices.builtParagons(builtParagons, survived);
+    playServices.builtYolonaOss(builtYolonaOss, survived);
+    playServices.builtScathis(builtScathis, survived);
+    playServices.builtSalvations(builtSalvations, survived);
+    playServices.builtMavors(builtMavors, survived);
+    playServices.asfBuilt(asfBuilt);
+    playServices.builtTransports(builtTransports);
+    playServices.playedFaction(faction, survived);
     playServices.killedCommanders(commanderKills, survived);
     playServices.acuDamageReceived(acuDamageReceived, survived);
-    playServices.engineerStats(engineerStats.getBuilt(), engineerStats.getKilled());
-    playServices.airUnitStats(airUnitStats.getBuilt(), airUnitStats.getKilled());
-    playServices.landUnitStats(landUnitStats.getBuilt(), landUnitStats.getKilled());
-    playServices.navalUnitStats(navalUnitStats.getBuilt(), navalUnitStats.getKilled());
-    playServices.techUnitsBuilt(tech1UnitStats.getBuilt(), tech2UnitStats.getBuilt(), tech3UnitStats.getBuilt(), builtExperimentals);
+    playServices.unitStats(
+        airUnitStats.getBuilt(), airUnitStats.getKilled(),
+        landUnitStats.getBuilt(), landUnitStats.getKilled(),
+        navalUnitStats.getBuilt(), navalUnitStats.getKilled(),
+        tech1UnitStats.getBuilt(), tech1UnitStats.getKilled(),
+        tech2UnitStats.getBuilt(), tech2UnitStats.getKilled(),
+        tech3UnitStats.getBuilt(), tech3UnitStats.getKilled(),
+        builtExperimentals, killedExperimentals,
+        engineerStats.getBuilt(), engineerStats.getKilled(),
+        survived);
   }
 
   @PostConstruct

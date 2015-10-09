@@ -29,8 +29,6 @@ import java.util.concurrent.ScheduledExecutorService;
 @PropertySource("classpath:/faf_client.properties")
 public class BaseConfig {
 
-  private static final java.lang.String PROPERTY_LOCALE = "locale";
-
   @Autowired
   Environment environment;
 
@@ -39,7 +37,7 @@ public class BaseConfig {
 
   @Bean
   Locale locale() {
-    return new Locale(environment.getProperty(PROPERTY_LOCALE));
+    return Locale.getDefault();
   }
 
   @Bean

@@ -1,5 +1,6 @@
 package com.faforever.client.play;
 
+import com.faforever.client.game.Faction;
 import com.faforever.client.parsecom.CloudAccessor;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
@@ -49,6 +50,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -105,12 +107,12 @@ public class GooglePlayServices implements PlayServices {
   private static final String ACH_MILITIAMAN = "CgkI9r3Q7egOEAIQNA";
   private static final String ACH_GRENADIER = "CgkI9r3Q7egOEAIQNQ";
   private static final String ACH_FIELD_MARSHAL = "CgkI9r3Q7egOEAIQNg";
-  private static final String ACH_THE_TRANSPORTER = "CgkI9r3Q7egOEAIQOQ";
   private static final String ACH_TECHIE = "CgkI9r3Q7egOEAIQOg";
-  private static final String ACH_EXPERIMENTALIST = "CgkI9r3Q7egOEAIQOw";
-  private static final String ACH_I_LOVE_BIG_TOYS = "CgkI9r3Q7egOEAIQPA";
+  private static final String ACH_I_LOVE_BIG_TOYS = "CgkI9r3Q7egOEAIQOw";
+  private static final String ACH_EXPERIMENTALIST = "CgkI9r3Q7egOEAIQPA";
   private static final String ACH_WHAT_A_SWARM = "CgkI9r3Q7egOEAIQPQ";
-  private static final String ACH_GET_SOME_SUPPORT = "CgkI9r3Q7egOEAIQPg";
+  private static final String ACH_THE_TRANSPORTER = "CgkI9r3Q7egOEAIQOQ";
+  private static final String ACH_WHO_NEEDS_SUPPORT = "CgkI9r3Q7egOEAIQPg";
   private static final String ACH_DEADLY_BUGS = "CgkI9r3Q7egOEAIQPw";
   private static final String ACH_NO_MERCY = "CgkI9r3Q7egOEAIQQA";
   private static final String ACH_FLYING_DEATH = "CgkI9r3Q7egOEAIQQQ";
@@ -128,20 +130,38 @@ public class GooglePlayServices implements PlayServices {
   private static final String ACH_SO_MUCH_RESOURCES = "CgkI9r3Q7egOEAIQTQ";
   private static final String ACH_NUCLEAR_WAR = "CgkI9r3Q7egOEAIQTg";
   private static final String ACH_DR_EVIL = "CgkI9r3Q7egOEAIQTw";
+  private static final String ACH_DONT_MESS_WITH_ME = "CgkI9r3Q7egOEAIQZw";
   private static final String ACH_MMMH_COFFEE = "CgkI9r3Q7egOEAIQUA";
   private static final String EVENT_CUSTOM_GAMES_PLAYED = "CgkI9r3Q7egOEAIQAQ";
   private static final String EVENT_RANKED_1V1_GAMES_PLAYED = "CgkI9r3Q7egOEAIQAg";
   private static final String EVENT_FALLEN_ACUS = "CgkI9r3Q7egOEAIQCA";
+  private static final String EVENT_BUILT_AIR_UNITS = "CgkI9r3Q7egOEAIQXQ";
   private static final String EVENT_FALLEN_AIR_UNITS = "CgkI9r3Q7egOEAIQCQ";
+  private static final String EVENT_BUILT_LAND_UNITS = "CgkI9r3Q7egOEAIQXg";
   private static final String EVENT_FALLEN_LAND_UNITS = "CgkI9r3Q7egOEAIQCg";
+  private static final String EVENT_BUILT_NAVAL_UNITS = "CgkI9r3Q7egOEAIQXw";
   private static final String EVENT_FALLEN_NAVAL_UNITS = "CgkI9r3Q7egOEAIQCw";
-  private static final String EVENT_FALLEN_ENGINEERS = "CgkI9r3Q7egOEAIQDA";
   private static final String EVENT_HOURS_PLAYED = "CgkI9r3Q7egOEAIQEg";
-  private static final String EVENT_EXPERIMENTALS_BUILT = "CgkI9r3Q7egOEAIQEw";
   private static final String EVENT_BUILT_TECH_1_UNITS = "CgkI9r3Q7egOEAIQUQ";
+  private static final String EVENT_FALLEN_TECH_1_UNITS = "CgkI9r3Q7egOEAIQYA";
   private static final String EVENT_BUILT_TECH_2_UNITS = "CgkI9r3Q7egOEAIQUg";
+  private static final String EVENT_FALLEN_TECH_2_UNITS = "CgkI9r3Q7egOEAIQYQ";
   private static final String EVENT_BUILT_TECH_3_UNITS = "CgkI9r3Q7egOEAIQUw";
+  private static final String EVENT_FALLEN_TECH_3_UNITS = "CgkI9r3Q7egOEAIQYg";
   private static final String EVENT_BUILT_EXPERIMENTALS = "CgkI9r3Q7egOEAIQVA";
+  private static final String EVENT_FALLEN_EXPERIMENTALS = "CgkI9r3Q7egOEAIQYw";
+  private static final String EVENT_BUILT_ENGINEERS = "CgkI9r3Q7egOEAIQZA";
+  private static final String EVENT_FALLEN_ENGINEERS = "CgkI9r3Q7egOEAIQZQ";
+  private static final String EVENT_AEON_PLAYS = "CgkI9r3Q7egOEAIQVQ";
+  private static final String EVENT_CYBRAN_PLAYS = "CgkI9r3Q7egOEAIQVg";
+  private static final String EVENT_UEF_PLAYS = "CgkI9r3Q7egOEAIQVw";
+  private static final String EVENT_SERAPHIM_PLAYS = "CgkI9r3Q7egOEAIQWA";
+  private static final String EVENT_AEON_WINS = "CgkI9r3Q7egOEAIQWQ";
+  private static final String EVENT_CYBRAN_WINS = "CgkI9r3Q7egOEAIQWg";
+  private static final String EVENT_UEF_WINS = "CgkI9r3Q7egOEAIQWw";
+  private static final String EVENT_SERAPHIM_WINS = "CgkI9r3Q7egOEAIQXA";
+  private static final String EVENT_BUILT_PARAGONS = "CgkI9r3Q7egOEAIQaA";
+
 
   /**
    * Be sure to specify the name of your application. If the application name is {@code null} or blank, the application
@@ -222,6 +242,7 @@ public class GooglePlayServices implements PlayServices {
             .setApplicationName(APPLICATION_NAME)
             .build();
 
+        // FIXME call things only once
         Player currentPlayer = games.players().get("me").execute();
         cloudAccessor.setPlayerId(currentPlayer.getPlayerId()).get();
 
@@ -306,16 +327,15 @@ public class GooglePlayServices implements PlayServices {
   public void ranked1v1GameWon() throws IOException {
     checkBatchRequest();
     unlockAchievement(ACH_FIRST_SUCCESS);
-    ;
   }
 
   @Override
-  public void killedCommanders(int number, boolean survived) throws IOException {
+  public void killedCommanders(int count, boolean survived) throws IOException {
     checkBatchRequest();
-    if (number >= 3 && survived) {
+    if (count >= 3 && survived) {
       unlockAchievement(ACH_HATTRICK);
-      ;
     }
+    incrementAchievement(ACH_DONT_MESS_WITH_ME, count);
     recordEvent(EVENT_FALLEN_ACUS, 1L);
   }
 
@@ -326,39 +346,6 @@ public class GooglePlayServices implements PlayServices {
     }
     checkBatchRequest();
     unlockAchievement(ACH_THAT_WAS_CLOSE);
-  }
-
-  @Override
-  public void airUnitStats(long built, long killed) throws IOException {
-    checkBatchRequest();
-    recordEvent(EVENT_FALLEN_AIR_UNITS, killed);
-  }
-
-  @Override
-  public void landUnitStats(long built, long killed) throws IOException {
-    checkBatchRequest();
-    recordEvent(EVENT_FALLEN_LAND_UNITS, killed);
-  }
-
-  @Override
-  public void navalUnitStats(long built, long killed) throws IOException {
-    checkBatchRequest();
-    recordEvent(EVENT_FALLEN_NAVAL_UNITS, killed);
-  }
-
-  @Override
-  public void engineerStats(long built, long killed) throws IOException {
-    checkBatchRequest();
-    recordEvent(EVENT_FALLEN_ENGINEERS, killed);
-  }
-
-  @Override
-  public void techUnitsBuilt(int builtTech1Units, int builtTech2Units, int builtTech3Units, int builtExperimentals) throws IOException {
-    checkBatchRequest();
-    recordEvent(EVENT_BUILT_TECH_1_UNITS, builtTech1Units);
-    recordEvent(EVENT_BUILT_TECH_1_UNITS, builtTech2Units);
-    recordEvent(EVENT_BUILT_TECH_1_UNITS, builtTech3Units);
-    recordEvent(EVENT_BUILT_EXPERIMENTALS, builtExperimentals);
   }
 
   @Override
@@ -373,7 +360,6 @@ public class GooglePlayServices implements PlayServices {
     }
     checkBatchRequest();
     unlockAchievement(ACH_TOP_SCORE);
-    ;
     incrementAchievement(ACH_UNBEATABLE, 1);
   }
 
@@ -409,6 +395,253 @@ public class GooglePlayServices implements PlayServices {
       }
     };
     return CompletableFuture.supplyAsync(supplier, executorService);
+  }
+
+  @Override
+  public void playerRating1v1(int rating) throws IOException {
+    checkBatchRequest();
+    if (rating > 500) {
+      unlockAchievement(ACH_PRIVATE);
+    }
+    if (rating > 1000) {
+      unlockAchievement(ACH_CORPORAL);
+    }
+    if (rating > 1500) {
+      unlockAchievement(ACH_SERGEANT_MAJOR);
+    }
+  }
+
+  @Override
+  public void playerRatingGlobal(int rating) throws IOException {
+    checkBatchRequest();
+    if (rating > 500) {
+      unlockAchievement(ACH_GETTING_STARTED);
+    }
+    if (rating > 1000) {
+      unlockAchievement(ACH_GETTING_BETTER);
+    }
+  }
+
+  @Override
+  public void wonWithinDuration(Duration duration) throws IOException {
+    if (duration.compareTo(Duration.ofMinutes(15)) > 0) {
+      return;
+    }
+    checkBatchRequest();
+    unlockAchievement(ACH_RUSHER);
+  }
+
+  @Override
+  public void playedFaction(Faction faction, boolean survived) throws IOException {
+    checkBatchRequest();
+    switch (faction) {
+      case AEON:
+        recordEvent(EVENT_AEON_PLAYS, 1);
+        if (survived) {
+          recordEvent(EVENT_AEON_WINS, 1);
+        }
+        incrementAchievement(ACH_AURORA, 1);
+        incrementAchievement(ACH_BLAZE, 1);
+        incrementAchievement(ACH_SERENITY, 1);
+        break;
+      case CYBRAN:
+        recordEvent(EVENT_CYBRAN_PLAYS, 1);
+        if (survived) {
+          recordEvent(EVENT_CYBRAN_WINS, 1);
+        }
+        incrementAchievement(ACH_MANTIS, 1);
+        incrementAchievement(ACH_WAGNER, 1);
+        incrementAchievement(ACH_TREBUCHET, 1);
+        break;
+      case UEF:
+        recordEvent(EVENT_UEF_PLAYS, 1);
+        if (survived) {
+          recordEvent(EVENT_UEF_WINS, 1);
+        }
+        incrementAchievement(ACH_MA12_STRIKER, 1);
+        incrementAchievement(ACH_RIPTIDE, 1);
+        incrementAchievement(ACH_DEMOLISHER, 1);
+        break;
+      case SERAPHIM:
+        recordEvent(EVENT_SERAPHIM_PLAYS, 1);
+        if (survived) {
+          recordEvent(EVENT_SERAPHIM_WINS, 1);
+        }
+        incrementAchievement(ACH_THAAM, 1);
+        incrementAchievement(ACH_YENZYNE, 1);
+        incrementAchievement(ACH_SUTHANUS, 1);
+        break;
+    }
+  }
+
+  @Override
+  public void unitStats(int airBuilt, int airKilled, int landBuilt, int landKilled, int navalBuilt, int navalKilled,
+                        int tech1Built, int tech1Killed, int tech2Built, int tech2Killed, int tech3Built,
+                        int tech3Killed, int experimentalsBuilt, int experimentalsKilled, int engineersBuilt,
+                        int engineersKilled, boolean survived) throws IOException {
+    checkBatchRequest();
+
+    recordEvent(EVENT_BUILT_AIR_UNITS, airBuilt);
+    recordEvent(EVENT_BUILT_LAND_UNITS, landBuilt);
+    recordEvent(EVENT_BUILT_NAVAL_UNITS, navalBuilt);
+    recordEvent(EVENT_BUILT_TECH_1_UNITS, tech1Built);
+    recordEvent(EVENT_BUILT_TECH_2_UNITS, tech2Built);
+    recordEvent(EVENT_BUILT_TECH_3_UNITS, tech3Built);
+    recordEvent(EVENT_BUILT_EXPERIMENTALS, experimentalsBuilt);
+    recordEvent(EVENT_BUILT_ENGINEERS, engineersBuilt);
+
+    recordEvent(EVENT_FALLEN_AIR_UNITS, airKilled);
+    recordEvent(EVENT_FALLEN_LAND_UNITS, landKilled);
+    recordEvent(EVENT_FALLEN_NAVAL_UNITS, navalKilled);
+    recordEvent(EVENT_FALLEN_TECH_1_UNITS, tech1Killed);
+    recordEvent(EVENT_FALLEN_TECH_2_UNITS, tech2Killed);
+    recordEvent(EVENT_FALLEN_TECH_3_UNITS, tech3Killed);
+    recordEvent(EVENT_FALLEN_EXPERIMENTALS, experimentalsKilled);
+    recordEvent(EVENT_FALLEN_ENGINEERS, engineersKilled);
+
+    if (survived) {
+      if (airBuilt > landBuilt && airBuilt > navalBuilt) {
+        incrementAchievement(ACH_WRIGHT_BROTHER, 1);
+        incrementAchievement(ACH_WINGMAN, 1);
+        incrementAchievement(ACH_KING_OF_THE_SKIES, 1);
+      } else if (landBuilt > airBuilt && landBuilt > navalBuilt) {
+        incrementAchievement(ACH_MILITIAMAN, 1);
+        incrementAchievement(ACH_GRENADIER, 1);
+        incrementAchievement(ACH_FIELD_MARSHAL, 1);
+      } else if (navalBuilt > airBuilt && navalBuilt > landBuilt) {
+        incrementAchievement(ACH_LANDLUBBER, 1);
+        incrementAchievement(ACH_SEAMAN, 1);
+        incrementAchievement(ACH_ADMIRAL_OF_THE_FLEET, 1);
+      }
+      if (experimentalsBuilt >= 3) {
+        incrementAchievement(ACH_TECHIE, 1);
+        incrementAchievement(ACH_I_LOVE_BIG_TOYS, 1);
+        incrementAchievement(ACH_EXPERIMENTALIST, 1);
+      }
+      incrementAchievement(ACH_DR_EVIL, experimentalsBuilt);
+    }
+  }
+
+  @Override
+  public void timePlayed(Duration duration, boolean survived) throws IOException {
+    recordEvent(EVENT_HOURS_PLAYED, duration.getSeconds());
+  }
+
+  @Override
+  public void asfBuilt(int count) throws IOException {
+    if (count > 150) {
+      unlockAchievement(ACH_WHAT_A_SWARM);
+    }
+  }
+
+  @Override
+  public void builtTransports(int count) throws IOException {
+    incrementAchievement(ACH_THE_TRANSPORTER, count);
+  }
+
+  @Override
+  public void builtParagons(int count, boolean survived) throws IOException {
+    if (survived && count > 0) {
+      unlockAchievement(ACH_SO_MUCH_RESOURCES);
+    }
+    recordEvent(EVENT_BUILT_PARAGONS, 1);
+  }
+
+  @Override
+  public void builtYolonaOss(int count, boolean survived) throws IOException {
+    if (survived && count > 0) {
+      unlockAchievement(ACH_NUCLEAR_WAR);
+    }
+  }
+
+  @Override
+  public void builtScathis(int count, boolean survived) throws IOException {
+    if (survived && count > 0) {
+      unlockAchievement(ACH_MAKE_IT_HAIL);
+    }
+  }
+
+  @Override
+  public void builtSalvations(int count, boolean survived) throws IOException {
+    if (survived && count > 0) {
+      unlockAchievement(ACH_RAINMAKER);
+    }
+  }
+
+  @Override
+  public void builtMavors(int count, boolean survived) throws IOException {
+    if (survived && count > 0) {
+      unlockAchievement(ACH_I_HAVE_A_CANON);
+    }
+  }
+
+  @Override
+  public void builtAtlantis(int count, boolean survived) throws IOException {
+    incrementAchievement(ACH_IT_AINT_A_CITY, count);
+  }
+
+  @Override
+  public void builtTempests(int count, boolean survived) throws IOException {
+    if (survived && count > 0) {
+      incrementAchievement(ACH_STORMY_SEA, count);
+    }
+  }
+
+  @Override
+  public void builtCzars(int count, boolean survived) throws IOException {
+    incrementAchievement(ACH_DEATH_FROM_ABOVE, count);
+  }
+
+  @Override
+  public void builtAhwasshas(int count, boolean survived) throws IOException {
+    incrementAchievement(ACH_ASS_WASHER, count);
+  }
+
+  @Override
+  public void builtYthothas(int count, boolean survived) throws IOException {
+    incrementAchievement(ACH_ALIEN_INVASION, count);
+  }
+
+  @Override
+  public void builtFatboys(int count, boolean survived) throws IOException {
+    incrementAchievement(ACH_FATTER_IS_BETTER, count);
+  }
+
+  @Override
+  public void builtMonkeylords(int count, boolean survived) throws IOException {
+    incrementAchievement(ACH_ARACHNOLOGIST, count);
+  }
+
+  @Override
+  public void builtGalacticColossus(int count, boolean survived) throws IOException {
+    incrementAchievement(ACH_INCOMING_ROBOTS, count);
+  }
+
+  @Override
+  public void builtSoulRippers(int count, boolean survived) throws IOException {
+    incrementAchievement(ACH_FLYING_DEATH, count);
+  }
+
+  @Override
+  public void builtMercies(int count, boolean survived) throws IOException {
+    incrementAchievement(ACH_NO_MERCY, count);
+  }
+
+  @Override
+  public void builtFireBeetles(int count, boolean survived) throws IOException {
+    incrementAchievement(ACH_DEADLY_BUGS, count);
+  }
+
+  @Override
+  public void builtSupportCommanders(int count, boolean survived) throws IOException {
+    if (count >= 10) {
+      unlockAchievement(ACH_WHO_NEEDS_SUPPORT);
+    }
+  }
+
+  @Override
+  public void builtMegaliths(int count, boolean survived) throws IOException {
+    incrementAchievement(ACH_DEADLY_BUGS, count);
   }
 
   @NotNull

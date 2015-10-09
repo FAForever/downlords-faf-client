@@ -512,8 +512,6 @@ public abstract class AbstractChatTabController {
   }
 
   private void appendMessage(ChatMessage chatMessage) {
-    String timeString = timeService.asShortTime(chatMessage.getTime());
-
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getUsername());
 
     try (Reader reader = new InputStreamReader(MESSAGE_ITEM_HTML_RESOURCE.getInputStream())) {
@@ -540,6 +538,7 @@ public abstract class AbstractChatTabController {
         }
       }
 
+      String timeString = timeService.asShortTime(chatMessage.getTime());
       html = html.replace("{time}", timeString)
           .replace("{avatar}", StringUtils.defaultString(avatarUrl))
           .replace("{username}", login)

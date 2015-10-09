@@ -6,18 +6,23 @@ import com.faforever.client.legacy.OnFoeListListener;
 import com.faforever.client.legacy.OnFriendListListener;
 import com.faforever.client.legacy.OnPlayerInfoListener;
 import com.faforever.client.legacy.domain.PlayerInfo;
-import com.faforever.client.parsecom.CloudAccessor;
+import com.faforever.client.play.PlayServices;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
+import com.faforever.client.util.RatingUtil;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -26,15 +31,18 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, OnFoeListListener, OnFriendListListener {
 
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final Lock CURRENT_PLAYER_LOCK = new ReentrantLock();
 
   private final ObservableMap<String, PlayerInfoBean> players;
+
   @Resource
   LobbyServerAccessor lobbyServerAccessor;
   @Resource
   UserService userService;
   @Resource
-  CloudAccessor cloudAccessor;
+  PlayServices playServices;
+
   private List<String> foeList;
   private List<String> friendList;
   private ObjectProperty<PlayerInfoBean> currentPlayer;
@@ -128,17 +136,28 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     return currentPlayer;
   }
 
+
   @Override
   public void onPlayerInfo(PlayerInfo playerInfo) {
-    PlayerInfoBean playerInfoBean;
     if (playerInfo.getLogin().equals(userService.getUsername())) {
-      playerInfoBean = getCurrentPlayer();
+      PlayerInfoBean playerInfoBean = getCurrentPlayer();
+      playerInfoBean.updateFromPlayerInfo(playerInfo);
+      updatePlayServices(playerInfoBean);
     } else {
-      playerInfoBean = registerAndGetPlayerForUsername(playerInfo.getLogin());
+      PlayerInfoBean playerInfoBean = registerAndGetPlayerForUsername(playerInfo.getLogin());
       playerInfoBean.setFriend(friendList.contains(playerInfo.getLogin()));
       playerInfoBean.setFoe(foeList.contains(playerInfo.getLogin()));
+      playerInfoBean.updateFromPlayerInfo(playerInfo);
     }
-    playerInfoBean.updateFromPlayerInfo(playerInfo);
+  }
+
+  private void updatePlayServices(PlayerInfoBean playerInfoBean) {
+    try {
+      playServices.playerRating1v1(RatingUtil.getLeaderboardRating(playerInfoBean));
+      playServices.playerRatingGlobal(RatingUtil.getGlobalRating(playerInfoBean));
+    } catch (IOException e) {
+      logger.warn("Player rating could not be updated", e);
+    }
   }
 
   @Override

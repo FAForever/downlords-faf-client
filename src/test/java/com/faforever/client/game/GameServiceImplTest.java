@@ -24,6 +24,7 @@ import com.faforever.client.stats.domain.EconomyStatBuilder;
 import com.faforever.client.stats.domain.GameStats;
 import com.faforever.client.stats.domain.GameStatsBuilder;
 import com.faforever.client.stats.domain.SummaryStatBuilder;
+import com.faforever.client.stats.domain.Unit;
 import com.faforever.client.stats.domain.UnitStatBuilder;
 import com.faforever.client.stats.domain.UnitType;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -405,8 +406,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
             .unitStat(UnitStatBuilder.create().unitType(UnitType.ACU).killed(2).lost(0).damageReceived(200).damageDealt(12000).get())
             .unitStat(UnitStatBuilder.create().unitType(UnitType.ENGINEER).built(20).get())
             .unitStat(UnitStatBuilder.create().unitType(UnitType.MEDIUM_TANK).damageReceived(100).damageDealt(500).lost(0).killed(1).get())
-            .unitStat(UnitStatBuilder.create().unitType(UnitType.AHWASSA).damageReceived(100).damageDealt(500).built(1).killed(1).get())
-            .unitStat(UnitStatBuilder.create().unitType(UnitType.YTHOTHA).damageReceived(100).damageDealt(500).built(1).killed(1).get())
+            .unitStat(UnitStatBuilder.create().id(Unit.AHWASSA.getId()).damageReceived(100).damageDealt(500).built(1).killed(1).get())
+            .unitStat(UnitStatBuilder.create().id(Unit.YTHOTHA.getId()).damageReceived(100).damageDealt(500).built(1).killed(1).get())
             .summaryStat(SummaryStatBuilder.create().type(AIR).built(1).killed(2).get())
             .summaryStat(SummaryStatBuilder.create().type(LAND).built(3).killed(4).get())
             .summaryStat(SummaryStatBuilder.create().type(NAVAL).built(5).killed(6).get())
@@ -439,11 +440,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     verify(playServices).startBatchUpdate();
     verify(playServices).killedCommanders(2, true);
     verify(playServices).acuDamageReceived(200, true);
-    verify(playServices).engineerStats(7, 8);
-    verify(playServices).airUnitStats(1, 2);
-    verify(playServices).landUnitStats(3, 4);
-    verify(playServices).navalUnitStats(5, 6);
-    verify(playServices).techUnitsBuilt(9, 2, 4, 2);
+    verify(playServices).unitStats(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, true);
     verify(playServices).topScoringPlayer(3);
     verify(playServices).executeBatchUpdate();
     verify(playServices).resetBatchUpdate();

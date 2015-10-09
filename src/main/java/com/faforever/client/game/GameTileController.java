@@ -73,10 +73,12 @@ public class GameTileController {
 
     gameMapLabel.setText(gameInfoBean.getTechnicalName());
     gameInfoBean.technicalNameProperty().addListener(((observable3, oldValue3, newValue3) -> {
-      gameMapLabel.setText(gameInfoBean.getTechnicalName());
-      numberOfPlayersLabel.setText(
-          i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers())
-      );
+      Platform.runLater(() -> {
+        gameMapLabel.setText(gameInfoBean.getTechnicalName());
+        numberOfPlayersLabel.setText(
+            i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers())
+        );
+      });
     }));
 
     numberOfPlayersLabel.setText(i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
