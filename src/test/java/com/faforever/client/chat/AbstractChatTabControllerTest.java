@@ -220,7 +220,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
     when(playerInfoTooltipController.getRoot()).thenReturn(new Pane());
 
-    WaitForAsyncUtils.waitForAsyncFx(100, () -> instance.playerInfo(playerName));
+    WaitForAsyncUtils.waitForAsyncFx(5000, () -> instance.playerInfo(playerName));
 
     verify(playerService).getPlayerForUsername(playerName);
     verify(playerInfoTooltipController).setPlayerInfoBean(eq(playerInfoBean));
@@ -286,7 +286,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     UrlPreviewResolver.Preview preview = mock(UrlPreviewResolver.Preview.class);
     when(urlPreviewResolver.resolvePreview(url)).thenReturn(preview);
 
-    WaitForAsyncUtils.waitForAsyncFx(100, () -> {
+    WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
       instance.previewUrl(url);
       instance.hideUrlPreview();
     });

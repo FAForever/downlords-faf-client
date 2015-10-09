@@ -119,6 +119,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   private ScheduledExecutorService scheduledExecutorService;
   @Captor
   private ArgumentCaptor<Consumer<GameStats>> gameStatsListenerCaptor;
+  @Captor
+  private ArgumentCaptor<Consumer<Void>> gameLaunchListenerCaptor;
 
   @Before
   public void setUp() throws Exception {
@@ -151,6 +153,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.postConstruct();
 
     verify(localRelayServer).setGameStatsListener(gameStatsListenerCaptor.capture());
+    verify(localRelayServer).setGameLaunchedListener(gameLaunchListenerCaptor.capture());
   }
 
   @Test
@@ -399,8 +402,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(preferences.getConnectedToGooglePlay()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(new PlayerInfoBean("junit"));
 
-    Consumer<GameStats> gameStatsListener = gameStatsListenerCaptor.getValue();
-
     GameStats gameStats = GameStatsBuilder.create()
         .army(ArmyBuilder.create("junit")
             .unitStat(UnitStatBuilder.create().unitType(UnitType.ACU).killed(2).lost(0).damageReceived(200).damageDealt(12000).get())
@@ -422,9 +423,13 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
         .army(ArmyBuilder.create("another2").defaultValues().get())
         .get();
 
+    Consumer<GameStats> gameStatsListener = gameStatsListenerCaptor.getValue();
+
     // Stats are sent twice by the game
     gameStatsListener.accept(gameStats);
     gameStatsListener.accept(gameStats);
+
+    gameLaunchListenerCaptor.getValue().accept(null);
 
     // Processing is done after game has terminated, so simulate this
     CompletableFuture<Void> statsSubmittedFuture = new CompletableFuture<>();
@@ -435,7 +440,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.spawnTerminationListener(mock(Process.class), RatingMode.NONE);
 
-    statsSubmittedFuture.get(5000, TimeUnit.MILLISECONDS);
+    statsSubmittedFuture.get(500000, TimeUnit.MILLISECONDS);
 
     verify(playServices).startBatchUpdate();
     verify(playServices).killedCommanders(2, true);
