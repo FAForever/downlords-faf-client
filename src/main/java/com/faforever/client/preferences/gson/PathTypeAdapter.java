@@ -10,6 +10,11 @@ import java.nio.file.Paths;
 
 public class PathTypeAdapter extends TypeAdapter<Path> {
 
+  public static final PathTypeAdapter INSTANCE = new PathTypeAdapter();
+
+  private PathTypeAdapter() {
+  }
+
   @Override
   public void write(JsonWriter out, Path value) throws IOException {
     if (value == null) {

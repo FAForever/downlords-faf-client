@@ -6,8 +6,13 @@ import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 
-// TODO turn all type adapters into singleton
 public class RelayServerCommandTypeAdapter extends TypeAdapter<RelayServerCommand> {
+
+  public static final RelayServerCommandTypeAdapter INSTANCE = new RelayServerCommandTypeAdapter();
+
+  private RelayServerCommandTypeAdapter() {
+
+  }
 
   @Override
   public void write(JsonWriter out, RelayServerCommand value) throws IOException {

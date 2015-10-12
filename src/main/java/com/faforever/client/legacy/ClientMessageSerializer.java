@@ -13,7 +13,7 @@ import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.ModTypeTypeAdapter;
 import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
-import com.faforever.client.legacy.io.QStreamWriter;
+import com.faforever.client.legacy.io.QDataWriter;
 import com.faforever.client.legacy.writer.JsonMessageSerializer;
 import com.google.gson.GsonBuilder;
 import javafx.beans.property.StringProperty;
@@ -44,23 +44,22 @@ public class ClientMessageSerializer extends JsonMessageSerializer<ClientMessage
   }
 
   @Override
-  protected void appendMore(QStreamWriter qStreamWriter) throws IOException {
+  protected void appendMore(QDataWriter qDataWriter) throws IOException {
     if (username != null) {
-      qStreamWriter.append(username);
+      qDataWriter.append(username);
     }
     if (sessionIdProperty != null) {
-      qStreamWriter.append(sessionIdProperty.get());
+      qDataWriter.append(sessionIdProperty.get());
     }
   }
 
   @Override
   protected void addTypeAdapters(GsonBuilder gsonBuilder) {
-    gsonBuilder.registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter())
-        .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
-        .registerTypeAdapter(ClientMessageType.class, new ClientMessageTypeTypeAdapter())
-        .registerTypeAdapter(VictoryCondition.class, new VictoryConditionTypeAdapter())
-        .registerTypeAdapter(Faction.class, new FactionTypeAdapter())
-        .registerTypeAdapter(Faction.class, new FactionTypeAdapter())
-        .registerTypeAdapter(SearchModMessage.ModType.class, new ModTypeTypeAdapter());
+    gsonBuilder.registerTypeAdapter(GameAccess.class, GameAccessTypeAdapter.INSTANCE)
+        .registerTypeAdapter(GameState.class, GameStateTypeAdapter.INSTANCE)
+        .registerTypeAdapter(ClientMessageType.class, ClientMessageTypeTypeAdapter.INSTANCE)
+        .registerTypeAdapter(VictoryCondition.class, VictoryConditionTypeAdapter.INSTANCE)
+        .registerTypeAdapter(Faction.class, FactionTypeAdapter.INSTANCE)
+        .registerTypeAdapter(SearchModMessage.ModType.class, ModTypeTypeAdapter.INSTANCE);
   }
 }

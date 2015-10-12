@@ -129,13 +129,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
-  public void publishPotentialPlayer() {
-    String username = userService.getUsername();
-    // FIXME implement
-//    serverAccessor.publishPotentialPlayer(username);
-  }
-
-  @Override
   public CompletableFuture<Void> hostGame(NewGameInfo newGameInfo) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring host request");
@@ -235,7 +228,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   public void runWithReplay(URL replayUrl, Integer replayId) throws IOException {
     Process process = forgedAllianceService.startReplay(replayUrl, replayId);
     onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
-    // TODO is this needed when watching a replay?
     lobbyServerAccessor.notifyGameStarted();
 
     spawnTerminationListener(process, RatingMode.NONE);

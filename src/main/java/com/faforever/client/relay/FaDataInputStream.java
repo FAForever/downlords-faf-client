@@ -1,4 +1,4 @@
-package com.faforever.client.legacy.relay;
+package com.faforever.client.relay;
 
 import com.google.common.io.LittleEndianDataInputStream;
 
@@ -9,7 +9,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-// TODO move to com.faforever.client.fa
 
 /**
  * Reads data from Forged Alliance (the game, not the lobby).

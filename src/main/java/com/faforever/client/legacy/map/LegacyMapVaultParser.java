@@ -77,7 +77,7 @@ public class LegacyMapVaultParser implements MapVaultParser {
       JsonReader jsonReader = new JsonReader(reader);
       jsonReader.beginObject();
 
-      //FIXME pretty sure this is useless code for the comment parser
+      // TODO pretty sure this is useless code for the comment parser
       while (jsonReader.hasNext()) {
         String key = jsonReader.nextName();
         if (!"comments".equals(key)) {
@@ -118,14 +118,13 @@ public class LegacyMapVaultParser implements MapVaultParser {
         String layout = jsonReader.nextString();
 
         List<MapInfoBean> mapInfoBeans = htmlParser.parse(layout, mapVaultHtmlContentHandler);
-        if (!mapInfoBeans.isEmpty()) {
-          for (MapInfoBean mapInfoBean : mapInfoBeans) {
-            if (mapInfoBean.getTechnicalName().equalsIgnoreCase(mapName)) {
-              return mapInfoBean;
-              //FIXME temporary ugly fix until api
-            }else if(mapInfoBean.getDisplayName().equalsIgnoreCase(mapName)){
+        if (mapInfoBeans.isEmpty()) {
+          continue;
+        }
 
-            }
+        for (MapInfoBean mapInfoBean : mapInfoBeans) {
+          if (mapInfoBean.getTechnicalName().equalsIgnoreCase(mapName)) {
+            return mapInfoBean;
           }
         }
       }

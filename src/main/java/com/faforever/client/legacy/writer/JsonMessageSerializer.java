@@ -1,7 +1,7 @@
 package com.faforever.client.legacy.writer;
 
 import com.faforever.client.legacy.domain.SerializableMessage;
-import com.faforever.client.legacy.io.QStreamWriter;
+import com.faforever.client.legacy.io.QDataWriter;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -38,10 +38,10 @@ public class JsonMessageSerializer<T extends SerializableMessage> implements Ser
     // Serialize the object into a StringWriter which is later send as one string block with its size prepended.
     getGson().toJson(message, message.getClass(), fixedJsonWriter(jsonStringWriter));
 
-    QStreamWriter qStreamWriter = new QStreamWriter(byteArrayOutputStream);
-    qStreamWriter.append(jsonStringWriter.toString());
+    QDataWriter qDataWriter = new QDataWriter(byteArrayOutputStream);
+    qDataWriter.append(jsonStringWriter.toString());
 
-    appendMore(qStreamWriter);
+    appendMore(qDataWriter);
 
     byte[] byteArray = byteArrayOutputStream.toByteArray();
 
@@ -92,7 +92,7 @@ public class JsonMessageSerializer<T extends SerializableMessage> implements Ser
    * Allows subclasses to append more stuff after the serialized JSON. Default implementation does nothing, so super
    * doesn't need to be called.
    */
-  protected void appendMore(QStreamWriter qStreamWriter) throws IOException {
+  protected void appendMore(QDataWriter qDataWriter) throws IOException {
     // To be overridden by subclasses, if desired
   }
 

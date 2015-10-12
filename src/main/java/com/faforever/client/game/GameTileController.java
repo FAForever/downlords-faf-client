@@ -96,7 +96,7 @@ public class GameTileController {
 
     lockIconLabel.setVisible(gameInfoBean.getAccess() == GameAccess.PASSWORD);
 
-    //TODO move tooltip Y position down 10 pixels
+    // TODO move tooltip Y position down 10 pixels
     GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);
     gameTooltipController.setGameInfoBean(gameInfoBean);
     Tooltip tooltip = new Tooltip();

@@ -9,6 +9,12 @@ import java.io.IOException;
 
 public class GameAccessTypeAdapter extends TypeAdapter<GameAccess> {
 
+  public static final GameAccessTypeAdapter INSTANCE = new GameAccessTypeAdapter();
+
+  private GameAccessTypeAdapter() {
+
+  }
+
   @Override
   public void write(JsonWriter out, GameAccess value) throws IOException {
     if (value == null) {
