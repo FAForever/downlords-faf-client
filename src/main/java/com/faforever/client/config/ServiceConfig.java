@@ -33,7 +33,6 @@ import com.faforever.client.legacy.map.LegacyMapVaultParser;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.legacy.proxy.ProxyImpl;
-import com.faforever.client.legacy.relay.LocalRelayServer;
 import com.faforever.client.legacy.relay.LocalRelayServerImpl;
 import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.lobby.LobbyServiceImpl;
@@ -46,6 +45,7 @@ import com.faforever.client.news.NewsService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.parsecom.CloudAccessor;
+import com.faforever.client.parsecom.MockCloudService;
 import com.faforever.client.parsecom.ParseCloudAccessor;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.patch.GameUpdateServiceImpl;
@@ -60,6 +60,7 @@ import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.portcheck.PortCheckService;
 import com.faforever.client.portcheck.PortCheckServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.replay.ReplayFileReader;
 import com.faforever.client.replay.ReplayFileReaderImpl;
 import com.faforever.client.replay.ReplayFileWriter;
@@ -322,8 +323,12 @@ public class ServiceConfig {
   }
 
   @Bean
-  CloudAccessor parseComService() {
-    return new ParseCloudAccessor();
+  CloudAccessor cloudAccessor() {
+    if (environment.containsProperty("faf.testing")) {
+      return new MockCloudService();
+    } else {
+      return new ParseCloudAccessor();
+    }
   }
 
   @Bean

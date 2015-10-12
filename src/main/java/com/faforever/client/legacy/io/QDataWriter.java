@@ -6,13 +6,12 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-// TODO rename to be consistent with QDataReader
-public class QStreamWriter extends Writer {
+public class QDataWriter extends Writer {
 
   public static final Charset CHARSET = StandardCharsets.UTF_16BE;
   private final OutputStream out;
 
-  public QStreamWriter(OutputStream out) {
+  public QDataWriter(OutputStream out) {
     this.out = out;
   }
 
@@ -52,7 +51,7 @@ public class QStreamWriter extends Writer {
   /**
    * Appends the size of the given byte array to the stream followed by the byte array itself.
    */
-  public QStreamWriter appendWithSize(byte[] bytes) throws IOException {
+  public QDataWriter appendWithSize(byte[] bytes) throws IOException {
     writeInt32(bytes.length);
     out.write(bytes);
     return this;

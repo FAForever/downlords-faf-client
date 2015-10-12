@@ -1,6 +1,6 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.legacy.io.QStreamWriter;
+import com.faforever.client.legacy.io.QDataWriter;
 import javafx.beans.property.StringProperty;
 import org.springframework.core.serializer.Serializer;
 
@@ -23,10 +23,10 @@ public class PongMessageSerializer implements Serializer<PongMessage> {
 
   @Override
   public void serialize(PongMessage object, OutputStream outputStream) throws IOException {
-    QStreamWriter qStreamWriter = new QStreamWriter(outputStream);
-    qStreamWriter.append(object.getString());
-    qStreamWriter.append(username);
-    qStreamWriter.append(sessionIdProperty.get());
-    qStreamWriter.flush();
+    QDataWriter qDataWriter = new QDataWriter(outputStream);
+    qDataWriter.append(object.getString());
+    qDataWriter.append(username);
+    qDataWriter.append(sessionIdProperty.get());
+    qDataWriter.flush();
   }
 }

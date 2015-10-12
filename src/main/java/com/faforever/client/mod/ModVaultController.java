@@ -8,7 +8,6 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
@@ -128,6 +127,11 @@ public class ModVaultController {
 
   @FXML
   void onSearchModButtonClicked() {
+    if (searchTextField.getText().isEmpty()) {
+      onResetButtonClicked();
+      return;
+    }
+
     modService.searchMod(searchTextField.getText())
         .thenAccept(this::displaySearchResult)
         .exceptionally(throwable -> {
@@ -142,17 +146,17 @@ public class ModVaultController {
         });
   }
 
+  @FXML
+  void onResetButtonClicked() {
+    searchTextField.clear();
+    showroomGroup.setVisible(true);
+    searchResultGroup.setVisible(false);
+  }
+
   private void displaySearchResult(List<ModInfoBean> modInfoBeans) {
     showroomGroup.setVisible(false);
     searchResultGroup.setVisible(true);
 
     populateMods(modInfoBeans, ModInfoBean.LIKES_COMPARATOR, searchResultPane);
-  }
-
-  @FXML
-  void onResetButtonClicked(ActionEvent event) {
-    searchTextField.clear();
-    showroomGroup.setVisible(true);
-    searchResultGroup.setVisible(false);
   }
 }

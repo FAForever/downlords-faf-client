@@ -46,7 +46,6 @@ public class ReplayServerAccessorImpl extends AbstractServerAccessor implements 
 
   @Override
   public CompletableFuture<List<ReplayInfoBean>> requestOnlineReplays() {
-    // FIXME this is not safe (as well aren't similar implementations in other accessors)
     replayListCallback = new CompletableFuture<>();
     writeToServer(new ListReplaysMessage());
     return replayListCallback;

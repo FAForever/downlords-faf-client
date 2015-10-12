@@ -32,7 +32,7 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
   public MapInfoBean(String technicalName) {
     this.id = new SimpleIntegerProperty();
 
-    // FIXME
+    // FIXME use display name as soon as mod vault is available
     this.displayName = new SimpleStringProperty(technicalName);
     this.technicalName = new SimpleStringProperty(technicalName);
     this.description = new SimpleStringProperty();

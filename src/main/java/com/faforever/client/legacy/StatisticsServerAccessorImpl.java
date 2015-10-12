@@ -50,10 +50,10 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   public StatisticsServerAccessorImpl() {
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-        .registerTypeAdapter(ServerMessageType.class, new ServerMessageTypeTypeAdapter())
-        .registerTypeAdapter(StatisticsType.class, new StatisticsTypeTypeAdapter())
-        .registerTypeAdapter(LocalDate.class, new LocalDateDeserializer())
-        .registerTypeAdapter(LocalTime.class, new LocalTimeDeserializer())
+        .registerTypeAdapter(ServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
+        .registerTypeAdapter(StatisticsType.class, StatisticsTypeTypeAdapter.INSTANCE)
+        .registerTypeAdapter(LocalDate.class, LocalDateDeserializer.INSTANCE)
+        .registerTypeAdapter(LocalTime.class, LocalTimeDeserializer.INSTANCE)
         .create();
   }
 

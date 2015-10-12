@@ -28,7 +28,7 @@ public class LegacyLeaderboardParser implements LeaderboardParser {
   Environment environment;
 
   @Override
-  public List<LeaderboardEntryBean> parseLadder() throws IOException {
+  public List<LeaderboardEntryBean> parseLeaderboard() throws IOException {
     JavaFxUtil.assertBackgroundThread();
 
     String urlParameters = environment.getProperty("ladder.params");

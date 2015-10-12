@@ -21,7 +21,7 @@ public interface MapService {
 
   MapInfoBean getMapInfoBeanLocallyFromName(String mapName);
 
-  MapInfoBean getMapInfoBeanFromVaultFromName(String mapName);
+  MapInfoBean getMapInfoBeanFromVaultByName(String mapName);
 
   boolean isOfficialMap(String mapName);
 

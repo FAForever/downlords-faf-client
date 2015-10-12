@@ -68,6 +68,7 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
   private ObjectProperty<PlayerInfoBean> currentPlayerProperty;
   private ObservableList<Faction> factionList;
   private LeaderboardEntryBean leaderboardEntryBean;
+  private ObjectProperty<PlayerInfoBean> currentPlayerProperty;
 
   @Before
   public void setUp() throws Exception {
@@ -79,6 +80,7 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     instance.leaderboardService = leaderboardService;
     instance.i18n = i18n;
 
+    currentPlayerProperty = new SimpleObjectProperty<>(new PlayerInfoBean(USERNAME));
     factionList = FXCollections.observableArrayList();
     currentPlayerProperty = new SimpleObjectProperty<>(new PlayerInfoBean(USERNAME));
     leaderboardEntryBean = new LeaderboardEntryBean();
@@ -184,8 +186,9 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
   private void testUpdateRating(int leaderboardRatingMean, String key) {
     reset(i18n);
 
-    currentPlayerProperty.get().setLeaderboardRatingDeviation(1);
-    currentPlayerProperty.get().setLeaderboardRatingMean(leaderboardRatingMean);
+    PlayerInfoBean currentPlayer = currentPlayerProperty.get();
+    currentPlayer.setLeaderboardRatingDeviation(1);
+    currentPlayer.setLeaderboardRatingMean(leaderboardRatingMean);
 
     instance.setUpIfNecessary();
 
@@ -218,8 +221,9 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     when(environment.getProperty("rating.beta", int.class)).thenReturn(10);
     when(environment.getProperty("rating.initialStandardDeviation", int.class)).thenReturn(50);
 
-    currentPlayerProperty.get().setLeaderboardRatingDeviation(45);
-    currentPlayerProperty.get().setLeaderboardRatingMean(100);
+    PlayerInfoBean currentPlayer = currentPlayerProperty.get();
+    currentPlayer.setLeaderboardRatingDeviation(45);
+    currentPlayer.setLeaderboardRatingMean(100);
 
     instance.setUpIfNecessary();
 
@@ -231,6 +235,7 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
   public void testSetUpIfNecessaryFiresOnlyOnce() throws Exception {
     verifyZeroInteractions(playerService);
     instance.setUpIfNecessary();
+    verify(playerService).currentPlayerProperty();
     verify(playerService).getCurrentPlayer();
     verify(playerService).currentPlayerProperty();
     instance.setUpIfNecessary();

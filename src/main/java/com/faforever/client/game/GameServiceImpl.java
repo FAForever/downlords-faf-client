@@ -240,7 +240,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   public void runWithReplay(URL replayUrl, Integer replayId) throws IOException {
     Process process = forgedAllianceService.startReplay(replayUrl, replayId);
     onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
-    // TODO is this needed when watching a replay?
     lobbyServerAccessor.notifyGameStarted();
 
     spawnTerminationListener(process, RatingMode.NONE);

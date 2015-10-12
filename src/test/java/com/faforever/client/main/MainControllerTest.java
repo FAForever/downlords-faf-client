@@ -160,6 +160,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(userMenuController.getRoot()).thenReturn(new Pane());
     when(newsController.getRoot()).thenReturn(new Pane());
     when(communityHubController.getRoot()).thenReturn(new Pane());
+    when(userMenuController.getRoot()).thenReturn(new Pane());
     when(taskService.getActiveTasks()).thenReturn(FXCollections.emptyObservableList());
 
     when(preferencesService.getPreferences()).thenReturn(preferences);

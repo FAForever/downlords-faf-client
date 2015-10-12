@@ -9,6 +9,12 @@ import java.io.IOException;
 
 public class RelayServerActionTypeAdapter extends TypeAdapter<LobbyAction> {
 
+  public static final RelayServerActionTypeAdapter INSTANCE = new RelayServerActionTypeAdapter();
+
+  private RelayServerActionTypeAdapter() {
+
+  }
+
   @Override
   public void write(JsonWriter out, LobbyAction value) throws IOException {
     if (value == null) {

@@ -106,9 +106,9 @@ public class PreferencesService {
     timer = new Timer("PrefTimer", true);
     gson = new GsonBuilder()
         .setPrettyPrinting()
-        .registerTypeHierarchyAdapter(Property.class, new PropertyTypeAdapter())
-        .registerTypeHierarchyAdapter(Path.class, new PathTypeAdapter())
-        .registerTypeAdapter(Faction.class, new FactionTypeAdapter())
+        .registerTypeHierarchyAdapter(Property.class, PropertyTypeAdapter.INSTANCE)
+        .registerTypeHierarchyAdapter(Path.class, PathTypeAdapter.INSTANCE)
+        .registerTypeAdapter(Faction.class, FactionTypeAdapter.INSTANCE)
         .create();
   }
 

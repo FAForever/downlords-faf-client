@@ -16,7 +16,6 @@ public class UID {
 
   static {
     try {
-      // FIXME bundle and reference properly
       System.loadLibrary("uid");
     } catch (UnsatisfiedLinkError e) {
       throw new RuntimeException(e);

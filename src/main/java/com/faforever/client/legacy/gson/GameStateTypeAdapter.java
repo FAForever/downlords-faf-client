@@ -9,6 +9,12 @@ import java.io.IOException;
 
 public class GameStateTypeAdapter extends TypeAdapter<GameState> {
 
+  public static final GameStateTypeAdapter INSTANCE = new GameStateTypeAdapter();
+
+  private GameStateTypeAdapter() {
+
+  }
+
   @Override
   public void write(JsonWriter out, GameState value) throws IOException {
     if (value == null) {

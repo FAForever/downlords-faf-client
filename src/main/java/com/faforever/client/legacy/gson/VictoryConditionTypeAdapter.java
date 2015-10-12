@@ -9,6 +9,12 @@ import java.io.IOException;
 
 public class VictoryConditionTypeAdapter extends TypeAdapter<VictoryCondition> {
 
+  public static final VictoryConditionTypeAdapter INSTANCE = new VictoryConditionTypeAdapter();
+
+  private VictoryConditionTypeAdapter() {
+
+  }
+
   @Override
   public void write(JsonWriter out, VictoryCondition victoryCondition) throws IOException {
     if (victoryCondition == null) {

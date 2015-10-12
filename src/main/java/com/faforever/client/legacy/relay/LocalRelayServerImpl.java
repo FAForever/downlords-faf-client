@@ -10,6 +10,11 @@ import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.stats.domain.GameStats;
+import com.faforever.client.relay.FaDataInputStream;
+import com.faforever.client.relay.FaDataOutputStream;
+import com.faforever.client.relay.LocalRelayServer;
+import com.faforever.client.relay.OnConnectionAcceptedListener;
+import com.faforever.client.relay.OnReadyListener;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.SocketAddressUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -91,7 +96,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   public LocalRelayServerImpl() {
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-        .registerTypeAdapter(RelayServerCommand.class, new RelayServerCommandTypeAdapter())
+        .registerTypeAdapter(RelayServerCommand.class, RelayServerCommandTypeAdapter.INSTANCE)
         .create();
     onReadyListeners = new ArrayList<>();
     onConnectionAcceptedListeners = new ArrayList<>();

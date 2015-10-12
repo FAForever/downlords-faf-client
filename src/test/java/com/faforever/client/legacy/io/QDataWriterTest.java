@@ -10,15 +10,15 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.*;
 
-public class QStreamWriterTest {
+public class QDataWriterTest {
 
-  private QStreamWriter instance;
+  private QDataWriter instance;
   private ByteArrayOutputStream outputStream;
 
   @Before
   public void setUp() throws Exception {
     outputStream = new ByteArrayOutputStream();
-    instance = new QStreamWriter(outputStream);
+    instance = new QDataWriter(outputStream);
   }
 
   @Test
@@ -60,7 +60,7 @@ public class QStreamWriterTest {
 
   @Test
   public void testFlush() throws Exception {
-    instance = new QStreamWriter(new BufferedOutputStream(outputStream));
+    instance = new QDataWriter(new BufferedOutputStream(outputStream));
     instance.write("hello");
 
     assertArrayEquals(new byte[0], outputStream.toByteArray());
@@ -72,7 +72,7 @@ public class QStreamWriterTest {
 
   @Test
   public void testClose() throws Exception {
-    instance = new QStreamWriter(new BufferedOutputStream(outputStream));
+    instance = new QDataWriter(new BufferedOutputStream(outputStream));
     instance.write("hello");
 
     assertArrayEquals(new byte[0], outputStream.toByteArray());
