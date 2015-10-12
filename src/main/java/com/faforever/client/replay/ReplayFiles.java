@@ -15,9 +15,9 @@ public final class ReplayFiles {
   public static final GsonBuilder GSON_BUILDER = new GsonBuilder()
       .disableHtmlEscaping()
       .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-      .registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter())
-      .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
-      .registerTypeAdapter(VictoryCondition.class, new VictoryConditionTypeAdapter());
+      .registerTypeAdapter(GameAccess.class, GameAccessTypeAdapter.INSTANCE)
+      .registerTypeAdapter(GameState.class, GameStateTypeAdapter.INSTANCE)
+      .registerTypeAdapter(VictoryCondition.class, VictoryConditionTypeAdapter.INSTANCE);
 
   private ReplayFiles() {
     // Utility class

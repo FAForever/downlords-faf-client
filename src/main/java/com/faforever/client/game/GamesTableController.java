@@ -50,7 +50,7 @@ public class GamesTableController {
   @Autowired
   MapService mapService;
 
-  //FIXME replace with gamecontroller listener
+  // TODO replace with gamecontroller listener
   @Autowired
   GamesController gamesController;
 

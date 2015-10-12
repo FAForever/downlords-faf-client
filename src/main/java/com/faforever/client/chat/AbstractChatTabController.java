@@ -4,8 +4,14 @@ import com.faforever.client.audio.AudioController;
 import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ByteCopier;
@@ -49,6 +55,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -115,6 +122,11 @@ public abstract class AbstractChatTabController {
   ImageUploadService imageUploadService;
   @Autowired
   UrlPreviewResolver urlPreviewResolver;
+  @Autowired
+  NotificationService notificationService;
+  @Autowired
+  ReportingService reportingService;
+
   private boolean isChatReady;
   private WebEngine engine;
   private double lastMouseX;
@@ -454,8 +466,13 @@ public abstract class AbstractChatTabController {
       messageTextField.requestFocus();
       onChatMessage(new ChatMessage(Instant.now(), userService.getUsername(), message));
     }).exceptionally(throwable -> {
-      // TODO display error to user somehow
       logger.warn("Message could not be sent: {}", text, throwable);
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("errorTitle"), i18n.get("chat.sendFailed"), Severity.ERROR, throwable, Arrays.asList(
+          new ReportAction(i18n, reportingService, throwable),
+          new DismissAction(i18n))
+      ));
+
       messageTextField.setDisable(false);
       messageTextField.requestFocus();
       return null;

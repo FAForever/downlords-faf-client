@@ -9,6 +9,12 @@ import java.io.IOException;
 
 public class ModTypeTypeAdapter extends TypeAdapter<SearchModMessage.ModType> {
 
+  public static final ModTypeTypeAdapter INSTANCE = new ModTypeTypeAdapter();
+
+  private ModTypeTypeAdapter() {
+
+  }
+
   @Override
   public void write(JsonWriter out, SearchModMessage.ModType value) throws IOException {
     out.value(value.getCode());

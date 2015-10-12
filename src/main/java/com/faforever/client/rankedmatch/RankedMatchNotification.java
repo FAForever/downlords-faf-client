@@ -5,7 +5,9 @@ import com.faforever.client.legacy.domain.ServerMessageType;
 
 public class RankedMatchNotification extends ServerMessage {
 
-  // TODO add javadoc as soon as you know what that means :P
+  /**
+   * Flag indicating whether a potential opponent is available or not.
+   */
   public boolean potential;
 
   public RankedMatchNotification(boolean potential) {

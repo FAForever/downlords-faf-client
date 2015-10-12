@@ -1,7 +1,7 @@
 package com.faforever.client.legacy.writer;
 
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.legacy.io.QStreamWriter;
+import com.faforever.client.legacy.io.QDataWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.serializer.Serializer;
@@ -19,18 +19,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Sends data to the server. Classes should not use the server writer directly, but {@link LobbyServerAccessor} instead.
- * TODO improve javadoc, explain that there are different ways to write to the server
+ * Sends data to the server. Classes should not use the server writer directly, but e.g. {@link LobbyServerAccessor} or
+ * any other server accessor instead.
  */
 public class ServerWriter implements Closeable {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private final QStreamWriter qStreamWriter;
+  private final QDataWriter qDataWriter;
   private final Map<Class<?>, Serializer<?>> objectWriters;
 
   public ServerWriter(OutputStream outputStream) {
-    qStreamWriter = new QStreamWriter(new DataOutputStream(new BufferedOutputStream(outputStream)));
+    qDataWriter = new QDataWriter(new DataOutputStream(new BufferedOutputStream(outputStream)));
     objectWriters = new HashMap<>();
   }
 
@@ -53,9 +53,9 @@ public class ServerWriter implements Closeable {
 
       serializer.serialize(object, outputStream);
 
-      synchronized (qStreamWriter) {
-        qStreamWriter.appendWithSize(outputStream.toByteArray());
-        qStreamWriter.flush();
+      synchronized (qDataWriter) {
+        qDataWriter.appendWithSize(outputStream.toByteArray());
+        qDataWriter.flush();
       }
     } catch (EOFException | SocketException e) {
       logger.debug("Server writer has been closed");
@@ -81,6 +81,6 @@ public class ServerWriter implements Closeable {
 
   @Override
   public void close() throws IOException {
-    qStreamWriter.close();
+    qDataWriter.close();
   }
 }

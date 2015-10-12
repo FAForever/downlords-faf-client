@@ -9,6 +9,12 @@ import java.io.IOException;
 
 public class ClientMessageTypeTypeAdapter extends TypeAdapter<ClientMessageType> {
 
+  public static final ClientMessageTypeTypeAdapter INSTANCE = new ClientMessageTypeTypeAdapter();
+
+  private ClientMessageTypeTypeAdapter() {
+
+  }
+
   @Override
   public void write(JsonWriter out, ClientMessageType value) throws IOException {
     if (value == null) {
