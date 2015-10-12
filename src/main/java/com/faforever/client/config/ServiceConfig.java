@@ -45,6 +45,7 @@ import com.faforever.client.news.NewsService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.parsecom.CloudService;
+import com.faforever.client.parsecom.MockCloudService;
 import com.faforever.client.parsecom.ParseCloudService;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.patch.GameUpdateServiceImpl;
@@ -322,8 +323,12 @@ public class ServiceConfig {
   }
 
   @Bean
-  CloudService parseComService() {
-    return new ParseCloudService();
+  CloudService cloudService() {
+    if (environment.containsProperty("faf.testing")) {
+      return new MockCloudService();
+    } else {
+      return new ParseCloudService();
+    }
   }
 
   @Bean
