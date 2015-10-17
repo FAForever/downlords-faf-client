@@ -11,6 +11,8 @@ import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.relay.FaDataInputStream;
+import com.faforever.client.relay.FaDataOutputStream;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.stats.domain.GameStats;
 import com.faforever.client.test.AbstractPlainJavaFxTest;

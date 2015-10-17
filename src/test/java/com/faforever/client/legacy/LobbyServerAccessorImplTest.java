@@ -68,8 +68,8 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final Gson gson = new GsonBuilder()
       .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-      .registerTypeAdapter(ClientMessageType.class, new ClientMessageTypeTypeAdapter())
-      .registerTypeAdapter(ServerMessageType.class, new ServerMessageTypeTypeAdapter())
+      .registerTypeAdapter(ClientMessageType.class, ClientMessageTypeTypeAdapter.INSTANCE)
+      .registerTypeAdapter(ServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
       .registerTypeAdapter(Faction.class, new FactionDeserializer())
       .create();
 

@@ -153,10 +153,14 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   private void updatePlayServices(PlayerInfoBean playerInfoBean) {
     try {
+      playServices.startBatchUpdate();
       playServices.playerRating1v1(RatingUtil.getLeaderboardRating(playerInfoBean));
       playServices.playerRatingGlobal(RatingUtil.getGlobalRating(playerInfoBean));
+      playServices.executeBatchUpdate();
     } catch (IOException e) {
       logger.warn("Player rating could not be updated", e);
+    } finally {
+      playServices.resetBatchUpdate();
     }
   }
 

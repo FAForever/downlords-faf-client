@@ -17,7 +17,7 @@ public class LobbyActionTypeAdapterTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new RelayServerActionTypeAdapter();
+    instance = RelayServerActionTypeAdapter.INSTANCE;
   }
 
   @Test

@@ -11,6 +11,7 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameServiceImpl;
 import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.gravatar.GravatarServiceImpl;
+import com.faforever.client.gravatar.MockGravatarService;
 import com.faforever.client.leaderboard.LeaderboardParser;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.LeaderboardServiceImpl;
@@ -45,7 +46,7 @@ import com.faforever.client.news.NewsService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.parsecom.CloudAccessor;
-import com.faforever.client.parsecom.MockCloudService;
+import com.faforever.client.parsecom.MockCloudAccessor;
 import com.faforever.client.parsecom.ParseCloudAccessor;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.patch.GameUpdateServiceImpl;
@@ -54,6 +55,7 @@ import com.faforever.client.patch.JGitWrapper;
 import com.faforever.client.patch.UpdateServerAccessor;
 import com.faforever.client.patch.UpdateServerAccessorImpl;
 import com.faforever.client.play.GooglePlayServices;
+import com.faforever.client.play.MockPlayServices;
 import com.faforever.client.play.PlayServices;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
@@ -325,7 +327,7 @@ public class ServiceConfig {
   @Bean
   CloudAccessor cloudAccessor() {
     if (environment.containsProperty("faf.testing")) {
-      return new MockCloudService();
+      return new MockCloudAccessor();
     } else {
       return new ParseCloudAccessor();
     }
@@ -333,11 +335,17 @@ public class ServiceConfig {
 
   @Bean
   PlayServices playServices() {
+    if (environment.containsProperty("faf.testing")) {
+      return new MockPlayServices();
+    }
     return new GooglePlayServices();
   }
 
   @Bean
   GravatarService gravatarService() {
+    if (environment.containsProperty("faf.testing")) {
+      return new MockGravatarService();
+    }
     return new GravatarServiceImpl();
   }
 }

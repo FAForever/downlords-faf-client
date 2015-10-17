@@ -17,7 +17,7 @@ public class VictoryConditionTypeAdapterTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new VictoryConditionTypeAdapter();
+    instance = VictoryConditionTypeAdapter.INSTANCE;
   }
 
   @Test

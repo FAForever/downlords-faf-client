@@ -67,8 +67,6 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
 
   private ObjectProperty<PlayerInfoBean> currentPlayerProperty;
   private ObservableList<Faction> factionList;
-  private LeaderboardEntryBean leaderboardEntryBean;
-  private ObjectProperty<PlayerInfoBean> currentPlayerProperty;
 
   @Before
   public void setUp() throws Exception {
@@ -83,7 +81,7 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     currentPlayerProperty = new SimpleObjectProperty<>(new PlayerInfoBean(USERNAME));
     factionList = FXCollections.observableArrayList();
     currentPlayerProperty = new SimpleObjectProperty<>(new PlayerInfoBean(USERNAME));
-    leaderboardEntryBean = new LeaderboardEntryBean();
+    LeaderboardEntryBean leaderboardEntryBean = new LeaderboardEntryBean();
     leaderboardEntryBean.setRating(500);
     leaderboardEntryBean.setWinLossRatio(12.23f);
     leaderboardEntryBean.setRank(100);
