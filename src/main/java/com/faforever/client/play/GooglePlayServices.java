@@ -283,24 +283,19 @@ public class GooglePlayServices implements PlayServices {
       batchRequest = games.batch();
     } catch (InterruptedException | ExecutionException e) {
       throw new RuntimeException(e);
-    } finally {
-      BATCH_REQUEST_LOCK.unlock();
     }
   }
 
   @Override
   public void executeBatchUpdate() throws IOException {
-    BATCH_REQUEST_LOCK.lock();
     try {
       checkBatchRequest();
       logger.debug("Executing {} updates", batchRequest.size());
       batchRequest.execute();
-      resetBatchUpdate();
-
-      loadCurrentPlayerAchievements();
     } finally {
-      BATCH_REQUEST_LOCK.unlock();
+      resetBatchUpdate();
     }
+    loadCurrentPlayerAchievements();
   }
 
   @Override
@@ -351,6 +346,7 @@ public class GooglePlayServices implements PlayServices {
   @Override
   public void resetBatchUpdate() {
     batchRequest = null;
+    BATCH_REQUEST_LOCK.unlock();
   }
 
   @Override
