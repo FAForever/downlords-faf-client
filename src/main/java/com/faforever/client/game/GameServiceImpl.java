@@ -229,10 +229,10 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
     notificationService.addNotification(new ImmediateNotification(
-            i18n.get("replayCouldNotBeStarted.title"),
-            i18n.get("replayCouldNotBeStarted.text", replayId),
-            Severity.ERROR, throwable,
-            singletonList(new Action(i18n.get("report"))))
+        i18n.get("replayCouldNotBeStarted.title"),
+        i18n.get("replayCouldNotBeStarted.text", replayId),
+        Severity.ERROR, throwable,
+        singletonList(new Action(i18n.get("report"))))
     );
   }
 
@@ -467,7 +467,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   private void processCurrentPlayerStats(Army army, RatingMode ratingMode, Duration gameDuration) throws IOException {
     if (!preferencesService.getPreferences().getConnectedToGooglePlay()) {
-      logger.debug("Not recording to play services since used is not connected");
+      logger.debug("Not recording to play services since user is not connected");
       return;
     }
 
@@ -535,6 +535,21 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
           }
           break;
 
+        case AEON_SACU:
+        case CYBRAN_SACU:
+        case UEF_SACU:
+        case SERAPHIM_SACU:
+          builtSupportCommanders += unitStat.getBuilt();
+          break;
+
+        case FIRE_BEETLE:
+          builtFireBeetles += unitStat.getBuilt();
+          break;
+
+        case MERCY:
+          builtMercies += unitStat.getBuilt();
+          break;
+
         case CORONA:
         case GEMINI:
         case WASP:
@@ -560,35 +575,77 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
         case PARAGON:
           builtParagons += unitStat.getBuilt();
+          builtExperimentals += unitStat.getBuilt();
+          killedExperimentals += unitStat.getKilled();
+          break;
         case MAVOR:
           builtMavors += unitStat.getBuilt();
+          builtExperimentals += unitStat.getBuilt();
+          killedExperimentals += unitStat.getKilled();
+          break;
         case YOLONA_OSS:
           builtYolonaOss += unitStat.getBuilt();
+          builtExperimentals += unitStat.getBuilt();
+          killedExperimentals += unitStat.getKilled();
+          break;
         case CZAR:
           builtCzars += unitStat.getBuilt();
+          builtExperimentals += unitStat.getBuilt();
+          killedExperimentals += unitStat.getKilled();
+          break;
         case SOUL_RIPPER:
           builtSoulRippers += unitStat.getBuilt();
+          builtExperimentals += unitStat.getBuilt();
+          killedExperimentals += unitStat.getKilled();
+          break;
         case AHWASSA:
           builtAhwasshas += unitStat.getBuilt();
+          builtExperimentals += unitStat.getBuilt();
+          killedExperimentals += unitStat.getKilled();
+          break;
         case SCATHIS:
           builtScathis += unitStat.getBuilt();
+          builtExperimentals += unitStat.getBuilt();
+          killedExperimentals += unitStat.getKilled();
+          break;
         case GALACTIC_COLOSSUS:
           builtGalacticColossus += unitStat.getBuilt();
+          builtExperimentals += unitStat.getBuilt();
+          killedExperimentals += unitStat.getKilled();
+          break;
         case MONKEYLORD:
           builtMonkeyLords += unitStat.getBuilt();
+          builtExperimentals += unitStat.getBuilt();
+          killedExperimentals += unitStat.getKilled();
+          break;
         case MEGALITH:
           builtMegaliths += unitStat.getBuilt();
+          builtExperimentals += unitStat.getBuilt();
+          killedExperimentals += unitStat.getKilled();
+          break;
         case FATBOY:
           builtFatBoys += unitStat.getBuilt();
+          builtExperimentals += unitStat.getBuilt();
+          killedExperimentals += unitStat.getKilled();
+          break;
         case YTHOTHA:
           builtYthothas += unitStat.getBuilt();
+          builtExperimentals += unitStat.getBuilt();
+          killedExperimentals += unitStat.getKilled();
+          break;
         case TEMPEST:
           builtTempest += unitStat.getBuilt();
+          builtExperimentals += unitStat.getBuilt();
+          killedExperimentals += unitStat.getKilled();
+          break;
         case ATLANTIS:
           builtAtlantis += unitStat.getBuilt();
-        case NOVAX_CENTER:
-          killedExperimentals += unitStat.getKilled();
           builtExperimentals += unitStat.getBuilt();
+          killedExperimentals += unitStat.getKilled();
+          break;
+        case NOVAX_CENTER:
+          builtExperimentals += unitStat.getBuilt();
+          killedExperimentals += unitStat.getKilled();
           break;
       }
 
@@ -627,7 +684,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     playServices.builtMavors(builtMavors, survived);
     playServices.asfBuilt(asfBuilt);
     playServices.builtTransports(builtTransports);
-    playServices.playedFaction(faction, survived);
+    playServices.factionPlayed(faction, survived);
     playServices.killedCommanders(commanderKills, survived);
     playServices.acuDamageReceived(acuDamageReceived, survived);
     playServices.unitStats(

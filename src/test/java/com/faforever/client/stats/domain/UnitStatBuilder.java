@@ -38,8 +38,8 @@ public class UnitStatBuilder {
     return this;
   }
 
-  public UnitStatBuilder id(String id) {
-    unitStat.setId(id);
+  public UnitStatBuilder id(Unit unit) {
+    unitStat.setId(unit.getId());
     return this;
   }
 
@@ -65,6 +65,11 @@ public class UnitStatBuilder {
 
   public UnitStat get() {
     return unitStat;
+  }
+
+  public UnitStatBuilder defaultValues() {
+    unitStat.setType(UnitType.UNKNOWN);
+    return this;
   }
 
   public static UnitStatBuilder create() {

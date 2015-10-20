@@ -432,7 +432,7 @@ public class GooglePlayServices implements PlayServices {
   }
 
   @Override
-  public void playedFaction(Faction faction, boolean survived) throws IOException {
+  public void factionPlayed(Faction faction, boolean survived) throws IOException {
     checkBatchRequest();
     switch (faction) {
       case AEON:

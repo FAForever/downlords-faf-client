@@ -89,7 +89,7 @@ public class MockPlayServices implements PlayServices {
   }
 
   @Override
-  public void playedFaction(Faction faction, boolean survived) throws IOException {
+  public void factionPlayed(Faction faction, boolean survived) throws IOException {
 
   }
 

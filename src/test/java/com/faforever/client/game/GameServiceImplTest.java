@@ -6,10 +6,12 @@ import com.faforever.client.fa.RatingMode;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
+import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeInfo;
+import com.faforever.client.legacy.domain.VictoryCondition;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
@@ -29,6 +31,7 @@ import com.faforever.client.stats.domain.UnitStatBuilder;
 import com.faforever.client.stats.domain.UnitType;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import org.junit.Before;
@@ -68,6 +71,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -121,6 +125,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   private ArgumentCaptor<Consumer<GameStats>> gameStatsListenerCaptor;
   @Captor
   private ArgumentCaptor<Consumer<Void>> gameLaunchListenerCaptor;
+  @Captor
+  private ArgumentCaptor<ListChangeListener.Change<? extends GameInfoBean>> gameInfoBeanChangeListenerCaptor;
 
   @Before
   public void setUp() throws Exception {
@@ -144,9 +150,14 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(environment.getProperty("ranked1v1.search.expansionDelay", int.class)).thenReturn(SEARCH_EXPANSION_DELAY);
     when(environment.getProperty("ranked1v1.search.maxRadius", float.class)).thenReturn(SEARCH_MAX_RADIUS);
     when(environment.getProperty("ranked1v1.search.radiusIncrement", float.class)).thenReturn(SEARCH_RADIUS_INCREMENT);
+    when(environment.getProperty("playServices.minGameTime", int.class)).thenReturn(0);
 
     doAnswer(invocation -> {
-      invocation.getArgumentAt(0, Runnable.class).run();
+      try {
+        invocation.getArgumentAt(0, Runnable.class).run();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
       return null;
     }).when(scheduledExecutorService).execute(any());
 
@@ -237,7 +248,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameLaunchInfo.setArgs(Arrays.asList("/foo bar", "/bar foo"));
 
     when(forgedAllianceService.startGame(
-            gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL)
+        gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL)
     ).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(lobbyServerAccessor.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchInfo));
@@ -398,17 +409,117 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testWonWithFaction() throws Exception {
+    for (Faction faction : Faction.values()) {
+      verifyWonFaction(faction);
+    }
+  }
+
+  private void verifyWonFaction(Faction faction) throws Exception {
+    Unit acu;
+    switch (faction) {
+      case UEF:
+        acu = Unit.UEF_ACU;
+        break;
+      case AEON:
+        acu = Unit.AEON_ACU;
+        break;
+      case CYBRAN:
+        acu = Unit.CYBRAN_ACU;
+        break;
+      case SERAPHIM:
+        acu = Unit.SERAPHIM_ACU;
+        break;
+      default:
+        throw new IllegalArgumentException("Unmapped faction: " + faction);
+    }
+    when(preferences.getConnectedToGooglePlay()).thenReturn(true);
+    when(playerService.getCurrentPlayer()).thenReturn(new PlayerInfoBean("junit"));
+    GameStats gameStats = GameStatsBuilder.create()
+        .army(ArmyBuilder.create("junit").defaultValues()
+            .unitStat(UnitStatBuilder.create().defaultValues().id(acu).built(1).get())
+            .get())
+        .get();
+
+    sendGameStats(gameStats);
+
+    verify(playServices).factionPlayed(faction, true);
+  }
+
+  private void sendGameStats(GameStats gameStats) throws Exception {
+    Consumer<GameStats> gameStatsListener = gameStatsListenerCaptor.getValue();
+
+    // Stats are sent twice by the game
+    gameStatsListener.accept(gameStats);
+    gameStatsListener.accept(gameStats);
+
+    gameLaunchListenerCaptor.getValue().accept(null);
+    // Allow the game time to be different from the game end time
+    Thread.sleep(1);
+
+    // Processing is done after game has terminated, so simulate this
+    CompletableFuture<Void> statsSubmittedFuture = new CompletableFuture<>();
+    doAnswer(invocation -> {
+      statsSubmittedFuture.complete(null);
+      return null;
+    }).when(playServices).resetBatchUpdate();
+
+    instance.spawnTerminationListener(mock(Process.class), RatingMode.NONE);
+
+    statsSubmittedFuture.get(50000, TimeUnit.MILLISECONDS);
+  }
+
+  @Test
   public void testOnGameStatsTopPlayerAndSurvived() throws Exception {
     when(preferences.getConnectedToGooglePlay()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(new PlayerInfoBean("junit"));
 
     GameStats gameStats = GameStatsBuilder.create()
         .army(ArmyBuilder.create("junit")
-            .unitStat(UnitStatBuilder.create().unitType(UnitType.ACU).killed(2).lost(0).damageReceived(200).damageDealt(12000).get())
+            .unitStat(UnitStatBuilder.create().unitType(UnitType.ACU).id(Unit.AEON_ACU).killed(2).lost(0).built(1).damageReceived(200).damageDealt(12000).get())
             .unitStat(UnitStatBuilder.create().unitType(UnitType.ENGINEER).built(20).get())
             .unitStat(UnitStatBuilder.create().unitType(UnitType.MEDIUM_TANK).damageReceived(100).damageDealt(500).lost(0).killed(1).get())
-            .unitStat(UnitStatBuilder.create().id(Unit.AHWASSA.getId()).damageReceived(100).damageDealt(500).built(1).killed(1).get())
-            .unitStat(UnitStatBuilder.create().id(Unit.YTHOTHA.getId()).damageReceived(100).damageDealt(500).built(1).killed(1).get())
+            // Experimentals
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.ATLANTIS).damageReceived(100).damageDealt(500).built(1).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.AHWASSA).damageReceived(100).damageDealt(500).built(1).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.YTHOTHA).damageReceived(100).damageDealt(500).built(1).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.CZAR).built(3).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.FATBOY).built(5).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.GALACTIC_COLOSSUS).built(9).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.MAVOR).built(11).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.YOLONA_OSS).built(79).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.MEGALITH).built(13).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.MONKEYLORD).built(19).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.PARAGON).built(23).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.SCATHIS).built(31).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.SOUL_RIPPER).built(33).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.TEMPEST).built(47).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.NOVAX_CENTER).built(49).killed(1).get())
+            // Other game enders
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.SALVATION).built(29).killed(1).get())
+            // ASFs
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.CORONA).built(1).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.GEMINI).built(2).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.WASP).built(4).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.IAZYNE).built(8).killed(1).get())
+            // Other units
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.FIRE_BEETLE).built(7).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.MERCY).built(17).killed(1).get())
+            // SACUs
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.AEON_SACU).built(37).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.CYBRAN_SACU).built(39).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.UEF_SACU).built(41).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.SERAPHIM_SACU).built(43).killed(1).get())
+            // Transporters
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.CHARIOT).built(3).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.ALUMINAR).built(7).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.SKYHOOK).built(9).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.DRAGON_FLY).built(11).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.C6_COURIER).built(13).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.C14_STAR_LIFTER).built(17).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.CONTINENTAL).built(19).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.VISH).built(23).killed(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.VISHALA).built(29).killed(1).get())
             .summaryStat(SummaryStatBuilder.create().type(AIR).built(1).killed(2).get())
             .summaryStat(SummaryStatBuilder.create().type(LAND).built(3).killed(4).get())
             .summaryStat(SummaryStatBuilder.create().type(NAVAL).built(5).killed(6).get())
@@ -421,35 +532,81 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
             .get())
         .army(ArmyBuilder.create("another1").defaultValues().get())
         .army(ArmyBuilder.create("another2").defaultValues().get())
+        .army(ArmyBuilder.create("civilian").defaultValues().get())
+        .army(ArmyBuilder.create("Zocky (AI: Hard)").defaultValues().get())
         .get();
 
-    Consumer<GameStats> gameStatsListener = gameStatsListenerCaptor.getValue();
-
-    // Stats are sent twice by the game
-    gameStatsListener.accept(gameStats);
-    gameStatsListener.accept(gameStats);
-
-    gameLaunchListenerCaptor.getValue().accept(null);
-
-    // Processing is done after game has terminated, so simulate this
-    CompletableFuture<Void> statsSubmittedFuture = new CompletableFuture<>();
-    doAnswer(invocation -> {
-      statsSubmittedFuture.complete(null);
-      return null;
-    }).when(playServices).resetBatchUpdate();
-
-    instance.spawnTerminationListener(mock(Process.class), RatingMode.NONE);
-
-    statsSubmittedFuture.get(500000, TimeUnit.MILLISECONDS);
+    sendGameStats(gameStats);
 
     verify(playServices).startBatchUpdate();
+    verify(playServices).timePlayed(any(), eq(true));
+    verify(playServices).factionPlayed(Faction.AEON, true);
     verify(playServices).killedCommanders(2, true);
     verify(playServices).acuDamageReceived(200, true);
-    verify(playServices).unitStats(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, true);
     verify(playServices).topScoringPlayer(3);
+    verify(playServices).asfBuilt(15);
+    verify(playServices).builtAhwasshas(1, true);
+    verify(playServices).builtAtlantis(1, true);
+    verify(playServices).builtCzars(3, true);
+    verify(playServices).builtFatboys(5, true);
+    verify(playServices).builtFireBeetles(7, true);
+    verify(playServices).builtGalacticColossus(9, true);
+    verify(playServices).builtMavors(11, true);
+    verify(playServices).builtMegaliths(13, true);
+    verify(playServices).builtMercies(17, true);
+    verify(playServices).builtMonkeylords(19, true);
+    verify(playServices).builtParagons(23, true);
+    verify(playServices).builtSalvations(29, true);
+    verify(playServices).builtScathis(31, true);
+    verify(playServices).builtSoulRippers(33, true);
+    verify(playServices).builtSupportCommanders(160, true);
+    verify(playServices).builtTempests(47, true);
+    verify(playServices).builtTransports(131);
+    verify(playServices).builtYolonaOss(79, true);
+    verify(playServices).builtYthothas(1, true);
+    verify(playServices).unitStats(1, 2, 3, 4, 5, 6, 9, 1, 2, 3, 4, 5, 325, 15, 7, 8, true);
     verify(playServices).executeBatchUpdate();
     verify(playServices).resetBatchUpdate();
 
     verifyNoMoreInteractions(playServices);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testAddOnGameInfoBeanListener() throws Exception {
+    ListChangeListener<GameInfoBean> listener = mock(ListChangeListener.class);
+    instance.addOnGameInfoBeanListener(listener);
+
+    GameInfo gameInfo = new GameInfo();
+    gameInfo.setUid(1);
+    gameInfo.setHost("host");
+    gameInfo.setTitle("title");
+    gameInfo.setAccess(GameAccess.PUBLIC);
+    gameInfo.setMapname("mapName");
+    gameInfo.setFeaturedMod("mod");
+    gameInfo.setNumPlayers(2);
+    gameInfo.setMaxPlayers(4);
+    gameInfo.setGameType(VictoryCondition.DOMINATION);
+    gameInfo.setState(GameState.PLAYING);
+
+    instance.onGameInfo(gameInfo);
+
+    verify(listener).onChanged(gameInfoBeanChangeListenerCaptor.capture());
+
+    ListChangeListener.Change<? extends GameInfoBean> change = gameInfoBeanChangeListenerCaptor.getValue();
+    assertThat(change.next(), is(true));
+    List<? extends GameInfoBean> addedSubList = change.getAddedSubList();
+    assertThat(addedSubList, hasSize(1));
+
+    GameInfoBean gameInfoBean = addedSubList.get(0);
+    assertThat(gameInfoBean.getUid(), is(1));
+    assertThat(gameInfoBean.getHost(), is("host"));
+    assertThat(gameInfoBean.getTitle(), is("title"));
+    assertThat(gameInfoBean.getAccess(), is(GameAccess.PUBLIC));
+    assertThat(gameInfoBean.getNumPlayers(), is(2));
+    assertThat(gameInfoBean.getMaxPlayers(), is(4));
+    assertThat(gameInfoBean.getFeaturedMod(), is("mod"));
+    assertThat(gameInfoBean.getVictoryCondition(), is(VictoryCondition.DOMINATION));
+    assertThat(gameInfoBean.getStatus(), is(GameState.PLAYING));
   }
 }

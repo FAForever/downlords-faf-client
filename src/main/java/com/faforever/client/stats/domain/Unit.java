@@ -4,14 +4,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum Unit {
+  // ACUs
   AEON_ACU("ual0001"),
   CYBRAN_ACU("url0001"),
   UEF_ACU("uel0001"),
   SERAPHIM_ACU("xsl0001"),
+
+  // ASFs
   CORONA("uaa0303"),
   GEMINI("ura0303"),
   WASP("uea0303"),
   IAZYNE("xsa0303"),
+
+  // Experimentals
   PARAGON("xab1401"),
   MAVOR("ueb2401"),
   YOLONA_OSS("xsb2401"),
@@ -28,6 +33,7 @@ public enum Unit {
   ATLANTIS("ues0401"),
   NOVAX_CENTER("xeb2402"),
 
+  // Transporters
   CHARIOT("uaa0107"),
   ALUMINAR("uaa0104"),
   SKYHOOK("ura0107"),
@@ -39,6 +45,16 @@ public enum Unit {
   VISHALA("xsa0104"),
 
   SALVATION("xab2307"),
+
+  // SACUs
+  AEON_SACU("ual0301"),
+  CYBRAN_SACU("url0301"),
+  UEF_SACU("uel0301"),
+  SERAPHIM_SACU("xsl0301"),
+
+  // Other units
+  MERCY("daa0206"),
+  FIRE_BEETLE("xrl030"),
 
   UNKNOWN(null);
 

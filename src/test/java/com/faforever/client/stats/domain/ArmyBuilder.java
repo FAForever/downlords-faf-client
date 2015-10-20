@@ -2,6 +2,14 @@ package com.faforever.client.stats.domain;
 
 import java.util.ArrayList;
 
+import static com.faforever.client.stats.domain.UnitCategory.AIR;
+import static com.faforever.client.stats.domain.UnitCategory.ENGINEER;
+import static com.faforever.client.stats.domain.UnitCategory.LAND;
+import static com.faforever.client.stats.domain.UnitCategory.NAVAL;
+import static com.faforever.client.stats.domain.UnitCategory.TECH1;
+import static com.faforever.client.stats.domain.UnitCategory.TECH2;
+import static com.faforever.client.stats.domain.UnitCategory.TECH3;
+
 public class ArmyBuilder {
 
   private Army army;
@@ -19,18 +27,25 @@ public class ArmyBuilder {
     return this;
   }
 
-  public ArmyBuilder summaryStat(SummaryStat summaryStat) {
-    army.getSummaryStats().add(summaryStat);
-    return this;
-  }
-
   public Army get() {
     return army;
   }
 
   public ArmyBuilder defaultValues() {
     return massStat(EconomyStatBuilder.create().get())
-        .energyStat(EconomyStatBuilder.create().get());
+        .energyStat(EconomyStatBuilder.create().get())
+        .summaryStat(SummaryStatBuilder.create().type(AIR).built(0).killed(0).get())
+        .summaryStat(SummaryStatBuilder.create().type(LAND).built(0).killed(0).get())
+        .summaryStat(SummaryStatBuilder.create().type(NAVAL).built(0).killed(0).get())
+        .summaryStat(SummaryStatBuilder.create().type(ENGINEER).built(0).killed(0).get())
+        .summaryStat(SummaryStatBuilder.create().type(TECH1).built(0).killed(0).get())
+        .summaryStat(SummaryStatBuilder.create().type(TECH2).built(0).killed(0).get())
+        .summaryStat(SummaryStatBuilder.create().type(TECH3).built(0).killed(0).get());
+  }
+
+  public ArmyBuilder summaryStat(SummaryStat summaryStat) {
+    army.getSummaryStats().add(summaryStat);
+    return this;
   }
 
   public ArmyBuilder energyStat(EconomyStat economyStat) {

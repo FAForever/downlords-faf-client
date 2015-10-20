@@ -45,7 +45,7 @@ public interface PlayServices {
 
   void wonWithinDuration(Duration duration) throws IOException;
 
-  void playedFaction(Faction faction, boolean survived) throws IOException;
+  void factionPlayed(Faction faction, boolean survived) throws IOException;
 
   void unitStats(int airBuilt, int airKilled,
                  int landBuilt, int landKilled,
