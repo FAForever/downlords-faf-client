@@ -77,6 +77,10 @@ public class GamesTableController {
       protected Image computeValue() {
         return mapService.loadSmallPreview(param.getValue().getTechnicalName());
       }
+
+      {
+        bind(param.getValue().technicalNameProperty());
+      }
     });
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());

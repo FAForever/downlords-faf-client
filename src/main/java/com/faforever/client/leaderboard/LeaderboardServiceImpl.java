@@ -17,6 +17,21 @@ public class LeaderboardServiceImpl implements LeaderboardService {
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
 
+  @NotNull
+  private List<RatingDistribution> calculateRatingDistributions(List<LeaderboardEntryBean> leaderboardEntryBeans) {
+    Map<Integer, RatingDistribution> result = new HashMap<>();
+    for (LeaderboardEntryBean leaderboardEntryBean : leaderboardEntryBeans) {
+      int roundedRating = RatingUtil.getRoundedRating(leaderboardEntryBean.getRating());
+      if (!result.containsKey(roundedRating)) {
+        result.put(roundedRating, new RatingDistribution(roundedRating));
+      }
+      result.get(roundedRating).incrementPlayers();
+    }
+    ArrayList<RatingDistribution> ratingDistributions = new ArrayList<>(result.values());
+    Collections.sort(ratingDistributions);
+    return ratingDistributions;
+  }
+
   @Override
   public CompletableFuture<List<LeaderboardEntryBean>> getLeaderboardEntries() {
     return lobbyServerAccessor.requestLeaderboardEntries();
@@ -24,9 +39,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
   @Override
   public CompletableFuture<List<RatingDistribution>> getRatingDistributions() {
-    CompletableFuture<List<RatingDistribution>> future = new CompletableFuture<>();
-    getLeaderboardEntries().thenAcceptAsync(result -> future.complete(calculateRatingDistributions(result)));
-    return future;
+    return getLeaderboardEntries().thenApply(this::calculateRatingDistributions);
   }
 
   @Override
@@ -42,18 +55,5 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     });
   }
 
-  @NotNull
-  private List<RatingDistribution> calculateRatingDistributions(List<LeaderboardEntryBean> leaderboardEntryBeans) {
-    Map<Integer, RatingDistribution> result = new HashMap<>();
-    for (LeaderboardEntryBean leaderboardEntryBean : leaderboardEntryBeans) {
-      int roundedRating = RatingUtil.getRoundedRating(leaderboardEntryBean.getRating());
-      if (!result.containsKey(roundedRating)) {
-        result.put(roundedRating, new RatingDistribution(roundedRating));
-      }
-      result.get(roundedRating).incrementPlayers();
-    }
-    ArrayList<RatingDistribution> ratingDistributions = new ArrayList<>(result.values());
-    Collections.sort(ratingDistributions);
-    return ratingDistributions;
-  }
+
 }

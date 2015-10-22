@@ -40,7 +40,11 @@ public abstract class AbstractServerAccessor {
 
       logger.debug("Message from server: {}", message);
 
-      onServerMessage(message);
+      try {
+        onServerMessage(message);
+      } catch (Exception e) {
+        logger.warn("Error while handling server message: " + message, e);
+      }
     }
 
     logger.info("Connection to server {} has been closed", socket.getRemoteSocketAddress());

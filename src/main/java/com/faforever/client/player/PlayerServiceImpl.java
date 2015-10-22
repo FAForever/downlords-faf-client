@@ -21,11 +21,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -42,6 +43,8 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   UserService userService;
   @Resource
   PlayServices playServices;
+  @Resource
+  Executor executorService;
 
   private List<String> foeList;
   private List<String> friendList;
@@ -142,7 +145,10 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     if (playerInfo.getLogin().equals(userService.getUsername())) {
       PlayerInfoBean playerInfoBean = getCurrentPlayer();
       playerInfoBean.updateFromPlayerInfo(playerInfo);
-      updatePlayServices(playerInfoBean);
+      updatePlayServices(playerInfoBean).exceptionally(throwable -> {
+        logger.warn("Play services could not be updated", throwable);
+        return null;
+      });
     } else {
       PlayerInfoBean playerInfoBean = registerAndGetPlayerForUsername(playerInfo.getLogin());
       playerInfoBean.setFriend(friendList.contains(playerInfo.getLogin()));
@@ -151,17 +157,20 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     }
   }
 
-  private void updatePlayServices(PlayerInfoBean playerInfoBean) {
-    try {
-      playServices.startBatchUpdate();
-      playServices.playerRating1v1(RatingUtil.getLeaderboardRating(playerInfoBean));
-      playServices.playerRatingGlobal(RatingUtil.getGlobalRating(playerInfoBean));
-      playServices.executeBatchUpdate();
-    } catch (IOException e) {
-      logger.warn("Player rating could not be updated", e);
-    } finally {
-      playServices.resetBatchUpdate();
-    }
+  private CompletableFuture<Void> updatePlayServices(PlayerInfoBean playerInfoBean) {
+    return CompletableFuture.runAsync(() -> {
+      try {
+        playServices.startBatchUpdate();
+        playServices.playerRating1v1(RatingUtil.getLeaderboardRating(playerInfoBean));
+        playServices.playerRatingGlobal(RatingUtil.getGlobalRating(playerInfoBean));
+        playServices.numberOfGamesPlayed(playerInfoBean.getNumberOfGames());
+        playServices.executeBatchUpdate();
+      } catch (Exception e) {
+        logger.warn("Player rating could not be updated", e);
+      } finally {
+        playServices.resetBatchUpdate();
+      }
+    }, executorService);
   }
 
   @Override

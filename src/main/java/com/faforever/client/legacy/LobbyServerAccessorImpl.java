@@ -403,7 +403,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
         // Number of bytes acknowledged... as a string... I mean, why not.
         int acknowledgedBytes = Integer.parseInt(readNextString());
         // I really don't care. This is TCP!
-        logger.debug("Server acknowledged {} bytes", acknowledgedBytes);
+        logger.trace("Server acknowledged {} bytes", acknowledgedBytes);
         break;
 
       case ERROR:

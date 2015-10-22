@@ -2,6 +2,7 @@ package com.faforever.client.relay;
 
 import com.faforever.client.stats.domain.GameStats;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -23,4 +24,6 @@ public interface LocalRelayServer {
   void setGameStatsListener(Consumer<GameStats> gameStatsListener);
 
   void setGameLaunchedListener(Consumer<Void> gameLaunchedListener);
+
+  void setGameOptionListener(Consumer<List<Object>> gameOptionListener);
 }

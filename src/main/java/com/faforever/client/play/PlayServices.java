@@ -2,8 +2,6 @@ package com.faforever.client.play;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.game.Faction;
-import com.google.api.services.games.model.AchievementDefinition;
-import com.google.api.services.games.model.PlayerAchievement;
 import javafx.collections.ObservableList;
 import org.springframework.cache.annotation.Cacheable;
 
@@ -96,4 +94,6 @@ public interface PlayServices {
   void builtSupportCommanders(int count, boolean survived) throws IOException;
 
   void builtMegaliths(int count, boolean survived) throws IOException;
+
+  void numberOfGamesPlayed(int numberOfGames) throws IOException;
 }

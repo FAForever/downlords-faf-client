@@ -28,7 +28,7 @@
     <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" progress="0.0" GridPane.columnIndex="1"
                  GridPane.rowIndex="2"/>
     <Label fx:id="progressLabel" text="&lt;progress&gt;" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
-    <ImageView fx:id="imageView" fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true"
+    <ImageView fx:id="imageView" fitHeight="128.0" fitWidth="128.0" pickOnBounds="true" preserveRatio="true"
                GridPane.halignment="CENTER" GridPane.rowSpan="2147483647" GridPane.valignment="CENTER"/>
   </children>
 </GridPane>

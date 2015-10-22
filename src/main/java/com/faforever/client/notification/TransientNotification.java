@@ -27,6 +27,10 @@ public class TransientNotification {
     this.actions = actions;
   }
 
+  public TransientNotification(String title, String text, Image image) {
+    this(title, text, image, null);
+  }
+
   public String getTitle() {
     return title;
   }

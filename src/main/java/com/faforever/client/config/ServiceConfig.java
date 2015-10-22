@@ -54,9 +54,9 @@ import com.faforever.client.patch.GitWrapper;
 import com.faforever.client.patch.JGitWrapper;
 import com.faforever.client.patch.UpdateServerAccessor;
 import com.faforever.client.patch.UpdateServerAccessorImpl;
-import com.faforever.client.play.GooglePlayServices;
 import com.faforever.client.play.MockPlayServices;
 import com.faforever.client.play.PlayServices;
+import com.faforever.client.play.PlayServicesImpl;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.portcheck.PortCheckService;
@@ -338,7 +338,7 @@ public class ServiceConfig {
     if (environment.containsProperty("faf.testing")) {
       return new MockPlayServices();
     }
-    return new GooglePlayServices();
+    return new PlayServicesImpl();
   }
 
   @Bean

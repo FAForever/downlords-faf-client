@@ -71,6 +71,46 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.faforever.client.stats.domain.Unit.AEON_ACU;
+import static com.faforever.client.stats.domain.Unit.AEON_SACU;
+import static com.faforever.client.stats.domain.Unit.AHWASSA;
+import static com.faforever.client.stats.domain.Unit.ALUMINAR;
+import static com.faforever.client.stats.domain.Unit.ATLANTIS;
+import static com.faforever.client.stats.domain.Unit.C14_STAR_LIFTER;
+import static com.faforever.client.stats.domain.Unit.C6_COURIER;
+import static com.faforever.client.stats.domain.Unit.CHARIOT;
+import static com.faforever.client.stats.domain.Unit.CONTINENTAL;
+import static com.faforever.client.stats.domain.Unit.CORONA;
+import static com.faforever.client.stats.domain.Unit.CYBRAN_ACU;
+import static com.faforever.client.stats.domain.Unit.CYBRAN_SACU;
+import static com.faforever.client.stats.domain.Unit.CZAR;
+import static com.faforever.client.stats.domain.Unit.DRAGON_FLY;
+import static com.faforever.client.stats.domain.Unit.FATBOY;
+import static com.faforever.client.stats.domain.Unit.FIRE_BEETLE;
+import static com.faforever.client.stats.domain.Unit.GALACTIC_COLOSSUS;
+import static com.faforever.client.stats.domain.Unit.GEMINI;
+import static com.faforever.client.stats.domain.Unit.IAZYNE;
+import static com.faforever.client.stats.domain.Unit.MAVOR;
+import static com.faforever.client.stats.domain.Unit.MEGALITH;
+import static com.faforever.client.stats.domain.Unit.MERCY;
+import static com.faforever.client.stats.domain.Unit.MONKEYLORD;
+import static com.faforever.client.stats.domain.Unit.NOVAX_CENTER;
+import static com.faforever.client.stats.domain.Unit.PARAGON;
+import static com.faforever.client.stats.domain.Unit.SALVATION;
+import static com.faforever.client.stats.domain.Unit.SCATHIS;
+import static com.faforever.client.stats.domain.Unit.SERAPHIM_ACU;
+import static com.faforever.client.stats.domain.Unit.SERAPHIM_SACU;
+import static com.faforever.client.stats.domain.Unit.SKYHOOK;
+import static com.faforever.client.stats.domain.Unit.SOUL_RIPPER;
+import static com.faforever.client.stats.domain.Unit.TEMPEST;
+import static com.faforever.client.stats.domain.Unit.UEF_ACU;
+import static com.faforever.client.stats.domain.Unit.UEF_SACU;
+import static com.faforever.client.stats.domain.Unit.UNKNOWN;
+import static com.faforever.client.stats.domain.Unit.VISH;
+import static com.faforever.client.stats.domain.Unit.VISHALA;
+import static com.faforever.client.stats.domain.Unit.WASP;
+import static com.faforever.client.stats.domain.Unit.YOLONA_OSS;
+import static com.faforever.client.stats.domain.Unit.YTHOTHA;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -82,6 +122,12 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String CIVILIAN = "civilian";
   private static final String AI_INDICATOR = "AI: ";
+  private static final Unit[] ACUS = {AEON_ACU, CYBRAN_ACU, UEF_ACU, SERAPHIM_ACU};
+  private static final Unit[] SACUS = {AEON_SACU, CYBRAN_SACU, UEF_SACU, SERAPHIM_SACU};
+  private static final Unit[] TRANSPORTS = {CHARIOT, ALUMINAR, SKYHOOK, DRAGON_FLY, C6_COURIER, C14_STAR_LIFTER, CONTINENTAL, VISH, VISHALA};
+  private static final Unit[] EXPERIMENTALS = {YOLONA_OSS, PARAGON, ATLANTIS, TEMPEST, SCATHIS, MAVOR, CZAR, AHWASSA, YTHOTHA, FATBOY, MONKEYLORD, GALACTIC_COLOSSUS, SOUL_RIPPER, MEGALITH, NOVAX_CENTER};
+  private static final Unit[] ASFS = {CORONA, GEMINI, WASP, IAZYNE};
+
   private final Collection<OnGameStartedListener> onGameLaunchingListeners;
   private final ObservableMap<String, GameTypeBean> gameTypeBeans;
   // It is indeed ugly to keep references in both, a list and a map, however I don't see how I can populate the map
@@ -117,17 +163,21 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   PlayServices playServices;
   @Autowired
   LocalRelayServer localRelayServer;
-
+  @VisibleForTesting
+  RatingMode ratingMode;
+  @VisibleForTesting
+  GameStats gameStats;
   private Process process;
   private BooleanProperty searching1v1;
   private Instant gameStartedTime;
   private ScheduledFuture<?> searchExpansionFuture;
-  private GameStats gameStats;
+  private Map<String, Object> gameOptions;
 
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
     onGameLaunchingListeners = new HashSet<>();
     uidToGameInfoBean = new HashMap<>();
+    gameOptions = new HashMap<>();
     searching1v1 = new SimpleBooleanProperty();
 
     gameInfoBeans = FXCollections.observableArrayList(
@@ -179,7 +229,11 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     return updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
         .thenRun(() -> downloadMapIfNecessary(gameInfoBean.getTechnicalName())
             .thenRun(() -> lobbyServerAccessor.requestJoinGame(gameInfoBean, password)
-                .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL))));
+                .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL))))
+        .exceptionally(throwable -> {
+          logger.warn("Game could not be started", throwable);
+          return null;
+        });
   }
 
   private CompletionStage<Void> downloadMapIfNecessary(String mapName) {
@@ -216,7 +270,8 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
           try {
             Process process = forgedAllianceService.startReplay(path, replayId, gameType);
             onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
-            spawnTerminationListener(process, RatingMode.NONE);
+            this.ratingMode = RatingMode.NONE;
+            spawnTerminationListener(process);
           } catch (IOException e) {
             notifyCantPlayReplay(replayId, e);
           }
@@ -229,10 +284,10 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
     notificationService.addNotification(new ImmediateNotification(
-        i18n.get("replayCouldNotBeStarted.title"),
-        i18n.get("replayCouldNotBeStarted.text", replayId),
-        Severity.ERROR, throwable,
-        singletonList(new Action(i18n.get("report"))))
+            i18n.get("replayCouldNotBeStarted.title"),
+            i18n.get("replayCouldNotBeStarted.text", replayId),
+            Severity.ERROR, throwable,
+            singletonList(new Action(i18n.get("report"))))
     );
   }
 
@@ -242,7 +297,8 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
     lobbyServerAccessor.notifyGameStarted();
 
-    spawnTerminationListener(process, RatingMode.NONE);
+    this.ratingMode = RatingMode.NONE;
+    spawnTerminationListener(process);
   }
 
   @Override
@@ -332,11 +388,13 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     stopSearchRanked1v1();
     List<String> args = fixMalformedArgs(gameLaunchInfo.getArgs());
     try {
+      gameStats = null;
       process = forgedAllianceService.startGame(gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), faction, args, ratingMode);
       onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(gameLaunchInfo.getUid()));
       lobbyServerAccessor.notifyGameStarted();
 
-      spawnTerminationListener(process, ratingMode);
+      this.ratingMode = ratingMode;
+      spawnTerminationListener(process);
     } catch (IOException e) {
       logger.warn("Game could not be started", e);
       notificationService.addNotification(
@@ -361,7 +419,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @VisibleForTesting
-  void spawnTerminationListener(Process process, RatingMode ratingMode) {
+  void spawnTerminationListener(Process process) {
     CompletableFuture.runAsync(() -> {
       try {
         int exitCode = process.waitFor();
@@ -369,19 +427,79 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
         lobbyServerAccessor.notifyGameTerminated();
 
         proxy.close();
-        updatePlayServicesIfApplicable(ratingMode);
       } catch (InterruptedException | IOException e) {
         logger.warn("Error during post-game processing", e);
       }
     }, scheduledExecutorService);
   }
 
-  private void updatePlayServicesIfApplicable(RatingMode ratingMode) throws IOException {
-    if (ratingMode == null || gameStartedTime == null) {
+  @PostConstruct
+  void postConstruct() {
+    lobbyServerAccessor.addOnGameTypeInfoListener(this);
+    lobbyServerAccessor.addOnGameInfoListener(this);
+    localRelayServer.setGameStatsListener(this::onGameStats);
+    localRelayServer.setGameOptionListener(this::onGameOption);
+    localRelayServer.setGameLaunchedListener(aVoid -> {
+      gameStartedTime = Instant.now();
+      logger.debug("Game started at: {}", gameStartedTime);
+    });
+  }
+
+  private void onGameOption(List<Object> option) {
+    gameOptions.put((String) option.get(0), option.get(2));
+  }
+
+  @Override
+  public void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
+    if (!gameTypeInfo.isHost() || !gameTypeInfo.isLive() || gameTypeBeans.containsKey(gameTypeInfo.getName())) {
       return;
     }
 
+    gameTypeBeans.put(gameTypeInfo.getName(), new GameTypeBean(gameTypeInfo));
+  }
+
+  @Override
+  public void onGameInfo(GameInfo gameInfo) {
+    if (GameState.CLOSED.equals(gameInfo.getState())) {
+      gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfo.getUid()));
+      return;
+    }
+
+    if (!uidToGameInfoBean.containsKey(gameInfo.getUid())) {
+      GameInfoBean gameInfoBean = new GameInfoBean(gameInfo);
+
+      gameInfoBeans.add(gameInfoBean);
+      uidToGameInfoBean.put(gameInfo.getUid(), gameInfoBean);
+    } else {
+      uidToGameInfoBean.get(gameInfo.getUid()).updateFromGameInfo(gameInfo);
+    }
+  }
+
+  private void onGameStats(GameStats gameStats) {
+    // CAVEAT: Game stats are received twice; when the player is defeated and when the game ends.
+    if (this.gameStats != null) {
+      return;
+    }
+    this.gameStats = gameStats;
+
     Duration gameDuration = Duration.between(gameStartedTime, Instant.now());
+    logger.debug("Game duration was: {}min {}s",
+        gameDuration.toMinutes(),
+        gameDuration.minusMinutes(gameDuration.toMinutes()).getSeconds()
+    );
+
+    try {
+      updatePlayServicesIfApplicable(ratingMode, gameDuration);
+    } catch (IOException e) {
+      logger.warn("Error during post-game processing", e);
+    }
+  }
+
+  private void updatePlayServicesIfApplicable(RatingMode ratingMode, Duration gameDuration) throws IOException {
+    if (!isApplicableForPlayServices(ratingMode, gameDuration)) {
+      return;
+    }
+
     Duration minDuration = Duration.of(environment.getProperty("playServices.minGameTime", int.class), MILLIS);
     if (gameDuration.compareTo(minDuration) <= 0) {
       logger.debug("Not updating play services since game time was too short ({}s)", gameDuration.getSeconds());
@@ -397,6 +515,14 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     }
   }
 
+  private boolean isApplicableForPlayServices(RatingMode ratingMode, Duration gameDuration) {
+    return ratingMode != null
+        && ratingMode != RatingMode.NONE
+        && gameStartedTime != null
+        && !isCheatsEnabled()
+        && isHumanOnlyMultiplayerGame(gameStats.getArmies());
+  }
+
   private void updatePlayServices(RatingMode ratingMode, GameStats gameStats, Duration gameDuration) throws IOException {
     int numberOfActualPlayers = 0;
     int highScore = 0;
@@ -405,7 +531,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     String currentPlayerName = playerService.getCurrentPlayer().getUsername();
     List<Army> armies = gameStats.getArmies();
     for (Army army : armies) {
-      if (CIVILIAN.equals(army.getName()) || army.getName().contains(AI_INDICATOR)) {
+      if (CIVILIAN.equals(army.getName())) {
         continue;
       }
       numberOfActualPlayers++;
@@ -434,6 +560,19 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
         playServices.ranked1v1GamePlayed();
         break;
     }
+  }
+
+  private boolean isCheatsEnabled() {
+    return Boolean.parseBoolean((String) gameOptions.get("CheatsEnabled"));
+  }
+
+  private boolean isHumanOnlyMultiplayerGame(List<Army> armies) {
+    for (Army army : armies) {
+      if (army.getName().contains(AI_INDICATOR)) {
+        return false;
+      }
+    }
+    return armies.size() > 1;
   }
 
   private static int calculateScore(Army army) {
@@ -466,11 +605,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   private void processCurrentPlayerStats(Army army, RatingMode ratingMode, Duration gameDuration) throws IOException {
-    if (!preferencesService.getPreferences().getConnectedToGooglePlay()) {
-      logger.debug("Not recording to play services since user is not connected");
-      return;
-    }
-
     Map<UnitCategory, SummaryStat> categories = army.getSummaryStats().stream()
         .collect(Collectors.toMap(SummaryStat::getType, Function.identity()));
 
@@ -482,181 +616,48 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     SummaryStat tech2UnitStats = categories.get(UnitCategory.TECH2);
     SummaryStat tech3UnitStats = categories.get(UnitCategory.TECH3);
 
-    Faction faction = null;
-    boolean survived = true;
-    int commanderKills = 0;
-    double acuDamageReceived = 0;
-    int killedExperimentals = 0;
-    int builtExperimentals = 0;
-    int builtSalvations = 0;
-    int builtTransports = 0;
-    int builtYolonaOss = 0;
-    int builtParagons = 0;
-    int builtAtlantis = 0;
-    int builtTempest = 0;
-    int builtScathis = 0;
-    int builtMavors = 0;
-    int asfBuilt = 0;
-    int builtCzars = 0;
-    int builtAhwasshas = 0;
-    int builtYthothas = 0;
-    int builtFatBoys = 0;
-    int builtMonkeyLords = 0;
-    int builtGalacticColossus = 0;
-    int builtSoulRippers = 0;
-    int builtMercies = 0;
-    int builtFireBeetles = 0;
-    int builtSupportCommanders = 0;
-    int builtMegaliths = 0;
+    Map<Unit, UnitStat> unitStatsByUnit = army.getUnitStats().stream()
+        .filter(unitStat -> Unit.fromId(unitStat.getId()) != UNKNOWN)
+        .collect(Collectors.toMap(unitStat -> Unit.fromId(unitStat.getId()), Function.identity()));
 
-    for (UnitStat unitStat : army.getUnitStats()) {
-      switch (Unit.fromId(unitStat.getId())) {
-        case AEON_ACU:
-          if (unitStat.getBuilt() == 1) {
-            faction = Faction.AEON;
-          }
-          break;
+    Faction faction = measure(unitStatsByUnit, UnitStat::getBuildtime, AEON_ACU) > 0 ? Faction.AEON :
+        measure(unitStatsByUnit, UnitStat::getBuildtime, CYBRAN_ACU) > 0 ? Faction.CYBRAN :
+            measure(unitStatsByUnit, UnitStat::getBuildtime, UEF_ACU) > 0 ? Faction.UEF :
+                measure(unitStatsByUnit, UnitStat::getBuildtime, SERAPHIM_ACU) > 0 ? Faction.SERAPHIM : null;
 
-        case CYBRAN_ACU:
-          if (unitStat.getBuilt() == 1) {
-            faction = Faction.CYBRAN;
-          }
-          break;
+    boolean survived = measure(unitStatsByUnit, UnitStat::getLost, AEON_ACU) == 0
+        && measure(unitStatsByUnit, UnitStat::getLost, CYBRAN_ACU) == 0
+        && measure(unitStatsByUnit, UnitStat::getLost, UEF_ACU) == 0
+        && measure(unitStatsByUnit, UnitStat::getLost, SERAPHIM_ACU) == 0;
 
-        case UEF_ACU:
-          if (unitStat.getBuilt() == 1) {
-            faction = Faction.UEF;
-          }
-          break;
+    int commanderKills = (int) measure(unitStatsByUnit, UnitStat::getKilled, ACUS);
+    double acuDamageReceived = measure(unitStatsByUnit, UnitStat::getDamagereceived, ACUS);
+    int builtTransports = (int) measure(unitStatsByUnit, UnitStat::getBuilt, TRANSPORTS);
 
-        case SERAPHIM_ACU:
-          if (unitStat.getBuilt() == 1) {
-            faction = Faction.SERAPHIM;
-          }
-          break;
+    int builtMercies = (int) measure(unitStatsByUnit, UnitStat::getBuilt, MERCY);
+    int builtFireBeetles = (int) measure(unitStatsByUnit, UnitStat::getBuilt, FIRE_BEETLE);
+    int builtSalvations = (int) measure(unitStatsByUnit, UnitStat::getBuilt, SALVATION);
 
-        case AEON_SACU:
-        case CYBRAN_SACU:
-        case UEF_SACU:
-        case SERAPHIM_SACU:
-          builtSupportCommanders += unitStat.getBuilt();
-          break;
+    // Experimentals
+    int builtYolonaOss = (int) measure(unitStatsByUnit, UnitStat::getBuilt, YOLONA_OSS);
+    int builtParagons = (int) measure(unitStatsByUnit, UnitStat::getBuilt, PARAGON);
+    int builtAtlantis = (int) measure(unitStatsByUnit, UnitStat::getBuilt, ATLANTIS);
+    int builtTempest = (int) measure(unitStatsByUnit, UnitStat::getBuilt, TEMPEST);
+    int builtScathis = (int) measure(unitStatsByUnit, UnitStat::getBuilt, SCATHIS);
+    int builtMavors = (int) measure(unitStatsByUnit, UnitStat::getBuilt, MAVOR);
+    int builtCzars = (int) measure(unitStatsByUnit, UnitStat::getBuilt, CZAR);
+    int builtAhwasshas = (int) measure(unitStatsByUnit, UnitStat::getBuilt, AHWASSA);
+    int builtYthothas = (int) measure(unitStatsByUnit, UnitStat::getBuilt, YTHOTHA);
+    int builtFatBoys = (int) measure(unitStatsByUnit, UnitStat::getBuilt, FATBOY);
+    int builtMonkeyLords = (int) measure(unitStatsByUnit, UnitStat::getBuilt, MONKEYLORD);
+    int builtGalacticColossus = (int) measure(unitStatsByUnit, UnitStat::getBuilt, GALACTIC_COLOSSUS);
+    int builtSoulRippers = (int) measure(unitStatsByUnit, UnitStat::getBuilt, SOUL_RIPPER);
+    int builtMegaliths = (int) measure(unitStatsByUnit, UnitStat::getBuilt, MEGALITH);
 
-        case FIRE_BEETLE:
-          builtFireBeetles += unitStat.getBuilt();
-          break;
-
-        case MERCY:
-          builtMercies += unitStat.getBuilt();
-          break;
-
-        case CORONA:
-        case GEMINI:
-        case WASP:
-        case IAZYNE:
-          asfBuilt += unitStat.getBuilt();
-          break;
-
-        case CHARIOT:
-        case ALUMINAR:
-        case SKYHOOK:
-        case DRAGON_FLY:
-        case C6_COURIER:
-        case C14_STAR_LIFTER:
-        case CONTINENTAL:
-        case VISH:
-        case VISHALA:
-          builtTransports += unitStat.getBuilt();
-          break;
-
-        case SALVATION:
-          builtSalvations += unitStat.getBuilt();
-          break;
-
-        case PARAGON:
-          builtParagons += unitStat.getBuilt();
-          builtExperimentals += unitStat.getBuilt();
-          killedExperimentals += unitStat.getKilled();
-          break;
-        case MAVOR:
-          builtMavors += unitStat.getBuilt();
-          builtExperimentals += unitStat.getBuilt();
-          killedExperimentals += unitStat.getKilled();
-          break;
-        case YOLONA_OSS:
-          builtYolonaOss += unitStat.getBuilt();
-          builtExperimentals += unitStat.getBuilt();
-          killedExperimentals += unitStat.getKilled();
-          break;
-        case CZAR:
-          builtCzars += unitStat.getBuilt();
-          builtExperimentals += unitStat.getBuilt();
-          killedExperimentals += unitStat.getKilled();
-          break;
-        case SOUL_RIPPER:
-          builtSoulRippers += unitStat.getBuilt();
-          builtExperimentals += unitStat.getBuilt();
-          killedExperimentals += unitStat.getKilled();
-          break;
-        case AHWASSA:
-          builtAhwasshas += unitStat.getBuilt();
-          builtExperimentals += unitStat.getBuilt();
-          killedExperimentals += unitStat.getKilled();
-          break;
-        case SCATHIS:
-          builtScathis += unitStat.getBuilt();
-          builtExperimentals += unitStat.getBuilt();
-          killedExperimentals += unitStat.getKilled();
-          break;
-        case GALACTIC_COLOSSUS:
-          builtGalacticColossus += unitStat.getBuilt();
-          builtExperimentals += unitStat.getBuilt();
-          killedExperimentals += unitStat.getKilled();
-          break;
-        case MONKEYLORD:
-          builtMonkeyLords += unitStat.getBuilt();
-          builtExperimentals += unitStat.getBuilt();
-          killedExperimentals += unitStat.getKilled();
-          break;
-        case MEGALITH:
-          builtMegaliths += unitStat.getBuilt();
-          builtExperimentals += unitStat.getBuilt();
-          killedExperimentals += unitStat.getKilled();
-          break;
-        case FATBOY:
-          builtFatBoys += unitStat.getBuilt();
-          builtExperimentals += unitStat.getBuilt();
-          killedExperimentals += unitStat.getKilled();
-          break;
-        case YTHOTHA:
-          builtYthothas += unitStat.getBuilt();
-          builtExperimentals += unitStat.getBuilt();
-          killedExperimentals += unitStat.getKilled();
-          break;
-        case TEMPEST:
-          builtTempest += unitStat.getBuilt();
-          builtExperimentals += unitStat.getBuilt();
-          killedExperimentals += unitStat.getKilled();
-          break;
-        case ATLANTIS:
-          builtAtlantis += unitStat.getBuilt();
-          builtExperimentals += unitStat.getBuilt();
-          killedExperimentals += unitStat.getKilled();
-          break;
-        case NOVAX_CENTER:
-          builtExperimentals += unitStat.getBuilt();
-          killedExperimentals += unitStat.getKilled();
-          break;
-      }
-
-      switch (unitStat.getType()) {
-        case ACU:
-          survived &= unitStat.getLost() == 0;
-          commanderKills += unitStat.getKilled();
-          acuDamageReceived += unitStat.getDamagereceived();
-          break;
-      }
-    }
+    int builtExperimentals = (int) measure(unitStatsByUnit, UnitStat::getBuilt, EXPERIMENTALS);
+    int killedExperimentals = (int) measure(unitStatsByUnit, UnitStat::getKilled, EXPERIMENTALS);
+    int builtSupportCommanders = (int) measure(unitStatsByUnit, UnitStat::getBuilt, SACUS);
+    int asfBuilt = (int) measure(unitStatsByUnit, UnitStat::getBuilt, ASFS);
 
     if (survived && ratingMode == RatingMode.RANKED_1V1) {
       playServices.ranked1v1GameWon();
@@ -699,43 +700,14 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
         survived);
   }
 
-  @PostConstruct
-  void postConstruct() {
-    lobbyServerAccessor.addOnGameTypeInfoListener(this);
-    lobbyServerAccessor.addOnGameInfoListener(this);
-    localRelayServer.setGameStatsListener(this::onGameStats);
-    localRelayServer.setGameLaunchedListener(aVoid -> gameStartedTime = Instant.now());
-  }
-
-  @Override
-  public void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
-    if (!gameTypeInfo.isHost() || !gameTypeInfo.isLive() || gameTypeBeans.containsKey(gameTypeInfo.getName())) {
-      return;
+  private double measure(Map<Unit, UnitStat> unitStatsByUnit, Function<UnitStat, Number> function, Unit... units) {
+    double result = 0;
+    for (Unit unit : units) {
+      UnitStat unitStat = unitStatsByUnit.get(unit);
+      if (unitStat != null) {
+        result += function.apply(unitStat).doubleValue();
+      }
     }
-
-    gameTypeBeans.put(gameTypeInfo.getName(), new GameTypeBean(gameTypeInfo));
-  }
-
-  @Override
-  public void onGameInfo(GameInfo gameInfo) {
-    if (GameState.CLOSED.equals(gameInfo.getState())) {
-      gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfo.getUid()));
-      return;
-    }
-
-    if (!uidToGameInfoBean.containsKey(gameInfo.getUid())) {
-      GameInfoBean gameInfoBean = new GameInfoBean(gameInfo);
-
-      gameInfoBeans.add(gameInfoBean);
-      uidToGameInfoBean.put(gameInfo.getUid(), gameInfoBean);
-    } else {
-      uidToGameInfoBean.get(gameInfo.getUid()).updateFromGameInfo(gameInfo);
-    }
-  }
-
-  private void onGameStats(GameStats gameStats) {
-    // CAVEAT: Game stats are received twice; when the player is defeated and when the game ends. So keep the latest
-    // stats which are processed when the player closes the game.
-    this.gameStats = gameStats;
+    return result;
   }
 }

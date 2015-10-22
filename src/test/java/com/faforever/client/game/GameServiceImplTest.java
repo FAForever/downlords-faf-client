@@ -2,7 +2,6 @@ package com.faforever.client.game;
 
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.fa.ForgedAllianceService;
-import com.faforever.client.fa.RatingMode;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
@@ -77,7 +76,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class GameServiceImplTest extends AbstractPlainJavaFxTest {
@@ -124,7 +122,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Captor
   private ArgumentCaptor<Consumer<GameStats>> gameStatsListenerCaptor;
   @Captor
-  private ArgumentCaptor<Consumer<Void>> gameLaunchListenerCaptor;
+  private ArgumentCaptor<Consumer<Void>> gameLaunchedListenerCaptor;
   @Captor
   private ArgumentCaptor<ListChangeListener.Change<? extends GameInfoBean>> gameInfoBeanChangeListenerCaptor;
 
@@ -164,7 +162,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.postConstruct();
 
     verify(localRelayServer).setGameStatsListener(gameStatsListenerCaptor.capture());
-    verify(localRelayServer).setGameLaunchedListener(gameLaunchListenerCaptor.capture());
+    verify(localRelayServer).setGameLaunchedListener(gameLaunchedListenerCaptor.capture());
   }
 
   @Test
@@ -274,7 +272,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     Process process = mock(Process.class);
 
-    instance.spawnTerminationListener(process, RatingMode.NONE);
+    instance.spawnTerminationListener(process);
 
     serviceStateDoneFuture.get(5000, TimeUnit.MILLISECONDS);
 
@@ -397,19 +395,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnGameStatsGoogleNotConnectedDoesNotInteractWithPlayServices() throws Exception {
-    when(preferences.getConnectedToGooglePlay()).thenReturn(false);
-    when(playerService.getCurrentPlayer()).thenReturn(new PlayerInfoBean("junit"));
-
-    Consumer<GameStats> gameStatsListener = gameStatsListenerCaptor.getValue();
-    GameStats gameStats = GameStatsBuilder.create().army(ArmyBuilder.create("junit").get()).get();
-    gameStatsListener.accept(gameStats);
-
-    verifyZeroInteractions(playServices);
-  }
-
-  @Test
   public void testWonWithFaction() throws Exception {
+    instance.ratingMode = GLOBAL;
     for (Faction faction : Faction.values()) {
       verifyWonFaction(faction);
     }
@@ -433,12 +420,12 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
       default:
         throw new IllegalArgumentException("Unmapped faction: " + faction);
     }
-    when(preferences.getConnectedToGooglePlay()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(new PlayerInfoBean("junit"));
     GameStats gameStats = GameStatsBuilder.create()
         .army(ArmyBuilder.create("junit").defaultValues()
-            .unitStat(UnitStatBuilder.create().defaultValues().id(acu).built(1).get())
+            .unitStat(UnitStatBuilder.create().defaultValues().id(acu).built(0).buildTime(1).get())
             .get())
+        .army(ArmyBuilder.create("junit2").defaultValues().get())
         .get();
 
     sendGameStats(gameStats);
@@ -447,13 +434,10 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   private void sendGameStats(GameStats gameStats) throws Exception {
+    instance.gameStats = null;
     Consumer<GameStats> gameStatsListener = gameStatsListenerCaptor.getValue();
 
-    // Stats are sent twice by the game
-    gameStatsListener.accept(gameStats);
-    gameStatsListener.accept(gameStats);
-
-    gameLaunchListenerCaptor.getValue().accept(null);
+    gameLaunchedListenerCaptor.getValue().accept(null);
     // Allow the game time to be different from the game end time
     Thread.sleep(1);
 
@@ -464,22 +448,26 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(playServices).resetBatchUpdate();
 
-    instance.spawnTerminationListener(mock(Process.class), RatingMode.NONE);
+    // Stats are sent twice by the game
+    gameStatsListener.accept(gameStats);
+    gameStatsListener.accept(gameStats);
 
-    statsSubmittedFuture.get(50000, TimeUnit.MILLISECONDS);
+    instance.spawnTerminationListener(mock(Process.class));
+
+    statsSubmittedFuture.get(5000, TimeUnit.MILLISECONDS);
   }
 
   @Test
   public void testOnGameStatsTopPlayerAndSurvived() throws Exception {
-    when(preferences.getConnectedToGooglePlay()).thenReturn(true);
+    instance.ratingMode = GLOBAL;
     when(playerService.getCurrentPlayer()).thenReturn(new PlayerInfoBean("junit"));
 
     GameStats gameStats = GameStatsBuilder.create()
         .army(ArmyBuilder.create("junit")
-            .unitStat(UnitStatBuilder.create().unitType(UnitType.ACU).id(Unit.AEON_ACU).killed(2).lost(0).built(1).damageReceived(200).damageDealt(12000).get())
+            .unitStat(UnitStatBuilder.create().unitType(UnitType.ACU).id(Unit.AEON_ACU).killed(2).lost(0).built(0).buildTime(1).damageReceived(200).damageDealt(12000).get())
             .unitStat(UnitStatBuilder.create().unitType(UnitType.ENGINEER).built(20).get())
             .unitStat(UnitStatBuilder.create().unitType(UnitType.MEDIUM_TANK).damageReceived(100).damageDealt(500).lost(0).killed(1).get())
-            // Experimentals
+                // Experimentals
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.ATLANTIS).damageReceived(100).damageDealt(500).built(1).killed(1).get())
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.AHWASSA).damageReceived(100).damageDealt(500).built(1).killed(1).get())
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.YTHOTHA).damageReceived(100).damageDealt(500).built(1).killed(1).get())
@@ -495,22 +483,22 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.SOUL_RIPPER).built(33).killed(1).get())
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.TEMPEST).built(47).killed(1).get())
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.NOVAX_CENTER).built(49).killed(1).get())
-            // Other game enders
+                // Other game enders
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.SALVATION).built(29).killed(1).get())
-            // ASFs
+                // ASFs
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.CORONA).built(1).killed(1).get())
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.GEMINI).built(2).killed(1).get())
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.WASP).built(4).killed(1).get())
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.IAZYNE).built(8).killed(1).get())
-            // Other units
+                // Other units
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.FIRE_BEETLE).built(7).killed(1).get())
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.MERCY).built(17).killed(1).get())
-            // SACUs
+                // SACUs
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.AEON_SACU).built(37).killed(1).get())
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.CYBRAN_SACU).built(39).killed(1).get())
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.UEF_SACU).built(41).killed(1).get())
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.SERAPHIM_SACU).built(43).killed(1).get())
-            // Transporters
+                // Transporters
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.CHARIOT).built(3).killed(1).get())
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.ALUMINAR).built(7).killed(1).get())
             .unitStat(UnitStatBuilder.create().defaultValues().id(Unit.SKYHOOK).built(9).killed(1).get())
@@ -533,12 +521,12 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
         .army(ArmyBuilder.create("another1").defaultValues().get())
         .army(ArmyBuilder.create("another2").defaultValues().get())
         .army(ArmyBuilder.create("civilian").defaultValues().get())
-        .army(ArmyBuilder.create("Zocky (AI: Hard)").defaultValues().get())
         .get();
 
     sendGameStats(gameStats);
 
     verify(playServices).startBatchUpdate();
+    verify(playServices).customGamePlayed();
     verify(playServices).timePlayed(any(), eq(true));
     verify(playServices).factionPlayed(Faction.AEON, true);
     verify(playServices).killedCommanders(2, true);

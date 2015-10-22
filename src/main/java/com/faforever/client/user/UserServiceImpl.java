@@ -56,13 +56,10 @@ public class UserServiceImpl implements UserService {
           UserServiceImpl.this.email.set(sessionInfo.getEmail());
 
           cloudAccessor.signUpOrLogIn(username, password, uid).thenAccept(s -> {
-            if (preferencesService.getPreferences().getConnectedToGooglePlay()) {
-              playServices.authorize();
-            }
-          }).exceptionally(throwable -> {
-            logger.warn("Login to cloud services failed", throwable);
-            return null;
           });
+        }).exceptionally(throwable -> {
+          logger.warn("Login failed", throwable);
+          return null;
         });
   }
 

@@ -197,9 +197,8 @@ public class ModServiceImpl implements ModService {
 
   @Override
   public CompletableFuture<List<ModInfoBean>> requestMods() {
-    return lobbyServerAccessor.requestMods().thenApply(modInfos -> {
-      return modInfos.stream().map(ModInfoBean::fromModInfo).collect(Collectors.toList());
-    });
+    return lobbyServerAccessor.requestMods()
+        .thenApply(modInfos -> modInfos.stream().map(ModInfoBean::fromModInfo).collect(Collectors.toList()));
   }
 
   @Override

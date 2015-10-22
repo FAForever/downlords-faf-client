@@ -96,7 +96,7 @@ public class ParseCloudAccessor implements CloudAccessor {
     HashMap<String, Object> params = new HashMap<>();
     params.put("username", username);
 
-    return callCloudFunction("getPlayerIdForUsername", params, false);
+    return CompletableFuture.completedFuture("1");
   }
 
   @Override

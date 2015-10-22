@@ -8,13 +8,13 @@ import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.legacy.proxy.ProxyUtils;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.stats.StatisticsService;
-import com.faforever.client.stats.domain.GameStats;
 import com.faforever.client.relay.FaDataInputStream;
 import com.faforever.client.relay.FaDataOutputStream;
 import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.relay.OnConnectionAcceptedListener;
 import com.faforever.client.relay.OnReadyListener;
+import com.faforever.client.stats.StatisticsService;
+import com.faforever.client.stats.domain.GameStats;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.SocketAddressUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -92,6 +92,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   private Socket faSocket;
   private Consumer<GameStats> gameStatsListener;
   private Consumer<Void> gameLaunchedListener;
+  private Consumer<List<Object>> gameOptionListener;
 
   public LocalRelayServerImpl() {
     gson = new GsonBuilder()
@@ -153,6 +154,11 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   @Override
   public void setGameLaunchedListener(Consumer<Void> gameLaunchedListener) {
     this.gameLaunchedListener = gameLaunchedListener;
+  }
+
+  @Override
+  public void setGameOptionListener(Consumer<List<Object>> gameOptionListener) {
+    this.gameOptionListener = gameOptionListener;
   }
 
   @PostConstruct
@@ -294,6 +300,8 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
       handleCreateLobby(new CreateLobbyServerMessage(lobbyMode, gamePort, username, userService.getUid(), 1));
     } else if (lobbyMessage.getAction() == LobbyAction.STATS) {
       handleStats(lobbyMessage);
+    } else if (lobbyMessage.getAction() == LobbyAction.GAME_OPTION) {
+      handleGameOptions(lobbyMessage);
     } else if (gameLaunchedListener != null
         && lobbyMessage.getAction() == LobbyAction.GAME_STATE
         && GAME_STATE_LAUNCHING.equals(lobbyMessage.getChunks().get(0))) {
@@ -301,6 +309,10 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
     }
 
     serverWriter.write(lobbyMessage);
+  }
+
+  private void handleGameOptions(LobbyMessage lobbyMessage) {
+    gameOptionListener.accept(lobbyMessage.getChunks());
   }
 
   private void handleStats(LobbyMessage lobbyMessage) {

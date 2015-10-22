@@ -115,23 +115,6 @@
                       </children>
                     </GridPane>
                     <Separator prefWidth="200.0"/>
-                    <VBox fx:id="notConnectedContainer" alignment="CENTER" spacing="20.0" VBox.vgrow="ALWAYS">
-                      <children>
-                        <Label maxHeight="1.7976931348623157E308" text="%userInfo.googleConnectionRequired"
-                               wrapText="true"/>
-                        <Button fx:id="connectGoogleButton" focusTraversable="false" graphicTextGap="12.0"
-                                mnemonicParsing="false" onAction="#onConnectToGoogleButtonClicked"
-                                text="%userInfo.connectGoogle">
-                          <graphic>
-                            <ImageView fitHeight="36.0" fitWidth="36.0" pickOnBounds="true" preserveRatio="true">
-                              <image>
-                                <Image url="@images/google+.png" />
-                              </image>
-                            </ImageView>
-                          </graphic>
-                        </Button>
-                      </children>
-                    </VBox>
                     <VBox fx:id="achievedAchievementsContainer" maxHeight="1.7976931348623157E308"
                           maxWidth="1.7976931348623157E308" spacing="10.0" VBox.vgrow="ALWAYS"/>
                     <Separator prefWidth="200.0"/>

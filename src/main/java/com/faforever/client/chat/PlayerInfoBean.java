@@ -3,9 +3,11 @@ package com.faforever.client.chat;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.FloatProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleSetProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -30,6 +32,7 @@ public class PlayerInfoBean {
   private final FloatProperty globalRatingMean;
   private final FloatProperty leaderboardRatingDeviation;
   private final FloatProperty leaderboardRatingMean;
+  private final IntegerProperty numberOfGames;
 
   public PlayerInfoBean(PlayerInfo playerInfo) {
     this();
@@ -58,12 +61,25 @@ public class PlayerInfoBean {
     globalRatingMean = new SimpleFloatProperty();
     leaderboardRatingDeviation = new SimpleFloatProperty();
     leaderboardRatingMean = new SimpleFloatProperty();
+    numberOfGames = new SimpleIntegerProperty();
   }
 
   public PlayerInfoBean(String username) {
     this();
 
     this.username.set(username);
+  }
+
+  public int getNumberOfGames() {
+    return numberOfGames.get();
+  }
+
+  public void setNumberOfGames(int numberOfGames) {
+    this.numberOfGames.set(numberOfGames);
+  }
+
+  public IntegerProperty numberOfGamesProperty() {
+    return numberOfGames;
   }
 
   @Override
@@ -252,6 +268,7 @@ public class PlayerInfoBean {
     setGlobalRatingDeviation(playerInfo.getRatingDeviation());
     setLeaderboardRatingDeviation(playerInfo.getLadderRatingDeviation());
     setLeaderboardRatingMean(playerInfo.getLadderRatingMean());
+    setNumberOfGames(playerInfo.getNumberOfGames());
     if (playerInfo.getAvatar() != null) {
       setAvatarUrl(playerInfo.getAvatar().getUrl());
       setAvatarTooltip(playerInfo.getAvatar().getTooltip());

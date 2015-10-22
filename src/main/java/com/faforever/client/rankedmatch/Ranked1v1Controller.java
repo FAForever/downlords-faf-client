@@ -256,6 +256,9 @@ public class Ranked1v1Controller {
       rankingLabel.setText(i18n.get("ranked1v1.rankingFormat", leaderboardEntryBean.getRating()));
       gamesPlayedLabel.setText(String.format("%d", leaderboardEntryBean.getGamesPlayed()));
       winLossRationLabel.setText(i18n.get("percentage", leaderboardEntryBean.getWinLossRatio()));
+    }).exceptionally(throwable -> {
+      logger.warn("Leaderboard entry could not be read for current player: " + currentPlayer.getUsername());
+      return null;
     });
   }
 

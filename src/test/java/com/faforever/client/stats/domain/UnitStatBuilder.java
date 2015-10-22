@@ -18,11 +18,6 @@ public class UnitStatBuilder {
     return this;
   }
 
-  public UnitStatBuilder builtTime(int builtTime) {
-    unitStat.setBuildtime(builtTime);
-    return this;
-  }
-
   public UnitStatBuilder damageDealt(int damageDealt) {
     unitStat.setDamagedealt(damageDealt);
     return this;

@@ -1,8 +1,6 @@
 package com.faforever.client.play;
 
 import com.faforever.client.game.Faction;
-import com.google.api.services.games.model.AchievementDefinition;
-import com.google.api.services.games.model.PlayerAchievement;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -200,6 +198,11 @@ public class MockPlayServices implements PlayServices {
 
   @Override
   public void builtMegaliths(int count, boolean survived) throws IOException {
+
+  }
+
+  @Override
+  public void numberOfGamesPlayed(int numberOfGames) throws IOException {
 
   }
 }

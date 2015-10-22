@@ -1,8 +1,8 @@
 package com.faforever.client.user;
 
 import com.faforever.client.i18n.I18n;
-import com.google.api.services.games.model.AchievementDefinition;
-import com.google.api.services.games.model.PlayerAchievement;
+import com.faforever.client.play.AchievementDefinition;
+import com.faforever.client.play.PlayerAchievement;
 import com.google.common.base.MoreObjects;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -16,11 +16,12 @@ import javafx.scene.layout.GridPane;
 import javax.annotation.Resource;
 import java.util.Locale;
 
-public class AchievementItemController {
+import static com.faforever.client.play.AchievementState.UNLOCKED;
+import static com.faforever.client.play.AchievementType.INCREMENTAL;
+import static com.faforever.client.play.AchievementType.STANDARD;
 
-  private static final String STANDARD = "STANDARD";
-  private static final String UNLOCKED = "UNLOCKED";
-  private static final String INCREMENTAL = "INCREMENTAL";
+
+public class AchievementItemController {
 
   @FXML
   GridPane achievementItemRoot;
@@ -57,14 +58,20 @@ public class AchievementItemController {
   public void setAchievementDefinition(AchievementDefinition achievementDefinition) {
     this.achievementDefinition = achievementDefinition;
 
+    // TODO use proper image
+    String imageUrl = MoreObjects.firstNonNull(
+        achievementDefinition.getRevealedIconUrl(),
+        getClass().getResource("/images/tray_icon.png").toString()
+    );
+
     nameLabel.setText(achievementDefinition.getName());
     descriptionLabel.setText(achievementDefinition.getDescription());
     pointsLabel.setText(String.format(locale, "%d", achievementDefinition.getExperiencePoints()));
-    imageView.setImage(new Image(achievementDefinition.getRevealedIconUrl(), true));
+    imageView.setImage(new Image(imageUrl, true));
     progressLabel.setText(i18n.get("achievement.stepsFormat", 0, achievementDefinition.getTotalSteps()));
     progressBar.setProgress(0);
 
-    if (STANDARD.equals(achievementDefinition.getAchievementType())) {
+    if (STANDARD.equals(achievementDefinition.getType())) {
       progressBar.setVisible(false);
       progressLabel.setVisible(false);
     }
@@ -76,11 +83,16 @@ public class AchievementItemController {
     }
 
     // TODO cache it?
-    if (UNLOCKED.equals(playerAchievement.getAchievementState())) {
-      imageView.setImage(new Image(achievementDefinition.getUnlockedIconUrl(), true));
+    if (UNLOCKED.equals(playerAchievement.getState())) {
+      // TODO use proper image
+      String imageUrl = MoreObjects.firstNonNull(
+          achievementDefinition.getUnlockedIconUrl(),
+          getClass().getResource("/images/tray_icon.png").toString()
+      );
+      imageView.setImage(new Image(imageUrl, true));
     }
 
-    if (INCREMENTAL.equals(achievementDefinition.getAchievementType())) {
+    if (INCREMENTAL.equals(achievementDefinition.getType())) {
       Integer currentSteps = MoreObjects.firstNonNull(playerAchievement.getCurrentSteps(), 0);
       Integer totalSteps = achievementDefinition.getTotalSteps();
       progressBar.setProgress((double) currentSteps / totalSteps);

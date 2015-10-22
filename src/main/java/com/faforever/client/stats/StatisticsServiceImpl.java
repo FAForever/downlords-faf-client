@@ -32,12 +32,15 @@ public class StatisticsServiceImpl implements StatisticsService {
   public GameStats parseStatistics(String xmlString) {
     StringWriter out = new StringWriter();
 
+    // I have no idea why FA produces this string and there would surely be a better way to handle it, but this is easy
+    String fixedXmlString = xmlString.replaceAll("-1\\.#J", "0");
+
     Tidy tidy = new Tidy();
     tidy.setXmlTags(true);
     tidy.setXmlOut(true);
     tidy.setQuiet(true);
     tidy.setShowWarnings(false);
-    tidy.parse(new StringReader(xmlString), out);
+    tidy.parse(new StringReader(fixedXmlString), out);
 
     try {
       return (GameStats) unmarshaller.unmarshal(new StreamSource(new StringReader(out.toString())));

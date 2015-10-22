@@ -9,6 +9,7 @@ import com.faforever.client.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -26,13 +27,15 @@ import static org.mockito.Mockito.verify;
 public class PlayerServiceImplTest {
 
   @Mock
-  LobbyServerAccessor lobbyServerAccessor;
-  @Mock
   UserService userService;
+  @Mock
+  private LobbyServerAccessor lobbyServerAccessor;
   private PlayerServiceImpl instance;
 
   @Before
   public void setUp() throws Exception {
+    MockitoAnnotations.initMocks(this);
+
     instance = new PlayerServiceImpl();
     instance.lobbyServerAccessor = lobbyServerAccessor;
     instance.userService = userService;
