@@ -18,6 +18,8 @@ import java.io.Reader;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.when;
 
@@ -54,16 +56,18 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   @Test
   public void testIsNewer() throws Exception {
     instance.setCurrentVersion(new ComparableVersion("0.4.8-alpha"));
-    startFakeGitHubApiServer();
+    CountDownLatch terminateLatch = new CountDownLatch(1);
+    startFakeGitHubApiServer(terminateLatch);
 
     int port = fafLobbyServerSocket.getLocalPort();
     when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
     when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(3000);
 
     instance.call();
+    terminateLatch.countDown();
   }
 
-  private void startFakeGitHubApiServer() throws IOException {
+  private void startFakeGitHubApiServer(CountDownLatch exitLatch) throws IOException {
     fafLobbyServerSocket = new ServerSocket(0);
 
     WaitForAsyncUtils.async(() -> {
@@ -76,7 +80,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
         outputStreamWriter.write(response);
         outputStreamWriter.flush();
 
-        Thread.sleep(5000);
+        exitLatch.await(5000, TimeUnit.MILLISECONDS);
       } catch (InterruptedException | IOException e) {
         System.out.println("Closing fake GitHub HTTP server: " + e.getMessage());
         throw new RuntimeException(e);
