@@ -94,7 +94,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public List<PlayerAchievement> getPlayerAchievements(int playerId) {
     return restTemplate.exchange(
-        baseUrl + "player/{playerId}/achievements", HttpMethod.GET, null, new ParameterizedTypeReference<ListResult<PlayerAchievement>>() {
+        baseUrl + "players/{playerId}/achievements", HttpMethod.GET, null, new ParameterizedTypeReference<ListResult<PlayerAchievement>>() {
         }, playerId).getBody().getItems();
   }
 
@@ -122,7 +122,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   public List<UpdatedEvent> recordEvents(EventUpdatesRequest eventUpdatesRequest, int playerId) {
-    logger.debug("Updating {} events", eventUpdatesRequest.getUpdates().size());
+    logger.debug("Recording {} events", eventUpdatesRequest.getUpdates().size());
 
     return restTemplate.postForObject(baseUrl + "events/recordMultiple?player_id={playerId}", eventUpdatesRequest,
         EventUpdatesResponse.class, playerId).getUpdatedEvents();

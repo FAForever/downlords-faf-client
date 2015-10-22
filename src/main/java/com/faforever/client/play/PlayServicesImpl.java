@@ -168,6 +168,8 @@ public class PlayServicesImpl implements PlayServices {
 
   @Override
   public void executeBatchUpdate() {
+    logger.debug("Executing batch update");
+
     int updatedAchievements;
     int updatedEvents;
 
