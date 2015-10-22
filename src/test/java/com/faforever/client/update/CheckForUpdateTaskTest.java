@@ -94,12 +94,14 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGetUpdateIsCurrent() throws Exception {
     instance.setCurrentVersion(new ComparableVersion("0.4.8.1-alpha"));
-    startFakeGitHubApiServer();
+    CountDownLatch terminateLatch = new CountDownLatch(1);
+    startFakeGitHubApiServer(terminateLatch);
 
     int port = fafLobbyServerSocket.getLocalPort();
     when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
     when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(3000);
 
     instance.call();
+    terminateLatch.countDown();
   }
 }
