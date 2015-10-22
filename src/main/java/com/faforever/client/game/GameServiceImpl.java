@@ -665,19 +665,19 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     }
 
     playServices.timePlayed(gameDuration, survived);
-    playServices.builtMegaliths(builtMegaliths, survived);
-    playServices.builtCzars(builtCzars, survived);
-    playServices.builtAhwasshas(builtAhwasshas, survived);
-    playServices.builtYthothas(builtYthothas, survived);
-    playServices.builtFatboys(builtFatBoys, survived);
-    playServices.builtMonkeylords(builtMonkeyLords, survived);
-    playServices.builtGalacticColossus(builtGalacticColossus, survived);
-    playServices.builtSoulRippers(builtSoulRippers, survived);
-    playServices.builtMercies(builtMercies, survived);
-    playServices.builtFireBeetles(builtFireBeetles, survived);
-    playServices.builtSupportCommanders(builtSupportCommanders, survived);
-    playServices.builtTempests(builtTempest, survived);
-    playServices.builtAtlantis(builtAtlantis, survived);
+    playServices.builtMegaliths(builtMegaliths);
+    playServices.builtCzars(builtCzars);
+    playServices.builtAhwasshas(builtAhwasshas);
+    playServices.builtYthothas(builtYthothas);
+    playServices.builtFatboys(builtFatBoys);
+    playServices.builtMonkeylords(builtMonkeyLords);
+    playServices.builtGalacticColossus(builtGalacticColossus);
+    playServices.builtSoulRippers(builtSoulRippers);
+    playServices.builtMercies(builtMercies);
+    playServices.builtFireBeetles(builtFireBeetles);
+    playServices.builtSupportCommanders(builtSupportCommanders);
+    playServices.builtTempests(builtTempest);
+    playServices.builtAtlantis(builtAtlantis);
     playServices.builtParagons(builtParagons, survived);
     playServices.builtYolonaOss(builtYolonaOss, survived);
     playServices.builtScathis(builtScathis, survived);

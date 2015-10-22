@@ -1,11 +1,13 @@
 package com.faforever.client.play;
 
+import org.jetbrains.annotations.Nullable;
+
 public class UpdatedAchievement {
 
   private String achievementId;
   private AchievementState currentState;
   private Integer currentSteps;
-  private Boolean newlyUnlocked;
+  private boolean newlyUnlocked;
 
   public String getAchievementId() {
     return achievementId;
@@ -23,19 +25,20 @@ public class UpdatedAchievement {
     this.currentState = currentState;
   }
 
+  @Nullable
   public Integer getCurrentSteps() {
     return currentSteps;
   }
 
-  public void setCurrentSteps(Integer currentSteps) {
+  public void setCurrentSteps(@Nullable Integer currentSteps) {
     this.currentSteps = currentSteps;
   }
 
-  public Boolean getNewlyUnlocked() {
+  public boolean getNewlyUnlocked() {
     return newlyUnlocked;
   }
 
-  public void setNewlyUnlocked(Boolean newlyUnlocked) {
+  public void setNewlyUnlocked(boolean newlyUnlocked) {
     this.newlyUnlocked = newlyUnlocked;
   }
 }

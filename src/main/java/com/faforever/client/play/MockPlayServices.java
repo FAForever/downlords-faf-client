@@ -4,7 +4,6 @@ import com.faforever.client.game.Faction;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -22,32 +21,32 @@ public class MockPlayServices implements PlayServices {
   }
 
   @Override
-  public void executeBatchUpdate() throws IOException {
+  public void executeBatchUpdate() {
 
   }
 
   @Override
-  public void customGamePlayed() throws IOException {
+  public void customGamePlayed() {
 
   }
 
   @Override
-  public void ranked1v1GamePlayed() throws IOException {
+  public void ranked1v1GamePlayed() {
 
   }
 
   @Override
-  public void ranked1v1GameWon() throws IOException {
+  public void ranked1v1GameWon() {
 
   }
 
   @Override
-  public void killedCommanders(int count, boolean survived) throws IOException {
+  public void killedCommanders(int count, boolean survived) {
 
   }
 
   @Override
-  public void acuDamageReceived(double damage, boolean survived) throws IOException {
+  public void acuDamageReceived(double damage, boolean survived) {
 
   }
 
@@ -57,7 +56,7 @@ public class MockPlayServices implements PlayServices {
   }
 
   @Override
-  public void topScoringPlayer(int totalPlayers) throws IOException {
+  public void topScoringPlayer(int totalPlayers) {
 
   }
 
@@ -72,137 +71,137 @@ public class MockPlayServices implements PlayServices {
   }
 
   @Override
-  public void playerRating1v1(int rating) throws IOException {
+  public void playerRating1v1(int rating) {
 
   }
 
   @Override
-  public void playerRatingGlobal(int rating) throws IOException {
+  public void playerRatingGlobal(int rating) {
 
   }
 
   @Override
-  public void wonWithinDuration(Duration duration) throws IOException {
+  public void wonWithinDuration(Duration duration) {
 
   }
 
   @Override
-  public void factionPlayed(Faction faction, boolean survived) throws IOException {
+  public void factionPlayed(Faction faction, boolean survived) {
 
   }
 
   @Override
-  public void unitStats(int airBuilt, int airKilled, int landBuilt, int landKilled, int navalBuilt, int navalKilled, int tech1Built, int tech1Killed, int tech2Built, int tech2Killed, int tech3Built, int tech3Killed, int experimentalsBuilt, int experimentalsKilled, int engineersBuilt, int engineersKilled, boolean survived) throws IOException {
+  public void unitStats(int airBuilt, int airKilled, int landBuilt, int landKilled, int navalBuilt, int navalKilled, int tech1Built, int tech1Killed, int tech2Built, int tech2Killed, int tech3Built, int tech3Killed, int experimentalsBuilt, int experimentalsKilled, int engineersBuilt, int engineersKilled, boolean survived) {
 
   }
 
   @Override
-  public void timePlayed(Duration duration, boolean survived) throws IOException {
+  public void timePlayed(Duration duration, boolean survived) {
 
   }
 
   @Override
-  public void asfBuilt(int count) throws IOException {
+  public void asfBuilt(int count) {
 
   }
 
   @Override
-  public void builtTransports(int count) throws IOException {
+  public void builtTransports(int count) {
 
   }
 
   @Override
-  public void builtParagons(int count, boolean survived) throws IOException {
+  public void builtParagons(int count, boolean survived) {
 
   }
 
   @Override
-  public void builtYolonaOss(int count, boolean survived) throws IOException {
+  public void builtYolonaOss(int count, boolean survived) {
 
   }
 
   @Override
-  public void builtScathis(int count, boolean survived) throws IOException {
+  public void builtScathis(int count, boolean survived) {
 
   }
 
   @Override
-  public void builtSalvations(int count, boolean survived) throws IOException {
+  public void builtSalvations(int count, boolean survived) {
 
   }
 
   @Override
-  public void builtMavors(int count, boolean survived) throws IOException {
+  public void builtMavors(int count, boolean survived) {
 
   }
 
   @Override
-  public void builtAtlantis(int count, boolean survived) throws IOException {
+  public void builtAtlantis(int count) {
 
   }
 
   @Override
-  public void builtTempests(int count, boolean survived) throws IOException {
+  public void builtTempests(int count) {
 
   }
 
   @Override
-  public void builtCzars(int count, boolean survived) throws IOException {
+  public void builtCzars(int count) {
 
   }
 
   @Override
-  public void builtAhwasshas(int count, boolean survived) throws IOException {
+  public void builtAhwasshas(int count) {
 
   }
 
   @Override
-  public void builtYthothas(int count, boolean survived) throws IOException {
+  public void builtYthothas(int count) {
 
   }
 
   @Override
-  public void builtFatboys(int count, boolean survived) throws IOException {
+  public void builtFatboys(int count) {
 
   }
 
   @Override
-  public void builtMonkeylords(int count, boolean survived) throws IOException {
+  public void builtMonkeylords(int count) {
 
   }
 
   @Override
-  public void builtGalacticColossus(int count, boolean survived) throws IOException {
+  public void builtGalacticColossus(int count) {
 
   }
 
   @Override
-  public void builtSoulRippers(int count, boolean survived) throws IOException {
+  public void builtSoulRippers(int count) {
 
   }
 
   @Override
-  public void builtMercies(int count, boolean survived) throws IOException {
+  public void builtMercies(int count) {
 
   }
 
   @Override
-  public void builtFireBeetles(int count, boolean survived) throws IOException {
+  public void builtFireBeetles(int count) {
 
   }
 
   @Override
-  public void builtSupportCommanders(int count, boolean survived) throws IOException {
+  public void builtSupportCommanders(int count) {
 
   }
 
   @Override
-  public void builtMegaliths(int count, boolean survived) throws IOException {
+  public void builtMegaliths(int count) {
 
   }
 
   @Override
-  public void numberOfGamesPlayed(int numberOfGames) throws IOException {
+  public void numberOfGamesPlayed(int numberOfGames) {
 
   }
 }

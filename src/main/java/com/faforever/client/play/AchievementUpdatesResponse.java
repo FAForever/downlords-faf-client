@@ -2,7 +2,7 @@ package com.faforever.client.play;
 
 import java.util.List;
 
-public class AchievementsUpdateResponse {
+public class AchievementUpdatesResponse {
 
   private List<UpdatedAchievement> updatedAchievements;
 
