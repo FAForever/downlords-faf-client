@@ -1,5 +1,7 @@
 package com.faforever.client.config;
 
+import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.api.FafApiAccessorImpl;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.MockChatService;
 import com.faforever.client.chat.PircBotXChatService;
@@ -19,6 +21,7 @@ import com.faforever.client.leaderboard.LegacyLeaderboardParser;
 import com.faforever.client.leaderboard.MockLeaderboardService;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.LobbyServerAccessorImpl;
+import com.faforever.client.legacy.MockFafApiAccessor;
 import com.faforever.client.legacy.MockLobbyServerAccessor;
 import com.faforever.client.legacy.MockModsServerAccessor;
 import com.faforever.client.legacy.MockStatisticsServerAccessor;
@@ -121,6 +124,14 @@ public class ServiceConfig {
       return new MockLobbyServerAccessor();
     }
     return new LobbyServerAccessorImpl();
+  }
+
+  @Bean
+  FafApiAccessor fafApiAccessor() {
+    if (environment.containsProperty("faf.testing")) {
+      return new MockFafApiAccessor();
+    }
+    return new FafApiAccessorImpl();
   }
 
   @Bean
