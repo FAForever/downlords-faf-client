@@ -76,7 +76,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
         outputStreamWriter.write(response);
         outputStreamWriter.flush();
 
-        Thread.sleep(500);
+        Thread.sleep(5000);
       } catch (InterruptedException | IOException e) {
         System.out.println("Closing fake GitHub HTTP server: " + e.getMessage());
         throw new RuntimeException(e);
