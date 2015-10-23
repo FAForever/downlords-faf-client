@@ -316,7 +316,7 @@ public class ProxyImpl implements Proxy {
 
             logger.trace("Received {} bytes from FA for player #{}, forwarding to FAF proxy", datagramPacket.getLength(), playerNumber);
           } catch (SocketException | EOFException e) {
-            logger.info("Proxy socket for player #{} has been closed ({})", e.getMessage());
+            logger.info("Proxy socket for player #{} has been closed ({})", playerNumber, e.getMessage());
             return null;
           }
 

@@ -25,8 +25,10 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -39,8 +41,16 @@ public class MapServiceImpl implements MapService {
     SCMP_034, SCMP_035, SCMP_036, SCMP_037, SCMP_038, SCMP_039, SCMP_040, X1MP_001, X1MP_002, X1MP_003, X1MP_004,
     X1MP_005, X1MP_006, X1MP_007, X1MP_008, X1MP_009, X1MP_010, X1MP_011, X1MP_012, X1MP_014, X1MP_017;
 
+    private static final Map<String, OfficialMap> fromString;
+    static {
+      fromString = new HashMap<>();
+      for (OfficialMap officialMap : values()) {
+        fromString.put(officialMap.name(), officialMap);
+      }
+    }
+
     public static OfficialMap fromMapName(String mapName) {
-      return valueOf(mapName.toUpperCase());
+      return fromString.get(mapName.toUpperCase());
     }
   }
 

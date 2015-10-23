@@ -159,8 +159,8 @@ public class PlayServicesImpl implements PlayServices {
     // FIXME implement as soon as OAuth is available
 //      authorize().get();
     logger.debug("Starting batch update");
-    achievementUpdatesRequest = new AchievementUpdatesRequest();
-    eventUpdatesRequest = new EventUpdatesRequest();
+    achievementUpdatesRequest = new AchievementUpdatesRequest(userService.getUid());
+    eventUpdatesRequest = new EventUpdatesRequest(userService.getUid());
 //    } catch (InterruptedException | ExecutionException e) {
 //      throw new RuntimeException(e);
 //    }
@@ -388,9 +388,7 @@ public class PlayServicesImpl implements PlayServices {
 
   @Override
   public void asfBuilt(int count) {
-    if (count >= 150) {
-      unlockAchievement(ACH_WHAT_A_SWARM);
-    }
+    setStepsAtLeast(ACH_WHAT_A_SWARM, count);
   }
 
   @Override
@@ -514,9 +512,7 @@ public class PlayServicesImpl implements PlayServices {
 
   @Override
   public void builtSupportCommanders(int count) {
-    if (count >= 10) {
-      unlockAchievement(ACH_WHO_NEEDS_SUPPORT);
-    }
+    setStepsAtLeast(ACH_WHO_NEEDS_SUPPORT, count);
   }
 
   @Override

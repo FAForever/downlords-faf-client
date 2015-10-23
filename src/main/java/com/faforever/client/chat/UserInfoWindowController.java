@@ -59,6 +59,8 @@ public class UserInfoWindowController {
   @FXML
   ImageView mostRecentAchievementImageView;
   @FXML
+  Label mostRecentAchievementDescriptionLabel;
+  @FXML
   ProgressIndicator loadingProgressIndicator;
   @FXML
   Label loadingProgressLabel;
@@ -249,6 +251,7 @@ public class UserInfoWindowController {
       mostRecentAchievementPane.setVisible(true);
       AchievementDefinition mostRecentAchievement = achievementDefinitionById.get(mostRecentPlayerAchievement.getAchievementId());
       String mostRecentAchievementName = mostRecentAchievement.getName();
+      String mostRecentAchievementDescription = mostRecentAchievement.getDescription();
 
       // TODO use proper image
       String imageUrl = MoreObjects.firstNonNull(
@@ -258,6 +261,7 @@ public class UserInfoWindowController {
 
       Platform.runLater(() -> {
         mostRecentAchievementNameLabel.setText(mostRecentAchievementName);
+        mostRecentAchievementDescriptionLabel.setText(mostRecentAchievementDescription);
         mostRecentAchievementImageView.setImage(new Image(imageUrl, true));
       });
     }

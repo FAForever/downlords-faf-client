@@ -5,9 +5,11 @@ import java.util.Collection;
 
 public class AchievementUpdatesRequest {
 
+  private int playerId;
   private Collection<AchievementUpdate> updates;
 
-  public AchievementUpdatesRequest() {
+  public AchievementUpdatesRequest(int playerId) {
+    this.playerId = playerId;
     updates = new ArrayList<>();
   }
 

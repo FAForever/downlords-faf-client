@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -75,6 +76,11 @@ public class AchievementItemController {
       progressBar.setVisible(false);
       progressLabel.setVisible(false);
     }
+
+    ColorAdjust colorAdjust = new ColorAdjust();
+    colorAdjust.setSaturation(-1);
+    imageView.setEffect(colorAdjust);
+    imageView.setOpacity(0.5);
   }
 
   public void setPlayerAchievement(PlayerAchievement playerAchievement) {
@@ -90,6 +96,8 @@ public class AchievementItemController {
           getClass().getResource("/images/tray_icon.png").toString()
       );
       imageView.setImage(new Image(imageUrl, true));
+      imageView.setOpacity(1);
+      imageView.setEffect(null);
     }
 
     if (INCREMENTAL.equals(achievementDefinition.getType())) {

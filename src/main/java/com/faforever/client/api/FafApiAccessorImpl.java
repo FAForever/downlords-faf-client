@@ -111,7 +111,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     logger.debug("Updating {} achievements", updates.size());
 
 
-    return restTemplate.postForObject(baseUrl + "achievements/updateMultiple?player_id={playerId}",
+    return restTemplate.postForObject(baseUrl + "achievements/updateMultiple",
         achievementUpdatesRequest, AchievementUpdatesResponse.class, playerId).getUpdatedAchievements();
   }
 
@@ -124,7 +124,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   public List<UpdatedEvent> recordEvents(EventUpdatesRequest eventUpdatesRequest, int playerId) {
     logger.debug("Recording {} events", eventUpdatesRequest.getUpdates().size());
 
-    return restTemplate.postForObject(baseUrl + "events/recordMultiple?player_id={playerId}", eventUpdatesRequest,
+    return restTemplate.postForObject(baseUrl + "events/recordMultiple", eventUpdatesRequest,
         EventUpdatesResponse.class, playerId).getUpdatedEvents();
   }
 

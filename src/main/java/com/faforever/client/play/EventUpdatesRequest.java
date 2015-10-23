@@ -5,9 +5,11 @@ import java.util.Collection;
 
 public class EventUpdatesRequest {
 
+  private int playerId;
   private Collection<EventUpdate> updates;
 
-  public EventUpdatesRequest() {
+  public EventUpdatesRequest(int playerId) {
+    this.playerId = playerId;
     updates = new ArrayList<>();
   }
 
