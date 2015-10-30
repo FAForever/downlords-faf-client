@@ -1,15 +1,16 @@
 package com.faforever.client.play;
 
+import com.google.api.client.util.Key;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
 public class EventUpdatesRequest {
 
-  private int playerId;
+  @Key("updates")
   private Collection<EventUpdate> updates;
 
-  public EventUpdatesRequest(int playerId) {
-    this.playerId = playerId;
+  public EventUpdatesRequest() {
     updates = new ArrayList<>();
   }
 

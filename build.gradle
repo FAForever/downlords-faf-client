@@ -139,5 +139,6 @@ dependencies {
   compile 'net.dongliu:jvcdiff:2.0.2'
   compile 'com.google.oauth-client:google-oauth-client-java7:1.16.0-rc'
   compile 'com.google.http-client:google-http-client-gson:1.20.0'
+  compile 'com.google.apis:google-api-services-games:v1-rev139-1.20.0'
   compile 'com.thoughtworks.xstream:xstream:1.4.8'
 }

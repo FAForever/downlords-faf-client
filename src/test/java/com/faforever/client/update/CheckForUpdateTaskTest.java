@@ -69,7 +69,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
     }
   }
 
-  private void startFakeGitHubApiServer(CountDownLatch exitLatch) throws IOException {
+  private void startFakeGitHubApiServer(CountDownLatch exitLatch) throws Exception {
     fafLobbyServerSocket = new ServerSocket(0);
 
     WaitForAsyncUtils.async(() -> {
@@ -96,8 +96,8 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGetUpdateIsCurrent() throws Exception {
     instance.setCurrentVersion(new ComparableVersion("0.4.8.1-alpha"));
-    CountDownLatch terminateLatch = new CountDownLatch(1);
-    startFakeGitHubApiServer(terminateLatch);
+    CountDownLatch exitLatch = new CountDownLatch(1);
+    startFakeGitHubApiServer(exitLatch);
 
     int port = fafLobbyServerSocket.getLocalPort();
     when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
@@ -106,7 +106,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
     try {
       instance.call();
     } finally {
-      terminateLatch.countDown();
+      exitLatch.countDown();
     }
   }
 }

@@ -1,5 +1,9 @@
 package com.faforever.client.play;
 
+import com.google.api.client.util.Value;
+
 public enum AchievementState {
-  HIDDEN, REVEALED, UNLOCKED
+  @Value HIDDEN,
+  @Value REVEALED,
+  @Value UNLOCKED
 }

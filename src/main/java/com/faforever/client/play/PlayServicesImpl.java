@@ -8,8 +8,8 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.parsecom.CloudAccessor;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.AchievementUtil;
 import com.faforever.client.util.JavaFxUtil;
-import com.google.common.base.MoreObjects;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -23,6 +23,8 @@ import java.lang.invoke.MethodHandles;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class PlayServicesImpl implements PlayServices {
@@ -33,12 +35,6 @@ public class PlayServicesImpl implements PlayServices {
   static final String ACH_VETERAN = "bd12277a-6604-466a-9ee6-af6908573585";
   static final String ACH_ADDICT = "805f268c-88aa-4073-aa2b-ea30700f70d6";
   static final String ACH_FIRST_SUCCESS = "5b7ec244-58c0-40ca-9d68-746b784f0cad";
-  static final String ACH_PRIVATE = "203844f6-b12a-4ca3-9215-fa1d1ae00ff4";
-  static final String ACH_CORPORAL = "ea17c16e-d1b8-4b64-bd3d-3e09e7fc6b4d";
-  static final String ACH_SERGEANT_MAJOR = "e31d04d1-348c-423e-a3aa-d46711538b7b";
-  static final String ACH_GETTING_STARTED = "01487e60-6d44-409b-83d8-f5f77272c364";
-  static final String ACH_GETTING_BETTER = "181ea296-207e-4da0-9ebb-2db66c2c7e0c";
-  static final String ACH_GETTING_PRO = "5e215a3e-cf54-44f4-9f5a-50cd94258efc";
   static final String ACH_HATTRICK = "08629902-8e18-4d92-ad14-c8ecde4a8674";
   static final String ACH_THAT_WAS_CLOSE = "290df67c-eb01-4fe7-9e32-caae1c10442f";
   static final String ACH_TOP_SCORE = "305a8d34-42fd-42f3-ba91-d9f5e437a9a6";
@@ -135,6 +131,8 @@ public class PlayServicesImpl implements PlayServices {
   I18n i18n;
   @Resource
   FafApiAccessor fafApiAccessor;
+  @Resource
+  ExecutorService executorService;
 
   private AchievementUpdatesRequest achievementUpdatesRequest;
   private EventUpdatesRequest eventUpdatesRequest;
@@ -145,25 +143,25 @@ public class PlayServicesImpl implements PlayServices {
   }
 
   @Override
-  @Async
   public CompletableFuture<Void> authorize() {
-    fafApiAccessor.authorize(userService.getUid());
-    loadCurrentPlayerAchievements();
-    return CompletableFuture.completedFuture(null);
+    return CompletableFuture.runAsync(() -> {
+      fafApiAccessor.authorize(userService.getUid());
+      loadCurrentPlayerAchievements();
+    }, executorService);
   }
 
   @Override
   public void startBatchUpdate() {
     BATCH_REQUEST_LOCK.lock();
-//    try {
-    // FIXME implement as soon as OAuth is available
-//      authorize().get();
-    logger.debug("Starting batch update");
-    achievementUpdatesRequest = new AchievementUpdatesRequest(userService.getUid());
-    eventUpdatesRequest = new EventUpdatesRequest(userService.getUid());
-//    } catch (InterruptedException | ExecutionException e) {
-//      throw new RuntimeException(e);
-//    }
+    try {
+      logger.debug("Waiting for authorization");
+      authorize().get();
+      logger.debug("Starting batch update");
+      achievementUpdatesRequest = new AchievementUpdatesRequest();
+      eventUpdatesRequest = new EventUpdatesRequest();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
@@ -267,20 +265,6 @@ public class PlayServicesImpl implements PlayServices {
   @Async
   public CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions() {
     return CompletableFuture.completedFuture(fafApiAccessor.getAchievementDefinitions());
-  }
-
-  @Override
-  public void playerRating1v1(int rating) {
-    setStepsAtLeast(ACH_PRIVATE, rating);
-    setStepsAtLeast(ACH_CORPORAL, rating);
-    setStepsAtLeast(ACH_SERGEANT_MAJOR, rating);
-  }
-
-  @Override
-  public void playerRatingGlobal(int rating) {
-    setStepsAtLeast(ACH_GETTING_STARTED, rating);
-    setStepsAtLeast(ACH_GETTING_BETTER, rating);
-    setStepsAtLeast(ACH_GETTING_PRO, rating);
   }
 
   @Override
@@ -582,11 +566,8 @@ public class PlayServicesImpl implements PlayServices {
           AchievementDefinition achievementDefinition = fafApiAccessor.getAchievementDefinition(updatedAchievement.getAchievementId());
 
           if (updatedAchievement.getNewlyUnlocked()) {
-            // TODO use proper image
-            String imageUrl = MoreObjects.firstNonNull(
-                achievementDefinition.getUnlockedIconUrl(),
-                getClass().getResource("/images/tray_icon.png").toString()
-            );
+            String imageUrl = AchievementUtil.defaultIcon(preferencesService.getPreferences().getTheme(),
+                achievementDefinition.getRevealedIconUrl());
 
             notificationService.addNotification(new TransientNotification(
                 i18n.get("achievement.unlockedTitle"),

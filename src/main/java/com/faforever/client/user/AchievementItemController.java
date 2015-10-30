@@ -3,6 +3,8 @@ package com.faforever.client.user;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.play.AchievementDefinition;
 import com.faforever.client.play.PlayerAchievement;
+import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.util.AchievementUtil;
 import com.google.common.base.MoreObjects;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -43,6 +45,8 @@ public class AchievementItemController {
   Locale locale;
   @Resource
   I18n i18n;
+  @Resource
+  PreferencesService preferencesService;
 
   private AchievementDefinition achievementDefinition;
 
@@ -59,11 +63,8 @@ public class AchievementItemController {
   public void setAchievementDefinition(AchievementDefinition achievementDefinition) {
     this.achievementDefinition = achievementDefinition;
 
-    // TODO use proper image
-    String imageUrl = MoreObjects.firstNonNull(
-        achievementDefinition.getRevealedIconUrl(),
-        getClass().getResource("/images/tray_icon.png").toString()
-    );
+    String imageUrl = AchievementUtil.defaultIcon(preferencesService.getPreferences().getTheme(),
+        achievementDefinition.getRevealedIconUrl());
 
     nameLabel.setText(achievementDefinition.getName());
     descriptionLabel.setText(achievementDefinition.getDescription());
@@ -90,11 +91,8 @@ public class AchievementItemController {
 
     // TODO cache it?
     if (UNLOCKED.equals(playerAchievement.getState())) {
-      // TODO use proper image
-      String imageUrl = MoreObjects.firstNonNull(
-          achievementDefinition.getUnlockedIconUrl(),
-          getClass().getResource("/images/tray_icon.png").toString()
-      );
+      String imageUrl = AchievementUtil.defaultIcon(preferencesService.getPreferences().getTheme(),
+          achievementDefinition.getRevealedIconUrl());
       imageView.setImage(new Image(imageUrl, true));
       imageView.setOpacity(1);
       imageView.setEffect(null);

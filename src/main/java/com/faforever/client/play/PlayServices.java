@@ -36,10 +36,6 @@ public interface PlayServices {
   @Cacheable(CacheNames.ACHIEVEMENTS)
   CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions();
 
-  void playerRating1v1(int rating);
-
-  void playerRatingGlobal(int rating);
-
   void wonWithinDuration(Duration duration);
 
   void factionPlayed(Faction faction, boolean survived);

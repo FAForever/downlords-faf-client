@@ -1,5 +1,6 @@
 package com.faforever.client.api;
 
+import com.faforever.client.fx.HostService;
 import com.faforever.client.play.AchievementDefinition;
 import com.faforever.client.play.AchievementUpdate;
 import com.faforever.client.play.AchievementUpdatesRequest;
@@ -12,22 +13,26 @@ import com.faforever.client.play.UpdatedAchievement;
 import com.faforever.client.play.UpdatedEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
+import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.extensions.java6.auth.oauth2.VerificationCodeReceiver;
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.http.json.JsonHttpContent;
 import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.common.io.Resources;
+import com.google.common.reflect.TypeToken;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -36,9 +41,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Type;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -52,16 +59,21 @@ import java.util.regex.Pattern;
 public class FafApiAccessorImpl implements FafApiAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final Pattern AUTHORIZATION_CODE_PATTERN = Pattern.compile("\\?code=(.*?)&");
+  private static final Pattern AUTHORIZATION_CODE_PATTERN = Pattern.compile("[?&]code=(.*?)[& ]");
+  private static final String HTTP_LOCALHOST = "http://localhost:";
+  private static final String ENCODED_HTTP_LOCALHOST = HTTP_LOCALHOST.replace(":", "%3A").replace("/", "%2F");
+  private static final String SCOPE_READ_ACHIEVEMENTS = "read_achievements";
+  private static final String SCOPE_WRITE_ACHIEVEMENTS = "write_achievements";
+  private static final String SCOPE_WRITE_EVENTS = "write_events";
 
-  @Resource
-  RestTemplate restTemplate;
   @Resource
   JsonFactory jsonFactory;
   @Resource
   PreferencesService preferencesService;
   @Resource
   ExecutorService executorService;
+  @Resource
+  HostService hostServices;
 
   @Value("${api.baseUrl}")
   String baseUrl;
@@ -77,6 +89,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private FileDataStoreFactory dataStoreFactory;
   private NetHttpTransport httpTransport;
   private ServerSocket verificationCodeServerSocket;
+  private Credential credential;
+  private HttpRequestFactory requestFactory;
 
   @PostConstruct
   void postConstruct() throws IOException {
@@ -92,17 +106,22 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public List<PlayerAchievement> getPlayerAchievements(int playerId) {
-    return restTemplate.exchange(
-        baseUrl + "players/{playerId}/achievements", HttpMethod.GET, null, new ParameterizedTypeReference<ListResult<PlayerAchievement>>() {
-        }, playerId).getBody().getItems();
+    logger.debug("Loading achievements for player: {}", playerId);
+    Type returnType = new TypeToken<ListResult<PlayerAchievement>>() {
+    }.getType();
+    return ((ListResult<PlayerAchievement>) sendGetRequest("/players/" + playerId + "/achievements", returnType))
+        .getItems();
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public List<AchievementDefinition> getAchievementDefinitions() {
-    return restTemplate.exchange(
-        baseUrl + "achievements", HttpMethod.GET, null, new ParameterizedTypeReference<ListResult<AchievementDefinition>>() {
-        }).getBody().getItems();
+    logger.debug("Loading achievement definitions");
+    Type returnType = new TypeToken<ListResult<AchievementDefinition>>() {
+    }.getType();
+    return ((ListResult<AchievementDefinition>) sendGetRequest("/achievements", returnType)).getItems();
   }
 
   @Override
@@ -110,22 +129,46 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     Collection<AchievementUpdate> updates = achievementUpdatesRequest.getUpdates();
     logger.debug("Updating {} achievements", updates.size());
 
-
-    return restTemplate.postForObject(baseUrl + "achievements/updateMultiple",
-        achievementUpdatesRequest, AchievementUpdatesResponse.class, playerId).getUpdatedAchievements();
+    return sendPostRequest("/achievements/updateMultiple", achievementUpdatesRequest, AchievementUpdatesResponse.class)
+        .getUpdatedAchievements();
   }
 
   @Override
   public AchievementDefinition getAchievementDefinition(String achievementId) {
-    return restTemplate.getForObject(baseUrl + "achievements/{achievementId}", AchievementDefinition.class, achievementId);
+    logger.debug("Getting definition for achievement {}", achievementId);
+    return sendGetRequest("/achievements/" + achievementId, AchievementDefinition.class);
   }
 
   @Override
   public List<UpdatedEvent> recordEvents(EventUpdatesRequest eventUpdatesRequest, int playerId) {
     logger.debug("Recording {} events", eventUpdatesRequest.getUpdates().size());
+    return sendPostRequest("/events/recordMultiple", eventUpdatesRequest, EventUpdatesResponse.class)
+        .getUpdatedEvents();
+  }
 
-    return restTemplate.postForObject(baseUrl + "events/recordMultiple", eventUpdatesRequest,
-        EventUpdatesResponse.class, playerId).getUpdatedEvents();
+  @SuppressWarnings("unchecked")
+  private <T> T sendGetRequest(String endpointPath, Type type) {
+    try {
+      HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(baseUrl + endpointPath));
+      request.setParser(new JsonObjectParser(jsonFactory));
+      credential.initialize(request);
+      return (T) request.execute().parseAs(type);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private <T> T sendPostRequest(String endpointPath, Object content, Class<T> type) {
+    try {
+      HttpRequest request = requestFactory.buildPostRequest(
+          new GenericUrl(baseUrl + endpointPath),
+          new JsonHttpContent(jsonFactory, content));
+      request.setParser(new JsonObjectParser(jsonFactory));
+      credential.initialize(request);
+      return request.execute().parseAs(type);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
@@ -140,9 +183,50 @@ public class FafApiAccessorImpl implements FafApiAccessor {
           oAuthClientId,
           oAuthAuthorizationServerUrl)
           .setDataStoreFactory(dataStoreFactory)
+          .setScopes(Arrays.asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_WRITE_ACHIEVEMENTS, SCOPE_WRITE_EVENTS))
           .build();
 
-      new AuthorizationCodeInstalledApp(flow, verificationCodeReceiver()).authorize(String.valueOf(playerId));
+      credential = authorize(flow, String.valueOf(playerId));
+      requestFactory = httpTransport.createRequestFactory(credential);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {
+    VerificationCodeReceiver verificationCodeReceiver = verificationCodeReceiver();
+    try {
+      Credential credential = flow.loadCredential(userId);
+      if (credential != null
+          && (credential.getRefreshToken() != null || credential.getExpiresInSeconds() > 60)) {
+        return credential;
+      }
+
+      String redirectUri = verificationCodeReceiver.getRedirectUri();
+      AuthorizationCodeRequestUrl authorizationUrl = flow.newAuthorizationUrl().setRedirectUri(redirectUri);
+
+      // Google's GenericUrl does not escape ":" and "/", but Flask (FAF's OAuth) requires it.
+      String fixedAuthorizationUrl = authorizationUrl.build()
+          .replaceFirst("uri=" + Pattern.quote(HTTP_LOCALHOST), "uri=" + ENCODED_HTTP_LOCALHOST);
+
+      hostServices.showDocument(fixedAuthorizationUrl);
+
+      String code = verificationCodeReceiver.waitForCode();
+      TokenResponse response = flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
+
+      return flow.createAndStoreCredential(response, userId);
+    } finally {
+      verificationCodeReceiver.stop();
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> T sendGetRequest(String endpointPath, Type type) {
+    try {
+      HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(baseUrl + endpointPath));
+      request.setParser(new JsonObjectParser(jsonFactory));
+      credential.initialize(request);
+      return (T) request.execute().parseAs(type);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -162,7 +246,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
         CompletableFuture<Integer> portFuture = startReceiver();
 
         try {
-          return "http://localhost:" + portFuture.get();
+          return HTTP_LOCALHOST + portFuture.get();
         } catch (InterruptedException | ExecutionException e) {
           throw new IOException("Receiver could not be started", e);
         }

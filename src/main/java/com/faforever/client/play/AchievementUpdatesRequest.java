@@ -1,15 +1,16 @@
 package com.faforever.client.play;
 
+import com.google.api.client.util.Key;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
 public class AchievementUpdatesRequest {
 
-  private int playerId;
+  @Key("updates")
   private Collection<AchievementUpdate> updates;
 
-  public AchievementUpdatesRequest(int playerId) {
-    this.playerId = playerId;
+  public AchievementUpdatesRequest() {
     updates = new ArrayList<>();
   }
 
@@ -31,4 +32,5 @@ public class AchievementUpdatesRequest {
   public Collection<AchievementUpdate> getUpdates() {
     return updates;
   }
+
 }

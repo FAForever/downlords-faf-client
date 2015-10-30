@@ -1,5 +1,8 @@
 package com.faforever.client.play;
 
+import com.google.api.client.util.Value;
+
 public enum AchievementType {
-  STANDARD, INCREMENTAL
+  @Value STANDARD,
+  @Value INCREMENTAL
 }

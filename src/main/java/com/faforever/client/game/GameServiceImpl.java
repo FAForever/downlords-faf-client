@@ -446,7 +446,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   private void onGameOption(List<Object> option) {
-    gameOptions.put((String) option.get(0), option.get(2));
+    gameOptions.put((String) option.get(0), option.get(1));
   }
 
   @Override

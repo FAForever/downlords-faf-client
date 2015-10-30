@@ -414,6 +414,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   public void onDisconnected(Exception e) {
     synchronized (chatUserLists) {
       chatUserLists.values().forEach(ObservableMap::clear);
+      chatUserLists.clear();
     }
   }
 

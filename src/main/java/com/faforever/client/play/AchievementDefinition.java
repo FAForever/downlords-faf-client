@@ -1,15 +1,26 @@
 package com.faforever.client.play;
 
+import com.google.api.client.util.Key;
+
 public class AchievementDefinition {
 
+  @Key("description")
   private String description;
+  @Key("experience_points")
   private int experiencePoints;
+  @Key("id")
   private String id;
+  @Key("initial_state")
   private AchievementState initialState;
+  @Key("name")
   private String name;
+  @Key("revealed_icon_url")
   private String revealedIconUrl;
+  @Key("total_steps")
   private Integer totalSteps;
+  @Key("type")
   private AchievementType type;
+  @Key("unlocked_icon_url")
   private String unlockedIconUrl;
 
   public String getDescription() {

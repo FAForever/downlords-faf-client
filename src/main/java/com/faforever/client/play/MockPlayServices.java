@@ -71,16 +71,6 @@ public class MockPlayServices implements PlayServices {
   }
 
   @Override
-  public void playerRating1v1(int rating) {
-
-  }
-
-  @Override
-  public void playerRatingGlobal(int rating) {
-
-  }
-
-  @Override
   public void wonWithinDuration(Duration duration) {
 
   }

@@ -291,41 +291,6 @@ public class PlayServicesImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testPlayerRating1v1() throws Exception {
-    executeInBatchUpdate(() -> instance.playerRating1v1(1234));
-    assertAchievementSetStepsAtLeast(PlayServicesImpl.ACH_PRIVATE, 1234);
-    assertAchievementSetStepsAtLeast(PlayServicesImpl.ACH_CORPORAL, 1234);
-    assertAchievementSetStepsAtLeast(PlayServicesImpl.ACH_SERGEANT_MAJOR, 1234);
-    verifyNoMoreInteractions(fafApiAccessor);
-  }
-
-  private void assertAchievementSetStepsAtLeast(String achievementId, int steps) {
-    Collection<AchievementUpdate> updates = getAchievementUpdates();
-
-    AchievementUpdate achievementUpdate = null;
-    for (AchievementUpdate update : updates) {
-      if (achievementId.equals(update.getAchievementId())) {
-        achievementUpdate = update;
-        break;
-      }
-    }
-    assertNotNull("Achievement " + achievementId + " has not been recorded", achievementUpdate);
-    assertThat(achievementUpdate.getUpdateType(), is(AchievementUpdateType.SET_STEPS_AT_LEAST));
-    assertThat(achievementUpdate.getAchievementId(), is(achievementId));
-    assertThat(achievementUpdate.getSteps(), is(steps));
-    verifyAchievementsUpdated();
-  }
-
-  @Test
-  public void testPlayerRatingGlobalOf499DoesntDoAnything() throws Exception {
-    executeInBatchUpdate(() -> instance.playerRatingGlobal(1234));
-    assertAchievementSetStepsAtLeast(PlayServicesImpl.ACH_GETTING_STARTED, 1234);
-    assertAchievementSetStepsAtLeast(PlayServicesImpl.ACH_GETTING_BETTER, 1234);
-    assertAchievementSetStepsAtLeast(PlayServicesImpl.ACH_GETTING_PRO, 1234);
-    verifyNoMoreInteractions(fafApiAccessor);
-  }
-
-  @Test
   public void testWonWithinDuration15MinutesTooSlow() throws Exception {
     executeInBatchUpdate(() -> instance.wonWithinDuration(Duration.ofMinutes(15)));
     verifyNoMoreInteractions(fafApiAccessor);
@@ -494,20 +459,38 @@ public class PlayServicesImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAsfBuiltLessThan150DoesNotUnlockAchievement() throws Exception {
     executeInBatchUpdate(() -> instance.asfBuilt(149));
+    assertAchievementSetStepsAtLeast(PlayServicesImpl.ACH_WHAT_A_SWARM, 149);
     verifyNoMoreInteractions(fafApiAccessor);
+  }
+
+  private void assertAchievementSetStepsAtLeast(String achievementId, int steps) {
+    Collection<AchievementUpdate> updates = getAchievementUpdates();
+
+    AchievementUpdate achievementUpdate = null;
+    for (AchievementUpdate update : updates) {
+      if (achievementId.equals(update.getAchievementId())) {
+        achievementUpdate = update;
+        break;
+      }
+    }
+    assertNotNull("Achievement " + achievementId + " has not been recorded", achievementUpdate);
+    assertThat(achievementUpdate.getUpdateType(), is(AchievementUpdateType.SET_STEPS_AT_LEAST));
+    assertThat(achievementUpdate.getAchievementId(), is(achievementId));
+    assertThat(achievementUpdate.getSteps(), is(steps));
+    verifyAchievementsUpdated();
   }
 
   @Test
   public void testAsfBuiltMore150UnlocksAchievement() throws Exception {
     executeInBatchUpdate(() -> instance.asfBuilt(150));
-    assertAchievementUnlocked(PlayServicesImpl.ACH_WHAT_A_SWARM);
+    assertAchievementSetStepsAtLeast(PlayServicesImpl.ACH_WHAT_A_SWARM, 150);
     verifyNoMoreInteractions(fafApiAccessor);
   }
 
   @Test
   public void testAsfBuiltMoreThan150UnlocksAchievement() throws Exception {
     executeInBatchUpdate(() -> instance.asfBuilt(151));
-    assertAchievementUnlocked(PlayServicesImpl.ACH_WHAT_A_SWARM);
+    assertAchievementSetStepsAtLeast(PlayServicesImpl.ACH_WHAT_A_SWARM, 151);
     verifyNoMoreInteractions(fafApiAccessor);
   }
 
@@ -729,13 +712,14 @@ public class PlayServicesImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testBuiltSupportCommandersLessThan10DoesNotUnlockAchievement() throws Exception {
     executeInBatchUpdate(() -> instance.builtSupportCommanders(9));
+    assertAchievementSetStepsAtLeast(PlayServicesImpl.ACH_WHO_NEEDS_SUPPORT, 9);
     verifyNoMoreInteractions(fafApiAccessor);
   }
 
   @Test
   public void testBuiltSupportCommandersUnlocksAchievement() throws Exception {
     executeInBatchUpdate(() -> instance.builtSupportCommanders(10));
-    assertAchievementUnlocked(PlayServicesImpl.ACH_WHO_NEEDS_SUPPORT);
+    assertAchievementSetStepsAtLeast(PlayServicesImpl.ACH_WHO_NEEDS_SUPPORT, 10);
     verifyNoMoreInteractions(fafApiAccessor);
   }
 

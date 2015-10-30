@@ -1,8 +1,12 @@
 package com.faforever.client.play;
 
+import com.google.api.client.util.Key;
+
 public class UpdatedEvent {
 
+  @Key("event_id")
   private String eventId;
+  @Key("count")
   private long count;
 
   public String getEventId() {

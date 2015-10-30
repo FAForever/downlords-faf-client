@@ -1,9 +1,12 @@
 package com.faforever.client.play;
 
+import com.google.api.client.util.Key;
+
 import java.util.List;
 
 public class ListResult<T> {
 
+  @Key("items")
   private List<T> items;
 
   public List<T> getItems() {

@@ -10,8 +10,8 @@ import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.user.AchievementItemController;
+import com.faforever.client.util.AchievementUtil;
 import com.faforever.client.util.RatingUtil;
-import com.google.common.base.MoreObjects;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.beans.Observable;
@@ -29,7 +29,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +56,10 @@ public class UserInfoWindowController {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
+  Label unlockedOfTotalLabel;
+  @FXML
+  Label pointsOfTotalLabel;
+  @FXML
   ImageView mostRecentAchievementImageView;
   @FXML
   Label mostRecentAchievementDescriptionLabel;
@@ -65,17 +68,13 @@ public class UserInfoWindowController {
   @FXML
   Label loadingProgressLabel;
   @FXML
-  Label achievementsProgressLabel;
-  @FXML
   Pane mostRecentAchievementPane;
   @FXML
   Label mostRecentAchievementNameLabel;
   @FXML
-  VBox availableAchievementsContainer;
+  Pane availableAchievementsContainer;
   @FXML
-  VBox achievedAchievementsContainer;
-  @FXML
-  Label notUsingClientLabel;
+  Pane achievedAchievementsContainer;
   @FXML
   ToggleButton ratingOver365DaysButton;
   @FXML
@@ -111,6 +110,7 @@ public class UserInfoWindowController {
   private PlayerInfoBean playerInfoBean;
   private Map<String, AchievementItemController> achievementItemById;
   private Map<String, AchievementDefinition> achievementDefinitionById;
+  private int earnedExperiencePoints;
 
   public UserInfoWindowController() {
     achievementItemById = new HashMap<>();
@@ -125,7 +125,6 @@ public class UserInfoWindowController {
     mostRecentAchievementPane.managedProperty().bind(mostRecentAchievementPane.visibleProperty());
     achievedAchievementsContainer.managedProperty().bind(achievedAchievementsContainer.visibleProperty());
     availableAchievementsContainer.managedProperty().bind(availableAchievementsContainer.visibleProperty());
-    notUsingClientLabel.managedProperty().bind(notUsingClientLabel.visibleProperty());
 
     enterAchievementsLoadedState();
 
@@ -151,11 +150,6 @@ public class UserInfoWindowController {
   }
 
   private void displayAvailableAchievements(List<AchievementDefinition> achievementDefinitions) {
-    if (achievementDefinitions == null) {
-      notUsingClientLabel.setVisible(true);
-      return;
-    }
-
     ObservableList<Node> children = availableAchievementsContainer.getChildren();
     Platform.runLater(children::clear);
 
@@ -216,7 +210,6 @@ public class UserInfoWindowController {
     mostRecentAchievementPane.setVisible(false);
     achievedAchievementsContainer.setVisible(false);
     availableAchievementsContainer.setVisible(false);
-    notUsingClientLabel.setVisible(false);
   }
 
   private void updatePlayerAchievements(List<? extends PlayerAchievement> playerAchievements) {
@@ -232,6 +225,7 @@ public class UserInfoWindowController {
 
       if (isUnlocked(playerAchievement)) {
         unlockedAchievements++;
+        earnedExperiencePoints += achievementDefinitionById.get(playerAchievement.getAchievementId()).getExperiencePoints();
         Platform.runLater(() -> children.add(achievementItemController.getRoot()));
         if (mostRecentPlayerAchievement == null
             || playerAchievement.getUpdateTime().compareTo(mostRecentPlayerAchievement.getUpdateTime()) > 0) {
@@ -241,10 +235,6 @@ public class UserInfoWindowController {
     }
 
     int numberOfAchievements = achievementDefinitionById.size();
-    double percentageUnlocked = (double) unlockedAchievements / numberOfAchievements;
-    String achievementProgressText = i18n.get("achievements.unlockedTotal", unlockedAchievements, numberOfAchievements, percentageUnlocked);
-    Platform.runLater(() -> achievementsProgressLabel.setText(achievementProgressText));
-
     if (mostRecentPlayerAchievement == null) {
       mostRecentAchievementPane.setVisible(false);
     } else {
@@ -253,11 +243,8 @@ public class UserInfoWindowController {
       String mostRecentAchievementName = mostRecentAchievement.getName();
       String mostRecentAchievementDescription = mostRecentAchievement.getDescription();
 
-      // TODO use proper image
-      String imageUrl = MoreObjects.firstNonNull(
-          mostRecentAchievement.getUnlockedIconUrl(),
-          getClass().getResource("/images/tray_icon.png").toString()
-      );
+      String imageUrl = AchievementUtil.defaultIcon(preferencesService.getPreferences().getTheme(),
+          mostRecentAchievement.getRevealedIconUrl());
 
       Platform.runLater(() -> {
         mostRecentAchievementNameLabel.setText(mostRecentAchievementName);
@@ -265,6 +252,20 @@ public class UserInfoWindowController {
         mostRecentAchievementImageView.setImage(new Image(imageUrl, true));
       });
     }
+
+    int totalExperiencePoints = 0;
+    for (AchievementDefinition definition : achievementDefinitionById.values()) {
+      totalExperiencePoints += definition.getExperiencePoints();
+    }
+
+    final int finalUnlockedAchievements = unlockedAchievements;
+    final int finalTotalExperiencePoints = totalExperiencePoints;
+    Platform.runLater(() -> {
+      unlockedOfTotalLabel.setText(i18n.get("achievements.unlockedOfTotal",
+          finalUnlockedAchievements, achievementDefinitionById.size()));
+      pointsOfTotalLabel.setText(i18n.get("achievements.earnedOfTotal",
+          earnedExperiencePoints, finalTotalExperiencePoints));
+    });
   }
 
   private static boolean isUnlocked(PlayerAchievement playerAchievement) {

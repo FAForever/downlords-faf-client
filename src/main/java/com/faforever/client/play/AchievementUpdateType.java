@@ -1,3 +1,10 @@
 package com.faforever.client.play;
 
-public enum AchievementUpdateType {REVEAL, INCREMENT, SET_STEPS_AT_LEAST, UNLOCK}
+import com.google.api.client.util.Value;
+
+public enum AchievementUpdateType {
+  @Value REVEAL,
+  @Value INCREMENT,
+  @Value SET_STEPS_AT_LEAST,
+  @Value UNLOCK
+}

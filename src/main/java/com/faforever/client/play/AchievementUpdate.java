@@ -1,9 +1,14 @@
 package com.faforever.client.play;
 
+import com.google.api.client.util.Key;
+
 public class AchievementUpdate {
 
+  @Key("update_type")
   private AchievementUpdateType updateType;
+  @Key("achievement_id")
   private String achievementId;
+  @Key("steps")
   private Integer steps;
 
   public AchievementUpdate(AchievementUpdateType updateType, String achievementId, Integer steps) {

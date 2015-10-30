@@ -4,8 +4,8 @@
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
@@ -16,6 +16,7 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
@@ -76,7 +77,8 @@
         </Tab>
         <Tab closable="false" text="%userInfo.achievements">
           <content>
-            <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER">
+            <ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308"
+                        maxWidth="1.7976931348623157E308">
               <content>
                 <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
                   <children>
@@ -85,7 +87,30 @@
                         <ProgressIndicator fx:id="loadingProgressIndicator" prefHeight="50.0" prefWidth="50.0" />
                       </graphic>
                     </Label>
-                    <Label fx:id="notUsingClientLabel" maxHeight="1.7976931348623157E308" text="%userInfo.notUsingClient" wrapText="true" />
+                    <GridPane VBox.vgrow="NEVER">
+                      <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                        <ColumnConstraints hgrow="SOMETIMES"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                      </columnConstraints>
+                      <rowConstraints>
+                        <RowConstraints prefHeight="30.0" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                      </rowConstraints>
+                      <children>
+                        <Label fx:id="unlockedOfTotalLabel" styleClass="h1" text="0/0" GridPane.columnIndex="1"/>
+                        <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true"
+                                   GridPane.rowSpan="2147483647" GridPane.valignment="TOP"/>
+                        <ComboBox maxWidth="1.7976931348623157E308" GridPane.columnIndex="4" GridPane.rowIndex="1"/>
+                        <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true"
+                                   GridPane.columnIndex="2"/>
+                        <Label fx:id="pointsOfTotalLabel" styleClass="h1" text="0/0" GridPane.columnIndex="3"/>
+                        <Label text="%achievements.sortBy" GridPane.columnIndex="4"/>
+                      </children>
+                    </GridPane>
                     <GridPane fx:id="mostRecentAchievementPane" hgap="20.0" VBox.vgrow="NEVER">
                       <columnConstraints>
                         <ColumnConstraints hgrow="NEVER" />
@@ -103,8 +128,6 @@
                         <ImageView fx:id="mostRecentAchievementImageView" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" GridPane.rowSpan="4" />
                         <Label text="%achievements.mostRecent" GridPane.columnIndex="1" />
                         <Label fx:id="mostRecentAchievementNameLabel" styleClass="achievement-title" text="&lt;Title&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.valignment="TOP" />
-                        <ProgressBar maxWidth="1.7976931348623157E308" progress="0.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="5" />
-                        <Label fx:id="achievementsProgressLabel" text="&lt;Unlocked %&gt;" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                                     <Label fx:id="mostRecentAchievementDescriptionLabel" text="&lt;Description&gt;" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.valignment="TOP" />
                       </children>
                     </GridPane>
@@ -114,20 +137,26 @@
                                     <Label styleClass="h1" text="%achievements.unlocked" />
                                     <Separator HBox.hgrow="ALWAYS" />
                                  </children>
+                                <VBox.margin>
+                                  <Insets top="20.0"/>
+                                </VBox.margin>
                               </HBox>
-                    <VBox fx:id="achievedAchievementsContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0" VBox.vgrow="ALWAYS" />
+                    <FlowPane fx:id="achievedAchievementsContainer" hgap="10.0" vgap="10.0"/>
                               <HBox alignment="CENTER" spacing="10.0">
                                  <children>
                                     <Separator HBox.hgrow="ALWAYS" />
                                     <Label styleClass="h1" text="%achievements.open" />
                                     <Separator HBox.hgrow="ALWAYS" />
                                  </children>
+                                <VBox.margin>
+                                  <Insets top="20.0"/>
+                                </VBox.margin>
                               </HBox>
-                    <VBox fx:id="availableAchievementsContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0" VBox.vgrow="ALWAYS">
+                    <FlowPane fx:id="availableAchievementsContainer" hgap="10.0" vgap="10.0">
                       <VBox.margin>
-                        <Insets />
+                        <Insets/>
                       </VBox.margin>
-                    </VBox>
+                    </FlowPane>
                   </children>
                   <padding>
                     <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
@@ -148,7 +177,8 @@
         </ImageView>
       </graphic>
     </Button>
-    <ImageView fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" GridPane.rowSpan="2" />
+    <ImageView fx:id="avatarImageView" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true"
+               GridPane.rowSpan="2"/>
   </children>
   <padding>
     <Insets bottom="5.0" left="5.0" right="5.0" top="32.0" />

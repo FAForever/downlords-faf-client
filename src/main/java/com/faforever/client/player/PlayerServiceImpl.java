@@ -9,7 +9,6 @@ import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.play.PlayServices;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
-import com.faforever.client.util.RatingUtil;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -161,12 +160,10 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     return CompletableFuture.runAsync(() -> {
       try {
         playServices.startBatchUpdate();
-        playServices.playerRating1v1(RatingUtil.getLeaderboardRating(playerInfoBean));
-        playServices.playerRatingGlobal(RatingUtil.getGlobalRating(playerInfoBean));
         playServices.numberOfGamesPlayed(playerInfoBean.getNumberOfGames());
         playServices.executeBatchUpdate();
       } catch (Exception e) {
-        logger.warn("Player rating could not be updated", e);
+        logger.warn("Achievements could not be updated", e);
       } finally {
         playServices.resetBatchUpdate();
       }
