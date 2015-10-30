@@ -146,31 +146,6 @@ public class FafApiAccessorImpl implements FafApiAccessor {
         .getUpdatedEvents();
   }
 
-  @SuppressWarnings("unchecked")
-  private <T> T sendGetRequest(String endpointPath, Type type) {
-    try {
-      HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(baseUrl + endpointPath));
-      request.setParser(new JsonObjectParser(jsonFactory));
-      credential.initialize(request);
-      return (T) request.execute().parseAs(type);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private <T> T sendPostRequest(String endpointPath, Object content, Class<T> type) {
-    try {
-      HttpRequest request = requestFactory.buildPostRequest(
-          new GenericUrl(baseUrl + endpointPath),
-          new JsonHttpContent(jsonFactory, content));
-      request.setParser(new JsonObjectParser(jsonFactory));
-      credential.initialize(request);
-      return request.execute().parseAs(type);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   @Override
   public void authorize(int playerId) {
     try {
@@ -217,18 +192,6 @@ public class FafApiAccessorImpl implements FafApiAccessor {
       return flow.createAndStoreCredential(response, userId);
     } finally {
       verificationCodeReceiver.stop();
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  private <T> T sendGetRequest(String endpointPath, Type type) {
-    try {
-      HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(baseUrl + endpointPath));
-      request.setParser(new JsonObjectParser(jsonFactory));
-      credential.initialize(request);
-      return (T) request.execute().parseAs(type);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
   }
 
@@ -297,5 +260,30 @@ public class FafApiAccessorImpl implements FafApiAccessor {
         return portFuture;
       }
     };
+  }
+
+  private <T> T sendPostRequest(String endpointPath, Object content, Class<T> type) {
+    try {
+      HttpRequest request = requestFactory.buildPostRequest(
+          new GenericUrl(baseUrl + endpointPath),
+          new JsonHttpContent(jsonFactory, content));
+      request.setParser(new JsonObjectParser(jsonFactory));
+      credential.initialize(request);
+      return request.execute().parseAs(type);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> T sendGetRequest(String endpointPath, Type type) {
+    try {
+      HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(baseUrl + endpointPath));
+      request.setParser(new JsonObjectParser(jsonFactory));
+      credential.initialize(request);
+      return (T) request.execute().parseAs(type);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
