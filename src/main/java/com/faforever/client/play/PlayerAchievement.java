@@ -11,7 +11,7 @@ public class PlayerAchievement {
   @Key("achievement_id")
   private String achievementId;
   @Key("current_steps")
-  private int currentSteps;
+  private Integer currentSteps;
   @Key("create_time")
   private long createTime;
   @Key("update_time")
