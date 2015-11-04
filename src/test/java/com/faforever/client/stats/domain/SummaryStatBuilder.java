@@ -4,13 +4,8 @@ public final class SummaryStatBuilder {
 
   private SummaryStat summaryStat;
 
-  private SummaryStatBuilder() {
-    summaryStat = new SummaryStat();
-  }
-
-  public SummaryStatBuilder type(UnitCategory type) {
-    summaryStat.setType(type);
-    return this;
+  private SummaryStatBuilder(UnitCategory type) {
+    summaryStat = new SummaryStat(type);
   }
 
   public SummaryStatBuilder built(int built) {
@@ -27,7 +22,7 @@ public final class SummaryStatBuilder {
     return summaryStat;
   }
 
-  public static SummaryStatBuilder create() {
-    return new SummaryStatBuilder();
+  public static SummaryStatBuilder create(UnitCategory type) {
+    return new SummaryStatBuilder(type);
   }
 }

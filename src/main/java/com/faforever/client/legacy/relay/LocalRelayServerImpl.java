@@ -45,6 +45,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -52,6 +53,7 @@ import java.util.function.Consumer;
 
 import static com.faforever.client.legacy.relay.LobbyAction.AUTHENTICATE;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 
 public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyInitializedListener {
@@ -317,7 +319,10 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
 
   private void handleStats(LobbyMessage lobbyMessage) {
     try {
-      gameStatsListener.accept(statisticsService.parseStatistics((String) lobbyMessage.getChunks().get(0)));
+      String xmlString = (String) lobbyMessage.getChunks().get(0);
+      Files.write(preferencesService.getCacheDirectory().resolve("gamestats.xml"), xmlString.getBytes(UTF_8));
+
+      gameStatsListener.accept(statisticsService.parseStatistics(xmlString));
     } catch (Exception e) {
       logger.error("Error while handling game stats", e);
     }

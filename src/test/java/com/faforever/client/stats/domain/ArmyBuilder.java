@@ -34,13 +34,13 @@ public class ArmyBuilder {
   public ArmyBuilder defaultValues() {
     return massStat(EconomyStatBuilder.create().get())
         .energyStat(EconomyStatBuilder.create().get())
-        .summaryStat(SummaryStatBuilder.create().type(AIR).built(0).killed(0).get())
-        .summaryStat(SummaryStatBuilder.create().type(LAND).built(0).killed(0).get())
-        .summaryStat(SummaryStatBuilder.create().type(NAVAL).built(0).killed(0).get())
-        .summaryStat(SummaryStatBuilder.create().type(ENGINEER).built(0).killed(0).get())
-        .summaryStat(SummaryStatBuilder.create().type(TECH1).built(0).killed(0).get())
-        .summaryStat(SummaryStatBuilder.create().type(TECH2).built(0).killed(0).get())
-        .summaryStat(SummaryStatBuilder.create().type(TECH3).built(0).killed(0).get());
+        .summaryStat(SummaryStatBuilder.create(AIR).built(0).killed(0).get())
+        .summaryStat(SummaryStatBuilder.create(LAND).built(0).killed(0).get())
+        .summaryStat(SummaryStatBuilder.create(NAVAL).built(0).killed(0).get())
+        .summaryStat(SummaryStatBuilder.create(ENGINEER).built(0).killed(0).get())
+        .summaryStat(SummaryStatBuilder.create(TECH1).built(0).killed(0).get())
+        .summaryStat(SummaryStatBuilder.create(TECH2).built(0).killed(0).get())
+        .summaryStat(SummaryStatBuilder.create(TECH3).built(0).killed(0).get());
   }
 
   public ArmyBuilder summaryStat(SummaryStat summaryStat) {

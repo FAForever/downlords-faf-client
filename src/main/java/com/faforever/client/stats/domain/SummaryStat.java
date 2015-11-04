@@ -16,6 +16,11 @@ public class SummaryStat {
   private int built;
   @XmlAttribute
   private int killed;
+  private int lost;
+
+  public SummaryStat(UnitCategory type) {
+    this.type = type;
+  }
 
   public UnitCategory getType() {
     return type;
@@ -59,5 +64,13 @@ public class SummaryStat {
     }
     SummaryStat that = (SummaryStat) o;
     return type == that.type;
+  }
+
+  public void addLost(int lost) {
+    this.lost += lost;
+  }
+
+  public int getLost() {
+    return lost;
   }
 }

@@ -130,4 +130,12 @@ public class UnitStat {
   public void setBuildtime(double buildtime) {
     this.buildtime = buildtime;
   }
+
+  /**
+   * The XML's "built" actually means "survived", this method adds "lost" and "built" in order to get the real "built"
+   * count.
+   */
+  public int getRealBuilt() {
+    return lost + built;
+  }
 }

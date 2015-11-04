@@ -73,6 +73,9 @@ import java.util.stream.Collectors;
 
 import static com.faforever.client.stats.domain.Unit.AEON_ACU;
 import static com.faforever.client.stats.domain.Unit.AEON_SACU;
+import static com.faforever.client.stats.domain.Unit.AEON_T1_ENGINEER;
+import static com.faforever.client.stats.domain.Unit.AEON_T2_ENGINEER;
+import static com.faforever.client.stats.domain.Unit.AEON_T3_ENGINEER;
 import static com.faforever.client.stats.domain.Unit.AHWASSA;
 import static com.faforever.client.stats.domain.Unit.ALUMINAR;
 import static com.faforever.client.stats.domain.Unit.ATLANTIS;
@@ -83,6 +86,9 @@ import static com.faforever.client.stats.domain.Unit.CONTINENTAL;
 import static com.faforever.client.stats.domain.Unit.CORONA;
 import static com.faforever.client.stats.domain.Unit.CYBRAN_ACU;
 import static com.faforever.client.stats.domain.Unit.CYBRAN_SACU;
+import static com.faforever.client.stats.domain.Unit.CYBRAN_T1_ENGINEER;
+import static com.faforever.client.stats.domain.Unit.CYBRAN_T2_ENGINEER;
+import static com.faforever.client.stats.domain.Unit.CYBRAN_T3_ENGINEER;
 import static com.faforever.client.stats.domain.Unit.CZAR;
 import static com.faforever.client.stats.domain.Unit.DRAGON_FLY;
 import static com.faforever.client.stats.domain.Unit.FATBOY;
@@ -100,11 +106,18 @@ import static com.faforever.client.stats.domain.Unit.SALVATION;
 import static com.faforever.client.stats.domain.Unit.SCATHIS;
 import static com.faforever.client.stats.domain.Unit.SERAPHIM_ACU;
 import static com.faforever.client.stats.domain.Unit.SERAPHIM_SACU;
+import static com.faforever.client.stats.domain.Unit.SERAPHIM_T1_ENGINEER;
+import static com.faforever.client.stats.domain.Unit.SERAPHIM_T2_ENGINEER;
+import static com.faforever.client.stats.domain.Unit.SERAPHIM_T3_ENGINEER;
 import static com.faforever.client.stats.domain.Unit.SKYHOOK;
 import static com.faforever.client.stats.domain.Unit.SOUL_RIPPER;
 import static com.faforever.client.stats.domain.Unit.TEMPEST;
 import static com.faforever.client.stats.domain.Unit.UEF_ACU;
 import static com.faforever.client.stats.domain.Unit.UEF_SACU;
+import static com.faforever.client.stats.domain.Unit.UEF_T1_ENGINEER;
+import static com.faforever.client.stats.domain.Unit.UEF_T2_ENGINEER;
+import static com.faforever.client.stats.domain.Unit.UEF_T2_FIELD_ENGINEER;
+import static com.faforever.client.stats.domain.Unit.UEF_T3_ENGINEER;
 import static com.faforever.client.stats.domain.Unit.UNKNOWN;
 import static com.faforever.client.stats.domain.Unit.VISH;
 import static com.faforever.client.stats.domain.Unit.VISHALA;
@@ -127,6 +140,8 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   private static final Unit[] TRANSPORTS = {CHARIOT, ALUMINAR, SKYHOOK, DRAGON_FLY, C6_COURIER, C14_STAR_LIFTER, CONTINENTAL, VISH, VISHALA};
   private static final Unit[] EXPERIMENTALS = {YOLONA_OSS, PARAGON, ATLANTIS, TEMPEST, SCATHIS, MAVOR, CZAR, AHWASSA, YTHOTHA, FATBOY, MONKEYLORD, GALACTIC_COLOSSUS, SOUL_RIPPER, MEGALITH, NOVAX_CENTER};
   private static final Unit[] ASFS = {CORONA, GEMINI, WASP, IAZYNE};
+  private static final Unit[] ENGINEERS = {AEON_T1_ENGINEER, AEON_T2_ENGINEER, AEON_T3_ENGINEER, CYBRAN_T1_ENGINEER, CYBRAN_T2_ENGINEER, CYBRAN_T3_ENGINEER, UEF_T1_ENGINEER,
+      UEF_T2_ENGINEER, UEF_T2_FIELD_ENGINEER, UEF_T3_ENGINEER, SERAPHIM_T1_ENGINEER, SERAPHIM_T2_ENGINEER, SERAPHIM_T3_ENGINEER};
 
   private final Collection<OnGameStartedListener> onGameLaunchingListeners;
   private final ObservableMap<String, GameTypeBean> gameTypeBeans;
@@ -388,7 +403,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     stopSearchRanked1v1();
     List<String> args = fixMalformedArgs(gameLaunchInfo.getArgs());
     try {
-      gameStats = null;
       process = forgedAllianceService.startGame(gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), faction, args, ratingMode);
       onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(gameLaunchInfo.getUid()));
       lobbyServerAccessor.notifyGameStarted();
@@ -440,6 +454,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     localRelayServer.setGameStatsListener(this::onGameStats);
     localRelayServer.setGameOptionListener(this::onGameOption);
     localRelayServer.setGameLaunchedListener(aVoid -> {
+      gameStats = null;
       gameStartedTime = Instant.now();
       logger.debug("Game started at: {}", gameStartedTime);
     });
@@ -477,7 +492,9 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   private void onGameStats(GameStats gameStats) {
     // CAVEAT: Game stats are received twice; when the player is defeated and when the game ends.
+    logger.debug("Received game stats");
     if (this.gameStats != null) {
+      logger.debug("Ignoring game stats since they've already been received");
       return;
     }
     this.gameStats = gameStats;
@@ -616,9 +633,27 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     SummaryStat tech2UnitStats = categories.get(UnitCategory.TECH2);
     SummaryStat tech3UnitStats = categories.get(UnitCategory.TECH3);
 
+    // Since the summary stats send by FA miss the very important "lost" value, add it manually
+    for (UnitStat unitStat : army.getUnitStats()) {
+      switch (unitStat.getId().charAt(2)) {
+        case 'a':
+          airUnitStats.addLost(unitStat.getLost());
+          break;
+        case 'l':
+          landUnitStats.addLost(unitStat.getLost());
+          break;
+        case 's':
+          navalUnitStats.addLost(unitStat.getLost());
+          break;
+      }
+    }
+
     Map<Unit, UnitStat> unitStatsByUnit = army.getUnitStats().stream()
         .filter(unitStat -> Unit.fromId(unitStat.getId()) != UNKNOWN)
         .collect(Collectors.toMap(unitStat -> Unit.fromId(unitStat.getId()), Function.identity()));
+
+    // Since the summary stats send by FA miss the very important "lost" value, add it manually
+    engineerStats.addLost((int) measure(unitStatsByUnit, UnitStat::getLost, ENGINEERS));
 
     Faction faction = measure(unitStatsByUnit, UnitStat::getBuildtime, AEON_ACU) > 0 ? Faction.AEON :
         measure(unitStatsByUnit, UnitStat::getBuildtime, CYBRAN_ACU) > 0 ? Faction.CYBRAN :
@@ -632,32 +667,32 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
     int commanderKills = (int) measure(unitStatsByUnit, UnitStat::getKilled, ACUS);
     double acuDamageReceived = measure(unitStatsByUnit, UnitStat::getDamagereceived, ACUS);
-    int builtTransports = (int) measure(unitStatsByUnit, UnitStat::getBuilt, TRANSPORTS);
+    int builtTransports = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, TRANSPORTS);
 
-    int builtMercies = (int) measure(unitStatsByUnit, UnitStat::getBuilt, MERCY);
-    int builtFireBeetles = (int) measure(unitStatsByUnit, UnitStat::getBuilt, FIRE_BEETLE);
-    int builtSalvations = (int) measure(unitStatsByUnit, UnitStat::getBuilt, SALVATION);
+    int builtMercies = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, MERCY);
+    int builtFireBeetles = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, FIRE_BEETLE);
+    int builtSalvations = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, SALVATION);
 
     // Experimentals
-    int builtYolonaOss = (int) measure(unitStatsByUnit, UnitStat::getBuilt, YOLONA_OSS);
-    int builtParagons = (int) measure(unitStatsByUnit, UnitStat::getBuilt, PARAGON);
-    int builtAtlantis = (int) measure(unitStatsByUnit, UnitStat::getBuilt, ATLANTIS);
-    int builtTempest = (int) measure(unitStatsByUnit, UnitStat::getBuilt, TEMPEST);
-    int builtScathis = (int) measure(unitStatsByUnit, UnitStat::getBuilt, SCATHIS);
-    int builtMavors = (int) measure(unitStatsByUnit, UnitStat::getBuilt, MAVOR);
-    int builtCzars = (int) measure(unitStatsByUnit, UnitStat::getBuilt, CZAR);
-    int builtAhwasshas = (int) measure(unitStatsByUnit, UnitStat::getBuilt, AHWASSA);
-    int builtYthothas = (int) measure(unitStatsByUnit, UnitStat::getBuilt, YTHOTHA);
-    int builtFatBoys = (int) measure(unitStatsByUnit, UnitStat::getBuilt, FATBOY);
-    int builtMonkeyLords = (int) measure(unitStatsByUnit, UnitStat::getBuilt, MONKEYLORD);
-    int builtGalacticColossus = (int) measure(unitStatsByUnit, UnitStat::getBuilt, GALACTIC_COLOSSUS);
-    int builtSoulRippers = (int) measure(unitStatsByUnit, UnitStat::getBuilt, SOUL_RIPPER);
-    int builtMegaliths = (int) measure(unitStatsByUnit, UnitStat::getBuilt, MEGALITH);
+    int builtYolonaOss = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, YOLONA_OSS);
+    int builtParagons = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, PARAGON);
+    int builtAtlantis = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, ATLANTIS);
+    int builtTempest = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, TEMPEST);
+    int builtScathis = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, SCATHIS);
+    int builtMavors = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, MAVOR);
+    int builtCzars = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, CZAR);
+    int builtAhwasshas = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, AHWASSA);
+    int builtYthothas = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, YTHOTHA);
+    int builtFatBoys = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, FATBOY);
+    int builtMonkeyLords = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, MONKEYLORD);
+    int builtGalacticColossus = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, GALACTIC_COLOSSUS);
+    int builtSoulRippers = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, SOUL_RIPPER);
+    int builtMegaliths = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, MEGALITH);
 
-    int builtExperimentals = (int) measure(unitStatsByUnit, UnitStat::getBuilt, EXPERIMENTALS);
+    int builtExperimentals = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, EXPERIMENTALS);
     int killedExperimentals = (int) measure(unitStatsByUnit, UnitStat::getKilled, EXPERIMENTALS);
-    int builtSupportCommanders = (int) measure(unitStatsByUnit, UnitStat::getBuilt, SACUS);
-    int asfBuilt = (int) measure(unitStatsByUnit, UnitStat::getBuilt, ASFS);
+    int builtSupportCommanders = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, SACUS);
+    int asfBuilt = (int) measure(unitStatsByUnit, UnitStat::getRealBuilt, ASFS);
 
     if (survived && ratingMode == RatingMode.RANKED_1V1) {
       playServices.ranked1v1GameWon();
