@@ -4,6 +4,8 @@ import com.faforever.client.preferences.PreferencesService;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.Property;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -25,6 +27,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.Callable;
 
 /**
  * Utility class to fix some annoying JavaFX shortcomings.
@@ -168,4 +171,18 @@ public class JavaFxUtil {
     return isVisibleRecursively(parent);
   }
 
+  public static <T> void bindOnApplicationThread(Property<T> property, Callable<T> function, ObservableValue<?>... dependencies) {
+    Runnable updateFunction = () -> Platform.runLater(() -> {
+      try {
+        property.setValue(function.call());
+      } catch (Exception e) {
+        logger.warn("Error while updating bound value", e);
+      }
+    });
+
+    updateFunction.run();
+    for (ObservableValue<?> dependency : dependencies) {
+      dependency.addListener(observable -> updateFunction.run());
+    }
+  }
 }
