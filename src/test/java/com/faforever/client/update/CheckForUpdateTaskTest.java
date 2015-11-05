@@ -8,6 +8,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -15,14 +17,18 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 
 import static org.mockito.Mockito.when;
 
 public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
 
@@ -55,24 +61,22 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   @Test
   public void testIsNewer() throws Exception {
     instance.setCurrentVersion(new ComparableVersion("0.4.8-alpha"));
-    CountDownLatch terminateLatch = new CountDownLatch(1);
-    startFakeGitHubApiServer();
 
+    CountDownLatch exitLatch = new CountDownLatch(1);
+    Future<Void> serverFuture = startFakeGitHubApiServer(exitLatch);
     int port = fafLobbyServerSocket.getLocalPort();
     when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
     when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(3000);
 
-    try {
-      instance.call();
-    } finally {
-      terminateLatch.countDown();
-    }
+    instance.call();
+    exitLatch.countDown();
+    serverFuture.get();
   }
 
-  private void startFakeGitHubApiServer() throws Exception {
+  private Future<Void> startFakeGitHubApiServer(CountDownLatch exitLatch) throws Exception {
     fafLobbyServerSocket = new ServerSocket(0);
 
-    WaitForAsyncUtils.async(() -> {
+    return WaitForAsyncUtils.async(() -> {
       try (Socket socket = fafLobbyServerSocket.accept();
            Reader sampleReader = new InputStreamReader(getClass().getResourceAsStream("/sample-github-releases-response.txt"));
            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(socket.getOutputStream())) {
@@ -80,9 +84,10 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
         String response = CharStreams.toString(sampleReader);
 
         outputStreamWriter.write(response);
-        outputStreamWriter.flush();
-      } catch (IOException e) {
-        System.out.println("Closing fake GitHub HTTP server: " + e.getMessage());
+        outputStreamWriter.close();
+        exitLatch.await();
+      } catch (InterruptedException | IOException e) {
+        logger.error("Exception in fake HTTP server", e);
         throw new RuntimeException(e);
       }
     });
@@ -95,11 +100,14 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   public void testGetUpdateIsCurrent() throws Exception {
     instance.setCurrentVersion(new ComparableVersion("0.4.8.1-alpha"));
 
-    startFakeGitHubApiServer();
+    CountDownLatch exitLatch = new CountDownLatch(1);
+    Future<Void> serverFuture = startFakeGitHubApiServer(exitLatch);
     int port = fafLobbyServerSocket.getLocalPort();
     when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
     when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(3000);
 
     instance.call();
+    exitLatch.countDown();
+    serverFuture.get();
   }
 }
