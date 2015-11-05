@@ -196,6 +196,10 @@
   -fx-font-size: 20px;
 }
 
+.h3 {
+  -fx-font-weight: 700;
+}
+
 /***************** Icons (FontAwesome) *****************/
 
 .fontawesome {
@@ -675,6 +679,14 @@
 
 .immediate-notification > *.header {
   -fx-font-size: 1.5em;
+}
+
+.popup.transient-notification {
+  -fx-background-color: transparent;
+}
+
+.transient-notification {
+  -fx-background-color: -fx-background;
 }
 
 /***************** Tabs *****************/

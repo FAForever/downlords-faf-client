@@ -18,19 +18,23 @@ import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotificationsController;
+import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.portcheck.PortCheckService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.SettingsController;
+import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
 import org.hamcrest.CoreMatchers;
@@ -119,6 +123,10 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private UserMenuController userMenuController;
   @Mock
   private GravatarService gravatarService;
+  @Mock
+  private TransientNotificationsController transientNotificationsController;
+  @Mock
+  private NotificationsPrefs notificationPrefs;
 
   private MainController instance;
 
@@ -153,6 +161,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.gameService = gameService;
     instance.userMenuController = userMenuController;
     instance.gravatarService = gravatarService;
+    instance.transientNotificationsController = transientNotificationsController;
 
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(leaderboardController.getRoot()).thenReturn(new Pane());
@@ -161,6 +170,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(newsController.getRoot()).thenReturn(new Pane());
     when(communityHubController.getRoot()).thenReturn(new Pane());
     when(userMenuController.getRoot()).thenReturn(new Pane());
+    when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(taskService.getActiveTasks()).thenReturn(FXCollections.emptyObservableList());
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
@@ -168,6 +178,9 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getMainWindow()).thenReturn(mainWindowPrefs);
     when(mainWindowPrefs.getLastChildViews()).thenReturn(FXCollections.observableHashMap());
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
+    when(preferences.getNotification()).thenReturn(notificationPrefs);
+    when(notificationPrefs.toastPositionProperty()).thenReturn(new SimpleObjectProperty<>(ToastPosition.BOTTOM_RIGHT));
+    when(notificationPrefs.getToastPosition()).thenReturn(ToastPosition.BOTTOM_RIGHT);
 
     instance.postConstruct();
   }
@@ -274,7 +287,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     attachToRoot();
     WaitForAsyncUtils.waitForAsyncFx(1000, instance::onNotificationsButtonClicked);
 
-    assertThat(instance.notificationsPopup.isShowing(), is(true));
+    assertThat(instance.persistentNotificationsPopup.isShowing(), is(true));
   }
 
   @Test

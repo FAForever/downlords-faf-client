@@ -1,17 +1,52 @@
 package com.faforever.client.play;
 
 import com.faforever.client.game.Faction;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.TransientNotification;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.image.Image;
 
+import javax.annotation.Resource;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class MockPlayServices implements PlayServices {
 
+  @Resource
+  ScheduledExecutorService executorService;
+
+  @Resource
+  NotificationService notificationService;
+
   @Override
   public CompletableFuture<Void> authorize() {
+    notificationService.addNotification(
+        new TransientNotification(
+            "Test notification",
+            "Some text.",
+            new Image("/themes/default/images/default_achievement.png")
+        ));
+    notificationService.addNotification(
+        new TransientNotification(
+            "Test notification 2",
+            "Some text 2.",
+            new Image("/themes/default/images/default_achievement.png")
+        ));
+    notificationService.addNotification(
+        new TransientNotification(
+            "Test notification 3",
+            "Some text 3.",
+            new Image("/themes/default/images/default_achievement.png")
+        ));
+    notificationService.addNotification(
+        new TransientNotification(
+            "Test notification 4",
+            "Some text 4.",
+            new Image("/themes/default/images/default_achievement.png")
+        ));
     return CompletableFuture.completedFuture(null);
   }
 

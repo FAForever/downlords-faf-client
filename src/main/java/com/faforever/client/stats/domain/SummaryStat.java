@@ -18,6 +18,10 @@ public class SummaryStat {
   private int killed;
   private int lost;
 
+  public SummaryStat() {
+    // Default
+  }
+
   public SummaryStat(UnitCategory type) {
     this.type = type;
   }
@@ -72,5 +76,13 @@ public class SummaryStat {
 
   public int getLost() {
     return lost;
+  }
+
+  /**
+   * The XML's "built" actually means "survived", this method adds "lost" and "built" in order to get the real "built"
+   * count.
+   */
+  public int getRealBuilt() {
+    return lost + built;
   }
 }

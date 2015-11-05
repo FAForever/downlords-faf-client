@@ -1,6 +1,7 @@
 package com.faforever.client.notification;
 
 import javafx.scene.image.Image;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -9,7 +10,7 @@ import java.util.List;
  * or dismisses it. The notification consist of a text, an optional image and zero or more actions and is always
  * rendered with a close button.
  */
-public class TransientNotification {
+public class TransientNotification implements Comparable<TransientNotification> {
 
   private final String title;
   private final String text;
@@ -45,5 +46,10 @@ public class TransientNotification {
 
   public List<Action> getActions() {
     return actions;
+  }
+
+  @Override
+  public int compareTo(@NotNull TransientNotification o) {
+    return text.compareTo(o.text);
   }
 }

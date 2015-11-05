@@ -724,12 +724,12 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     playServices.killedCommanders(commanderKills, survived);
     playServices.acuDamageReceived(acuDamageReceived, survived);
     playServices.unitStats(
-        airUnitStats.getRealBuilt(), airUnitStats.getRealBuilt(),
-        landUnitStats.getRealBuilt(), landUnitStats.getRealBuilt(),
-        navalUnitStats.getRealBuilt(), navalUnitStats.getRealBuilt(),
-        tech1UnitStats.getRealBuilt(), tech1UnitStats.getRealBuilt(),
-        tech2UnitStats.getRealBuilt(), tech2UnitStats.getRealBuilt(),
-        tech3UnitStats.getRealBuilt(), tech3UnitStats.getRealBuilt(),
+        airUnitStats.getRealBuilt(), airUnitStats.getKilled(),
+        landUnitStats.getRealBuilt(), landUnitStats.getKilled(),
+        navalUnitStats.getRealBuilt(), navalUnitStats.getKilled(),
+        tech1UnitStats.getRealBuilt(), tech1UnitStats.getKilled(),
+        tech2UnitStats.getRealBuilt(), tech2UnitStats.getKilled(),
+        tech3UnitStats.getRealBuilt(), tech3UnitStats.getKilled(),
         builtExperimentals, killedExperimentals,
         engineerStats.getRealBuilt(), engineerStats.getKilled(),
         survived);

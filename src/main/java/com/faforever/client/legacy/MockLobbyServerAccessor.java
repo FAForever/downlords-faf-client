@@ -95,6 +95,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
           playerInfo.setRatingDeviation(220);
           playerInfo.setLadderRatingMean(1500);
           playerInfo.setLadderRatingDeviation(220);
+          playerInfo.setNumberOfGames(330);
           onPlayerInfoListener.onPlayerInfo(playerInfo);
         }
 

@@ -25,6 +25,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.portcheck.PortCheckService;
@@ -43,7 +44,9 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
@@ -51,6 +54,7 @@ import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
@@ -69,6 +73,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -148,6 +153,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Autowired
   PersistentNotificationsController persistentNotificationsController;
   @Autowired
+  TransientNotificationsController transientNotificationsController;
+  @Autowired
   PreferencesService preferencesService;
   @Autowired
   SceneFactory sceneFactory;
@@ -191,9 +198,10 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   UserMenuController userMenuController;
 
   @VisibleForTesting
-  Popup notificationsPopup;
+  Popup persistentNotificationsPopup;
   private Popup userMenuPopup;
   private ChangeListener<Boolean> windowFocusListener;
+  private Popup transientNotificationsPopup;
 
   @FXML
   void initialize() {
@@ -259,11 +267,36 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @PostConstruct
   void postConstruct() {
-    notificationsPopup = new Popup();
-    notificationsPopup.getContent().setAll(persistentNotificationsController.getRoot());
-    notificationsPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
-    notificationsPopup.setAutoFix(false);
-    notificationsPopup.setAutoHide(true);
+    persistentNotificationsPopup = new Popup();
+    persistentNotificationsPopup.getContent().setAll(persistentNotificationsController.getRoot());
+    persistentNotificationsPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
+    persistentNotificationsPopup.setAutoFix(false);
+    persistentNotificationsPopup.setAutoHide(true);
+
+    transientNotificationsPopup = new Popup();
+    transientNotificationsPopup.getScene().getRoot().getStyleClass().add("transient-notification");
+    transientNotificationsPopup.getContent().setAll(transientNotificationsController.getRoot());
+    transientNotificationsPopup.anchorLocationProperty().bind(Bindings.createObjectBinding(() -> {
+          switch (preferencesService.getPreferences().getNotification().getToastPosition()) {
+            case TOP_RIGHT:
+              return PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT;
+            case BOTTOM_LEFT:
+              return PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT;
+            case TOP_LEFT:
+              return PopupWindow.AnchorLocation.CONTENT_TOP_LEFT;
+            default:
+              return PopupWindow.AnchorLocation.CONTENT_BOTTOM_RIGHT;
+          }
+        }, preferencesService.getPreferences().getNotification().toastPositionProperty()
+    ));
+    transientNotificationsController.getRoot().getChildren().addListener((InvalidationListener) observable -> {
+      if (!transientNotificationsController.getRoot().getChildren().isEmpty()) {
+        Rectangle2D visualBounds = getTransientNotificationAreaBounds();
+        transientNotificationsPopup.show(mainRoot.getScene().getWindow(), visualBounds.getMaxX(), visualBounds.getMaxY());
+      } else {
+        transientNotificationsPopup.hide();
+      }
+    });
 
     userMenuPopup = new Popup();
     userMenuPopup.setAutoFix(false);
@@ -276,6 +309,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     );
     notificationService.addImmediateNotificationListener(
         notification -> Platform.runLater(() -> displayImmediateNotification(notification))
+    );
+    notificationService.addTransientNotificationListener(
+        notification -> Platform.runLater(() -> transientNotificationsController.addNotification(notification))
     );
 
     taskService.getActiveTasks().addListener((Observable observable) -> {
@@ -293,6 +329,19 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     preferencesService.setOnChoseGameDirectoryListener(this);
     gameService.addOnRankedMatchNotificationListener(this);
+  }
+
+  private Rectangle2D getTransientNotificationAreaBounds() {
+    ObservableList<Screen> screens = Screen.getScreens();
+
+    int toastScreenIndex = preferencesService.getPreferences().getNotification().getToastScreen();
+    Screen screen;
+    if (toastScreenIndex < screens.size()) {
+      screen = screens.get(toastScreenIndex);
+    } else {
+      screen = Screen.getPrimary();
+    }
+    return screen.getVisualBounds();
   }
 
   /**
@@ -484,7 +533,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @FXML
   void onNotificationsButtonClicked() {
     Bounds screenBounds = notificationsButton.localToScreen(notificationsButton.getBoundsInLocal());
-    notificationsPopup.show(notificationsButton.getScene().getWindow(), screenBounds.getMaxX(), screenBounds.getMaxY());
+    persistentNotificationsPopup.show(notificationsButton.getScene().getWindow(), screenBounds.getMaxX(), screenBounds.getMaxY());
   }
 
   @FXML

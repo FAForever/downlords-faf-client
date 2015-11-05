@@ -55,6 +55,8 @@ public class UserServiceImpl implements UserService {
           UserServiceImpl.this.sessionId = sessionInfo.getSession();
           UserServiceImpl.this.email.set(sessionInfo.getEmail());
 
+          playServices.authorize();
+
           cloudAccessor.signUpOrLogIn(username, password, uid).thenAccept(s -> {
           });
         }).exceptionally(throwable -> {

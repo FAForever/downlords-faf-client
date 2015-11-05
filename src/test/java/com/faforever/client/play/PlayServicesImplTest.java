@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
@@ -33,6 +34,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -63,6 +65,8 @@ public class PlayServicesImplTest extends AbstractPlainJavaFxTest {
   private JsonFactory jsonFactory;
   @Mock
   private FafApiAccessor fafApiAccessor;
+  @Mock
+  private ExecutorService executorService;
   @Captor
   private ArgumentCaptor<AchievementUpdatesRequest> achievementUpdatesRequestCaptor;
   @Captor
@@ -77,9 +81,15 @@ public class PlayServicesImplTest extends AbstractPlainJavaFxTest {
     instance.notificationService = notificationService;
     instance.i18n = i18n;
     instance.fafApiAccessor = fafApiAccessor;
+    instance.executorService = executorService;
 
     when(userService.getUid()).thenReturn(PLAYER_ID);
     when(userService.getUsername()).thenReturn(USERNAME);
+
+    doAnswer(invocation -> {
+      invocation.getArgumentAt(0, Runnable.class).run();
+      return null;
+    }).when(executorService).execute(any(Runnable.class));
 
     doAnswer(invocation -> {
       EventUpdatesRequest request = invocation.getArgumentAt(0, EventUpdatesRequest.class);
@@ -120,6 +130,8 @@ public class PlayServicesImplTest extends AbstractPlainJavaFxTest {
 
   private void executeInBatchUpdate(Runnable runnable) throws Exception {
     instance.startBatchUpdate();
+    verify(fafApiAccessor).authorize(PLAYER_ID);
+    verify(fafApiAccessor).getPlayerAchievements(PLAYER_ID);
     runnable.run();
     instance.executeBatchUpdate();
   }
@@ -180,7 +192,7 @@ public class PlayServicesImplTest extends AbstractPlainJavaFxTest {
 
   private void verifyAchievementsUpdated() {
     verify(fafApiAccessor).executeAchievementUpdates(any(), eq(PLAYER_ID));
-    verify(fafApiAccessor).getPlayerAchievements(PLAYER_ID);
+    verify(fafApiAccessor, atLeastOnce()).getPlayerAchievements(PLAYER_ID);
   }
 
   @Test

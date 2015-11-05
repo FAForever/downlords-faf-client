@@ -24,7 +24,9 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.compress.utils.IOUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.slf4j.Logger;
@@ -68,10 +70,10 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private static final String SESSION_ID = "1234";
   private static final double USER_ID = 872348.0;
   private static final int GAME_PORT = 6112;
+  @Rule
+  public TemporaryFolder cacheDirectory = new TemporaryFolder();
   private BlockingQueue<LobbyMessage> messagesReceivedByFafServer;
   private BlockingQueue<RelayServerMessage> messagesReceivedByGame;
-  private boolean stopped;
-
   private LocalRelayServerImpl instance;
   private FaDataOutputStream gameToRelayOutputStream;
   private FaDataInputStream gameFromRelayInputStream;
@@ -79,7 +81,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private ServerWriter serverToRelayWriter;
   private ServerSocket fafRelayServerSocket;
   private Socket localToServerSocket;
-
+  private boolean stopped;
   @Mock
   private Consumer<GameStats> gameStatsConsumer;
   @Mock
@@ -124,6 +126,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
     when(userService.getSessionId()).thenReturn(SESSION_ID);
     when(userService.getUid()).thenReturn((int) USER_ID);
     when(userService.getUsername()).thenReturn("junit");

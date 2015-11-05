@@ -58,6 +58,8 @@ import com.faforever.client.news.NewsListItemController;
 import com.faforever.client.notification.ImmediateNotificationController;
 import com.faforever.client.notification.PersistentNotificationController;
 import com.faforever.client.notification.PersistentNotificationsController;
+import com.faforever.client.notification.TransientNotificationController;
+import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.rankedmatch.Ranked1v1Controller;
 import com.faforever.client.replay.ReplayVaultController;
@@ -367,5 +369,16 @@ public class UiConfig {
   @Bean
   UrlPreviewResolver urlPreviewResolver() {
     return new UrlPreviewResolverImpl();
+  }
+
+  @Bean
+  TransientNotificationsController transientNotificationsController() {
+    return loadController("transient_notifications.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  TransientNotificationController transientNotificationController() {
+    return loadController("transient_notification.fxml");
   }
 }

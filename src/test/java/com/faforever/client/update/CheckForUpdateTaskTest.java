@@ -56,7 +56,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   public void testIsNewer() throws Exception {
     instance.setCurrentVersion(new ComparableVersion("0.4.8-alpha"));
     CountDownLatch terminateLatch = new CountDownLatch(1);
-    startFakeGitHubApiServer(terminateLatch);
+    startFakeGitHubApiServer();
 
     int port = fafLobbyServerSocket.getLocalPort();
     when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
@@ -69,7 +69,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
     }
   }
 
-  private void startFakeGitHubApiServer(CountDownLatch exitLatch) throws Exception {
+  private void startFakeGitHubApiServer() throws Exception {
     fafLobbyServerSocket = new ServerSocket(0);
 
     WaitForAsyncUtils.async(() -> {
@@ -81,9 +81,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
 
         outputStreamWriter.write(response);
         outputStreamWriter.flush();
-
-        exitLatch.await();
-      } catch (InterruptedException | IOException e) {
+      } catch (IOException e) {
         System.out.println("Closing fake GitHub HTTP server: " + e.getMessage());
         throw new RuntimeException(e);
       }
@@ -96,17 +94,12 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGetUpdateIsCurrent() throws Exception {
     instance.setCurrentVersion(new ComparableVersion("0.4.8.1-alpha"));
-    CountDownLatch exitLatch = new CountDownLatch(1);
-    startFakeGitHubApiServer(exitLatch);
 
+    startFakeGitHubApiServer();
     int port = fafLobbyServerSocket.getLocalPort();
     when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
     when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(3000);
 
-    try {
-      instance.call();
-    } finally {
-      exitLatch.countDown();
-    }
+    instance.call();
   }
 }
