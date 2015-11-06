@@ -10,7 +10,7 @@ html, body {
   margin: 0;
   padding: 0;
   /* Use same as -fx-light-text-color */
-  color: #F5F5F5;
+    color: #BFBEBA;
   font-family: "Segoe UI","Arial","Tahoma","sans-serif";
 }
 
@@ -25,10 +25,6 @@ a {
 #chat-table {
     width: 100%;
     border-collapse: collapse;
-}
-
-.own-username {
-    color: orange;
 }
 
 .chat-message {

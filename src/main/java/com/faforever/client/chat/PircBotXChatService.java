@@ -107,12 +107,14 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   private String defaultChannelName;
   private Service<Void> connectionService;
   private CountDownLatch ircConnectedLatch;
+  private Map<String, ChatUser> chatUsersByName;
 
 
   public PircBotXChatService() {
     eventListeners = new ConcurrentHashMap<>();
     chatUserLists = observableHashMap();
     assignedColors = observableArrayList();
+    chatUsersByName = new HashMap<>();
   }
 
   @Override
@@ -157,6 +159,13 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     addOnModeratorSetListener(this);
 
     defaultChannelName = environment.getProperty("irc.defaultChannel");
+  }
+
+  private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
+    if (!eventListeners.containsKey(eventClass)) {
+      eventListeners.put(eventClass, new ArrayList<>());
+    }
+    eventListeners.get(eventClass).add(listener);
   }
 
   private Map<String, ChatUser> chatUsers(ImmutableSortedSet<User> users) {
@@ -261,13 +270,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
           )
       );
     });
-  }
-
-  private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
-    if (!eventListeners.containsKey(eventClass)) {
-      eventListeners.put(eventClass, new ArrayList<>());
-    }
-    eventListeners.get(eventClass).add(listener);
   }
 
   @Override
@@ -402,14 +404,11 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  public ChatUser getChatUser(String username) {
-    for (Map.Entry<String, ObservableMap<String, ChatUser>> entry : chatUserLists.entrySet()) {
-      ObservableMap<String, ChatUser> channel = entry.getValue();
-      if (channel.containsKey(username)) {
-        return channel.get(username);
-      }
+  public ChatUser createOrGetChatUser(String username) {
+    if (!chatUsersByName.containsKey(username)) {
+      chatUsersByName.put(username, new ChatUser(username));
     }
-    return null;
+    return chatUsersByName.get(username);
   }
 
   @Override
@@ -471,11 +470,11 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public ChatUser createOrGetChatUser(User user) {
-    ChatUser chatUser = getChatUser(user.getNick());
-    if (chatUser != null) {
-      return chatUser;
+    String username = user.getNick();
+    if (!chatUsersByName.containsKey(username)) {
+      chatUsersByName.put(username, ChatUser.fromIrcUser(user));
     }
-    return ChatUser.fromIrcUser(user);
+    return chatUsersByName.get(username);
   }
 
   @Override

@@ -8,7 +8,7 @@ public class ColorGeneratorUtil {
 
   //http://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
 
-  public static Color generatePrettyHexColor() {
+  public static Color generateRandomHexColor() {
     double goldenRatioConj = (1.0 + Math.sqrt(5.0)) / 2.0;
     float hue = new Random().nextFloat();
     hue += goldenRatioConj;

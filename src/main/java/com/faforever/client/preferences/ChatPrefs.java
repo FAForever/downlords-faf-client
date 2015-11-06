@@ -21,8 +21,7 @@ public class ChatPrefs {
   private final ObjectProperty<Color> foesChatColor;
   private final ObjectProperty<Color> modsChatColor;
   private final ObjectProperty<Color> ircChatColor;
-  private final ObjectProperty<Color> othersChatColor;
-  private final BooleanProperty prettyColors;
+  private final BooleanProperty useRandomColors;
   private final IntegerProperty channelTabScrollPaneWidth;
 
   public ChatPrefs() {
@@ -35,8 +34,7 @@ public class ChatPrefs {
     foesChatColor = new SimpleObjectProperty<>(Color.web("#FF0000"));
     modsChatColor = new SimpleObjectProperty<>(Color.web("#FFFFFF"));
     ircChatColor = new SimpleObjectProperty<>(Color.web("#808080"));
-    othersChatColor = new SimpleObjectProperty<>(Color.web("#BFBEBA"));
-    prettyColors = new SimpleBooleanProperty(false);
+    useRandomColors = new SimpleBooleanProperty(false);
     channelTabScrollPaneWidth = new SimpleIntegerProperty(250);
 
   }
@@ -55,6 +53,10 @@ public class ChatPrefs {
 
   public Double getZoom() {
     return zoom.getValue();
+  }
+
+  public void setZoom(double zoom) {
+    this.zoom.set(zoom);
   }
 
   public void setZoom(Double zoom) {
@@ -93,100 +95,83 @@ public class ChatPrefs {
     return selfChatColor.get();
   }
 
-  public ObjectProperty<Color> selfChatColorProperty() {
-    return selfChatColor;
-  }
-
   public void setSelfChatColor(Color selfChatColor) {
     this.selfChatColor.set(selfChatColor);
+  }
+
+  public ObjectProperty<Color> selfChatColorProperty() {
+    return selfChatColor;
   }
 
   public Color getFriendsChatColor() {
     return friendsChatColor.get();
   }
 
-  public ObjectProperty<Color> friendsChatColorProperty() {
-    return friendsChatColor;
-  }
-
   public void setFriendsChatColor(Color friendsChatColor) {
     this.friendsChatColor.set(friendsChatColor);
+  }
+
+  public ObjectProperty<Color> friendsChatColorProperty() {
+    return friendsChatColor;
   }
 
   public Color getFoesChatColor() {
     return foesChatColor.get();
   }
 
-  public ObjectProperty<Color> foesChatColorProperty() {
-    return foesChatColor;
-  }
-
   public void setFoesChatColor(Color foesChatColor) {
     this.foesChatColor.set(foesChatColor);
+  }
+
+  public ObjectProperty<Color> foesChatColorProperty() {
+    return foesChatColor;
   }
 
   public Color getModsChatColor() {
     return modsChatColor.get();
   }
 
-  public ObjectProperty<Color> modsChatColorProperty() {
-    return modsChatColor;
-  }
-
   public void setModsChatColor(Color modsChatColor) {
     this.modsChatColor.set(modsChatColor);
+  }
+
+  public ObjectProperty<Color> modsChatColorProperty() {
+    return modsChatColor;
   }
 
   public Color getIrcChatColor() {
     return ircChatColor.get();
   }
 
-  public ObjectProperty<Color> ircChatColorProperty() {
-    return ircChatColor;
-  }
-
   public void setIrcChatColor(Color ircChatColor) {
     this.ircChatColor.set(ircChatColor);
   }
 
-  public Color getOthersChatColor() {
-    return othersChatColor.get();
+  public ObjectProperty<Color> ircChatColorProperty() {
+    return ircChatColor;
   }
 
-  public ObjectProperty<Color> othersChatColorProperty() {
-    return othersChatColor;
+  public boolean getUseRandomColors() {
+    return useRandomColors.get();
   }
 
-  public void setOthersChatColor(Color othersChatColor) {
-    this.othersChatColor.set(othersChatColor);
+  public void setUseRandomColors(boolean useRandomColors) {
+    this.useRandomColors.set(useRandomColors);
   }
 
-
-  public boolean getPrettyColors() {
-    return prettyColors.get();
-  }
-
-  public BooleanProperty prettyColorsProperty() {
-    return prettyColors;
-  }
-
-  public void setPrettyColors(boolean prettyColors) {
-    this.prettyColors.set(prettyColors);
-  }
-
-  public void setZoom(double zoom) {
-    this.zoom.set(zoom);
+  public BooleanProperty useRandomColorsProperty() {
+    return useRandomColors;
   }
 
   public int getChannelTabScrollPaneWidth() {
     return channelTabScrollPaneWidth.get();
   }
 
-  public IntegerProperty channelTabScrollPaneWidthProperty() {
-    return channelTabScrollPaneWidth;
-  }
-
   public void setChannelTabScrollPaneWidth(int channelTabScrollPaneWidth) {
     this.channelTabScrollPaneWidth.set(channelTabScrollPaneWidth);
+  }
+
+  public IntegerProperty channelTabScrollPaneWidthProperty() {
+    return channelTabScrollPaneWidth;
   }
 }

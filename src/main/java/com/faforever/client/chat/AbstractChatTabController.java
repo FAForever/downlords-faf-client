@@ -38,7 +38,6 @@ import javafx.stage.PopupWindow;
 import netscape.javascript.JSObject;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.pircbotx.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -590,9 +589,10 @@ public abstract class AbstractChatTabController {
       PlayerInfoBean playerInfo = playerService.getPlayerForUsername(chatMessage.getUsername());
 
       html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
-      String inlineStyle = getPlayerColorInlineStyle(playerInfo);
-      if (!inlineStyle.equals("")) {
-        color = inlineStyle;
+      Color userColor = getMessageColor(playerInfo);
+      String inlineColor = createInlineStyleFromHexColor(userColor);
+      if (!inlineColor.equals("")) {
+        color = inlineColor;
       }
 
       html = html.replace("{color}", color);
@@ -603,59 +603,40 @@ public abstract class AbstractChatTabController {
     }
   }
 
-  private String getPlayerColorInlineStyle(PlayerInfoBean playerInfo) {
+  protected Color getMessageColor(PlayerInfoBean playerInfo) {
     if (playerInfo == null) {
-      return "";
+      return null;
     }
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    //Mods, friends and foes are never randomly generated
-    String messageColor = "";
-    if (playerInfo.getModeratorForChannels() != null && playerInfo.getModeratorForChannels().size() > 0) {
-      //TODO this is here because there is no straight forward way to know what channel the message came from
-      for (Channel channel : chatService.getChannelsForUser(userService.getUsername())) {
-        if (chatService.getLevelsForChatUser(channel, playerInfo.getUsername()).size() > 0) {
-          messageColor = chatPrefs.getModsChatColor().toString();
-        }
-      }
-    } else if (playerInfo.isFriend()) {
-      messageColor = chatPrefs.getFriendsChatColor().toString();
-    } else if (playerInfo.isFoe()) {
-      messageColor = chatPrefs.getFoesChatColor().toString();
+    logger.trace("Fetching color for {}", playerInfo.getUsername());
+
+    if (playerInfo.isFriend()) {
+      return chatPrefs.getFriendsChatColor();
+    }
+    if (playerInfo.isFoe()) {
+      return chatPrefs.getFoesChatColor();
     }
 
-    //
-    if (!chatPrefs.getPrettyColors() && messageColor.equals("")) {
-      if (playerInfo.isChatOnly()) {
-        messageColor = chatPrefs.getIrcChatColor().toString();
-      } else if (!playerInfo.getUsername().equals(userService.getUsername())) {
-        messageColor = chatPrefs.getOthersChatColor().toString();
-      }
+    if (playerInfo.isChatOnly()) {
+      return chatPrefs.getIrcChatColor();
     }
 
-    if (messageColor.equals("")) {
-      if (playerInfo.getUsername().equals(userService.getUsername())) {
-        messageColor = chatPrefs.getSelfChatColor().toString();
-      } else {
-        ChatUser chatUser = chatService.getChatUser(playerInfo.getUsername());
-        /*if chatUser is null the message is lost, this happens when application is just initialized and the message is received before
-        the user is registered to chatService*/
-        if (chatUser != null) {
-          //FIXME chat user doesn't always have color even though it should
-          logger.debug("User {}", chatUser.getUsername());
-          messageColor = chatUser.getColor().toString();
-        }
-      }
+    if (playerInfo.getUsername().equals(userService.getUsername())) {
+      return chatPrefs.getSelfChatColor();
     }
-    if(messageColor != null) {
-      return createInlineStyleFromHexColor(messageColor);
-    } else {
-      return "";
+
+    if (chatPrefs.getUseRandomColors()) {
+      ChatUser chatUser = chatService.createOrGetChatUser(playerInfo.getUsername());
+      chatUser.setColor(ColorGeneratorUtil.generateRandomHexColor());
+      return chatUser.getColor();
     }
+
+    return null;
   }
 
   @NotNull
-  private String createInlineStyleFromHexColor(String messageColor) {
-    return "\" style=\"color:#" + messageColor.substring(2, 8);
+  private String createInlineStyleFromHexColor(Color messageColor) {
+    return "\" style=\"color:#" + messageColor.toString().substring(2, 8);
   }
 
   private String highlightOwnUsername(String text) {

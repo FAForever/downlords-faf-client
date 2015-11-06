@@ -45,7 +45,7 @@ public interface ChatService {
    */
   ObservableMap<String, ChatUser> getChatUsersForChannel(String channelName);
 
-  ChatUser getChatUser(String username);
+  ChatUser createOrGetChatUser(String username);
 
   void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener);
 

@@ -149,7 +149,7 @@ public class MockChatService implements ChatService {
 
   //FIXME implement
   @Override
-  public ChatUser getChatUser(String username) {
+  public ChatUser createOrGetChatUser(String username) {
     return null;
   }
 

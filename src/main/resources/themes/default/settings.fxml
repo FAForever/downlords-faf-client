@@ -15,8 +15,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<VBox fx:id="settingsRoot" maxHeight="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.40"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.preferences.SettingsController">
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="settingsRoot" maxHeight="1.7976931348623157E308"
+      xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.preferences.SettingsController">
   <children>
     <HBox styleClass="settings-head">
       <children>
@@ -71,8 +71,8 @@
                         <CheckBox fx:id="imagePreviewCheckBox" mnemonicParsing="false"
                                   text="%settings.chat.previewImages"/>
                         <Label text="%settings.chat.colors"/>
-                        <CheckBox fx:id="prettyColorsCheckBox" mnemonicParsing="false"
-                                  text="%settings.chat.prettyColors"/>
+                        <CheckBox fx:id="randomColorsCheckBox" mnemonicParsing="false"
+                                  text="%settings.chat.randomColors"/>
                       </children>
                     </VBox>
                   </content>

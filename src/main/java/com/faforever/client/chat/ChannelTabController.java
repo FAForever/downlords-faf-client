@@ -23,6 +23,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebView;
+import org.pircbotx.Channel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
@@ -367,5 +368,18 @@ public class ChannelTabController extends AbstractChatTabController {
     }
 
     return panes;
+  }
+
+  @Override
+  protected String getPlayerColorInlineStyle(PlayerInfoBean playerInfo) {
+    if (playerInfo.getModeratorForChannels() != null && !playerInfo.getModeratorForChannels().isEmpty()) {
+      //TODO this is here because there is no straight forward way to know what channel the message came from
+      for (Channel channel : chatService.getChannelsForUser(userService.getUsername())) {
+        if (chatService.getLevelsForChatUser(channel, playerInfo.getUsername()).size() > 0) {
+          messageColor = chatPrefs.getModsChatColor().toString();
+        }
+      }
+    }
+    return super.getPlayerColorInlineStyle(playerInfo);
   }
 }

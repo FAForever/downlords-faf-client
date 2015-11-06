@@ -106,7 +106,7 @@ public class ChatUserControl extends HBox {
     this.playerInfoBean = playerInfoBean;
 
     configureColor();
-    addPrettyColorListener();
+    addRandomColorListener();
     configureCountryImageView();
     configureAvatarImageView();
     configureClanLabel();
@@ -133,7 +133,7 @@ public class ChatUserControl extends HBox {
     }
 
     // Only if pretty colors is disabled
-    if (!chatPrefs.getPrettyColors() && colorProperty == null) {
+    if (!chatPrefs.getUseRandomColors() && colorProperty == null) {
       if (playerInfoBean.isChatOnly()) {
         colorProperty = chatPrefs.ircChatColorProperty();
       } else {
@@ -141,9 +141,9 @@ public class ChatUserControl extends HBox {
       }
 
       // Self color
-    } else if (chatPrefs.getPrettyColors() && colorProperty == null) {
-      color = ColorGeneratorUtil.generatePrettyHexColor();
-      ChatUser chatUser = chatService.getChatUser(playerInfoBean.getUsername());
+    } else if (chatPrefs.getUseRandomColors() && colorProperty == null) {
+      color = ColorGeneratorUtil.generateRandomHexColor();
+      ChatUser chatUser = chatService.createOrGetChatUser(playerInfoBean.getUsername());
 
       //FIXME result of chatUser color not being generated on chatUser being initialized
       try {
@@ -167,9 +167,9 @@ public class ChatUserControl extends HBox {
     clanLabel.setTextFill(color);
   }
 
-  private void addPrettyColorListener() {
+  private void addRandomColorListener() {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    chatPrefs.prettyColorsProperty().addListener((observable, oldValue, newValue) -> {
+    chatPrefs.useRandomColorsProperty().addListener((observable, oldValue, newValue) -> {
       configureColor();
     });
   }

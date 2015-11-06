@@ -17,7 +17,7 @@ import java.text.NumberFormat;
 public class SettingsController {
 
   @FXML
-  CheckBox prettyColorsCheckBox;
+  CheckBox randomColorsCheckBox;
 
   @FXML
   TextField gamePortTextField;
@@ -112,7 +112,7 @@ public class SettingsController {
     imagePreviewCheckBox.selectedProperty().bindBidirectional(preferences.getChat().previewImageUrlsProperty());
     enableToastsCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().toastsEnabledProperty());
 
-    prettyColorsCheckBox.selectedProperty().bindBidirectional(preferences.getChat().prettyColorsProperty());
+    randomColorsCheckBox.selectedProperty().bindBidirectional(preferences.getChat().useRandomColorsProperty());
 
     displayFriendOnlineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().displayFriendOnlineToastProperty());
     displayFriendOfflineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().displayFriendOfflineToastProperty());
