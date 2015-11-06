@@ -13,18 +13,14 @@ public class LeaderboardEntryBean {
   private IntegerProperty rank;
   private IntegerProperty rating;
   private IntegerProperty gamesPlayed;
-  private FloatProperty score;
   private FloatProperty winLossRatio;
-  private StringProperty division;
 
   public LeaderboardEntryBean() {
     username = new SimpleStringProperty();
     rank = new SimpleIntegerProperty();
     rating = new SimpleIntegerProperty();
     gamesPlayed = new SimpleIntegerProperty();
-    score = new SimpleFloatProperty();
     winLossRatio = new SimpleFloatProperty();
-    division = new SimpleStringProperty();
   }
 
   public String getUsername() {
@@ -75,18 +71,6 @@ public class LeaderboardEntryBean {
     return gamesPlayed;
   }
 
-  public float getScore() {
-    return score.get();
-  }
-
-  public void setScore(float score) {
-    this.score.set(score);
-  }
-
-  public FloatProperty scoreProperty() {
-    return score;
-  }
-
   public float getWinLossRatio() {
     return winLossRatio.get();
   }
@@ -97,18 +81,6 @@ public class LeaderboardEntryBean {
 
   public FloatProperty winLossRatioProperty() {
     return winLossRatio;
-  }
-
-  public String getDivision() {
-    return division.get();
-  }
-
-  public void setDivision(String division) {
-    this.division.set(division);
-  }
-
-  public StringProperty divisionProperty() {
-    return division;
   }
 
 

@@ -49,6 +49,8 @@ import com.faforever.client.main.MainController;
 import com.faforever.client.map.CommentCardController;
 import com.faforever.client.map.MapPreviewLargeController;
 import com.faforever.client.map.MapVaultController;
+import com.faforever.client.mod.ModDetailController;
+import com.faforever.client.mod.ModTileController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.news.NewsListItemController;
@@ -56,6 +58,7 @@ import com.faforever.client.notification.ImmediateNotificationController;
 import com.faforever.client.notification.PersistentNotificationController;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.preferences.SettingsController;
+import com.faforever.client.rankedmatch.Ranked1v1Controller;
 import com.faforever.client.replay.ReplayVaultController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -111,6 +114,11 @@ public class UiConfig {
   @Bean
   GamesController gamesController() {
     return loadController("games.fxml");
+  }
+
+  @Bean
+  Ranked1v1Controller ranked1v1Controller() {
+    return loadController("ranked_1v1.fxml");
   }
 
   @Bean
@@ -176,6 +184,12 @@ public class UiConfig {
   @Bean
   MostActivePlayersController mostActivePlayersController() {
     return loadController("most_active_players.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  ModTileController modTileController() {
+    return loadController("mod_tile.fxml");
   }
 
   @Bean
@@ -285,6 +299,11 @@ public class UiConfig {
   @Bean
   ModVaultController modVaultController() {
     return loadController("mod_vault.fxml");
+  }
+
+  @Bean
+  ModDetailController modDetailController() {
+    return loadController("mod_detail.fxml");
   }
 
   @Bean

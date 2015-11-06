@@ -4,7 +4,7 @@ import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.map.MapService;
-import com.faforever.client.player.PlayerService;
+import javafx.application.Platform;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
@@ -55,9 +55,6 @@ public class GamesTableController {
   GamesController gamesController;
 
   @Autowired
-  PlayerService playerService;
-
-  @Autowired
   I18n i18n;
 
   public void initializeGameTable(ObservableList<GameInfoBean> gameInfoBeans) {
@@ -69,7 +66,7 @@ public class GamesTableController {
     gameInfoBeans.addListener((ListChangeListener<GameInfoBean>) change -> {
       while (change.next()) {
         if (change.wasAdded() && gamesTable.getSelectionModel().getSelectedItem() == null) {
-          gamesTable.getSelectionModel().select(0);
+          Platform.runLater(() -> gamesTable.getSelectionModel().select(0));
         }
       }
     });
@@ -93,7 +90,7 @@ public class GamesTableController {
       if (newValue == null && !gameInfoBeans.isEmpty()) {
         gamesTable.getSelectionModel().select(gameInfoBeans.get(0));
       } else {
-        gamesController.displayGameDetail(newValue);
+        Platform.runLater(() -> gamesController.displayGameDetail(newValue));
       }
     });
 

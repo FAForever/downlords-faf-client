@@ -13,6 +13,10 @@ import java.io.IOException;
 
 public class AudioControllerImpl implements AudioController {
 
+  private static final String INFO_SOUND = "sounds/info.mp3";
+  private static final String MENTION_SOUND = "sounds/mention.mp3";
+  private static final String PRIVATE_MESSAGE_SOUND = "sounds/pm.mp3";
+
   @Autowired
   PreferencesService preferencesService;
 
@@ -48,11 +52,11 @@ public class AudioControllerImpl implements AudioController {
   private void loadSounds() throws IOException {
     String theme = preferencesService.getPreferences().getTheme();
 
-    infoNotificationSound = loadSound(theme, "sounds/info.mp3");
-    errorNotificationSound = loadSound(theme, "sounds/info.mp3");
-    warnNotificationSound = loadSound(theme, "sounds/info.mp3");
-    chatMentionSound = loadSound(theme, "sounds/mention.mp3");
-    privateMessageSound = loadSound(theme, "sounds/pm.mp3");
+    infoNotificationSound = loadSound(theme, INFO_SOUND);
+    errorNotificationSound = loadSound(theme, INFO_SOUND);
+    warnNotificationSound = loadSound(theme, INFO_SOUND);
+    chatMentionSound = loadSound(theme, MENTION_SOUND);
+    privateMessageSound = loadSound(theme, PRIVATE_MESSAGE_SOUND);
   }
 
   private AudioClip loadSound(String theme, String sound) throws IOException {

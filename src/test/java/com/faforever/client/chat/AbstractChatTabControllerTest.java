@@ -10,7 +10,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
+import com.faforever.client.util.OperatingSystem;
 import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Worker;
@@ -30,12 +30,12 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 
 import static java.util.Collections.emptyList;
@@ -51,6 +51,7 @@ import static org.mockito.Mockito.when;
 
 public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
+  private static final long TIMEOUT = 5000;
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
 
@@ -103,11 +104,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
       private final TextInputControl messageTextField = new TextField();
 
       @Override
-      protected WebView getMessagesWebView() {
-        return webView;
-      }
-
-      @Override
       public Tab getRoot() {
         return root;
       }
@@ -115,6 +111,11 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
       @Override
       protected TextInputControl getMessageTextField() {
         return messageTextField;
+      }
+
+      @Override
+      protected WebView getMessagesWebView() {
+        return webView;
       }
     };
     instance.chatService = chatService;
@@ -154,13 +155,11 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String message = "Some message";
     instance.getMessageTextField().setText(message);
     instance.setReceiver(receiver);
+    when(chatService.sendMessageInBackground(eq(receiver), any())).thenReturn(CompletableFuture.completedFuture(message));
 
     instance.onSendMessage();
 
-    ArgumentCaptor<Callback<String>> argumentCaptor = ArgumentCaptor.forClass(Callback.class);
-    verify(chatService).sendMessageInBackground(eq(receiver), any(), argumentCaptor.capture());
-
-    argumentCaptor.getValue().success(message);
+    verify(chatService).sendMessageInBackground(eq(receiver), eq(message));
     assertThat(instance.getMessageTextField().getText(), isEmptyString());
     assertThat(instance.getMessageTextField().isDisable(), is(false));
   }
@@ -172,12 +171,13 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.getMessageTextField().setText(message);
     instance.setReceiver(receiver);
 
+    CompletableFuture<String> future = new CompletableFuture<>();
+    future.completeExceptionally(new Exception("junit fake exception"));
+    when(chatService.sendMessageInBackground(eq(receiver), any())).thenReturn(future);
+
     instance.onSendMessage();
 
-    ArgumentCaptor<Callback<String>> argumentCaptor = ArgumentCaptor.forClass(Callback.class);
-    verify(chatService).sendMessageInBackground(eq(receiver), any(), argumentCaptor.capture());
-
-    argumentCaptor.getValue().error(new Exception("junit fake exception"));
+    verify(chatService).sendMessageInBackground(receiver, message);
     assertThat(instance.getMessageTextField().getText(), is(message));
     assertThat(instance.getMessageTextField().isDisable(), is(false));
   }
@@ -189,13 +189,11 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.getMessageTextField().setText(message);
     instance.setReceiver(receiver);
     when(timeService.asShortTime(any())).thenReturn("123");
+    when(chatService.sendActionInBackground(eq(receiver), any())).thenReturn(CompletableFuture.completedFuture(message));
 
     instance.onSendMessage();
 
-    ArgumentCaptor<Callback<String>> argumentCaptor = ArgumentCaptor.forClass(Callback.class);
-    verify(chatService).sendActionInBackground(eq(receiver), any(), argumentCaptor.capture());
-
-    argumentCaptor.getValue().success(message);
+    verify(chatService).sendActionInBackground(eq(receiver), eq("is happy"));
     assertThat(instance.getMessageTextField().getText(), isEmptyString());
     assertThat(instance.getMessageTextField().isDisable(), is(false));
   }
@@ -207,12 +205,13 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.getMessageTextField().setText(message);
     instance.setReceiver(receiver);
 
+    CompletableFuture<String> future = new CompletableFuture<>();
+    future.completeExceptionally(new Exception("junit fake exception"));
+    when(chatService.sendActionInBackground(eq(receiver), any())).thenReturn(future);
+
     instance.onSendMessage();
 
-    ArgumentCaptor<Callback<String>> argumentCaptor = ArgumentCaptor.forClass(Callback.class);
-    verify(chatService).sendActionInBackground(eq(receiver), any(), argumentCaptor.capture());
-
-    argumentCaptor.getValue().error(new Exception("junit test exception"));
+    verify(chatService).sendActionInBackground(receiver, "is happy");
     assertThat(instance.getMessageTextField().getText(), is(message));
     assertThat(instance.getMessageTextField().isDisable(), is(false));
   }
@@ -224,7 +223,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
     when(playerCardTooltipController.getRoot()).thenReturn(new Pane());
 
-    WaitForAsyncUtils.waitForAsyncFx(100, () -> instance.playerInfo(playerName));
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> instance.playerInfo(playerName));
 
     verify(playerService).getPlayerForUsername(playerName);
     verify(playerCardTooltipController).setPlayer(eq(playerInfoBean));
@@ -242,7 +241,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
     when(playerCardTooltipController.getRoot()).thenReturn(new Pane());
 
-    WaitForAsyncUtils.waitForAsyncFx(100, () -> {
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       instance.playerInfo(playerName);
       instance.hidePlayerInfo();
     });
@@ -290,7 +289,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     UrlPreviewResolver.Preview preview = mock(UrlPreviewResolver.Preview.class);
     when(urlPreviewResolver.resolvePreview(url)).thenReturn(preview);
 
-    WaitForAsyncUtils.waitForAsyncFx(100, () -> {
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       instance.previewUrl(url);
       instance.hideUrlPreview();
     });
@@ -425,32 +424,41 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPasteImageCtrlV() throws Exception {
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> {
-      Image image = new Image(getClass().getResourceAsStream("/images/tray_icon.png"));
+    KeyCode modifier;
+    switch (OperatingSystem.current()) {
+      case MAC:
+        modifier = KeyCode.META;
+        break;
+      default:
+        modifier = KeyCode.CONTROL;
+    }
 
+    Image image = new Image(getClass().getResourceAsStream("/images/tray_icon.png"));
+
+    String url = "http://www.example.com/fake.png";
+    when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));
+
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       ClipboardContent clipboardContent = new ClipboardContent();
       clipboardContent.putImage(image);
       Clipboard.getSystemClipboard().setContent(clipboardContent);
 
       instance.getMessageTextField().getOnKeyReleased().handle(
-          keyEvent(KeyCode.V, singletonList(KeyCode.CONTROL))
+          keyEvent(KeyCode.V, singletonList(modifier))
       );
     });
-
-    ArgumentCaptor<Callback<String>> argumentCaptor = ArgumentCaptor.forClass(Callback.class);
-    verify(imageUploadService).uploadImageInBackground(any(), argumentCaptor.capture());
-
-    String url = "http://www.example.com/fake.png";
-    argumentCaptor.getValue().success(url);
 
     assertThat(instance.getMessageTextField().getText(), is(url));
   }
 
   @Test
   public void testPasteImageShiftInsert() throws Exception {
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> {
-      Image image = new Image(getClass().getResourceAsStream("/images/tray_icon.png"));
+    Image image = new Image(getClass().getResourceAsStream("/images/tray_icon.png"));
 
+    String url = "http://www.example.com/fake.png";
+    when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));
+
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       ClipboardContent clipboardContent = new ClipboardContent();
       clipboardContent.putImage(image);
       Clipboard.getSystemClipboard().setContent(clipboardContent);
@@ -459,12 +467,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
           keyEvent(KeyCode.INSERT, singletonList(KeyCode.SHIFT))
       );
     });
-
-    ArgumentCaptor<Callback<String>> argumentCaptor = ArgumentCaptor.forClass(Callback.class);
-    verify(imageUploadService).uploadImageInBackground(any(), argumentCaptor.capture());
-
-    String url = "http://www.example.com/fake.png";
-    argumentCaptor.getValue().success(url);
 
     assertThat(instance.getMessageTextField().getText(), is(url));
   }

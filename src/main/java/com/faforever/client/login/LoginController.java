@@ -6,7 +6,6 @@ import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Strings;
 import javafx.fxml.FXML;
@@ -18,14 +17,19 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+
+import java.lang.invoke.MethodHandles;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class LoginController {
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
   Pane loginFormPane;
@@ -53,9 +57,6 @@ public class LoginController {
 
   @Autowired
   I18n i18n;
-
-  @Autowired
-  Environment environment;
 
   @Autowired
   UserService userService;
@@ -105,17 +106,12 @@ public class LoginController {
   private void login(String username, String password, boolean autoLogin) {
     onLoginProgress();
 
-    userService.login(username, password, autoLogin, new Callback<Void>() {
-      @Override
-      public void success(Void result) {
-        onLoginSucceeded();
-      }
-
-      @Override
-      public void error(Throwable e) {
-        onLoginFailed(e);
-      }
-    });
+    userService.login(username, password, autoLogin)
+        .thenAccept(aVoid -> onLoginSucceeded())
+        .exceptionally(throwable -> {
+          onLoginFailed(throwable);
+          return null;
+        });
   }
 
   private void onLoginProgress() {
@@ -127,6 +123,8 @@ public class LoginController {
   }
 
   private void onLoginFailed(Throwable e) {
+    logger.warn("Login failed", e);
+
     Dialog<Void> loginFailedDialog = new Dialog<>();
     loginFailedDialog.setTitle(i18n.get("login.failed.title"));
     loginFailedDialog.setContentText(i18n.get("login.failed.message"));

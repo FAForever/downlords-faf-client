@@ -21,11 +21,11 @@ import org.mockito.Mock;
 import org.springframework.core.env.Environment;
 
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.atLeastOnce;
@@ -238,19 +238,19 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInitModListEmpty() throws Exception {
-    assertThat(instance.modListView.getItems(), empty());
+    assertThat(instance.modListView.getItems(), nullValue());
     instance.postConstruct();
-    assertThat(instance.modListView.getItems(), empty());
+    assertThat(instance.modListView.getItems(), nullValue());
   }
 
   @Test
   public void testInitModListPopulated() throws Exception {
-    assertThat(instance.modListView.getItems(), empty());
+    assertThat(instance.modListView.getItems(), nullValue());
 
     ModInfoBean modInfoBean1 = mock(ModInfoBean.class);
     ModInfoBean modInfoBean2 = mock(ModInfoBean.class);
 
-    when(modService.getInstalledMods()).thenReturn(Arrays.asList(
+    when(modService.getInstalledMods()).thenReturn(FXCollections.observableArrayList(
         modInfoBean1, modInfoBean2
     ));
 

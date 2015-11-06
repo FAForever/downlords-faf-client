@@ -40,6 +40,32 @@ import java.util.Set;
 
 public class PropertyTypeAdapter implements JsonSerializer<Property>, JsonDeserializer<Property> {
 
+  private class CustomType implements ParameterizedType {
+
+    private final Class<?> rawType;
+    private final Type[] typeArguments;
+
+    public CustomType(Class<?> rawType, Type[] typeArguments) {
+      this.rawType = rawType;
+      this.typeArguments = typeArguments;
+    }
+
+    @Override
+    public Type[] getActualTypeArguments() {
+      return typeArguments;
+    }
+
+    @Override
+    public Type getRawType() {
+      return rawType;
+    }
+
+    @Override
+    public Type getOwnerType() {
+      return null;
+    }
+  }
+
   @Override
   public JsonElement serialize(Property src, Type typeOfSrc, JsonSerializationContext context) {
     if (src.getValue() == null) {
@@ -97,15 +123,18 @@ public class PropertyTypeAdapter implements JsonSerializer<Property>, JsonDeseri
       return new SimpleSetProperty<>(context.deserialize(json, Map.class));
     }
     if (typeOfT instanceof ParameterizedType) {
-      Type rawType = ((ParameterizedType) typeOfT).getRawType();
+      ParameterizedType parameterizedType = (ParameterizedType) typeOfT;
+      Type rawType = parameterizedType.getRawType();
 
       if (rawType == ObjectProperty.class) {
-        return new SimpleObjectProperty<>(context.deserialize(json, ((ParameterizedType) typeOfT).getActualTypeArguments()[0]));
+        return new SimpleObjectProperty<>(context.deserialize(json, parameterizedType.getActualTypeArguments()[0]));
       } else if (rawType == ListProperty.class) {
-        return new SimpleListProperty<>(FXCollections.observableList(context.deserialize(json, List.class)));
+        CustomType type = new CustomType(List.class, parameterizedType.getActualTypeArguments());
+        return new SimpleListProperty<>(FXCollections.observableList(context.deserialize(json, type)));
       } else if (rawType == SetProperty.class) {
+        CustomType type = new CustomType(Set.class, parameterizedType.getActualTypeArguments());
         // Why is this the only call that needs paramaterization?
-        return new SimpleSetProperty<>(FXCollections.observableSet(context.<Set<Object>>deserialize(json, Set.class)));
+        return new SimpleSetProperty<>(FXCollections.observableSet(context.<Set<Object>>deserialize(json, type)));
       } else if (rawType == MapProperty.class) {
         return new SimpleMapProperty<>(FXCollections.observableMap(context.deserialize(json, Map.class)));
       }

@@ -3,15 +3,15 @@ package com.faforever.client.legacy;
 import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.stats.RatingInfo;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.Callback;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
 
-import static com.faforever.client.task.TaskGroup.NET_LIGHT;
+import static com.faforever.client.task.AbstractPrioritizedTask.Priority.MEDIUM;
 
 public class MockStatisticsServerAccessor implements StatisticsServerAccessor {
 
@@ -19,10 +19,12 @@ public class MockStatisticsServerAccessor implements StatisticsServerAccessor {
   TaskService taskService;
 
   @Override
-  public void requestPlayerStatistics(String username, Callback<PlayerStatistics> callback, StatisticsType type) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<PlayerStatistics>("Fetching player statistics") {
+  public CompletableFuture<PlayerStatistics> requestPlayerStatistics(String username, StatisticsType type) {
+    return taskService.submitTask(new AbstractPrioritizedTask<PlayerStatistics>(MEDIUM) {
       @Override
       protected PlayerStatistics call() throws Exception {
+        updateTitle("Fetching player statistics");
+
         ArrayList<RatingInfo> ratings = new ArrayList<>();
         for (int day = 0; day < 90; day++) {
           LocalDateTime localDateTime = LocalDateTime.now().plusDays(day);
@@ -36,7 +38,7 @@ public class MockStatisticsServerAccessor implements StatisticsServerAccessor {
         playerStatistics.setValues(ratings);
         return playerStatistics;
       }
-    }, callback);
+    });
   }
 
   private RatingInfo createRatingInfo(LocalDateTime dateTime, float mean, float dev) {

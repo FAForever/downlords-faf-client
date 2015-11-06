@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.EOFException;
@@ -121,6 +122,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   }
 
   @Override
+  @PreDestroy
   public void close() {
     stopped = true;
     IOUtils.closeQuietly(serverSocket);
@@ -173,7 +175,11 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
             redirectFafToFa();
           }
         } catch (SocketException | EOFException e) {
-          logger.debug("Forged Alliance disconnected from relay server", e);
+          if (serverSocket.isClosed()) {
+            logger.info("Closed local relay server");
+          } else if (faSocket.isClosed()) {
+            logger.debug("Forged Alliance disconnected from relay server", e);
+          }
         }
       }
     }

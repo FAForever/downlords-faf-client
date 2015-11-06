@@ -11,6 +11,7 @@ public enum ServerMessageType {
   GAME_TYPE_INFO("mod_info"),
   TUTORIALS_INFO("tutorials_info"),
   MATCHMAKER_INFO("matchmaker_info"),
+  MOD_VAULT_INFO("modvault_info"),
   SOCIAL("social"),
   STATS("stats");
 

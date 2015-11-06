@@ -12,6 +12,7 @@ public enum ClientMessageType {
   STATISTICS("stats"),
   LOGIN("hello"),
   GAME_STATUS("fa_state"),
+  GAME_MATCH_MAKING("game_matchmaking"),
   MOD_VAULT("modvault");
 
   private static Map<String, ClientMessageType> fromString;

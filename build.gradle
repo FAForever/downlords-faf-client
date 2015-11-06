@@ -28,7 +28,7 @@ apply plugin: 'install4j'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-version = '0.4.8.2-alpha'
+version = '0.4.9-alpha'
 
 mainClassName = "com.faforever.client.Main"
 applicationDefaultJvmArgs = ["-Djava.library.path=../lib"]
@@ -136,4 +136,5 @@ dependencies {
   compile 'com.rometools:rome:1.5.0'
   compile 'org.jsoup:jsoup:1.8.2'
   compile 'net.dongliu:jvcdiff:2.0.2'
+  compile 'com.github.thiagolocatelli:parse4j:1.4'
 }

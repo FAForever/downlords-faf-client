@@ -7,6 +7,7 @@ import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,9 @@ import java.util.List;
 import java.util.Map;
 
 public class GameTooltipController {
+
+  @FXML
+  public TitledPane modsPane;
 
   @FXML
   public Pane teamsPane;
@@ -48,8 +52,14 @@ public class GameTooltipController {
   }
 
   private void createModsList(ObservableMap<? extends String, ? extends String> simMods) {
+    if (simMods.isEmpty()) {
+      modsPane.setVisible(false);
+      return;
+    }
+
     String stringSimMods = Joiner.on(System.getProperty("line.separator")).join(simMods.values());
     modsLabel.setText(stringSimMods);
+    modsPane.setVisible(true);
   }
 
   public Node getRoot() {

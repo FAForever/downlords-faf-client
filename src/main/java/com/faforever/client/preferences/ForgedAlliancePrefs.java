@@ -17,33 +17,28 @@ public class ForgedAlliancePrefs {
 
   public static final Path GPG_FA_PATH;
   public static final Path STEAM_FA_PATH;
-  public static final Path FAF_GAME_PATH;
+  public static final Path LOCAL_FA_DATA_PATH;
 
   static {
     switch (OperatingSystem.current()) {
       case WINDOWS:
         GPG_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
-        FAF_GAME_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
         //If steam is every swapped to a 64x client, needs to be updated to proper directory or handling must be put in place.
         STEAM_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PROGRAM_FILESX86), "Steam", "SteamApps", "common", "Supreme Commander Forged Alliance");
+        LOCAL_FA_DATA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_LOCAL_APPDATA), "Gas Powered Games", "Supreme Commander Forged Alliance");
         break;
 
       default:
         GPG_FA_PATH = Paths.get(".");
-        FAF_GAME_PATH = Paths.get(".");
         STEAM_FA_PATH = Paths.get(".");
+        LOCAL_FA_DATA_PATH = Paths.get(".");
     }
   }
 
   private final ObjectProperty<Path> path;
   private final ObjectProperty<Path> customMapsDirectory;
-
-  public Path getOfficialMapsDirectory() {
-    return officialMapsDirectory.get();
-  }
-
+  private final ObjectProperty<Path> preferencesFile;
   private final ObjectProperty<Path> officialMapsDirectory;
-
   private final ObjectProperty<Path> modsDirectory;
   private final IntegerProperty port;
   private final BooleanProperty autoDownloadMaps;
@@ -54,9 +49,29 @@ public class ForgedAlliancePrefs {
     customMapsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("maps"));
     officialMapsDirectory = new SimpleObjectProperty<>(STEAM_FA_PATH.resolve("maps"));
     modsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("mods"));
+    preferencesFile = new SimpleObjectProperty<>(LOCAL_FA_DATA_PATH.resolve("game.prefs"));
     autoDownloadMaps = new SimpleBooleanProperty(true);
   }
 
+  public Path getPreferencesFile() {
+    return preferencesFile.get();
+  }
+
+  public void setPreferencesFile(Path preferencesFile) {
+    this.preferencesFile.set(preferencesFile);
+  }
+
+  public ObjectProperty<Path> preferencesFileProperty() {
+    return preferencesFile;
+  }
+
+  public Path getOfficialMapsDirectory() {
+    return officialMapsDirectory.get();
+  }
+
+  public void setOfficialMapsDirectory(Path officialMapsDirectory) {
+    this.officialMapsDirectory.set(officialMapsDirectory);
+  }
 
   public Path getPath() {
     return path.get();
@@ -120,9 +135,5 @@ public class ForgedAlliancePrefs {
 
   public ObjectProperty<Path> officialMapsDirectoryProperty() {
     return officialMapsDirectory;
-  }
-
-  public void setOfficialMapsDirectory(Path officialMapsDirectory) {
-    this.officialMapsDirectory.set(officialMapsDirectory);
   }
 }

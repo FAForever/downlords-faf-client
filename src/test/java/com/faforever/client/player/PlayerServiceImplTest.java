@@ -1,6 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.game.GameService;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnFoeListListener;
 import com.faforever.client.legacy.OnFriendListListener;
@@ -8,6 +9,8 @@ import com.faforever.client.legacy.OnPlayerInfoListener;
 import com.faforever.client.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -19,19 +22,27 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class PlayerServiceImplTest {
 
+  @Mock
+  GameService gameService;
+  @Mock
+  LobbyServerAccessor lobbyServerAccessor;
+  @Mock
+  UserService userService;
   private PlayerServiceImpl instance;
 
   @Before
   public void setUp() throws Exception {
+    MockitoAnnotations.initMocks(this);
+
     instance = new PlayerServiceImpl();
-    instance.lobbyServerAccessor = mock(LobbyServerAccessor.class);
-    instance.userService = mock(UserService.class);
+    instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.userService = userService;
+    instance.gameService = gameService;
   }
 
   @Test

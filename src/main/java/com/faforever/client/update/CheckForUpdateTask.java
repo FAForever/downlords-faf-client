@@ -1,7 +1,7 @@
 package com.faforever.client.update;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import com.google.common.io.CharStreams;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.FieldNamingPolicy;
@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import java.io.InputStreamReader;
@@ -21,18 +22,20 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-public class CheckForUpdateTask extends PrioritizedTask<UpdateInfo> {
+public class CheckForUpdateTask extends AbstractPrioritizedTask<UpdateInfo> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   private final Gson gson;
-  private Environment environment;
+
+  @Autowired
+  Environment environment;
+  @Autowired
+  I18n i18n;
+
   private ComparableVersion currentVersion;
 
-  public CheckForUpdateTask(Environment environment, I18n i18n, ComparableVersion currentVersion) {
-    super(i18n.get("clientUpdateCheckTask.title"), Priority.LOW);
-    this.environment = environment;
-    this.currentVersion = currentVersion;
+  public CheckForUpdateTask() {
+    super(Priority.LOW);
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .create();
@@ -40,6 +43,7 @@ public class CheckForUpdateTask extends PrioritizedTask<UpdateInfo> {
 
   @Override
   protected UpdateInfo call() throws Exception {
+    updateTitle(i18n.get("clientUpdateCheckTask.title"));
     logger.info("Checking for client update");
 
     String releasesUrl = environment.getProperty("github.releases.url");
@@ -80,5 +84,9 @@ public class CheckForUpdateTask extends PrioritizedTask<UpdateInfo> {
       logger.error("Error", t);
       throw t;
     }
+  }
+
+  public void setCurrentVersion(ComparableVersion currentVersion) {
+    this.currentVersion = currentVersion;
   }
 }

@@ -7,7 +7,7 @@ public class FoesMessage extends ClientMessage {
   private Collection<String> foes;
 
   public FoesMessage(Collection<String> foes) {
-    this.setCommand(ClientMessageType.SOCIAL);
+    super(ClientMessageType.SOCIAL);
     this.setFoes(foes);
   }
 

@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
-import com.faforever.client.util.Callback;
+import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
+import javafx.beans.property.BooleanProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -12,7 +13,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Downloads necessary maps, mods and updates before starting
@@ -23,11 +24,9 @@ public interface GameService {
 
   void publishPotentialPlayer();
 
-  CompletionStage<Void> hostGame(NewGameInfo name);
+  CompletableFuture<Void> hostGame(NewGameInfo name);
 
-  void cancelLadderSearch();
-
-  void joinGame(GameInfoBean gameInfoBean, String password, Callback<Void> callback);
+  CompletableFuture<Void> joinGame(GameInfoBean gameInfoBean, String password);
 
   List<GameTypeBean> getGameTypes();
 
@@ -37,8 +36,6 @@ public interface GameService {
 
   /**
    * @param path a replay file that is readable by the game without any further conversion
-   * @param modVersions
-   * @param simMods
    */
   void runWithReplay(Path path, @Nullable Integer replayId, String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simMods) throws IOException;
 
@@ -50,4 +47,12 @@ public interface GameService {
   GameTypeBean getGameTypeByString(String gameTypeBeanName);
 
   GameInfoBean getByUid(int uid);
+
+  void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener);
+
+  CompletableFuture<Void> startSearchRanked1v1(Faction faction);
+
+  void stopSearchRanked1v1();
+
+  BooleanProperty searching1v1Property();
 }

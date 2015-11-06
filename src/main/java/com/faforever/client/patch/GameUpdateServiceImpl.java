@@ -1,8 +1,8 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.task.TaskGroup;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.Callback;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +26,8 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
   private UpdateGameFilesTask updateTask;
 
   @Override
-  public CompletableFuture<Void> updateInBackground(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUids) {
-    if (!initAndCheckDirectories()) {
+  public CompletableFuture<Void> updateInBackground(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUids) {
+    if (!checkDirectories()) {
       logger.warn("Aborted patching since directories aren't initialized properly");
       return CompletableFuture.completedFuture(null);
     }
@@ -42,26 +42,12 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
     updateTask.setSimMods(simModUids);
     updateTask.setModVersions(modVersions);
 
-    CompletableFuture<Void> future = new CompletableFuture<>();
-
-    // TODO replace TaskGroups by some resource locking mechanism. This has been changed to NET_LIGHT because a sub-task using NET_HEAVY would be blocked otherwise
-    taskService.submitTask(TaskGroup.NET_LIGHT, updateTask, new Callback<Void>() {
-      @Override
-      public void success(Void result) {
-        future.complete(result);
-      }
-
-      @Override
-      public void error(Throwable e) {
-        future.completeExceptionally(e);
-      }
-    });
-
-    return future;
+    return taskService.submitTask(updateTask);
   }
 
   @Override
-  public void checkForUpdateInBackground() {
+  public CompletableFuture<Void> checkForUpdateInBackground() {
     logger.info("Ignoring update check since the current server implementation doesn't allow to do so easily");
+    return null;
   }
 }

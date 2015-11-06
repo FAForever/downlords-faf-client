@@ -25,11 +25,12 @@ import java.util.regex.Pattern;
 
 public class GameInfoBean {
 
-  private static final Pattern MIN_RATING_PATTERN = Pattern.compile(">?\\s?(\\d+)\\s?\\+?");
-  private static final Pattern MAX_RATING_PATTERN = Pattern.compile("<\\s?(\\d+)?");
-  private static final Pattern ABOUT_RATING_PATTERN = Pattern.compile("~?(\\d+)");
-  private static final Pattern BETWEEN_RATING_PATTERN = Pattern.compile("(\\d+)\\s?-\\s?(\\d+)");
-  private static final Pattern RATING_PATTERN = Pattern.compile("([<>+~](?:\\d\\.?\\d?k|\\d{3,4})|(?:\\d\\.?\\d?k|\\d{3,4})[<>+]|(?:\\d\\.?\\d?k|\\d{1,4})\\s?-\\s?(?:\\d\\.?\\d?k|\\d{3,4}))");
+  private static final String RATING_NUMBER = "\\d+(?:\\.\\d+)?k?";
+  private static final Pattern MIN_RATING_PATTERN = Pattern.compile(">\\s*(" + RATING_NUMBER + ")|(" + RATING_NUMBER + ")\\s*\\+");
+  private static final Pattern MAX_RATING_PATTERN = Pattern.compile("<\\s*(" + RATING_NUMBER + ")");
+  private static final Pattern ABOUT_RATING_PATTERN = Pattern.compile("~\\s*(" + RATING_NUMBER + ")");
+  private static final Pattern BETWEEN_RATING_PATTERN = Pattern.compile("(" + RATING_NUMBER + ")\\s*-\\s*(" + RATING_NUMBER + ")");
+  private static final Pattern INTEGER_PATTERN_MATCHER = Pattern.compile("\\d+");
 
   private final StringProperty host;
   private final StringProperty title;
@@ -49,7 +50,9 @@ public class GameInfoBean {
    */
   private final MapProperty<String, String> simMods;
   private final MapProperty<String, List<String>> teams;
-  /** Maps an index (1,2,3,4...) to a version number. Don't ask me what this index maps to. */
+  /**
+   * Maps an index (1,2,3,4...) to a version number. Don't ask me what this index maps to.
+   */
   private final MapProperty<String, Integer> featuredModVersions;
 
   public GameInfoBean(GameInfo gameInfo) {
@@ -66,8 +69,8 @@ public class GameInfoBean {
     access = new SimpleObjectProperty<>();
     numPlayers = new SimpleIntegerProperty();
     maxPlayers = new SimpleIntegerProperty();
-    minRating = new SimpleIntegerProperty();
-    maxRating = new SimpleIntegerProperty();
+    minRating = new SimpleIntegerProperty(0);
+    maxRating = new SimpleIntegerProperty(3000);
     victoryCondition = new SimpleObjectProperty<>();
     options = new SimpleListProperty<>(FXCollections.observableArrayList());
     simMods = new SimpleMapProperty<>(FXCollections.observableHashMap());
@@ -107,28 +110,51 @@ public class GameInfoBean {
       featuredModVersions.putAll(gameInfo.getFeaturedModVersions());
     }
 
-    // TODO as this can be removed as soon as we get server side support. Until then, let's be hacky
-    Matcher matcher = RATING_PATTERN.matcher(title.get());
+    // TODO this can be removed as soon as we get server side support. Until then, let's be hacky
+    String titleString = title.get();
+    Matcher matcher = BETWEEN_RATING_PATTERN.matcher(titleString);
     if (matcher.find()) {
-      String ratingString = matcher.group(1);
-      matcher = BETWEEN_RATING_PATTERN.matcher(ratingString);
+      minRating.set(parseRating(matcher.group(1)));
+      maxRating.set(parseRating(matcher.group(2)));
+    } else {
+      matcher = MIN_RATING_PATTERN.matcher(titleString);
       if (matcher.find()) {
-        minRating.set(Integer.parseInt(matcher.group(1)));
-        maxRating.set(Integer.parseInt(matcher.group(2)));
+        if (matcher.group(1) != null) {
+          minRating.set(parseRating(matcher.group(1)));
+        }
+        if (matcher.group(2) != null) {
+          minRating.set(parseRating(matcher.group(2)));
+        }
+        maxRating.set(3000);
       } else {
-        matcher = MIN_RATING_PATTERN.matcher(ratingString);
+        matcher = MAX_RATING_PATTERN.matcher(titleString);
         if (matcher.find()) {
-          minRating.set(Integer.parseInt(matcher.group(1)));
-          maxRating.set(3000);
+          minRating.set(0);
+          maxRating.setValue(parseRating(matcher.group(1)));
         } else {
-          matcher = MAX_RATING_PATTERN.matcher(ratingString);
+          matcher = ABOUT_RATING_PATTERN.matcher(titleString);
           if (matcher.find()) {
-            maxRating.setValue(Integer.parseInt(ratingString));
+            int rating = parseRating(matcher.group(1));
+            minRating.set(rating - 300);
+            maxRating.set(rating + 300);
           }
         }
       }
+    }
+  }
+
+  private int parseRating(String string) {
+    Matcher matcher = INTEGER_PATTERN_MATCHER.matcher(string);
+    if (matcher.matches()) {
+      return Integer.parseInt(string);
     } else {
-      maxRating.set(3000);
+      int rating;
+      String[] split = string.replace("k", "").split("\\.");
+      rating = Integer.parseInt(split[0]) * 1000;
+      if (split.length == 2) {
+        rating += Integer.parseInt(split[1]) * 100;
+      }
+      return rating;
     }
   }
 
@@ -333,9 +359,5 @@ public class GameInfoBean {
   public boolean equals(Object obj) {
     return obj instanceof GameInfoBean
         && uid.getValue().equals(((GameInfoBean) obj).uid.getValue());
-  }
-
-  public static Pattern getRatingPattern() {
-    return RATING_PATTERN;
   }
 }

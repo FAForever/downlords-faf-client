@@ -4,14 +4,11 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
@@ -24,11 +21,10 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.CheckBoxListCell;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
-import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,15 +32,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.faforever.client.notification.Severity.WARN;
 
 public class CreateGameController {
 
@@ -187,19 +178,7 @@ public class CreateGameController {
   private void initModList() {
     modListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     modListView.setCellFactory(modListCellFactory());
-
-    try {
-      List<ModInfoBean> installedMods = modService.getInstalledMods();
-      modListView.setItems(FXCollections.observableList(installedMods));
-    } catch (IOException e) {
-      logger.warn("Installed mods could not be loaded", e);
-      notificationService.addNotification(
-          new PersistentNotification(
-              i18n.get("loadingInstalledModsFailed.notification", e.getLocalizedMessage()),
-              WARN,
-              Collections.singletonList(new Action(i18n.get("loadingInstalledModsFailed.retry"))))
-      );
-    }
+    modListView.setItems(modService.getInstalledMods());
   }
 
   private void initMapSelection() {
@@ -280,19 +259,36 @@ public class CreateGameController {
 
   @NotNull
   private Callback<ListView<ModInfoBean>, ListCell<ModInfoBean>> modListCellFactory() {
-    return CheckBoxListCell.forListView(ModInfoBean::selectedProperty,
-        new StringConverter<ModInfoBean>() {
-          @Override
-          public String toString(ModInfoBean object) {
-            return object.getName();
-          }
+    return param -> {
+      ListCell<ModInfoBean> cell = new ListCell<ModInfoBean>() {
 
-          @Override
-          public ModInfoBean fromString(String string) {
-            return null;
+        @Override
+        protected void updateItem(ModInfoBean item, boolean empty) {
+          super.updateItem(item, empty);
+
+          if (empty || item == null) {
+            setText(null);
+            setGraphic(null);
+          } else {
+            setText(item.getName());
           }
         }
-    );
+      };
+      cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+        modListView.requestFocus();
+        MultipleSelectionModel<ModInfoBean> selectionModel = modListView.getSelectionModel();
+        if (!cell.isEmpty()) {
+          int index = cell.getIndex();
+          if (selectionModel.getSelectedIndices().contains(index)) {
+            selectionModel.clearSelection(index);
+          } else {
+            selectionModel.select(index);
+          }
+          event.consume();
+        }
+      });
+      return cell;
+    };
   }
 
   @NotNull
@@ -346,7 +342,7 @@ public class CreateGameController {
         Strings.emptyToNull(passwordTextField.getText()),
         gameTypeListView.getSelectionModel().getSelectedItem().getName(),
         mapListView.getSelectionModel().getSelectedItem().getDisplayName(),
-        0,
+        null,
         simMods);
 
     gameService.hostGame(newGameInfo);
@@ -364,5 +360,15 @@ public class CreateGameController {
         return;
       }
     }
+  }
+
+  @FXML
+  void onDeselectModsButtonClicked(ActionEvent event) {
+    modListView.getSelectionModel().clearSelection();
+  }
+
+  @FXML
+  void onReloadModsButtonClicked(ActionEvent event) {
+    modService.loadInstalledMods();
   }
 }

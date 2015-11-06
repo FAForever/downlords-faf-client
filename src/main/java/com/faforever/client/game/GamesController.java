@@ -14,8 +14,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.util.Callback;
 import com.faforever.client.util.RatingUtil;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.transformation.FilteredList;
@@ -39,13 +39,10 @@ import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
-import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -54,72 +51,51 @@ import java.util.function.Predicate;
 // TODO rename all Game* things to "Play" to be consistent with the menu
 public class GamesController {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final Predicate<GameInfoBean> OPEN_GAMES_PREDICATE = gameInfoBean -> gameInfoBean.getStatus() == GameState.OPEN;
 
   @FXML
   VBox teamListPane;
-
   @FXML
   Label mapLabel;
-
   @FXML
   Button createGameButton;
-
   @FXML
   Pane gameViewContainer;
-
   @FXML
   Node gamesRoot;
-
   @FXML
   ImageView mapImageView;
-
   @FXML
   Label gameTitleLabel;
-
   @FXML
   Label numberOfPlayersLabel;
-
   @FXML
   Label hostLabel;
-
   @FXML
   Label gameTypeLabel;
-
   @FXML
   VBox gamePreviewPanel;
-
   @FXML
   MenuButton switchViewButton;
 
   @Autowired
   ApplicationContext applicationContext;
-
   @Autowired
   I18n i18n;
-
   @Autowired
   PlayerService playerService;
-
   @Autowired
   GameService gameService;
-
   @Autowired
   MapService mapService;
-
   @Autowired
   CreateGameController createGameController;
-
   @Autowired
   EnterPasswordController enterPasswordController;
-
   @Autowired
   PreferencesService preferencesService;
-
   @Autowired
   SceneFactory sceneFactory;
-
   @Autowired
   NotificationService notificationService;
 
@@ -152,14 +128,14 @@ public class GamesController {
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
       createGameButton.setDisable(true);
       createGameButton.setTooltip(new Tooltip(i18n.get("missingGamePath.notification")));
-
-      preferencesService.addUpdateListener(preferences -> {
-        if (preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
-          createGameButton.setDisable(false);
-          createGameButton.setTooltip(null);
-        }
-      });
     }
+
+    preferencesService.addUpdateListener(preferences -> {
+      if (preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
+        createGameButton.setDisable(false);
+        createGameButton.setTooltip(null);
+      }
+    });
 
     ObservableList<GameInfoBean> gameInfoBeans = gameService.getGameInfoBeans();
 
@@ -173,12 +149,14 @@ public class GamesController {
   void onTableButtonPressed() {
     if (tilesPaneSelected || isFirstGeneratedPane()) {
       GamesTableController gamesTableController = applicationContext.getBean(GamesTableController.class);
-      gamesTableController.initializeGameTable(filteredItems);
+      Platform.runLater(() -> {
+        gamesTableController.initializeGameTable(filteredItems);
 
-      Node root = gamesTableController.getRoot();
-      populateContainer(root);
-      firstGeneratedPane = false;
-      tilesPaneSelected = false;
+        Node root = gamesTableController.getRoot();
+        populateContainer(root);
+        firstGeneratedPane = false;
+        tilesPaneSelected = false;
+      });
     }
   }
 
@@ -278,18 +256,7 @@ public class GamesController {
       enterPasswordController.setGameInfoBean(gameInfoBean);
       passwordPopup.show(gamesRoot.getScene().getWindow(), screenX, screenY);
     } else {
-      gameService.joinGame(gameInfoBean, password, new Callback<Void>() {
-        @Override
-        public void success(Void result) {
-          // Cool.
-        }
-
-        @Override
-        public void error(Throwable e) {
-          // FIXME implement
-          logger.warn("Game could not be joined", e);
-        }
-      });
+      gameService.joinGame(gameInfoBean, password);
     }
   }
 

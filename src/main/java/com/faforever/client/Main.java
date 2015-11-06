@@ -3,6 +3,7 @@ package com.faforever.client;
 import com.faforever.client.config.BaseConfig;
 import com.faforever.client.config.CacheConfig;
 import com.faforever.client.config.ServiceConfig;
+import com.faforever.client.config.TaskConfig;
 import com.faforever.client.config.UiConfig;
 import com.faforever.client.fx.JavaFxHostService;
 import com.faforever.client.login.LoginController;
@@ -18,20 +19,29 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 public class Main extends Application {
 
+  private AnnotationConfigApplicationContext context;
+
   @Override
   public void start(Stage stage) throws Exception {
     Font.loadFont(getClass().getResourceAsStream("/font/fontawesome-webfont.ttf"), 0);
     JavaFxUtil.fixTooltipDuration();
 
-    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+    context = new AnnotationConfigApplicationContext();
     context.getBeanFactory().registerSingleton("hostService", new JavaFxHostService(getHostServices()));
-    context.register(BaseConfig.class, UiConfig.class, ServiceConfig.class, CacheConfig.class);
+    context.register(BaseConfig.class, UiConfig.class, ServiceConfig.class, TaskConfig.class, CacheConfig.class);
+    context.registerShutdownHook();
     context.refresh();
 
     stage.getIcons().add(new Image("/images/tray_icon.png"));
     stage.initStyle(StageStyle.TRANSPARENT);
 
     showLoginWindow(stage, context);
+  }
+
+  @Override
+  public void stop() throws Exception {
+    context.close();
+    super.stop();
   }
 
   private void showLoginWindow(Stage stage, ApplicationContext context) {

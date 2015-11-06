@@ -11,57 +11,109 @@ import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.util.Callback;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import static com.faforever.client.fa.RatingMode.GLOBAL;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsEmptyCollection.emptyCollectionOf;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
-  private GameServiceImpl instance;
+  private static final long TIMEOUT = 5000;
+  private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
+  private static final int GAME_PORT = 1234;
+  private static final int SEARCH_EXPANSION_DELAY = 3000;
+  private static final float SEARCH_MAX_RADIUS = .10f;
+  private static final float SEARCH_RADIUS_INCREMENT = .01f;
 
   @Mock
-  private Callback<Void> callback;
+  private PreferencesService preferencesService;
+  @Mock
+  private LobbyServerAccessor lobbyServerAccessor;
+  @Mock
+  private MapService mapService;
+  @Mock
+  private ForgedAllianceService forgedAllianceService;
+  @Mock
+  private Proxy proxy;
+  @Mock
+  private GameUpdateService gameUpdateService;
+  @Mock
+  private Preferences preferences;
+  @Mock
+  private ForgedAlliancePrefs forgedAlliancePrefs;
+  @Mock
+  private ApplicationContext applicationContext;
+  @Mock
+  private SearchExpansionTask searchExpansionTask;
+  @Mock
+  private ScheduledExecutorService scheduledExecutorService;
+  @Mock
+  private Environment environment;
+
+  private GameServiceImpl instance;
 
   @Before
   public void setUp() throws Exception {
     instance = new GameServiceImpl();
-    instance.lobbyServerAccessor = mock(LobbyServerAccessor.class);
-    instance.mapService = mock(MapService.class);
-    instance.forgedAllianceService = mock(ForgedAllianceService.class);
-    instance.proxy = mock(Proxy.class);
-    instance.gameUpdateService = mock(GameUpdateService.class);
+    instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.mapService = mapService;
+    instance.forgedAllianceService = forgedAllianceService;
+    instance.proxy = proxy;
+    instance.gameUpdateService = gameUpdateService;
+    instance.preferencesService = preferencesService;
+    instance.applicationContext = applicationContext;
+    instance.scheduledExecutorService = scheduledExecutorService;
+    instance.environment = environment;
+
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
+    when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
+    when(environment.getProperty("ranked1v1.search.expansionDelay", int.class)).thenReturn(SEARCH_EXPANSION_DELAY);
+    when(environment.getProperty("ranked1v1.search.maxRadius", float.class)).thenReturn(SEARCH_MAX_RADIUS);
+    when(environment.getProperty("ranked1v1.search.radiusIncrement", float.class)).thenReturn(SEARCH_RADIUS_INCREMENT);
 
     instance.postConstruct();
   }
 
   @Test
   public void postConstruct() {
-    verify(instance.lobbyServerAccessor).addOnGameTypeInfoListener(any(OnGameTypeInfoListener.class));
-    verify(instance.lobbyServerAccessor).addOnGameInfoListener(any(OnGameInfoListener.class));
+    verify(lobbyServerAccessor).addOnGameTypeInfoListener(any(OnGameTypeInfoListener.class));
+    verify(lobbyServerAccessor).addOnGameInfoListener(any(OnGameInfoListener.class));
   }
 
   @Test
@@ -75,19 +127,13 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(gameInfoBean.getSimMods()).thenReturn(simMods);
     when(gameInfoBean.getMapTechnicalName()).thenReturn("map");
 
-    when(instance.mapService.isAvailable("map")).thenReturn(true);
+    when(mapService.isAvailable("map")).thenReturn(true);
+    when(lobbyServerAccessor.requestJoinGame(gameInfoBean, null)).thenReturn(completedFuture(null));
+    when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
 
-    doAnswer(invocation -> {
-      callback.success(null);
-      return null;
-    }).when(instance.lobbyServerAccessor).requestJoinGame(eq(gameInfoBean), eq(null));
+    CompletableFuture<Void> future = instance.joinGame(gameInfoBean, null);
 
-    when(instance.gameUpdateService.updateInBackground(any(), any(), any(), any()))
-        .thenReturn(completedFuture(null));
-
-    instance.joinGame(gameInfoBean, null, callback);
-
-    verify(callback).success(null);
+    assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
   }
 
   @Test
@@ -144,19 +190,19 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     GameLaunchInfo gameLaunchInfo = GameLaunchInfoBuilder.create().defaultValues().get();
     gameLaunchInfo.setArgs(Arrays.asList("/foo bar", "/bar foo"));
 
-    when(instance.forgedAllianceService.startGame(
-        eq(gameLaunchInfo.getUid()), eq(gameLaunchInfo.getMod()), eq(Arrays.asList("/foo", "bar", "/bar", "foo"))
-    )).thenReturn(process);
-    when(instance.gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(instance.lobbyServerAccessor.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchInfo));
+    when(forgedAllianceService.startGame(
+            gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL)
+    ).thenReturn(process);
+    when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(lobbyServerAccessor.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchInfo));
 
     instance.addOnGameStartedListener(listener);
     instance.hostGame(newGameInfo);
 
     verify(listener).onGameStarted(gameLaunchInfo.getUid());
-    verify(instance.lobbyServerAccessor).notifyGameStarted();
-    verify(instance.forgedAllianceService).startGame(
-        eq(gameLaunchInfo.getUid()), eq(gameLaunchInfo.getMod()), eq(Arrays.asList("/foo", "bar", "/bar", "foo"))
+    verify(lobbyServerAccessor).notifyGameStarted();
+    verify(forgedAllianceService).startGame(
+        gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL
     );
   }
 
@@ -167,17 +213,17 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> {
       serviceStateDoneFuture.complete(null);
       return null;
-    }).when(instance.lobbyServerAccessor).notifyGameTerminated();
+    }).when(lobbyServerAccessor).notifyGameTerminated();
 
     Process process = mock(Process.class);
 
-    instance.waitForProcessTerminationInBackground(process);
+    instance.spawnTerminationListener(process);
 
     serviceStateDoneFuture.get(500, TimeUnit.MILLISECONDS);
 
     verify(process).waitFor();
-    verify(instance.proxy).close();
-    verify(instance.lobbyServerAccessor).notifyGameTerminated();
+    verify(proxy).close();
+    verify(lobbyServerAccessor).notifyGameTerminated();
   }
 
   @Test
@@ -238,5 +284,58 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.onGameInfo(gameInfo);
 
     assertThat(instance.getGameInfoBeans(), empty());
+  }
+
+  @Test
+  public void testStartSearchRanked1v1() throws Exception {
+    GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
+    gameLaunchInfo.setUid(123);
+    gameLaunchInfo.setArgs(Collections.<String>emptyList());
+    when(lobbyServerAccessor.startSearchRanked1v1(Faction.CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchInfo));
+    when(gameUpdateService.updateInBackground(GameType.LADDER_1V1.getString(), null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
+    when(applicationContext.getBean(SearchExpansionTask.class)).thenReturn(searchExpansionTask);
+    when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
+
+    CompletableFuture<Void> future = instance.startSearchRanked1v1(Faction.CYBRAN);
+
+    verify(searchExpansionTask).setMaxRadius(SEARCH_MAX_RADIUS);
+    verify(searchExpansionTask).setRadiusIncrement(SEARCH_RADIUS_INCREMENT);
+    verify(scheduledExecutorService).scheduleWithFixedDelay(searchExpansionTask, SEARCH_EXPANSION_DELAY, SEARCH_EXPANSION_DELAY, TimeUnit.MILLISECONDS);
+    verify(lobbyServerAccessor).startSearchRanked1v1(Faction.CYBRAN, GAME_PORT);
+    assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
+  }
+
+  @Test
+  public void testStartSearchRanked1v1GameRunningDoesNothing() throws Exception {
+    Process process = mock(Process.class);
+    when(process.isAlive()).thenReturn(true);
+
+    NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
+    GameLaunchInfo gameLaunchInfo = GameLaunchInfoBuilder.create().defaultValues().get();
+    when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), any())).thenReturn(process);
+    when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(lobbyServerAccessor.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchInfo));
+
+    instance.hostGame(newGameInfo);
+
+    instance.startSearchRanked1v1(Faction.AEON);
+
+    assertThat(instance.searching1v1Property().get(), is(false));
+  }
+
+  @Test
+  public void testStopSearchRanked1v1() throws Exception {
+    instance.searching1v1Property().set(true);
+    instance.stopSearchRanked1v1();
+    assertThat(instance.searching1v1Property().get(), is(false));
+    verify(lobbyServerAccessor).stopSearchingRanked();
+  }
+
+  @Test
+  public void testStopSearchRanked1v1NotSearching() throws Exception {
+    instance.searching1v1Property().set(false);
+    instance.stopSearchRanked1v1();
+    assertThat(instance.searching1v1Property().get(), is(false));
+    verify(lobbyServerAccessor, never()).stopSearchingRanked();
   }
 }

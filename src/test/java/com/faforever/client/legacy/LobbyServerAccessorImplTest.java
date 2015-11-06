@@ -1,6 +1,8 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.game.Faction;
 import com.faforever.client.legacy.domain.ClientMessageType;
+import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.domain.InitSessionMessage;
 import com.faforever.client.legacy.domain.LoginMessage;
@@ -11,11 +13,14 @@ import com.faforever.client.legacy.gson.ClientMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.io.QDataInputStream;
 import com.faforever.client.legacy.writer.ServerWriter;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.rankedmatch.RankedMatchNotification;
+import com.faforever.client.rankedmatch.SearchRanked1v1Message;
+import com.faforever.client.rankedmatch.StopSearchRanked1v1Message;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.util.Callback;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -45,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -59,24 +64,28 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   private static final long TIMEOUT = 500000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
+  private static final int GAME_PORT = 6112;
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final Gson gson = new GsonBuilder()
       .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
       .registerTypeAdapter(ClientMessageType.class, new ClientMessageTypeTypeAdapter())
       .registerTypeAdapter(ServerMessageType.class, new ServerMessageTypeTypeAdapter())
+      .registerTypeAdapter(Faction.class, new FactionDeserializer())
       .create();
 
   @Rule
   public TemporaryFolder faDirectory = new TemporaryFolder();
 
   @Mock
-  PreferencesService preferencesService;
+  private PreferencesService preferencesService;
   @Mock
-  Preferences preferences;
+  private Preferences preferences;
   @Mock
-  Environment environment;
+  private Environment environment;
   @Mock
-  UidService uidService;
+  private UidService uidService;
+  @Mock
+  private ForgedAlliancePrefs forgedAlliancePrefs;
 
   private LobbyServerAccessorImpl instance;
   private LoginPrefs loginPrefs;
@@ -105,6 +114,8 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getFafDataDirectory()).thenReturn(faDirectory.getRoot().toPath());
+    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
+    when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
     when(preferences.getLogin()).thenReturn(loginPrefs);
     when(environment.getProperty("lobby.host")).thenReturn(LOOPBACK_ADDRESS.getHostAddress());
     when(environment.getProperty("lobby.port", int.class)).thenReturn(fafLobbyServerSocket.getLocalPort());
@@ -132,8 +143,10 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
           String json = qDataInputStream.readQString();
 
           if (blockSize > json.length() * 2) {
-            String username = qDataInputStream.readQString();
-            String sessionId = qDataInputStream.readQString();
+            // Username
+            qDataInputStream.readQString();
+            // Session ID
+            qDataInputStream.readQString();
           }
 
           messagesReceivedByFafServer.add(json);
@@ -153,25 +166,16 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testConnectAndLogInInBackground() throws Exception {
-    CompletableFuture<SessionInfo> sessionInfoFuture = new CompletableFuture<>();
-    @SuppressWarnings("unchecked")
-    Callback<SessionInfo> callback = mock(Callback.class);
-    doAnswer(invocation -> {
-      sessionInfoFuture.complete(invocation.getArgumentAt(0, SessionInfo.class));
-      return null;
-    }).when(callback).success(any());
-
     int playerUid = 123;
     String sessionId = "456";
     String email = "test@example.com";
 
-    instance.connectAndLogInInBackground(callback);
+    CompletableFuture<SessionInfo> sessionInfoFuture = instance.connectAndLogInInBackground();
 
     String json = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     InitSessionMessage initSessionMessage = gson.fromJson(json, InitSessionMessage.class);
 
     assertThat(initSessionMessage.getCommand(), is(ClientMessageType.ASK_SESSION));
-    assertThat(initSessionMessage.getAction(), nullValue());
 
     SessionInfo sessionInfo = new SessionInfo();
     sessionInfo.setId(playerUid);
@@ -183,7 +187,6 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     LoginMessage loginMessage = gson.fromJson(json, LoginMessage.class);
 
     assertThat(loginMessage.getCommand(), is(ClientMessageType.LOGIN));
-    assertThat(loginMessage.getAction(), nullValue());
     assertThat(loginMessage.getLogin(), is("junit"));
     assertThat(loginMessage.getPassword(), is("password"));
     assertThat(loginMessage.getSession(), is(sessionId));
@@ -253,15 +256,8 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   private void connectAndLogIn() throws InterruptedException {
     CountDownLatch connectedLatch = new CountDownLatch(1);
-    @SuppressWarnings("unchecked")
-    Callback<SessionInfo> connectionCallback = mock(Callback.class);
-    doAnswer(invocation -> {
-      connectedLatch.countDown();
-      return null;
-    }).when(connectionCallback).success(any());
 
-
-    instance.connectAndLogInInBackground(connectionCallback);
+    instance.connectAndLogInInBackground().thenRun(connectedLatch::countDown);
 
     assertNotNull(messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT));
 
@@ -278,5 +274,56 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     sendFromServer(sessionInfo);
 
     assertTrue(connectedLatch.await(TIMEOUT, TIMEOUT_UNIT));
+  }
+
+  @Test
+  public void testRankedMatchNotification() throws Exception {
+    connectAndLogIn();
+
+    RankedMatchNotification message = new RankedMatchNotification(true);
+
+    CompletableFuture<RankedMatchNotification> serviceStateDoneFuture = new CompletableFuture<>();
+
+    WaitForAsyncUtils.waitForAsyncFx(200, () -> instance.addOnRankedMatchNotificationListener(
+        serviceStateDoneFuture::complete
+    ));
+
+    sendFromServer(message);
+
+    RankedMatchNotification rankedMatchNotification = serviceStateDoneFuture.get();
+
+    assertThat(rankedMatchNotification.potential, is(true));
+  }
+
+  @Test
+  public void startSearchRanked1v1WithAeon() throws Exception {
+    connectAndLogIn();
+
+    CompletableFuture<GameLaunchInfo> future = instance.startSearchRanked1v1(Faction.AEON, GAME_PORT);
+
+    String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    SearchRanked1v1Message searchRanked1v1Message = gson.fromJson(clientMessage, SearchRanked1v1Message.class);
+
+    assertThat(searchRanked1v1Message, instanceOf(SearchRanked1v1Message.class));
+    assertThat(searchRanked1v1Message.getFaction(), is(Faction.AEON));
+    assertThat(searchRanked1v1Message.getGameport(), is(GAME_PORT));
+
+    GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
+    gameLaunchInfo.setUid(1234);
+    sendFromServer(gameLaunchInfo);
+
+    assertThat(future.get(TIMEOUT, TIMEOUT_UNIT).getUid(), is(gameLaunchInfo.getUid()));
+  }
+
+  @Test
+  public void stopSearchingRanked1v1Match() throws Exception {
+    connectAndLogIn();
+
+    instance.stopSearchingRanked();
+
+    String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    StopSearchRanked1v1Message stopSearchRanked1v1Message = gson.fromJson(clientMessage, StopSearchRanked1v1Message.class);
+    assertThat(stopSearchRanked1v1Message, instanceOf(StopSearchRanked1v1Message.class));
+    assertThat(stopSearchRanked1v1Message.getCommand(), is(ClientMessageType.GAME_MATCH_MAKING));
   }
 }

@@ -3,10 +3,12 @@ package com.faforever.client.chat;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnJoinChannelsRequestListener;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.Severity;
+import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
 import com.google.common.collect.ImmutableSortedSet;
 import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
@@ -50,11 +52,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
-import static com.faforever.client.task.PrioritizedTask.Priority.HIGH;
-import static com.faforever.client.task.TaskGroup.NET_LIGHT;
+import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 import static java.lang.String.format;
 import static javafx.collections.FXCollections.observableArrayList;
@@ -100,6 +102,9 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Autowired
   PircBotXFactory pircBotXFactory;
+
+  @Autowired
+  NotificationService notificationService;
 
   private Configuration configuration;
   private PircBotX pircBotX;
@@ -200,44 +205,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  public void onConnected() {
-    Callback<String> callback = new Callback<String>() {
-      @Override
-      public void success(String message) {
-        pircBotX.sendIRC().joinChannel(defaultChannelName);
-        ircConnectedLatch.countDown();
-      }
-
-      @Override
-      public void error(Throwable e) {
-        throw new RuntimeException(e);
-      }
-    };
-
-    sendMessageInBackground("NICKSERV",
-        format("REGISTER %s %s", md5Hex(userService.getPassword()), userService.getEmail()),
-        new Callback<String>() {
-          @Override
-          public void success(String result) {
-            sendMessageInBackground("NICKSERV", "IDENTIFY " + md5Hex(userService.getPassword()), callback);
-          }
-
-          @Override
-          public void error(Throwable e) {
-            callback.error(e);
-          }
-        }
-    );
-  }
-
-  @Override
-  public void onDisconnected(Exception e) {
-    synchronized (chatUserLists) {
-      chatUserLists.values().forEach(ObservableMap::clear);
-    }
-  }
-
-  @Override
   public void onModeratorSet(String channelName, String username) {
     ChatUser chatUser = getChatUsersForChannel(channelName).get(username);
     if (chatUser == null) {
@@ -274,8 +241,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void addOnChatConnectedListener(final OnChatConnectedListener listener) {
-    addEventListener(ConnectEvent.class,
-        event -> listener.onConnected());
+    addEventListener(ConnectEvent.class, event -> listener.onConnected());
   }
 
   @Override
@@ -383,14 +349,16 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  public void sendMessageInBackground(String target, String message, Callback<String> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<String>(i18n.get("chat.sendMessageTask.title"), HIGH) {
+  public CompletableFuture<String> sendMessageInBackground(String target, String message) {
+    return taskService.submitTask(new AbstractPrioritizedTask<String>(HIGH) {
       @Override
       protected String call() throws Exception {
+        updateTitle(i18n.get("chat.sendMessageTask.title"));
+
         pircBotX.sendIRC().message(target, message);
         return message;
       }
-    }, callback);
+    });
   }
 
   @Override
@@ -425,14 +393,16 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  public void sendActionInBackground(String target, String action, Callback<String> callback) {
-    taskService.submitTask(NET_LIGHT, new PrioritizedTask<String>(i18n.get("chat.sendActionTask.title")) {
+  public CompletableFuture<String> sendActionInBackground(String target, String action) {
+    return taskService.submitTask(new AbstractPrioritizedTask<String>(HIGH) {
       @Override
       protected String call() throws Exception {
+        updateTitle(i18n.get("chat.sendActionTask.title"));
+
         pircBotX.sendIRC().action(target, action);
         return action;
       }
-    }, callback);
+    });
   }
 
   @Override
@@ -483,6 +453,37 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     User user = userChannelDao.getUser(username);
     ImmutableSortedSet<UserLevel> levels = pircBotX.getUserChannelDao().getLevels(channel, user);
     return levels;
+  }
+
+  @Override
+  public void onConnected() {
+    sendMessageInBackground(
+        "NICKSERV",
+        format("REGISTER %s %s", md5Hex(userService.getPassword()), userService.getEmail())
+    ).thenAccept(s -> sendMessageInBackground("NICKSERV", "IDENTIFY " + md5Hex(userService.getPassword()))
+            .thenAccept(s1 -> {
+              ircConnectedLatch.countDown();
+              pircBotX.sendIRC().joinChannel(defaultChannelName);
+            })
+            .exceptionally(throwable -> {
+              notificationService.addNotification(
+                  new PersistentNotification(i18n.get("irc.identificationFailed", throwable.getLocalizedMessage()), Severity.WARN)
+              );
+              return null;
+            })
+    ).exceptionally(throwable -> {
+      notificationService.addNotification(
+          new PersistentNotification(i18n.get("irc.registrationFailed", throwable.getLocalizedMessage()), Severity.WARN)
+      );
+      return null;
+    });
+  }
+
+  @Override
+  public void onDisconnected(Exception e) {
+    synchronized (chatUserLists) {
+      chatUserLists.values().forEach(ObservableMap::clear);
+    }
   }
 
 }

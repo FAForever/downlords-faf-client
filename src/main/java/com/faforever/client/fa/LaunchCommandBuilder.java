@@ -1,5 +1,6 @@
 package com.faforever.client.fa;
 
+import com.faforever.client.game.Faction;
 import org.springframework.util.StringUtils;
 
 import java.net.URL;
@@ -23,6 +24,8 @@ public class LaunchCommandBuilder {
   private Path replayFile;
   private Integer replayId;
   private URL replayUrl;
+  private String gameType;
+  private Faction faction;
 
   private LaunchCommandBuilder() {
     // Private
@@ -94,6 +97,17 @@ public class LaunchCommandBuilder {
     return this;
   }
 
+  public LaunchCommandBuilder gameType(String gameType) {
+    this.gameType = gameType;
+    return this;
+  }
+
+  public LaunchCommandBuilder faction(Faction faction) {
+    this.faction = faction;
+    return this;
+  }
+
+
   public List<String> build() {
     if (executable == null) {
       throw new IllegalStateException("executable has not been set");
@@ -101,12 +115,19 @@ public class LaunchCommandBuilder {
     if (logFile == null) {
       throw new IllegalStateException("logFile has not been set");
     }
+    if (gameType == null) {
+      throw new IllegalStateException("gameType has not been set");
+    }
 
     List<String> command = new ArrayList<>(Arrays.asList(
         executable.toAbsolutePath().toString(),
-        "/init", "init_faf.lua",
+        "/init", String.format("init_%s.lua", gameType),
         "/nobugreport"
     ));
+
+    if (faction != null) {
+      command.add(String.format("/%s", faction.getString()));
+    }
 
     if (logFile != null) {
       command.add("/log");
@@ -131,9 +152,7 @@ public class LaunchCommandBuilder {
     if (replayFile != null) {
       command.add("/replay");
       command.add(replayFile.toAbsolutePath().toString());
-    }
-
-    if (replayUrl != null) {
+    } else if (replayUrl != null) {
       command.add("/replay");
       command.add(replayUrl.toExternalForm());
     }

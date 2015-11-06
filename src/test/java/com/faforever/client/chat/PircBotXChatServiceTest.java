@@ -7,7 +7,6 @@ import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Callback;
 import com.google.common.collect.ImmutableSortedSet;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -49,6 +48,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -57,6 +57,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
@@ -70,13 +71,13 @@ import static org.mockito.Mockito.when;
 public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   public static final String CHAT_USER_NAME = "junit";
+  public static final String CHAT_PASSWORD = "123";
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
-  private static final long TIMEOUT = 100000;
+  private static final long TIMEOUT = 5000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final String DEFAULT_CHANNEL_NAME = "#defaultChannel";
   private static final String OTHER_CHANNEL_NAME = "#otherChannel";
   private static final int IRC_SERVER_PORT = 123;
-
   private PircBotXChatService instance;
 
   private ChatUser chatUser1;
@@ -132,6 +133,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Mock
   private LobbyServerAccessor lobbyServerAccessor;
+  private CountDownLatch botShutdownLatch;
 
   @Before
   public void setUp() throws Exception {
@@ -146,7 +148,10 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     chatUser1 = new ChatUser("chatUser1");
     chatUser2 = new ChatUser("chatUser2");
 
+    botShutdownLatch = new CountDownLatch(1);
+
     when(userService.getUsername()).thenReturn(CHAT_USER_NAME);
+    when(userService.getPassword()).thenReturn(CHAT_PASSWORD);
 
     when(user1.getNick()).thenReturn(chatUser1.getUsername());
     when(user1.getChannels()).thenReturn(ImmutableSortedSet.of(defaultChannel));
@@ -160,6 +165,10 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(pircBotX.getConfiguration()).thenReturn(configuration);
     when(pircBotX.sendIRC()).thenReturn(outputIrc);
     when(pircBotX.getUserChannelDao()).thenReturn(userChannelDao);
+    doAnswer(invocation -> {
+      botShutdownLatch.await();
+      return null;
+    }).when(pircBotX).startBot();
 
     when(pircBotXFactory.createPircBotX(any())).thenReturn(pircBotX);
 
@@ -168,7 +177,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(environment.getProperty("irc.defaultChannel")).thenReturn(DEFAULT_CHANNEL_NAME);
     when(environment.getProperty("irc.host")).thenReturn(LOOPBACK_ADDRESS.getHostAddress());
     when(environment.getProperty("irc.port", int.class)).thenReturn(IRC_SERVER_PORT);
-    when(environment.getProperty("irc.reconnectDelay", int.class)).thenReturn(0);
+    when(environment.getProperty("irc.reconnectDelay", int.class)).thenReturn(100);
 
     instance.postConstruct();
   }
@@ -176,6 +185,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @After
   public void tearDown() {
     instance.close();
+    botShutdownLatch.countDown();
   }
 
   @Test
@@ -313,11 +323,11 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAddOnChatConnectedListener() throws Exception {
     CompletableFuture<Boolean> onChatConnectedFuture = new CompletableFuture<>();
-    instance.addOnChatConnectedListener(() -> onChatConnectedFuture.complete(true));
+    instance.addOnChatConnectedListener(() -> onChatConnectedFuture.complete(null));
 
     instance.onEvent(new ConnectEvent<>(pircBotX));
 
-    assertThat(onChatConnectedFuture.get(TIMEOUT, TIMEOUT_UNIT), is(true));
+    assertThat(onChatConnectedFuture.get(TIMEOUT, TIMEOUT_UNIT), is(nullValue()));
   }
 
   @Test
@@ -415,7 +425,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     CompletableFuture<Boolean> botStartedFuture = new CompletableFuture<>();
     doAnswer(invocation -> {
       botStartedFuture.complete(true);
-      Thread.sleep(2000);
+      botShutdownLatch.await();
       return null;
     }).when(pircBotX).startBot();
 
@@ -444,12 +454,14 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
       }
 
       secondStartFuture.complete(true);
-      Thread.sleep(2000);
+      botShutdownLatch.await();
       return null;
     }).when(pircBotX).startBot();
 
     instance.connect();
     firstStartFuture.get(TIMEOUT, TIMEOUT_UNIT);
+    botShutdownLatch.countDown();
+
     secondStartFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
     verify(pircBotX, times(2)).startBot();
@@ -458,14 +470,15 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testSendMessageInBackground() throws Exception {
-    mockTaskService();
     instance.connect();
 
     String message = "test message";
-    Callback<String> callback = mock(Callback.class);
 
-    instance.sendMessageInBackground(DEFAULT_CHANNEL_NAME, message, callback);
+    mockTaskService();
 
+    CompletableFuture<String> future = instance.sendMessageInBackground(DEFAULT_CHANNEL_NAME, message);
+
+    assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(message));
     verify(pircBotX).sendIRC();
     verify(outputIrc).message(DEFAULT_CHANNEL_NAME, message);
   }
@@ -473,22 +486,12 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @SuppressWarnings("unchecked")
   private void mockTaskService() {
     doAnswer((InvocationOnMock invocation) -> {
-      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(1, PrioritizedTask.class);
+      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(0, PrioritizedTask.class);
       prioritizedTask.run();
 
-      Callback<Boolean> callback = invocation.getArgumentAt(2, Callback.class);
-
-      Future<Throwable> throwableFuture = WaitForAsyncUtils.asyncFx(prioritizedTask::getException);
-      Throwable throwable = throwableFuture.get(1, TimeUnit.SECONDS);
-      if (throwable != null) {
-        callback.error(throwable);
-      } else {
-        Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
-        callback.success(result.get(1, TimeUnit.SECONDS));
-      }
-
-      return null;
-    }).when(instance.taskService).submitTask(any(), any(), any());
+      Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
+      return CompletableFuture.completedFuture(result.get(1, TimeUnit.SECONDS));
+    }).when(instance.taskService).submitTask(any());
   }
 
   @Test
@@ -549,26 +552,38 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSendActionInBackground() throws Exception {
-    mockTaskService();
     instance.connect();
 
     String action = "test action";
 
-    @SuppressWarnings("unchecked")
-    Callback<String> callback = mock(Callback.class);
+    when(taskService.submitTask(any())).thenReturn(CompletableFuture.completedFuture(action));
+    mockTaskService();
 
-    instance.sendActionInBackground(DEFAULT_CHANNEL_NAME, action, callback);
+    CompletableFuture<String> future = instance.sendActionInBackground(DEFAULT_CHANNEL_NAME, action);
 
     verify(pircBotX).sendIRC();
     verify(outputIrc).action(DEFAULT_CHANNEL_NAME, action);
+    assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(action));
   }
 
   @Test
   public void testJoinChannel() throws Exception {
+    CountDownLatch connectedLatch = new CountDownLatch(1);
+    String channelToJoin = "#anotherChannel";
+    doAnswer(invocation -> {
+      connectedLatch.countDown();
+      return null;
+    }).when(outputIrc).joinChannel(DEFAULT_CHANNEL_NAME);
+    when(taskService.submitTask(any())).thenReturn(CompletableFuture.completedFuture(null));
     instance.connect();
-    instance.joinChannel(DEFAULT_CHANNEL_NAME);
+    instance.onConnected();
+
+    assertTrue(connectedLatch.await(TIMEOUT, TIMEOUT_UNIT));
+
+    instance.joinChannel(channelToJoin);
 
     verify(outputIrc).joinChannel(DEFAULT_CHANNEL_NAME);
+    verify(outputIrc).joinChannel(channelToJoin);
   }
 
   @Test
@@ -590,16 +605,31 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     String password = "123";
     String email = "foo@example.com";
 
-    mockTaskService();
     when(userService.getPassword()).thenReturn(password);
     when(userService.getEmail()).thenReturn(email);
+    when(taskService.submitTask(any())).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.connect();
+
+    mockTaskService();
+
+    CountDownLatch latch = new CountDownLatch(1);
+    doAnswer(invocation -> {
+      latch.countDown();
+      return null;
+    }).when(outputIrc).joinChannel(DEFAULT_CHANNEL_NAME);
+
     instance.onConnected();
 
     String md5Password = DigestUtils.md5Hex(password);
     verify(outputIrc).message("NICKSERV", String.format("REGISTER %s %s", md5Password, email));
     verify(outputIrc).message("NICKSERV", String.format("IDENTIFY %s", md5Password));
+
+    assertTrue("Channel has not been joined within timeout", latch.await(TIMEOUT, TIMEOUT_UNIT));
+  }
+
+  private String asdf() {
+    return null;
   }
 
   @Test

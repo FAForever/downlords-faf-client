@@ -1,16 +1,20 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.ModInfo;
 import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.util.Callback;
+import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Consumer;
 
 /**
  * Entry class for all communication with the FAF lobby server, be it reading or writing. This class should only be
@@ -19,10 +23,9 @@ import java.util.concurrent.CompletionStage;
 public interface LobbyServerAccessor {
 
   /**
-   * Connects to the FAF server and logs in using the credentials from {@link PreferencesService}. This method runs in
-   * background, the callback however is called on the FX application thread.
+   * Connects to the FAF server and logs in using the credentials from {@link PreferencesService}.
    */
-  void connectAndLogInInBackground(Callback<SessionInfo> callback);
+  CompletableFuture<SessionInfo> connectAndLogInInBackground();
 
   void addOnGameTypeInfoListener(OnGameTypeInfoListener listener);
 
@@ -50,7 +53,7 @@ public interface LobbyServerAccessor {
 
   void setOnLobbyConnectedListener(OnLobbyConnectedListener onLobbyConnectedListener);
 
-  void requestLadderInfoInBackground(Callback<List<LeaderboardEntryBean>> callback);
+  CompletableFuture<List<LeaderboardEntryBean>> requestLeaderboardEntries();
 
   void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener);
 
@@ -60,4 +63,18 @@ public interface LobbyServerAccessor {
 
   void addOnGameLaunchListener(OnGameLaunchInfoListener listener);
 
+  void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener);
+
+  CompletableFuture<GameLaunchInfo> startSearchRanked1v1(Faction faction, int gamePort);
+
+  void stopSearchingRanked();
+
+  void expand1v1Search(float radius);
+
+  /**
+   * Returns the 100 most liked mods.
+   */
+  void requestMods();
+
+  void setOnModInfoListener(Consumer<ModInfo> listener);
 }

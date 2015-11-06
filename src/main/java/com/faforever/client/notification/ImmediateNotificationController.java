@@ -1,12 +1,19 @@
 package com.faforever.client.notification;
 
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.Region;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 public class ImmediateNotificationController {
+
+  @FXML
+  TextArea exceptionTextArea;
 
   @FXML
   Label messageLabel;
@@ -18,11 +25,15 @@ public class ImmediateNotificationController {
   ButtonBar buttonBar;
 
   @FXML
-  Node notificationRoot;
+  Region notificationRoot;
 
   public void setNotification(ImmediateNotification notification) {
+    StringWriter writer = new StringWriter();
+    notification.getThrowable().printStackTrace(new PrintWriter(writer));
+
     titleLabel.setText(notification.getTitle());
     messageLabel.setText(notification.getText());
+    exceptionTextArea.setText(writer.toString());
 
     if (notification.getActions() != null) {
       for (Action action : notification.getActions()) {
@@ -53,7 +64,7 @@ public class ImmediateNotificationController {
     notificationRoot.getScene().getWindow().hide();
   }
 
-  public Node getRoot() {
+  public Region getRoot() {
     return notificationRoot;
   }
 }

@@ -1,10 +1,12 @@
 package com.faforever.client.user;
 
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.legacy.domain.SessionInfo;
+import com.faforever.client.parsecom.CloudService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.util.Callback;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
+import java.util.concurrent.CompletableFuture;
 
 public class UserServiceImpl implements UserService {
 
@@ -14,6 +16,9 @@ public class UserServiceImpl implements UserService {
   @Autowired
   PreferencesService preferencesService;
 
+  @Resource
+  CloudService cloudService;
+
   private String username;
   private String password;
   private int uid;
@@ -21,7 +26,7 @@ public class UserServiceImpl implements UserService {
   private String email;
 
   @Override
-  public void login(String username, String password, boolean autoLogin, Callback<Void> callback) {
+  public CompletableFuture<Void> login(String username, String password, boolean autoLogin) {
     preferencesService.getPreferences().getLogin()
         .setUsername(username)
         .setPassword(password)
@@ -31,21 +36,15 @@ public class UserServiceImpl implements UserService {
     this.password = password;
 
     preferencesService.storeInBackground();
-    lobbyServerAccessor.connectAndLogInInBackground(new Callback<SessionInfo>() {
 
-      @Override
-      public void success(SessionInfo result) {
-        UserServiceImpl.this.uid = result.getId();
-        UserServiceImpl.this.sessionId = result.getSession();
-        UserServiceImpl.this.email = result.getEmail();
-        callback.success(null);
-      }
+    return lobbyServerAccessor.connectAndLogInInBackground()
+        .thenAccept(sessionInfo -> {
+          UserServiceImpl.this.uid = sessionInfo.getId();
+          UserServiceImpl.this.sessionId = sessionInfo.getSession();
+          UserServiceImpl.this.email = sessionInfo.getEmail();
 
-      @Override
-      public void error(Throwable e) {
-        callback.error(e);
-      }
-    });
+          cloudService.signUpOrLogIn(username, password, email, uid);
+        });
   }
 
   @Override
