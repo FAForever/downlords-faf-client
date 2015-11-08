@@ -20,6 +20,7 @@
 .idea/sqlDataSources.xml
 .idea/dynamic.xml
 .idea/uiDesigner.xml
+.idea/inspectionProfiles/
 
 # Gradle:
 .idea/gradle.xml
