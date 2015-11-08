@@ -1,7 +1,7 @@
 isScrolledToBottom = true;
 window.onscroll = function (e) {
   isScrolledToBottom = window.scrollY+window.innerHeight + 20 >= document.documentElement.scrollHeight;
-}
+};
 
 function link(input) {
   return Autolinker.link(input, {
@@ -33,11 +33,18 @@ function hidePlayerInfo(node) {
 }
 
 function messagePlayer(node) {
-    chatTab.openPrivateMessageTab(node.textContent);
+  chatTab.openPrivateMessageTab(node.textContent);
 }
 
 function scrollToBottomIfDesired() {
   if (isScrolledToBottom) {
     window.scrollTo(0, document.documentElement.scrollHeight);
   }
+}
+
+function setRandomColors(userList) {
+  chatTab.log(userList);
+}
+
+function removeRandomColors(userList) {
 }

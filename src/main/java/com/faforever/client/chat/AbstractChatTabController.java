@@ -37,6 +37,7 @@ import javafx.stage.PopupWindow;
 import netscape.javascript.JSObject;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,9 +55,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -89,11 +88,14 @@ public abstract class AbstractChatTabController {
    */
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
+
+  private static final String CSS_CLASS_SELF = "self";
+  private static final String CSS_CLASS_FRIEND = "friend";
+  private static final String CSS_CLASS_FOE = "foe";
+  private static final String CSS_CLASS_CHAT_ONLY = "chat_only";
+
   private final List<ChatMessage> waitingMessages;
-  /**
-   * Maps a user name to a css style class.
-   */
-  private final Map<String, Color> userToColor;
+
   @Autowired
   UserService userService;
   @Autowired
@@ -144,7 +146,6 @@ public abstract class AbstractChatTabController {
   private Tooltip linkPreviewTooltip;
 
   public AbstractChatTabController() {
-    userToColor = new HashMap<>();
     waitingMessages = new ArrayList<>();
   }
 
@@ -154,8 +155,6 @@ public abstract class AbstractChatTabController {
 
   @PostConstruct
   void postConstruct() {
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    userToColor.put(userService.getUsername(), chatPrefs.getSelfChatColor());
     mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b");
 
     Platform.runLater(this::initChatView);
@@ -250,7 +249,7 @@ public abstract class AbstractChatTabController {
     }
 
     engine = messagesWebView.getEngine();
-    ((JSObject) engine.executeScript("window")).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
+    (getJsObject()).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
       if (Worker.State.SUCCEEDED.equals(newValue)) {
         synchronized (waitingMessages) {
@@ -276,6 +275,10 @@ public abstract class AbstractChatTabController {
   }
 
   protected abstract WebView getMessagesWebView();
+
+  protected JSObject getJsObject() {
+    return (JSObject) engine.executeScript("window");
+  }
 
   private void resetAutoCompletion() {
     possibleAutoCompletions = null;
@@ -525,6 +528,11 @@ public abstract class AbstractChatTabController {
     }
   }
 
+  // FIXME remove it
+  public void log(String string) {
+    logger.warn(string);
+  }
+
   private void appendMessage(ChatMessage chatMessage) {
     String timeString = timeService.asShortTime(chatMessage.getTime());
 
@@ -561,10 +569,7 @@ public abstract class AbstractChatTabController {
           .replace("{text}", text);
 
       Collection<String> cssClasses = new ArrayList<>();
-      String color = "";
-      if (userToColor.containsKey(login)) {
-        color = userToColor.get(login).toString();
-      }
+      cssClasses.add(chatMessage.getUsername());
 
       if (chatMessage.isAction()) {
         cssClasses.add(ACTION_CSS_CLASS);
@@ -573,14 +578,15 @@ public abstract class AbstractChatTabController {
       }
       PlayerInfoBean playerInfo = playerService.getPlayerForUsername(chatMessage.getUsername());
 
-      html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
-      Color userColor = getMessageColor(playerInfo);
-      String inlineColor = createInlineStyleFromHexColor(userColor);
-      if (!inlineColor.equals("")) {
-        color = inlineColor;
+      String messageColorClass = getMessageColorClass(playerInfo);
+
+      if (messageColorClass != null) {
+        cssClasses.add(messageColorClass);
       }
 
-      html = html.replace("{color}", color);
+      html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
+      html = html.replace("{inline-style}", getInlineColor(playerInfoBean));
+
       addToMessageContainer(html);
 
     } catch (IOException e) {
@@ -588,40 +594,39 @@ public abstract class AbstractChatTabController {
     }
   }
 
-  protected Color getMessageColor(PlayerInfoBean playerInfo) {
-    if (playerInfo == null) {
-      return null;
-    }
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    logger.trace("Fetching color for {}", playerInfo.getUsername());
-
+  @Nullable
+  protected String getMessageColorClass(@NotNull PlayerInfoBean playerInfo) {
     if (playerInfo.isFriend()) {
-      return chatPrefs.getFriendsChatColor();
+      return CSS_CLASS_FRIEND;
     }
     if (playerInfo.isFoe()) {
-      return chatPrefs.getFoesChatColor();
+      return CSS_CLASS_FOE;
     }
 
     if (playerInfo.isChatOnly()) {
-      return chatPrefs.getIrcChatColor();
+      return CSS_CLASS_CHAT_ONLY;
     }
 
     if (playerInfo.getUsername().equals(userService.getUsername())) {
-      return chatPrefs.getSelfChatColor();
-    }
-
-    if (chatPrefs.getUseRandomColors()) {
-      ChatUser chatUser = chatService.createOrGetChatUser(playerInfo.getUsername());
-      chatUser.setColor(ColorGeneratorUtil.generateRandomHexColor());
-      return chatUser.getColor();
+      return CSS_CLASS_SELF;
     }
 
     return null;
   }
 
-  @NotNull
+  private String getInlineColor(PlayerInfoBean playerInfoBean) {
+    ChatUser chatUser = chatService.createOrGetChatUser(playerInfoBean.getUsername());
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+
+    if (chatPrefs.getUseRandomColors()) {
+      return createInlineStyleFromHexColor(chatUser.getColor());
+    } else {
+      return "";
+    }
+  }
+
   private String createInlineStyleFromHexColor(Color messageColor) {
-    return "\" style=\"color:#" + messageColor.toString().substring(2, 8);
+    return String.format("style=\"color: %s\"", JavaFxUtil.toRgbCode(messageColor));
   }
 
   private String highlightOwnUsername(String text) {

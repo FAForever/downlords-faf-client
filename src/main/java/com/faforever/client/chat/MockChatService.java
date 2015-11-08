@@ -6,15 +6,11 @@ import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
-import com.google.common.collect.ImmutableSortedSet;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
-import javafx.scene.paint.Color;
-import org.pircbotx.Channel;
 import org.pircbotx.User;
-import org.pircbotx.UserLevel;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
@@ -61,12 +57,6 @@ public class MockChatService implements ChatService {
     channelUserListListeners = new HashMap<>();
 
     timer = new Timer(true);
-  }
-
-  //FIXME Implement
-  @Override
-  public Collection<Color> getAssignedColors() {
-    return null;
   }
 
   @Override
@@ -235,19 +225,8 @@ public class MockChatService implements ChatService {
 
   //FIXME implement
   @Override
-  public ImmutableSortedSet<Channel> getChannelsForUser(String username) {
-    return null;
-  }
-
-  //FIXME implement
-  @Override
   public ChatUser createOrGetChatUser(User user) {
     return null;
   }
 
-  //FIXME implement
-  @Override
-  public ImmutableSortedSet<UserLevel> getLevelsForChatUser(Channel channel, String username) {
-    return null;
-  }
 }

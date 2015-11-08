@@ -693,6 +693,33 @@
   -fx-background-color: transparent;
 }
 
+/***************** Channel Tab *****************/
+
+.channel-tab-friends-title * {
+  -fx-text-fill: #16B7EB;
+}
+
+.channel-tab-foes-title * {
+  -fx-text-fill: #FF0000;
+}
+
+.channel-tab-moderators-title * {
+  -fx-text-fill: #FFFFFF;
+}
+
+.channel-tab-chat-only-title * {
+  -fx-text-fill: #808080;
+}
+
+.channel-tab-others-title * {
+  -fx-text-fill: #BFBEBA;
+}
+
+.self * {
+  -fx-text-fill: #FFA500;
+}
+
+
 /***************** Range Slider *****************/
 
 .slider > .axis:bottom {

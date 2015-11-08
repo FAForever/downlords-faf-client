@@ -1,12 +1,10 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -20,9 +18,9 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.web.WebView;
-import org.pircbotx.Channel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
@@ -35,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ChannelTabController extends AbstractChatTabController {
 
+  private static final String CSS_CLASS_MODERATOR = "moderator";
   /**
    * Keeps track of which ChatUserControl in which pane belongs to which user.
    */
@@ -48,7 +47,7 @@ public class ChannelTabController extends AbstractChatTabController {
   @FXML
   TitledPane othersTitlePane;
   @FXML
-  TitledPane ircTitlePane;
+  TitledPane chatOnlyTitlePane;
   @FXML
   TitledPane foesTitlePane;
   @FXML
@@ -129,6 +128,17 @@ public class ChannelTabController extends AbstractChatTabController {
     return messagesWebView;
   }
 
+  @Override
+  @Nullable
+  protected String getMessageColorClass(@NotNull PlayerInfoBean playerInfo) {
+    if (playerInfo.getModeratorForChannels().contains(channelName)) {
+      return CSS_CLASS_MODERATOR;
+    }
+
+    return super.getMessageColorClass(playerInfo);
+
+  }
+
   @FXML
   void initialize() {
     userSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -161,26 +171,28 @@ public class ChannelTabController extends AbstractChatTabController {
 
   @PostConstruct
   void init() {
-    assignColors();
     channelTabScrollPaneVBox.setMinWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
     channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
+    addRandomColorListener();
   }
 
-  private void assignColors() {
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    addColorListenerToLabels(chatPrefs.friendsChatColorProperty(), friendsTitlePane);
-    addColorListenerToLabels(chatPrefs.foesChatColorProperty(), foesTitlePane);
-    addColorListenerToLabels(chatPrefs.modsChatColorProperty(), moderatorsTitlePane);
-    addColorListenerToLabels(chatPrefs.ircChatColorProperty(), ircTitlePane);
-    addColorListenerToLabels(chatPrefs.othersChatColorProperty(), othersTitlePane);
-
-  }
-
-  private void addColorListenerToLabels(ObjectProperty<Color> colorProperty, TitledPane pane) {
-    pane.setTextFill(colorProperty.get());
-    colorProperty.addListener((observable, oldValue, newValue) -> {
-      pane.setTextFill(newValue);
+  private void addRandomColorListener() {
+    preferencesService.getPreferences().getChat().useRandomColorsProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        setRandomColors();
+      } else {
+        removeRandomColors();
+      }
     });
+  }
+
+  private void setRandomColors() {
+
+    //getJsObject().call("setRandomColors", new Gson().toJson());
+  }
+
+  private void removeRandomColors() {
+    getJsObject().call("removeRandomColors");
   }
 
   private void onUserJoinedChannel(ChatUser chatUser) {
@@ -315,6 +327,10 @@ public class ChannelTabController extends AbstractChatTabController {
     chatUserControl.setPlayerInfoBean(playerInfoBean);
     paneToChatUserControlMap.put(pane, chatUserControl);
 
+    chatUserControl.setRandomColorsAllowed(
+        (pane == othersPane || pane == chatOnlyPane) && !userService.getUsername().equals(username)
+    );
+
     Platform.runLater(() -> {
       addChatUserControlSorted(pane, chatUserControl);
       applyUserSearchFilter(chatUserControl);
@@ -331,10 +347,14 @@ public class ChannelTabController extends AbstractChatTabController {
         continue;
       }
 
-      String username1 = chatUserControl.getPlayerInfoBean().getUsername();
-      String username2 = ((ChatUserControl) child).getPlayerInfoBean().getUsername();
+      String newUser = chatUserControl.getPlayerInfoBean().getUsername();
+      String nextUser = ((ChatUserControl) child).getPlayerInfoBean().getUsername();
 
-      if (username1.compareToIgnoreCase(username2) < 0) {
+      if (nextUser.equals(userService.getUsername())) {
+        continue;
+      }
+
+      if (newUser.compareToIgnoreCase(nextUser) < 0) {
         children.add(children.indexOf(child), chatUserControl);
         return;
       }
@@ -365,18 +385,5 @@ public class ChannelTabController extends AbstractChatTabController {
     }
 
     return panes;
-  }
-
-  @Override
-  protected String getPlayerColorInlineStyle(PlayerInfoBean playerInfo) {
-    if (playerInfo.getModeratorForChannels() != null && !playerInfo.getModeratorForChannels().isEmpty()) {
-      //TODO this is here because there is no straight forward way to know what channel the message came from
-      for (Channel channel : chatService.getChannelsForUser(userService.getUsername())) {
-        if (chatService.getLevelsForChatUser(channel, playerInfo.getUsername()).size() > 0) {
-          messageColor = chatPrefs.getModsChatColor().toString();
-        }
-      }
-    }
-    return super.getPlayerColorInlineStyle(playerInfo);
   }
 }

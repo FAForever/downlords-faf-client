@@ -15,13 +15,9 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import javafx.scene.paint.Color;
-import org.pircbotx.Channel;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
-import org.pircbotx.UserChannelDao;
-import org.pircbotx.UserLevel;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.Event;
@@ -49,7 +45,6 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -59,7 +54,6 @@ import java.util.concurrent.CountDownLatch;
 import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 import static java.lang.String.format;
-import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.synchronizedObservableMap;
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
@@ -81,9 +75,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
    * Maps channel names to a map containing chat users, indexed by their login name.
    */
   private final ObservableMap<String, ObservableMap<String, ChatUser>> chatUserLists;
-
-  //FIXME this shouldn't be here
-  private final Collection<Color> assignedColors;
 
   @Autowired
   Environment environment;
@@ -118,7 +109,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   public PircBotXChatService() {
     eventListeners = new ConcurrentHashMap<>();
     chatUserLists = observableHashMap();
-    assignedColors = observableArrayList();
     chatUsersByName = new HashMap<>();
   }
 
@@ -211,11 +201,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       return;
     }
     chatUser.getModeratorInChannels().add(channelName);
-  }
-
-  @Override
-  public Collection<Color> getAssignedColors() {
-    return assignedColors;
   }
 
   @Override
@@ -373,10 +358,12 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public ChatUser createOrGetChatUser(String username) {
-    if (!chatUsersByName.containsKey(username)) {
-      chatUsersByName.put(username, new ChatUser(username));
+    synchronized (chatUsersByName) {
+      if (!chatUsersByName.containsKey(username)) {
+        chatUsersByName.put(username, new ChatUser(username));
+      }
+      return chatUsersByName.get(username);
     }
-    return chatUsersByName.get(username);
   }
 
   @Override
@@ -433,26 +420,14 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  public ImmutableSortedSet<Channel> getChannelsForUser(String username) {
-    UserChannelDao<User, Channel> userChannelDao = pircBotX.getUserChannelDao();
-    return userChannelDao.getChannels(pircBotX.getUserChannelDao().getUser(username));
-  }
-
-  @Override
   public ChatUser createOrGetChatUser(User user) {
-    String username = user.getNick();
-    if (!chatUsersByName.containsKey(username)) {
-      chatUsersByName.put(username, ChatUser.fromIrcUser(user));
+    synchronized (chatUsersByName) {
+      String username = user.getNick();
+      if (!chatUsersByName.containsKey(username)) {
+        chatUsersByName.put(username, ChatUser.fromIrcUser(user));
+      }
+      return chatUsersByName.get(username);
     }
-    return chatUsersByName.get(username);
-  }
-
-  @Override
-  public ImmutableSortedSet<UserLevel> getLevelsForChatUser(Channel channel, String username) {
-    UserChannelDao<User, Channel> userChannelDao = pircBotX.getUserChannelDao();
-    User user = userChannelDao.getUser(username);
-    ImmutableSortedSet<UserLevel> levels = pircBotX.getUserChannelDao().getLevels(channel, user);
-    return levels;
   }
 
   @Override

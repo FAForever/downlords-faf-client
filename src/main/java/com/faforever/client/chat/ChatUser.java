@@ -24,11 +24,14 @@ public class ChatUser {
 
   public ChatUser(String username) {
     this(username, new HashSet<>());
+    this.color = ColorGeneratorUtil.generateRandomHexColor();
   }
 
   public ChatUser(String username, Set<String> moderatorInChannels) {
     this.username = new SimpleStringProperty(username);
     this.moderatorInChannels = new SimpleSetProperty<>(FXCollections.observableSet(moderatorInChannels));
+    this.color = ColorGeneratorUtil.generateRandomHexColor();
+
   }
 
   public ObservableSet<String> getModeratorInChannels() {

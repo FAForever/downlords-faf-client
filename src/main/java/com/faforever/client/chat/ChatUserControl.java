@@ -10,11 +10,11 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.ThemeUtil;
 import javafx.application.Platform;
 import javafx.beans.property.FloatProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -24,7 +24,6 @@ import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +39,9 @@ import java.lang.invoke.MethodHandles;
 public class ChatUserControl extends HBox {
 
   private static final String CLAN_TAG_FORMAT = "[%s]";
+  private static final String CSS_CLASS_SELF = "self";
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   @Autowired
   ApplicationContext applicationContext;
   @Autowired
@@ -78,6 +79,7 @@ public class ChatUserControl extends HBox {
   @FXML
   ImageView statusImageView;
   private PlayerInfoBean playerInfoBean;
+  private boolean randomColorsAllowed;
 
   @FXML
   void onContextMenuRequested(ContextMenuEvent event) {
@@ -118,53 +120,19 @@ public class ChatUserControl extends HBox {
 
   private void configureColor() {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    ObjectProperty<Color> colorProperty = null;
-    Color color = null;
 
-    // Always regardless of pretty Colors enabled
-    if (!playerInfoBean.getModeratorForChannels().isEmpty()) {
-      colorProperty = chatPrefs.modsChatColorProperty();
-    } else if (playerInfoBean.isFriend()) {
-      colorProperty = chatPrefs.friendsChatColorProperty();
-    } else if (playerInfoBean.isFoe()) {
-      colorProperty = chatPrefs.foesChatColorProperty();
-    } else if (playerInfoBean.getUsername().equals(userService.getUsername())) {
-      colorProperty = chatPrefs.selfChatColorProperty();
+    if (userService.getUsername().equals(playerInfoBean.getUsername())) {
+      getStyleClass().add(CSS_CLASS_SELF);
     }
 
-    // Only if pretty colors is disabled
-    if (!chatPrefs.getUseRandomColors() && colorProperty == null) {
-      if (playerInfoBean.isChatOnly()) {
-        colorProperty = chatPrefs.ircChatColorProperty();
-      } else {
-        colorProperty = chatPrefs.othersChatColorProperty();
-      }
-
-      // Self color
-    } else if (chatPrefs.getUseRandomColors() && colorProperty == null) {
-      color = ColorGeneratorUtil.generateRandomHexColor();
+    if (chatPrefs.getUseRandomColors() && randomColorsAllowed) {
       ChatUser chatUser = chatService.createOrGetChatUser(playerInfoBean.getUsername());
-
-      //FIXME result of chatUser color not being generated on chatUser being initialized
-      try {
-        if (chatUser.getColor() == null) {
-          chatUser.setColor(color);
-        } else {
-          color = chatUser.getColor();
-        }
-      } catch (NullPointerException e) {
-        logger.warn("Could not generate color for {}", playerInfoBean.getUsername());
-      }
+      usernameLabel.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(chatUser.getColor())));
+      clanLabel.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(chatUser.getColor())));
+    } else {
+      usernameLabel.setStyle("");
+      clanLabel.setStyle("");
     }
-
-    if (colorProperty != null) {
-      //FIXME if there is a listener already will this break?
-      color = colorProperty.get();
-      addColorListenerToLabels(colorProperty);
-    }
-
-    usernameLabel.setTextFill(color);
-    clanLabel.setTextFill(color);
   }
 
   private void addRandomColorListener() {
@@ -215,8 +183,8 @@ public class ChatUserControl extends HBox {
     if (!playerInfoBean.getChatOnly()) {
       Tooltip userRatingTooltip = new Tooltip();
 
-      String leaderboardRating = i18n.get("playerRatingFormat", RatingUtil.getGlobalRating(playerInfoBean), RatingUtil.getLeaderboardRating(playerInfoBean));
-      userRatingTooltip.setText(leaderboardRating);
+      String rating = i18n.get("playerRatingFormat", RatingUtil.getRoundedGlobalRating(playerInfoBean), RatingUtil.getLeaderboardRating(playerInfoBean));
+      userRatingTooltip.setText(rating);
 
       addRatingListenerToTooltip(playerInfoBean.leaderboardRatingMeanProperty(), userRatingTooltip);
       addRatingListenerToTooltip(playerInfoBean.globalRatingMeanProperty(), userRatingTooltip);
@@ -224,13 +192,6 @@ public class ChatUserControl extends HBox {
       Tooltip.install(clanLabel, userRatingTooltip);
       Tooltip.install(usernameLabel, userRatingTooltip);
     }
-  }
-
-  private void addColorListenerToLabels(ObjectProperty<Color> colorProperty) {
-    colorProperty.addListener((observable, oldValue, newValue) -> {
-      usernameLabel.setTextFill(newValue);
-      clanLabel.setTextFill(newValue);
-    });
   }
 
   private void setCountry(String country) {
@@ -319,5 +280,10 @@ public class ChatUserControl extends HBox {
         }
       }
     }
+  }
+
+  public void setRandomColorsAllowed(boolean randomColorsAllowed) {
+    this.randomColorsAllowed = randomColorsAllowed;
+    configureColor();
   }
 }

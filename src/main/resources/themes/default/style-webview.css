@@ -20,6 +20,28 @@ a {
     text-decoration: none;
 }
 
+/***************** Chat Colors (WebView) *****************/
+
+.self {
+    color: #FFA500;
+}
+
+.friend {
+    color: #16B7EB;
+}
+
+.foe {
+    color: #FF0000;
+}
+
+.moderator {
+    color: #FFFFFF;
+}
+
+.chat {
+    color: #808080;
+}
+
 /***************** Chat (WebView) *****************/
 
 #chat-table {
