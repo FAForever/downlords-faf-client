@@ -28,7 +28,7 @@ apply plugin: 'install4j'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-version = '0.4.9-alpha'
+version = '0.5.0.1-alpha'
 
 mainClassName = "com.faforever.client.Main"
 applicationDefaultJvmArgs = ["-Djava.library.path=../lib"]
@@ -115,7 +115,6 @@ dependencies {
   compile 'org.springframework:spring-context:4.0.5.RELEASE'
   compile 'org.springframework:spring-context-support:4.0.5.RELEASE'
   compile 'org.springframework:spring-core:4.0.5.RELEASE'
-  compile 'org.springframework:spring-test:4.0.5.RELEASE'
   compile('org.pircbotx:pircbotx:2.0.1') {
     exclude module: 'guava'
   }
@@ -137,4 +136,7 @@ dependencies {
   compile 'org.jsoup:jsoup:1.8.2'
   compile 'net.dongliu:jvcdiff:2.0.2'
   compile 'com.github.thiagolocatelli:parse4j:1.4'
+  compile 'com.google.apis:google-api-services-games:v1-rev132-1.20.0'
+  compile 'com.google.oauth-client:google-oauth-client-java7:1.16.0-rc'
+  compile 'com.timgroup:jgravatar:1.0'
 }

@@ -5,7 +5,6 @@ copyright = "2009 Exavier Macbeth, DeadMG"
 description = "Version 5.0. This mod provides global icon support for any mod that places their icons in the proper folder structure. See Readme"
 author = "Exavier Macbeth, DeadMG"
 url = "http://forums.gaspowered.com/viewtopic.php?t=36996"
-icon = "/mods/BlackopsSupport/earth.png"
 selectable = true
 enabled = true
 exclusive = false

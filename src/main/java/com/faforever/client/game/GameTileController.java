@@ -3,7 +3,9 @@ package com.faforever.client.game;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.map.MapService;
+import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Joiner;
+import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
@@ -70,19 +72,15 @@ public class GameTileController {
     gameTitleLabel.setText(gameInfoBean.getTitle());
     hostLabel.setText(gameInfoBean.getHost());
 
-    gameMapLabel.setText(gameInfoBean.getMapTechnicalName());
-    gameInfoBean.mapTechnicalNameProperty().addListener(((observable3, oldValue3, newValue3) -> {
-      gameMapLabel.setText(gameInfoBean.getMapTechnicalName());
-      numberOfPlayersLabel.setText(
-          i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers())
-      );
-    }));
+    JavaFxUtil.bindOnApplicationThread(gameMapLabel.textProperty(), gameInfoBean::getTechnicalName, gameInfoBean.technicalNameProperty());
+    JavaFxUtil.bindOnApplicationThread(numberOfPlayersLabel.textProperty(), () -> i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()), gameInfoBean.numPlayersProperty());
+    JavaFxUtil.bindOnApplicationThread(mapImageView.imageProperty(), () -> mapService.loadSmallPreview(gameInfoBean.getTechnicalName()), gameInfoBean.technicalNameProperty());
+    JavaFxUtil.bindOnApplicationThread(modsLabel.textProperty(), () -> Joiner.on(i18n.get("textSeparator")).join(gameInfoBean.getSimMods().values()), gameInfoBean.technicalNameProperty());
+    JavaFxUtil.bindOnApplicationThread(modsLabel.visibleProperty(), () -> !gameInfoBean.getSimMods().isEmpty(), gameInfoBean.technicalNameProperty());
 
     numberOfPlayersLabel.setText(i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     gameInfoBean.numPlayersProperty().addListener(((observable3, oldValue3, newValue3) -> {
-      numberOfPlayersLabel.setText(
-          i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers())
-      );
+      Platform.runLater(() -> numberOfPlayersLabel.setText(i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers())));
     }));
 
     displaySimMods(gameInfoBean.getSimMods());
@@ -97,7 +95,7 @@ public class GameTileController {
 
     lockIconLabel.setVisible(gameInfoBean.getAccess() == GameAccess.PASSWORD);
 
-    //TODO move tooltip Y position down 10 pixels
+    // TODO move tooltip Y position down 10 pixels
     GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);
     gameTooltipController.setGameInfoBean(gameInfoBean);
     Tooltip tooltip = new Tooltip();

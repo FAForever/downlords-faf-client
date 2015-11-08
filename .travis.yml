@@ -1,6 +1,6 @@
 language: java
 
-sudo: required
+sudo: false
 
 jdk:
   - oraclejdk8
@@ -12,11 +12,10 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 
 script:
-  - sudo apt-get update && sudo apt-get install oracle-java8-installer
-  - java -version
+- ./gradlew --debug check
 
 after_success:
-- ./gradlew test jacocoTestReport coveralls
+- ./gradlew  --debug jacocoTestReport coveralls
 
 env:
   global:

@@ -8,7 +8,9 @@ public final class CacheNames {
   public static final String LARGE_MAP_PREVIEW = "largeMapPreview";
   public static final String URL_PREVIEW = "urlPreview";
   public static final String STATISTICS = "statistics";
+  public static final String GRAVATAR = "gravatar";
 
   private CacheNames() {
+    throw new AssertionError("Not instantiatable");
   }
 }

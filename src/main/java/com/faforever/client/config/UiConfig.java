@@ -46,6 +46,7 @@ import com.faforever.client.hub.UpcomingEventsController;
 import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
+import com.faforever.client.main.UserMenuController;
 import com.faforever.client.map.CommentCardController;
 import com.faforever.client.map.MapPreviewLargeController;
 import com.faforever.client.map.MapVaultController;
@@ -99,6 +100,11 @@ public class UiConfig {
   @Bean
   FxmlLoader fxmlLoader() {
     return new FxmlLoaderImpl();
+  }
+
+  @Bean
+  UserMenuController userMenuController() {
+    return loadController("user_menu.fxml");
   }
 
   @Bean

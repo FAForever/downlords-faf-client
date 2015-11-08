@@ -10,9 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.BufferedInputStream;
 import java.lang.invoke.MethodHandles;
-import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.zip.ZipInputStream;
 
 public class DownloadMapTask extends AbstractPrioritizedTask<Void> {
@@ -34,10 +35,13 @@ public class DownloadMapTask extends AbstractPrioritizedTask<Void> {
 
   @Override
   protected Void call() throws Exception {
+    Objects.requireNonNull(mapUrl, "mapUrl has not been set");
+    Objects.requireNonNull(technicalMapName, "technicalMapName has not been set");
+
     updateTitle(i18n.get("mapDownloadTask.title", technicalMapName));
     logger.info("Downloading map {} from {}", technicalMapName, mapUrl);
 
-    HttpURLConnection urlConnection = (HttpURLConnection) new URL(mapUrl).openConnection();
+    URLConnection urlConnection = new URL(mapUrl).openConnection();
     int bytesToRead = urlConnection.getContentLength();
 
     Path targetDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();

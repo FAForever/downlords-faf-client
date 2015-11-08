@@ -20,7 +20,7 @@
   <children>
     <Label styleClass="h1" text="%ranked1v1.title"/>
     <Label text="%ranked1v1.description"/>
-    <FlowPane hgap="10.0" styleClass="ranked1v1-flow-pane" vgap="10.0">
+    <FlowPane hgap="10.0" minHeight="0.0" minWidth="0.0" styleClass="ranked1v1-flow-pane" vgap="10.0">
       <children>
         <GridPane prefWidth="400.0" styleClass="tile">
           <columnConstraints>

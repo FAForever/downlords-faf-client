@@ -7,7 +7,6 @@ import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import javafx.collections.ListChangeListener;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -15,6 +14,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -26,6 +26,8 @@ import static java.util.Collections.singletonList;
 public class ModTileController {
 
   @FXML
+  Pane progressLayout;
+  @FXML
   Label progressLabel;
   @FXML
   Button uninstallButton;
@@ -34,7 +36,7 @@ public class ModTileController {
   @FXML
   Label commentsLabel;
   @FXML
-  ImageView modImageView;
+  ImageView thumbnailImageView;
   @FXML
   Label nameLabel;
   @FXML
@@ -58,10 +60,17 @@ public class ModTileController {
   private ModInfoBean mod;
   private Consumer<ModInfoBean> onOpenDetailListener;
 
+  @FXML
+  void initialize() {
+    uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
+    installButton.managedProperty().bind(installButton.visibleProperty());
+    progressLayout.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
+  }
+
   public void setMod(ModInfoBean mod) {
     this.mod = mod;
     if (StringUtils.isNotEmpty(mod.getThumbnailUrl())) {
-      modImageView.setImage(new Image(mod.getThumbnailUrl()));
+      thumbnailImageView.setImage(new Image(mod.getThumbnailUrl()));
     }
     nameLabel.setText(mod.getName());
     authorLabel.setText(mod.getAuthor());
@@ -137,7 +146,7 @@ public class ModTileController {
   }
 
   @FXML
-  void onShowModDetail(Event event) {
+  void onShowModDetail() {
     onOpenDetailListener.accept(mod);
   }
 }

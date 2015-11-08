@@ -1,6 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.chat.PlayerInfoBean;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import com.faforever.client.legacy.GameStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,4 +33,6 @@ public interface PlayerService {
   void removeFoe(String username);
 
   PlayerInfoBean getCurrentPlayer();
+
+  ReadOnlyObjectProperty<PlayerInfoBean> currentPlayerProperty();
 }

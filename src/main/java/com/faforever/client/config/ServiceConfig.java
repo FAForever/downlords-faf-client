@@ -9,6 +9,8 @@ import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.ForgedAllianceServiceImpl;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameServiceImpl;
+import com.faforever.client.gravatar.GravatarService;
+import com.faforever.client.gravatar.GravatarServiceImpl;
 import com.faforever.client.leaderboard.LeaderboardParser;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.LeaderboardServiceImpl;
@@ -17,7 +19,10 @@ import com.faforever.client.leaderboard.MockLeaderboardService;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.LobbyServerAccessorImpl;
 import com.faforever.client.legacy.MockLobbyServerAccessor;
+import com.faforever.client.legacy.MockModsServerAccessor;
 import com.faforever.client.legacy.MockStatisticsServerAccessor;
+import com.faforever.client.legacy.ModsServerAccessor;
+import com.faforever.client.legacy.ModsServerAccessorImpl;
 import com.faforever.client.legacy.StatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessorImpl;
 import com.faforever.client.legacy.UidService;
@@ -48,6 +53,8 @@ import com.faforever.client.patch.GitWrapper;
 import com.faforever.client.patch.JGitWrapper;
 import com.faforever.client.patch.UpdateServerAccessor;
 import com.faforever.client.patch.UpdateServerAccessorImpl;
+import com.faforever.client.play.GooglePlayServices;
+import com.faforever.client.play.PlayServices;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.portcheck.PortCheckService;
@@ -119,6 +126,14 @@ public class ServiceConfig {
       return new MockStatisticsServerAccessor();
     }
     return new StatisticsServerAccessorImpl();
+  }
+
+  @Bean
+  ModsServerAccessor modsServerAccessor() {
+    if (environment.containsProperty("faf.testing")) {
+      return new MockModsServerAccessor();
+    }
+    return new ModsServerAccessorImpl();
   }
 
   @Bean
@@ -309,5 +324,15 @@ public class ServiceConfig {
   @Bean
   CloudService parseComService() {
     return new ParseCloudService();
+  }
+
+  @Bean
+  PlayServices playServices() {
+    return new GooglePlayServices();
+  }
+
+  @Bean
+  GravatarService gravatarService() {
+    return new GravatarServiceImpl();
   }
 }

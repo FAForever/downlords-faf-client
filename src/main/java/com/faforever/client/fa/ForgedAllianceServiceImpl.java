@@ -68,7 +68,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   }
 
   @Override
-  public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
+  public Process startReplay(Path path, @Nullable Integer replayId, @NotNull String gameType) throws IOException {
     Path executable = getExecutable();
 
     List<String> launchCommand = LaunchCommandBuilder.create()
@@ -76,6 +76,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .replayFile(path)
         .replayId(replayId)
         .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
+        .gameType(gameType)
         .build();
 
     return launch(executable, launchCommand);

@@ -1,8 +1,7 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.legacy.ModsServerAccessor;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ConcurrentUtil;
@@ -10,7 +9,6 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 import javafx.concurrent.Task;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +31,7 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -54,40 +53,51 @@ public class ModServiceImpl implements ModService {
 
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
-
+  @Autowired
+  ModsServerAccessor modsServerAccessor;
   @Autowired
   PreferencesService preferencesService;
-
   @Autowired
   TaskService taskService;
-
   @Autowired
   ApplicationContext applicationContext;
-
-  @Autowired
-  NotificationService notificationService;
-
-  @Autowired
-  I18n i18n;
 
   private Path modsDirectory;
   private Map<Path, ModInfoBean> pathToMod;
   private ObservableList<ModInfoBean> installedMods;
-  private ObservableSet<ModInfoBean> availableMods;
-  private ObservableSet<ModInfoBean> readOnlyAvailableMods;
   private ObservableList<ModInfoBean> readOnlyInstalledMods;
 
   public ModServiceImpl() {
     pathToMod = new HashMap<>();
     installedMods = FXCollections.observableArrayList();
-    availableMods = FXCollections.observableSet();
-    readOnlyAvailableMods = FXCollections.unmodifiableObservableSet(availableMods);
     readOnlyInstalledMods = FXCollections.unmodifiableObservableList(installedMods);
   }
 
-  @Override
-  public ObservableSet<ModInfoBean> getAvailableMods() {
-    return readOnlyAvailableMods;
+  @PostConstruct
+  void postConstruct() throws IOException, InterruptedException {
+    modsDirectory = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
+    startDirectoryWatcher(modsDirectory);
+    loadInstalledMods();
+  }
+
+  private void startDirectoryWatcher(Path modsDirectory) throws IOException, InterruptedException {
+    ConcurrentUtil.executeInBackground(new Task<Void>() {
+      @Override
+      protected Void call() throws Exception {
+        WatchService watcher = modsDirectory.getFileSystem().newWatchService();
+        modsDirectory.register(watcher, ENTRY_DELETE);
+
+        while (true) {
+          WatchKey key = watcher.take();
+          for (WatchEvent<?> event : key.pollEvents()) {
+            if (event.kind() == ENTRY_DELETE) {
+              removeMod(modsDirectory.resolve((Path) event.context()));
+            }
+          }
+          key.reset();
+        }
+      }
+    });
   }
 
   @Override
@@ -112,7 +122,7 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableFuture<Void> downloadAndInstallMod(URL url, @Nullable DoubleProperty progressProperty, StringProperty titleProperty) {
+  public CompletableFuture<Void> downloadAndInstallMod(URL url, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
     InstallModTask task = applicationContext.getBean(InstallModTask.class);
     task.setUrl(url);
     if (progressProperty != null) {
@@ -168,8 +178,10 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public void requestMods() {
-    lobbyServerAccessor.requestMods();
+  public CompletableFuture<List<ModInfoBean>> requestMods() {
+    return lobbyServerAccessor.requestMods().thenApply(modInfos -> {
+      return modInfos.stream().map(ModInfoBean::fromModInfo).collect(Collectors.toList());
+    });
   }
 
   @Override
@@ -194,6 +206,16 @@ public class ModServiceImpl implements ModService {
       }
     }
     return null;
+  }
+
+  @Override
+  public CompletableFuture<List<ModInfoBean>> searchMod(String name) {
+    modsServerAccessor.connect();
+    return modsServerAccessor.searchMod(name)
+        .thenApply(modInfos -> modInfos.stream()
+                .map(ModInfoBean::fromModInfo)
+                .collect(Collectors.toList())
+        );
   }
 
   private Map<String, Boolean> readModStates() throws IOException {
@@ -252,6 +274,10 @@ public class ModServiceImpl implements ModService {
     Files.write(preferencesFile, preferencesContent.getBytes(US_ASCII));
   }
 
+  private void removeMod(Path path) throws IOException {
+    installedMods.remove(pathToMod.remove(path));
+  }
+
   private void addMod(Path path) throws IOException {
     ModInfoBean modInfoBean = extractModInfo(path);
     if (modInfoBean == null) {
@@ -271,6 +297,7 @@ public class ModServiceImpl implements ModService {
       return null;
     }
 
+    logger.debug("Reading mod {}", path);
     try (InputStream inputStream = Files.newInputStream(modInfoLua)) {
       Properties properties = new Properties();
       properties.load(inputStream);
@@ -324,35 +351,5 @@ public class ModServiceImpl implements ModService {
     return path.resolve(iconPath);
   }
 
-  @PostConstruct
-  void postConstruct() throws IOException, InterruptedException {
-    lobbyServerAccessor.setOnModInfoListener(modInfo -> availableMods.add(ModInfoBean.fromModInfo(modInfo)));
-    modsDirectory = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
-    startDirectoryWatcher(modsDirectory);
-    loadInstalledMods();
-  }
 
-  private void startDirectoryWatcher(Path modsDirectory) throws IOException, InterruptedException {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        WatchService watcher = modsDirectory.getFileSystem().newWatchService();
-        modsDirectory.register(watcher, ENTRY_DELETE);
-
-        while (true) {
-          WatchKey key = watcher.take();
-          for (WatchEvent<?> event : key.pollEvents()) {
-            if (event.kind() == ENTRY_DELETE) {
-              removeMod(modsDirectory.resolve((Path) event.context()));
-            }
-          }
-          key.reset();
-        }
-      }
-    });
-  }
-
-  private void removeMod(Path path) throws IOException {
-    installedMods.remove(pathToMod.remove(path));
-  }
 }

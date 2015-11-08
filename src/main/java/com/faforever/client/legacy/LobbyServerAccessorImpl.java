@@ -68,10 +68,11 @@ import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.function.Consumer;
 
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.OFF;
 import static com.faforever.client.legacy.domain.GameStatusMessage.Status.ON;
@@ -116,8 +117,9 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private OnPlayerInfoListener onPlayerInfoListener;
   private OnFriendListListener onFriendListListener;
   private OnFoeListListener onFoeListListener;
-  private Consumer<ModInfo> onModInfoListener;
   private CompletableFuture<Void> downloadModFuture;
+  private CompletableFuture<List<ModInfo>> modListFuture;
+  private Set<ModInfo> collectedModInfos;
 
   public LobbyServerAccessorImpl() {
     onGameInfoListeners = new ArrayList<>();
@@ -126,6 +128,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     onGameLaunchListeners = new ArrayList<>();
     onRankedMatchNotificationListeners = new ArrayList<>();
     sessionId = new SimpleStringProperty();
+    collectedModInfos = new HashSet<>();
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .registerTypeAdapter(VictoryCondition.class, new VictoryConditionTypeAdapter())
@@ -370,13 +373,10 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void requestMods() {
+  public CompletableFuture<List<ModInfo>> requestMods() {
+    modListFuture = new CompletableFuture<>();
     writeToServer(new RequestModsMessage());
-  }
-
-  @Override
-  public void setOnModInfoListener(Consumer<ModInfo> listener) {
-    this.onModInfoListener = listener;
+    return modListFuture;
   }
 
   public void onServerMessage(String message) throws IOException {
@@ -477,7 +477,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
         case MOD_VAULT_INFO:
           ModInfo modInfo = gson.fromJson(jsonString, ModInfo.class);
-          onModInfoListener.accept(modInfo);
+          onModInfo(modInfo);
           break;
 
         default:
@@ -538,6 +538,19 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     } else if (socialInfo.getAutoJoin() != null) {
 
       onJoinChannelsRequestListeners.forEach(listener -> listener.onJoinChannelsRequest(socialInfo.getAutoJoin()));
+    }
+  }
+
+  /**
+   * Instead of sending a list of mod info, the server sends one mod after another. This is very inconvenient since we
+   * don't really know how many there will be. However, at the moment, we "know" that the server sends 100 mods. So
+   * let's wait for these and pray that this number will never change until we get a proper server API.
+   */
+  private void onModInfo(ModInfo modInfo) {
+    collectedModInfos.add(modInfo);
+    if (collectedModInfos.size() == 100) {
+      modListFuture.complete(new ArrayList<>(collectedModInfos));
+      collectedModInfos.clear();
     }
   }
 }

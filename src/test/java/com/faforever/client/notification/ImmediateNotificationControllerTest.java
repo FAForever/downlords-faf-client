@@ -5,11 +5,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
@@ -21,7 +24,7 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
 
   @Before
   public void setUp() throws Exception {
-    instance = new ImmediateNotificationController();
+    instance = loadController("immediate_notification.fxml");
     instance.titleLabel = new Label();
     instance.messageLabel = new Label();
     instance.buttonBar = new ButtonBar();
@@ -54,6 +57,7 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
 
   @Test
   public void testGetRoot() throws Exception {
-    assertEquals(instance.notificationRoot, instance.getRoot());
+    Assert.assertThat(instance.getRoot(), is(instance.notificationRoot));
+    Assert.assertThat(instance.getRoot().getParent(), is(nullValue()));
   }
 }
