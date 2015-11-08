@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.JavaFxUtil;
+import com.google.gson.Gson;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
@@ -187,8 +188,12 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void setRandomColors() {
-
-    //getJsObject().call("setRandomColors", new Gson().toJson());
+    ObservableMap<String, ChatUser> chatUsersForChannel = chatService.getChatUsersForChannel(channelName);
+    Map<String, String> userToColor = new HashMap<>();
+    for (ChatUser chatUser : chatUsersForChannel.values()) {
+      userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor()));
+    }
+    getJsObject().call("setRandomColors", new Gson().toJson(userToColor));
   }
 
   private void removeRandomColors() {
@@ -342,6 +347,12 @@ public class ChannelTabController extends AbstractChatTabController {
    */
   private void addChatUserControlSorted(Pane pane, ChatUserControl chatUserControl) {
     ObservableList<Node> children = pane.getChildren();
+
+    if (chatUserControl.getPlayerInfoBean().getUsername().equals(userService.getUsername())) {
+      children.add(0, chatUserControl);
+      return;
+    }
+
     for (Node child : children) {
       if (!(child instanceof ChatUserControl)) {
         continue;

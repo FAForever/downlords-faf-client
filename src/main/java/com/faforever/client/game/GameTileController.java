@@ -72,11 +72,11 @@ public class GameTileController {
     gameTitleLabel.setText(gameInfoBean.getTitle());
     hostLabel.setText(gameInfoBean.getHost());
 
-    JavaFxUtil.bindOnApplicationThread(gameMapLabel.textProperty(), gameInfoBean::getTechnicalName, gameInfoBean.technicalNameProperty());
+    JavaFxUtil.bindOnApplicationThread(gameMapLabel.textProperty(), gameInfoBean::getMapTechnicalName, gameInfoBean.mapTechnicalNameProperty());
     JavaFxUtil.bindOnApplicationThread(numberOfPlayersLabel.textProperty(), () -> i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()), gameInfoBean.numPlayersProperty());
-    JavaFxUtil.bindOnApplicationThread(mapImageView.imageProperty(), () -> mapService.loadSmallPreview(gameInfoBean.getTechnicalName()), gameInfoBean.technicalNameProperty());
-    JavaFxUtil.bindOnApplicationThread(modsLabel.textProperty(), () -> Joiner.on(i18n.get("textSeparator")).join(gameInfoBean.getSimMods().values()), gameInfoBean.technicalNameProperty());
-    JavaFxUtil.bindOnApplicationThread(modsLabel.visibleProperty(), () -> !gameInfoBean.getSimMods().isEmpty(), gameInfoBean.technicalNameProperty());
+    JavaFxUtil.bindOnApplicationThread(mapImageView.imageProperty(), () -> mapService.loadSmallPreview(gameInfoBean.getMapTechnicalName()), gameInfoBean.mapTechnicalNameProperty());
+    JavaFxUtil.bindOnApplicationThread(modsLabel.textProperty(), () -> Joiner.on(i18n.get("textSeparator")).join(gameInfoBean.getSimMods().values()), gameInfoBean.mapTechnicalNameProperty());
+    JavaFxUtil.bindOnApplicationThread(modsLabel.visibleProperty(), () -> !gameInfoBean.getSimMods().isEmpty(), gameInfoBean.mapTechnicalNameProperty());
 
     numberOfPlayersLabel.setText(i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     gameInfoBean.numPlayersProperty().addListener(((observable3, oldValue3, newValue3) -> {

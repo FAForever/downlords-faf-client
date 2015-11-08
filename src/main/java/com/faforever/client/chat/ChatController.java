@@ -143,6 +143,7 @@ public class ChatController implements
   @Override
   public void onChatUserLeftChannel(String username, String channelName) {
     if (userService.getUsername().equals(username)) {
+      //FIXME returns nullpointer
       chatsTabPane.getTabs().remove(nameToChatTabController.get(channelName).getRoot());
     }
   }
