@@ -68,8 +68,11 @@ import static com.google.common.html.HtmlEscapers.htmlEscaper;
  */
 public abstract class AbstractChatTabController {
 
+  protected static final String CSS_CLASS_SELF = "self";
+  protected static final String CSS_CLASS_FRIEND = "friend";
+  protected static final String CSS_CLASS_FOE = "foe";
+  protected static final String CSS_CLASS_CHAT_ONLY = "chat_only";
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   private static final Resource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
   private static final Resource CHAT_JS_RESOURCE = new ClassPathResource("/js/chat_container.js");
   private static final Resource AUTOLINKER_JS_RESOURCE = new ClassPathResource("/js/Autolinker.min.js");
@@ -82,18 +85,11 @@ public abstract class AbstractChatTabController {
   private static final String CHAT_TAB_REFERENCE_IN_JAVASCRIPT = "chatTab";
   private static final String ACTION_PREFIX = "/me ";
   private static final String JOIN_PREFIX = "/join ";
-
   /**
    * Added if a message is what IRC calls an "action".
    */
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
-
-  private static final String CSS_CLASS_SELF = "self";
-  private static final String CSS_CLASS_FRIEND = "friend";
-  private static final String CSS_CLASS_FOE = "foe";
-  private static final String CSS_CLASS_CHAT_ONLY = "chat_only";
-
   private final List<ChatMessage> waitingMessages;
 
   @Autowired
@@ -576,16 +572,18 @@ public abstract class AbstractChatTabController {
       } else {
         cssClasses.add(MESSAGE_CSS_CLASS);
       }
-      PlayerInfoBean playerInfo = playerService.getPlayerForUsername(chatMessage.getUsername());
 
-      String messageColorClass = getMessageColorClass(playerInfo);
+      PlayerInfoBean playerInfo = playerService.getPlayerForUsername(chatMessage.getUsername());
+      String messageColorClass = getMessageCssClass(playerInfo);
 
       if (messageColorClass != null) {
         cssClasses.add(messageColorClass);
       }
 
       html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
-      html = html.replace("{inline-style}", getInlineColor(playerInfoBean));
+      if (messageColorClass == null || messageColorClass.equals(CSS_CLASS_CHAT_ONLY)) {
+        html = html.replace("{inline-style}", getInlineColor(playerInfoBean));
+      }
 
       addToMessageContainer(html);
 
@@ -595,7 +593,7 @@ public abstract class AbstractChatTabController {
   }
 
   @Nullable
-  protected String getMessageColorClass(@NotNull PlayerInfoBean playerInfo) {
+  protected String getMessageCssClass(@NotNull PlayerInfoBean playerInfo) {
     if (playerInfo.isFriend()) {
       return CSS_CLASS_FRIEND;
     }

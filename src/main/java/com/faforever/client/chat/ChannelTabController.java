@@ -131,12 +131,12 @@ public class ChannelTabController extends AbstractChatTabController {
 
   @Override
   @Nullable
-  protected String getMessageColorClass(@NotNull PlayerInfoBean playerInfo) {
-    if (playerInfo.getModeratorForChannels().contains(channelName)) {
+  protected String getMessageCssClass(@NotNull PlayerInfoBean playerInfoBean) {
+    if (playerInfoBean.getModeratorForChannels().contains(channelName)) {
       return CSS_CLASS_MODERATOR;
     }
 
-    return super.getMessageColorClass(playerInfo);
+    return super.getMessageCssClass(playerInfoBean);
 
   }
 
@@ -180,24 +180,32 @@ public class ChannelTabController extends AbstractChatTabController {
   private void addRandomColorListener() {
     preferencesService.getPreferences().getChat().useRandomColorsProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue) {
-        setRandomColors();
+        setAllMessageColors();
       } else {
-        removeRandomColors();
+        removeAllMessageColors();
       }
     });
   }
 
-  private void setRandomColors() {
+  private void setAllMessageColors() {
     ObservableMap<String, ChatUser> chatUsersForChannel = chatService.getChatUsersForChannel(channelName);
     Map<String, String> userToColor = new HashMap<>();
     for (ChatUser chatUser : chatUsersForChannel.values()) {
       userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor()));
     }
-    getJsObject().call("setRandomColors", new Gson().toJson(userToColor));
+    getJsObject().call("setAllMessageColors", new Gson().toJson(userToColor));
   }
 
-  private void removeRandomColors() {
-    getJsObject().call("removeRandomColors");
+  private void removeAllMessageColors() {
+    getJsObject().call("removeAllMessageColors");
+  }
+
+  private void removeUserMessageClass(PlayerInfoBean playerInfoBean, String cssClass) {
+    getJsObject().call("removeUserMessageClass", playerInfoBean.getUsername(), cssClass);
+  }
+
+  private void setUserMessageClass(PlayerInfoBean playerInfoBean, String cssClass) {
+    getJsObject().call("setUserMessageClass", playerInfoBean.getUsername(), cssClass);
   }
 
   private void onUserJoinedChannel(ChatUser chatUser) {
@@ -223,11 +231,14 @@ public class ChannelTabController extends AbstractChatTabController {
         addToPane(playerInfoBean, friendsPane);
         removeFromPane(playerInfoBean, foesPane);
         removeFromPane(playerInfoBean, othersPane);
+        setUserMessageClass(playerInfoBean, CSS_CLASS_FRIEND);
+
       } else {
         removeFromPane(playerInfoBean, friendsPane);
         if (!playerInfoBean.isFoe()) {
           addToPane(playerInfoBean, othersPane);
         }
+        removeUserMessageClass(playerInfoBean, CSS_CLASS_FRIEND);
       }
     });
     playerInfoBean.foeProperty().addListener((observable, oldValue, newValue) -> {
@@ -235,35 +246,43 @@ public class ChannelTabController extends AbstractChatTabController {
         addToPane(playerInfoBean, foesPane);
         removeFromPane(playerInfoBean, friendsPane);
         removeFromPane(playerInfoBean, othersPane);
+        setUserMessageClass(playerInfoBean, CSS_CLASS_FOE);
+
       } else {
         removeFromPane(playerInfoBean, foesPane);
         if (!playerInfoBean.isFriend()) {
           addToPane(playerInfoBean, othersPane);
         }
+        removeUserMessageClass(playerInfoBean, CSS_CLASS_FOE);
       }
     });
 
-    //TODO chat only in code, but irc only in ui?
     playerInfoBean.chatOnlyProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue) {
         addToPane(playerInfoBean, chatOnlyPane);
         removeFromPane(playerInfoBean, othersPane);
+        setUserMessageClass(playerInfoBean, CSS_CLASS_CHAT_ONLY);
+
       } else {
         removeFromPane(playerInfoBean, chatOnlyPane);
         if (!playerInfoBean.isFoe() && !playerInfoBean.isFriend() && !playerInfoBean.getModeratorForChannels().contains(channelName)) {
           addToPane(playerInfoBean, othersPane);
         }
+        removeUserMessageClass(playerInfoBean, CSS_CLASS_CHAT_ONLY);
       }
     });
     playerInfoBean.getModeratorForChannels().addListener((SetChangeListener<String>) change -> {
       if (change.wasAdded()) {
         addToPane(playerInfoBean, moderatorsPane);
         removeFromPane(playerInfoBean, othersPane);
+        setUserMessageClass(playerInfoBean, CSS_CLASS_MODERATOR);
+
       } else {
         removeFromPane(playerInfoBean, moderatorsPane);
         if (!playerInfoBean.isFoe() && !playerInfoBean.isFriend()) {
           addToPane(playerInfoBean, othersPane);
         }
+        removeUserMessageClass(playerInfoBean, CSS_CLASS_MODERATOR);
       }
     });
 

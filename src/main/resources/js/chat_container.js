@@ -28,7 +28,7 @@ function showPlayerInfo(node) {
   chatTab.playerInfo(node.textContent);
 }
 
-function hidePlayerInfo(node) {
+function hidePlayerInfo() {
   chatTab.hidePlayerInfo();
 }
 
@@ -42,7 +42,7 @@ function scrollToBottomIfDesired() {
   }
 }
 
-function setRandomColors(userListString) {
+function setAllMessageColors(userListString) {
   var userList = JSON.parse(userListString);
 
   for (var user in userList) {
@@ -55,9 +55,23 @@ function setRandomColors(userListString) {
   }
 }
 
-function removeRandomColors() {
+function removeAllMessageColors() {
   var messages = document.getElementsByClassName("chat-message");
   for (var i = 0; i < messages.length; i++) {
     messages[i].style.color = "";
+  }
+}
+
+function setUserMessageClass(user, cssClass) {
+  var userMessages = document.getElementsByClassName(user);
+  for (var i = 0; i < userMessages.length; i++) {
+    userMessages[i].classList.add(cssClass);
+  }
+}
+
+function removeUserMessageClass(user, cssClass) {
+  var userMessages = document.getElementsByClassName(user);
+  for (var i = 0; i < userMessages.length; i++) {
+    userMessages[i].classList.remove(cssClass);
   }
 }

@@ -46,6 +46,7 @@ public class GameStatusTooltipController {
     GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);
     gameTooltipController.setGameInfoBean(gameInfoBean);
     gameStatusTooltipRoot.getChildren().add(gameTooltipController.getRoot());
+    gameStatusTooltipRoot.getChildren();
   }
 
   public Node getRoot() {
