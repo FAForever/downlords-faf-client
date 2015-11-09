@@ -307,7 +307,7 @@ public class ProxyImpl implements Proxy {
       protected Void call() throws Exception {
         ensureFafProxyConnection();
 
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[8092];
         DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
 
         while (!isCancelled()) {
