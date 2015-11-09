@@ -108,9 +108,11 @@ public class GameTileController {
   }
 
   private void displaySimMods(ObservableMap<? extends String, ? extends String> simMods) {
-    String stringSimMods = Joiner.on(i18n.get("textSeparator")).join(simMods.values());
-    modsLabel.setText(stringSimMods);
-    modsLabel.setVisible(!modsLabel.getText().isEmpty());
+    Platform.runLater(() -> {
+      String stringSimMods = Joiner.on(i18n.get("textSeparator")).join(simMods.values());
+      modsLabel.setText(stringSimMods);
+      modsLabel.setVisible(!modsLabel.getText().isEmpty());
+    });
   }
 
   @FXML
