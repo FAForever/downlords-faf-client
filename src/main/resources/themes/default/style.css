@@ -192,13 +192,11 @@
   -fx-background-color: -fx-control-inner-background;
 }
 
-.chat-user-control-username.chat-user-control-clan.chat-user-control-country:hover {
-  -fx-background-radius: 1.5, 1.5, 1.5, 1.5;
-  -fx-background-insets: 1.2, 1.2, 1.2, 1.2;
-  -fx-background-color: -fx-control-inner-background;
-}
-
-.chat-user-control-status:hover {
+/*TODO: to highlight gamestatus and clan (both imageviews) an actual grey image must be created and overlayed e.g.  -fx-image: url(images/grey-highlight.png);*/
+.chat-user-control-username:hover,
+.chat-user-control-clan:hover {
+  -fx-background-radius: 1.5;
+  -fx-background-insets: 1.2, 1.5, 1.2, 1.5;
   -fx-background-color: -fx-control-inner-background;
 }
 
@@ -739,7 +737,7 @@
 /***************** Played Card Tooltip*****************/
 
 .player-card-tooltip {
-  -fx-padding: 5, 10, 5, 10;
+  -fx-padding: 2, 10, 2, 10;
 }
 
 /***************** Progress bar *****************/
@@ -801,7 +799,7 @@
 .game-tile-root .lock-icon {
   -fx-font-size: 2em;
   -fx-effect: dropshadow(gaussian, black, 5, 0.5, 0, 0);
-  -fx-margin: 10;
+  -fx-margin: 10px;
 }
 
 .game-tile-root:hover,

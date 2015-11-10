@@ -112,7 +112,9 @@ public class GameTileController {
 
   @FXML
   void onClick(MouseEvent mouseEvent) {
+    gameTileRoot.requestFocus();
     gamesController.displayGameDetail(gameInfoBean);
+
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
       mouseEvent.consume();
       gamesController.onJoinGame(gameInfoBean, null, mouseEvent.getScreenX(), mouseEvent.getScreenY());

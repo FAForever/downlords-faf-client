@@ -287,7 +287,7 @@ public abstract class AbstractChatTabController {
    */
   public void playerInfo(String username) {
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(username);
-    if (playerInfoBean == null) {
+    if (playerInfoBean == null || playerInfoBean.isChatOnly()) {
       return;
     }
 
