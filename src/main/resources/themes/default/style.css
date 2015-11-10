@@ -818,9 +818,9 @@
 }
 
 /***************** Game Tooltip *****************/
-
+/*TODO: em is nested*/
 .game-tooltip {
-  -fx-font-size: 1.2em;
+  -fx-font-size: 15px;
 }
 
 .game-tooltip .teams-pane {
@@ -832,17 +832,17 @@
 
 .game-status-tooltip-mapname {
   -fx-padding: 5px, 5px, 2px, 2px;
-  -fx-font-size: 1.2em;
+  -fx-font-size: 1.5em;
 }
 
 .game-status-tooltip-gametitle {
   -fx-padding: 5px, 5px, 2px, 2px;
-  -fx-font-size: 1.2em;
+  -fx-font-size: 1.5em;
 }
 
 .game-status-tooltip-featuredmod {
   -fx-padding: 5px, 5px, 2px, 2px;
-  -fx-font-size: 1.2em;
+  -fx-font-size: 1.5em;
 }
 
 /***************** Game detail *****************/

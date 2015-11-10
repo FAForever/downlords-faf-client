@@ -45,7 +45,6 @@ import org.springframework.core.env.Environment;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.URL;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
@@ -232,8 +231,10 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
-  public void runWithReplay(URL replayUrl, Integer replayId) throws IOException {
-    Process process = forgedAllianceService.startReplay(replayUrl, replayId);
+  public void runWithReplay(String replayUrl, Integer replayId, String gameType, String mapName) throws IOException {
+    //FIXME needs to update
+    //downloadMapIfNecessary(map);
+    Process process = forgedAllianceService.startReplay(replayUrl, replayId, gameType);
     onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
     // TODO is this needed when watching a replay?
     lobbyServerAccessor.notifyGameStarted();

@@ -30,10 +30,6 @@ import java.lang.invoke.MethodHandles;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
-import java.net.URLStreamHandlerFactory;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -94,7 +90,6 @@ public class ReplayServiceImpl implements ReplayService {
   @Autowired
   ApplicationContext applicationContext;
 
-  boolean urlFactoryHasBeenSet = false;
 
   @Override
   public Collection<ReplayInfoBean> getLocalReplays() throws IOException {
@@ -187,37 +182,24 @@ public class ReplayServiceImpl implements ReplayService {
 
   @Override
   public void runLiveReplay(URI uri) throws IOException {
+    logger.debug("Running replay from URL: {}", uri);
     if (!uri.getScheme().equals(FAF_LIFE_PROTOCOL)) {
       throw new IllegalArgumentException("Invalid protocol: " + uri.getScheme());
     }
 
     Map<String, String> queryParams = Splitter.on('&').trimResults().withKeyValueSeparator("=").split(uri.getQuery());
 
-    String mod = queryParams.get("mod");
+    String gameType = queryParams.get("mod");
     String mapName = queryParams.get("map");
     Integer replayId = Integer.parseInt(uri.getPath().split("/")[1]);
 
-    if(gameService.getByUid(replayId) == null){
+    if (gameService.getByUid(replayId) == null) {
       runOnlineReplay(replayId);
     }
 
-    //FIXME I don't understand this and I know this is ugly
-    if(!urlFactoryHasBeenSet) {
-      URLStreamHandlerFactory urlStreamHandlerFactory = protocol -> new URLStreamHandler() {
-        @Override
-        protected URLConnection openConnection(URL u) throws IOException {
-          return u.openConnection();
-        }
-      };
-
-      URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
-
-      urlFactoryHasBeenSet = true;
-    }
-
     try {
-      URL gpgReplayUrl = new URL(GPGNET_SCHEME, uri.getHost(), uri.getPort(), uri.getPath());
-      gameService.runWithReplay(gpgReplayUrl, replayId);
+      String gpgReplayUrl = String.format("%s://%s:%d/%s", GPGNET_SCHEME, uri.getHost(), uri.getPort(), uri.getPath());
+      gameService.runWithReplay(gpgReplayUrl, replayId, gameType, mapName);
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);
     }

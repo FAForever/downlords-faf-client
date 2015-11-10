@@ -8,7 +8,6 @@ import javafx.collections.ObservableList;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +38,7 @@ public interface GameService {
    */
   void runWithReplay(Path path, @Nullable Integer replayId, String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simMods) throws IOException;
 
-  void runWithReplay(URL url, Integer replayId) throws IOException;
+  void runWithReplay(String url, Integer replayId, String gameType, String mapName) throws IOException;
 
   ObservableList<GameInfoBean> getGameInfoBeans();
 

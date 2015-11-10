@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -83,15 +82,15 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   }
 
   @Override
-  public Process startReplay(URL replayUrl, Integer replayId) throws IOException {
+  public Process startReplay(String replayUrl, Integer replayId, String gameType) throws IOException {
     Path executable = getExecutable();
 
     List<String> launchCommand = LaunchCommandBuilder.create()
         .executable(executable)
         .replayUrl(replayUrl)
         .replayId(replayId)
-            // FIXME fix the path
-        .logFile(preferencesService.getFafDataDirectory().resolve("logs/replay.log"))
+        .logFile(preferencesService.getFafLogDirectory().resolve("replay.log"))
+        .gameType(gameType)
         .build();
 
     return launch(executable, launchCommand);

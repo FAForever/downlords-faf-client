@@ -7,112 +7,113 @@ All the following applies to the content of a WebViews (chat, news), therefore i
 html, body {
   /* TODO JDK-8116513 WebView does not yet allow transparency. As a workaround, we use a black background together with WebView set to blend mode ADD. */
   background-color: black;
-  margin: 0;
+  margin: 0, 0, 0, 5px;
   padding: 0;
   /* Use same as -fx-light-text-color */
-    color: #BFBEBA;
-  font-family: "Segoe UI","Arial","Tahoma","sans-serif";
+  color: #BFBEBA;
+  font-family: "Segoe UI", "Arial", "Tahoma", "sans-serif";
 }
 
 a {
-    /* Use same as -fx-accent */
-    color: #609e15;
-    text-decoration: none;
+  /* Use same as -fx-accent */
+  color: #609e15;
+  text-decoration: none;
 }
 
 /***************** Chat Colors (WebView) *****************/
+/*!important indicates that randomColors cannot override*/
 
 .self {
-    color: #FFA500;
+  color: #FFA500 !important;
 }
 
 .friend {
-    color: #16B7EB;
+  color: #16B7EB !important;
 }
 
 .foe {
-    color: #FF0000;
+  color: #FF0000 !important;
 }
 
 .moderator {
-    color: #FFFFFF;
+  color: #FFFFFF !important;
 }
 
 .chat {
-    color: #808080;
+  color: #808080;
 }
 
 /***************** Chat (WebView) *****************/
 
 #chat-table {
-    width: 100%;
-    border-collapse: collapse;
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .chat-message {
-    /* Same height as avatar */
-    line-height: 20px;
+  /* Same height as avatar */
+  line-height: 20px;
 }
 
 .chat-message.message .username::after {
-    content: ':';
+  content: ':';
 }
 
 .chat-message.action {
-    font-style: italic;
+  font-style: italic;
 }
 
 .chat-message:nth-of-type(odd) {
-    background-color: rgba(255, 255, 255, 0.06667);
+  background-color: rgba(255, 255, 255, 0.06667);
 }
 
 .chat-message * {
-    padding: 0 2px;
-    word-wrap: break-word;
+  padding: 0 2px;
+  word-wrap: break-word;
 }
 
 .chat-message td {
-    vertical-align: top;
+  vertical-align: top;
 }
 
 .chat-message .time {
 }
 
 .chat-message > .avatar {
-    width: 40;
-    height: 20px;
-    padding: 0 2px;
+  width: 40;
+  height: 20px;
+  padding: 0 2px;
 }
 
 .avatar > img {
-    display: block;
+  display: block;
 }
 
 .chat-message .text {
-    width: 100%;
+  width: 100%;
 }
 
 .chat-message .username {
-    /* I really don't know where else this is set that makes !important necessary */
-    padding-right: 10px !important;
-    max-width: 50%;
-    text-align: right;
-    white-space: nowrap;
-    cursor: pointer;
+  /* I really don't know where else this is set that makes !important necessary */
+  padding-right: 10px !important;
+  max-width: 50%;
+  text-align: right;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
 .chat-message .time {
-    white-space: nowrap;
+  white-space: nowrap;
 }
 
 /***************** News (WebView) *****************/
 
 html.news-detail {
-    padding: 20px;
+  padding: 20px;
 }
 
 .news-detail img {
-    display: block;
-    max-width: 100%;
-    height: auto !important;
+  display: block;
+  max-width: 100%;
+  height: auto !important;
 }
