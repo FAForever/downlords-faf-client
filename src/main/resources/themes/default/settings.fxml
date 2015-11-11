@@ -73,6 +73,8 @@
                         <Label text="%settings.chat.colors"/>
                         <CheckBox fx:id="randomColorsCheckBox" mnemonicParsing="false"
                                   text="%settings.chat.randomColors"/>
+                        <Label text="%settings.chat.miscellaneous"/>
+                        <CheckBox fx:id="hideFoeCheckBox" mnemonicParsing="false" text="%settings.chat.hideFoe"/>
                       </children>
                     </VBox>
                   </content>

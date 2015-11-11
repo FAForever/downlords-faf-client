@@ -11,6 +11,7 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.replay.ReplayService;
 import javafx.fxml.FXML;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
@@ -30,6 +31,8 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 public class ChatUserContextMenuController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  @FXML
+  ColorPicker colorPicker;
 
   @FXML
   MenuItem joinGameItem;
@@ -92,6 +95,7 @@ public class ChatUserContextMenuController {
 
   public ContextMenu getContextMenu() {
     return contextMenu;
+
   }
 
   public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
@@ -105,7 +109,6 @@ public class ChatUserContextMenuController {
     joinGameItem.visibleProperty().bind(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.LOBBY).or(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.HOST)));
     watchGameItem.visibleProperty().bind(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.PLAYING));
     inviteItem.visibleProperty().bind(playerInfoBean.gameStatusProperty().isNotEqualTo(GameStatus.PLAYING));
-
   }
 
   @FXML

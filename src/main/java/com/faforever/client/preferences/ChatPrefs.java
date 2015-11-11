@@ -21,6 +21,7 @@ public class ChatPrefs {
   private final BooleanProperty useRandomColors;
   private final IntegerProperty channelTabScrollPaneWidth;
   private final MapProperty<String, Color> userToColor;
+  private final BooleanProperty hideFoeMessages;
 
   public ChatPrefs() {
     maxMessages = new SimpleIntegerProperty(500);
@@ -28,6 +29,7 @@ public class ChatPrefs {
     learnedAutoComplete = new SimpleBooleanProperty(false);
     previewImageUrls = new SimpleBooleanProperty(true);
     useRandomColors = new SimpleBooleanProperty(false);
+    hideFoeMessages = new SimpleBooleanProperty(true);
     channelTabScrollPaneWidth = new SimpleIntegerProperty(250);
     userToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
   }
@@ -60,11 +62,11 @@ public class ChatPrefs {
     return zoom.getValue();
   }
 
-  public void setZoom(double zoom) {
+  public void setZoom(Double zoom) {
     this.zoom.set(zoom);
   }
 
-  public void setZoom(Double zoom) {
+  public void setZoom(double zoom) {
     this.zoom.set(zoom);
   }
 
@@ -118,5 +120,18 @@ public class ChatPrefs {
 
   public IntegerProperty channelTabScrollPaneWidthProperty() {
     return channelTabScrollPaneWidth;
+  }
+
+
+  public boolean getHideFoeMessages() {
+    return hideFoeMessages.get();
+  }
+
+  public void setHideFoeMessages(boolean hideFoeMessages) {
+    this.hideFoeMessages.set(hideFoeMessages);
+  }
+
+  public BooleanProperty hideFoeMessagesProperty() {
+    return hideFoeMessages;
   }
 }

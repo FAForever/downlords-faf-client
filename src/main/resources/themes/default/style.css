@@ -200,6 +200,12 @@
   -fx-background-color: -fx-control-inner-background;
 }
 
+/***************** ChatUser Context Menu *****************/
+.chat-user-context-colorpicker {
+  -fx-background-color: transparent;
+  -fx-focus-color: transparent;
+}
+
 /***************** Headings *****************/
 
 .h1 {

@@ -565,7 +565,7 @@ public abstract class AbstractChatTabController {
           .replace("{text}", text);
 
       Collection<String> cssClasses = new ArrayList<>();
-      cssClasses.add(chatMessage.getUsername());
+      cssClasses.add(String.format("user-%s", chatMessage.getUsername()));
 
       if (chatMessage.isAction()) {
         cssClasses.add(ACTION_CSS_CLASS);
@@ -581,9 +581,7 @@ public abstract class AbstractChatTabController {
       }
 
       html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
-      if (messageColorClass == null || messageColorClass.equals(CSS_CLASS_CHAT_ONLY)) {
-        html = html.replace("{inline-style}", getInlineColor(playerInfoBean));
-      }
+      html = html.replace("{inline-style}", getInlineStyle(playerInfoBean, messageColorClass));
 
       addToMessageContainer(html);
 
@@ -612,19 +610,26 @@ public abstract class AbstractChatTabController {
     return null;
   }
 
-  private String getInlineColor(PlayerInfoBean playerInfoBean) {
+  private String getInlineStyle(PlayerInfoBean playerInfoBean, String messageColorClass) {
     ChatUser chatUser = chatService.createOrGetChatUser(playerInfoBean.getUsername());
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    String inlineStyle = "style=\"%s%s\"";
+    String color = "";
+    String display = "";
 
-    if (chatPrefs.getUseRandomColors()) {
-      return createInlineStyleFromHexColor(chatUser.getColor());
-    } else {
-      return "";
+
+    if (chatPrefs.getUseRandomColors() && (messageColorClass == null || messageColorClass.equals(CSS_CLASS_CHAT_ONLY))) {
+      color = createInlineStyleFromHexColor(chatUser.getColor());
     }
+
+    if (chatPrefs.getHideFoeMessages() && messageColorClass != null && messageColorClass.equals(CSS_CLASS_FOE)) {
+      display = "display: none;";
+    }
+    return String.format(inlineStyle, color, display);
   }
 
   private String createInlineStyleFromHexColor(Color messageColor) {
-    return String.format("style=\"color: %s\"", JavaFxUtil.toRgbCode(messageColor));
+    return String.format("color: %s;", JavaFxUtil.toRgbCode(messageColor));
   }
 
   private String highlightOwnUsername(String text) {

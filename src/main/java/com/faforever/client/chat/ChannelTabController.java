@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.gson.Gson;
@@ -201,15 +202,21 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void removeUserMessageClass(PlayerInfoBean playerInfoBean, String cssClass) {
-    getJsObject().call("removeUserMessageClass", playerInfoBean.getUsername(), cssClass);
+    getJsObject().call("removeUserMessageClass", String.format("user-%s", playerInfoBean.getUsername()), cssClass);
   }
 
   private void setUserMessageClass(PlayerInfoBean playerInfoBean, String cssClass) {
-    getJsObject().call("setUserMessageClass", playerInfoBean.getUsername(), cssClass);
+    getJsObject().call("setUserMessageClass", String.format("user-%s", playerInfoBean.getUsername()), cssClass);
+  }
+
+  private void updateUserMessageDisplay(PlayerInfoBean playerInfoBean, String display) {
+    getJsObject().call("updateUserMessageDisplay", String.format("user-%s", playerInfoBean.getUsername()), display);
   }
 
   private void onUserJoinedChannel(ChatUser chatUser) {
     JavaFxUtil.assertBackgroundThread();
+
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
     String username = chatUser.getUsername();
     PlayerInfoBean playerInfoBean = playerService.registerAndGetPlayerForUsername(username);
@@ -247,11 +254,18 @@ public class ChannelTabController extends AbstractChatTabController {
         removeFromPane(playerInfoBean, friendsPane);
         removeFromPane(playerInfoBean, othersPane);
         setUserMessageClass(playerInfoBean, CSS_CLASS_FOE);
+        if (chatPrefs.getHideFoeMessages()) {
+          updateUserMessageDisplay(playerInfoBean, "none");
+        }
 
       } else {
         removeFromPane(playerInfoBean, foesPane);
         if (!playerInfoBean.isFriend()) {
           addToPane(playerInfoBean, othersPane);
+        }
+
+        if (chatPrefs.getHideFoeMessages()) {
+          updateUserMessageDisplay(playerInfoBean, "");
         }
         removeUserMessageClass(playerInfoBean, CSS_CLASS_FOE);
       }
@@ -286,6 +300,13 @@ public class ChannelTabController extends AbstractChatTabController {
       }
     });
 
+    chatPrefs.hideFoeMessagesProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue && playerInfoBean.isFoe()) {
+        updateUserMessageDisplay(playerInfoBean, "none");
+      } else {
+        updateUserMessageDisplay(playerInfoBean, "");
+      }
+    });
 
     Collection<Pane> targetPanesForUser = getTargetPanesForUser(playerInfoBean);
     userToChatUserControls.putIfAbsent(username, new HashMap<>(targetPanesForUser.size(), 1));

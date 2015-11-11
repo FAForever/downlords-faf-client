@@ -17,6 +17,9 @@ import java.text.NumberFormat;
 public class SettingsController {
 
   @FXML
+  CheckBox hideFoeCheckBox;
+
+  @FXML
   CheckBox randomColorsCheckBox;
 
   @FXML
@@ -113,6 +116,7 @@ public class SettingsController {
     enableToastsCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().toastsEnabledProperty());
 
     randomColorsCheckBox.selectedProperty().bindBidirectional(preferences.getChat().useRandomColorsProperty());
+    hideFoeCheckBox.selectedProperty().bindBidirectional(preferences.getChat().hideFoeMessagesProperty());
 
     displayFriendOnlineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().displayFriendOnlineToastProperty());
     displayFriendOfflineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().displayFriendOfflineToastProperty());
