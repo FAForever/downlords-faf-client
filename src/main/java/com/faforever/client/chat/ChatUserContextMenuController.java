@@ -131,6 +131,9 @@ public class ChatUserContextMenuController {
 
   @FXML
   void onAddFriend() {
+    if (playerInfoBean.isFoe()) {
+      playerService.removeFoe(playerInfoBean.getUsername());
+    }
     playerService.addFriend(playerInfoBean.getUsername());
   }
 
@@ -141,6 +144,9 @@ public class ChatUserContextMenuController {
 
   @FXML
   void onAddFoe() {
+    if (playerInfoBean.isFriend()) {
+      playerService.removeFriend(playerInfoBean.getUsername());
+    }
     playerService.addFoe(playerInfoBean.getUsername());
   }
 
