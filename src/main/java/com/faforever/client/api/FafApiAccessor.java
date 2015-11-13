@@ -1,11 +1,11 @@
 package com.faforever.client.api;
 
-import com.faforever.client.play.AchievementDefinition;
-import com.faforever.client.play.AchievementUpdatesRequest;
-import com.faforever.client.play.EventUpdatesRequest;
-import com.faforever.client.play.PlayerAchievement;
-import com.faforever.client.play.UpdatedAchievement;
-import com.faforever.client.play.UpdatedEvent;
+import com.faforever.client.events.AchievementDefinition;
+import com.faforever.client.events.AchievementUpdatesRequest;
+import com.faforever.client.events.EventUpdatesRequest;
+import com.faforever.client.events.PlayerAchievement;
+import com.faforever.client.events.UpdatedAchievement;
+import com.faforever.client.events.UpdatedEvent;
 
 import java.util.List;
 

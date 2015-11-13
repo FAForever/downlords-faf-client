@@ -1,16 +1,16 @@
 package com.faforever.client.api;
 
+import com.faforever.client.events.AchievementDefinition;
+import com.faforever.client.events.AchievementUpdate;
+import com.faforever.client.events.AchievementUpdatesRequest;
+import com.faforever.client.events.AchievementUpdatesResponse;
+import com.faforever.client.events.EventUpdatesRequest;
+import com.faforever.client.events.EventUpdatesResponse;
+import com.faforever.client.events.ListResult;
+import com.faforever.client.events.PlayerAchievement;
+import com.faforever.client.events.UpdatedAchievement;
+import com.faforever.client.events.UpdatedEvent;
 import com.faforever.client.fx.HostService;
-import com.faforever.client.play.AchievementDefinition;
-import com.faforever.client.play.AchievementUpdate;
-import com.faforever.client.play.AchievementUpdatesRequest;
-import com.faforever.client.play.AchievementUpdatesResponse;
-import com.faforever.client.play.EventUpdatesRequest;
-import com.faforever.client.play.EventUpdatesResponse;
-import com.faforever.client.play.ListResult;
-import com.faforever.client.play.PlayerAchievement;
-import com.faforever.client.play.UpdatedAchievement;
-import com.faforever.client.play.UpdatedEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;

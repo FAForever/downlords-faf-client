@@ -7,6 +7,9 @@ import com.faforever.client.chat.MockChatService;
 import com.faforever.client.chat.PircBotXChatService;
 import com.faforever.client.chat.PircBotXFactory;
 import com.faforever.client.chat.PircBotXFactoryImpl;
+import com.faforever.client.events.MockPlayServices;
+import com.faforever.client.events.PlayServices;
+import com.faforever.client.events.PlayServicesImpl;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.ForgedAllianceServiceImpl;
 import com.faforever.client.game.GameService;
@@ -57,9 +60,6 @@ import com.faforever.client.patch.GitWrapper;
 import com.faforever.client.patch.JGitWrapper;
 import com.faforever.client.patch.UpdateServerAccessor;
 import com.faforever.client.patch.UpdateServerAccessorImpl;
-import com.faforever.client.play.MockPlayServices;
-import com.faforever.client.play.PlayServices;
-import com.faforever.client.play.PlayServicesImpl;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.portcheck.PortCheckService;
@@ -85,6 +85,7 @@ import com.faforever.client.task.TaskServiceImpl;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.ClientUpdateServiceImpl;
 import com.faforever.client.update.MockClientUpdateService;
+import com.faforever.client.update.MockGameUpdateService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.uploader.imgur.ImgurImageUploadService;
 import com.faforever.client.upnp.UpnpService;
@@ -258,6 +259,9 @@ public class ServiceConfig {
 
   @Bean
   GameUpdateService patchService() {
+    if (environment.containsProperty("disable.update")) {
+      return new MockGameUpdateService();
+    }
     return new GameUpdateServiceImpl();
   }
 

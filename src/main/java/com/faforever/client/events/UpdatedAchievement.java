@@ -1,4 +1,4 @@
-package com.faforever.client.play;
+package com.faforever.client.events;
 
 import com.google.api.client.util.Key;
 import org.jetbrains.annotations.Nullable;

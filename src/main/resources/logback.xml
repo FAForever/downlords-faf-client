@@ -8,7 +8,7 @@
   <logger name="com.faforever.client.util" level="trace"/>
   <logger name="com.faforever.client.patch" level="info"/>
   <logger name="com.faforever.client.parsecom" level="debug"/>
-  <logger name="com.faforever.client.play" level="debug"/>
+  <logger name="com.faforever.client.events" level="debug"/>
   <logger name="com.faforever.client.legacy" level="debug"/>
   <logger name="com.faforever.client.legacy.io" level="debug"/>
   <logger name="com.faforever.client.legacy.map" level="info"/>

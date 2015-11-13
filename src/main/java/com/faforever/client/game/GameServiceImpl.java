@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.events.PlayServices;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.i18n.I18n;
@@ -18,7 +19,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdateService;
-import com.faforever.client.play.PlayServices;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
@@ -519,7 +519,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
     Duration minDuration = Duration.of(environment.getProperty("playServices.minGameTime", int.class), MILLIS);
     if (gameDuration.compareTo(minDuration) <= 0) {
-      logger.debug("Not updating play services since game time was too short ({}s)", gameDuration.getSeconds());
+      logger.debug("Not updating events since game time was too short ({}s)", gameDuration.getSeconds());
       return;
     }
 

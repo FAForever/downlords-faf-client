@@ -1,8 +1,8 @@
 package com.faforever.client.user;
 
+import com.faforever.client.events.PlayServices;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.parsecom.CloudAccessor;
-import com.faforever.client.play.PlayServices;
 import com.faforever.client.preferences.PreferencesService;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleStringProperty;

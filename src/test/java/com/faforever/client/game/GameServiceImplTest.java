@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.events.PlayServices;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameInfoListener;
@@ -14,7 +15,6 @@ import com.faforever.client.legacy.domain.VictoryCondition;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
-import com.faforever.client.play.PlayServices;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;

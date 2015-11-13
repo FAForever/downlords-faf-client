@@ -1,4 +1,4 @@
-package com.faforever.client.play;
+package com.faforever.client.events;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.game.Faction;

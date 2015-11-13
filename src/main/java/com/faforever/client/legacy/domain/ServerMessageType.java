@@ -14,6 +14,7 @@ public enum ServerMessageType {
   MOD_VAULT_INFO("modvault_info"),
   SOCIAL("social"),
   STATS("stats"),
+  UPDATED_ACHIEVEMENTS("updated_achievements"),
   MOD_RESULT_LIST("modvault_list_info");
 
   private static final Map<String, ServerMessageType> fromString;

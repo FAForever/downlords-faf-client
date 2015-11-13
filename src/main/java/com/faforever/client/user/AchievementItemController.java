@@ -1,8 +1,8 @@
 package com.faforever.client.user;
 
+import com.faforever.client.events.AchievementDefinition;
+import com.faforever.client.events.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.play.AchievementDefinition;
-import com.faforever.client.play.PlayerAchievement;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.AchievementUtil;
 import com.google.common.base.MoreObjects;
@@ -19,9 +19,9 @@ import javafx.scene.layout.GridPane;
 import javax.annotation.Resource;
 import java.util.Locale;
 
-import static com.faforever.client.play.AchievementState.UNLOCKED;
-import static com.faforever.client.play.AchievementType.INCREMENTAL;
-import static com.faforever.client.play.AchievementType.STANDARD;
+import static com.faforever.client.events.AchievementState.UNLOCKED;
+import static com.faforever.client.events.AchievementType.INCREMENTAL;
+import static com.faforever.client.events.AchievementType.STANDARD;
 
 
 public class AchievementItemController {
