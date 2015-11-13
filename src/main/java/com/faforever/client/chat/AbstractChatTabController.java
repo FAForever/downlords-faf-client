@@ -59,6 +59,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.faforever.client.chat.ChatColorMode.CUSTOM;
+import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 
 /**
@@ -485,6 +487,7 @@ public abstract class AbstractChatTabController {
           messageTextField.requestFocus();
           onChatMessage(new ChatMessage(Instant.now(), userService.getUsername(), message, true));
         }).exceptionally(throwable -> {
+
       // TODO display error to user somehow
       logger.warn("Message could not be sent: {}", text, throwable);
       messageTextField.setDisable(false);
@@ -581,7 +584,7 @@ public abstract class AbstractChatTabController {
       }
 
       html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
-      html = html.replace("{inline-style}", getInlineStyle(playerInfoBean, messageColorClass));
+      html = html.replace("{inline-style}", getInlineStyle(login, messageColorClass));
 
       addToMessageContainer(html);
 
@@ -610,15 +613,17 @@ public abstract class AbstractChatTabController {
     return null;
   }
 
-  private String getInlineStyle(PlayerInfoBean playerInfoBean, String messageColorClass) {
-    ChatUser chatUser = chatService.createOrGetChatUser(playerInfoBean.getUsername());
+  private String getInlineStyle(String username, String messageColorClass) {
+    ChatUser chatUser = chatService.createOrGetChatUser(username);
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     String inlineStyle = "style=\"%s%s\"";
     String color = "";
     String display = "";
 
 
-    if (chatPrefs.getUseRandomColors() && (messageColorClass == null || messageColorClass.equals(CSS_CLASS_CHAT_ONLY))) {
+    if ((chatPrefs.getChatColorMode().equals(RANDOM) && (messageColorClass == null || messageColorClass.equals(CSS_CLASS_CHAT_ONLY)))) {
+      color = createInlineStyleFromHexColor(chatUser.getColor());
+    } else if (chatPrefs.getChatColorMode().equals(CUSTOM) && chatUser.getColor() != null) {
       color = createInlineStyleFromHexColor(chatUser.getColor());
     }
 

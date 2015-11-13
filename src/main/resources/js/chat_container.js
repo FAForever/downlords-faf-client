@@ -47,10 +47,7 @@ function setAllMessageColors(userListString) {
 
   for (var user in userList) {
     if (userList.hasOwnProperty(user)) {
-      var messages = document.getElementsByClassName("user-" + user);
-      for (var i = 0; i < messages.length; i++) {
-        messages[i].style.color = userList[user];
-      }
+      setUserMessageColor(user, userList[user]);
     }
   }
 }
@@ -59,6 +56,13 @@ function removeAllMessageColors() {
   var messages = document.getElementsByClassName("chat-message");
   for (var i = 0; i < messages.length; i++) {
     messages[i].style.color = "";
+  }
+}
+
+function setUserMessageColor(user, color) {
+  var messages = document.getElementsByClassName("user-" + user);
+  for (var i = 0; i < messages.length; i++) {
+    messages[i].style.color = color;
   }
 }
 

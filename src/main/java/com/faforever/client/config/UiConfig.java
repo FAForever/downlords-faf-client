@@ -278,6 +278,7 @@ public class UiConfig {
   }
 
   @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   ChatUserContextMenuController chatUserContextMenuController() {
     return loadController("chat_user_context_menu.fxml");
   }

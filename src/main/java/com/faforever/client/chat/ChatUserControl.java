@@ -15,6 +15,7 @@ import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.ThemeUtil;
 import javafx.application.Platform;
 import javafx.beans.property.FloatProperty;
+import javafx.collections.MapChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -24,6 +25,7 @@ import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,8 @@ import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+
+import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 
 public class ChatUserControl extends HBox {
 
@@ -79,7 +83,7 @@ public class ChatUserControl extends HBox {
   @FXML
   ImageView statusImageView;
   private PlayerInfoBean playerInfoBean;
-  private boolean randomColorsAllowed;
+  private boolean randomColorsAllowedInPane;
 
   @FXML
   void onContextMenuRequested(ContextMenuEvent event) {
@@ -108,7 +112,7 @@ public class ChatUserControl extends HBox {
     this.playerInfoBean = playerInfoBean;
 
     configureColor();
-    addRandomColorListener();
+    addChatColorModeListener();
     configureCountryImageView();
     configureAvatarImageView();
     configureClanLabel();
@@ -123,21 +127,34 @@ public class ChatUserControl extends HBox {
 
     if (userService.getUsername().equals(playerInfoBean.getUsername())) {
       getStyleClass().add(CSS_CLASS_SELF);
+      return;
     }
 
-    if (chatPrefs.getUseRandomColors() && randomColorsAllowed) {
-      ChatUser chatUser = chatService.createOrGetChatUser(playerInfoBean.getUsername());
-      usernameLabel.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(chatUser.getColor())));
-      clanLabel.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(chatUser.getColor())));
-    } else {
-      usernameLabel.setStyle("");
-      clanLabel.setStyle("");
+    Color color = null;
+    ChatUser chatUser = chatService.createOrGetChatUser(playerInfoBean.getUsername());
+
+    if (chatPrefs.getChatColorMode().equals(CUSTOM)) {
+      if (chatPrefs.getUserToColor().containsKey(playerInfoBean.getUsername())) {
+        color = chatPrefs.getUserToColor().get(playerInfoBean.getUsername());
+      }
+
+      chatPrefs.getUserToColor().addListener((MapChangeListener<? super String, ? super Color>) change -> {
+        if (playerInfoBean.getUsername().equals(change.getKey())) {
+          Color newColor = chatPrefs.getUserToColor().get(playerInfoBean.getUsername());
+          assignColor(newColor);
+        }
+      });
+    } else if (chatPrefs.getChatColorMode().equals(ChatColorMode.RANDOM) && randomColorsAllowedInPane) {
+      color = ColorGeneratorUtil.generateRandomHexColor();
     }
+
+    chatUser.setColor(color);
+    assignColor(color);
   }
 
-  private void addRandomColorListener() {
+  private void addChatColorModeListener() {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    chatPrefs.useRandomColorsProperty().addListener((observable, oldValue, newValue) -> {
+    chatPrefs.chatColorModeProperty().addListener((observable, oldValue, newValue) -> {
       configureColor();
     });
   }
@@ -191,6 +208,16 @@ public class ChatUserControl extends HBox {
 
       Tooltip.install(clanLabel, userRatingTooltip);
       Tooltip.install(usernameLabel, userRatingTooltip);
+    }
+  }
+
+  private void assignColor(Color color) {
+    if (color != null) {
+      usernameLabel.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)));
+      clanLabel.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)));
+    } else {
+      usernameLabel.setStyle("");
+      clanLabel.setStyle("");
     }
   }
 
@@ -282,8 +309,8 @@ public class ChatUserControl extends HBox {
     }
   }
 
-  public void setRandomColorsAllowed(boolean randomColorsAllowed) {
-    this.randomColorsAllowed = randomColorsAllowed;
+  public void setRandomColorsAllowedInPane(boolean randomColorsAllowedInPane) {
+    this.randomColorsAllowedInPane = randomColorsAllowedInPane;
     configureColor();
   }
 }

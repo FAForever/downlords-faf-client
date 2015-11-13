@@ -168,9 +168,9 @@ public class MockChatService implements ChatService {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        ChatUser chatUser = new ChatUser(userService.getUsername());
-        ChatUser mockUser = new ChatUser("MockUser");
-        ChatUser moderatorUser = new ChatUser("MockModerator", Collections.singleton(channelName));
+        ChatUser chatUser = new ChatUser(userService.getUsername(), null);
+        ChatUser mockUser = new ChatUser("MockUser", null);
+        ChatUser moderatorUser = new ChatUser("MockModerator", Collections.singleton(channelName), null);
 
         for (OnChatUserJoinedChannelListener onChannelJoinedListener : onChannelJoinedListeners) {
           onChannelJoinedListener.onUserJoinedChannel(channelName, chatUser);

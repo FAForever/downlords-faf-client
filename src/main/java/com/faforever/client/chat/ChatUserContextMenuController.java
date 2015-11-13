@@ -9,10 +9,13 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import javafx.fxml.FXML;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.stage.Modality;
@@ -26,11 +29,18 @@ import org.springframework.context.ApplicationContext;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
+import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 
 public class ChatUserContextMenuController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  @FXML
+  MenuItem removeCustomColorItem;
+
+  @FXML
+  CustomMenuItem colorPickerMenuItem;
+
   @FXML
   ColorPicker colorPicker;
 
@@ -71,6 +81,12 @@ public class ChatUserContextMenuController {
   ContextMenu contextMenu;
 
   @Autowired
+  ChatService chatService;
+
+  @Autowired
+  PreferencesService preferencesService;
+
+  @Autowired
   ApplicationContext applicationContext;
 
   @Autowired
@@ -100,6 +116,27 @@ public class ChatUserContextMenuController {
 
   public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
     this.playerInfoBean = playerInfoBean;
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+
+    if (chatPrefs.getUserToColor().containsKey(playerInfoBean.getUsername())) {
+      colorPicker.setValue(chatPrefs.getUserToColor().get(playerInfoBean.getUsername()));
+    } else {
+      colorPicker.setValue(null);
+    }
+
+    colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == null) {
+        chatPrefs.getUserToColor().remove(playerInfoBean.getUsername());
+      } else {
+        chatPrefs.getUserToColor().put(playerInfoBean.getUsername(), newValue);
+      }
+      ChatUser chatUser = chatService.createOrGetChatUser(playerInfoBean.getUsername());
+      chatUser.setColor(newValue);
+      contextMenu.hide();
+    });
+
+    removeCustomColorItem.visibleProperty().bind(chatPrefs.chatColorModeProperty().isEqualTo(CUSTOM).and(colorPicker.valueProperty().isNotNull()));
+    colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty().isEqualTo(CUSTOM));
 
     addFriendItem.visibleProperty().bind(playerInfoBean.friendProperty().not());
     removeFriendItem.visibleProperty().bind(playerInfoBean.friendProperty());
@@ -109,6 +146,7 @@ public class ChatUserContextMenuController {
     joinGameItem.visibleProperty().bind(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.LOBBY).or(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.HOST)));
     watchGameItem.visibleProperty().bind(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.PLAYING));
     inviteItem.visibleProperty().bind(playerInfoBean.gameStatusProperty().isNotEqualTo(GameStatus.PLAYING));
+
   }
 
   @FXML
@@ -195,6 +233,11 @@ public class ChatUserContextMenuController {
           // FIXME implement
           logger.warn("Game could not be joined", throwable);
           return null;
-    });
+        });
+  }
+
+  @FXML
+  void onRemoveCustomColor() {
+    colorPicker.setValue(null);
   }
 }

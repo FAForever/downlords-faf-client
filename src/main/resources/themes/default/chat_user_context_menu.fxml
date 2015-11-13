@@ -1,15 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import javafx.scene.control.*?>
+<?import javafx.scene.control.ColorPicker?>
 <?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.CustomMenuItem?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
-
-<ContextMenu fx:id="contextMenu" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.ChatUserContextMenuController">
+<ContextMenu xmlns:fx="http://javafx.com/fxml/1" fx:id="contextMenu" xmlns="http://javafx.com/javafx/8.0.40"
+             fx:controller="com.faforever.client.chat.ChatUserContextMenuController">
   <items>
     <MenuItem mnemonicParsing="false" onAction="#onUserInfo" text="%chat.userContext.userInfo" />
     <MenuItem mnemonicParsing="false" onAction="#onSendPrivateMessage" text="%chat.userContext.privateMessage" />
+    <CustomMenuItem fx:id="colorPickerMenuItem" hideOnClick="false" mnemonicParsing="false">
+      <content>
+        <ColorPicker fx:id="colorPicker"/>
+      </content>
+    </CustomMenuItem>
+    <MenuItem fx:id="removeCustomColorItem" mnemonicParsing="false" onAction="#onRemoveCustomColor"
+              text="%chat.userContext.removeColor"/>
     <SeparatorMenuItem mnemonicParsing="false" />
     <MenuItem fx:id="addFriendItem" mnemonicParsing="false" onAction="#onAddFriend" text="%chat.userContext.addFriend" />
     <MenuItem fx:id="removeFriendItem" mnemonicParsing="false" onAction="#onRemoveFriend" text="%chat.userContext.removeFriend" />

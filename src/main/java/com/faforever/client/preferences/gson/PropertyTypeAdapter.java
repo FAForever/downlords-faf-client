@@ -136,7 +136,8 @@ public class PropertyTypeAdapter implements JsonSerializer<Property>, JsonDeseri
         // Why is this the only call that needs paramaterization?
         return new SimpleSetProperty<>(FXCollections.observableSet(context.<Set<Object>>deserialize(json, type)));
       } else if (rawType == MapProperty.class) {
-        return new SimpleMapProperty<>(FXCollections.observableMap(context.deserialize(json, Map.class)));
+        CustomType type = new CustomType(Map.class, parameterizedType.getActualTypeArguments());
+        return new SimpleMapProperty<>(FXCollections.observableMap(context.deserialize(json, type)));
       }
     }
 

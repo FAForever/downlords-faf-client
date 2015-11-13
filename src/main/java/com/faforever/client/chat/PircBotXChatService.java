@@ -6,6 +6,8 @@ import com.faforever.client.legacy.OnJoinChannelsRequestListener;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
@@ -15,6 +17,7 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.scene.paint.Color;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
@@ -51,6 +54,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
+import static com.faforever.client.chat.ChatColorMode.CUSTOM;
+import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 import static java.lang.String.format;
@@ -75,6 +80,9 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
    * Maps channel names to a map containing chat users, indexed by their login name.
    */
   private final ObservableMap<String, ObservableMap<String, ChatUser>> chatUserLists;
+
+  @Autowired
+  PreferencesService preferencesService;
 
   @Autowired
   Environment environment;
@@ -154,6 +162,26 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     addOnModeratorSetListener(this);
 
     defaultChannelName = environment.getProperty("irc.defaultChannel");
+
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+
+    chatPrefs.chatColorModeProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue.equals(CUSTOM)) {
+        for (ChatUser chatUser : chatUsersByName.values()) {
+          if (chatPrefs.getUserToColor().containsKey(chatUser.getUsername())) {
+            chatUser.setColor(chatPrefs.getUserToColor().get(chatUser.getUsername()));
+          }
+        }
+      } else if (newValue.equals(RANDOM)) {
+        for (ChatUser chatUser : chatUsersByName.values()) {
+          chatUser.setColor(ColorGeneratorUtil.generateRandomHexColor());
+        }
+      } else {
+        for (ChatUser chatUser : chatUsersByName.values()) {
+          chatUser.setColor(null);
+        }
+      }
+    });
   }
 
   private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
@@ -360,7 +388,16 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   public ChatUser createOrGetChatUser(String username) {
     synchronized (chatUsersByName) {
       if (!chatUsersByName.containsKey(username)) {
-        chatUsersByName.put(username, new ChatUser(username));
+        ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+        Color color = null;
+
+        if (chatPrefs.getChatColorMode().equals(CUSTOM) && chatPrefs.getUserToColor().containsKey(username)) {
+          color = chatPrefs.getUserToColor().get(username);
+        } else if (chatPrefs.getChatColorMode().equals(RANDOM)) {
+          color = ColorGeneratorUtil.generateRandomHexColor();
+        }
+
+        chatUsersByName.put(username, new ChatUser(username, color));
       }
       return chatUsersByName.get(username);
     }
@@ -424,7 +461,17 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     synchronized (chatUsersByName) {
       String username = user.getNick();
       if (!chatUsersByName.containsKey(username)) {
-        chatUsersByName.put(username, ChatUser.fromIrcUser(user));
+        ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+        Color color = null;
+
+        if (chatPrefs.getChatColorMode().equals(CUSTOM) && chatPrefs.getUserToColor().containsKey(username)) {
+          //FIXME java.lang.ClassCastException: java.lang.String cannot be cast to javafx.scene.paint.Color
+          color = chatPrefs.getUserToColor().get(username);
+        } else if (chatPrefs.getChatColorMode().equals(RANDOM)) {
+          color = ColorGeneratorUtil.generateRandomHexColor();
+        }
+
+        chatUsersByName.put(username, ChatUser.fromIrcUser(user, color));
       }
       return chatUsersByName.get(username);
     }

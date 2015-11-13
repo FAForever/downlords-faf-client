@@ -201,9 +201,10 @@
 }
 
 /***************** ChatUser Context Menu *****************/
-.chat-user-context-colorpicker {
-  -fx-background-color: transparent;
-  -fx-focus-color: transparent;
+.chat-user-context-menuitem-colorPicker {
+}
+
+.chat-user-context-menu-colorPicker {
 }
 
 /***************** Headings *****************/

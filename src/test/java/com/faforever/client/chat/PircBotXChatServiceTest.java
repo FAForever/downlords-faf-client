@@ -145,8 +145,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.i18n = i18n;
     instance.pircBotXFactory = pircBotXFactory;
 
-    chatUser1 = new ChatUser("chatUser1");
-    chatUser2 = new ChatUser("chatUser2");
+    chatUser1 = new ChatUser("chatUser1", null);
+    chatUser2 = new ChatUser("chatUser2", null);
 
     botShutdownLatch = new CountDownLatch(1);
 

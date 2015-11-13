@@ -175,12 +175,12 @@ public class ChannelTabController extends AbstractChatTabController {
   void init() {
     channelTabScrollPaneVBox.setMinWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
     channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
-    addRandomColorListener();
+    addChatColorListener();
   }
 
-  private void addRandomColorListener() {
-    preferencesService.getPreferences().getChat().useRandomColorsProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
+  private void addChatColorListener() {
+    preferencesService.getPreferences().getChat().chatColorModeProperty().addListener((observable, oldValue, newValue) -> {
+      if (!newValue.equals(ChatColorMode.DEFAULT)) {
         setAllMessageColors();
       } else {
         removeAllMessageColors();
@@ -191,14 +191,22 @@ public class ChannelTabController extends AbstractChatTabController {
   private void setAllMessageColors() {
     ObservableMap<String, ChatUser> chatUsersForChannel = chatService.getChatUsersForChannel(channelName);
     Map<String, String> userToColor = new HashMap<>();
-    for (ChatUser chatUser : chatUsersForChannel.values()) {
+    chatUsersForChannel.values().stream().filter(chatUser -> chatUser.getColor() != null).forEach(chatUser -> {
       userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor()));
-    }
+    });
     getJsObject().call("setAllMessageColors", new Gson().toJson(userToColor));
   }
 
   private void removeAllMessageColors() {
     getJsObject().call("removeAllMessageColors");
+  }
+
+  public void setUserMessageColor(ChatUser chatUser) {
+    String color = "";
+    if (chatUser.getColor() != null) {
+      color = JavaFxUtil.toRgbCode(chatUser.getColor());
+    }
+    getJsObject().call("setUserMessageColor", chatUser.getUsername(), color);
   }
 
   private void removeUserMessageClass(PlayerInfoBean playerInfoBean, String cssClass) {
@@ -308,6 +316,10 @@ public class ChannelTabController extends AbstractChatTabController {
       }
     });
 
+    chatUser.colorProperty().addListener((observable, oldValue, newValue) -> {
+      setUserMessageColor(chatUser);
+    });
+
     Collection<Pane> targetPanesForUser = getTargetPanesForUser(playerInfoBean);
     userToChatUserControls.putIfAbsent(username, new HashMap<>(targetPanesForUser.size(), 1));
 
@@ -372,7 +384,7 @@ public class ChannelTabController extends AbstractChatTabController {
     chatUserControl.setPlayerInfoBean(playerInfoBean);
     paneToChatUserControlMap.put(pane, chatUserControl);
 
-    chatUserControl.setRandomColorsAllowed(
+    chatUserControl.setRandomColorsAllowedInPane(
         (pane == othersPane || pane == chatOnlyPane) && !userService.getUsername().equals(username)
     );
 

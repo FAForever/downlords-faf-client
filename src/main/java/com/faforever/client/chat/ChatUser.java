@@ -1,7 +1,9 @@
 package com.faforever.client.chat;
 
 import com.google.common.collect.ImmutableSortedSet;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SetProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleSetProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -19,19 +21,28 @@ public class ChatUser {
 
   private StringProperty username;
   private SetProperty<String> moderatorInChannels;
+  private ObjectProperty<Color> color;
 
-  private Color color;
-
-  public ChatUser(String username) {
-    this(username, new HashSet<>());
-    this.color = ColorGeneratorUtil.generateRandomHexColor();
+  public ChatUser(String username, Color color) {
+    this(username, new HashSet<>(), color);
   }
 
-  public ChatUser(String username, Set<String> moderatorInChannels) {
+  ChatUser(String username, Set<String> moderatorInChannels, Color color) {
     this.username = new SimpleStringProperty(username);
     this.moderatorInChannels = new SimpleSetProperty<>(FXCollections.observableSet(moderatorInChannels));
-    this.color = ColorGeneratorUtil.generateRandomHexColor();
+    this.color = new SimpleObjectProperty<>(color);
+  }
 
+  public Color getColor() {
+    return color.get();
+  }
+
+  public void setColor(Color color) {
+    this.color.set(color);
+  }
+
+  public ObjectProperty<Color> colorProperty() {
+    return color;
   }
 
   public ObservableSet<String> getModeratorInChannels() {
@@ -50,14 +61,6 @@ public class ChatUser {
     return username;
   }
 
-  public Color getColor() {
-    return color;
-  }
-
-  public void setColor(Color color) {
-    this.color = color;
-  }
-
   @Override
   public int hashCode() {
     return username.get().hashCode();
@@ -69,7 +72,7 @@ public class ChatUser {
         && username.get().equals(((ChatUser) obj).username.get());
   }
 
-  public static ChatUser fromIrcUser(User user) {
+  public static ChatUser fromIrcUser(User user, Color color) {
     String username = user.getNick() != null ? user.getNick() : user.getLogin();
 
     Set<String> moderatorInChannels = new HashSet<>();
@@ -89,6 +92,6 @@ public class ChatUser {
         }
       }
     }
-    return new ChatUser(username, moderatorInChannels);
+    return new ChatUser(username, moderatorInChannels, color);
   }
 }
