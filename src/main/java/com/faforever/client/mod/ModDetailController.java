@@ -6,7 +6,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
-import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -15,7 +14,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.web.WebView;
+import javafx.scene.input.MouseEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -40,7 +39,7 @@ public class ModDetailController {
   @FXML
   ProgressBar progressBar;
   @FXML
-  WebView modDescriptionWebView;
+  Label modDescriptionLabel;
   @FXML
   Node modDetailRoot;
 
@@ -60,9 +59,9 @@ public class ModDetailController {
     uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
     installButton.managedProperty().bind(installButton.visibleProperty());
     progressBar.managedProperty().bind(progressBar.visibleProperty());
+    progressBar.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
     progressLabel.managedProperty().bind(progressLabel.visibleProperty());
     progressLabel.visibleProperty().bind(progressBar.visibleProperty());
-    progressBar.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
   }
 
   public void setMod(ModInfoBean mod) {
@@ -77,7 +76,7 @@ public class ModDetailController {
     installButton.setVisible(!modInstalled);
     uninstallButton.setVisible(modInstalled);
 
-    Platform.runLater(() -> modDescriptionWebView.getEngine().loadContent(mod.getDescription()));
+    modDescriptionLabel.textProperty().bind(mod.descriptionProperty());
 
     modService.getInstalledMods().addListener((ListChangeListener<ModInfoBean>) change -> {
       while (change.next()) {
@@ -132,11 +131,20 @@ public class ModDetailController {
     });
   }
 
+  @FXML
+  void onDimmerClicked() {
+    onCloseButtonClicked();
+  }
+
   public void onCloseButtonClicked() {
     getRoot().setVisible(false);
   }
 
   public Node getRoot() {
     return modDetailRoot;
+  }
+
+  public void onContentPaneClicked(MouseEvent event) {
+    event.consume();
   }
 }

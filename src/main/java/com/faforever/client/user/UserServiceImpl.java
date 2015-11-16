@@ -1,9 +1,12 @@
 package com.faforever.client.user;
 
 import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.parsecom.CloudService;
+import com.faforever.client.play.PlayServices;
 import com.faforever.client.preferences.PreferencesService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.util.concurrent.CompletableFuture;
 
 public class UserServiceImpl implements UserService {
@@ -13,6 +16,12 @@ public class UserServiceImpl implements UserService {
 
   @Autowired
   PreferencesService preferencesService;
+
+  @Resource
+  CloudService cloudService;
+
+  @Resource
+  PlayServices playServices;
 
   private String username;
   private String password;
@@ -37,6 +46,8 @@ public class UserServiceImpl implements UserService {
           UserServiceImpl.this.uid = sessionInfo.getId();
           UserServiceImpl.this.sessionId = sessionInfo.getSession();
           UserServiceImpl.this.email = sessionInfo.getEmail();
+
+          cloudService.signUpOrLogIn(username, password, email, uid);
         });
   }
 

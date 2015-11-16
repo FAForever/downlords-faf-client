@@ -1,5 +1,12 @@
 package com.faforever.client.leaderboard;
 
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.Severity;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.Validator;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
@@ -11,6 +18,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static javafx.collections.FXCollections.observableArrayList;
@@ -18,43 +26,37 @@ import static javafx.collections.FXCollections.observableArrayList;
 
 public class LeaderboardController {
 
-  private static final Integer ROWS_PER_PAGE = 1000;
-
   @FXML
   TabPane ladderRoot;
-
   @FXML
   Tab ladderByRatingTab;
-
   @FXML
   Tab ladderByMapTab;
-
   @FXML
   Tab ladderByRankTab;
-
   @FXML
   TableColumn<LeaderboardEntryBean, Number> rankColumn;
-
   @FXML
   TableColumn<LeaderboardEntryBean, String> nameColumn;
-
   @FXML
   TableColumn<LeaderboardEntryBean, Number> winLossColumn;
-
   @FXML
   TableColumn<LeaderboardEntryBean, Number> gamesPlayedColumn;
-
   @FXML
   TableColumn<LeaderboardEntryBean, Number> ratingColumn;
-
   @FXML
   TableView<LeaderboardEntryBean> ratingTable;
-
   @FXML
   TextField searchTextField;
 
   @Autowired
   LeaderboardService leaderboardService;
+  @Autowired
+  NotificationService notificationService;
+  @Autowired
+  I18n i18n;
+  @Autowired
+  ReportingService reportingService;
 
   private List<LeaderboardEntryBean> leaderboardEntryBeans;
 
@@ -107,7 +109,14 @@ public class LeaderboardController {
       filteredList = new FilteredList<>(observableArrayList(leaderboardEntryBeans1));
       ratingTable.setItems(filteredList);
     }).exceptionally(throwable -> {
-      // FIXME implement
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
+          Severity.ERROR, throwable,
+          Arrays.asList(
+              new ReportAction(i18n, reportingService, throwable),
+              new DismissAction(i18n)
+          )
+      ));
       return null;
     });
   }

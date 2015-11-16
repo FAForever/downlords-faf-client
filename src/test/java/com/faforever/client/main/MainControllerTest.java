@@ -114,6 +114,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   ClientUpdateService clientUpdateService;
   @Mock
   GameService gameService;
+  @Mock
+  UserMenuController userMenuController;
 
   private MainController instance;
 
@@ -146,12 +148,14 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.taskService = taskService;
     instance.clientUpdateService = clientUpdateService;
     instance.gameService = gameService;
+    instance.userMenuController = userMenuController;
 
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(leaderboardController.getRoot()).thenReturn(new Pane());
     when(castsController.getRoot()).thenReturn(new Pane());
     when(newsController.getRoot()).thenReturn(new Pane());
     when(communityHubController.getRoot()).thenReturn(new Pane());
+    when(userMenuController.getRoot()).thenReturn(new Pane());
     when(taskService.getActiveTasks()).thenReturn(FXCollections.emptyObservableList());
 
     when(preferencesService.getPreferences()).thenReturn(preferences);

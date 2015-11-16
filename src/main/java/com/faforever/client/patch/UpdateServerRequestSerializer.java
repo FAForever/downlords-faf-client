@@ -1,6 +1,6 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.legacy.io.QStreamWriter;
+import com.faforever.client.legacy.io.QDataWriter;
 import com.faforever.client.patch.domain.UpdateServerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,20 +24,20 @@ public enum UpdateServerRequestSerializer implements Serializer<UpdateServerRequ
   public void serialize(UpdateServerRequest object, OutputStream outputStream) throws IOException {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
-    QStreamWriter qStreamWriter = new QStreamWriter(byteArrayOutputStream);
-    qStreamWriter.append(object.getUpdateServerCommand().name());
+    QDataWriter qDataWriter = new QDataWriter(byteArrayOutputStream);
+    qDataWriter.append(object.getUpdateServerCommand().name());
 
     for (Object arg : object.getArgs()) {
       if (arg instanceof Double) {
-        qStreamWriter.writeInt32(((Double) arg).intValue());
+        qDataWriter.writeInt32(((Double) arg).intValue());
       } else if (arg instanceof Integer) {
-        qStreamWriter.writeInt32((int) arg);
+        qDataWriter.writeInt32((int) arg);
       } else if (arg instanceof String) {
-        qStreamWriter.append((String) arg);
+        qDataWriter.append((String) arg);
       }
     }
 
-    qStreamWriter.flush();
+    qDataWriter.flush();
 
     byte[] byteArray = byteArrayOutputStream.toByteArray();
 

@@ -6,7 +6,7 @@ import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.map.MapPreviewLargeController;
+import com.faforever.client.map.MapDetailController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
@@ -20,7 +20,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -48,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-// TODO rename all Game* things to "Play" to be consistent with the menu
 public class GamesController {
 
   private static final Predicate<GameInfoBean> OPEN_GAMES_PREDICATE = gameInfoBean -> gameInfoBean.getStatus() == GameState.OPEN;
@@ -281,23 +279,22 @@ public class GamesController {
     createGamePopup.show(button.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());
   }
 
-  //TODO do we want to create new pane or repopulate the same pane
   @FXML
-  void onMapLargePreview(Event event) {
+  void onMapLargePreview() {
     if (currentGameInfoBean == null) {
       return;
     }
     mapDetailPopup = getMapDetailPopup();
-    MapPreviewLargeController mapPreviewLargeController = applicationContext.getBean(MapPreviewLargeController.class);
-    MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultFromName(currentGameInfoBean.getTechnicalName());
+    MapDetailController mapDetailController = applicationContext.getBean(MapDetailController.class);
+    MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultByName(currentGameInfoBean.getTechnicalName());
     if (mapInfoBean == null) {
       mapDetailPopup.hide();
-      String title = i18n.get("mapPreview.loadFailure.title");
+      String title = i18n.get("errorTitle");
       String message = i18n.get("mapPreview.loadFailure.message");
-      notificationService.addNotification(new ImmediateNotification(title, message, Severity.ERROR));
+      notificationService.addNotification(new ImmediateNotification(title, message, Severity.WARN));
     } else {
-      mapPreviewLargeController.createPreview(mapInfoBean);
-      sceneFactory.createScene(mapDetailPopup, mapPreviewLargeController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
+      mapDetailController.createPreview(mapInfoBean);
+      sceneFactory.createScene(mapDetailPopup, mapDetailController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
       mapDetailPopup.centerOnScreen();
       mapDetailPopup.show();
     }

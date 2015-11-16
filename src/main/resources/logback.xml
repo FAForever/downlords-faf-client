@@ -6,6 +6,8 @@
   <logger name="com.faforever.client.mod" level="trace"/>
   <logger name="com.faforever.client.util" level="trace"/>
   <logger name="com.faforever.client.patch" level="debug"/>
+  <logger name="com.faforever.client.parsecom" level="debug"/>
+  <logger name="com.faforever.client.play" level="debug"/>
   <logger name="com.faforever.client.legacy" level="debug"/>
   <logger name="com.faforever.client.legacy.io" level="debug"/>
   <logger name="com.faforever.client.legacy.map" level="info"/>
@@ -18,6 +20,7 @@
   <logger name="com.faforever.client.legacy.map" level="info"/>
   <logger name="com.faforever.client.legacy.relay" level="debug"/>
   <logger name="com.faforever.client.chat" level="info"/>
+  <logger name="com.faforever.client.mod" level="debug"/>
   <logger name="com.faforever.client.game" level="debug"/>
   <logger name="com.faforever.client.task" level="info"/>
   <logger name="com.faforever.client.preferences" level="info"/>

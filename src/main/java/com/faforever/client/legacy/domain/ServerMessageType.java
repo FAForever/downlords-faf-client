@@ -13,7 +13,8 @@ public enum ServerMessageType {
   MATCHMAKER_INFO("matchmaker_info"),
   MOD_VAULT_INFO("modvault_info"),
   SOCIAL("social"),
-  STATS("stats");
+  STATS("stats"),
+  MOD_RESULT_LIST("modvault_list_info");
 
   private static final Map<String, ServerMessageType> fromString;
 

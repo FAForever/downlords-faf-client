@@ -1,4 +1,4 @@
-package com.faforever.client.legacy.relay;
+package com.faforever.client.relay;
 
 public interface OnConnectionAcceptedListener {
 

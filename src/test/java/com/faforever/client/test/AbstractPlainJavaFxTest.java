@@ -61,7 +61,6 @@ public class AbstractPlainJavaFxTest extends ApplicationTest {
   }
 
   private static void uncaughtException(Thread t, Throwable e) {
-    logger.warn("Uncaught exception", e);
     Assert.fail(e.getMessage());
   }
 

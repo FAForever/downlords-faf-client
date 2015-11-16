@@ -22,8 +22,12 @@
             <String fx:value="minimize-button"/>
           </styleClass>
         </Button>
-        <Button fx:id="maximizeButton" focusTraversable="false" onAction="#onMaximizeButtonClicked"
-                styleClass="maximize-button"/>
+        <Button fx:id="maximizeButton" focusTraversable="false" onAction="#onMaximizeButtonClicked">
+          <styleClass>
+            <String fx:value="window-button"/>
+            <String fx:value="maximize-button"/>
+          </styleClass>
+        </Button>
         <Button fx:id="restoreButton" focusTraversable="false" onAction="#onRestoreButtonClicked">
           <styleClass>
             <String fx:value="window-button"/>

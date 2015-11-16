@@ -2,9 +2,9 @@ package com.faforever.client.fa;
 
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.game.Faction;
-import com.faforever.client.legacy.relay.LocalRelayServer;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.relay.LocalRelayServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -68,7 +68,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   }
 
   @Override
-  public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
+  public Process startReplay(Path path, @Nullable Integer replayId, @NotNull String gameType) throws IOException {
     Path executable = getExecutable();
 
     List<String> launchCommand = LaunchCommandBuilder.create()
@@ -76,6 +76,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .replayFile(path)
         .replayId(replayId)
         .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
+        .gameType(gameType)
         .build();
 
     return launch(executable, launchCommand);
@@ -89,8 +90,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .executable(executable)
         .replayUrl(replayUrl)
         .replayId(replayId)
-            // FIXME fix the path
-        .logFile(preferencesService.getFafDataDirectory().resolve("logs/replay.log"))
+        .logFile(preferencesService.getFafLogDirectory().resolve("replay.log"))
         .build();
 
     return launch(executable, launchCommand);

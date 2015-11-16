@@ -325,7 +325,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
       protected List<LeaderboardEntryBean> call() throws Exception {
         updateTitle(i18n.get("readLadderTask.title"));
         // TODO move this to leaderboard service
-        return leaderboardParser.parseLadder();
+        return leaderboardParser.parseLeaderboard();
       }
     });
   }
@@ -549,7 +549,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     collectedModInfos.add(modInfo);
     if (collectedModInfos.size() == 100) {
       modListFuture.complete(new ArrayList<>(collectedModInfos));
+      collectedModInfos.clear();
     }
-    collectedModInfos.clear();
   }
 }

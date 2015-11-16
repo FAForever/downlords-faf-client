@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressBar?>
@@ -8,9 +9,9 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modTileRoot" onMouseClicked="#onShowModDetail" prefWidth="200.0"
-          styleClass="tile" xmlns="http://javafx.com/javafx/8.0.40"
-          fx:controller="com.faforever.client.mod.ModTileController">
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modTileRoot" prefWidth="200.0" styleClass="tile,pointable"
+          onMouseClicked="#onShowModDetail"
+          xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.mod.ModTileController">
   <columnConstraints>
     <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
     <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
@@ -38,7 +39,7 @@
         <Label styleClass="fontawesome" text=""/>
       </graphic>
     </Label>
-    <VBox GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
+    <VBox fx:id="progressLayout" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
       <GridPane.margin>
         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
       </GridPane.margin>

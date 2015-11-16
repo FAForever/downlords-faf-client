@@ -1,11 +1,17 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.Severity;
+import com.faforever.client.reporting.ReportingService;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import org.springframework.context.ApplicationContext;
 
@@ -20,13 +26,20 @@ import java.util.stream.Collectors;
 public class ModVaultController {
 
   private static final int TOP_ELEMENT_COUNT = 7;
-
   @FXML
-  FlowPane recommendedUiModsPane;
+  Pane searchResultGroup;
   @FXML
-  FlowPane newestModsPane;
+  Pane searchResultPane;
   @FXML
-  FlowPane popularModsPane;
+  Pane showroomGroup;
+  @FXML
+  TextField searchTextField;
+  @FXML
+  Pane recommendedUiModsPane;
+  @FXML
+  Pane newestModsPane;
+  @FXML
+  Pane popularModsPane;
   @FXML
   Pane modVaultRoot;
 
@@ -36,9 +49,21 @@ public class ModVaultController {
   ApplicationContext applicationContext;
   @Resource
   ModDetailController modDetailController;
+  @Resource
+  NotificationService notificationService;
+  @Resource
+  I18n i18n;
+  @Resource
+  ReportingService reportingService;
 
   public Node getRoot() {
     return modVaultRoot;
+  }
+
+  @FXML
+  void initialize() {
+    showroomGroup.managedProperty().bind(showroomGroup.visibleProperty());
+    searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
   }
 
   @PostConstruct
@@ -52,16 +77,20 @@ public class ModVaultController {
     modDetailRoot.setVisible(false);
   }
 
-  private void displayMods(List<ModInfoBean> modInfoBeans) {
-    populateMods(modInfoBeans, ModInfoBean.DOWNLOADS_COMPARATOR, popularModsPane);
-    populateMods(modInfoBeans, ModInfoBean.PUBLISH_DATE_COMPARATOR, newestModsPane);
+  private void displayShowroomMods(List<ModInfoBean> modInfoBeans) {
+    showroomGroup.setVisible(true);
+    searchResultGroup.setVisible(false);
 
-    List<ModInfoBean> uiMods = modInfoBeans.stream().filter(ModInfoBean::getUiOnly).collect(Collectors.toList());
+    List<ModInfoBean> mods = new ArrayList<>(modInfoBeans);
+    populateMods(mods, ModInfoBean.DOWNLOADS_COMPARATOR, popularModsPane);
+    populateMods(mods, ModInfoBean.PUBLISH_DATE_COMPARATOR, newestModsPane);
+
+    List<ModInfoBean> uiMods = mods.stream().filter(ModInfoBean::getUiOnly).collect(Collectors.toList());
     populateMods(uiMods, ModInfoBean.LIKES_COMPARATOR, recommendedUiModsPane);
   }
 
-  private void populateMods(List<ModInfoBean> modInfoBeans, Comparator<? super ModInfoBean> comparator, FlowPane popularModsPane) {
-    ObservableList<Node> children = popularModsPane.getChildren();
+  private void populateMods(List<ModInfoBean> modInfoBeans, Comparator<? super ModInfoBean> comparator, Pane pane) {
+    ObservableList<Node> children = pane.getChildren();
     List<ModInfoBean> mods = getTopElements(modInfoBeans, comparator);
     Platform.runLater(() -> {
       children.clear();
@@ -87,12 +116,47 @@ public class ModVaultController {
   }
 
   public void setUpIfNecessary() {
-    modService.requestMods().thenAccept(this::displayMods);
+    modService.requestMods().thenAccept(this::displayShowroomMods);
   }
 
   @FXML
   void onShowModDetail(ModInfoBean mod) {
     modDetailController.setMod(mod);
     modDetailController.getRoot().setVisible(true);
+  }
+
+  @FXML
+  void onSearchModButtonClicked() {
+    if (searchTextField.getText().isEmpty()) {
+      onResetButtonClicked();
+      return;
+    }
+
+    modService.searchMod(searchTextField.getText())
+        .thenAccept(this::displaySearchResult)
+        .exceptionally(throwable -> {
+          notificationService.addNotification(
+              new ImmediateNotification(
+                  i18n.get("errorTitle"),
+                  i18n.get("modVault.searchFailed"),
+                  Severity.ERROR,
+                  Collections.singletonList(new ReportAction(i18n, reportingService, throwable)))
+          );
+          return null;
+        });
+  }
+
+  @FXML
+  void onResetButtonClicked() {
+    searchTextField.clear();
+    showroomGroup.setVisible(true);
+    searchResultGroup.setVisible(false);
+  }
+
+  private void displaySearchResult(List<ModInfoBean> modInfoBeans) {
+    showroomGroup.setVisible(false);
+    searchResultGroup.setVisible(true);
+
+    populateMods(modInfoBeans, ModInfoBean.LIKES_COMPARATOR, searchResultPane);
   }
 }

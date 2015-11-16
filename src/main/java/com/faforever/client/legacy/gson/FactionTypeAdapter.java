@@ -9,6 +9,12 @@ import java.io.IOException;
 
 public class FactionTypeAdapter extends TypeAdapter<Faction> {
 
+  public static final FactionTypeAdapter INSTANCE = new FactionTypeAdapter();
+
+  private FactionTypeAdapter() {
+
+  }
+
   @Override
   public void write(JsonWriter out, Faction value) throws IOException {
     out.value(value.getString());

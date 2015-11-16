@@ -9,6 +9,8 @@ import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.ForgedAllianceServiceImpl;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameServiceImpl;
+import com.faforever.client.gravatar.GravatarService;
+import com.faforever.client.gravatar.GravatarServiceImpl;
 import com.faforever.client.leaderboard.LeaderboardParser;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.LeaderboardServiceImpl;
@@ -17,7 +19,10 @@ import com.faforever.client.leaderboard.MockLeaderboardService;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.LobbyServerAccessorImpl;
 import com.faforever.client.legacy.MockLobbyServerAccessor;
+import com.faforever.client.legacy.MockModsServerAccessor;
 import com.faforever.client.legacy.MockStatisticsServerAccessor;
+import com.faforever.client.legacy.ModsServerAccessor;
+import com.faforever.client.legacy.ModsServerAccessorImpl;
 import com.faforever.client.legacy.StatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessorImpl;
 import com.faforever.client.legacy.UidService;
@@ -28,7 +33,6 @@ import com.faforever.client.legacy.map.LegacyMapVaultParser;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.legacy.proxy.ProxyImpl;
-import com.faforever.client.legacy.relay.LocalRelayServer;
 import com.faforever.client.legacy.relay.LocalRelayServerImpl;
 import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.lobby.LobbyServiceImpl;
@@ -40,17 +44,23 @@ import com.faforever.client.news.LegacyNewsService;
 import com.faforever.client.news.NewsService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
+import com.faforever.client.parsecom.CloudService;
+import com.faforever.client.parsecom.MockCloudService;
+import com.faforever.client.parsecom.ParseCloudService;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.patch.GameUpdateServiceImpl;
 import com.faforever.client.patch.GitWrapper;
 import com.faforever.client.patch.JGitWrapper;
 import com.faforever.client.patch.UpdateServerAccessor;
 import com.faforever.client.patch.UpdateServerAccessorImpl;
+import com.faforever.client.play.GooglePlayServices;
+import com.faforever.client.play.PlayServices;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.portcheck.PortCheckService;
 import com.faforever.client.portcheck.PortCheckServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.replay.ReplayFileReader;
 import com.faforever.client.replay.ReplayFileReaderImpl;
 import com.faforever.client.replay.ReplayFileWriter;
@@ -117,6 +127,14 @@ public class ServiceConfig {
       return new MockStatisticsServerAccessor();
     }
     return new StatisticsServerAccessorImpl();
+  }
+
+  @Bean
+  ModsServerAccessor modsServerAccessor() {
+    if (environment.containsProperty("faf.testing")) {
+      return new MockModsServerAccessor();
+    }
+    return new ModsServerAccessorImpl();
   }
 
   @Bean
@@ -302,5 +320,24 @@ public class ServiceConfig {
       default:
         return new UnixUidService();
     }
+  }
+
+  @Bean
+  CloudService cloudService() {
+    if (environment.containsProperty("faf.testing")) {
+      return new MockCloudService();
+    } else {
+      return new ParseCloudService();
+    }
+  }
+
+  @Bean
+  PlayServices playServices() {
+    return new GooglePlayServices();
+  }
+
+  @Bean
+  GravatarService gravatarService() {
+    return new GravatarServiceImpl();
   }
 }

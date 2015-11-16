@@ -16,7 +16,7 @@ import org.springframework.context.ApplicationContext;
 
 import java.lang.invoke.MethodHandles;
 
-public class MapPreviewLargeController {
+public class MapDetailController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

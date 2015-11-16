@@ -36,4 +36,6 @@ public interface ModService {
   CompletableFuture<Void> uninstallMod(ModInfoBean mod);
 
   Path getPathForMod(ModInfoBean mod);
+
+  CompletableFuture<List<ModInfoBean>> searchMod(String name);
 }

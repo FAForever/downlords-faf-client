@@ -28,14 +28,17 @@ public class ImmediateNotificationController {
   Region notificationRoot;
 
   public void setNotification(ImmediateNotification notification) {
+    StringWriter writer = new StringWriter();
+    Throwable throwable = notification.getThrowable();
+    if (throwable != null) {
+      throwable.printStackTrace(new PrintWriter(writer));
+      exceptionTextArea.setText(writer.toString());
+    } else {
+      exceptionTextArea.setVisible(false);
+    }
+
     titleLabel.setText(notification.getTitle());
     messageLabel.setText(notification.getText());
-
-    if (notification.getThrowable() != null) {
-      StringWriter writer = new StringWriter();
-      notification.getThrowable().printStackTrace(new PrintWriter(writer));
-      exceptionTextArea.setText(writer.toString());
-    }
 
     if (notification.getActions() != null) {
       for (Action action : notification.getActions()) {

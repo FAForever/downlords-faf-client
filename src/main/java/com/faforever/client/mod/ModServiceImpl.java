@@ -1,8 +1,7 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.notification.NotificationService;
+import com.faforever.client.legacy.ModsServerAccessor;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ConcurrentUtil;
@@ -54,21 +53,14 @@ public class ModServiceImpl implements ModService {
 
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
-
+  @Autowired
+  ModsServerAccessor modsServerAccessor;
   @Autowired
   PreferencesService preferencesService;
-
   @Autowired
   TaskService taskService;
-
   @Autowired
   ApplicationContext applicationContext;
-
-  @Autowired
-  NotificationService notificationService;
-
-  @Autowired
-  I18n i18n;
 
   private Path modsDirectory;
   private Map<Path, ModInfoBean> pathToMod;
@@ -86,17 +78,6 @@ public class ModServiceImpl implements ModService {
     modsDirectory = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
     startDirectoryWatcher(modsDirectory);
     loadInstalledMods();
-  }
-
-  @Override
-  public void loadInstalledMods() {
-    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(modsDirectory)) {
-      for (Path path : directoryStream) {
-        addMod(path);
-      }
-    } catch (IOException e) {
-      logger.warn("Mods could not be read from: " + modsDirectory, e);
-    }
   }
 
   private void startDirectoryWatcher(Path modsDirectory) throws IOException, InterruptedException {
@@ -120,12 +101,19 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public ObservableList<ModInfoBean> getInstalledMods() {
-    return readOnlyInstalledMods;
+  public void loadInstalledMods() {
+    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(modsDirectory)) {
+      for (Path path : directoryStream) {
+        addMod(path);
+      }
+    } catch (IOException e) {
+      logger.warn("Mods could not be read from: " + modsDirectory, e);
+    }
   }
 
-  private void removeMod(Path path) throws IOException {
-    installedMods.remove(pathToMod.remove(path));
+  @Override
+  public ObservableList<ModInfoBean> getInstalledMods() {
+    return readOnlyInstalledMods;
   }
 
   @Override
@@ -192,8 +180,7 @@ public class ModServiceImpl implements ModService {
   @Override
   public CompletableFuture<List<ModInfoBean>> requestMods() {
     return lobbyServerAccessor.requestMods().thenApply(modInfos -> {
-      modInfos.stream().map(ModInfoBean::fromModInfo);
-      return null;
+      return modInfos.stream().map(ModInfoBean::fromModInfo).collect(Collectors.toList());
     });
   }
 
@@ -219,6 +206,16 @@ public class ModServiceImpl implements ModService {
       }
     }
     return null;
+  }
+
+  @Override
+  public CompletableFuture<List<ModInfoBean>> searchMod(String name) {
+    modsServerAccessor.connect();
+    return modsServerAccessor.searchMod(name)
+        .thenApply(modInfos -> modInfos.stream()
+                .map(ModInfoBean::fromModInfo)
+                .collect(Collectors.toList())
+        );
   }
 
   private Map<String, Boolean> readModStates() throws IOException {
@@ -277,6 +274,10 @@ public class ModServiceImpl implements ModService {
     Files.write(preferencesFile, preferencesContent.getBytes(US_ASCII));
   }
 
+  private void removeMod(Path path) throws IOException {
+    installedMods.remove(pathToMod.remove(path));
+  }
+
   private void addMod(Path path) throws IOException {
     ModInfoBean modInfoBean = extractModInfo(path);
     if (modInfoBean == null) {
@@ -296,6 +297,7 @@ public class ModServiceImpl implements ModService {
       return null;
     }
 
+    logger.debug("Reading mod {}", path);
     try (InputStream inputStream = Files.newInputStream(modInfoLua)) {
       Properties properties = new Properties();
       properties.load(inputStream);
