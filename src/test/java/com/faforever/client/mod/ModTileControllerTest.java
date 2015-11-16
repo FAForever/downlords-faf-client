@@ -1,7 +1,6 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -11,7 +10,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -81,106 +79,6 @@ public class ModTileControllerTest extends AbstractPlainJavaFxTest {
   public void testGetRoot() throws Exception {
     assertThat(instance.getRoot(), is(instance.modTileRoot));
     assertThat(instance.getRoot().getParent(), is(nullValue()));
-  }
-
-  @Test
-  public void testShowUninstallButtonWhenModIsInstalled() throws Exception {
-    when(modService.isModInstalled("1")).thenReturn(true);
-    instance.setMod(ModInfoBeanBuilder.create().defaultValues().uid("1").get());
-
-    assertThat(instance.installButton.isVisible(), is(false));
-    assertThat(instance.uninstallButton.isVisible(), is(true));
-  }
-
-  @Test
-  public void testShowInstallButtonWhenModIsNotInstalled() throws Exception {
-    when(modService.isModInstalled("1")).thenReturn(false);
-    instance.setMod(ModInfoBeanBuilder.create().defaultValues().uid("1").get());
-
-    assertThat(instance.installButton.isVisible(), is(true));
-    assertThat(instance.uninstallButton.isVisible(), is(false));
-  }
-
-  @Test
-  public void testChangeInstalledStateWhenModIsUninstalled() throws Exception {
-    when(modService.isModInstalled("1")).thenReturn(true);
-    ModInfoBean mod = ModInfoBeanBuilder.create().defaultValues().uid("1").get();
-    instance.setMod(mod);
-    installedMods.add(mod);
-
-    assertThat(instance.installButton.isVisible(), is(false));
-    assertThat(instance.uninstallButton.isVisible(), is(true));
-
-    installedMods.remove(mod);
-
-    assertThat(instance.installButton.isVisible(), is(true));
-    assertThat(instance.uninstallButton.isVisible(), is(false));
-  }
-
-  @Test
-  public void testChangeInstalledStateWhenModIsInstalled() throws Exception {
-    when(modService.isModInstalled("1")).thenReturn(false);
-    ModInfoBean mod = ModInfoBeanBuilder.create().defaultValues().uid("1").get();
-    instance.setMod(mod);
-
-    assertThat(instance.installButton.isVisible(), is(true));
-    assertThat(instance.uninstallButton.isVisible(), is(false));
-
-    installedMods.add(mod);
-
-    assertThat(instance.installButton.isVisible(), is(false));
-    assertThat(instance.uninstallButton.isVisible(), is(true));
-  }
-
-  @Test
-  public void testOnInstallButtonClicked() throws Exception {
-    when(modService.downloadAndInstallMod(any(ModInfoBean.class), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
-
-    instance.onInstallButtonClicked();
-
-    verify(modService).downloadAndInstallMod(any(ModInfoBean.class), any(), any());
-  }
-
-  @Test
-  public void testOnInstallButtonClickedInstallindModThrowsException() throws Exception {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    future.completeExceptionally(new Exception("test exception"));
-    when(modService.downloadAndInstallMod(any(ModInfoBean.class), any(), any())).thenReturn(future);
-
-    instance.setMod(ModInfoBeanBuilder.create().defaultValues().get());
-
-    instance.onInstallButtonClicked();
-
-    verify(modService).downloadAndInstallMod(any(ModInfoBean.class), any(), any());
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
-  }
-
-  @Test
-  public void testOnUninstallButtonClicked() throws Exception {
-    ModInfoBean mod = ModInfoBeanBuilder.create().defaultValues().get();
-    instance.setMod(mod);
-    when(modService.uninstallMod(mod)).thenReturn(CompletableFuture.completedFuture(null));
-
-    instance.onUninstallButtonClicked();
-
-    verify(modService).uninstallMod(mod);
-  }
-
-  @Test
-  public void testOnUninstallButtonClickedThrowsException() throws Exception {
-    ModInfoBean mod = ModInfoBeanBuilder.create().defaultValues().get();
-    instance.setMod(mod);
-
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    future.completeExceptionally(new Exception("test exception"));
-    when(modService.uninstallMod(mod)).thenReturn(future);
-
-    instance.setMod(ModInfoBeanBuilder.create().defaultValues().get());
-
-    instance.onUninstallButtonClicked();
-
-    verify(modService).uninstallMod(mod);
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 
   @Test

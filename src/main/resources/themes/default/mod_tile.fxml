@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.image.ImageView?>
@@ -39,12 +38,6 @@
         <Label styleClass="fontawesome" text=""/>
       </graphic>
     </Label>
-    <Button fx:id="uninstallButton" focusTraversable="false" mnemonicParsing="false"
-            onAction="#onUninstallButtonClicked" text="%modVault.uninstall" visible="false"
-            GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="4"/>
-    <Button fx:id="installButton" focusTraversable="false" mnemonicParsing="false" onAction="#onInstallButtonClicked"
-            text="%modVault.install" GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT"
-            GridPane.rowIndex="4"/>
     <VBox GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
       <GridPane.margin>
         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
