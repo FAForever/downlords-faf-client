@@ -139,7 +139,7 @@ public class MockChatService implements ChatService {
   }
 
 
-  //FIXME implement
+  //TODO implement
   @Override
   public ChatUser createOrGetChatUser(String username) {
     return null;
@@ -223,10 +223,16 @@ public class MockChatService implements ChatService {
 
   }
 
-  //FIXME implement
+  //TODO implement
   @Override
   public ChatUser createOrGetChatUser(User user) {
     return null;
+  }
+
+  //TODO implement
+  @Override
+  public void addUserToColorListener() {
+
   }
 
 }

@@ -160,6 +160,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     addOnChatUserQuitListener(this);
     addOnChatDisconnectedListener(this);
     addOnModeratorSetListener(this);
+    addUserToColorListener();
 
     defaultChannelName = environment.getProperty("irc.defaultChannel");
 
@@ -465,7 +466,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
         Color color = null;
 
         if (chatPrefs.getChatColorMode().equals(CUSTOM) && chatPrefs.getUserToColor().containsKey(username)) {
-          //FIXME java.lang.ClassCastException: java.lang.String cannot be cast to javafx.scene.paint.Color
           color = chatPrefs.getUserToColor().get(username);
         } else if (chatPrefs.getChatColorMode().equals(RANDOM)) {
           color = ColorGeneratorUtil.generateRandomHexColor();
@@ -475,6 +475,14 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       }
       return chatUsersByName.get(username);
     }
+  }
+
+  @Override
+  public void addUserToColorListener() {
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    chatPrefs.userToColorProperty().addListener((MapChangeListener<? super String, ? super Color>) change -> {
+      preferencesService.store();
+    });
   }
 
   @Override

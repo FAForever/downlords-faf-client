@@ -60,4 +60,5 @@ public interface ChatService {
 
   ChatUser createOrGetChatUser(User user);
 
+  void addUserToColorListener();
 }
