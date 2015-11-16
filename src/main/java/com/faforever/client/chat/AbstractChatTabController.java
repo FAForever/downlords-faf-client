@@ -13,6 +13,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.ByteCopier;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.util.TimeService;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
 import javafx.application.Platform;
@@ -594,26 +595,27 @@ public abstract class AbstractChatTabController {
   }
 
   @Nullable
-  protected String getMessageCssClass(@NotNull PlayerInfoBean playerInfo) {
-    if (playerInfo.isFriend()) {
+  protected String getMessageCssClass(@NotNull PlayerInfoBean playerInfoBean) {
+    if (playerInfoBean.isFriend()) {
       return CSS_CLASS_FRIEND;
     }
-    if (playerInfo.isFoe()) {
+    if (playerInfoBean.isFoe()) {
       return CSS_CLASS_FOE;
     }
 
-    if (playerInfo.isChatOnly()) {
+    if (playerInfoBean.isChatOnly()) {
       return CSS_CLASS_CHAT_ONLY;
     }
 
-    if (playerInfo.getUsername().equals(userService.getUsername())) {
+    if (playerInfoBean.getUsername().equals(userService.getUsername())) {
       return CSS_CLASS_SELF;
     }
 
     return null;
   }
 
-  private String getInlineStyle(String username, String messageColorClass) {
+  @VisibleForTesting
+  String getInlineStyle(String username, String messageColorClass) {
     ChatUser chatUser = chatService.createOrGetChatUser(username);
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     String inlineStyle = "style=\"%s%s\"";
@@ -633,7 +635,8 @@ public abstract class AbstractChatTabController {
     return String.format(inlineStyle, color, display);
   }
 
-  private String createInlineStyleFromHexColor(Color messageColor) {
+  @VisibleForTesting
+  String createInlineStyleFromHexColor(Color messageColor) {
     return String.format("color: %s;", JavaFxUtil.toRgbCode(messageColor));
   }
 
