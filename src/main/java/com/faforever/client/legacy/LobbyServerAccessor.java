@@ -5,15 +5,17 @@ import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.LoginInfo;
 import com.faforever.client.legacy.domain.ModInfo;
-import com.faforever.client.legacy.domain.SessionInfo;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Consumer;
 
 /**
  * Entry class for all communication with the FAF lobby server, be it reading or writing. This class should only be
@@ -24,21 +26,19 @@ public interface LobbyServerAccessor {
   /**
    * Connects to the FAF server and logs in using the credentials from {@link PreferencesService}.
    */
-  CompletableFuture<SessionInfo> connectAndLogInInBackground();
+  CompletableFuture<LoginInfo> connectAndLogIn(String username, String password);
 
   void addOnGameTypeInfoListener(OnGameTypeInfoListener listener);
 
   void addOnGameInfoListener(OnGameInfoListener listener);
+
+  void addOnLoggedInListener(Consumer<LoginInfo> listener);
 
   void setOnPlayerInfoMessageListener(OnPlayerInfoListener listener);
 
   CompletionStage<GameLaunchInfo> requestNewGame(NewGameInfo newGameInfo);
 
   CompletionStage<GameLaunchInfo> requestJoinGame(GameInfoBean gameInfoBean, String password);
-
-  void notifyGameStarted();
-
-  void notifyGameTerminated();
 
   void setOnFafConnectingListener(OnLobbyConnectingListener onLobbyConnectingListener);
 
@@ -74,4 +74,7 @@ public interface LobbyServerAccessor {
    * Returns the 100 most liked mods.
    */
   CompletableFuture<List<ModInfo>> requestMods();
+
+  @Nullable
+  Long getSessionId();
 }

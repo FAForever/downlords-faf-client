@@ -1,7 +1,6 @@
 package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.map.MapService;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
@@ -96,7 +95,7 @@ public class GameTileController {
       mapImageView.setImage(newImage);
     });
 
-    lockIconLabel.setVisible(gameInfoBean.getAccess() == GameAccess.PASSWORD);
+    lockIconLabel.setVisible(!gameInfoBean.getPasswordProtected());
 
     // TODO move tooltip Y position down 10 pixels
     GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);

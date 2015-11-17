@@ -11,9 +11,9 @@ import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeInfo;
+import com.faforever.client.legacy.domain.LoginInfo;
 import com.faforever.client.legacy.domain.ModInfo;
-import com.faforever.client.legacy.domain.PlayerInfo;
-import com.faforever.client.legacy.domain.SessionInfo;
+import com.faforever.client.legacy.domain.Player;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -37,6 +37,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Consumer;
 
 import static com.faforever.client.legacy.domain.GameAccess.PASSWORD;
 import static com.faforever.client.legacy.domain.GameAccess.PUBLIC;
@@ -60,19 +61,21 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   private OnPlayerInfoListener onPlayerInfoListener;
   private Collection<OnGameInfoListener> onGameInfoListeners;
   private Collection<OnRankedMatchNotificationListener> onRankedMatchNotificationListeners;
+  private List<Consumer<LoginInfo>> loggedInListeners;
 
   public MockLobbyServerAccessor() {
     onModInfoMessageListeners = new ArrayList<>();
     onRankedMatchNotificationListeners = new ArrayList<>();
     onGameInfoListeners = new ArrayList<>();
+    loggedInListeners = new ArrayList<>();
     timer = new Timer("LobbyServerAccessorTimer", true);
   }
 
   @Override
-  public CompletableFuture<SessionInfo> connectAndLogInInBackground() {
-    return taskService.submitTask(new AbstractPrioritizedTask<SessionInfo>(HIGH) {
+  public CompletableFuture<LoginInfo> connectAndLogIn(String username, String password) {
+    return taskService.submitTask(new AbstractPrioritizedTask<LoginInfo>(HIGH) {
       @Override
-      protected SessionInfo call() throws Exception {
+      protected LoginInfo call() throws Exception {
         updateTitle(i18n.get("login.progress.message"));
 
         for (OnGameTypeInfoListener onModInfoMessageListener : onModInfoMessageListeners) {
@@ -87,16 +90,16 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
         }
 
         if (onPlayerInfoListener != null) {
-          PlayerInfo playerInfo = new PlayerInfo();
-          playerInfo.setLogin(userService.getUsername());
-          playerInfo.setClan("ABC");
-          playerInfo.setCountry("A1");
-          playerInfo.setRatingMean(1500);
-          playerInfo.setRatingDeviation(220);
-          playerInfo.setLadderRatingMean(1500);
-          playerInfo.setLadderRatingDeviation(220);
-          playerInfo.setNumberOfGames(330);
-          onPlayerInfoListener.onPlayerInfo(playerInfo);
+          Player player = new Player();
+          player.setLogin(userService.getUsername());
+          player.setClan("ABC");
+          player.setCountry("A1");
+          player.setRatingMean(1500);
+          player.setRatingDeviation(220);
+          player.setLadderRatingMean(1500);
+          player.setLadderRatingDeviation(220);
+          player.setNumberOfGames(330);
+          onPlayerInfoListener.onPlayerInfo(player);
         }
 
         timer.schedule(new TimerTask() {
@@ -141,11 +144,9 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
             )
         );
 
-        SessionInfo sessionInfo = new SessionInfo();
-        sessionInfo.setId(1234);
-        sessionInfo.setSession("5678");
-        sessionInfo.setEmail("junit@example.com");
-
+        LoginInfo sessionInfo = new LoginInfo();
+        sessionInfo.setId(123);
+        sessionInfo.setLogin("MockUser");
         return sessionInfo;
       }
     });
@@ -155,9 +156,8 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
     GameInfo gameInfo = new GameInfo();
     gameInfo.setUid(uid);
     gameInfo.setTitle(title);
-    gameInfo.setAccess(access);
     gameInfo.setFeaturedMod(featuredMod);
-    gameInfo.setMapname(mapName);
+    gameInfo.setMapFilePath(mapName);
     gameInfo.setNumPlayers(numPlayers);
     gameInfo.setMaxPlayers(maxPlayers);
     gameInfo.setHost(host);
@@ -178,6 +178,11 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   @Override
   public void addOnGameInfoListener(OnGameInfoListener listener) {
     onGameInfoListeners.add(listener);
+  }
+
+  @Override
+  public void addOnLoggedInListener(Consumer<LoginInfo> listener) {
+    loggedInListeners.add(listener);
   }
 
   @Override
@@ -215,16 +220,6 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
         return gameLaunchInfo;
       }
     });
-  }
-
-  @Override
-  public void notifyGameStarted() {
-
-  }
-
-  @Override
-  public void notifyGameTerminated() {
-
   }
 
   @Override
@@ -309,5 +304,10 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   @Override
   public CompletableFuture<List<ModInfo>> requestMods() {
     return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  public Long getSessionId() {
+    return null;
   }
 }

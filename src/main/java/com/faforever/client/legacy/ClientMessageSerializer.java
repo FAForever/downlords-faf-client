@@ -16,40 +16,44 @@ import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.io.QDataWriter;
 import com.faforever.client.legacy.writer.JsonMessageSerializer;
 import com.google.gson.GsonBuilder;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 
 public class ClientMessageSerializer extends JsonMessageSerializer<ClientMessage> {
 
-  private String username;
-  private StringProperty sessionIdProperty;
+  private StringProperty username;
+  private ObjectProperty<Long> sessionId;
 
   /**
    * Creates a message serializer that does not append username and session ID to sent messages.
    */
   public ClientMessageSerializer() {
-
+    this(new SimpleStringProperty(), new SimpleObjectProperty<>());
   }
 
   /**
    * Creates a message serializer that appends username and session ID to sent messages.
    *
-   * @param sessionIdProperty the session ID property, so that this serializer can be initialized before the session ID
-   * has been set, but it will still get it afterwards.
+   * @param username the username property, so that this serializer can be initialized before the session ID
+   * @param sessionId the session ID property, so that this serializer can be initialized before the session ID
    */
-  public ClientMessageSerializer(String username, StringProperty sessionIdProperty) {
+  public ClientMessageSerializer(StringProperty username, ObjectProperty<Long> sessionId) {
     this.username = username;
-    this.sessionIdProperty = sessionIdProperty;
+    this.sessionId = sessionId;
   }
 
   @Override
   protected void appendMore(QDataWriter qDataWriter) throws IOException {
-    if (username != null) {
-      qDataWriter.append(username);
-    }
-    if (sessionIdProperty != null) {
-      qDataWriter.append(sessionIdProperty.get());
+    qDataWriter.append(StringUtils.defaultString(username.get()));
+    if (sessionId.get() == null) {
+      qDataWriter.append("");
+    } else {
+      qDataWriter.append(sessionId.get().toString());
     }
   }
 

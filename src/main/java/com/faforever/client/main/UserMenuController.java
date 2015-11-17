@@ -66,26 +66,11 @@ public class UserMenuController {
       usernameLabel.textProperty().bind(newValue.usernameProperty());
       countryImageView.imageProperty().bind(countryImageBinding(newValue));
     });
-
-    userImageView.imageProperty().bind(new ObjectBinding<Image>() {
-      @Override
-      protected Image computeValue() {
-        return gravatarService.getGravatar(userService.emailProperty().get());
-      }
-
-      {
-        bind(userService.emailProperty());
-      }
-    });
   }
 
   @NotNull
   private ObjectBinding<String> countryLabelBinding(final PlayerInfoBean newValue) {
     return new ObjectBinding<String>() {
-      {
-        bind(newValue.countryProperty());
-      }
-
       @Override
       protected String computeValue() {
         CountryCode countryCode = CountryCode.getByCode(newValue.getCountry());
@@ -94,6 +79,10 @@ public class UserMenuController {
           return countryCode.getName();
         }
         return newValue.getCountry();
+      }
+
+      {
+        bind(newValue.countryProperty());
       }
     };
   }
@@ -119,7 +108,8 @@ public class UserMenuController {
 
   @FXML
   void onUserImageClicked() {
-    hostService.showDocument(gravatarService.getProfileUrl(userService.getEmail()));
+    // TODO no more email :-(
+//    hostService.showDocument(gravatarService.getProfileUrl(userService.getEmail()));
   }
 
   public void onShowProfileButtonClicked() {

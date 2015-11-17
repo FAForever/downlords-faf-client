@@ -4,12 +4,10 @@ import com.faforever.client.events.PlayServices;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.parsecom.CloudAccessor;
 import com.faforever.client.preferences.PreferencesService;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.CompletableFuture;
@@ -29,12 +27,11 @@ public class UserServiceImpl implements UserService {
 
   private String username;
   private String password;
-  private int uid;
-  private String sessionId;
-  private StringProperty email;
+  private Integer uid;
 
-  public UserServiceImpl() {
-    email = new SimpleStringProperty();
+  @PostConstruct
+  void postConstruct() {
+    lobbyServerAccessor.addOnLoggedInListener(loginInfo -> uid = loginInfo.getId());
   }
 
   @Override
@@ -43,17 +40,14 @@ public class UserServiceImpl implements UserService {
         .setUsername(username)
         .setPassword(password)
         .setAutoLogin(autoLogin);
+    preferencesService.storeInBackground();
 
     this.username = username;
     this.password = password;
 
-    preferencesService.storeInBackground();
-
-    return lobbyServerAccessor.connectAndLogInInBackground()
-        .thenAccept(sessionInfo -> {
-          UserServiceImpl.this.uid = sessionInfo.getId();
-          UserServiceImpl.this.sessionId = sessionInfo.getSession();
-          UserServiceImpl.this.email.set(sessionInfo.getEmail());
+    return lobbyServerAccessor.connectAndLogIn(username, password)
+        .thenAccept(loginInfo -> {
+          uid = loginInfo.getId();
 
           playServices.authorize();
 
@@ -76,27 +70,12 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public int getUid() {
+  public Integer getUid() {
     return uid;
-  }
-
-  @Override
-  public String getSessionId() {
-    return sessionId;
   }
 
   @Override
   public void cancelLogin() {
     lobbyServerAccessor.disconnect();
-  }
-
-  @Override
-  public String getEmail() {
-    return email.get();
-  }
-
-  @Override
-  public ReadOnlyStringProperty emailProperty() {
-    return email;
   }
 }

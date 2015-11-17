@@ -312,7 +312,7 @@ public class PreferencesService {
   }
 
   public Path getFafLogDirectory() {
-    return getFafDataDirectory().resolve("log");
+    return getFafDataDirectory().resolve("logs");
   }
 
   public static void configureLogging() {

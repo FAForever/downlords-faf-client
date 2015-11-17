@@ -77,13 +77,13 @@ public class BaseConfig {
     return GsonFactory.getDefaultInstance();
   }
 
-  @Bean
-  PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
-    return new PropertySourcesPlaceholderConfigurer();
-  }
-
   @PreDestroy
   void shutdown() {
     scheduledExecutorService.shutdown();
+  }
+
+  @Bean
+  static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+    return new PropertySourcesPlaceholderConfigurer();
   }
 }

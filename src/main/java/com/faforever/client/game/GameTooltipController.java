@@ -44,7 +44,7 @@ public class GameTooltipController {
     teamsPane.getChildren().clear();
     for (Map.Entry<? extends String, ? extends List<String>> entry : teamsList.entrySet()) {
       TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
-      boolean teamCardSuccess = teamCardController.setTeam(entry.getValue(), Integer.parseInt(entry.getKey()));
+      boolean teamCardSuccess = teamCardController.setTeam(entry.getValue(), entry.getKey());
       if (teamCardSuccess) {
         teamsPane.getChildren().add(teamCardController.getRoot());
       }

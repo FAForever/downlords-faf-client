@@ -38,15 +38,16 @@ public class TeamCardController {
   /**
    * @return whether playerInfoBean is a null parameter
    */
-  public boolean setTeam(List<String> playerList, int teamNumber) {
+  public boolean setTeam(List<String> playerList, String team) {
 
     String localizedTeamTile;
-    if (teamNumber == 0) {
+    if (team == null) {
       localizedTeamTile = i18n.get("game.tooltip.teamTitleNoTeam");
-    } else if (teamNumber == -1) {
+    } else if (team.equals("-1")) {
+      // TODO server-update: check what's the new value for observers is (instead of -1)
       localizedTeamTile = i18n.get("game.tooltip.observers");
     } else {
-      localizedTeamTile = i18n.get("game.tooltip.teamTitle", teamNumber);
+      localizedTeamTile = i18n.get("game.tooltip.teamTitle", team);
     }
     teamPaneRoot.setText(localizedTeamTile);
 

@@ -4,11 +4,11 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
@@ -87,9 +87,6 @@ public class CreateGameController {
   PreferencesService preferencesService;
   @Autowired
   I18n i18n;
-  @Autowired
-  NotificationService notificationService;
-
   @VisibleForTesting
   FilteredList<MapInfoBean> filteredMaps;
 
@@ -138,12 +135,14 @@ public class CreateGameController {
       protected void updateItem(GameTypeBean item, boolean empty) {
         super.updateItem(item, empty);
 
-        if (empty || item == null) {
-          setText(null);
-          setGraphic(null);
-        } else {
-          setText(item.getFullName());
-        }
+        Platform.runLater(() -> {
+          if (empty || item == null) {
+            setText(null);
+            setGraphic(null);
+          } else {
+            setText(item.getFullName());
+          }
+        });
       }
     };
   }

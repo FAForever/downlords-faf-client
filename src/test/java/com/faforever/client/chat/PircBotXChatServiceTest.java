@@ -589,10 +589,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnConnected() throws Exception {
     String password = "123";
-    String email = "foo@example.com";
 
     when(userService.getPassword()).thenReturn(password);
-    when(userService.getEmail()).thenReturn(email);
     when(taskService.submitTask(any())).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.connect();
@@ -608,7 +606,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.onConnected();
 
     String md5Password = DigestUtils.md5Hex(password);
-    verify(outputIrc).message("NICKSERV", String.format("REGISTER %s %s", md5Password, email));
     verify(outputIrc).message("NICKSERV", String.format("IDENTIFY %s", md5Password));
 
     assertTrue("Channel has not been joined within timeout", latch.await(TIMEOUT, TIMEOUT_UNIT));

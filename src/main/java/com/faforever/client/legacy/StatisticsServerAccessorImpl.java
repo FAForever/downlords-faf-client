@@ -17,7 +17,6 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
@@ -43,7 +42,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   private final Gson gson;
   @Autowired
   Environment environment;
-  private CompletableFuture<PlayerStatistics> playerStatisticsCallback;
+  private CompletableFuture<PlayerStatistics> playerStatisticsFuture;
   private ServerWriter serverWriter;
   private Task<Void> connectionTask;
 
@@ -60,10 +59,10 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   @Override
   public CompletableFuture<PlayerStatistics> requestPlayerStatistics(String username, StatisticsType type) {
     // FIXME this is not safe (as well aren't similar implementations in other accessors)
-    playerStatisticsCallback = new CompletableFuture<>();
+    playerStatisticsFuture = new CompletableFuture<>();
 
     writeToServer(new AskPlayerStatsDaysMessage(username, type));
-    return playerStatisticsCallback;
+    return playerStatisticsFuture;
   }
 
   private void writeToServer(ClientMessage clientMessage) {
@@ -156,12 +155,10 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   }
 
   private void onPlayerStats(PlayerStatistics playerStatistics) {
-    Platform.runLater(() -> {
-      if (playerStatisticsCallback != null) {
-        playerStatisticsCallback.complete(playerStatistics);
-        playerStatisticsCallback = null;
-      }
-    });
+    if (playerStatisticsFuture != null) {
+      playerStatisticsFuture.complete(playerStatistics);
+      playerStatisticsFuture = null;
+    }
   }
 
   @PreDestroy

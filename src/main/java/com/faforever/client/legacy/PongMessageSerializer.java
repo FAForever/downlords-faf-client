@@ -1,6 +1,7 @@
 package com.faforever.client.legacy;
 
 import com.faforever.client.legacy.io.QDataWriter;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import org.springframework.core.serializer.Serializer;
 
@@ -9,24 +10,28 @@ import java.io.OutputStream;
 
 public class PongMessageSerializer implements Serializer<PongMessage> {
 
-  private final String username;
-  private final StringProperty sessionIdProperty;
+  private final StringProperty username;
+  private final ObjectProperty<Long> sessionId;
 
   /**
-   * @param sessionIdProperty the session ID property, so that this serializer can be initialized before the session ID
-   * has been set, but it will still get it afterwards.
+   * @param sessionId the session ID property, so that this serializer can be initialized before the session ID has been
+   * set, but it will still get it afterwards.
    */
-  public PongMessageSerializer(String username, StringProperty sessionIdProperty) {
+  public PongMessageSerializer(StringProperty username, ObjectProperty<Long> sessionId) {
     this.username = username;
-    this.sessionIdProperty = sessionIdProperty;
+    this.sessionId = sessionId;
   }
 
   @Override
   public void serialize(PongMessage object, OutputStream outputStream) throws IOException {
     QDataWriter qDataWriter = new QDataWriter(outputStream);
     qDataWriter.append(object.getString());
-    qDataWriter.append(username);
-    qDataWriter.append(sessionIdProperty.get());
+    if (username.get() != null) {
+      qDataWriter.append(username.get());
+    }
+    if (sessionId.get() != null) {
+      qDataWriter.append(String.valueOf(sessionId.get()));
+    }
     qDataWriter.flush();
   }
 }

@@ -1,15 +1,8 @@
 package com.faforever.client.api;
 
 import com.faforever.client.events.AchievementDefinition;
-import com.faforever.client.events.AchievementUpdate;
-import com.faforever.client.events.AchievementUpdatesRequest;
-import com.faforever.client.events.AchievementUpdatesResponse;
-import com.faforever.client.events.EventUpdatesRequest;
-import com.faforever.client.events.EventUpdatesResponse;
 import com.faforever.client.events.ListResult;
 import com.faforever.client.events.PlayerAchievement;
-import com.faforever.client.events.UpdatedAchievement;
-import com.faforever.client.events.UpdatedEvent;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
@@ -46,7 +39,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -125,25 +117,9 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public List<UpdatedAchievement> executeAchievementUpdates(AchievementUpdatesRequest achievementUpdatesRequest, int playerId) {
-    Collection<AchievementUpdate> updates = achievementUpdatesRequest.getUpdates();
-    logger.debug("Updating {} achievements", updates.size());
-
-    return sendPostRequest("/achievements/updateMultiple", achievementUpdatesRequest, AchievementUpdatesResponse.class)
-        .getUpdatedAchievements();
-  }
-
-  @Override
   public AchievementDefinition getAchievementDefinition(String achievementId) {
     logger.debug("Getting definition for achievement {}", achievementId);
     return sendGetRequest("/achievements/" + achievementId, AchievementDefinition.class);
-  }
-
-  @Override
-  public List<UpdatedEvent> recordEvents(EventUpdatesRequest eventUpdatesRequest, int playerId) {
-    logger.debug("Recording {} events", eventUpdatesRequest.getUpdates().size());
-    return sendPostRequest("/events/recordMultiple", eventUpdatesRequest, EventUpdatesResponse.class)
-        .getUpdatedEvents();
   }
 
   @Override
@@ -262,6 +238,18 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     };
   }
 
+  @SuppressWarnings("unchecked")
+  private <T> T sendGetRequest(String endpointPath, Type type) {
+    try {
+      HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(baseUrl + endpointPath));
+      request.setParser(new JsonObjectParser(jsonFactory));
+      credential.initialize(request);
+      return (T) request.execute().parseAs(type);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private <T> T sendPostRequest(String endpointPath, Object content, Class<T> type) {
     try {
       HttpRequest request = requestFactory.buildPostRequest(
@@ -270,18 +258,6 @@ public class FafApiAccessorImpl implements FafApiAccessor {
       request.setParser(new JsonObjectParser(jsonFactory));
       credential.initialize(request);
       return request.execute().parseAs(type);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  private <T> T sendGetRequest(String endpointPath, Type type) {
-    try {
-      HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(baseUrl + endpointPath));
-      request.setParser(new JsonObjectParser(jsonFactory));
-      credential.initialize(request);
-      return (T) request.execute().parseAs(type);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

@@ -5,6 +5,7 @@ import java.util.Map;
 
 public enum ServerMessageType {
   WELCOME("welcome"),
+  SESSION("session"),
   GAME_INFO("game_info"),
   PLAYER_INFO("player_info"),
   GAME_LAUNCH("game_launch"),

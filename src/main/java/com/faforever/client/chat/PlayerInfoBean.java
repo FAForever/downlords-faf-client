@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.legacy.domain.Player;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
@@ -34,16 +34,16 @@ public class PlayerInfoBean {
   private final FloatProperty leaderboardRatingMean;
   private final IntegerProperty numberOfGames;
 
-  public PlayerInfoBean(PlayerInfo playerInfo) {
+  public PlayerInfoBean(Player player) {
     this();
 
-    username.set(playerInfo.getLogin());
-    clan.set(playerInfo.getClan());
-    country.set(playerInfo.getCountry());
+    username.set(player.getLogin());
+    clan.set(player.getClan());
+    country.set(player.getCountry());
 
-    if (playerInfo.getAvatar() != null) {
-      avatarTooltip.set(playerInfo.getAvatar().getTooltip());
-      avatarUrl.set(playerInfo.getAvatar().getUrl());
+    if (player.getAvatar() != null) {
+      avatarTooltip.set(player.getAvatar().getTooltip());
+      avatarUrl.set(player.getAvatar().getUrl());
     }
   }
 
@@ -260,18 +260,18 @@ public class PlayerInfoBean {
     return leaderboardRatingMean;
   }
 
-  public void updateFromPlayerInfo(PlayerInfo playerInfo) {
+  public void updateFromPlayerInfo(Player player) {
     setChatOnly(false);
-    setClan(playerInfo.getClan());
-    setCountry(playerInfo.getCountry());
-    setGlobalRatingMean(playerInfo.getRatingMean());
-    setGlobalRatingDeviation(playerInfo.getRatingDeviation());
-    setLeaderboardRatingDeviation(playerInfo.getLadderRatingDeviation());
-    setLeaderboardRatingMean(playerInfo.getLadderRatingMean());
-    setNumberOfGames(playerInfo.getNumberOfGames());
-    if (playerInfo.getAvatar() != null) {
-      setAvatarUrl(playerInfo.getAvatar().getUrl());
-      setAvatarTooltip(playerInfo.getAvatar().getTooltip());
+    setClan(player.getClan());
+    setCountry(player.getCountry());
+    setGlobalRatingMean(player.getRatingMean());
+    setGlobalRatingDeviation(player.getRatingDeviation());
+    setLeaderboardRatingDeviation(player.getLadderRatingDeviation());
+    setLeaderboardRatingMean(player.getLadderRatingMean());
+    setNumberOfGames(player.getNumberOfGames());
+    if (player.getAvatar() != null) {
+      setAvatarUrl(player.getAvatar().getUrl());
+      setAvatarTooltip(player.getAvatar().getTooltip());
     }
   }
 }

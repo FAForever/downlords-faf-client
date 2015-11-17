@@ -51,7 +51,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
-import static java.lang.String.format;
 import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.synchronizedObservableMap;
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
@@ -391,23 +390,14 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void onConnected() {
-    sendMessageInBackground(
-        "NICKSERV",
-        format("REGISTER %s %s", md5Hex(userService.getPassword()), userService.getEmail())
-    ).thenAccept(s -> sendMessageInBackground("NICKSERV", "IDENTIFY " + md5Hex(userService.getPassword()))
-            .thenAccept(s1 -> pircBotX.sendIRC().joinChannel(defaultChannelName))
-            .exceptionally(throwable -> {
-              notificationService.addNotification(
-                  new PersistentNotification(i18n.get("irc.identificationFailed", throwable.getLocalizedMessage()), Severity.WARN)
-              );
-              return null;
-            })
-    ).exceptionally(throwable -> {
-      notificationService.addNotification(
-          new PersistentNotification(i18n.get("irc.registrationFailed", throwable.getLocalizedMessage()), Severity.WARN)
-      );
-      return null;
-    });
+    sendMessageInBackground("NICKSERV", "IDENTIFY " + md5Hex(userService.getPassword()))
+        .thenAccept(s1 -> pircBotX.sendIRC().joinChannel(defaultChannelName))
+        .exceptionally(throwable -> {
+          notificationService.addNotification(
+              new PersistentNotification(i18n.get("irc.identificationFailed", throwable.getLocalizedMessage()), Severity.WARN)
+          );
+          return null;
+        });
   }
 
   @Override

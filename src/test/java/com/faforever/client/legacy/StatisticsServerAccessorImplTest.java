@@ -93,8 +93,15 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
         serverWriterReadyLatch.countDown();
 
         while (!stopped) {
-          qDataInputStream.skipBlockSize();
+          int blockSize = qDataInputStream.readInt();
           String json = qDataInputStream.readQString();
+
+          if (blockSize > json.length() * 2) {
+            // Username
+            qDataInputStream.readQString();
+            // Session ID
+            qDataInputStream.readQString();
+          }
 
           ClientMessage clientMessage = gson.fromJson(json, ClientMessage.class);
 
@@ -118,16 +125,14 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
     String username = "junit";
     CompletableFuture<PlayerStatistics> future = instance.requestPlayerStatistics(username, StatisticsType.GLOBAL_90_DAYS);
 
+    ClientMessage clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(clientMessage.getCommand(), is(ClientMessageType.STATISTICS));
+
     PlayerStatistics playerStatistics = new PlayerStatistics();
     playerStatistics.setPlayer(username);
     playerStatistics.setStatisticsType(StatisticsType.GLOBAL_90_DAYS);
     playerStatistics.setValues(Arrays.asList(new RatingInfo(), new RatingInfo()));
-
     sendFromServer(playerStatistics);
-
-    ClientMessage clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-
-    assertThat(clientMessage.getCommand(), is(ClientMessageType.STATISTICS));
 
     PlayerStatistics result = future.get(TIMEOUT, TIMEOUT_UNIT);
 

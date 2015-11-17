@@ -3,6 +3,7 @@ package com.faforever.client.update;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.io.CharStreams;
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.After;
 import org.junit.Before;
@@ -21,23 +22,19 @@ import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
 
 import static org.mockito.Mockito.when;
 
 public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
 
-  private ServerSocket fafLobbyServerSocket;
+  private ServerSocket fakeGithubServerSocket;
   private CheckForUpdateTask instance;
 
   @Mock
   private Environment environment;
-
   @Mock
   private I18n i18n;
 
@@ -50,9 +47,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
 
   @After
   public void tearDown() throws Exception {
-    if (fafLobbyServerSocket != null) {
-      fafLobbyServerSocket.close();
-    }
+    IOUtils.closeQuietly(fakeGithubServerSocket);
   }
 
   /**
@@ -62,31 +57,28 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   public void testIsNewer() throws Exception {
     instance.setCurrentVersion(new ComparableVersion("0.4.8-alpha"));
 
-    CountDownLatch exitLatch = new CountDownLatch(1);
-    Future<Void> serverFuture = startFakeGitHubApiServer(exitLatch);
-    int port = fafLobbyServerSocket.getLocalPort();
+    startFakeGitHubApiServer();
+    int port = fakeGithubServerSocket.getLocalPort();
     when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
     when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(3000);
 
     instance.call();
-    exitLatch.countDown();
-    serverFuture.get();
   }
 
-  private Future<Void> startFakeGitHubApiServer(CountDownLatch exitLatch) throws Exception {
-    fafLobbyServerSocket = new ServerSocket(0);
+  private void startFakeGitHubApiServer() throws Exception {
+    fakeGithubServerSocket = new ServerSocket(0);
 
-    return WaitForAsyncUtils.async(() -> {
-      try (Socket socket = fafLobbyServerSocket.accept();
+    WaitForAsyncUtils.async(() -> {
+      try (Socket socket = fakeGithubServerSocket.accept();
            Reader sampleReader = new InputStreamReader(getClass().getResourceAsStream("/sample-github-releases-response.txt"));
            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(socket.getOutputStream())) {
+
+        logger.debug("Accepted connection from {}", socket.getInetAddress());
 
         String response = CharStreams.toString(sampleReader);
 
         outputStreamWriter.write(response);
-        outputStreamWriter.close();
-        exitLatch.await();
-      } catch (InterruptedException | IOException e) {
+      } catch (IOException e) {
         logger.error("Exception in fake HTTP server", e);
         throw new RuntimeException(e);
       }
@@ -100,14 +92,11 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   public void testGetUpdateIsCurrent() throws Exception {
     instance.setCurrentVersion(new ComparableVersion("0.4.8.1-alpha"));
 
-    CountDownLatch exitLatch = new CountDownLatch(1);
-    Future<Void> serverFuture = startFakeGitHubApiServer(exitLatch);
-    int port = fafLobbyServerSocket.getLocalPort();
+    startFakeGitHubApiServer();
+    int port = fakeGithubServerSocket.getLocalPort();
     when(environment.getProperty("github.releases.url")).thenReturn("http://" + LOOPBACK_ADDRESS.getHostAddress() + ":" + port);
     when(environment.getProperty("github.releases.timeout", int.class)).thenReturn(3000);
 
     instance.call();
-    exitLatch.countDown();
-    serverFuture.get();
   }
 }

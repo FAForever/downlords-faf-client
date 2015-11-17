@@ -397,7 +397,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     registerWindowListeners(stage, mainWindowPrefs);
 
     usernameButton.setText(userService.getUsername());
-    userImageView.setImage(gravatarService.getGravatar(userService.getEmail()));
+    // TODO no more e-mail address :(
+//    userImageView.setImage(gravatarService.getGravatar(userService.getEmail()));
 
     checkGamePortInBackground();
     gameUpdateService.checkForUpdateInBackground();

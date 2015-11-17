@@ -1,12 +1,11 @@
 package com.faforever.client.player;
 
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.events.PlayServices;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnFoeListListener;
 import com.faforever.client.legacy.OnFriendListListener;
 import com.faforever.client.legacy.OnPlayerInfoListener;
-import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.legacy.domain.Player;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
 import javafx.beans.property.ObjectProperty;
@@ -24,8 +23,6 @@ import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -40,10 +37,6 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   LobbyServerAccessor lobbyServerAccessor;
   @Resource
   UserService userService;
-  @Resource
-  PlayServices playServices;
-  @Resource
-  Executor executorService;
 
   private List<String> foeList;
   private List<String> friendList;
@@ -140,34 +133,16 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
 
   @Override
-  public void onPlayerInfo(PlayerInfo playerInfo) {
-    if (playerInfo.getLogin().equals(userService.getUsername())) {
+  public void onPlayerInfo(Player player) {
+    if (player.getLogin().equals(userService.getUsername())) {
       PlayerInfoBean playerInfoBean = getCurrentPlayer();
-      playerInfoBean.updateFromPlayerInfo(playerInfo);
-      updatePlayServices(playerInfoBean).exceptionally(throwable -> {
-        logger.warn("Play services could not be updated", throwable);
-        return null;
-      });
+      playerInfoBean.updateFromPlayerInfo(player);
     } else {
-      PlayerInfoBean playerInfoBean = registerAndGetPlayerForUsername(playerInfo.getLogin());
-      playerInfoBean.setFriend(friendList.contains(playerInfo.getLogin()));
-      playerInfoBean.setFoe(foeList.contains(playerInfo.getLogin()));
-      playerInfoBean.updateFromPlayerInfo(playerInfo);
+      PlayerInfoBean playerInfoBean = registerAndGetPlayerForUsername(player.getLogin());
+      playerInfoBean.setFriend(friendList.contains(player.getLogin()));
+      playerInfoBean.setFoe(foeList.contains(player.getLogin()));
+      playerInfoBean.updateFromPlayerInfo(player);
     }
-  }
-
-  private CompletableFuture<Void> updatePlayServices(PlayerInfoBean playerInfoBean) {
-    return CompletableFuture.runAsync(() -> {
-      try {
-        playServices.startBatchUpdate();
-        playServices.numberOfGamesPlayed(playerInfoBean.getNumberOfGames());
-        playServices.executeBatchUpdate();
-      } catch (Exception e) {
-        logger.warn("Achievements could not be updated", e);
-      } finally {
-        playServices.resetBatchUpdate();
-      }
-    }, executorService);
   }
 
   @Override

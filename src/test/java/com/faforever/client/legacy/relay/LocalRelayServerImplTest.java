@@ -13,12 +13,10 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.relay.FaDataInputStream;
 import com.faforever.client.relay.FaDataOutputStream;
-import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.stats.domain.GameStats;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.SocketAddressUtil;
-import com.google.common.io.Resources;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.compress.utils.IOUtils;
@@ -41,7 +39,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -56,7 +53,6 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -67,7 +63,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
-  private static final String SESSION_ID = "1234";
+  private static final long SESSION_ID = 1234;
   private static final double USER_ID = 872348.0;
   private static final int GAME_PORT = 6112;
   @Rule
@@ -84,8 +80,6 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private boolean stopped;
   @Mock
   private Consumer<GameStats> gameStatsConsumer;
-  @Mock
-  private StatisticsService statisticsService;
   @Mock
   private Proxy proxy;
   @Mock
@@ -113,7 +107,6 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     instance.userService = userService;
     instance.preferencesService = preferencesService;
     instance.lobbyServerAccessor = lobbyServerAccessor;
-    instance.statisticsService = statisticsService;
 
     ForgedAlliancePrefs forgedAlliancePrefs = mock(ForgedAlliancePrefs.class);
     Preferences preferences = mock(Preferences.class);
@@ -127,9 +120,9 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
-    when(userService.getSessionId()).thenReturn(SESSION_ID);
     when(userService.getUid()).thenReturn((int) USER_ID);
     when(userService.getUsername()).thenReturn("junit");
+    when(lobbyServerAccessor.getSessionId()).thenReturn(SESSION_ID);
     when(proxy.getPort()).thenReturn(GAME_PORT);
 
     instance.postConstruct();
@@ -164,7 +157,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
         serverToRelayWriter.registerMessageSerializer(new RelayServerMessageSerializer(), RelayServerMessage.class);
 
         while (!stopped) {
-          qDataInputStream.skipBlockSize();
+          int blockSize = qDataInputStream.readInt();
           String json = qDataInputStream.readQString();
 
           LobbyMessage lobbyMessage = gson.fromJson(json, LobbyMessage.class);
@@ -215,7 +208,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     LobbyMessage authenticateMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(authenticateMessage.getAction(), is(LobbyAction.AUTHENTICATE));
     assertThat(authenticateMessage.getChunks(), hasSize(2));
-    assertThat(authenticateMessage.getChunks().get(0), is(SESSION_ID));
+    assertThat(((Double) authenticateMessage.getChunks().get(0)).longValue(), is(SESSION_ID));
     assertThat(authenticateMessage.getChunks().get(1), is(USER_ID));
   }
 
@@ -600,22 +593,5 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(lobbyMessage.getAction(), is(LobbyAction.BOTTLENECK_CLEARED));
     verify(proxy).setBottleneck(false);
-  }
-
-  @Test
-  public void testSetGameStatsListener() throws Exception {
-    verifyAuthenticateMessage();
-
-    instance.setGameStatsListener(gameStatsConsumer);
-
-    String statsXml = Resources.toString(getClass().getResource("/stats/stats.xml"), StandardCharsets.UTF_8);
-    LobbyMessage statsMessage = new LobbyMessage(LobbyAction.STATS, singletonList(statsXml));
-    sendFromGame(statsMessage);
-
-    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(lobbyMessage.getAction(), is(LobbyAction.STATS));
-
-    verify(gameStatsConsumer).accept(any());
-    verify(statisticsService).parseStatistics(statsXml);
   }
 }
