@@ -89,6 +89,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private final Collection<OnGameTypeInfoListener> onGameTypeInfoListeners;
   private final Collection<OnJoinChannelsRequestListener> onJoinChannelsRequestListeners;
   private final Collection<OnGameLaunchInfoListener> onGameLaunchListeners;
+  private final List<Consumer<UpdatedAchievementsInfo>> onUpdatedAchievementsListeners;
   @Autowired
   Environment environment;
   @Autowired
@@ -129,6 +130,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     onJoinChannelsRequestListeners = new ArrayList<>();
     onGameLaunchListeners = new ArrayList<>();
     onRankedMatchNotificationListeners = new ArrayList<>();
+    onUpdatedAchievementsListeners = new ArrayList<>();
     onLoggedInListeners = new ArrayList<>();
     collectedModInfos = new HashSet<>();
     sessionId = new SimpleObjectProperty<>();
@@ -209,16 +211,9 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     return loginFuture;
   }
 
-  private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
-    ServerWriter serverWriter = new ServerWriter(outputStream);
-    serverWriter.registerMessageSerializer(new ClientMessageSerializer(login, sessionId), ClientMessage.class);
-    serverWriter.registerMessageSerializer(new PongMessageSerializer(login, sessionId), PongMessage.class);
-    serverWriter.registerMessageSerializer(new StringSerializer(), String.class);
-    return serverWriter;
-  }
-
-  private void writeToServer(Object object) {
-    serverWriter.write(object);
+  @Override
+  public void addOnUpdatedAchievementsInfoListener(Consumer<UpdatedAchievementsInfo> listener) {
+    onUpdatedAchievementsListeners.add(listener);
   }
 
   @Override
@@ -378,6 +373,18 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     return sessionId.get();
   }
 
+  private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
+    ServerWriter serverWriter = new ServerWriter(outputStream);
+    serverWriter.registerMessageSerializer(new ClientMessageSerializer(login, sessionId), ClientMessage.class);
+    serverWriter.registerMessageSerializer(new PongMessageSerializer(login, sessionId), PongMessage.class);
+    serverWriter.registerMessageSerializer(new StringSerializer(), String.class);
+    return serverWriter;
+  }
+
+  private void writeToServer(Object object) {
+    serverWriter.write(object);
+  }
+
   public void onServerMessage(String message) throws IOException {
     ServerCommand serverCommand = ServerCommand.fromString(message);
     if (serverCommand != null) {
@@ -480,7 +487,8 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           break;
 
         case UPDATED_ACHIEVEMENTS:
-          logger.info("Received updated achievements: {}", jsonString);
+          UpdatedAchievementsInfo updatedAchievementsInfo = gson.fromJson(jsonString, UpdatedAchievementsInfo.class);
+          onUpdatedAchievementsListeners.forEach(listener -> listener.accept(updatedAchievementsInfo));
           break;
 
         default:

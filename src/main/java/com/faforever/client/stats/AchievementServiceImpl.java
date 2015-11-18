@@ -1,59 +1,51 @@
-package com.faforever.client.events;
+package com.faforever.client.stats;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.config.CacheNames;
+import com.faforever.client.events.AchievementDefinition;
+import com.faforever.client.events.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.legacy.UpdatedAchievement;
+import com.faforever.client.legacy.UpdatedAchievementsInfo;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.parsecom.CloudAccessor;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.JavaFxUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.image.Image;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.Cacheable;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.locks.ReentrantLock;
 
-public class PlayServicesImpl implements PlayServices {
+public class AchievementServiceImpl implements AchievementService {
+
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final ReentrantLock BATCH_REQUEST_LOCK = new ReentrantLock();
   private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements;
   private final ObservableList<PlayerAchievement> playerAchievements;
 
-  @Resource
-  PreferencesService preferencesService;
   @Resource
   UserService userService;
   @Resource
   CloudAccessor cloudAccessor;
   @Resource
+  FafApiAccessor fafApiAccessor;
+  @Resource
+  LobbyServerAccessor lobbyServerAccessor;
+  @Resource
   NotificationService notificationService;
   @Resource
   I18n i18n;
-  @Resource
-  FafApiAccessor fafApiAccessor;
-  @Resource
-  ExecutorService executorService;
 
-  public PlayServicesImpl() {
+  public AchievementServiceImpl() {
     playerAchievements = FXCollections.observableArrayList();
     readOnlyPlayerAchievements = FXCollections.unmodifiableObservableList(playerAchievements);
-  }
-
-  @Override
-  public CompletableFuture<Void> authorize() {
-    return CompletableFuture.runAsync(() -> {
-      fafApiAccessor.authorize(userService.getUid());
-      loadCurrentPlayerAchievements();
-    }, executorService);
   }
 
   @Override
@@ -81,15 +73,39 @@ public class PlayServicesImpl implements PlayServices {
   }
 
   @Override
-  @Cacheable(CacheNames.ACHIEVEMENTS)
   public CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions() {
     // TODO make async again
     return CompletableFuture.completedFuture(fafApiAccessor.getAchievementDefinitions());
   }
 
-  private void loadCurrentPlayerAchievements() {
-    JavaFxUtil.assertBackgroundThread();
-    playerAchievements.setAll(fafApiAccessor.getPlayerAchievements(userService.getUid()));
+  @Override
+  public CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getAchievementDefinition(achievementId));
+  }
+
+  @PostConstruct
+  void postConstruct() {
+    lobbyServerAccessor.addOnUpdatedAchievementsInfoListener(this::onUpdatedAchievements);
+  }
+
+  private void onUpdatedAchievements(UpdatedAchievementsInfo updatedAchievementsInfo) {
+    updatedAchievementsInfo.getUpdatedAchievements().stream()
+        .filter(UpdatedAchievement::getNewlyUnlocked)
+        .forEachOrdered(updatedAchievement -> getAchievementDefinition(updatedAchievement.getAchievementId())
+            .thenAccept(this::notifyAboutUnlockedAchievement)
+            .exceptionally(throwable -> {
+              logger.warn("Could not get achievement definition for achievement: {}", updatedAchievement.getAchievementId());
+              return null;
+            })
+        );
+  }
+
+  private void notifyAboutUnlockedAchievement(AchievementDefinition achievementDefinition) {
+    notificationService.addNotification(new TransientNotification(
+            i18n.get("achievement.unlockedTitle"),
+            achievementDefinition.getName(),
+            new Image(achievementDefinition.getUnlockedIconUrl())
+        )
+    );
   }
 }
-

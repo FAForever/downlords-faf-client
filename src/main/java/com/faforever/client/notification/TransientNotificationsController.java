@@ -12,7 +12,6 @@ import org.springframework.context.ApplicationContext;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.TreeSet;
-import java.util.concurrent.CountDownLatch;
 
 public class TransientNotificationsController {
 
@@ -23,11 +22,9 @@ public class TransientNotificationsController {
   ApplicationContext applicationContext;
   @Resource
   PreferencesService preferencesService;
-  private CountDownLatch readyLatch;
 
   public TransientNotificationsController() {
     transientNotificationBuffer = new TreeSet<>();
-    readyLatch = new CountDownLatch(1);
   }
 
 
@@ -48,6 +45,8 @@ public class TransientNotificationsController {
       case TOP_LEFT:
         transientNotificationsRoot.setAlignment(Pos.TOP_LEFT);
         break;
+      default:
+        throw new AssertionError("Uncovered position: " + toastPosition);
     }
   }
 

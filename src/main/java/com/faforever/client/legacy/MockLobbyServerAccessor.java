@@ -152,22 +152,9 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
     });
   }
 
-  private GameInfo createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
-    GameInfo gameInfo = new GameInfo();
-    gameInfo.setUid(uid);
-    gameInfo.setTitle(title);
-    gameInfo.setFeaturedMod(featuredMod);
-    gameInfo.setMapFilePath(mapName);
-    gameInfo.setNumPlayers(numPlayers);
-    gameInfo.setMaxPlayers(maxPlayers);
-    gameInfo.setHost(host);
-    gameInfo.setState(GameState.OPEN);
-    gameInfo.setOptions(new Boolean[0]);
-    gameInfo.setSimMods(Collections.emptyMap());
-    gameInfo.setTeams(Collections.emptyMap());
-    gameInfo.setFeaturedModVersions(Collections.emptyMap());
+  @Override
+  public void addOnUpdatedAchievementsInfoListener(Consumer<UpdatedAchievementsInfo> listener) {
 
-    return gameInfo;
   }
 
   @Override
@@ -309,5 +296,23 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   @Override
   public Long getSessionId() {
     return null;
+  }
+
+  private GameInfo createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
+    GameInfo gameInfo = new GameInfo();
+    gameInfo.setUid(uid);
+    gameInfo.setTitle(title);
+    gameInfo.setFeaturedMod(featuredMod);
+    gameInfo.setMapFilePath(mapName);
+    gameInfo.setNumPlayers(numPlayers);
+    gameInfo.setMaxPlayers(maxPlayers);
+    gameInfo.setHost(host);
+    gameInfo.setState(GameState.OPEN);
+    gameInfo.setOptions(new Boolean[0]);
+    gameInfo.setSimMods(Collections.emptyMap());
+    gameInfo.setTeams(Collections.emptyMap());
+    gameInfo.setFeaturedModVersions(Collections.emptyMap());
+
+    return gameInfo;
   }
 }

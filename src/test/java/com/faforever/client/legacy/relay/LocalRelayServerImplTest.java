@@ -13,7 +13,6 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.relay.FaDataInputStream;
 import com.faforever.client.relay.FaDataOutputStream;
-import com.faforever.client.stats.domain.GameStats;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.SocketAddressUtil;
@@ -44,7 +43,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -78,8 +76,6 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private ServerSocket fafRelayServerSocket;
   private Socket localToServerSocket;
   private boolean stopped;
-  @Mock
-  private Consumer<GameStats> gameStatsConsumer;
   @Mock
   private Proxy proxy;
   @Mock

@@ -1,5 +1,6 @@
 package com.faforever.client.api;
 
+import com.faforever.client.config.CacheNames;
 import com.faforever.client.events.AchievementDefinition;
 import com.faforever.client.events.ListResult;
 import com.faforever.client.events.PlayerAchievement;
@@ -15,45 +16,33 @@ import com.google.api.client.extensions.java6.auth.oauth2.VerificationCodeReceiv
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.http.json.JsonHttpContent;
+import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.util.store.FileDataStoreFactory;
-import com.google.common.io.Resources;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.reflect.TypeToken;
-import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Type;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class FafApiAccessorImpl implements FafApiAccessor {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final Pattern AUTHORIZATION_CODE_PATTERN = Pattern.compile("[?&]code=(.*?)[& ]");
   private static final String HTTP_LOCALHOST = "http://localhost:";
   private static final String ENCODED_HTTP_LOCALHOST = HTTP_LOCALHOST.replace(":", "%3A").replace("/", "%2F");
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String SCOPE_READ_ACHIEVEMENTS = "read_achievements";
   private static final String SCOPE_WRITE_ACHIEVEMENTS = "write_achievements";
   private static final String SCOPE_WRITE_EVENTS = "write_events";
@@ -66,6 +55,10 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   ExecutorService executorService;
   @Resource
   HostService hostServices;
+  @Resource
+  HttpTransport httpTransport;
+  @Resource
+  VerificationCodeReceiver verificationCodeReceiver;
 
   @Value("${api.baseUrl}")
   String baseUrl;
@@ -77,24 +70,16 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   String oAuthClientId;
   @Value("${oauth.clientSecret}")
   String oAuthClientSecret;
-
+  @VisibleForTesting
+  Credential credential;
+  @VisibleForTesting
+  HttpRequestFactory requestFactory;
   private FileDataStoreFactory dataStoreFactory;
-  private NetHttpTransport httpTransport;
-  private ServerSocket verificationCodeServerSocket;
-  private Credential credential;
-  private HttpRequestFactory requestFactory;
 
   @PostConstruct
   void postConstruct() throws IOException {
     Path playServicesDirectory = preferencesService.getPreferencesDirectory().resolve("play-services");
-
-    httpTransport = new NetHttpTransport.Builder().build();
     dataStoreFactory = new FileDataStoreFactory(playServicesDirectory.toFile());
-  }
-
-  @PreDestroy
-  void shutDown() {
-    IOUtils.closeQuietly(verificationCodeServerSocket);
   }
 
   @Override
@@ -109,6 +94,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   @SuppressWarnings("unchecked")
+  @Cacheable(CacheNames.ACHIEVEMENTS)
   public List<AchievementDefinition> getAchievementDefinitions() {
     logger.debug("Loading achievement definitions");
     Type returnType = new TypeToken<ListResult<AchievementDefinition>>() {
@@ -117,6 +103,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
+  @Cacheable(CacheNames.ACHIEVEMENTS)
   public AchievementDefinition getAchievementDefinition(String achievementId) {
     logger.debug("Getting definition for achievement {}", achievementId);
     return sendGetRequest("/achievements/" + achievementId, AchievementDefinition.class);
@@ -145,7 +132,6 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {
-    VerificationCodeReceiver verificationCodeReceiver = verificationCodeReceiver();
     try {
       Credential credential = flow.loadCredential(userId);
       if (credential != null
@@ -154,6 +140,10 @@ public class FafApiAccessorImpl implements FafApiAccessor {
       }
 
       String redirectUri = verificationCodeReceiver.getRedirectUri();
+      if (redirectUri == null) {
+        return null;
+      }
+
       AuthorizationCodeRequestUrl authorizationUrl = flow.newAuthorizationUrl().setRedirectUri(redirectUri);
 
       // Google's GenericUrl does not escape ":" and "/", but Flask (FAF's OAuth) requires it.
@@ -171,93 +161,17 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     }
   }
 
-  /**
-   * Starts a local server that listens for the verification code. <p> After the user authorized the application, google
-   * redirects to a URL specified by the application (http://localhost:####) to send the verification code there.</p>
-   */
-  private VerificationCodeReceiver verificationCodeReceiver() {
-
-    return new VerificationCodeReceiver() {
-      public Future<String> codeFuture;
-
-      @Override
-      public String getRedirectUri() throws IOException {
-        CompletableFuture<Integer> portFuture = startReceiver();
-
-        try {
-          return HTTP_LOCALHOST + portFuture.get();
-        } catch (InterruptedException | ExecutionException e) {
-          throw new IOException("Receiver could not be started", e);
-        }
-      }
-
-      @Override
-      public String waitForCode() throws IOException {
-        try {
-          return codeFuture.get();
-        } catch (InterruptedException | ExecutionException e) {
-          throw new IOException("Code could not be received", e);
-        }
-      }
-
-      @Override
-      public void stop() throws IOException {
-      }
-
-      private CompletableFuture<Integer> startReceiver() throws IOException {
-        CompletableFuture<Integer> portFuture = new CompletableFuture<>();
-        Callable<String> callable = () -> {
-          try (ServerSocket serverSocket = new ServerSocket(0)) {
-            FafApiAccessorImpl.this.verificationCodeServerSocket = serverSocket;
-            logger.debug("Started verification code listener at port {}", serverSocket.getLocalPort());
-            portFuture.complete(serverSocket.getLocalPort());
-
-            try (Socket socket = serverSocket.accept()) {
-              logger.debug("Accepted connection from browser");
-              BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-              String line = reader.readLine();
-
-              Matcher matcher = AUTHORIZATION_CODE_PATTERN.matcher(line);
-              if (!matcher.find()) {
-                throw new IOException("Could not extract code from: " + line);
-              }
-
-              String code = matcher.group(1);
-              logger.debug("Received code: {}", code);
-
-              socket.getOutputStream().write(Resources.toByteArray(getClass().getResource("/google_auth_answer.txt")));
-
-              return code;
-            }
-          }
-        };
-
-        codeFuture = executorService.submit(callable);
-        return portFuture;
-      }
-    };
-  }
-
   @SuppressWarnings("unchecked")
   private <T> T sendGetRequest(String endpointPath, Type type) {
+    if (requestFactory == null) {
+      throw new IllegalStateException("authorize() must be called first");
+    }
+
     try {
       HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(baseUrl + endpointPath));
       request.setParser(new JsonObjectParser(jsonFactory));
       credential.initialize(request);
       return (T) request.execute().parseAs(type);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private <T> T sendPostRequest(String endpointPath, Object content, Class<T> type) {
-    try {
-      HttpRequest request = requestFactory.buildPostRequest(
-          new GenericUrl(baseUrl + endpointPath),
-          new JsonHttpContent(jsonFactory, content));
-      request.setParser(new JsonObjectParser(jsonFactory));
-      credential.initialize(request);
-      return request.execute().parseAs(type);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

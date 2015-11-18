@@ -2,14 +2,12 @@ package com.faforever.client.config;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.FafApiAccessorImpl;
+import com.faforever.client.api.LocalHttpVerificationCodeReceiver;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.MockChatService;
 import com.faforever.client.chat.PircBotXChatService;
 import com.faforever.client.chat.PircBotXFactory;
 import com.faforever.client.chat.PircBotXFactoryImpl;
-import com.faforever.client.events.MockPlayServices;
-import com.faforever.client.events.PlayServices;
-import com.faforever.client.events.PlayServicesImpl;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.ForgedAllianceServiceImpl;
 import com.faforever.client.game.GameService;
@@ -78,6 +76,8 @@ import com.faforever.client.replay.ReplayService;
 import com.faforever.client.replay.ReplayServiceImpl;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.reporting.ReportingServiceImpl;
+import com.faforever.client.stats.AchievementService;
+import com.faforever.client.stats.AchievementServiceImpl;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.stats.StatisticsServiceImpl;
 import com.faforever.client.task.TaskService;
@@ -349,11 +349,8 @@ public class ServiceConfig {
   }
 
   @Bean
-  PlayServices playServices() {
-    if (environment.containsProperty("faf.testing")) {
-      return new MockPlayServices();
-    }
-    return new PlayServicesImpl();
+  AchievementService achievementService() {
+    return new AchievementServiceImpl();
   }
 
   @Bean
@@ -362,5 +359,10 @@ public class ServiceConfig {
       return new MockGravatarService();
     }
     return new GravatarServiceImpl();
+  }
+
+  @Bean
+  LocalHttpVerificationCodeReceiver verificationCodeReceiver() {
+    return new LocalHttpVerificationCodeReceiver();
   }
 }

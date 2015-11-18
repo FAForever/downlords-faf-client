@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.events.PlayServices;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameInfoListener;
@@ -94,8 +93,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   private Environment environment;
   @Mock
   private LocalRelayServer localRelayServer;
-  @Mock
-  private PlayServices playServices;
   @Mock
   private PlayerService playerService;
   @Mock

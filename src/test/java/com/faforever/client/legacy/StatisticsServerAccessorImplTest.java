@@ -123,7 +123,7 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testRequestPlayerStatistics() throws Exception {
     String username = "junit";
-    CompletableFuture<PlayerStatistics> future = instance.requestPlayerStatistics(username, StatisticsType.GLOBAL_90_DAYS);
+    CompletableFuture<PlayerStatistics> future = instance.requestPlayerStatistics(StatisticsType.GLOBAL_90_DAYS, username);
 
     ClientMessage clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(clientMessage.getCommand(), is(ClientMessageType.STATISTICS));

@@ -1,17 +1,13 @@
-package com.faforever.client.events;
+package com.faforever.client.legacy;
 
-import com.google.api.client.util.Key;
+import com.faforever.client.events.AchievementState;
 import org.jetbrains.annotations.Nullable;
 
 public class UpdatedAchievement {
 
-  @Key("achievement_id")
   private String achievementId;
-  @Key("current_state")
   private AchievementState currentState;
-  @Key("current_steps")
   private Integer currentSteps;
-  @Key("newly_unlocked")
   private boolean newlyUnlocked;
 
   public String getAchievementId() {

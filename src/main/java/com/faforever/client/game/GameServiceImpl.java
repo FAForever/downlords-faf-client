@@ -22,7 +22,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 import com.faforever.client.relay.LocalRelayServer;
-import com.faforever.client.stats.domain.GameStats;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
@@ -103,8 +102,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   LocalRelayServer localRelayServer;
   @VisibleForTesting
   RatingMode ratingMode;
-  @VisibleForTesting
-  GameStats gameStats;
   private Process process;
   private BooleanProperty searching1v1;
   private Instant gameStartedTime;
@@ -370,7 +367,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     lobbyServerAccessor.addOnGameTypeInfoListener(this);
     lobbyServerAccessor.addOnGameInfoListener(this);
     localRelayServer.setGameLaunchedListener(aVoid -> {
-      gameStats = null;
       gameStartedTime = Instant.now();
       logger.debug("Game started at: {}", gameStartedTime);
     });

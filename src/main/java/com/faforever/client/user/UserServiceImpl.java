@@ -1,6 +1,5 @@
 package com.faforever.client.user;
 
-import com.faforever.client.events.PlayServices;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.parsecom.CloudAccessor;
 import com.faforever.client.preferences.PreferencesService;
@@ -22,8 +21,6 @@ public class UserServiceImpl implements UserService {
   PreferencesService preferencesService;
   @Resource
   CloudAccessor cloudAccessor;
-  @Resource
-  PlayServices playServices;
 
   private String username;
   private String password;
@@ -48,8 +45,6 @@ public class UserServiceImpl implements UserService {
     return lobbyServerAccessor.connectAndLogIn(username, password)
         .thenAccept(loginInfo -> {
           uid = loginInfo.getId();
-
-          playServices.authorize();
 
           cloudAccessor.signUpOrLogIn(username, password, uid).thenAccept(s -> {
           });

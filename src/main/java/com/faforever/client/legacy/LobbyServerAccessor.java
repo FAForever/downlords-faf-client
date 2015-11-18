@@ -28,6 +28,8 @@ public interface LobbyServerAccessor {
    */
   CompletableFuture<LoginInfo> connectAndLogIn(String username, String password);
 
+  void addOnUpdatedAchievementsInfoListener(Consumer<UpdatedAchievementsInfo> listener);
+
   void addOnGameTypeInfoListener(OnGameTypeInfoListener listener);
 
   void addOnGameInfoListener(OnGameInfoListener listener);

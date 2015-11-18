@@ -57,7 +57,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   }
 
   @Override
-  public CompletableFuture<PlayerStatistics> requestPlayerStatistics(String username, StatisticsType type) {
+  public CompletableFuture<PlayerStatistics> requestPlayerStatistics(StatisticsType type, String username) {
     // FIXME this is not safe (as well aren't similar implementations in other accessors)
     playerStatisticsFuture = new CompletableFuture<>();
 

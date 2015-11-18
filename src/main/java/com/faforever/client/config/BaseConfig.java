@@ -2,7 +2,6 @@ package com.faforever.client.config;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.i18n.I18nImpl;
-import com.faforever.client.stats.domain.GameStats;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -14,8 +13,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.env.Environment;
-import org.springframework.oxm.Unmarshaller;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import javax.annotation.PreDestroy;
@@ -61,15 +58,8 @@ public class BaseConfig {
   }
 
   @Bean
-  public Unmarshaller unmarshaller() {
-    Jaxb2Marshaller jaxbMarshaller = new Jaxb2Marshaller();
-    jaxbMarshaller.setPackagesToScan(GameStats.class.getPackage().getName());
-    return jaxbMarshaller;
-  }
-
-  @Bean
   HttpTransport httpTransport() {
-    return new NetHttpTransport();
+    return new NetHttpTransport.Builder().build();
   }
 
   @Bean

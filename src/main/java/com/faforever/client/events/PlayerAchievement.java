@@ -1,20 +1,13 @@
 package com.faforever.client.events;
 
-import com.google.api.client.util.Key;
-
 import java.util.Date;
 
 public class PlayerAchievement {
 
-  @Key("state")
   private AchievementState state;
-  @Key("achievement_id")
   private String achievementId;
-  @Key("current_steps")
   private Integer currentSteps;
-  @Key("create_time")
   private long createTime;
-  @Key("update_time")
   private long updateTime;
 
   public AchievementState getState() {

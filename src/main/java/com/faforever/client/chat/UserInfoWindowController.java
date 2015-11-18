@@ -1,11 +1,11 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.events.AchievementDefinition;
-import com.faforever.client.events.PlayServices;
 import com.faforever.client.events.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.stats.AchievementService;
 import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.stats.StatisticsService;
@@ -99,7 +99,7 @@ public class UserInfoWindowController {
   @Resource
   CountryFlagService countryFlagService;
   @Resource
-  PlayServices playServices;
+  AchievementService achievementService;
   @Resource
   PreferencesService preferencesService;
   @Resource
@@ -183,26 +183,21 @@ public class UserInfoWindowController {
   }
 
   private void loadAchievements() {
-    playServices.authorize().thenRun(() -> {
-      enterAchievementsLoadingState();
-      playServices.getAchievementDefinitions()
-          .exceptionally(throwable -> {
-            logger.warn("Could not authorize to play services", throwable);
-            return null;
-          })
-          .thenAccept(this::displayAvailableAchievements)
-          .thenRun(() -> {
-            ObservableList<PlayerAchievement> playerAchievements = playServices.getPlayerAchievements(playerInfoBean.getUsername());
-            playerAchievements.addListener((Observable observable) -> {
-              updatePlayerAchievements(playerAchievements);
-            });
+    enterAchievementsLoadingState();
+    achievementService.getAchievementDefinitions()
+        .exceptionally(throwable -> {
+          logger.warn("Could not load achievement definitions", throwable);
+          return null;
+        })
+        .thenAccept(this::displayAvailableAchievements)
+        .thenRun(() -> {
+          ObservableList<PlayerAchievement> playerAchievements = achievementService.getPlayerAchievements(playerInfoBean.getUsername());
+          playerAchievements.addListener((Observable observable) -> {
             updatePlayerAchievements(playerAchievements);
-            enterAchievementsLoadedState();
           });
-    }).exceptionally(throwable -> {
-      logger.warn("Error while loading achievements", throwable);
-      return null;
-    });
+          updatePlayerAchievements(playerAchievements);
+          enterAchievementsLoadedState();
+        });
   }
 
   private void enterAchievementsLoadingState() {

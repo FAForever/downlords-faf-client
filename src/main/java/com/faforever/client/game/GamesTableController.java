@@ -88,9 +88,11 @@ public class GamesTableController {
     ratingColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
 
-    //TODO fix null newValues while gameInfoBean isEmpty
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue == null && !gamesTable.getItems().isEmpty()) {
+      if (newValue == null) {
+        if (gamesTable.getItems().isEmpty()) {
+          return;
+        }
         gamesTable.getSelectionModel().select(gamesTable.getItems().get(0));
       } else {
         Platform.runLater(() -> gamesController.displayGameDetail(newValue));
