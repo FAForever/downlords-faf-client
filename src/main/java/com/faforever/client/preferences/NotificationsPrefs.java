@@ -1,8 +1,10 @@
 package com.faforever.client.preferences;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 public class NotificationsPrefs {
@@ -24,6 +26,8 @@ public class NotificationsPrefs {
   private final BooleanProperty friendJoinsGameToastEnabled;
   private final BooleanProperty displayFriendPlaysGameToast;
   private final ObjectProperty<ToastPosition> toastPosition;
+  private final IntegerProperty toastScreen;
+  private final IntegerProperty toastDisplayTime;
 
   public NotificationsPrefs() {
     soundsEnabled = new SimpleBooleanProperty(true);
@@ -43,6 +47,32 @@ public class NotificationsPrefs {
     displayFriendPlaysGameToast = new SimpleBooleanProperty(true);
     privateMessageSoundEnabled = new SimpleBooleanProperty(true);
     privateMessageToastEnabled = new SimpleBooleanProperty(true);
+    toastScreen = new SimpleIntegerProperty(0);
+    toastDisplayTime = new SimpleIntegerProperty(5000);
+  }
+
+  public int getToastDisplayTime() {
+    return toastDisplayTime.get();
+  }
+
+  public void setToastDisplayTime(int toastDisplayTime) {
+    this.toastDisplayTime.set(toastDisplayTime);
+  }
+
+  public IntegerProperty toastDisplayTimeProperty() {
+    return toastDisplayTime;
+  }
+
+  public int getToastScreen() {
+    return toastScreen.get();
+  }
+
+  public void setToastScreen(int toastScreen) {
+    this.toastScreen.set(toastScreen);
+  }
+
+  public IntegerProperty toastScreenProperty() {
+    return toastScreen;
   }
 
   public boolean getFriendJoinsGameSoundEnabled() {

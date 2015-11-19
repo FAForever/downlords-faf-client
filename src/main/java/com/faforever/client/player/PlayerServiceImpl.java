@@ -5,7 +5,7 @@ import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnFoeListListener;
 import com.faforever.client.legacy.OnFriendListListener;
 import com.faforever.client.legacy.OnPlayerInfoListener;
-import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.legacy.domain.Player;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
 import javafx.beans.property.ObjectProperty;
@@ -14,9 +14,12 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -25,13 +28,16 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, OnFoeListListener, OnFriendListListener {
 
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final Lock CURRENT_PLAYER_LOCK = new ReentrantLock();
 
   private final ObservableMap<String, PlayerInfoBean> players;
-  @Autowired
+
+  @Resource
   LobbyServerAccessor lobbyServerAccessor;
-  @Autowired
+  @Resource
   UserService userService;
+
   private List<String> foeList;
   private List<String> friendList;
   private ObjectProperty<PlayerInfoBean> currentPlayer;
@@ -125,17 +131,18 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     return currentPlayer;
   }
 
+
   @Override
-  public void onPlayerInfo(PlayerInfo playerInfo) {
-    PlayerInfoBean playerInfoBean;
-    if (playerInfo.getLogin().equals(userService.getUsername())) {
-      playerInfoBean = getCurrentPlayer();
+  public void onPlayerInfo(Player player) {
+    if (player.getLogin().equals(userService.getUsername())) {
+      PlayerInfoBean playerInfoBean = getCurrentPlayer();
+      playerInfoBean.updateFromPlayerInfo(player);
     } else {
-      playerInfoBean = registerAndGetPlayerForUsername(playerInfo.getLogin());
-      playerInfoBean.setFriend(friendList.contains(playerInfo.getLogin()));
-      playerInfoBean.setFoe(foeList.contains(playerInfo.getLogin()));
+      PlayerInfoBean playerInfoBean = registerAndGetPlayerForUsername(player.getLogin());
+      playerInfoBean.setFriend(friendList.contains(player.getLogin()));
+      playerInfoBean.setFoe(foeList.contains(player.getLogin()));
+      playerInfoBean.updateFromPlayerInfo(player);
     }
-    playerInfoBean.updateFromPlayerInfo(playerInfo);
   }
 
   @Override

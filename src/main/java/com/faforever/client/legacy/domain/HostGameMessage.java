@@ -10,6 +10,8 @@ public class HostGameMessage extends ClientMessage {
   private GameAccess access;
   private Integer version;
   private String password;
+  // TODO create enum and implement properly
+  private String visibility = "public";
 
   public HostGameMessage(GameAccess gameAccess, String mapName, String title, int port, boolean[] options, String mod, String password, Integer version) {
     super(ClientMessageType.HOST_GAME);

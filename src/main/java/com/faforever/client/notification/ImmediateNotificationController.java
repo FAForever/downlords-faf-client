@@ -1,6 +1,7 @@
 package com.faforever.client.notification;
 
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Label;
@@ -13,17 +14,15 @@ import java.io.StringWriter;
 public class ImmediateNotificationController {
 
   @FXML
+  Node exceptionPane;
+  @FXML
   TextArea exceptionTextArea;
-
   @FXML
   Label messageLabel;
-
   @FXML
   Label titleLabel;
-
   @FXML
   ButtonBar buttonBar;
-
   @FXML
   Region notificationRoot;
 
@@ -32,9 +31,10 @@ public class ImmediateNotificationController {
     Throwable throwable = notification.getThrowable();
     if (throwable != null) {
       throwable.printStackTrace(new PrintWriter(writer));
+      exceptionPane.setVisible(true);
       exceptionTextArea.setText(writer.toString());
     } else {
-      exceptionTextArea.setVisible(false);
+      exceptionPane.setVisible(false);
     }
 
     titleLabel.setText(notification.getTitle());

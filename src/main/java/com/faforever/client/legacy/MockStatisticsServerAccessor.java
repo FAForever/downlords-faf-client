@@ -19,7 +19,7 @@ public class MockStatisticsServerAccessor implements StatisticsServerAccessor {
   TaskService taskService;
 
   @Override
-  public CompletableFuture<PlayerStatistics> requestPlayerStatistics(String username, StatisticsType type) {
+  public CompletableFuture<PlayerStatistics> requestPlayerStatistics(StatisticsType type, String username) {
     return taskService.submitTask(new AbstractPrioritizedTask<PlayerStatistics>(MEDIUM) {
       @Override
       protected PlayerStatistics call() throws Exception {

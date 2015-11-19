@@ -2,9 +2,6 @@ package com.faforever.client.notification;
 
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.Label;
-import javafx.scene.layout.Pane;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,10 +22,6 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
   @Before
   public void setUp() throws Exception {
     instance = loadController("immediate_notification.fxml");
-    instance.titleLabel = new Label();
-    instance.messageLabel = new Label();
-    instance.buttonBar = new ButtonBar();
-    instance.notificationRoot = new Pane();
   }
 
   @Test

@@ -2,7 +2,6 @@ package com.faforever.client.game;
 
 import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.map.MapService;
 import javafx.application.Platform;
 import javafx.beans.binding.ObjectBinding;
@@ -42,7 +41,7 @@ public class GamesTableController {
   TableColumn<GameInfoBean, String> hostColumn;
 
   @FXML
-  TableColumn<GameInfoBean, GameAccess> accessColumn;
+  TableColumn<GameInfoBean, Boolean> passwordColumn;
 
   @Autowired
   FxmlLoader fxmlLoader;
@@ -77,6 +76,10 @@ public class GamesTableController {
       protected Image computeValue() {
         return mapService.loadSmallPreview(param.getValue().getTechnicalName());
       }
+
+      {
+        bind(param.getValue().technicalNameProperty());
+      }
     });
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
@@ -85,16 +88,18 @@ public class GamesTableController {
     ratingColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
 
-    //TODO fix null newValues while gameInfoBean isEmpty
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue == null && !gameInfoBeans.isEmpty()) {
-        gamesTable.getSelectionModel().select(gameInfoBeans.get(0));
+      if (newValue == null) {
+        if (gamesTable.getItems().isEmpty()) {
+          return;
+        }
+        gamesTable.getSelectionModel().select(gamesTable.getItems().get(0));
       } else {
         Platform.runLater(() -> gamesController.displayGameDetail(newValue));
       }
     });
 
-    accessColumn.setCellValueFactory(param -> param.getValue().accessProperty());
+    passwordColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty());
   }
 
   @NotNull

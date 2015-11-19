@@ -2,17 +2,20 @@ package com.faforever.client.config;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.i18n.I18nImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import javax.annotation.PreDestroy;
-import java.lang.invoke.MethodHandles;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -23,11 +26,8 @@ import java.util.concurrent.ScheduledExecutorService;
  */
 @org.springframework.context.annotation.Configuration
 @PropertySource("classpath:/faf_client.properties")
+@EnableAsync
 public class BaseConfig {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  private static final java.lang.String PROPERTY_LOCALE = "locale";
 
   @Autowired
   Environment environment;
@@ -37,7 +37,7 @@ public class BaseConfig {
 
   @Bean
   Locale locale() {
-    return new Locale(environment.getProperty(PROPERTY_LOCALE));
+    return Locale.getDefault();
   }
 
   @Bean
@@ -57,8 +57,23 @@ public class BaseConfig {
     return Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
   }
 
+  @Bean
+  HttpTransport httpTransport() {
+    return new NetHttpTransport.Builder().build();
+  }
+
+  @Bean
+  JsonFactory jsonFactory() {
+    return GsonFactory.getDefaultInstance();
+  }
+
   @PreDestroy
-  void shutdown(){
+  void shutdown() {
     scheduledExecutorService.shutdown();
+  }
+
+  @Bean
+  static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+    return new PropertySourcesPlaceholderConfigurer();
   }
 }

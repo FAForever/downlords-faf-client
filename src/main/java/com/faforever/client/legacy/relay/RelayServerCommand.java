@@ -16,7 +16,8 @@ enum RelayServerCommand {
   CREATE_LOBBY("CreateLobby", 5),
   DISCONNECT_FROM_PEER("DisconnectFromPeer", 0),
   CONNECT_TO_PROXY("ConnectToProxy", 4),
-  JOIN_PROXY("JoinProxy", 4);
+  JOIN_PROXY("JoinProxy", 4),
+  CONNECTIVITY_STATE("ConnectivityState", 2);
 
   private static final Map<String, RelayServerCommand> fromString;
 

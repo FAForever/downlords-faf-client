@@ -4,7 +4,6 @@ import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.map.MapDetailController;
 import com.faforever.client.map.MapService;
@@ -176,8 +175,10 @@ public class GamesController {
     mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getTechnicalName()));
 
     gameInfoBean.technicalNameProperty().addListener((observable, oldValue, newValue) -> {
-      gameTitleLabel.setText(newValue);
-      mapImageView.setImage(mapService.loadLargePreview(newValue));
+      Platform.runLater(() -> {
+        gameTitleLabel.setText(newValue);
+        mapImageView.setImage(mapService.loadLargePreview(newValue));
+      });
     });
 
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
@@ -188,7 +189,6 @@ public class GamesController {
       updateGameType(newValue);
     });
     updateGameType(gameInfoBean.getFeaturedMod());
-
 
     createTeams(gameInfoBean.getTeams());
   }
@@ -203,7 +203,7 @@ public class GamesController {
     teamListPane.getChildren().clear();
     for (Map.Entry<? extends String, ? extends List<String>> entry : playersByTeamNumber.entrySet()) {
       TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
-      boolean teamCardSuccess = teamCardController.setTeam(entry.getValue(), Integer.parseInt(entry.getKey()));
+      boolean teamCardSuccess = teamCardController.setTeam(entry.getValue(), entry.getKey());
       if (teamCardSuccess) {
         teamListPane.getChildren().add(teamCardController.getRoot());
       }
@@ -219,7 +219,7 @@ public class GamesController {
     } else {
       filteredItems.setPredicate(
           OPEN_GAMES_PREDICATE.and(
-              gameInfoBean -> gameInfoBean.getAccess() != GameAccess.PASSWORD)
+              gameInfoBean -> !gameInfoBean.getPasswordProtected())
       );
     }
   }
@@ -250,7 +250,7 @@ public class GamesController {
   private void doJoinGame(GameInfoBean gameInfoBean, String password, double screenX, double screenY) {
     // FIXME check if game path is set
 
-    if (gameInfoBean.getAccess() == GameAccess.PASSWORD && password == null) {
+    if (gameInfoBean.getPasswordProtected() && password == null) {
       enterPasswordController.setGameInfoBean(gameInfoBean);
       passwordPopup.show(gamesRoot.getScene().getWindow(), screenX, screenY);
     } else {

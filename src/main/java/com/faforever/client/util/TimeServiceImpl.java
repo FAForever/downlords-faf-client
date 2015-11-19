@@ -8,12 +8,16 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.Locale;
 import java.util.TimeZone;
 
 public class TimeServiceImpl implements TimeService {
 
   @Autowired
   I18n i18n;
+
+  @Autowired
+  Locale locale;
 
   @Override
   public String timeAgo(Instant instant) {
@@ -66,7 +70,7 @@ public class TimeServiceImpl implements TimeService {
 
   @Override
   public String asShortTime(Instant instant) {
-    return DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).format(
+    return DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale).format(
         ZonedDateTime.ofInstant(instant, TimeZone.getDefault().toZoneId())
     );
   }

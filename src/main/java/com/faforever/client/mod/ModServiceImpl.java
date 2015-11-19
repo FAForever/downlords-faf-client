@@ -74,9 +74,27 @@ public class ModServiceImpl implements ModService {
   }
 
   @PostConstruct
-  void postConstruct() throws IOException, InterruptedException {
+  void postConstruct() {
     modsDirectory = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
-    startDirectoryWatcher(modsDirectory);
+    preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue != null) {
+        onModDirectoryReady();
+      }
+    });
+
+    if (modsDirectory != null) {
+      onModDirectoryReady();
+    }
+  }
+
+  private void onModDirectoryReady() {
+    try {
+      Files.createDirectories(modsDirectory);
+      startDirectoryWatcher(modsDirectory);
+    } catch (IOException | InterruptedException e) {
+      logger.warn("Could not start mod directory watcher", e);
+      // TODO notify user
+    }
     loadInstalledMods();
   }
 
@@ -179,9 +197,8 @@ public class ModServiceImpl implements ModService {
 
   @Override
   public CompletableFuture<List<ModInfoBean>> requestMods() {
-    return lobbyServerAccessor.requestMods().thenApply(modInfos -> {
-      return modInfos.stream().map(ModInfoBean::fromModInfo).collect(Collectors.toList());
-    });
+    return lobbyServerAccessor.requestMods()
+        .thenApply(modInfos -> modInfos.stream().map(ModInfoBean::fromModInfo).collect(Collectors.toList()));
   }
 
   @Override
@@ -213,8 +230,8 @@ public class ModServiceImpl implements ModService {
     modsServerAccessor.connect();
     return modsServerAccessor.searchMod(name)
         .thenApply(modInfos -> modInfos.stream()
-                .map(ModInfoBean::fromModInfo)
-                .collect(Collectors.toList())
+            .map(ModInfoBean::fromModInfo)
+            .collect(Collectors.toList())
         );
   }
 

@@ -10,6 +10,7 @@
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitMenuButton?>
 <?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
@@ -76,14 +77,23 @@
               </children>
             </HBox>
             <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"/>
-            <Button fx:id="notificationsButton" focusTraversable="false" mnemonicParsing="false"
+            <Button fx:id="notificationsButton" contentDisplay="RIGHT" focusTraversable="false" mnemonicParsing="false"
                     onAction="#onNotificationsButtonClicked" styleClass="notification-button" text="0">
               <HBox.margin>
                 <Insets right="10.0"/>
               </HBox.margin>
+              <graphic>
+                <Label contentDisplay="RIGHT" styleClass="fontawesome" text=""/>
+              </graphic>
             </Button>
-            <Button fx:id="usernameButton" focusTraversable="false" minWidth="100.0" mnemonicParsing="false"
-                    onAction="#onUsernameButtonClicked" styleClass="username-button" text="&lt;Username&gt;"/>
+            <Button fx:id="usernameButton" focusTraversable="false" graphicTextGap="10.0" minWidth="100.0"
+                    mnemonicParsing="false" onAction="#onUsernameButtonClicked" styleClass="username-button"
+                    text="&lt;Username&gt;">
+              <graphic>
+                <ImageView fx:id="userImageView" fitHeight="32.0" fitWidth="32.0" pickOnBounds="true"
+                           preserveRatio="true"/>
+              </graphic>
+            </Button>
           </children>
           <padding>
             <Insets bottom="12.0" left="20.0" right="20.0" top="12.0"/>

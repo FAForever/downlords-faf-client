@@ -29,7 +29,7 @@ public class Preferences {
   private final ListProperty<String> ignoredNotifications;
   private final IntegerProperty lastGameMinRating;
   private final IntegerProperty lastGameMaxRating;
-  private Ranked1v1Prefs ranked1v1;
+  private final Ranked1v1Prefs ranked1v1;
 
   public Preferences() {
     chat = new ChatPrefs();

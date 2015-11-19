@@ -1,7 +1,6 @@
 package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.map.MapService;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Joiner;
@@ -93,7 +92,7 @@ public class GameTileController {
       mapImageView.setImage(newImage);
     });
 
-    lockIconLabel.setVisible(gameInfoBean.getAccess() == GameAccess.PASSWORD);
+    lockIconLabel.setVisible(!gameInfoBean.getPasswordProtected());
 
     // TODO move tooltip Y position down 10 pixels
     GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);
@@ -105,9 +104,11 @@ public class GameTileController {
   }
 
   private void displaySimMods(ObservableMap<? extends String, ? extends String> simMods) {
-    String stringSimMods = Joiner.on(i18n.get("textSeparator")).join(simMods.values());
-    modsLabel.setText(stringSimMods);
-    modsLabel.setVisible(!modsLabel.getText().isEmpty());
+    Platform.runLater(() -> {
+      String stringSimMods = Joiner.on(i18n.get("textSeparator")).join(simMods.values());
+      modsLabel.setText(stringSimMods);
+      modsLabel.setVisible(!modsLabel.getText().isEmpty());
+    });
   }
 
   @FXML

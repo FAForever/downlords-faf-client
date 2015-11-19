@@ -12,7 +12,6 @@ public class CommunityHubController {
 
   @FXML
   Node communityHubRoot;
-
   @FXML
   Pane flowPane;
 

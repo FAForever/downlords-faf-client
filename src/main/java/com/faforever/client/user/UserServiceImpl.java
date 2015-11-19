@@ -1,33 +1,35 @@
 package com.faforever.client.user;
 
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.parsecom.CloudService;
-import com.faforever.client.play.PlayServices;
+import com.faforever.client.parsecom.CloudAccessor;
 import com.faforever.client.preferences.PreferencesService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.lang.invoke.MethodHandles;
 import java.util.concurrent.CompletableFuture;
 
 public class UserServiceImpl implements UserService {
 
-  @Autowired
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  @Resource
   LobbyServerAccessor lobbyServerAccessor;
-
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-
   @Resource
-  CloudService cloudService;
-
-  @Resource
-  PlayServices playServices;
+  CloudAccessor cloudAccessor;
 
   private String username;
   private String password;
-  private int uid;
-  private String sessionId;
-  private String email;
+  private Integer uid;
+
+  @PostConstruct
+  void postConstruct() {
+    lobbyServerAccessor.addOnLoggedInListener(loginInfo -> uid = loginInfo.getId());
+  }
 
   @Override
   public CompletableFuture<Void> login(String username, String password, boolean autoLogin) {
@@ -35,19 +37,20 @@ public class UserServiceImpl implements UserService {
         .setUsername(username)
         .setPassword(password)
         .setAutoLogin(autoLogin);
+    preferencesService.storeInBackground();
 
     this.username = username;
     this.password = password;
 
-    preferencesService.storeInBackground();
+    return lobbyServerAccessor.connectAndLogIn(username, password)
+        .thenAccept(loginInfo -> {
+          uid = loginInfo.getId();
 
-    return lobbyServerAccessor.connectAndLogInInBackground()
-        .thenAccept(sessionInfo -> {
-          UserServiceImpl.this.uid = sessionInfo.getId();
-          UserServiceImpl.this.sessionId = sessionInfo.getSession();
-          UserServiceImpl.this.email = sessionInfo.getEmail();
-
-          cloudService.signUpOrLogIn(username, password, email, uid);
+          cloudAccessor.signUpOrLogIn(username, password, uid).thenAccept(s -> {
+          });
+        }).exceptionally(throwable -> {
+          logger.warn("Login failed", throwable);
+          return null;
         });
   }
 
@@ -62,22 +65,12 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public int getUid() {
+  public Integer getUid() {
     return uid;
-  }
-
-  @Override
-  public String getSessionId() {
-    return sessionId;
   }
 
   @Override
   public void cancelLogin() {
     lobbyServerAccessor.disconnect();
-  }
-
-  @Override
-  public String getEmail() {
-    return email;
   }
 }
