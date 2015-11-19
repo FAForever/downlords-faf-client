@@ -473,7 +473,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void getMessageCssClassFriend() {
+  public void getMessageCssClassFriend() throws Exception {
     String playerName = "somePlayer";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
     playerInfoBean.setFriend(true);
@@ -481,7 +481,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void getMessageCssClassFoe() {
+  public void getMessageCssClassFoe() throws Exception {
     String playerName = "somePlayer";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
     playerInfoBean.setFriend(false);
@@ -490,7 +490,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void getMessageCssClassChatOnly() {
+  public void getMessageCssClassChatOnly() throws Exception {
     String playerName = "somePlayer";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
     playerInfoBean.setFriend(false);
@@ -500,7 +500,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void getMessageCssClassSelf() {
+  public void getMessageCssClassSelf() throws Exception {
     String playerName = "junit";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
     playerInfoBean.setFriend(false);
@@ -510,7 +510,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void getMessageCssClassOther() {
+  public void getMessageCssClassOther() throws Exception {
     String playerName = "somePlayer";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
     playerInfoBean.setFriend(false);
@@ -520,7 +520,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void getInlineStyleCustom() {
+  public void getInlineStyleCustom() throws Exception {
     Color color = ColorGeneratorUtil.generateRandomHexColor();
     String colorStyle = instance.createInlineStyleFromHexColor(color);
     ChatUser chatUser = new ChatUser("somePlayer", color);
@@ -535,7 +535,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void getInlineStyleRandomOther() {
+  public void getInlineStyleRandomOther() throws Exception {
     Color color = ColorGeneratorUtil.generateRandomHexColor();
     String colorStyle = instance.createInlineStyleFromHexColor(color);
     ChatUser chatUser = new ChatUser("somePlayer", color);
@@ -550,7 +550,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void getInlineStyleRandomChatOnly() {
+  public void getInlineStyleRandomChatOnly() throws Exception {
     Color color = ColorGeneratorUtil.generateRandomHexColor();
     String colorStyle = instance.createInlineStyleFromHexColor(color);
     ChatUser chatUser = new ChatUser("somePlayer", color);
@@ -565,7 +565,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void getInlineStyleRandomFoeHide() {
+  public void getInlineStyleRandomFoeHide() throws Exception {
     ChatUser chatUser = new ChatUser("somePlayer", null);
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
@@ -578,7 +578,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void getInlineStyleRandomFoeShow() {
+  public void getInlineStyleRandomFoeShow() throws Exception {
     ChatUser chatUser = new ChatUser("somePlayer", null);
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);

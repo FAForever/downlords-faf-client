@@ -4,6 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.JavaFxUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -35,7 +36,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ChannelTabController extends AbstractChatTabController {
 
-  private static final String CSS_CLASS_MODERATOR = "moderator";
+  @VisibleForTesting
+  static final String CSS_CLASS_MODERATOR = "moderator";
   /**
    * Keeps track of which ChatUserControl in which pane belongs to which user.
    */
@@ -317,7 +319,7 @@ public class ChannelTabController extends AbstractChatTabController {
     });
 
     chatUser.colorProperty().addListener((observable, oldValue, newValue) -> {
-      setUserMessageColor(chatUser);
+      Platform.runLater(() -> setUserMessageColor(chatUser));
     });
 
     Collection<Pane> targetPanesForUser = getTargetPanesForUser(playerInfoBean);
