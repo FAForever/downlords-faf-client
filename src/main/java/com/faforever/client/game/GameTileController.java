@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
+import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
@@ -70,15 +71,11 @@ public class GameTileController {
     gameTitleLabel.setText(gameInfoBean.getTitle());
     hostLabel.setText(gameInfoBean.getHost());
 
-    gameMapLabel.setText(gameInfoBean.getTechnicalName());
-    gameInfoBean.technicalNameProperty().addListener(((observable3, oldValue3, newValue3) -> {
-      Platform.runLater(() -> {
-        gameMapLabel.setText(gameInfoBean.getTechnicalName());
-        numberOfPlayersLabel.setText(
-            i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers())
-        );
-      });
-    }));
+    JavaFxUtil.bindOnApplicationThread(gameMapLabel.textProperty(), gameInfoBean::getTechnicalName, gameInfoBean.technicalNameProperty());
+    JavaFxUtil.bindOnApplicationThread(numberOfPlayersLabel.textProperty(), () -> i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()), gameInfoBean.numPlayersProperty());
+    JavaFxUtil.bindOnApplicationThread(mapImageView.imageProperty(), () -> mapService.loadSmallPreview(gameInfoBean.getTechnicalName()), gameInfoBean.technicalNameProperty());
+    JavaFxUtil.bindOnApplicationThread(modsLabel.textProperty(), () -> Joiner.on(i18n.get("textSeparator")).join(gameInfoBean.getSimMods().values()), gameInfoBean.technicalNameProperty());
+    JavaFxUtil.bindOnApplicationThread(modsLabel.visibleProperty(), () -> !gameInfoBean.getSimMods().isEmpty(), gameInfoBean.technicalNameProperty());
 
     numberOfPlayersLabel.setText(i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     gameInfoBean.numPlayersProperty().addListener(((observable3, oldValue3, newValue3) -> {
