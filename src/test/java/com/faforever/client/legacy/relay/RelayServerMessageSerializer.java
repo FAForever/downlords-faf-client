@@ -9,6 +9,6 @@ public class RelayServerMessageSerializer extends JsonMessageSerializer<RelaySer
   protected void addTypeAdapters(GsonBuilder gsonBuilder) {
     super.addTypeAdapters(gsonBuilder);
 
-    gsonBuilder.registerTypeAdapter(RelayServerCommand.class, new RelayServerCommandTypeAdapter());
+    gsonBuilder.registerTypeAdapter(RelayServerCommand.class, RelayServerCommandTypeAdapter.INSTANCE);
   }
 }

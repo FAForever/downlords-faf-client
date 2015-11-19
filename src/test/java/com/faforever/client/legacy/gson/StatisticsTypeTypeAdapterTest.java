@@ -17,7 +17,7 @@ public class StatisticsTypeTypeAdapterTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new StatisticsTypeTypeAdapter();
+    instance = StatisticsTypeTypeAdapter.INSTANCE;
   }
 
   @Test

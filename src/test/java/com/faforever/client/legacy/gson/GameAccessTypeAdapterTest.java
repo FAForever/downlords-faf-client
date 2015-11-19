@@ -18,7 +18,7 @@ public class GameAccessTypeAdapterTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new GameAccessTypeAdapter();
+    instance = GameAccessTypeAdapter.INSTANCE;
   }
 
   @Test

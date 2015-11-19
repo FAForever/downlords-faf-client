@@ -14,6 +14,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +63,20 @@ public class ModDetailController {
     progressBar.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
     progressLabel.managedProperty().bind(progressLabel.visibleProperty());
     progressLabel.visibleProperty().bind(progressBar.visibleProperty());
+
+    modDetailRoot.setOnKeyPressed(keyEvent -> {
+      if (keyEvent.getCode() == KeyCode.ESCAPE){
+        onCloseButtonClicked();
+      }
+    });
+  }
+
+  public void onCloseButtonClicked() {
+    getRoot().setVisible(false);
+  }
+
+  public Node getRoot() {
+    return modDetailRoot;
   }
 
   public void setMod(ModInfoBean mod) {
@@ -134,14 +149,6 @@ public class ModDetailController {
   @FXML
   void onDimmerClicked() {
     onCloseButtonClicked();
-  }
-
-  public void onCloseButtonClicked() {
-    getRoot().setVisible(false);
-  }
-
-  public Node getRoot() {
-    return modDetailRoot;
   }
 
   public void onContentPaneClicked(MouseEvent event) {

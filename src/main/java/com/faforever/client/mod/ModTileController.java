@@ -53,13 +53,6 @@ public class ModTileController {
   private ModInfoBean mod;
   private Consumer<ModInfoBean> onOpenDetailListener;
 
-  @FXML
-  void initialize() {
-    uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
-    installButton.managedProperty().bind(installButton.visibleProperty());
-    progressLayout.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
-  }
-
   public void setMod(ModInfoBean mod) {
     this.mod = mod;
     Image image;

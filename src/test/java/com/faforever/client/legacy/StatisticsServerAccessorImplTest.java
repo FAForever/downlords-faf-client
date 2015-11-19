@@ -80,8 +80,8 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
     WaitForAsyncUtils.async(() -> {
       Gson gson = new GsonBuilder()
-          .registerTypeAdapter(ServerMessageType.class, new ServerMessageTypeTypeAdapter())
-          .registerTypeAdapter(ClientMessageType.class, new ClientMessageTypeTypeAdapter())
+          .registerTypeAdapter(ServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
+          .registerTypeAdapter(ClientMessageType.class, ClientMessageTypeTypeAdapter.INSTANCE)
           .create();
 
       try (Socket socket = fafStatisticsServerSocket.accept()) {

@@ -131,12 +131,12 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     collectedModInfos = new HashSet<>();
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-        .registerTypeAdapter(VictoryCondition.class, new VictoryConditionTypeAdapter())
-        .registerTypeAdapter(GameState.class, new GameStateTypeAdapter())
-        .registerTypeAdapter(GameAccess.class, new GameAccessTypeAdapter())
-        .registerTypeAdapter(ClientMessageType.class, new ClientMessageTypeTypeAdapter())
-        .registerTypeAdapter(StatisticsType.class, new StatisticsTypeTypeAdapter())
-        .registerTypeAdapter(ServerMessageType.class, new ServerMessageTypeTypeAdapter())
+        .registerTypeAdapter(VictoryCondition.class, VictoryConditionTypeAdapter.INSTANCE)
+        .registerTypeAdapter(GameState.class, GameStateTypeAdapter.INSTANCE)
+        .registerTypeAdapter(GameAccess.class, GameAccessTypeAdapter.INSTANCE)
+        .registerTypeAdapter(ClientMessageType.class, ClientMessageTypeTypeAdapter.INSTANCE)
+        .registerTypeAdapter(StatisticsType.class, StatisticsTypeTypeAdapter.INSTANCE)
+        .registerTypeAdapter(ServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
         .create();
   }
 

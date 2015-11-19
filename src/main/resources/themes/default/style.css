@@ -196,6 +196,13 @@
   -fx-font-size: 20px;
 }
 
+
+/***************** Text variations *****************/
+
+.secondary {
+  -fx-text-fill: -fx-dark-text-color;
+}
+
 /***************** Icons (FontAwesome) *****************/
 
 .fontawesome {

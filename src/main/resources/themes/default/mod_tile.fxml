@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressBar?>
@@ -9,9 +8,9 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modTileRoot" prefWidth="200.0" styleClass="tile,pointable"
-          onMouseClicked="#onShowModDetail"
-          xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.mod.ModTileController">
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modTileRoot" onMouseClicked="#onShowModDetail" prefWidth="200.0"
+          styleClass="tile,pointable" xmlns="http://javafx.com/javafx/8.0.40"
+          fx:controller="com.faforever.client.mod.ModTileController">
   <columnConstraints>
     <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
     <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
@@ -28,7 +27,8 @@
                pickOnBounds="true" preserveRatio="true" GridPane.columnSpan="2" GridPane.halignment="CENTER"/>
     <Label fx:id="nameLabel" onMouseClicked="#onShowModDetail" text="Label" GridPane.columnSpan="2147483647"
            GridPane.rowIndex="1"/>
-    <Label fx:id="authorLabel" text="Label" GridPane.columnSpan="2147483647" GridPane.rowIndex="2"/>
+    <Label fx:id="authorLabel" styleClass="secondary" text="Label" GridPane.columnSpan="2147483647"
+           GridPane.rowIndex="2"/>
     <Label fx:id="commentsLabel" text="1" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
       <graphic>
         <Label styleClass="fontawesome" text=""/>
