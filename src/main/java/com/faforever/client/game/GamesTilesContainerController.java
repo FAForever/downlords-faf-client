@@ -31,12 +31,12 @@ public class GamesTilesContainerController {
     gameInfoBeans.forEach(this::addGameCard);
 
     gameInfoBeans.addListener((ListChangeListener<GameInfoBean>) change -> {
-      while (change.next()) {
-        Platform.runLater(() -> {
+      Platform.runLater(() -> {
+        while (change.next()) {
           change.getRemoved().forEach(gameInfoBean -> tiledFlowPane.getChildren().remove(uidToGameCard.get(gameInfoBean.getUid())));
           change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
-        });
-      }
+        }
+      });
     });
   }
 

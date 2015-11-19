@@ -9,6 +9,12 @@ import java.io.IOException;
 
 public class StatisticsTypeTypeAdapter extends TypeAdapter<StatisticsType> {
 
+  public static final StatisticsTypeTypeAdapter INSTANCE = new StatisticsTypeTypeAdapter();
+
+  private StatisticsTypeTypeAdapter() {
+
+  }
+
   @Override
   public void write(JsonWriter out, StatisticsType value) throws IOException {
     if (value == null) {

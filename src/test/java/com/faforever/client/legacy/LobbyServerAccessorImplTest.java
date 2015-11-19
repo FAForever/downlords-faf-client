@@ -5,6 +5,7 @@ import com.faforever.client.legacy.domain.ClientMessageType;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.domain.InitSessionMessage;
+import com.faforever.client.legacy.domain.LoginInfo;
 import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
@@ -68,8 +69,8 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final Gson gson = new GsonBuilder()
       .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-      .registerTypeAdapter(ClientMessageType.class, new ClientMessageTypeTypeAdapter())
-      .registerTypeAdapter(ServerMessageType.class, new ServerMessageTypeTypeAdapter())
+      .registerTypeAdapter(ClientMessageType.class, ClientMessageTypeTypeAdapter.INSTANCE)
+      .registerTypeAdapter(ServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
       .registerTypeAdapter(Faction.class, new FactionDeserializer())
       .create();
 
@@ -165,12 +166,13 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testConnectAndLogInInBackground() throws Exception {
+  public void testConnectAndLogIn() throws Exception {
     int playerUid = 123;
-    String sessionId = "456";
-    String email = "test@example.com";
+    String username = "JunitUser";
+    String password = "JunitPassword";
+    long sessionId = 456;
 
-    CompletableFuture<SessionInfo> sessionInfoFuture = instance.connectAndLogInInBackground();
+    CompletableFuture<LoginInfo> loginFuture = instance.connectAndLogIn(username, password);
 
     String json = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     InitSessionMessage initSessionMessage = gson.fromJson(json, InitSessionMessage.class);
@@ -178,34 +180,31 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     assertThat(initSessionMessage.getCommand(), is(ClientMessageType.ASK_SESSION));
 
     SessionInfo sessionInfo = new SessionInfo();
-    sessionInfo.setId(playerUid);
     sessionInfo.setSession(sessionId);
-
     sendFromServer(sessionInfo);
 
     json = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     LoginMessage loginMessage = gson.fromJson(json, LoginMessage.class);
 
     assertThat(loginMessage.getCommand(), is(ClientMessageType.LOGIN));
-    assertThat(loginMessage.getLogin(), is("junit"));
-    assertThat(loginMessage.getPassword(), is("password"));
+    assertThat(loginMessage.getLogin(), is(username));
+    assertThat(loginMessage.getPassword(), is(password));
     assertThat(loginMessage.getSession(), is(sessionId));
     assertThat(loginMessage.getUniqueId(), is("encrypteduidstring"));
-    assertThat(loginMessage.getVersion(), is(0));
+    assertThat(loginMessage.getVersion(), is("0"));
     assertThat(loginMessage.getUserAgent(), is("downlords-faf-client"));
 
-    sessionInfo = new SessionInfo();
-    sessionInfo.setId(playerUid);
-    sessionInfo.setEmail(email);
+    LoginInfo loginInfo = new LoginInfo();
+    loginInfo.setId(playerUid);
+    loginInfo.setLogin(username);
 
-    sendFromServer(sessionInfo);
+    sendFromServer(loginInfo);
 
-    SessionInfo result = sessionInfoFuture.get(TIMEOUT, TIMEOUT_UNIT);
+    LoginInfo result = loginFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(result.getServerMessageType(), is(ServerMessageType.WELCOME));
     assertThat(result.getId(), is(playerUid));
-    assertThat(result.getSession(), is(sessionId));
-    assertThat(result.getEmail(), is(email));
+    assertThat(result.getLogin(), is(username));
   }
 
   /**
@@ -254,26 +253,24 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     assertThat(result.getOptions(), is(options));
   }
 
-  private void connectAndLogIn() throws InterruptedException {
-    CountDownLatch connectedLatch = new CountDownLatch(1);
-
-    instance.connectAndLogInInBackground().thenRun(connectedLatch::countDown);
+  private void connectAndLogIn() throws Exception {
+    CompletableFuture<LoginInfo> loginFuture = instance.connectAndLogIn("JUnit", "JUnitPassword");
 
     assertNotNull(messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT));
 
     SessionInfo sessionInfo = new SessionInfo();
-    sessionInfo.setSession("5678");
-
+    sessionInfo.setSession(5678);
     sendFromServer(sessionInfo);
 
     assertNotNull(messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT));
 
-    sessionInfo = new SessionInfo();
-    sessionInfo.setEmail("junit@example.com");
+    LoginInfo loginInfo = new LoginInfo();
+    loginInfo.setId(123);
+    loginInfo.setLogin("JUnitUser");
 
-    sendFromServer(sessionInfo);
+    sendFromServer(loginInfo);
 
-    assertTrue(connectedLatch.await(TIMEOUT, TIMEOUT_UNIT));
+    assertNotNull(loginFuture.get(TIMEOUT, TIMEOUT_UNIT));
   }
 
   @Test

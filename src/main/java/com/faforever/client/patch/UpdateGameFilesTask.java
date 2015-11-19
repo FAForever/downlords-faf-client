@@ -182,7 +182,12 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
     String modPath = updateServerAccessor.requestSimPath(uid).get(TIMEOUT, TIMEOUT_UNIT);
     URL url = new URL(environment.getProperty("vault.modRoot") + urlPathSegmentEscaper().escape(modPath.replace("mods/", "")));
 
-    modService.downloadAndInstallMod(url).get();
+    modService.downloadAndInstallMod(url)
+        .exceptionally(throwable -> {
+          logger.warn("Mod '" + uid + "' could not be downloaded", throwable);
+          return null;
+        })
+        .get();
 
     updateServerAccessor.incrementModDownloadCount(uid);
   }

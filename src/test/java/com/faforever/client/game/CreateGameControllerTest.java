@@ -198,12 +198,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     listener.onChanged(change);
   }
 
-  //TODO implement
-  @Test
-  public void testInitGameTypeComboBoxPrePopulated() throws Exception {
-  }
-
-  //FIXME fix this
+  // FIXME fix this
   @Test
   public void testSelectLastOrDefaultSelectDefault() throws Exception {
     GameTypeBean gameTypeBean = mock(GameTypeBean.class);

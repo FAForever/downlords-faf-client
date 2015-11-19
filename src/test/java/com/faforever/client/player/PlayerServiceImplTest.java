@@ -33,6 +33,7 @@ public class PlayerServiceImplTest {
   LobbyServerAccessor lobbyServerAccessor;
   @Mock
   UserService userService;
+  
   private PlayerServiceImpl instance;
 
   @Before
@@ -49,9 +50,9 @@ public class PlayerServiceImplTest {
   public void testInit() throws Exception {
     instance.init();
 
-    verify(instance.lobbyServerAccessor).setOnPlayerInfoMessageListener(any(OnPlayerInfoListener.class));
-    verify(instance.lobbyServerAccessor).setOnFoeListListener(any(OnFoeListListener.class));
-    verify(instance.lobbyServerAccessor).setOnFriendListListener(any(OnFriendListListener.class));
+    verify(lobbyServerAccessor).setOnPlayerInfoMessageListener(any(OnPlayerInfoListener.class));
+    verify(lobbyServerAccessor).setOnFoeListListener(any(OnFoeListListener.class));
+    verify(lobbyServerAccessor).setOnFriendListListener(any(OnFriendListListener.class));
   }
 
   @Test
@@ -114,7 +115,7 @@ public class PlayerServiceImplTest {
     instance.addFriend("lisa");
     instance.addFriend("ashley");
 
-    verify(instance.lobbyServerAccessor, times(2)).setFriends(eq(Arrays.asList("lisa", "ashley")));
+    verify(lobbyServerAccessor, times(2)).setFriends(eq(Arrays.asList("lisa", "ashley")));
     assertTrue("Property 'friend' was not set to true", lisa.getFriend());
     assertTrue("Property 'friend' was not set to true", ashley.getFriend());
   }
@@ -134,15 +135,14 @@ public class PlayerServiceImplTest {
     PlayerInfoBean player1 = instance.registerAndGetPlayerForUsername("player1");
     PlayerInfoBean player2 = instance.registerAndGetPlayerForUsername("player2");
 
-    // TODO check if this mockito usage is correct
     instance.addFriend("player1");
-    verify(instance.lobbyServerAccessor).setFriends(eq(singletonList("player1")));
+    verify(lobbyServerAccessor).setFriends(eq(singletonList("player1")));
 
     instance.addFriend("player2");
-    verify(instance.lobbyServerAccessor, times(2)).setFriends(eq(Arrays.asList("player1", "player2")));
+    verify(lobbyServerAccessor, times(2)).setFriends(eq(Arrays.asList("player1", "player2")));
 
     instance.removeFriend("player1");
-    verify(instance.lobbyServerAccessor, times(3)).setFriends(eq(singletonList("player2")));
+    verify(lobbyServerAccessor, times(3)).setFriends(eq(singletonList("player2")));
 
     assertFalse("Property 'friend' was not set to false", player1.getFriend());
     assertTrue("Property 'friend' was not set to true", player2.getFriend());
@@ -156,7 +156,7 @@ public class PlayerServiceImplTest {
     instance.addFoe("player1");
     instance.addFoe("player2");
 
-    verify(instance.lobbyServerAccessor, times(2)).setFoes(Arrays.asList("player1", "player2"));
+    verify(lobbyServerAccessor, times(2)).setFoes(Arrays.asList("player1", "player2"));
     assertTrue("Property 'foe' was not set to true", player1.getFoe());
     assertTrue("Property 'foe' was not set to true", player2.getFoe());
   }

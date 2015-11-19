@@ -3,6 +3,8 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.game.PlayerCardTooltipController;
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -57,40 +59,34 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   public TemporaryFolder tempDir = new TemporaryFolder();
 
   @Mock
-  ChatService chatService;
-
+  private ChatService chatService;
   @Mock
-  UserService userService;
-
+  private UserService userService;
   @Mock
-  PreferencesService preferencesService;
-
+  private PreferencesService preferencesService;
   @Mock
-  Preferences preferences;
-
+  private Preferences preferences;
   @Mock
-  ChatPrefs chatPrefs;
-
+  private ChatPrefs chatPrefs;
   @Mock
-  PlayerService playerService;
-
+  private PlayerService playerService;
   @Mock
   PlayerCardTooltipController playerCardTooltipController;
 
   @Mock
-  HostService hostService;
-
+  private HostService hostService;
   @Mock
-  UrlPreviewResolver urlPreviewResolver;
-
+  private UrlPreviewResolver urlPreviewResolver;
   @Mock
-  TimeService timeService;
-
+  private TimeService timeService;
   @Mock
-  AudioController audioController;
-
+  private AudioController audioController;
   @Mock
-  ImageUploadService imageUploadService;
+  private ImageUploadService imageUploadService;
+  @Mock
+  private I18n i18n;
+  @Mock
+  private NotificationService notificationService;
 
   private AbstractChatTabController instance;
   private CountDownLatch chatReadyLatch;
@@ -129,6 +125,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.timeService = timeService;
     instance.audioController = audioController;
     instance.imageUploadService = imageUploadService;
+    instance.notificationService = notificationService;
+    instance.i18n = i18n;
 
     TabPane tabPane = new TabPane(instance.getRoot());
     getRoot().getChildren().setAll(tabPane);

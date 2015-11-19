@@ -5,6 +5,7 @@ import java.util.Map;
 
 public enum ServerMessageType {
   WELCOME("welcome"),
+  SESSION("session"),
   GAME_INFO("game_info"),
   PLAYER_INFO("player_info"),
   GAME_LAUNCH("game_launch"),
@@ -14,6 +15,7 @@ public enum ServerMessageType {
   MOD_VAULT_INFO("modvault_info"),
   SOCIAL("social"),
   STATS("stats"),
+  UPDATED_ACHIEVEMENTS("updated_achievements"),
   MOD_RESULT_LIST("modvault_list_info");
 
   private static final Map<String, ServerMessageType> fromString;

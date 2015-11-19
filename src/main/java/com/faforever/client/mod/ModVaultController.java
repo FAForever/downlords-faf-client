@@ -13,10 +13,13 @@ import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -25,7 +28,9 @@ import java.util.stream.Collectors;
 
 public class ModVaultController {
 
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int TOP_ELEMENT_COUNT = 7;
+
   @FXML
   Pane searchResultGroup;
   @FXML
@@ -116,7 +121,12 @@ public class ModVaultController {
   }
 
   public void setUpIfNecessary() {
-    modService.requestMods().thenAccept(this::displayShowroomMods);
+    modService.requestMods()
+        .thenAccept(this::displayShowroomMods)
+        .exceptionally(throwable -> {
+          logger.warn("Mods could not be loaded", throwable);
+          return null;
+        });
   }
 
   @FXML
@@ -131,8 +141,6 @@ public class ModVaultController {
       onResetButtonClicked();
       return;
     }
-
-    // TODO waiting for server response
 
     modService.searchMod(searchTextField.getText())
         .thenAccept(this::displaySearchResult)

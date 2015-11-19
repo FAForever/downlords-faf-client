@@ -14,7 +14,7 @@ public class ServerMessageSerializer extends JsonMessageSerializer<ServerMessage
   protected void addTypeAdapters(GsonBuilder gsonBuilder) {
     super.addTypeAdapters(gsonBuilder);
 
-    gsonBuilder.registerTypeAdapter(ServerMessageType.class, new ServerMessageTypeTypeAdapter());
-    gsonBuilder.registerTypeAdapter(StatisticsType.class, new StatisticsTypeTypeAdapter());
+    gsonBuilder.registerTypeAdapter(ServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE);
+    gsonBuilder.registerTypeAdapter(StatisticsType.class, StatisticsTypeTypeAdapter.INSTANCE);
   }
 }

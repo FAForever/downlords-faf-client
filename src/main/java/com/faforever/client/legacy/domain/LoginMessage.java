@@ -7,13 +7,13 @@ public class LoginMessage extends ClientMessage {
 
   private String login;
   private String password;
-  private String session;
+  private long session;
   private String uniqueId;
   private String localIp;
-  private Integer version;
+  private String version;
   private String userAgent;
 
-  public LoginMessage(String username, String password, String session, String uniqueId, String localIp, int version) {
+  public LoginMessage(String username, String password, long session, String uniqueId, String localIp, String version) {
     super(ClientMessageType.LOGIN);
     this.setLogin(username);
     this.setPassword(password);
@@ -45,11 +45,11 @@ public class LoginMessage extends ClientMessage {
     this.login = login;
   }
 
-  public String getSession() {
+  public long getSession() {
     return session;
   }
 
-  public void setSession(String session) {
+  public void setSession(long session) {
     this.session = session;
   }
 
@@ -69,11 +69,11 @@ public class LoginMessage extends ClientMessage {
     this.localIp = localIp;
   }
 
-  public Integer getVersion() {
+  public String getVersion() {
     return version;
   }
 
-  public void setVersion(Integer version) {
+  public void setVersion(String version) {
     this.version = version;
   }
 

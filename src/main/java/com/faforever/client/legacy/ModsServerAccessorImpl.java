@@ -52,7 +52,7 @@ public class ModsServerAccessorImpl extends AbstractServerAccessor implements Mo
 
   public ModsServerAccessorImpl() {
     gson = new GsonBuilder()
-        .registerTypeAdapter(ServerMessageType.class, new ServerMessageTypeTypeAdapter())
+        .registerTypeAdapter(ServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
         .create();
   }
 

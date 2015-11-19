@@ -17,7 +17,7 @@ public class LobbyActionTypeAdapterTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new RelayServerActionTypeAdapter();
+    instance = RelayServerActionTypeAdapter.INSTANCE;
   }
 
   @Test
@@ -46,19 +46,17 @@ public class LobbyActionTypeAdapterTest {
     assertEquals(LobbyAction.CHAT, lobbyAction);
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testReadNullThrowsIae() throws Exception {
+  public void testReadNullReturnsNull() throws Exception {
     JsonReader in = mock(JsonReader.class);
     when(in.nextString()).thenReturn(null);
 
-    instance.read(in);
+    assertNull(instance.read(in));
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testReadGibberishThrowsIae() throws Exception {
+  public void testReadGibberishReturnsNull() throws Exception {
     JsonReader in = mock(JsonReader.class);
     when(in.nextString()).thenReturn("gibberish");
 
-    instance.read(in);
+    assertNull(instance.read(in));
   }
 }

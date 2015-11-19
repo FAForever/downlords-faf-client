@@ -217,6 +217,10 @@
   -fx-font-size: 20px;
 }
 
+.h3 {
+  -fx-font-weight: 700;
+}
+
 /***************** Icons (FontAwesome) *****************/
 
 .fontawesome {
@@ -601,7 +605,6 @@
 /***************** Notification button *****************/
 
 .notification-button {
-  -fx-min-width: 2.5em;
   -fx-min-height: 2.5em;
 }
 
@@ -702,6 +705,14 @@
   -fx-font-size: 1.5em;
 }
 
+.popup.transient-notification {
+  -fx-background-color: transparent;
+}
+
+.transient-notification {
+  -fx-background-color: -fx-background;
+}
+
 /***************** Tabs *****************/
 
 .tab-header-background {
@@ -790,6 +801,18 @@
 
 .comment-card {
   -fx-background-color: -fx-control-inner-background-alt;
+}
+
+/***************** Tiles *****************/
+
+.tile {
+  -fx-background-color: -fx-tile-background;
+  -fx-border-width: 1;
+  -fx-border-color: -fx-box-border;
+  -fx-padding: 10;
+  -fx-spacing: 10;
+  -fx-hgap: 10;
+  -fx-vgap: 10;
 }
 
 /***************** Game Tile *****************/
@@ -994,6 +1017,7 @@
 .user-menu-root {
   -fx-background-color: -fx-background;
   -fx-border-color: -fx-box-border;
+  -fx-min-width: 400px;
 }
 
 .logout-icon {
@@ -1008,16 +1032,6 @@
 }
 
 .ranked1v1-flow-pane * {
-  -fx-spacing: 10;
-  -fx-hgap: 10;
-  -fx-vgap: 10;
-}
-
-.ranked1v1-flow-pane .tile {
-  -fx-background-color: -fx-tile-background;
-  -fx-border-width: 1;
-  -fx-border-color: -fx-box-border;
-  -fx-padding: 10;
   -fx-spacing: 10;
   -fx-hgap: 10;
   -fx-vgap: 10;
@@ -1038,20 +1052,15 @@
 
 /***************** Mod vault *****************/
 
-.mod-vault .tile {
-  -fx-background-color: -fx-tile-background;
-  -fx-border-width: 1;
-  -fx-border-color: -fx-box-border;
-  -fx-padding: 10;
-  -fx-spacing: 10;
-  -fx-hgap: 10;
-  -fx-vgap: 10;
-}
-
 .mod-vault .tile:hover {
   -fx-background-color: -fx-transparent-hover;
   -fx-color: -fx-hover-base;
   -fx-text-fill: -fx-light-text-color;
 }
 
+/***************** Achievements *****************/
 
+.achievement-title {
+  -fx-font-size: 1.2em;
+  -fx-font-weight: bold;
+}

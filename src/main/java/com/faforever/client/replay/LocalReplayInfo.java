@@ -1,7 +1,6 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.game.GameInfoBean;
-import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.VictoryCondition;
 import javafx.collections.ObservableList;
@@ -17,7 +16,6 @@ public class LocalReplayInfo {
   private String host;
   private Integer uid;
   private String title;
-  private GameAccess access;
   private String mapname;
   private GameState state;
   private Boolean[] options;
@@ -39,7 +37,6 @@ public class LocalReplayInfo {
     host = gameInfoBean.getHost();
     uid = gameInfoBean.getUid();
     title = gameInfoBean.getTitle();
-    access = gameInfoBean.getAccess();
     mapname = gameInfoBean.getMapTechnicalName();
     state = gameInfoBean.getStatus();
     gameType = gameInfoBean.getVictoryCondition();
@@ -76,14 +73,6 @@ public class LocalReplayInfo {
 
   public void setTitle(String title) {
     this.title = title;
-  }
-
-  public GameAccess getAccess() {
-    return access;
-  }
-
-  public void setAccess(GameAccess access) {
-    this.access = access;
   }
 
   public String getMapname() {

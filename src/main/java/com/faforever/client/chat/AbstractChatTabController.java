@@ -5,9 +5,15 @@ import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ByteCopier;
@@ -55,6 +61,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -119,6 +126,11 @@ public abstract class AbstractChatTabController {
   UrlPreviewResolver urlPreviewResolver;
   @Autowired
   ChatController chatController;
+  @Autowired
+  NotificationService notificationService;
+  @Autowired
+  ReportingService reportingService;
+
   private boolean isChatReady;
   private WebEngine engine;
   private double lastMouseX;
@@ -470,8 +482,13 @@ public abstract class AbstractChatTabController {
       messageTextField.requestFocus();
       onChatMessage(new ChatMessage(Instant.now(), userService.getUsername(), message));
     }).exceptionally(throwable -> {
-      // TODO display error to user somehow
       logger.warn("Message could not be sent: {}", text, throwable);
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("errorTitle"), i18n.get("chat.sendFailed"), Severity.ERROR, throwable, Arrays.asList(
+          new ReportAction(i18n, reportingService, throwable),
+          new DismissAction(i18n))
+      ));
+
       messageTextField.setDisable(false);
       messageTextField.requestFocus();
       return null;
@@ -534,8 +551,6 @@ public abstract class AbstractChatTabController {
   }
 
   private void appendMessage(ChatMessage chatMessage) {
-    String timeString = timeService.asShortTime(chatMessage.getTime());
-
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getUsername());
 
     try (Reader reader = new InputStreamReader(MESSAGE_ITEM_HTML_RESOURCE.getInputStream())) {
@@ -562,6 +577,7 @@ public abstract class AbstractChatTabController {
         }
       }
 
+      String timeString = timeService.asShortTime(chatMessage.getTime());
       html = html.replace("{time}", timeString)
           .replace("{avatar}", StringUtils.defaultString(avatarUrl))
           .replace("{username}", login)

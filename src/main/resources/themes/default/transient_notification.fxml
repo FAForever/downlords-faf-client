@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import java.lang.String?>
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="transientNotificationRoot" alignment="TOP_CENTER"
+           maxHeight="-Infinity" minHeight="0.0" opacity="0.9" prefHeight="104.0" styleClass="transient-notification"
+           xmlns="http://javafx.com/javafx/8.0.40"
+           fx:controller="com.faforever.client.notification.TransientNotificationController">
+  <children>
+    <GridPane hgap="20.0" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="104.0" vgap="10.0">
+      <columnConstraints>
+        <ColumnConstraints hgrow="NEVER"/>
+        <ColumnConstraints hgrow="ALWAYS"/>
+      </columnConstraints>
+      <rowConstraints>
+        <RowConstraints vgrow="NEVER"/>
+        <RowConstraints vgrow="ALWAYS"/>
+      </rowConstraints>
+      <children>
+        <ImageView fx:id="imageView" fitHeight="64.0" fitWidth="64.0" pickOnBounds="true" preserveRatio="true"
+                   GridPane.rowSpan="2147483647"/>
+        <Label fx:id="titleLabel" styleClass="h3" text="&lt;Title&gt;" GridPane.columnIndex="1"/>
+        <Label fx:id="messageLabel" text="&lt;Message&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1"
+               GridPane.valignment="TOP"/>
+      </children>
+      <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+      </padding>
+    </GridPane>
+    <Button focusTraversable="false" onAction="#onCloseButtonClicked" StackPane.alignment="TOP_RIGHT">
+      <styleClass>
+        <String fx:value="window-button"/>
+        <String fx:value="close-button"/>
+      </styleClass>
+    </Button>
+  </children>
+</StackPane>

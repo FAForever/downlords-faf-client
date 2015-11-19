@@ -1,7 +1,7 @@
 package com.faforever.client.util;
 
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.legacy.domain.Player;
 import com.faforever.client.stats.RatingInfo;
 
 import java.util.regex.Matcher;
@@ -39,12 +39,12 @@ public final class RatingUtil {
     return getRating(playerInfoBean.getLeaderboardRatingMean(), playerInfoBean.getLeaderboardRatingDeviation());
   }
 
-  public static int getGlobalRating(PlayerInfo playerInfo) {
-    return getRating(playerInfo.getRatingMean(), playerInfo.getRatingDeviation());
+  public static int getGlobalRating(Player player) {
+    return getRating(player.getRatingMean(), player.getRatingDeviation());
   }
 
-  public static int getLeaderboardRating(PlayerInfo playerInfo) {
-    return getRating(playerInfo.getLadderRatingMean(), playerInfo.getLadderRatingDeviation());
+  public static int getLeaderboardRating(Player player) {
+    return getRating(player.getLadderRatingMean(), player.getLadderRatingDeviation());
   }
 
   public static int getRating(RatingInfo ratingInfo) {

@@ -6,7 +6,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
-import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -18,8 +17,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.concurrent.CompletableFuture;
 
 import static java.util.Collections.singletonList;
 
@@ -107,14 +104,14 @@ public class ModDetailController {
   void onInstallButtonClicked() {
     installButton.setVisible(false);
 
-    CompletableFuture<Void> future = modService.downloadAndInstallMod(mod, progressBar.progressProperty(), progressLabel.textProperty());
-    future.exceptionally(throwable -> {
-      notificationService.addNotification(new ImmediateNotification(
-          i18n.get("errorTitle"),
-          i18n.get("modVault.installationFailed", mod.getName(), throwable.getLocalizedMessage()),
-          Severity.ERROR, throwable, singletonList(new ReportAction(i18n, reportingService, throwable))));
-      return null;
-    });
+    modService.downloadAndInstallMod(mod, progressBar.progressProperty(), progressLabel.textProperty())
+        .exceptionally(throwable -> {
+          notificationService.addNotification(new ImmediateNotification(
+              i18n.get("errorTitle"),
+              i18n.get("modVault.installationFailed", mod.getName(), throwable.getLocalizedMessage()),
+              Severity.ERROR, throwable, singletonList(new ReportAction(i18n, reportingService, throwable))));
+          return null;
+        });
   }
 
   @FXML

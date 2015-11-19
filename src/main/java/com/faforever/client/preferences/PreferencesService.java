@@ -108,10 +108,10 @@ public class PreferencesService {
     timer = new Timer("PrefTimer", true);
     gson = new GsonBuilder()
         .setPrettyPrinting()
-        .registerTypeHierarchyAdapter(Property.class, new PropertyTypeAdapter())
-        .registerTypeHierarchyAdapter(Path.class, new PathTypeAdapter())
+        .registerTypeHierarchyAdapter(Property.class, PropertyTypeAdapter.INSTANCE)
+        .registerTypeHierarchyAdapter(Path.class, PathTypeAdapter.INSTANCE)
         .registerTypeHierarchyAdapter(Color.class, new ColorTypeAdapter())
-        .registerTypeAdapter(Faction.class, new FactionTypeAdapter())
+        .registerTypeAdapter(Faction.class, FactionTypeAdapter.INSTANCE)
         .create();
   }
 
@@ -315,7 +315,7 @@ public class PreferencesService {
   }
 
   public Path getFafLogDirectory() {
-    return getFafDataDirectory().resolve("log");
+    return getFafDataDirectory().resolve("logs");
   }
 
   public static void configureLogging() {

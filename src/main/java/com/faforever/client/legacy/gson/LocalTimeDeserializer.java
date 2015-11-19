@@ -10,7 +10,12 @@ import java.time.format.DateTimeFormatter;
 
 public class LocalTimeDeserializer implements JsonDeserializer<LocalTime> {
 
+  public static final LocalTimeDeserializer INSTANCE = new LocalTimeDeserializer();
   private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+
+  private LocalTimeDeserializer() {
+
+  }
 
   @Override
   public LocalTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {

@@ -6,20 +6,22 @@ import java.util.Map;
 public class GameInfo extends ServerMessage {
 
   private String host;
-  private Integer uid;
-  private String title;
-  private GameAccess access;
-  private String mapname;
+  private Boolean passwordProtected;
+  // TODO use enum
+  private String visibility;
   private GameState state;
-  private Boolean[] options;
-  // FAF calls this "game_type" but it's actually the victory condition.
-  private VictoryCondition gameType;
-  private String featuredMod;
-  private Integer maxPlayers;
   private Integer numPlayers;
-  private Map<String, String> simMods;
+  private Boolean[] options;
   private Map<String, List<String>> teams;
   private Map<String, Integer> featuredModVersions;
+  private String featuredMod;
+  private Integer uid;
+  private Integer maxPlayers;
+  private String title;
+  // FAF calls this "game_type" but it's actually the victory condition.
+  private VictoryCondition gameType;
+  private Map<String, String> simMods;
+  private String mapFilePath;
 
   @Override
   public String toString() {
@@ -62,20 +64,12 @@ public class GameInfo extends ServerMessage {
     this.host = host;
   }
 
-  public GameAccess getAccess() {
-    return access;
+  public String getMapFilePath() {
+    return mapFilePath;
   }
 
-  public void setAccess(GameAccess access) {
-    this.access = access;
-  }
-
-  public String getMapname() {
-    return mapname;
-  }
-
-  public void setMapname(String mapname) {
-    this.mapname = mapname;
+  public void setMapFilePath(String mapFilePath) {
+    this.mapFilePath = mapFilePath;
   }
 
   public Boolean[] getOptions() {
@@ -140,5 +134,13 @@ public class GameInfo extends ServerMessage {
 
   public void setFeaturedModVersions(Map<String, Integer> featuredModVersions) {
     this.featuredModVersions = featuredModVersions;
+  }
+
+  public Boolean getPasswordProtected() {
+    return passwordProtected;
+  }
+
+  public void setPasswordProtected(Boolean passwordProtected) {
+    this.passwordProtected = passwordProtected;
   }
 }

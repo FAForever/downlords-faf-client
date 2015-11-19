@@ -166,7 +166,7 @@ public class ProxyImpl implements Proxy {
       iterator.remove();
     }
     if (fafProxySocket != null) {
-      logger.debug("Closing connection FAF proxy");
+      logger.info("Closing connection FAF proxy");
       fafProxySocket.close();
     }
   }
@@ -307,7 +307,7 @@ public class ProxyImpl implements Proxy {
       protected Void call() throws Exception {
         ensureFafProxyConnection();
 
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[8092];
         DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
 
         while (!isCancelled()) {
@@ -316,7 +316,7 @@ public class ProxyImpl implements Proxy {
 
             logger.trace("Received {} bytes from FA for player #{}, forwarding to FAF proxy", datagramPacket.getLength(), playerNumber);
           } catch (SocketException | EOFException e) {
-            logger.info("Proxy socket for player #{} has been closed ({})", e.getMessage());
+            logger.info("Proxy socket for player #{} has been closed ({})", playerNumber, e.getMessage());
             return null;
           }
 
@@ -390,8 +390,8 @@ public class ProxyImpl implements Proxy {
       protected Void call() throws Exception {
         int port = preferencesService.getPreferences().getForgedAlliance().getPort();
 
-        byte[] payloadBuffer = new byte[1024];
-        byte[] datagramBuffer = new byte[1024];
+        byte[] payloadBuffer = new byte[8192];
+        byte[] datagramBuffer = new byte[8192];
         DatagramPacket datagramPacket = new DatagramPacket(datagramBuffer, datagramBuffer.length);
         datagramPacket.setSocketAddress(new InetSocketAddress(localInetAddr, port));
 
@@ -416,7 +416,7 @@ public class ProxyImpl implements Proxy {
             proxySocket.send(datagramPacket);
           }
         } catch (SocketException | EOFException e) {
-          logger.debug("Connection closed");
+          logger.debug("Connection closed ({})", e.getMessage());
         }
         return null;
       }

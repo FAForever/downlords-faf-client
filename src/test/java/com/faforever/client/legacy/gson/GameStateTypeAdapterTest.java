@@ -17,7 +17,7 @@ public class GameStateTypeAdapterTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new GameStateTypeAdapter();
+    instance = GameStateTypeAdapter.INSTANCE;
   }
 
   @Test

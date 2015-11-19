@@ -48,7 +48,7 @@ import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
 import com.faforever.client.main.UserMenuController;
 import com.faforever.client.map.CommentCardController;
-import com.faforever.client.map.MapPreviewLargeController;
+import com.faforever.client.map.MapDetailController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModDetailController;
 import com.faforever.client.mod.ModTileController;
@@ -58,9 +58,12 @@ import com.faforever.client.news.NewsListItemController;
 import com.faforever.client.notification.ImmediateNotificationController;
 import com.faforever.client.notification.PersistentNotificationController;
 import com.faforever.client.notification.PersistentNotificationsController;
+import com.faforever.client.notification.TransientNotificationController;
+import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.rankedmatch.Ranked1v1Controller;
 import com.faforever.client.replay.ReplayVaultController;
+import com.faforever.client.user.AchievementItemController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -128,7 +131,7 @@ public class UiConfig {
   }
 
   @Bean
-  MapPreviewLargeController mapPreviewLargeController() {
+  MapDetailController mapPreviewLargeController() {
     return loadController("map_preview_large.fxml");
   }
 
@@ -260,8 +263,13 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    // TODO @mj: naming consistency
-  NewsListItemController newsTileController() {
+  AchievementItemController achievementItemController() {
+    return loadController("achievement_item.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  NewsListItemController newsListItemController() {
     return loadController("news_list_item.fxml");
   }
 
@@ -363,5 +371,16 @@ public class UiConfig {
   @Bean
   UrlPreviewResolver urlPreviewResolver() {
     return new UrlPreviewResolverImpl();
+  }
+
+  @Bean
+  TransientNotificationsController transientNotificationsController() {
+    return loadController("transient_notifications.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  TransientNotificationController transientNotificationController() {
+    return loadController("transient_notification.fxml");
   }
 }

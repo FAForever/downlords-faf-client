@@ -21,8 +21,6 @@ public interface GameService {
 
   void addOnGameInfoBeanListener(ListChangeListener<GameInfoBean> listener);
 
-  void publishPotentialPlayer();
-
   CompletableFuture<Void> hostGame(NewGameInfo name);
 
   CompletableFuture<Void> joinGame(GameInfoBean gameInfoBean, String password);

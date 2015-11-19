@@ -18,12 +18,10 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdateService;
-import com.faforever.client.play.PlayServices;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
-import com.faforever.client.user.UserService;
-import com.faforever.client.util.ConcurrentUtil;
+import com.faforever.client.relay.LocalRelayServer;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
@@ -33,7 +31,6 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.concurrent.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -46,9 +43,7 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -70,6 +65,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnGameInfoListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   private final Collection<OnGameStartedListener> onGameLaunchingListeners;
   private final ObservableMap<String, GameTypeBean> gameTypeBeans;
   // It is indeed ugly to keep references in both, a list and a map, however I don't see how I can populate the map
@@ -79,8 +75,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   @Autowired
   LobbyServerAccessor lobbyServerAccessor;
-  @Autowired
-  UserService userService;
   @Autowired
   ForgedAllianceService forgedAllianceService;
   @Autowired
@@ -104,8 +98,9 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   @Autowired
   PlayerService playerService;
   @Autowired
-  PlayServices playServices;
-
+  LocalRelayServer localRelayServer;
+  @VisibleForTesting
+  RatingMode ratingMode;
   private Process process;
   private BooleanProperty searching1v1;
   private Instant gameStartedTime;
@@ -125,13 +120,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   @Override
   public void addOnGameInfoBeanListener(ListChangeListener<GameInfoBean> listener) {
     gameInfoBeans.addListener(listener);
-  }
-
-  @Override
-  public void publishPotentialPlayer() {
-    String username = userService.getUsername();
-    // FIXME implement
-//    serverAccessor.publishPotentialPlayer(username);
   }
 
   @Override
@@ -173,7 +161,11 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     return updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
         .thenRun(() -> downloadMapIfNecessary(gameInfoBean.getMapTechnicalName())
             .thenRun(() -> lobbyServerAccessor.requestJoinGame(gameInfoBean, password)
-                .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL))));
+                .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL))))
+        .exceptionally(throwable -> {
+          logger.warn("Game could not be started", throwable);
+          return null;
+        });
   }
 
   private CompletionStage<Void> downloadMapIfNecessary(String mapName) {
@@ -210,7 +202,8 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
           try {
             Process process = forgedAllianceService.startReplay(path, replayId, gameType);
             onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
-            spawnTerminationListener(process, RatingMode.NONE);
+            this.ratingMode = RatingMode.NONE;
+            spawnTerminationListener(process);
           } catch (IOException e) {
             notifyCantPlayReplay(replayId, e);
           }
@@ -236,10 +229,9 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     //downloadMapIfNecessary(map);
     Process process = forgedAllianceService.startReplay(replayUrl, replayId, gameType);
     onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
-    // TODO is this needed when watching a replay?
-    lobbyServerAccessor.notifyGameStarted();
 
-    spawnTerminationListener(process, RatingMode.NONE);
+    this.ratingMode = RatingMode.NONE;
+    spawnTerminationListener(process);
   }
 
   @Override
@@ -330,16 +322,14 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   private void startGame(GameLaunchInfo gameLaunchInfo, Faction faction, RatingMode ratingMode) {
-    gameStartedTime = Instant.now();
-
     stopSearchRanked1v1();
     List<String> args = fixMalformedArgs(gameLaunchInfo.getArgs());
     try {
       process = forgedAllianceService.startGame(gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), faction, args, ratingMode);
       onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(gameLaunchInfo.getUid()));
-      lobbyServerAccessor.notifyGameStarted();
 
-      spawnTerminationListener(process, ratingMode);
+      this.ratingMode = ratingMode;
+      spawnTerminationListener(process);
     } catch (IOException e) {
       logger.warn("Game could not be started", e);
       notificationService.addNotification(
@@ -364,50 +354,35 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @VisibleForTesting
-  void spawnTerminationListener(Process process, RatingMode ratingMode) {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
+  void spawnTerminationListener(Process process) {
+    CompletableFuture.runAsync(() -> {
+      try {
         int exitCode = process.waitFor();
         logger.info("Forged Alliance terminated with exit code {}", exitCode);
+
         proxy.close();
-
-        recordGamePlayedIfApplicable(ratingMode);
-
-        lobbyServerAccessor.notifyGameTerminated();
-        return null;
+      } catch (InterruptedException | IOException e) {
+        logger.warn("Error during post-game processing", e);
       }
-    });
-  }
-
-  private void recordGamePlayedIfApplicable(RatingMode ratingMode) throws IOException {
-    if (ratingMode != null && gameStartedTime != null) {
-      Duration gameDuration = Duration.between(gameStartedTime, Instant.now());
-      // FIXME MINUTES
-      if (gameDuration.compareTo(Duration.of(5, ChronoUnit.SECONDS)) > 0) {
-        switch (ratingMode) {
-          case GLOBAL:
-            playServices.incrementPlayedCustomGames();
-            break;
-          case RANKED_1V1:
-            playServices.incrementPlayedRanked1v1Games();
-            break;
-        }
-      }
-    }
+    }, scheduledExecutorService);
   }
 
   @PostConstruct
   void postConstruct() {
     lobbyServerAccessor.addOnGameTypeInfoListener(this);
     lobbyServerAccessor.addOnGameInfoListener(this);
+    localRelayServer.setGameLaunchedListener(aVoid -> {
+      gameStartedTime = Instant.now();
+      logger.debug("Game started at: {}", gameStartedTime);
+    });
   }
 
   @Override
   public void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
-    if (!gameTypeInfo.isHost() || !gameTypeInfo.isLive() || gameTypeBeans.containsKey(gameTypeInfo.getName())) {
-      return;
-    }
+    // FIXME for testing purposes only
+//    if (!gameTypeInfo.isHost() || !gameTypeInfo.isLive() || gameTypeBeans.containsKey(gameTypeInfo.getName())) {
+//      return;
+//    }
 
     gameTypeBeans.put(gameTypeInfo.getName(), new GameTypeBean(gameTypeInfo));
   }

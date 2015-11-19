@@ -8,7 +8,7 @@ public class RelayClientMessageSerializer extends JsonMessageSerializer<LobbyMes
 
   @Override
   protected void addTypeAdapters(GsonBuilder gsonBuilder) {
-    gsonBuilder.registerTypeAdapter(LobbyAction.class, new RelayServerActionTypeAdapter());
-    gsonBuilder.registerTypeAdapter(RelayServerCommand.class, new RelayServerCommandTypeAdapter());
+    gsonBuilder.registerTypeAdapter(LobbyAction.class, RelayServerActionTypeAdapter.INSTANCE);
+    gsonBuilder.registerTypeAdapter(RelayServerCommand.class, RelayServerCommandTypeAdapter.INSTANCE);
   }
 }

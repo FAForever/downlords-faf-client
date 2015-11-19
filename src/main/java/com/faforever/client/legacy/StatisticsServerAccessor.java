@@ -7,6 +7,6 @@ import java.util.concurrent.CompletableFuture;
 
 public interface StatisticsServerAccessor {
 
-  CompletableFuture<PlayerStatistics> requestPlayerStatistics(String username, StatisticsType type);
+  CompletableFuture<PlayerStatistics> requestPlayerStatistics(StatisticsType type, String username);
 
 }

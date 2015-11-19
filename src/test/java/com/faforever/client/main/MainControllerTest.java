@@ -8,6 +8,7 @@ import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
+import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardController;
@@ -17,19 +18,23 @@ import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotificationsController;
+import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.portcheck.PortCheckService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.SettingsController;
+import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
 import org.hamcrest.CoreMatchers;
@@ -55,67 +60,73 @@ import static org.mockito.Mockito.when;
 public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
-  PersistentNotificationsController persistentNotificationsController;
+  private PersistentNotificationsController persistentNotificationsController;
   @Mock
-  PreferencesService preferencesService;
+  private PreferencesService preferencesService;
   @Mock
-  LeaderboardController leaderboardController;
+  private LeaderboardController leaderboardController;
   @Mock
-  ChatService chatService;
+  private ChatService chatService;
   @Mock
-  SceneFactory sceneFactory;
+  private SceneFactory sceneFactory;
   @Mock
-  PortCheckService portCheckService;
+  private PortCheckService portCheckService;
   @Mock
-  GameUpdateService gameUpdateService;
+  private GameUpdateService gameUpdateService;
   @Mock
-  PlayerService playerService;
+  private PlayerService playerService;
   @Mock
-  CommunityHubController communityHubController;
+  private CommunityHubController communityHubController;
   @Mock
-  MapVaultController mapMapVaultController;
+  private MapVaultController mapMapVaultController;
   @Mock
-  GamesController gamesController;
+  private GamesController gamesController;
   @Mock
-  NewsController newsController;
+  private NewsController newsController;
   @Mock
-  CastsController castsController;
+  private CastsController castsController;
   @Mock
-  ModVaultController modVaultController;
+  private ModVaultController modVaultController;
   @Mock
-  ReplayVaultController replayVaultController;
+  private ReplayVaultController replayVaultController;
   @Mock
-  ChatController chatController;
+  private ChatController chatController;
   @Mock
-  SettingsController settingsController;
+  private SettingsController settingsController;
   @Mock
-  UserInfoWindowController userInfoWindowController;
+  private UserInfoWindowController userInfoWindowController;
   @Mock
-  Preferences preferences;
+  private Preferences preferences;
   @Mock
-  ApplicationContext applicationContext;
+  private ApplicationContext applicationContext;
   @Mock
-  I18n i18n;
+  private I18n i18n;
   @Mock
-  WindowPrefs mainWindowPrefs;
+  private WindowPrefs mainWindowPrefs;
   @Mock
-  LobbyService lobbyService;
+  private LobbyService lobbyService;
   @Mock
-  Environment environment;
+  private Environment environment;
   @Mock
-  UserService userService;
+  private UserService userService;
   @Mock
-  NotificationService notificationService;
+  private NotificationService notificationService;
   @Mock
-  TaskService taskService;
+  private TaskService taskService;
   @Mock
-  ForgedAlliancePrefs forgedAlliancePrefs;
+  private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
-  ClientUpdateService clientUpdateService;
+  private ClientUpdateService clientUpdateService;
   @Mock
-  GameService gameService;
+  private GameService gameService;
   @Mock
-  UserMenuController userMenuController;
+  private UserMenuController userMenuController;
+  @Mock
+  private GravatarService gravatarService;
+  @Mock
+  private TransientNotificationsController transientNotificationsController;
+  @Mock
+  private NotificationsPrefs notificationPrefs;
 
   private MainController instance;
 
@@ -149,13 +160,17 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.clientUpdateService = clientUpdateService;
     instance.gameService = gameService;
     instance.userMenuController = userMenuController;
+    instance.gravatarService = gravatarService;
+    instance.transientNotificationsController = transientNotificationsController;
 
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(leaderboardController.getRoot()).thenReturn(new Pane());
     when(castsController.getRoot()).thenReturn(new Pane());
+    when(userMenuController.getRoot()).thenReturn(new Pane());
     when(newsController.getRoot()).thenReturn(new Pane());
     when(communityHubController.getRoot()).thenReturn(new Pane());
     when(userMenuController.getRoot()).thenReturn(new Pane());
+    when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(taskService.getActiveTasks()).thenReturn(FXCollections.emptyObservableList());
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
@@ -163,6 +178,9 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getMainWindow()).thenReturn(mainWindowPrefs);
     when(mainWindowPrefs.getLastChildViews()).thenReturn(FXCollections.observableHashMap());
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
+    when(preferences.getNotification()).thenReturn(notificationPrefs);
+    when(notificationPrefs.toastPositionProperty()).thenReturn(new SimpleObjectProperty<>(ToastPosition.BOTTOM_RIGHT));
+    when(notificationPrefs.getToastPosition()).thenReturn(ToastPosition.BOTTOM_RIGHT);
 
     instance.postConstruct();
   }
@@ -269,7 +287,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     attachToRoot();
     WaitForAsyncUtils.waitForAsyncFx(1000, instance::onNotificationsButtonClicked);
 
-    assertThat(instance.notificationsPopup.isShowing(), is(true));
+    assertThat(instance.persistentNotificationsPopup.isShowing(), is(true));
   }
 
   @Test
@@ -346,19 +364,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   public void testGetRoot() throws Exception {
     assertThat(instance.getRoot(), CoreMatchers.is(instance.mainRoot));
     assertThat(instance.getRoot().getParent(), CoreMatchers.is(nullValue()));
-  }
-
-  @Test
-  public void testOnShowUserInfoClicked() throws Exception {
-    attachToRoot();
-    Pane root = new Pane();
-    when(userInfoWindowController.getRoot()).thenReturn(root);
-    WaitForAsyncUtils.waitForAsyncFx(1000, instance::onShowUserInfoClicked);
-
-    verify(sceneFactory).createScene(
-        any(), eq(root), eq(true), eq(WindowDecorator.WindowButtonType.CLOSE)
-    );
-    verify(playerService).getCurrentPlayer();
   }
 
   @Test

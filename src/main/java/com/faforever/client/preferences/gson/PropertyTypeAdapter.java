@@ -66,6 +66,12 @@ public class PropertyTypeAdapter implements JsonSerializer<Property>, JsonDeseri
     }
   }
 
+  public static final PropertyTypeAdapter INSTANCE = new PropertyTypeAdapter();
+
+  private PropertyTypeAdapter() {
+
+  }
+
   @Override
   public JsonElement serialize(Property src, Type typeOfSrc, JsonSerializationContext context) {
     if (src.getValue() == null) {

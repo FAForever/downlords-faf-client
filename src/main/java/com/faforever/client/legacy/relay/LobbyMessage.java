@@ -11,21 +11,25 @@ import static com.faforever.client.legacy.relay.LobbyAction.PONG;
 
 public class LobbyMessage implements SerializableMessage {
 
-  private LobbyAction action;
+  private String action;
   // Because typos in protocols are cool (this class is JSON serialized).
-  private List<Object> chuncks;
+  private List<Object> chunks;
 
   public LobbyMessage(LobbyAction action, List<Object> chunks) {
+    this(action.getString(), chunks);
+  }
+
+  public LobbyMessage(String action, List<Object> chunks) {
     this.action = action;
-    this.chuncks = chunks;
+    this.chunks = chunks;
   }
 
   public List<Object> getChunks() {
-    return chuncks;
+    return chunks;
   }
 
   public LobbyAction getAction() {
-    return action;
+    return LobbyAction.fromString(action);
   }
 
   public Collection<String> getStringsToMask() {

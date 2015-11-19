@@ -8,4 +8,6 @@ public interface GravatarService {
 
   @Cacheable(CacheNames.GRAVATAR)
   Image getGravatar(String email);
+
+  String getProfileUrl(String email);
 }

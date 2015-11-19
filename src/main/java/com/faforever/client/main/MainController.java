@@ -3,12 +3,12 @@ package com.faforever.client.main;
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
-import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
+import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardController;
@@ -25,6 +25,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.portcheck.PortCheckService;
@@ -43,12 +44,17 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
@@ -58,6 +64,7 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SplitMenuButton;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -66,6 +73,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,6 +97,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_CLASS = PseudoClass.getPseudoClass("error");
   private static final PseudoClass NAVIGATION_ACTIVE_PSEUDO_CLASS = PseudoClass.getPseudoClass("active");
 
+  @FXML
+  ImageView userImageView;
   @FXML
   HBox mainNavigation;
   @FXML
@@ -143,6 +153,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Autowired
   PersistentNotificationsController persistentNotificationsController;
   @Autowired
+  TransientNotificationsController transientNotificationsController;
+  @Autowired
   PreferencesService preferencesService;
   @Autowired
   SceneFactory sceneFactory;
@@ -156,6 +168,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   I18n i18n;
   @Autowired
   UserService userService;
+  @Autowired
+  GravatarService gravatarService;
   @Autowired
   TaskService taskService;
   @Autowired
@@ -185,8 +199,10 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   UserMenuController userMenuController;
 
   @VisibleForTesting
-  Popup notificationsPopup;
+  Popup persistentNotificationsPopup;
   private Popup userMenuPopup;
+  private ChangeListener<Boolean> windowFocusListener;
+  private Popup transientNotificationsPopup;
 
   @FXML
   void initialize() {
@@ -204,6 +220,12 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     addHoverListener(leaderboardButton);
 
     setCurrentTaskInStatusBar(null);
+
+    windowFocusListener = (observable, oldValue, newValue) -> {
+      if (!newValue) {
+        hideAllMenuDropdowns();
+      }
+    };
   }
 
   private void addHoverListener(SplitMenuButton button) {
@@ -233,6 +255,10 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     });
   }
 
+  private void hideAllMenuDropdowns() {
+    mainNavigation.getChildren().forEach(item -> ((SplitMenuButton) item).hide());
+  }
+
   private void showMenuDropdown(SplitMenuButton button) {
     mainNavigation.getChildren().stream()
         .filter(item -> item instanceof SplitMenuButton && item != button)
@@ -242,11 +268,36 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @PostConstruct
   void postConstruct() {
-    notificationsPopup = new Popup();
-    notificationsPopup.getContent().setAll(persistentNotificationsController.getRoot());
-    notificationsPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
-    notificationsPopup.setAutoFix(false);
-    notificationsPopup.setAutoHide(true);
+    persistentNotificationsPopup = new Popup();
+    persistentNotificationsPopup.getContent().setAll(persistentNotificationsController.getRoot());
+    persistentNotificationsPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
+    persistentNotificationsPopup.setAutoFix(false);
+    persistentNotificationsPopup.setAutoHide(true);
+
+    transientNotificationsPopup = new Popup();
+    transientNotificationsPopup.getScene().getRoot().getStyleClass().add("transient-notification");
+    transientNotificationsPopup.getContent().setAll(transientNotificationsController.getRoot());
+    transientNotificationsPopup.anchorLocationProperty().bind(Bindings.createObjectBinding(() -> {
+          switch (preferencesService.getPreferences().getNotification().getToastPosition()) {
+            case TOP_RIGHT:
+              return PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT;
+            case BOTTOM_LEFT:
+              return PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT;
+            case TOP_LEFT:
+              return PopupWindow.AnchorLocation.CONTENT_TOP_LEFT;
+            default:
+              return PopupWindow.AnchorLocation.CONTENT_BOTTOM_RIGHT;
+          }
+        }, preferencesService.getPreferences().getNotification().toastPositionProperty()
+    ));
+    transientNotificationsController.getRoot().getChildren().addListener((InvalidationListener) observable -> {
+      if (!transientNotificationsController.getRoot().getChildren().isEmpty()) {
+        Rectangle2D visualBounds = getTransientNotificationAreaBounds();
+        transientNotificationsPopup.show(mainRoot.getScene().getWindow(), visualBounds.getMaxX(), visualBounds.getMaxY());
+      } else {
+        transientNotificationsPopup.hide();
+      }
+    });
 
     userMenuPopup = new Popup();
     userMenuPopup.setAutoFix(false);
@@ -259,6 +310,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     );
     notificationService.addImmediateNotificationListener(
         notification -> Platform.runLater(() -> displayImmediateNotification(notification))
+    );
+    notificationService.addTransientNotificationListener(
+        notification -> Platform.runLater(() -> transientNotificationsController.addNotification(notification))
     );
 
     taskService.getActiveTasks().addListener((Observable observable) -> {
@@ -276,6 +330,19 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     preferencesService.setOnChoseGameDirectoryListener(this);
     gameService.addOnRankedMatchNotificationListener(this);
+  }
+
+  private Rectangle2D getTransientNotificationAreaBounds() {
+    ObservableList<Screen> screens = Screen.getScreens();
+
+    int toastScreenIndex = preferencesService.getPreferences().getNotification().getToastScreen();
+    Screen screen;
+    if (toastScreenIndex < screens.size()) {
+      screen = screens.get(toastScreenIndex);
+    } else {
+      screen = Screen.getPrimary();
+    }
+    return screen.getVisualBounds();
   }
 
   /**
@@ -331,6 +398,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     registerWindowListeners(stage, mainWindowPrefs);
 
     usernameButton.setText(userService.getUsername());
+    // TODO no more e-mail address :(
+//    userImageView.setImage(gravatarService.getGravatar(userService.getEmail()));
 
     checkGamePortInBackground();
     gameUpdateService.checkForUpdateInBackground();
@@ -398,6 +467,10 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
         preferencesService.storeInBackground();
       }
     });
+
+    ReadOnlyBooleanProperty focusedProperty = stage.focusedProperty();
+    focusedProperty.removeListener(windowFocusListener);
+    focusedProperty.addListener(windowFocusListener);
   }
 
   private void checkGamePortInBackground() {
@@ -462,7 +535,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @FXML
   void onNotificationsButtonClicked() {
     Bounds screenBounds = notificationsButton.localToScreen(notificationsButton.getBoundsInLocal());
-    notificationsPopup.show(notificationsButton.getScene().getWindow(), screenBounds.getMaxX(), screenBounds.getMaxY());
+    persistentNotificationsPopup.show(notificationsButton.getScene().getWindow(), screenBounds.getMaxX(), screenBounds.getMaxY());
   }
 
   @FXML
@@ -506,20 +579,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   public Pane getRoot() {
     return mainRoot;
-  }
-
-  @FXML
-  void onShowUserInfoClicked() {
-    UserInfoWindowController userInfoWindowController = applicationContext.getBean(UserInfoWindowController.class);
-    userInfoWindowController.setPlayerInfoBean(playerService.getCurrentPlayer());
-
-    Stage userInfoWindow = new Stage(StageStyle.TRANSPARENT);
-    userInfoWindow.initModality(Modality.NONE);
-    userInfoWindow.initOwner(getRoot().getScene().getWindow());
-
-    sceneFactory.createScene(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
-
-    userInfoWindow.show();
   }
 
   @FXML

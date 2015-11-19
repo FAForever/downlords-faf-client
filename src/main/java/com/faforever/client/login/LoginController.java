@@ -8,6 +8,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Strings;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -119,7 +120,7 @@ public class LoginController {
   }
 
   private void onLoginSucceeded() {
-    mainController.display(stage);
+    Platform.runLater(() -> mainController.display(stage));
   }
 
   private void onLoginFailed(Throwable e) {

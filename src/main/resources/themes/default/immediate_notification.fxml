@@ -15,7 +15,7 @@
     <VBox styleClass="content">
       <children>
         <Label fx:id="messageLabel" text="&lt;message&gt;"/>
-        <TitledPane text="%errorDetails">
+        <TitledPane fx:id="exceptionPane" text="%errorDetails">
           <content>
             <TextArea fx:id="exceptionTextArea" maxWidth="1.7976931348623157E308"/>
           </content>

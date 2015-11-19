@@ -3,7 +3,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -24,8 +23,8 @@
         <RowConstraints minHeight="10.0" vgrow="NEVER"/>
       </rowConstraints>
       <children>
-        <ImageView fx:id="userImageView" fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true"
-                   GridPane.rowSpan="2"/>
+        <ImageView fx:id="userImageView" fitHeight="80.0" fitWidth="80.0" onMouseClicked="#onUserImageClicked"
+                   pickOnBounds="true" preserveRatio="true" styleClass="pointable" GridPane.rowSpan="2"/>
         <Label fx:id="usernameLabel" styleClass="h1" text="&lt;Username&gt;" GridPane.columnIndex="1"
                GridPane.columnSpan="2147483647"/>
         <Label fx:id="countryLabel" text="&lt;Country&gt;" GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
@@ -42,18 +41,19 @@
     <HBox alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" spacing="10.0"
           VBox.vgrow="ALWAYS">
       <children>
-        <Button fx:id="connectToGoogleButton" focusTraversable="false" graphicTextGap="12.0" mnemonicParsing="false"
-                onAction="#onConnectToGoogleButtonClicked" text="%currentUser.connectGoogle">
+        <Button focusTraversable="false" graphicTextGap="12.0" maxHeight="1.7976931348623157E308"
+                mnemonicParsing="false" onAction="#onShowProfileButtonClicked" text="%currentUser.showProfile">
           <graphic>
-            <ImageView fitHeight="36.0" fitWidth="36.0" pickOnBounds="true" preserveRatio="true">
-              <image>
-                <Image url="@images/google+.png"/>
-              </image>
-            </ImageView>
+            <Label text="&#xf007;">
+              <styleClass>
+                <String fx:value="fontawesome"/>
+                <String fx:value="logout-icon"/>
+              </styleClass>
+            </Label>
           </graphic>
         </Button>
         <Button focusTraversable="false" graphicTextGap="12.0" maxHeight="1.7976931348623157E308"
-                mnemonicParsing="false" onAction="#onLogOutButtonClicked" text="%currentUser.logOut">
+                mnemonicParsing="false" onAction="#onLogOutButtonClicked" text="%userMenu.logOut">
           <graphic>
             <Label text="">
               <styleClass>

@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.VictoryCondition;
 import javafx.collections.FXCollections;
@@ -14,7 +13,6 @@ public class GameInfoBeanBuilder {
   }
 
   public GameInfoBeanBuilder defaultValues() {
-    gameInfoBean.setAccess(GameAccess.PUBLIC);
     gameInfoBean.setFeaturedMod("faf");
     gameInfoBean.setFeaturedModVersions(FXCollections.emptyObservableMap());
     gameInfoBean.setVictoryCondition(VictoryCondition.DEMORALIZATION);

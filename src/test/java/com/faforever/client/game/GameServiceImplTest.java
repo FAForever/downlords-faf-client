@@ -1,7 +1,6 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fa.ForgedAllianceService;
-import com.faforever.client.fa.RatingMode;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
@@ -9,18 +8,24 @@ import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeInfo;
+import com.faforever.client.legacy.domain.VictoryCondition;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
@@ -32,6 +37,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static com.faforever.client.fa.RatingMode.GLOBAL;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -61,6 +67,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   private static final float SEARCH_MAX_RADIUS = .10f;
   private static final float SEARCH_RADIUS_INCREMENT = .01f;
 
+  private GameServiceImpl instance;
+
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -82,11 +90,17 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private SearchExpansionTask searchExpansionTask;
   @Mock
-  private ScheduledExecutorService scheduledExecutorService;
-  @Mock
   private Environment environment;
-
-  private GameServiceImpl instance;
+  @Mock
+  private LocalRelayServer localRelayServer;
+  @Mock
+  private PlayerService playerService;
+  @Mock
+  private ScheduledExecutorService scheduledExecutorService;
+  @Captor
+  private ArgumentCaptor<Consumer<Void>> gameLaunchedListenerCaptor;
+  @Captor
+  private ArgumentCaptor<ListChangeListener.Change<? extends GameInfoBean>> gameInfoBeanChangeListenerCaptor;
 
   @Before
   public void setUp() throws Exception {
@@ -98,8 +112,10 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.gameUpdateService = gameUpdateService;
     instance.preferencesService = preferencesService;
     instance.applicationContext = applicationContext;
-    instance.scheduledExecutorService = scheduledExecutorService;
     instance.environment = environment;
+    instance.localRelayServer = localRelayServer;
+    instance.playerService = playerService;
+    instance.scheduledExecutorService = scheduledExecutorService;
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
@@ -107,8 +123,20 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(environment.getProperty("ranked1v1.search.expansionDelay", int.class)).thenReturn(SEARCH_EXPANSION_DELAY);
     when(environment.getProperty("ranked1v1.search.maxRadius", float.class)).thenReturn(SEARCH_MAX_RADIUS);
     when(environment.getProperty("ranked1v1.search.radiusIncrement", float.class)).thenReturn(SEARCH_RADIUS_INCREMENT);
+    when(environment.getProperty("playServices.minGameTime", int.class)).thenReturn(0);
+
+    doAnswer(invocation -> {
+      try {
+        invocation.getArgumentAt(0, Runnable.class).run();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      return null;
+    }).when(scheduledExecutorService).execute(any());
 
     instance.postConstruct();
+
+    verify(localRelayServer).setGameLaunchedListener(gameLaunchedListenerCaptor.capture());
   }
 
   @Test
@@ -192,7 +220,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameLaunchInfo.setArgs(Arrays.asList("/foo bar", "/bar foo"));
 
     when(forgedAllianceService.startGame(
-            gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL)
+        gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL)
     ).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(lobbyServerAccessor.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchInfo));
@@ -201,7 +229,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.hostGame(newGameInfo);
 
     verify(listener).onGameStarted(gameLaunchInfo.getUid());
-    verify(lobbyServerAccessor).notifyGameStarted();
     verify(forgedAllianceService).startGame(
         gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL
     );
@@ -214,17 +241,16 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> {
       serviceStateDoneFuture.complete(null);
       return null;
-    }).when(lobbyServerAccessor).notifyGameTerminated();
+    }).when(proxy).close();
 
     Process process = mock(Process.class);
 
-    instance.spawnTerminationListener(process, RatingMode.NONE);
+    instance.spawnTerminationListener(process);
 
-    serviceStateDoneFuture.get(500, TimeUnit.MILLISECONDS);
+    serviceStateDoneFuture.get(5000, TimeUnit.MILLISECONDS);
 
     verify(process).waitFor();
     verify(proxy).close();
-    verify(lobbyServerAccessor).notifyGameTerminated();
   }
 
   @Test
@@ -338,5 +364,42 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.stopSearchRanked1v1();
     assertThat(instance.searching1v1Property().get(), is(false));
     verify(lobbyServerAccessor, never()).stopSearchingRanked();
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testAddOnGameInfoBeanListener() throws Exception {
+    ListChangeListener<GameInfoBean> listener = mock(ListChangeListener.class);
+    instance.addOnGameInfoBeanListener(listener);
+
+    GameInfo gameInfo = new GameInfo();
+    gameInfo.setUid(1);
+    gameInfo.setHost("host");
+    gameInfo.setTitle("title");
+    gameInfo.setMapFilePath("mapName");
+    gameInfo.setFeaturedMod("mod");
+    gameInfo.setNumPlayers(2);
+    gameInfo.setMaxPlayers(4);
+    gameInfo.setGameType(VictoryCondition.DOMINATION);
+    gameInfo.setState(GameState.PLAYING);
+
+    instance.onGameInfo(gameInfo);
+
+    verify(listener).onChanged(gameInfoBeanChangeListenerCaptor.capture());
+
+    ListChangeListener.Change<? extends GameInfoBean> change = gameInfoBeanChangeListenerCaptor.getValue();
+    assertThat(change.next(), is(true));
+    List<? extends GameInfoBean> addedSubList = change.getAddedSubList();
+    assertThat(addedSubList, hasSize(1));
+
+    GameInfoBean gameInfoBean = addedSubList.get(0);
+    assertThat(gameInfoBean.getUid(), is(1));
+    assertThat(gameInfoBean.getHost(), is("host"));
+    assertThat(gameInfoBean.getTitle(), is("title"));
+    assertThat(gameInfoBean.getNumPlayers(), is(2));
+    assertThat(gameInfoBean.getMaxPlayers(), is(4));
+    assertThat(gameInfoBean.getFeaturedMod(), is("mod"));
+    assertThat(gameInfoBean.getVictoryCondition(), is(VictoryCondition.DOMINATION));
+    assertThat(gameInfoBean.getStatus(), is(GameState.PLAYING));
   }
 }

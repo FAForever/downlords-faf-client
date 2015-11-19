@@ -1,13 +1,14 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.VictoryCondition;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
@@ -36,12 +37,13 @@ public class GameInfoBean {
   private final StringProperty title;
   private final StringProperty mapTechnicalName;
   private final StringProperty featuredMod;
-  private final ObjectProperty<GameAccess> access;
   private final IntegerProperty uid;
   private final IntegerProperty numPlayers;
   private final IntegerProperty maxPlayers;
   private final IntegerProperty minRating;
   private final IntegerProperty maxRating;
+  private final BooleanProperty passwordProtected;
+  private final ObjectProperty<GameVisibility> visibility;
   private final ObjectProperty<GameState> status;
   private final ObjectProperty<VictoryCondition> victoryCondition;
   private final ListProperty<Boolean> options;
@@ -66,12 +68,13 @@ public class GameInfoBean {
     title = new SimpleStringProperty();
     mapTechnicalName = new SimpleStringProperty();
     featuredMod = new SimpleStringProperty();
-    access = new SimpleObjectProperty<>();
     numPlayers = new SimpleIntegerProperty();
     maxPlayers = new SimpleIntegerProperty();
     minRating = new SimpleIntegerProperty(0);
     maxRating = new SimpleIntegerProperty(3000);
+    passwordProtected = new SimpleBooleanProperty();
     victoryCondition = new SimpleObjectProperty<>();
+    visibility = new SimpleObjectProperty<>();
     options = new SimpleListProperty<>(FXCollections.observableArrayList());
     simMods = new SimpleMapProperty<>(FXCollections.observableHashMap());
     teams = new SimpleMapProperty<>(FXCollections.observableHashMap());
@@ -83,8 +86,7 @@ public class GameInfoBean {
     uid.set(gameInfo.getUid());
     host.set(gameInfo.getHost());
     title.set(StringEscapeUtils.unescapeHtml4(gameInfo.getTitle()));
-    access.set(gameInfo.getAccess());
-    mapTechnicalName.set(gameInfo.getMapname());
+    mapTechnicalName.set(gameInfo.getMapFilePath());
     featuredMod.set(gameInfo.getFeaturedMod());
     numPlayers.setValue(gameInfo.getNumPlayers());
     maxPlayers.setValue(gameInfo.getMaxPlayers());
@@ -204,18 +206,6 @@ public class GameInfoBean {
 
   public StringProperty featuredModProperty() {
     return featuredMod;
-  }
-
-  public GameAccess getAccess() {
-    return access.get();
-  }
-
-  public void setAccess(GameAccess access) {
-    this.access.set(access);
-  }
-
-  public ObjectProperty<GameAccess> accessProperty() {
-    return access;
   }
 
   public int getUid() {
@@ -359,5 +349,21 @@ public class GameInfoBean {
   public boolean equals(Object obj) {
     return obj instanceof GameInfoBean
         && uid.getValue().equals(((GameInfoBean) obj).uid.getValue());
+  }
+
+  public GameVisibility getVisibility() {
+    return visibility.get();
+  }
+
+  public ObjectProperty<GameVisibility> visibilityProperty() {
+    return visibility;
+  }
+
+  public boolean getPasswordProtected() {
+    return passwordProtected.get();
+  }
+
+  public BooleanProperty passwordProtectedProperty() {
+    return passwordProtected;
   }
 }
