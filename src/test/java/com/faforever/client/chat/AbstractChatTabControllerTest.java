@@ -57,7 +57,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   private static final long TIMEOUT = 5000;
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
-
+  @Mock
+  PlayerCardTooltipController playerCardTooltipController;
   @Mock
   private ChatService chatService;
   @Mock
@@ -70,9 +71,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   private ChatPrefs chatPrefs;
   @Mock
   private PlayerService playerService;
-  @Mock
-  PlayerCardTooltipController playerCardTooltipController;
-
   @Mock
   private HostService hostService;
   @Mock

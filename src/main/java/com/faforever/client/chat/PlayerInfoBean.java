@@ -2,7 +2,6 @@ package com.faforever.client.chat;
 
 import com.faforever.client.legacy.GameStatus;
 import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.legacy.domain.Player;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.FloatProperty;
@@ -12,7 +11,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleSetProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -20,7 +18,7 @@ import javafx.collections.ObservableSet;
 
 /**
  * Represents a player with username, clan, country, friend/foe flag and so on. Can also be a chat-only user. This
- * represents the combination of a PlayerInfo (from the FAF server) and a ChatUser (from IRC).
+ * represents the combination of a PlayersInfo (from the FAF server) and a ChatUser (from IRC).
  */
 public class PlayerInfoBean {
 

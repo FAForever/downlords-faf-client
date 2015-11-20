@@ -710,12 +710,48 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testCreateOrGetChatUserString() {
+  public void testCreateOrGetChatUserStringEmptyMap() throws Exception {
+    when(chatPrefs.getChatColorMode()).thenReturn(chatColorMode.get());
+    when(chatPrefs.getUserToColor()).thenReturn(userToColorProperty);
 
+    ChatUser returnedUser = instance.createOrGetChatUser("chatUser1");
+
+    assert returnedUser != chatUser1;
+    assertEquals(returnedUser, chatUser1);
   }
 
   @Test
-  public void testCreateOrGetChatUserObject() {
+  public void testCreateOrGetChatUserStringPopulatedMap() throws Exception {
+    when(chatPrefs.getChatColorMode()).thenReturn(chatColorMode.get());
+    when(chatPrefs.getUserToColor()).thenReturn(userToColorProperty);
 
+    ChatUser addedUser = instance.createOrGetChatUser("chatUser1");
+    ChatUser returnedUser = instance.createOrGetChatUser("chatUser1");
+
+    assert returnedUser == addedUser;
+    assertEquals(returnedUser, addedUser);
+  }
+
+  @Test
+  public void testCreateOrGetChatUserUserObjectEmptyMap() throws Exception {
+    when(chatPrefs.getChatColorMode()).thenReturn(chatColorMode.get());
+    when(chatPrefs.getUserToColor()).thenReturn(userToColorProperty);
+
+    ChatUser returnedUser = instance.createOrGetChatUser("chatUser1");
+
+    assert returnedUser != chatUser1;
+    assertEquals(returnedUser, chatUser1);
+  }
+
+  @Test
+  public void testCreateOrGetChatUserUserObjectPopulatedMap() throws Exception {
+    when(chatPrefs.getChatColorMode()).thenReturn(chatColorMode.get());
+    when(chatPrefs.getUserToColor()).thenReturn(userToColorProperty);
+
+    ChatUser addedUser = instance.createOrGetChatUser("chatUser1");
+    ChatUser returnedUser = instance.createOrGetChatUser("chatUser1");
+
+    assert returnedUser == addedUser;
+    assertEquals(returnedUser, addedUser);
   }
 }

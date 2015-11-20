@@ -329,9 +329,6 @@ public abstract class AbstractChatTabController {
    * Called from JavaScript when user clicks on user name in chat
    */
   public void openPrivateMessageTab(String username) {
-    if (playerCardTooltip == null) {
-      return;
-    }
     chatController.openPrivateMessageTabForUser(username);
   }
 

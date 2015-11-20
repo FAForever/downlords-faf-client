@@ -200,7 +200,7 @@ public class ChatUserControl extends HBox {
     if (!playerInfoBean.getChatOnly()) {
       Tooltip userRatingTooltip = new Tooltip();
 
-      String rating = i18n.get("playerRatingFormat", RatingUtil.getRoundedGlobalRating(playerInfoBean), RatingUtil.getLeaderboardRating(playerInfoBean));
+      String rating = i18n.get("userInfo.ratingFormat", RatingUtil.getRoundedGlobalRating(playerInfoBean), RatingUtil.getLeaderboardRating(playerInfoBean));
       userRatingTooltip.setText(rating);
 
       addRatingListenerToTooltip(playerInfoBean.leaderboardRatingMeanProperty(), userRatingTooltip);
@@ -269,7 +269,7 @@ public class ChatUserControl extends HBox {
 
   private void addRatingListenerToTooltip(FloatProperty ratingProperty, Tooltip tooltip) {
     ratingProperty.addListener((observable, oldValue, newValue) -> {
-      String updatedRating = i18n.get("playerRatingFormat", RatingUtil.getGlobalRating(playerInfoBean), RatingUtil.getLeaderboardRating(playerInfoBean));
+      String updatedRating = i18n.get("userInfo.ratingFormat", RatingUtil.getGlobalRating(playerInfoBean), RatingUtil.getLeaderboardRating(playerInfoBean));
       tooltip.setText(updatedRating);
     });
   }

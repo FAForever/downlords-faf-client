@@ -33,7 +33,7 @@ public class PlayerServiceImplTest {
   LobbyServerAccessor lobbyServerAccessor;
   @Mock
   UserService userService;
-  
+
   private PlayerServiceImpl instance;
 
   @Before

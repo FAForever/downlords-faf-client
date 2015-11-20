@@ -78,7 +78,7 @@ public class GamesTableController {
       }
 
       {
-        bind(param.getValue().technicalNameProperty());
+        bind(param.getValue().mapTechnicalNameProperty());
       }
     });
 

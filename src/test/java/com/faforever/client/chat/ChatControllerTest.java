@@ -106,6 +106,12 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testOpenPrivateMessageTabForSelf() throws Exception {
+    when(privateChatTabController.getRoot()).thenReturn(new Tab());
+    instance.openPrivateMessageTabForUser("junit");
+  }
+
+  @Test
   public void testOnChatUserLeftChannel() throws Exception {
     instance.onChatUserLeftChannel("testUser", TEST_CHANNEL_NAME);
   }

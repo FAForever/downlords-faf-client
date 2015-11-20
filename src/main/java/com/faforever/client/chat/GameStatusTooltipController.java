@@ -34,7 +34,7 @@ public class GameStatusTooltipController {
 
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
     mapPreview.setImage(mapService.loadSmallPreview(gameInfoBean.getMapTechnicalName()));
-    MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultFromName(gameInfoBean.getMapTechnicalName());
+    MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultByName(gameInfoBean.getMapTechnicalName());
 
     gameTitleLabel.setText(i18n.get("chat.gameStatus.gameTitle", gameInfoBean.getTitle()));
     featuredModLabel.setText(i18n.get("chat.gameStatus.featuredMod", gameInfoBean.getFeaturedMod()));

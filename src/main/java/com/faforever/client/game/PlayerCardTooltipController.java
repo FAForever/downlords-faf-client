@@ -28,7 +28,7 @@ public class PlayerCardTooltipController {
   public void setPlayer(PlayerInfoBean playerInfoBean) {
     playerFlag.setImage(countryFlagService.loadCountryFlag(playerInfoBean.getCountry()));
 
-    String playerInfoLocalized = i18n.get("playerCardTooltipFormat", playerInfoBean.getUsername(), RatingUtil.getRoundedGlobalRating(playerInfoBean));
+    String playerInfoLocalized = i18n.get("userInfo.tooltipFormat", playerInfoBean.getUsername(), RatingUtil.getRoundedGlobalRating(playerInfoBean));
     playerInfo.setText(playerInfoLocalized);
   }
 

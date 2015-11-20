@@ -223,6 +223,7 @@ public class ChannelTabController extends AbstractChatTabController {
     getJsObject().call("updateUserMessageDisplay", String.format("user-%s", playerInfoBean.getUsername()), display);
   }
 
+  //TODO: extract to smaller methods
   private void onUserJoinedChannel(ChatUser chatUser) {
     JavaFxUtil.assertBackgroundThread();
 
@@ -248,6 +249,7 @@ public class ChannelTabController extends AbstractChatTabController {
         addToPane(playerInfoBean, friendsPane);
         removeFromPane(playerInfoBean, foesPane);
         removeFromPane(playerInfoBean, othersPane);
+        removeFromPane(playerInfoBean, chatOnlyPane);
         setUserMessageClass(playerInfoBean, CSS_CLASS_FRIEND);
 
       } else {
@@ -263,6 +265,7 @@ public class ChannelTabController extends AbstractChatTabController {
         addToPane(playerInfoBean, foesPane);
         removeFromPane(playerInfoBean, friendsPane);
         removeFromPane(playerInfoBean, othersPane);
+        removeFromPane(playerInfoBean, chatOnlyPane);
         setUserMessageClass(playerInfoBean, CSS_CLASS_FOE);
         if (chatPrefs.getHideFoeMessages()) {
           updateUserMessageDisplay(playerInfoBean, "none");
@@ -270,7 +273,11 @@ public class ChannelTabController extends AbstractChatTabController {
 
       } else {
         removeFromPane(playerInfoBean, foesPane);
-        if (!playerInfoBean.isFriend()) {
+        if (playerInfoBean.isFriend()) {
+          addToPane(playerInfoBean, friendsPane);
+        } else if (playerInfoBean.isChatOnly()) {
+          addToPane(playerInfoBean, chatOnlyPane);
+        } else {
           addToPane(playerInfoBean, othersPane);
         }
 
@@ -285,6 +292,8 @@ public class ChannelTabController extends AbstractChatTabController {
       if (newValue) {
         addToPane(playerInfoBean, chatOnlyPane);
         removeFromPane(playerInfoBean, othersPane);
+        removeFromPane(playerInfoBean, friendsPane);
+        removeFromPane(playerInfoBean, foesPane);
         setUserMessageClass(playerInfoBean, CSS_CLASS_CHAT_ONLY);
 
       } else {
