@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.audio.AudioController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -25,6 +26,9 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   ChatPrefs chatPrefs;
   @Mock
   PlayerService playerService;
+  @Mock
+  AudioController audioController;
+
   private PrivateChatTabController instance;
   private PlayerInfoBean playerInfoBean;
   private String playerName;
@@ -33,6 +37,8 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws IOException {
     instance = loadController("private_chat_tab.fxml");
     instance.preferencesService = preferencesService;
+    instance.playerService = playerService;
+    instance.audioController = audioController;
 
     playerName = "testUser";
     playerInfoBean = new PlayerInfoBean(playerName);
@@ -40,12 +46,10 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getChat()).thenReturn(chatPrefs);
     when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
-
   }
 
   @Test
   public void onChatMessageTestNotFoeShowFoe() {
-    when(playerInfoBean.getFoe()).thenReturn(false);
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
     instance.onChatMessage(new ChatMessage(Instant.now(), playerName, "Test message"));
   }
