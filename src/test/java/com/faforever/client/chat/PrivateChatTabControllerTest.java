@@ -6,9 +6,9 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -35,7 +35,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.preferencesService = preferencesService;
 
     playerName = "testUser";
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
+    playerInfoBean = new PlayerInfoBean(playerName);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getChat()).thenReturn(chatPrefs);
@@ -50,18 +50,21 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.onChatMessage(new ChatMessage(Instant.now(), playerName, "Test message"));
   }
 
+  @Ignore("Not yet implemented")
   @Test
-  public void onChatMessageTestNotFoeHideFoe() throws NotImplementedException {
+  public void onChatMessageTestNotFoeHideFoe() {
 
   }
 
+  @Ignore("Not yet implemented")
   @Test
-  public void onChatMessageTestIsFoeShowFoe() throws NotImplementedException {
+  public void onChatMessageTestIsFoeShowFoe() {
 
   }
 
+  @Ignore("Not yet implemented")
   @Test
-  public void onChatMessageTestIsFoeHideFoe() throws NotImplementedException {
+  public void onChatMessageTestIsFoeHideFoe() {
 
   }
 }
