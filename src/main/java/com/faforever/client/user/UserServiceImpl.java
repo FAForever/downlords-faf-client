@@ -2,7 +2,6 @@ package com.faforever.client.user;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.parsecom.CloudAccessor;
 import com.faforever.client.preferences.PreferencesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,8 +21,6 @@ public class UserServiceImpl implements UserService {
   LobbyServerAccessor lobbyServerAccessor;
   @Resource
   PreferencesService preferencesService;
-  @Resource
-  CloudAccessor cloudAccessor;
   @Resource
   FafApiAccessor fafApiAccessor;
 
@@ -60,7 +57,6 @@ public class UserServiceImpl implements UserService {
 
           onLoginListeners.forEach(Runnable::run);
           fafApiAccessor.authorize(loginInfo.getId());
-          cloudAccessor.signUpOrLogIn(username, password, uid);
         });
   }
 

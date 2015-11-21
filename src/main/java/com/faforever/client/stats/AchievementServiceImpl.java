@@ -9,12 +9,11 @@ import com.faforever.client.legacy.UpdatedAchievement;
 import com.faforever.client.legacy.UpdatedAchievementsInfo;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
-import com.faforever.client.parsecom.CloudAccessor;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.user.UserService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,8 +32,6 @@ public class AchievementServiceImpl implements AchievementService {
   @Resource
   UserService userService;
   @Resource
-  CloudAccessor cloudAccessor;
-  @Resource
   FafApiAccessor fafApiAccessor;
   @Resource
   LobbyServerAccessor lobbyServerAccessor;
@@ -42,6 +39,8 @@ public class AchievementServiceImpl implements AchievementService {
   NotificationService notificationService;
   @Resource
   I18n i18n;
+  @Resource
+  PlayerService playerService;
 
   public AchievementServiceImpl() {
     playerAchievements = FXCollections.observableArrayList();
@@ -54,22 +53,8 @@ public class AchievementServiceImpl implements AchievementService {
       return readOnlyPlayerAchievements;
     }
 
-    ObservableList<PlayerAchievement> playerAchievements = FXCollections.observableArrayList();
-
-    cloudAccessor.getPlayerIdForUsername(username)
-        .<List<PlayerAchievement>>thenApply(playerId -> {
-          if (StringUtils.isEmpty(playerId)) {
-            return null;
-          }
-          return fafApiAccessor.getPlayerAchievements(Integer.parseInt(playerId));
-        })
-        .thenAccept(playerAchievements::setAll)
-        .exceptionally(throwable -> {
-          logger.warn("Could not load achievements for player: " + username, throwable);
-          return null;
-        });
-
-    return playerAchievements;
+    int playerId = playerService.getPlayerForUsername(username).getId();
+    return FXCollections.observableList(fafApiAccessor.getPlayerAchievements(playerId));
   }
 
   @Override
@@ -98,6 +83,7 @@ public class AchievementServiceImpl implements AchievementService {
               return null;
             })
         );
+    playerAchievements.setAll(fafApiAccessor.getPlayerAchievements(userService.getUid()));
   }
 
   private void notifyAboutUnlockedAchievement(AchievementDefinition achievementDefinition) {

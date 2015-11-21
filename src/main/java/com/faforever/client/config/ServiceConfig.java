@@ -49,9 +49,6 @@ import com.faforever.client.news.LegacyNewsService;
 import com.faforever.client.news.NewsService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
-import com.faforever.client.parsecom.CloudAccessor;
-import com.faforever.client.parsecom.MockCloudAccessor;
-import com.faforever.client.parsecom.ParseCloudAccessor;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.patch.GameUpdateServiceImpl;
 import com.faforever.client.patch.GitWrapper;
@@ -337,15 +334,6 @@ public class ServiceConfig {
         return new WindowsUidService();
       default:
         return new UnixUidService();
-    }
-  }
-
-  @Bean
-  CloudAccessor cloudAccessor() {
-    if (environment.containsProperty("faf.testing")) {
-      return new MockCloudAccessor();
-    } else {
-      return new ParseCloudAccessor();
     }
   }
 

@@ -78,6 +78,7 @@ public class LoginController {
 
   public void display() {
     sceneFactory.createScene(stage, loginRoot, false, MINIMIZE, CLOSE);
+    stage.sizeToScene();
 
     stage.setTitle(i18n.get("login.title"));
     stage.setResizable(false);

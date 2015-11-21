@@ -19,6 +19,7 @@ import javafx.collections.ObservableSet;
  */
 public class PlayerInfoBean {
 
+  private final IntegerProperty id;
   private final StringProperty username;
   private final StringProperty clan;
   private final StringProperty country;
@@ -33,7 +34,6 @@ public class PlayerInfoBean {
   private final FloatProperty leaderboardRatingDeviation;
   private final FloatProperty leaderboardRatingMean;
   private final IntegerProperty numberOfGames;
-
   public PlayerInfoBean(Player player) {
     this();
 
@@ -46,8 +46,8 @@ public class PlayerInfoBean {
       avatarUrl.set(player.getAvatar().getUrl());
     }
   }
-
   private PlayerInfoBean() {
+    id = new SimpleIntegerProperty();
     username = new SimpleStringProperty();
     clan = new SimpleStringProperty();
     country = new SimpleStringProperty();
@@ -63,11 +63,22 @@ public class PlayerInfoBean {
     leaderboardRatingMean = new SimpleFloatProperty();
     numberOfGames = new SimpleIntegerProperty();
   }
-
   public PlayerInfoBean(String username) {
     this();
 
     this.username.set(username);
+  }
+
+  public int getId() {
+    return id.get();
+  }
+
+  public void setId(int id) {
+    this.id.set(id);
+  }
+
+  public IntegerProperty idProperty() {
+    return id;
   }
 
   public int getNumberOfGames() {

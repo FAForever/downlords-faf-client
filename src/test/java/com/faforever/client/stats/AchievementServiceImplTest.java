@@ -9,7 +9,8 @@ import com.faforever.client.legacy.UpdatedAchievement;
 import com.faforever.client.legacy.UpdatedAchievementsInfo;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
-import com.faforever.client.parsecom.CloudAccessor;
+import com.faforever.client.player.PlayerInfoBeanBuilder;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
@@ -30,7 +31,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.*;
@@ -50,13 +50,13 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
   @Mock
+  PlayerService playerService;
+  @Mock
   private AchievementServiceImpl instance;
   @Mock
   private PreferencesService preferencesService;
   @Mock
   private UserService userService;
-  @Mock
-  private CloudAccessor cloudAccessor;
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -69,7 +69,6 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
   private ExecutorService executorService;
   @Mock
   private LobbyServerAccessor lobbyServerAccessor;
-
   @Captor
   private ArgumentCaptor<Consumer<UpdatedAchievementsInfo>> onUpdatedAchievementsCaptor;
 
@@ -77,11 +76,11 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     instance = new AchievementServiceImpl();
     instance.userService = userService;
-    instance.cloudAccessor = cloudAccessor;
     instance.notificationService = notificationService;
     instance.i18n = i18n;
     instance.fafApiAccessor = fafApiAccessor;
     instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.playerService = playerService;
 
     when(userService.getUid()).thenReturn(PLAYER_ID);
     when(userService.getUsername()).thenReturn(USERNAME);
@@ -124,28 +123,28 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
     listener.accept(updatedAchievementsInfo);
 
     verifyZeroInteractions(notificationService);
-    verifyZeroInteractions(fafApiAccessor);
+    verify(fafApiAccessor).getPlayerAchievements(123);
+    verifyNoMoreInteractions(fafApiAccessor);
   }
 
   @Test
   public void testGetPlayerAchievementsForCurrentUser() throws Exception {
-    when(cloudAccessor.getPlayerIdForUsername(USERNAME)).thenReturn(completedFuture(String.valueOf(PLAYER_ID)));
     instance.getPlayerAchievements(USERNAME);
-    verifyZeroInteractions(cloudAccessor);
+    verifyZeroInteractions(playerService);
   }
 
   @Test
   public void testGetPlayerAchievementsForAnotherUser() throws Exception {
     List<PlayerAchievement> achievements = Arrays.asList(new PlayerAchievement(), new PlayerAchievement());
-    when(cloudAccessor.getPlayerIdForUsername("foobar")).thenReturn(completedFuture(String.valueOf(123)));
-    when(fafApiAccessor.getPlayerAchievements(123)).thenReturn(achievements);
+    when(playerService.getPlayerForUsername("foobar")).thenReturn(PlayerInfoBeanBuilder.create("foobar").id(PLAYER_ID).get());
+    when(fafApiAccessor.getPlayerAchievements(PLAYER_ID)).thenReturn(achievements);
 
     ObservableList<PlayerAchievement> result = instance.getPlayerAchievements("foobar");
 
     assertThat(result, hasSize(2));
     assertThat(result, is(achievements));
-    verify(cloudAccessor).getPlayerIdForUsername("foobar");
-    verify(fafApiAccessor).getPlayerAchievements(123);
+    verify(playerService).getPlayerForUsername("foobar");
+    verify(fafApiAccessor).getPlayerAchievements(PLAYER_ID);
   }
 
   @Test
