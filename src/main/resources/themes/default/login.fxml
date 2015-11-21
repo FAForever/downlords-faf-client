@@ -57,8 +57,8 @@
                 <Insets bottom="10.0" top="10.0"/>
               </VBox.margin>
             </CheckBox>
-            <Button fx:id="loginButton" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
-                    onAction="#loginButtonClicked" text="%login.button.login"/>
+            <Label fx:id="loginErrorLabel" maxWidth="1.7976931348623157E308" visible="false"/>
+            <Button fx:id="loginButton" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#loginButtonClicked" text="%login.button.login" />
             <HBox alignment="CENTER" spacing="10.0">
               <children>
                 <Button alignment="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false"

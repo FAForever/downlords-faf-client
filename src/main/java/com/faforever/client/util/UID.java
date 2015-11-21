@@ -15,11 +15,7 @@ public class UID {
   }
 
   static {
-    try {
       System.loadLibrary("uid");
-    } catch (UnsatisfiedLinkError e) {
-      throw new RuntimeException(e);
-    }
   }
 
   private UID() {

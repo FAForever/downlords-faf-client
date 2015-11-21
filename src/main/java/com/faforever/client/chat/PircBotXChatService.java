@@ -282,6 +282,15 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     });
   }
 
+  @Override
+  public void disconnect() {
+    logger.info("Disconnecting from IRC");
+    if (connectionService != null) {
+      connectionService.cancel();
+    }
+    pircBotX.shutdown();
+  }
+
   @SuppressWarnings("unchecked")
   private void init() {
     String username = userService.getUsername();

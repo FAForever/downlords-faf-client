@@ -38,6 +38,7 @@ import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.writer.ServerWriter;
+import com.faforever.client.login.LoginFailedException;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 import com.faforever.client.rankedmatch.RankedMatchNotification;
@@ -481,6 +482,11 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           dispatchSocialInfo(socialInfo);
           break;
 
+        case AUTHENTICATION_FAILED:
+          AuthenticationFailedMessage message = gson.fromJson(jsonString, AuthenticationFailedMessage.class);
+          dispatchAuthenticationFailed(message);
+          break;
+
         case MOD_VAULT_INFO:
           ModInfo modInfo = gson.fromJson(jsonString, ModInfo.class);
           onModInfo(modInfo);
@@ -497,6 +503,11 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     } catch (JsonSyntaxException e) {
       logger.warn("Could not deserialize message: " + jsonString, e);
     }
+  }
+
+  private void dispatchAuthenticationFailed(AuthenticationFailedMessage message) {
+    loginFuture.completeExceptionally(new LoginFailedException(message.getText()));
+    loginFuture = null;
   }
 
   private void onServerPing() {

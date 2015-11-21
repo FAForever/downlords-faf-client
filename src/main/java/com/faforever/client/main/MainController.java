@@ -16,6 +16,7 @@ import com.faforever.client.legacy.OnFafDisconnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
 import com.faforever.client.lobby.LobbyService;
+import com.faforever.client.login.LoginController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
@@ -58,6 +59,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuButton;
@@ -139,6 +141,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Autowired
   Environment environment;
   @Autowired
+  LoginController loginController;
+  @Autowired
   NewsController newsController;
   @Autowired
   ChatController chatController;
@@ -202,6 +206,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   private Popup userMenuPopup;
   private ChangeListener<Boolean> windowFocusListener;
   private Popup transientNotificationsPopup;
+
+  private Stage stage;
 
   @FXML
   void initialize() {
@@ -380,11 +386,15 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   public void display(Stage stage) {
+    chatService.connect();
+    if (this.stage != null) {
+      stage.show();
+      return;
+    }
+
     lobbyService.setOnFafConnectedListener(this);
     lobbyService.setOnLobbyConnectingListener(this);
     lobbyService.setOnFafDisconnectedListener(this);
-
-    chatService.connect();
 
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
 
@@ -578,6 +588,15 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   public Pane getRoot() {
     return mainRoot;
+  }
+
+  @FXML
+  public void onLogOutClicked(ActionEvent actionEvent) {
+    userService.logOut();
+    chatService.disconnect();
+
+    stage.hide();
+    loginController.displayAfterLogOut();
   }
 
   @FXML

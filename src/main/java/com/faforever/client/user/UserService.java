@@ -14,4 +14,5 @@ public interface UserService {
 
   void cancelLogin();
 
+  void logOut();
 }

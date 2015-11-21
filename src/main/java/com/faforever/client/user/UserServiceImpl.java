@@ -73,4 +73,9 @@ public class UserServiceImpl implements UserService {
   public void cancelLogin() {
     lobbyServerAccessor.disconnect();
   }
+
+  @Override
+  public void logOut() {
+    lobbyServerAccessor.disconnect();
+  }
 }

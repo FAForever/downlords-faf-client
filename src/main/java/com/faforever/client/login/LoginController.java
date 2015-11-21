@@ -13,6 +13,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -49,6 +50,9 @@ public class LoginController {
 
   @FXML
   Button loginButton;
+
+  @FXML
+  Label loginErrorLabel;
 
   @FXML
   Region loginRoot;
@@ -104,6 +108,12 @@ public class LoginController {
     }
   }
 
+  public void displayAfterLogOut() {
+    setShowLoginProgress(false);
+    stage.show();
+    JavaFxUtil.centerOnScreen(stage);
+  }
+
   private void login(String username, String password, boolean autoLogin) {
     onLoginProgress();
 
@@ -124,22 +134,18 @@ public class LoginController {
   }
 
   private void onLoginFailed(Throwable e) {
-    logger.warn("Login failed", e);
+    logger.debug("Login failed", e);
+    loginErrorLabel.setText(i18n.get("login.failed.message"));
 
-    Dialog<Void> loginFailedDialog = new Dialog<>();
-    loginFailedDialog.setTitle(i18n.get("login.failed.title"));
-    loginFailedDialog.setContentText(i18n.get("login.failed.message"));
-    loginFailedDialog.show();
-
-    loginFormPane.setVisible(true);
-    loginProgressPane.setVisible(false);
-    loginButton.setDisable(false);
+    setShowLoginProgress(false);
+    loginErrorLabel.setVisible(true);
   }
 
-  private void setShowLoginProgress(boolean b) {
-    loginFormPane.setVisible(!b);
-    loginProgressPane.setVisible(b);
-    loginButton.setDisable(b);
+  private void setShowLoginProgress(boolean show) {
+    loginFormPane.setVisible(!show);
+    loginProgressPane.setVisible(show);
+    loginButton.setDisable(show);
+    loginErrorLabel.setVisible(false);
   }
 
   @FXML
