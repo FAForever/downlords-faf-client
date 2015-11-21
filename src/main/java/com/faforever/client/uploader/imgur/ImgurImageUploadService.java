@@ -3,17 +3,17 @@ package com.faforever.client.uploader.imgur;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.uploader.ImageUploadService;
 import javafx.scene.image.Image;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import javax.annotation.Resource;
 import java.util.concurrent.CompletableFuture;
 
 public class ImgurImageUploadService implements ImageUploadService {
 
-  @Autowired
+  @Resource
   TaskService taskService;
 
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
 
   @Override

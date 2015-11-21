@@ -16,8 +16,8 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
 
@@ -49,13 +49,13 @@ public class LeaderboardController {
   @FXML
   TextField searchTextField;
 
-  @Autowired
+  @Resource
   LeaderboardService leaderboardService;
-  @Autowired
+  @Resource
   NotificationService notificationService;
-  @Autowired
+  @Resource
   I18n i18n;
-  @Autowired
+  @Resource
   ReportingService reportingService;
 
   private List<LeaderboardEntryBean> leaderboardEntryBeans;

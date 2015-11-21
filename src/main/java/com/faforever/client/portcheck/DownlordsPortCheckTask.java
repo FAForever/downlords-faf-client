@@ -6,9 +6,9 @@ import com.faforever.client.upnp.UpnpService;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.Resource;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -23,13 +23,13 @@ public class DownlordsPortCheckTask extends AbstractPrioritizedTask<Boolean> imp
   private static final int TIMEOUT = 2000;
   private static final String EXPECTED_ANSWER = "OK";
 
-  @Autowired
+  @Resource
   UpnpService upnpService;
 
-  @Autowired
+  @Resource
   Environment environment;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
   private int port;

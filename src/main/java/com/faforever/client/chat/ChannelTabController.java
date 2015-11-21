@@ -15,9 +15,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebView;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -48,7 +48,7 @@ public class ChannelTabController extends AbstractChatTabController {
   TextField userSearchTextField;
   @FXML
   TextField messageTextField;
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
   private String channelName;
 

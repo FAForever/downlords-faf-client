@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
@@ -21,13 +21,13 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
 
-  @Autowired
+  @Resource
   PlayerService playerService;
 
-  @Autowired
+  @Resource
   LocalRelayServer localRelayServer;
 
   @Override

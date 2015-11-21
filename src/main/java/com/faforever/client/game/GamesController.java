@@ -37,10 +37,10 @@ import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -75,25 +75,25 @@ public class GamesController {
   @FXML
   MenuButton switchViewButton;
 
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
-  @Autowired
+  @Resource
   I18n i18n;
-  @Autowired
+  @Resource
   PlayerService playerService;
-  @Autowired
+  @Resource
   GameService gameService;
-  @Autowired
+  @Resource
   MapService mapService;
-  @Autowired
+  @Resource
   CreateGameController createGameController;
-  @Autowired
+  @Resource
   EnterPasswordController enterPasswordController;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-  @Autowired
+  @Resource
   SceneFactory sceneFactory;
-  @Autowired
+  @Resource
   NotificationService notificationService;
 
   private Popup createGamePopup;

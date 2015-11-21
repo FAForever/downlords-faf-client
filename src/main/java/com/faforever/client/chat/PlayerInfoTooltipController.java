@@ -7,7 +7,8 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
 
 public class PlayerInfoTooltipController {
 
@@ -17,10 +18,10 @@ public class PlayerInfoTooltipController {
   @FXML
   Label tooltipLabel;
 
-  @Autowired
+  @Resource
   CountryFlagService countryFlagService;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
   public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {

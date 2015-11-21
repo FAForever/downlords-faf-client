@@ -5,16 +5,16 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.util.Assert;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 public class MapVaultParseTask extends AbstractPrioritizedTask<List<MapInfoBean>> {
 
-  @Autowired
+  @Resource
   I18n i18n;
 
-  @Autowired
+  @Resource
   MapVaultParser mapVaultParser;
 
   private Integer page;

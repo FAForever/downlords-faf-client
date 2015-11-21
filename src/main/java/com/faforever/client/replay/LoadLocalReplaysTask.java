@@ -2,16 +2,16 @@ package com.faforever.client.replay;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.task.AbstractPrioritizedTask;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.util.Collection;
 
 public class LoadLocalReplaysTask extends AbstractPrioritizedTask<Collection<ReplayInfoBean>> {
 
-  @Autowired
+  @Resource
   ReplayService replayService;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
 

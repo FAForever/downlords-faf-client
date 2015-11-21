@@ -9,8 +9,9 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+
+import javax.annotation.Resource;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 
@@ -49,13 +50,13 @@ public class ChatUserContextMenuController {
   @FXML
   ContextMenu contextMenu;
 
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
 
-  @Autowired
+  @Resource
   SceneFactory sceneFactory;
 
-  @Autowired
+  @Resource
   PlayerService playerService;
 
   private PlayerInfoBean playerInfoBean;

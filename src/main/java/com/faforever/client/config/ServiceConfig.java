@@ -95,18 +95,19 @@ import com.faforever.client.user.UserServiceImpl;
 import com.faforever.client.util.OperatingSystem;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.util.TimeServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
+import javax.annotation.Resource;
+
 @org.springframework.context.annotation.Configuration
 @Import(BaseConfig.class)
 public class ServiceConfig {
 
-  @Autowired
+  @Resource
   Environment environment;
 
   @Bean

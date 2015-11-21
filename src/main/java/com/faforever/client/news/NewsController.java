@@ -8,11 +8,11 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebView;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -31,19 +31,19 @@ public class NewsController {
   @FXML
   WebView newsDetailWebView;
 
-  @Autowired
+  @Resource
   Environment environment;
 
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
 
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
-  @Autowired
+  @Resource
   NewsService newsService;
 
   public void setUpIfNecessary() {

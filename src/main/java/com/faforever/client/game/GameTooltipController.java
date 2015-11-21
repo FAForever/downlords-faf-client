@@ -10,9 +10,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +30,7 @@ public class GameTooltipController {
   @FXML
   public VBox teamListRoot;
 
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
 
   public void setGameInfoBean(GameInfoBean gameInfoBean) {

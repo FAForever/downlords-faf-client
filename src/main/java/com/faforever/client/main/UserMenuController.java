@@ -1,5 +1,6 @@
 package com.faforever.client.main;
 
+import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.UserInfoWindowController;
@@ -54,6 +55,8 @@ public class UserMenuController {
   ApplicationContext applicationContext;
   @Resource
   SceneFactory sceneFactory;
+  @Resource
+  ChatService chatService;
 
   public Node getRoot() {
     return userMenuRoot;
@@ -103,7 +106,7 @@ public class UserMenuController {
 
   @FXML
   void onLogOutButtonClicked() {
-
+    userService.logOut();
   }
 
   @FXML

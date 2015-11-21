@@ -16,8 +16,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -48,13 +48,13 @@ public class ModTileController {
   @FXML
   ProgressBar progressBar;
 
-  @Autowired
+  @Resource
   ModService modService;
-  @Autowired
+  @Resource
   NotificationService notificationService;
-  @Autowired
+  @Resource
   I18n i18n;
-  @Autowired
+  @Resource
   ReportingService reportingService;
 
   private ModInfoBean mod;

@@ -41,11 +41,10 @@ import netscape.javascript.JSObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -74,10 +73,10 @@ public abstract class AbstractChatTabController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private static final Resource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
-  private static final Resource CHAT_JS_RESOURCE = new ClassPathResource("/js/chat_container.js");
-  private static final Resource AUTOLINKER_JS_RESOURCE = new ClassPathResource("/js/Autolinker.min.js");
-  private static final Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
+  private static final org.springframework.core.io.Resource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
+  private static final org.springframework.core.io.Resource CHAT_JS_RESOURCE = new ClassPathResource("/js/chat_container.js");
+  private static final org.springframework.core.io.Resource AUTOLINKER_JS_RESOURCE = new ClassPathResource("/js/Autolinker.min.js");
+  private static final org.springframework.core.io.Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
   private static final String FRIEND_CSS_CLASS = "friend";
@@ -100,31 +99,31 @@ public abstract class AbstractChatTabController {
    * Maps a user name to a css style class.
    */
   private final Map<String, String> userToCssStyle;
-  @Autowired
+  @Resource
   UserService userService;
-  @Autowired
+  @Resource
   ChatService chatService;
-  @Autowired
+  @Resource
   HostService hostService;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-  @Autowired
+  @Resource
   PlayerService playerService;
-  @Autowired
+  @Resource
   AudioController audioController;
-  @Autowired
+  @Resource
   TimeService timeService;
-  @Autowired
+  @Resource
   PlayerInfoTooltipController playerInfoTooltipController;
-  @Autowired
+  @Resource
   I18n i18n;
-  @Autowired
+  @Resource
   ImageUploadService imageUploadService;
-  @Autowired
+  @Resource
   UrlPreviewResolver urlPreviewResolver;
-  @Autowired
+  @Resource
   NotificationService notificationService;
-  @Autowired
+  @Resource
   ReportingService reportingService;
 
   private boolean isChatReady;
@@ -231,6 +230,9 @@ public abstract class AbstractChatTabController {
         return;
       }
       newTabPane.sceneProperty().addListener((tabPane1, oldScene, newScene) -> {
+        if (newScene == null || newScene.getWindow() == null) {
+          return;
+        }
         newScene.getWindow().focusedProperty().addListener((window, windowFocusOld, windowFocusNew) -> {
           if (newTabPane.isVisible()) {
             getMessageTextField().requestFocus();

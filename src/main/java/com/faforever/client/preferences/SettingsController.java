@@ -9,9 +9,9 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
 import javafx.util.converter.NumberStringConverter;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.text.NumberFormat;
 
 public class SettingsController {
@@ -91,7 +91,7 @@ public class SettingsController {
   @FXML
   Region settingsRoot;
 
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
 
   @PostConstruct

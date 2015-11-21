@@ -25,8 +25,8 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,13 +48,13 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final Timer timer;
 
-  @Autowired
+  @Resource
   UserService userService;
-  @Autowired
+  @Resource
   TaskService taskService;
-  @Autowired
+  @Resource
   NotificationService notificationService;
-  @Autowired
+  @Resource
   I18n i18n;
 
   private Collection<OnGameTypeInfoListener> onModInfoMessageListeners;

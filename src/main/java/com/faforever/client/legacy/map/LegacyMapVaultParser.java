@@ -7,9 +7,9 @@ import com.faforever.client.map.MapVaultHtmlContentHandler;
 import com.google.gson.stream.JsonReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -22,10 +22,10 @@ public class LegacyMapVaultParser implements MapVaultParser {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Autowired
+  @Resource
   Environment environment;
 
-  @Autowired
+  @Resource
   HtmlParser htmlParser;
 
   @Override

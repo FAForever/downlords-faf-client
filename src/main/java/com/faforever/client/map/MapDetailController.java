@@ -11,9 +11,9 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 
 public class MapDetailController {
@@ -35,13 +35,13 @@ public class MapDetailController {
   @FXML
   GridPane root;
 
-  @Autowired
+  @Resource
   MapService mapService;
 
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
   public void createPreview(MapInfoBean mapInfoBean) {

@@ -15,4 +15,8 @@ public interface UserService {
   void cancelLogin();
 
   void logOut();
+
+  void addOnLogoutListener(Runnable listener);
+
+  void addOnLoginListener(Runnable listener);
 }

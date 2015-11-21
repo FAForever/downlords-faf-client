@@ -16,7 +16,6 @@ import javafx.collections.ObservableMap;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import org.pircbotx.Configuration;
-import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.hooks.Event;
@@ -33,11 +32,11 @@ import org.pircbotx.hooks.events.QuitEvent;
 import org.pircbotx.hooks.events.UserListEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.util.ReflectionUtils;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
@@ -73,29 +72,29 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
    */
   private final ObservableMap<String, ObservableMap<String, ChatUser>> chatUserLists;
 
-  @Autowired
+  @Resource
   Environment environment;
 
-  @Autowired
+  @Resource
   UserService userService;
 
-  @Autowired
+  @Resource
   TaskService taskService;
 
-  @Autowired
+  @Resource
   LobbyServerAccessor lobbyServerAccessor;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
-  @Autowired
+  @Resource
   PircBotXFactory pircBotXFactory;
 
-  @Autowired
+  @Resource
   NotificationService notificationService;
 
   private Configuration configuration;
-  private PircBotX pircBotX;
+  private ShutdownablePircBotX pircBotX;
   private boolean initialized;
   private String defaultChannelName;
   private Service<Void> connectionService;
@@ -147,6 +146,9 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     addOnModeratorSetListener(this);
 
     defaultChannelName = environment.getProperty("irc.defaultChannel");
+
+    userService.addOnLogoutListener(this::disconnect);
+    userService.addOnLoginListener(this::connect);
   }
 
   private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
@@ -291,29 +293,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     pircBotX.shutdown();
   }
 
-  @SuppressWarnings("unchecked")
-  private void init() {
-    String username = userService.getUsername();
-
-    configuration = new Configuration.Builder()
-        .setName(username)
-        .setLogin(username)
-        .setRealName(username)
-        .setServer(environment.getProperty("irc.host"), environment.getProperty("irc.port", int.class))
-        .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-        .setAutoSplitMessage(true)
-        .setEncoding(StandardCharsets.UTF_8)
-        .setAutoReconnect(false)
-        .addListener(this)
-        .setSocketTimeout(SOCKET_TIMEOUT)
-        .buildConfiguration();
-
-    addOnChatConnectedListener(this);
-
-    pircBotX = pircBotXFactory.createPircBotX(configuration);
-    initialized = true;
-  }
-
   @Override
   public CompletableFuture<String> sendMessageInBackground(String target, String message) {
     return taskService.submitTask(new AbstractPrioritizedTask<String>(HIGH) {
@@ -383,6 +362,29 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     if (connectionService != null) {
       Platform.runLater(connectionService::cancel);
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  private void init() {
+    String username = userService.getUsername();
+
+    configuration = new Configuration.Builder()
+        .setName(username)
+        .setLogin(username)
+        .setRealName(username)
+        .setServer(environment.getProperty("irc.host"), environment.getProperty("irc.port", int.class))
+        .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+        .setAutoSplitMessage(true)
+        .setEncoding(StandardCharsets.UTF_8)
+        .setAutoReconnect(false)
+        .addListener(this)
+        .setSocketTimeout(SOCKET_TIMEOUT)
+        .buildConfiguration();
+
+    addOnChatConnectedListener(this);
+
+    pircBotX = pircBotXFactory.createPircBotX(configuration);
+    initialized = true;
   }
 
   @Override
