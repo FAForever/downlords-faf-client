@@ -1,7 +1,5 @@
-package com.faforever.client.user;
+package com.faforever.client.achievements;
 
-import com.faforever.client.events.AchievementDefinition;
-import com.faforever.client.events.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.AchievementUtil;
@@ -18,10 +16,7 @@ import javafx.scene.layout.GridPane;
 
 import javax.annotation.Resource;
 import java.util.Locale;
-
-import static com.faforever.client.events.AchievementState.UNLOCKED;
-import static com.faforever.client.events.AchievementType.INCREMENTAL;
-import static com.faforever.client.events.AchievementType.STANDARD;
+import java.util.Objects;
 
 
 public class AchievementItemController {
@@ -73,7 +68,7 @@ public class AchievementItemController {
     progressLabel.setText(i18n.get("achievement.stepsFormat", 0, achievementDefinition.getTotalSteps()));
     progressBar.setProgress(0);
 
-    if (STANDARD.equals(achievementDefinition.getType())) {
+    if (AchievementType.STANDARD.equals(achievementDefinition.getType())) {
       progressBar.setVisible(false);
       progressLabel.setVisible(false);
     }
@@ -88,9 +83,12 @@ public class AchievementItemController {
     if (achievementDefinition == null) {
       throw new IllegalStateException("achievementDefinition needs to be set first");
     }
+    if (!Objects.equals(achievementDefinition.getId(), playerAchievement.getAchievementId())) {
+      throw new IllegalStateException("Achievement ID does not match");
+    }
 
     // TODO cache it?
-    if (UNLOCKED.equals(playerAchievement.getState())) {
+    if (AchievementState.UNLOCKED.equals(playerAchievement.getState())) {
       String imageUrl = AchievementUtil.defaultIcon(preferencesService.getPreferences().getTheme(),
           achievementDefinition.getRevealedIconUrl());
       imageView.setImage(new Image(imageUrl, true));
@@ -98,7 +96,7 @@ public class AchievementItemController {
       imageView.setEffect(null);
     }
 
-    if (INCREMENTAL.equals(achievementDefinition.getType())) {
+    if (AchievementType.INCREMENTAL.equals(achievementDefinition.getType())) {
       Integer currentSteps = MoreObjects.firstNonNull(playerAchievement.getCurrentSteps(), 0);
       Integer totalSteps = achievementDefinition.getTotalSteps();
       progressBar.setProgress((double) currentSteps / totalSteps);

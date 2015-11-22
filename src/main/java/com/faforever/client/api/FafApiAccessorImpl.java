@@ -1,9 +1,8 @@
 package com.faforever.client.api;
 
+import com.faforever.client.achievements.AchievementDefinition;
+import com.faforever.client.achievements.PlayerAchievement;
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.events.AchievementDefinition;
-import com.faforever.client.events.ListResult;
-import com.faforever.client.events.PlayerAchievement;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;

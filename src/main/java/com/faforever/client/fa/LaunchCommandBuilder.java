@@ -3,7 +3,7 @@ package com.faforever.client.fa;
 import com.faforever.client.game.Faction;
 import org.springframework.util.StringUtils;
 
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +23,7 @@ public class LaunchCommandBuilder {
   private Path logFile;
   private Path replayFile;
   private Integer replayId;
-  private URL replayUrl;
+  private URI replayUri;
   private String gameType;
   private Faction faction;
 
@@ -92,8 +92,8 @@ public class LaunchCommandBuilder {
     return this;
   }
 
-  public LaunchCommandBuilder replayUrl(URL replayUrl) {
-    this.replayUrl = replayUrl;
+  public LaunchCommandBuilder replayUri(URI replayUri) {
+    this.replayUri = replayUri;
     return this;
   }
 
@@ -152,9 +152,9 @@ public class LaunchCommandBuilder {
     if (replayFile != null) {
       command.add("/replay");
       command.add(replayFile.toAbsolutePath().toString());
-    } else if (replayUrl != null) {
+    } else if (replayUri != null) {
       command.add("/replay");
-      command.add(replayUrl.toExternalForm());
+      command.add(replayUri.toASCIIString());
     }
 
     if (uid != null && username != null) {

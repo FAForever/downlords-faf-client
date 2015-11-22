@@ -324,9 +324,25 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     CompletableFuture<Boolean> onChatConnectedFuture = new CompletableFuture<>();
     instance.addOnChatConnectedListener(() -> onChatConnectedFuture.complete(null));
 
+    String password = "123";
+    when(userService.getPassword()).thenReturn(password);
+
+    mockTaskService();
+
     instance.onEvent(new ConnectEvent<>(pircBotX));
 
     assertThat(onChatConnectedFuture.get(TIMEOUT, TIMEOUT_UNIT), is(nullValue()));
+  }
+
+  @SuppressWarnings("unchecked")
+  private void mockTaskService() {
+    doAnswer((InvocationOnMock invocation) -> {
+      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(0, PrioritizedTask.class);
+      prioritizedTask.run();
+
+      Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
+      return CompletableFuture.completedFuture(result.get(1, TimeUnit.SECONDS));
+    }).when(instance.taskService).submitTask(any());
   }
 
   @Test
@@ -478,17 +494,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(message));
     verify(pircBotX).sendIRC();
     verify(outputIrc).message(DEFAULT_CHANNEL_NAME, message);
-  }
-
-  @SuppressWarnings("unchecked")
-  private void mockTaskService() {
-    doAnswer((InvocationOnMock invocation) -> {
-      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(0, PrioritizedTask.class);
-      prioritizedTask.run();
-
-      Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
-      return CompletableFuture.completedFuture(result.get(1, TimeUnit.SECONDS));
-    }).when(instance.taskService).submitTask(any());
   }
 
   @Test

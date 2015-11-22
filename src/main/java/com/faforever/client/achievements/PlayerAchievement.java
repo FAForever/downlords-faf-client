@@ -1,4 +1,4 @@
-package com.faforever.client.events;
+package com.faforever.client.achievements;
 
 import java.util.Date;
 
@@ -26,7 +26,7 @@ public class PlayerAchievement {
     this.achievementId = achievementId;
   }
 
-  public int getCurrentSteps() {
+  public Integer getCurrentSteps() {
     return currentSteps;
   }
 

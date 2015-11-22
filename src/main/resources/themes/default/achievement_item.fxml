@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="achievementItemRoot" maxHeight="-Infinity" minHeight="-Infinity"
           minWidth="-Infinity" prefWidth="400.0" styleClass="tile" xmlns="http://javafx.com/javafx/8.0.40"
-          fx:controller="com.faforever.client.user.AchievementItemController">
+          fx:controller="com.faforever.client.achievements.AchievementItemController">
   <columnConstraints>
     <ColumnConstraints hgrow="NEVER" />
     <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0" />

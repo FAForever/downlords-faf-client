@@ -42,7 +42,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -225,7 +225,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
-  public void runWithReplay(URL replayUrl, Integer replayId) throws IOException {
+  public void runWithReplay(URI replayUrl, Integer replayId) throws IOException {
     Process process = forgedAllianceService.startReplay(replayUrl, replayId);
     onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
 

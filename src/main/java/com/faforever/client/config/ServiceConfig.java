@@ -1,5 +1,7 @@
 package com.faforever.client.config;
 
+import com.faforever.client.achievements.AchievementService;
+import com.faforever.client.achievements.AchievementServiceImpl;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.FafApiAccessorImpl;
 import com.faforever.client.api.LocalHttpVerificationCodeReceiver;
@@ -73,8 +75,6 @@ import com.faforever.client.replay.ReplayService;
 import com.faforever.client.replay.ReplayServiceImpl;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.reporting.ReportingServiceImpl;
-import com.faforever.client.stats.AchievementService;
-import com.faforever.client.stats.AchievementServiceImpl;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.stats.StatisticsServiceImpl;
 import com.faforever.client.task.TaskService;

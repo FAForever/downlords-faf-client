@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -83,12 +83,12 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   }
 
   @Override
-  public Process startReplay(URL replayUrl, Integer replayId) throws IOException {
+  public Process startReplay(URI replayUri, Integer replayId) throws IOException {
     Path executable = getExecutable();
 
     List<String> launchCommand = LaunchCommandBuilder.create()
         .executable(executable)
-        .replayUrl(replayUrl)
+        .replayUri(replayUri)
         .replayId(replayId)
         .logFile(preferencesService.getFafLogDirectory().resolve("replay.log"))
         .build();

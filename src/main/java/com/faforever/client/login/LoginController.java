@@ -64,6 +64,7 @@ public class LoginController {
   @FXML
   private void initialize() {
     loginProgressPane.setVisible(false);
+    loginErrorLabel.managedProperty().bind(loginErrorLabel.visibleProperty());
   }
 
   @PostConstruct

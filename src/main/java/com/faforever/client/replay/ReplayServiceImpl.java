@@ -25,9 +25,8 @@ import java.awt.Desktop;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
+import java.net.URISyntaxException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,6 +42,7 @@ import java.util.concurrent.CompletableFuture;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 
 public class ReplayServiceImpl implements ReplayService {
 
@@ -60,31 +60,22 @@ public class ReplayServiceImpl implements ReplayService {
 
   @Resource
   Environment environment;
-
   @Resource
   PreferencesService preferencesService;
-
   @Resource
   ReplayFileReader replayFileReader;
-
   @Resource
   NotificationService notificationService;
-
   @Resource
   GameService gameService;
-
   @Resource
   TaskService taskService;
-
   @Resource
   I18n i18n;
-
   @Resource
   ReportingService reportingService;
-
   @Resource
   ReplayServerAccessor replayServerAccessor;
-
   @Resource
   ApplicationContext applicationContext;
 
@@ -97,13 +88,8 @@ public class ReplayServiceImpl implements ReplayService {
     Path replaysDirectory = preferencesService.getReplaysDirectory();
     try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(replaysDirectory, replayFileGlob)) {
       for (Path replayFile : directoryStream) {
-        LocalReplayInfo replayInfo = null;
         try {
-          replayInfo = replayFileReader.readReplayInfo(replayFile);
-          if (replayInfo == null) {
-            moveCorruptedReplayFile(replayFile);
-            continue;
-          }
+          LocalReplayInfo replayInfo = replayFileReader.readReplayInfo(replayFile);
           replayInfos.add(new ReplayInfoBean(replayInfo, replayFile));
         } catch (Exception e) {
           logger.warn("Could not read replay file {}", replayFile);
@@ -165,13 +151,13 @@ public class ReplayServiceImpl implements ReplayService {
 
     String mod = queryParams.get("mod");
     String mapName = queryParams.get("map");
-    Integer replayId = Integer.parseInt(queryParams.get(uri.getPath().split("/")[0]));
+    Integer replayId = Integer.parseInt(uri.getPath().split("/")[1]);
 
     try {
-      URL gpgReplayUrl = new URL(GPGNET_SCHEME, uri.getHost(), uri.getPort(), uri.getPath());
-      gameService.runWithReplay(gpgReplayUrl, replayId);
-    } catch (MalformedURLException e) {
-      throw new RuntimeException();
+      URI replayUri = new URI(GPGNET_SCHEME, null, uri.getHost(), uri.getPort(), uri.getPath(), null, null);
+      gameService.runWithReplay(replayUri, replayId);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -185,10 +171,10 @@ public class ReplayServiceImpl implements ReplayService {
       }
     } catch (IOException e) {
       logger.warn("Replay could not be started", e);
-      notificationService.addNotification(new PersistentNotification(
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("errorTitle"),
           i18n.get("replayCouldNotBeStarted.text", path.getFileName()),
-          Severity.WARN,
-          Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(e)))
+          Severity.WARN, e, singletonList(new ReportAction(i18n, reportingService, e))
       ));
     }
   }
@@ -198,10 +184,10 @@ public class ReplayServiceImpl implements ReplayService {
         .thenAccept(this::runReplayFile)
         .exceptionally(throwable -> {
           notificationService.addNotification(new ImmediateNotification(
-                  i18n.get("replaceCouldNotBeDownloaded.title"),
-                  i18n.get("replayCouldNotBeDownloaded.text", replayId),
-                  Severity.ERROR, throwable,
-                  Collections.singletonList(new ReportAction(i18n, reportingService, throwable)))
+              i18n.get("replaceCouldNotBeDownloaded.title"),
+              i18n.get("replayCouldNotBeDownloaded.text", replayId),
+              Severity.ERROR, throwable,
+              Collections.singletonList(new ReportAction(i18n, reportingService, throwable)))
           );
 
           return null;
@@ -227,7 +213,7 @@ public class ReplayServiceImpl implements ReplayService {
     gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods);
   }
 
-  private void runSupComReplayFile(Path path) throws IOException {
+  private void runSupComReplayFile(Path path) {
     byte[] rawReplayBytes = replayFileReader.readReplayData(path);
 
     Integer version = parseSupComVersion(rawReplayBytes);
