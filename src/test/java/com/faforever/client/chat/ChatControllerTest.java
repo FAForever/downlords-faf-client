@@ -73,7 +73,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnDisconnected() throws Exception {
-    instance.onDisconnected(new Exception());
+    instance.onDisconnected();
   }
 
   @Test

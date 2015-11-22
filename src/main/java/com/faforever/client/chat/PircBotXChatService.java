@@ -33,13 +33,11 @@ import org.pircbotx.hooks.events.UserListEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
-import org.springframework.util.ReflectionUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -95,7 +93,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   private Configuration configuration;
   private ShutdownablePircBotX pircBotX;
-  private boolean initialized;
   private String defaultChannelName;
   private Service<Void> connectionService;
 
@@ -144,6 +141,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     addOnChatUserQuitListener(this);
     addOnChatDisconnectedListener(this);
     addOnModeratorSetListener(this);
+    addOnChatConnectedListener(this);
 
     defaultChannelName = environment.getProperty("irc.defaultChannel");
 
@@ -165,16 +163,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       chatUsers.put(chatUser.getUsername(), chatUser);
     }
     return chatUsers;
-  }
-
-  private Exception extractDisconnectException(DisconnectEvent event) {
-    Field disconnectExceptionField = ReflectionUtils.findField(DisconnectEvent.class, "disconnectException");
-    ReflectionUtils.makeAccessible(disconnectExceptionField);
-    try {
-      return (Exception) disconnectExceptionField.get(event);
-    } catch (IllegalAccessException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   @Override
@@ -213,7 +201,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   @Override
   public void addOnChatDisconnectedListener(final OnChatDisconnectedListener listener) {
     addEventListener(DisconnectEvent.class,
-        event -> listener.onDisconnected(extractDisconnectException(event)));
+        event -> listener.onDisconnected());
   }
 
   @Override
@@ -262,9 +250,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void connect() {
-    if (!initialized) {
-      init();
-    }
+    init();
 
     connectionService = executeInBackground(new Task<Void>() {
       @Override
@@ -381,10 +367,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
         .setSocketTimeout(SOCKET_TIMEOUT)
         .buildConfiguration();
 
-    addOnChatConnectedListener(this);
-
     pircBotX = pircBotXFactory.createPircBotX(configuration);
-    initialized = true;
   }
 
   @Override
@@ -412,7 +395,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  public void onDisconnected(Exception e) {
+  public void onDisconnected() {
     synchronized (chatUserLists) {
       chatUserLists.values().forEach(ObservableMap::clear);
       chatUserLists.clear();

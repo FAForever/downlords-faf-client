@@ -349,13 +349,12 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAddOnChatDisconnectedListener() throws Exception {
-    CompletableFuture<Exception> onChatDisconnectedFuture = new CompletableFuture<>();
-    instance.addOnChatDisconnectedListener(onChatDisconnectedFuture::complete);
+    CompletableFuture<Void> onChatDisconnectedFuture = new CompletableFuture<>();
+    instance.addOnChatDisconnectedListener(() -> onChatDisconnectedFuture.complete(null));
 
-    Exception disconnectException = new Exception();
-    instance.onEvent(new DisconnectEvent<>(pircBotX, daoSnapshot, disconnectException));
+    instance.onEvent(new DisconnectEvent<>(pircBotX, daoSnapshot, null));
 
-    assertThat(onChatDisconnectedFuture.get(TIMEOUT, TIMEOUT_UNIT), is(disconnectException));
+    onChatDisconnectedFuture.get(TIMEOUT, TIMEOUT_UNIT);
   }
 
   @Test
@@ -616,7 +615,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser1);
     assertThat(instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME).values(), hasSize(1));
 
-    instance.onDisconnected(new Exception("test exception"));
+    instance.onDisconnected();
 
     assertThat(instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME).values(), empty());
   }
