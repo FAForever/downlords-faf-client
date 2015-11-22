@@ -29,7 +29,6 @@ import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
@@ -88,12 +87,13 @@ public class ChatUserControl extends HBox {
   @FXML
   ImageView statusImageView;
   private PlayerInfoBean playerInfoBean;
-  private boolean randomColorsAllowedInPane;
+  private boolean colorsAllowedInPane;
 
   @FXML
   void onContextMenuRequested(ContextMenuEvent event) {
     ChatUserContextMenuController contextMenuController = applicationContext.getBean(ChatUserContextMenuController.class);
     contextMenuController.setPlayerInfoBean(playerInfoBean);
+    contextMenuController.setColorsAllowedInPane(colorsAllowedInPane);
     contextMenuController.getContextMenu().show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
   }
 
@@ -149,7 +149,7 @@ public class ChatUserControl extends HBox {
           assignColor(newColor);
         }
       });
-    } else if (chatPrefs.getChatColorMode().equals(ChatColorMode.RANDOM) && randomColorsAllowedInPane) {
+    } else if (chatPrefs.getChatColorMode().equals(ChatColorMode.RANDOM) && colorsAllowedInPane) {
       color = ColorGeneratorUtil.generateRandomHexColor();
     }
 
@@ -314,8 +314,8 @@ public class ChatUserControl extends HBox {
     }
   }
 
-  public void setRandomColorsAllowedInPane(boolean randomColorsAllowedInPane) {
-    this.randomColorsAllowedInPane = randomColorsAllowedInPane;
+  public void setColorsAllowedInPane(boolean colorsAllowedInPane) {
+    this.colorsAllowedInPane = colorsAllowedInPane;
     configureColor();
   }
 }

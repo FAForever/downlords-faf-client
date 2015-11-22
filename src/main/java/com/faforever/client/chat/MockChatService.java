@@ -11,7 +11,6 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import org.pircbotx.User;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Resource;
 import java.time.Instant;
@@ -239,11 +238,5 @@ public class MockChatService implements ChatService {
   @Override
   public void addUserToColorListener() {
 
-  }
-
-
-  private void simulateConnectionEstablished() {
-    onChatConnectedListeners.forEach(OnChatConnectedListener::onConnected);
-    joinChannel("#mockChannel");
   }
 }

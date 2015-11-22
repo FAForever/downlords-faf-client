@@ -101,10 +101,7 @@ public abstract class AbstractChatTabController {
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
   private final List<ChatMessage> waitingMessages;
-  /**
-   * Maps a user name to a css style class.
-   */
-  private final Map<String, String> userToCssStyle;
+
   @Resource
   UserService userService;
   @Resource
@@ -120,7 +117,9 @@ public abstract class AbstractChatTabController {
   @Resource
   TimeService timeService;
   @Resource
-  PlayerInfoTooltipController playerInfoTooltipController;
+  PlayerCardTooltipController playerCardTooltipController;
+  @Resource
+  ChatController chatController;
   @Resource
   I18n i18n;
   @Resource

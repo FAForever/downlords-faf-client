@@ -27,8 +27,8 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-import javax.annotation.Resource;
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -291,12 +291,10 @@ public class ChannelTabController extends AbstractChatTabController {
 
     playerInfoBean.chatOnlyProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue) {
-        addToPane(playerInfoBean, chatOnlyPane);
         removeFromPane(playerInfoBean, othersPane);
         removeFromPane(playerInfoBean, friendsPane);
         removeFromPane(playerInfoBean, foesPane);
         setUserMessageClass(playerInfoBean, CSS_CLASS_CHAT_ONLY);
-
       } else {
         removeFromPane(playerInfoBean, chatOnlyPane);
         if (!playerInfoBean.isFoe() && !playerInfoBean.isFriend() && !playerInfoBean.getModeratorForChannels().contains(channelName)) {
@@ -355,8 +353,8 @@ public class ChannelTabController extends AbstractChatTabController {
     userToChatUserControls.remove(username);
   }
 
-  private void addToPane(PlayerInfoBean playerInfoBean, Pane pane) {
-    createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
+  private ChatUserControl addToPane(PlayerInfoBean playerInfoBean, Pane pane) {
+    return createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
   }
 
   private void removeFromPane(PlayerInfoBean playerInfoBean, Pane pane) {
@@ -379,7 +377,7 @@ public class ChannelTabController extends AbstractChatTabController {
    * pane if there isn't already such a control in this pane. After the control has been added, the user search filter
    * is applied.
    */
-  private void createChatUserControlForPlayerIfNecessary(Pane pane, PlayerInfoBean playerInfoBean) {
+  private ChatUserControl createChatUserControlForPlayerIfNecessary(Pane pane, PlayerInfoBean playerInfoBean) {
     String username = playerInfoBean.getUsername();
     if (!userToChatUserControls.containsKey(username)) {
       userToChatUserControls.put(username, new HashMap<>(1, 1));
@@ -389,14 +387,14 @@ public class ChannelTabController extends AbstractChatTabController {
 
     ChatUserControl existingChatUserControl = paneToChatUserControlMap.get(pane);
     if (existingChatUserControl != null) {
-      return;
+      return existingChatUserControl;
     }
 
     ChatUserControl chatUserControl = applicationContext.getBean(ChatUserControl.class);
     chatUserControl.setPlayerInfoBean(playerInfoBean);
     paneToChatUserControlMap.put(pane, chatUserControl);
 
-    chatUserControl.setRandomColorsAllowedInPane(
+    chatUserControl.setColorsAllowedInPane(
         (pane == othersPane || pane == chatOnlyPane) && !userService.getUsername().equals(username)
     );
 
@@ -404,6 +402,8 @@ public class ChannelTabController extends AbstractChatTabController {
       addChatUserControlSorted(pane, chatUserControl);
       applyUserSearchFilter(chatUserControl);
     });
+
+    return chatUserControl;
   }
 
   /**

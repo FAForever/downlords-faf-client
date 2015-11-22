@@ -444,29 +444,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     }
   }
 
-  @SuppressWarnings("unchecked")
-  private void init() {
-    String username = userService.getUsername();
-
-    configuration = new Configuration.Builder()
-        .setName(username)
-        .setLogin(username)
-        .setRealName(username)
-        .setServer(environment.getProperty("irc.host"), environment.getProperty("irc.port", int.class))
-        .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-        .setAutoSplitMessage(true)
-        .setEncoding(StandardCharsets.UTF_8)
-        .setAutoReconnect(false)
-        .addListener(this)
-        .setSocketTimeout(SOCKET_TIMEOUT)
-        .buildConfiguration();
-
-    addOnChatConnectedListener(this);
-
-    pircBotX = pircBotXFactory.createPircBotX(configuration);
-    initialized = true;
-  }
-
   @Override
   public ChatUser createOrGetChatUser(User user) {
     synchronized (chatUsersByName) {
@@ -493,6 +470,29 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     chatPrefs.userToColorProperty().addListener((MapChangeListener<? super String, ? super Color>) change -> {
       preferencesService.store();
     });
+  }
+
+  @SuppressWarnings("unchecked")
+  private void init() {
+    String username = userService.getUsername();
+
+    configuration = new Configuration.Builder()
+        .setName(username)
+        .setLogin(username)
+        .setRealName(username)
+        .setServer(environment.getProperty("irc.host"), environment.getProperty("irc.port", int.class))
+        .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+        .setAutoSplitMessage(true)
+        .setEncoding(StandardCharsets.UTF_8)
+        .setAutoReconnect(false)
+        .addListener(this)
+        .setSocketTimeout(SOCKET_TIMEOUT)
+        .buildConfiguration();
+
+    addOnChatConnectedListener(this);
+
+    pircBotX = pircBotXFactory.createPircBotX(configuration);
+    initialized = true;
   }
 
   @Override

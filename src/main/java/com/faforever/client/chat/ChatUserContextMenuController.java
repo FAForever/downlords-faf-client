@@ -24,11 +24,9 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Resource;
-
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
@@ -149,7 +147,9 @@ public class ChatUserContextMenuController {
         .and(playerInfoBean.usernameProperty().isNotEqualTo(userService.getUsername())));
     colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty()
         .isEqualTo(CUSTOM)
-        .and(playerInfoBean.usernameProperty().isNotEqualTo(userService.getUsername())));
+        .and(playerInfoBean.usernameProperty().isNotEqualTo(userService.getUsername())
+            .and(playerInfoBean.foeProperty()).not()
+            .and(playerInfoBean.friendProperty().not())));
 
     addFriendItem.visibleProperty().bind(playerInfoBean.friendProperty().not()
         .and(playerInfoBean.usernameProperty().isNotEqualTo(userService.getUsername())));
