@@ -17,7 +17,8 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
 
 public class GamesTableController {
 
@@ -43,17 +44,17 @@ public class GamesTableController {
   @FXML
   TableColumn<GameInfoBean, Boolean> passwordColumn;
 
-  @Autowired
+  @Resource
   FxmlLoader fxmlLoader;
 
-  @Autowired
+  @Resource
   MapService mapService;
 
   // TODO replace with gamecontroller listener
-  @Autowired
+  @Resource
   GamesController gamesController;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
   public void initializeGameTable(ObservableList<GameInfoBean> gameInfoBeans) {

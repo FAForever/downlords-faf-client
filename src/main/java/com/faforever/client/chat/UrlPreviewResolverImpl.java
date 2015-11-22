@@ -8,9 +8,9 @@ import com.google.common.net.MediaType;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -24,10 +24,10 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
   private static final String IMGUR_PNG = "http://i.imgur.com/%s.png";
   private static final String IMGUR_GIF = "http://i.imgur.com/%s.gif";
 
-  @Autowired
+  @Resource
   FxmlLoader fxmlLoader;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
   @Override

@@ -29,10 +29,10 @@ import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.time.Duration;
 import java.time.Instant;
@@ -70,31 +70,31 @@ public class ReplayVaultController {
   @FXML
   TreeTableColumn<ReplayInfoBean, String> mapColumn;
 
-  @Autowired
+  @Resource
   NotificationService notificationService;
 
-  @Autowired
+  @Resource
   ReplayService replayService;
 
-  @Autowired
+  @Resource
   MapService mapService;
 
-  @Autowired
+  @Resource
   TaskService taskService;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
-  @Autowired
+  @Resource
   TimeService timeService;
 
-  @Autowired
+  @Resource
   ReportingService reportingService;
 
-  @Autowired
+  @Resource
   FxmlLoader fxmlLoader;
 
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
 
   private TreeItem<ReplayInfoBean> localReplaysRoot;

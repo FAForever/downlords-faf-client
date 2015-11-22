@@ -21,10 +21,10 @@ import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
@@ -40,7 +40,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final Gson gson;
-  @Autowired
+  @Resource
   Environment environment;
   private CompletableFuture<PlayerStatistics> playerStatisticsFuture;
   private ServerWriter serverWriter;

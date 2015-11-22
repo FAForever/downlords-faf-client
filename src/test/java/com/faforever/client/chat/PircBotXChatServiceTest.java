@@ -103,7 +103,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   private Channel defaultChannel;
 
   @Mock
-  private PircBotX pircBotX;
+  private ShutdownablePircBotX pircBotX;
 
   @Mock
   private Configuration<PircBotX> configuration;

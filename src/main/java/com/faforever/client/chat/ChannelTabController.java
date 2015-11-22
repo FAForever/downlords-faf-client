@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import javax.annotation.Resource;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -72,7 +73,7 @@ public class ChannelTabController extends AbstractChatTabController {
   TextField userSearchTextField;
   @FXML
   TextField messageTextField;
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
   @Autowired
   I18n i18n;

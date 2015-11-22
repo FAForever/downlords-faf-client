@@ -11,9 +11,9 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.jsoup.Jsoup;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.List;
 
 public class LastNewsController {
@@ -29,11 +29,11 @@ public class LastNewsController {
   @FXML
   ImageView imageView;
 
-  @Autowired
+  @Resource
   NewsService newsService;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-  @Autowired
+  @Resource
   I18n i18n;
 
   public Node getRoot() {

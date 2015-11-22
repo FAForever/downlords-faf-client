@@ -14,6 +14,7 @@ public enum ServerMessageType {
   MATCHMAKER_INFO("matchmaker_info"),
   MOD_VAULT_INFO("modvault_info"),
   SOCIAL("social"),
+  AUTHENTICATION_FAILED("authentication_failed"),
   STATS("stats"),
   UPDATED_ACHIEVEMENTS("updated_achievements"),
   MOD_RESULT_LIST("modvault_list_info");

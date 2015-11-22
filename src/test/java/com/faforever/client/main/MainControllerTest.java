@@ -2,7 +2,6 @@ package com.faforever.client.main;
 
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
-import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
@@ -65,8 +64,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private PreferencesService preferencesService;
   @Mock
   private LeaderboardController leaderboardController;
-  @Mock
-  private ChatService chatService;
   @Mock
   private SceneFactory sceneFactory;
   @Mock
@@ -133,6 +130,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = loadController("main.fxml");
+    instance.stage = getStage();
     instance.i18n = i18n;
     instance.environment = environment;
     instance.applicationContext = applicationContext;
@@ -142,7 +140,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.portCheckService = portCheckService;
     instance.gameUpdateService = gameUpdateService;
     instance.lobbyService = lobbyService;
-    instance.chatService = chatService;
     instance.userService = userService;
     instance.replayVaultController = replayVaultController;
     instance.leaderboardController = leaderboardController;
@@ -190,10 +187,9 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     attachToRoot();
     when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(true));
     when(communityHubController.getRoot()).thenReturn(new Pane());
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display(getStage()));
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
     when(mainWindowPrefs.getLastView()).thenReturn(instance.communityButton.getId());
 
-    verify(chatService).connect();
     verify(portCheckService).checkGamePortInBackground();
     verify(gameUpdateService).checkForUpdateInBackground();
     verify(lobbyService).setOnFafConnectedListener(instance);
@@ -302,7 +298,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     when(portCheckService.checkGamePortInBackground()).thenReturn(future);
 
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display(getStage()));
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
 
     String textAfterConnection = instance.portCheckStatusButton.getText();
     assertThat(textAfterConnection, not(disconnected));
@@ -316,7 +312,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(true));
 
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display(getStage()));
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
 
     String textAfterConnection = instance.portCheckStatusButton.getText();
     assertThat(textAfterConnection, not(disconnected));
@@ -331,7 +327,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(false));
 
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display(getStage()));
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
 
     String textAfterConnection = instance.portCheckStatusButton.getText();
     assertThat(textAfterConnection, not(disconnected));

@@ -6,7 +6,7 @@ import org.pircbotx.PircBotX;
 public class PircBotXFactoryImpl implements PircBotXFactory {
 
   @Override
-  public PircBotX createPircBotX(Configuration<PircBotX> configuration) {
-    return new PircBotX(configuration);
+  public ShutdownablePircBotX createPircBotX(Configuration<PircBotX> configuration) {
+    return new ShutdownablePircBotX(configuration);
   }
 }

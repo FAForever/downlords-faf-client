@@ -6,6 +6,7 @@ import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.leaderboard.LeaderboardParser;
+import com.faforever.client.legacy.domain.AuthenticationFailedMessage;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.ClientMessageType;
 import com.faforever.client.legacy.domain.FoesMessage;
@@ -38,6 +39,7 @@ import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.writer.ServerWriter;
+import com.faforever.client.login.LoginFailedException;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 import com.faforever.client.rankedmatch.RankedMatchNotification;
@@ -58,11 +60,11 @@ import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
@@ -90,17 +92,17 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private final Collection<OnJoinChannelsRequestListener> onJoinChannelsRequestListeners;
   private final Collection<OnGameLaunchInfoListener> onGameLaunchListeners;
   private final List<Consumer<UpdatedAchievementsInfo>> onUpdatedAchievementsListeners;
-  @Autowired
+  @Resource
   Environment environment;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-  @Autowired
+  @Resource
   LeaderboardParser leaderboardParser;
-  @Autowired
+  @Resource
   TaskService taskService;
-  @Autowired
+  @Resource
   I18n i18n;
-  @Autowired
+  @Resource
   UidService uidService;
   private Task<Void> fafConnectionTask;
   private String localIp;
@@ -481,6 +483,11 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           dispatchSocialInfo(socialInfo);
           break;
 
+        case AUTHENTICATION_FAILED:
+          AuthenticationFailedMessage message = gson.fromJson(jsonString, AuthenticationFailedMessage.class);
+          dispatchAuthenticationFailed(message);
+          break;
+
         case MOD_VAULT_INFO:
           ModInfo modInfo = gson.fromJson(jsonString, ModInfo.class);
           onModInfo(modInfo);
@@ -546,6 +553,11 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
       onJoinChannelsRequestListeners.forEach(listener -> listener.onJoinChannelsRequest(socialInfo.getAutoJoin()));
     }
+  }
+
+  private void dispatchAuthenticationFailed(AuthenticationFailedMessage message) {
+    loginFuture.completeExceptionally(new LoginFailedException(message.getText()));
+    loginFuture = null;
   }
 
   /**

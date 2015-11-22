@@ -26,11 +26,11 @@ import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.EOFException;
@@ -65,15 +65,15 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   private final Collection<OnReadyListener> onReadyListeners;
   private final Collection<OnConnectionAcceptedListener> onConnectionAcceptedListeners;
 
-  @Autowired
+  @Resource
   Proxy proxy;
-  @Autowired
+  @Resource
   Environment environment;
-  @Autowired
+  @Resource
   UserService userService;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-  @Autowired
+  @Resource
   LobbyServerAccessor lobbyServerAccessor;
 
   private int port;

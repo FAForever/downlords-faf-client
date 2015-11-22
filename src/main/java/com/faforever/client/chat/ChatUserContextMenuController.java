@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import javax.annotation.Resource;
+
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
@@ -84,34 +86,34 @@ public class ChatUserContextMenuController {
   @FXML
   ContextMenu contextMenu;
 
-  @Autowired
+  @Resource
   UserService userService;
 
-  @Autowired
+  @Resource
   ChatService chatService;
 
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
 
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
 
-  @Autowired
+  @Resource
   SceneFactory sceneFactory;
 
-  @Autowired
+  @Resource
   PlayerService playerService;
 
-  @Autowired
+  @Resource
   GameService gameService;
 
-  @Autowired
+  @Resource
   ReplayService replayService;
 
-  @Autowired
+  @Resource
   NotificationService notificationService;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
   private PlayerInfoBean playerInfoBean;

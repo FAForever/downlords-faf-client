@@ -9,9 +9,9 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 
 public class NewsListItemController {
 
@@ -33,10 +33,10 @@ public class NewsListItemController {
   @FXML
   Label authoredLabel;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
 
   private NewsItem newsItem;

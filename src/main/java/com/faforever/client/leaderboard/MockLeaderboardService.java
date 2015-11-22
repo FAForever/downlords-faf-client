@@ -4,8 +4,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,10 +15,10 @@ import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
 
 public class MockLeaderboardService implements LeaderboardService {
 
-  @Autowired
+  @Resource
   TaskService taskService;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
   @Override

@@ -20,9 +20,9 @@ import javafx.scene.paint.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -94,9 +94,9 @@ public class PreferencesService {
    */
   private final Timer timer;
   private final Collection<PreferenceUpdateListener> updateListeners;
-  @Autowired
+  @Resource
   I18n i18n;
-  @Autowired
+  @Resource
   NotificationService notificationService;
   private Preferences preferences;
   private TimerTask storeInBackgroundTask;

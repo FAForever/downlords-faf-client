@@ -16,8 +16,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+
+import javax.annotation.Resource;
 
 public class GameTileController {
 
@@ -40,15 +41,15 @@ public class GameTileController {
   @FXML
   ImageView mapImageView;
 
-  @Autowired
+  @Resource
   MapService mapService;
-  @Autowired
+  @Resource
   I18n i18n;
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
-  @Autowired
+  @Resource
   GamesController gamesController;
-  @Autowired
+  @Resource
   GameService gameService;
 
   private GameInfoBean gameInfoBean;

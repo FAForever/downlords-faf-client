@@ -30,6 +30,7 @@ public interface ChatService {
 
   void connect();
 
+  void disconnect();
 
   CompletableFuture<String> sendMessageInBackground(String target, String message);
 

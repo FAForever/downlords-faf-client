@@ -6,8 +6,8 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +32,7 @@ public class PersistentNotificationController {
   @FXML
   HBox actionButtonsContainer;
 
-  @Autowired
+  @Resource
   NotificationService notificationService;
 
   private PersistentNotification notification;

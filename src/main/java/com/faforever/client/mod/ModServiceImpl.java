@@ -14,10 +14,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
@@ -51,15 +51,15 @@ public class ModServiceImpl implements ModService {
   private static final Pattern ACTIVE_MODS_PATTERN = Pattern.compile("active_mods\\s*=\\s*\\{.*?}", Pattern.DOTALL);
   private static final Pattern ACTIVE_MOD_PATTERN = Pattern.compile("\\['(.*?)']\\s*=\\s*(true|false)", Pattern.DOTALL);
 
-  @Autowired
+  @Resource
   LobbyServerAccessor lobbyServerAccessor;
-  @Autowired
+  @Resource
   ModsServerAccessor modsServerAccessor;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-  @Autowired
+  @Resource
   TaskService taskService;
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
 
   private Path modsDirectory;

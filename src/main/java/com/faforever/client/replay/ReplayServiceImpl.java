@@ -19,10 +19,10 @@ import com.google.common.primitives.Bytes;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.Resource;
 import java.awt.Desktop;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -60,34 +60,34 @@ public class ReplayServiceImpl implements ReplayService {
   private static final String GPGNET_SCHEME = "gpgnet";
   private static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
 
-  @Autowired
+  @Resource
   Environment environment;
 
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
 
-  @Autowired
+  @Resource
   ReplayFileReader replayFileReader;
 
-  @Autowired
+  @Resource
   NotificationService notificationService;
 
-  @Autowired
+  @Resource
   GameService gameService;
 
-  @Autowired
+  @Resource
   TaskService taskService;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
-  @Autowired
+  @Resource
   ReportingService reportingService;
 
-  @Autowired
+  @Resource
   ReplayServerAccessor replayServerAccessor;
 
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
 
 

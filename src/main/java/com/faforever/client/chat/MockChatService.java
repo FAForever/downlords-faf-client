@@ -13,6 +13,7 @@ import javafx.concurrent.Task;
 import org.pircbotx.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,11 +40,11 @@ public class MockChatService implements ChatService {
   private final Collection<OnChatUserJoinedChannelListener> onChannelJoinedListeners;
   private final Collection<OnChatUserQuitListener> onChatUserQuitListeners;
   private final Map<String, ObservableMap<String, ChatUser>> channelUserListListeners;
-  @Autowired
+  @Resource
   UserService userService;
-  @Autowired
+  @Resource
   TaskService taskService;
-  @Autowired
+  @Resource
   I18n i18n;
 
   public MockChatService() {
@@ -117,6 +118,11 @@ public class MockChatService implements ChatService {
   private void simulateConnectionEstablished() {
     onChatConnectedListeners.forEach(OnChatConnectedListener::onConnected);
     joinChannel("#mockChannel");
+  }
+
+  @Override
+  public void disconnect() {
+    timer.cancel();
   }
 
   @Override
@@ -235,4 +241,9 @@ public class MockChatService implements ChatService {
 
   }
 
+
+  private void simulateConnectionEstablished() {
+    onChatConnectedListeners.forEach(OnChatConnectedListener::onConnected);
+    joinChannel("#mockChannel");
+  }
 }

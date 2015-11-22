@@ -35,11 +35,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
@@ -73,31 +73,31 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   private final ObservableList<GameInfoBean> gameInfoBeans;
   private final Map<Integer, GameInfoBean> uidToGameInfoBean;
 
-  @Autowired
+  @Resource
   LobbyServerAccessor lobbyServerAccessor;
-  @Autowired
+  @Resource
   ForgedAllianceService forgedAllianceService;
-  @Autowired
+  @Resource
   MapService mapService;
-  @Autowired
+  @Resource
   Proxy proxy;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-  @Autowired
+  @Resource
   GameUpdateService gameUpdateService;
-  @Autowired
+  @Resource
   NotificationService notificationService;
-  @Autowired
+  @Resource
   I18n i18n;
-  @Autowired
+  @Resource
   Environment environment;
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
-  @Autowired
+  @Resource
   ScheduledExecutorService scheduledExecutorService;
-  @Autowired
+  @Resource
   PlayerService playerService;
-  @Autowired
+  @Resource
   LocalRelayServer localRelayServer;
   @VisibleForTesting
   RatingMode ratingMode;

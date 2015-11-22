@@ -8,10 +8,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.util.DigestUtils;
 
+import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -24,16 +24,16 @@ public class GitCheckGameUpdateTask extends AbstractPrioritizedTask<Boolean> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Autowired
+  @Resource
   I18n i18n;
 
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
 
-  @Autowired
+  @Resource
   GitWrapper gitWrapper;
 
-  @Autowired
+  @Resource
   Environment environment;
 
   private Path binaryPatchRepoDirectory;

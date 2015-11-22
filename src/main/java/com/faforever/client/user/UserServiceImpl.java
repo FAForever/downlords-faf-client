@@ -1,7 +1,7 @@
 package com.faforever.client.user;
 
+import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.parsecom.CloudAccessor;
 import com.faforever.client.preferences.PreferencesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
 public class UserServiceImpl implements UserService {
@@ -20,11 +22,18 @@ public class UserServiceImpl implements UserService {
   @Resource
   PreferencesService preferencesService;
   @Resource
-  CloudAccessor cloudAccessor;
+  FafApiAccessor fafApiAccessor;
 
   private String username;
   private String password;
   private Integer uid;
+  private Collection<Runnable> onLogoutListeners;
+  private Collection<Runnable> onLoginListeners;
+
+  public UserServiceImpl() {
+    onLogoutListeners = new ArrayList<>();
+    onLoginListeners = new ArrayList<>();
+  }
 
   @PostConstruct
   void postConstruct() {
@@ -46,11 +55,8 @@ public class UserServiceImpl implements UserService {
         .thenAccept(loginInfo -> {
           uid = loginInfo.getId();
 
-          cloudAccessor.signUpOrLogIn(username, password, uid).thenAccept(s -> {
-          });
-        }).exceptionally(throwable -> {
-          logger.warn("Login failed", throwable);
-          return null;
+          onLoginListeners.forEach(Runnable::run);
+          fafApiAccessor.authorize(loginInfo.getId());
         });
   }
 
@@ -72,5 +78,22 @@ public class UserServiceImpl implements UserService {
   @Override
   public void cancelLogin() {
     lobbyServerAccessor.disconnect();
+  }
+
+  @Override
+  public void logOut() {
+    logger.info("Logging out");
+    lobbyServerAccessor.disconnect();
+    onLogoutListeners.forEach(Runnable::run);
+  }
+
+  @Override
+  public void addOnLogoutListener(Runnable listener) {
+    onLogoutListeners.add(listener);
+  }
+
+  @Override
+  public void addOnLoginListener(Runnable listener) {
+    onLoginListeners.add(listener);
   }
 }

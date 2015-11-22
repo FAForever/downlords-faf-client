@@ -4,14 +4,15 @@ import com.faforever.client.preferences.PreferencesService;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.StageStyle;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
 
 public class DialogFactoryImpl implements DialogFactory {
 
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
 
-  @Autowired
+  @Resource
   FxmlLoader fxmlLoader;
 
   @Override

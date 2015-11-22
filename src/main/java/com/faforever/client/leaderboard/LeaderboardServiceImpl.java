@@ -3,8 +3,8 @@ package com.faforever.client.leaderboard;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.util.RatingUtil;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class LeaderboardServiceImpl implements LeaderboardService {
 
-  @Autowired
+  @Resource
   LobbyServerAccessor lobbyServerAccessor;
 
   @NotNull

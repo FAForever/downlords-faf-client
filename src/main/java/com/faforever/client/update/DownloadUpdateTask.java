@@ -7,8 +7,8 @@ import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.ByteCopier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,10 +22,10 @@ public class DownloadUpdateTask extends AbstractPrioritizedTask<Path> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Autowired
+  @Resource
   I18n i18n;
 
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
 
   private UpdateInfo updateInfo;

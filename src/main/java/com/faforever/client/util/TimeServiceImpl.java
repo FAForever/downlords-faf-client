@@ -1,8 +1,8 @@
 package com.faforever.client.util;
 
 import com.faforever.client.i18n.I18n;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -13,10 +13,10 @@ import java.util.TimeZone;
 
 public class TimeServiceImpl implements TimeService {
 
-  @Autowired
+  @Resource
   I18n i18n;
 
-  @Autowired
+  @Resource
   Locale locale;
 
   @Override

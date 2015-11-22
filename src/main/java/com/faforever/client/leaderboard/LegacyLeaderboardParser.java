@@ -1,13 +1,13 @@
 package com.faforever.client.leaderboard;
 
 import com.faforever.client.util.JavaFxUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
+import javax.annotation.Resource;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
@@ -24,7 +24,7 @@ import static java.util.Collections.enumeration;
 
 public class LegacyLeaderboardParser implements LeaderboardParser {
 
-  @Autowired
+  @Resource
   Environment environment;
 
   @Override

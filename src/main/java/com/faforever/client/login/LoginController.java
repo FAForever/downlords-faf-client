@@ -2,7 +2,6 @@ package com.faforever.client.login;
 
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
@@ -12,7 +11,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -20,8 +19,9 @@ import javafx.stage.Stage;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
@@ -34,54 +34,55 @@ public class LoginController {
 
   @FXML
   Pane loginFormPane;
-
   @FXML
   Pane loginProgressPane;
-
   @FXML
   CheckBox autoLoginCheckBox;
-
   @FXML
   TextField usernameInput;
-
   @FXML
   TextField passwordInput;
-
   @FXML
   Button loginButton;
-
+  @FXML
+  Label loginErrorLabel;
   @FXML
   Region loginRoot;
 
-  @Autowired
-  MainController mainController;
-
-  @Autowired
+  @Resource
   I18n i18n;
-
-  @Autowired
+  @Resource
   UserService userService;
-
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-
-  @Autowired
+  @Resource
   SceneFactory sceneFactory;
-
-  private Stage stage;
+  @Resource
+  Stage stage;
+  private boolean loggedOut;
 
   @FXML
   private void initialize() {
     loginProgressPane.setVisible(false);
   }
 
-  public void display(Stage stage) {
-    this.stage = stage;
+  @PostConstruct
+  void postConstruct() {
+    userService.addOnLogoutListener(this::onLoggedOut);
+  }
 
+  private void onLoggedOut() {
+    loggedOut = true;
+    display();
+  }
+
+  public void display() {
     sceneFactory.createScene(stage, loginRoot, false, MINIMIZE, CLOSE);
+    stage.sizeToScene();
 
     stage.setTitle(i18n.get("login.title"));
     stage.setResizable(false);
+    setShowLoginProgress(false);
 
     LoginPrefs loginPrefs = preferencesService.getPreferences().getLogin();
     String username = loginPrefs.getUsername();
@@ -95,7 +96,7 @@ public class LoginController {
     stage.show();
     JavaFxUtil.centerOnScreen(stage);
 
-    if (loginPrefs.getAutoLogin() && !isNullOrEmpty(username) && !isNullOrEmpty(password)) {
+    if (loginPrefs.getAutoLogin() && !isNullOrEmpty(username) && !isNullOrEmpty(password) && !loggedOut) {
       login(username, password, true);
     } else if (isNullOrEmpty(username)) {
       usernameInput.requestFocus();
@@ -104,42 +105,31 @@ public class LoginController {
     }
   }
 
+  private void setShowLoginProgress(boolean show) {
+    loginFormPane.setVisible(!show);
+    loginProgressPane.setVisible(show);
+    loginButton.setDisable(show);
+    loginErrorLabel.setVisible(false);
+  }
+
   private void login(String username, String password, boolean autoLogin) {
-    onLoginProgress();
+    setShowLoginProgress(true);
 
     userService.login(username, password, autoLogin)
-        .thenAccept(aVoid -> onLoginSucceeded())
         .exceptionally(throwable -> {
           onLoginFailed(throwable);
           return null;
         });
   }
 
-  private void onLoginProgress() {
-    setShowLoginProgress(true);
-  }
-
-  private void onLoginSucceeded() {
-    Platform.runLater(() -> mainController.display(stage));
-  }
-
   private void onLoginFailed(Throwable e) {
     logger.warn("Login failed", e);
+    Platform.runLater(() -> {
+      loginErrorLabel.setText(e.getCause().getLocalizedMessage());
 
-    Dialog<Void> loginFailedDialog = new Dialog<>();
-    loginFailedDialog.setTitle(i18n.get("login.failed.title"));
-    loginFailedDialog.setContentText(i18n.get("login.failed.message"));
-    loginFailedDialog.show();
-
-    loginFormPane.setVisible(true);
-    loginProgressPane.setVisible(false);
-    loginButton.setDisable(false);
-  }
-
-  private void setShowLoginProgress(boolean b) {
-    loginFormPane.setVisible(!b);
-    loginProgressPane.setVisible(b);
-    loginButton.setDisable(b);
+      setShowLoginProgress(false);
+      loginErrorLabel.setVisible(true);
+    });
   }
 
   @FXML

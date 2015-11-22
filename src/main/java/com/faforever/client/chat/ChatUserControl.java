@@ -35,6 +35,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
@@ -46,31 +47,35 @@ public class ChatUserControl extends HBox {
   private static final String CSS_CLASS_SELF = "self";
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
-  @Autowired
+
+  @Resource
   FxmlLoader fxmlLoader;
-  @Autowired
+
+  @Resource
   AvatarService avatarService;
-  @Autowired
+
+  @Resource
   CountryFlagService countryFlagService;
-  @Autowired
+
+  @Resource
   ChatController chatController;
-  @Autowired
+  @Resource
   GameService gameService;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-  @Autowired
+  @Resource
   UserService userService;
-  @Autowired
+  @Resource
   ChatService chatService;
-  @Autowired
+  @Resource
   GamesController gamesController;
-  @Autowired
+  @Resource
   ReplayService replayService;
-  @Autowired
+  @Resource
   Environment environment;
-  @Autowired
+  @Resource
   I18n i18n;
   @FXML
   ImageView countryImageView;

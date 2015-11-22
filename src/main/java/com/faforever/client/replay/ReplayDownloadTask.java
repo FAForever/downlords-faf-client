@@ -6,9 +6,9 @@ import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.util.ByteCopier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.Resource;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.InputStream;
@@ -24,13 +24,13 @@ public class ReplayDownloadTask extends AbstractPrioritizedTask<Path> {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String TEMP_FAF_REPLAY_FILE_NAME = "temp.fafreplay";
 
-  @Autowired
+  @Resource
   I18n i18n;
 
-  @Autowired
+  @Resource
   Environment environment;
 
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
 
   private int replayId;

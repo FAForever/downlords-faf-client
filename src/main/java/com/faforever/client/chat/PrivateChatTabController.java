@@ -6,7 +6,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.web.WebView;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
 
 public class PrivateChatTabController extends AbstractChatTabController {
 
@@ -19,7 +20,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
   @FXML
   TextInputControl messageTextField;
 
-  @Autowired
+  @Resource
   AudioController audioController;
 
   public void setUsername(String username) {

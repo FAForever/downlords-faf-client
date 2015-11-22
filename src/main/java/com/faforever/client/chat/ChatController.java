@@ -9,10 +9,10 @@ import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.Pane;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,11 +26,11 @@ public class ChatController implements
     OnJoinChannelsRequestListener {
 
   private final Map<String, AbstractChatTabController> nameToChatTabController;
-  @Autowired
+  @Resource
   ChatService chatService;
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
-  @Autowired
+  @Resource
   UserService userService;
   @FXML
   Node chatRoot;
