@@ -545,14 +545,9 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   private void dispatchSocialInfo(SocialInfo socialInfo) {
-    if (socialInfo.getFriends() != null) {
       onFriendListListener.onFriendList(socialInfo.getFriends());
-    } else if (socialInfo.getFoes() != null) {
       onFoeListListener.onFoeList(socialInfo.getFoes());
-    } else if (socialInfo.getAutoJoin() != null) {
-
       onJoinChannelsRequestListeners.forEach(listener -> listener.onJoinChannelsRequest(socialInfo.getAutoJoin()));
-    }
   }
 
   private void dispatchAuthenticationFailed(AuthenticationFailedMessage message) {

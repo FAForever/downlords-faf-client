@@ -169,11 +169,9 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
     chatPrefs.chatColorModeProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue.equals(CUSTOM)) {
-        for (ChatUser chatUser : chatUsersByName.values()) {
-          if (chatPrefs.getUserToColor().containsKey(chatUser.getUsername())) {
-            chatUser.setColor(chatPrefs.getUserToColor().get(chatUser.getUsername()));
-          }
-        }
+        chatUsersByName.values().stream().filter(chatUser -> chatPrefs.getUserToColor().containsKey(chatUser.getUsername())).forEach(chatUser -> {
+          chatUser.setColor(chatPrefs.getUserToColor().get(chatUser.getUsername()));
+        });
       } else if (newValue.equals(RANDOM)) {
         for (ChatUser chatUser : chatUsersByName.values()) {
           chatUser.setColor(ColorGeneratorUtil.generateRandomHexColor());
@@ -498,7 +496,10 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   @Override
   public void onConnected() {
     sendMessageInBackground("NICKSERV", "IDENTIFY " + md5Hex(userService.getPassword()))
-        .thenAccept(s1 -> pircBotX.sendIRC().joinChannel(defaultChannelName))
+        .thenAccept(s1 -> {
+          ircConnectedLatch.countDown();
+          pircBotX.sendIRC().joinChannel(defaultChannelName);
+        })
         .exceptionally(throwable -> {
           notificationService.addNotification(
               new PersistentNotification(i18n.get("irc.identificationFailed", throwable.getLocalizedMessage()), Severity.WARN)

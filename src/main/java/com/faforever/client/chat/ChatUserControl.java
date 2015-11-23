@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
+import static com.faforever.client.chat.SocialStatus.SELF;
 
 public class ChatUserControl extends HBox {
 
@@ -93,7 +94,6 @@ public class ChatUserControl extends HBox {
   void onContextMenuRequested(ContextMenuEvent event) {
     ChatUserContextMenuController contextMenuController = applicationContext.getBean(ChatUserContextMenuController.class);
     contextMenuController.setPlayerInfoBean(playerInfoBean);
-    contextMenuController.setColorsAllowedInPane(colorsAllowedInPane);
     contextMenuController.getContextMenu().show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
   }
 
@@ -130,7 +130,7 @@ public class ChatUserControl extends HBox {
   private void configureColor() {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
-    if (userService.getUsername().equals(playerInfoBean.getUsername())) {
+    if (playerInfoBean.getSocialStatus() == SELF) {
       getStyleClass().add(CSS_CLASS_SELF);
       return;
     }

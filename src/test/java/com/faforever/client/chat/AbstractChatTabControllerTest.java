@@ -41,6 +41,10 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 
+import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.chat.SocialStatus.FRIEND;
+import static com.faforever.client.chat.SocialStatus.OTHER;
+import static com.faforever.client.chat.SocialStatus.SELF;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.core.Is.is;
@@ -472,47 +476,43 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void getMessageCssClassFriend() throws Exception {
     String playerName = "somePlayer";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    playerInfoBean.setFriend(true);
-    assertEquals(instance.getMessageCssClass(playerInfoBean), AbstractChatTabController.CSS_CLASS_FRIEND);
+    playerInfoBean.setSocialStatus(FRIEND);
+    assertEquals(instance.getMessageCssClass(playerName), SocialStatus.FRIEND.getCssClass());
   }
 
   @Test
   public void getMessageCssClassFoe() throws Exception {
     String playerName = "somePlayer";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    playerInfoBean.setFriend(false);
-    playerInfoBean.setFoe(true);
-    assertEquals(instance.getMessageCssClass(playerInfoBean), AbstractChatTabController.CSS_CLASS_FOE);
+    playerInfoBean.setSocialStatus(FOE);
+    assertEquals(instance.getMessageCssClass(playerName), SocialStatus.FOE.getCssClass());
   }
 
   @Test
   public void getMessageCssClassChatOnly() throws Exception {
     String playerName = "somePlayer";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    playerInfoBean.setFriend(false);
-    playerInfoBean.setFoe(false);
+    playerInfoBean.setSocialStatus(OTHER);
     playerInfoBean.setChatOnly(true);
-    assertEquals(instance.getMessageCssClass(playerInfoBean), AbstractChatTabController.CSS_CLASS_CHAT_ONLY);
+    assertEquals(instance.getMessageCssClass(playerName), AbstractChatTabController.CSS_CLASS_CHAT_ONLY);
   }
 
   @Test
   public void getMessageCssClassSelf() throws Exception {
     String playerName = "junit";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    playerInfoBean.setFriend(false);
-    playerInfoBean.setFoe(false);
+    playerInfoBean.setSocialStatus(SELF);
     playerInfoBean.setChatOnly(false);
-    assertEquals(instance.getMessageCssClass(playerInfoBean), AbstractChatTabController.CSS_CLASS_SELF);
+    assertEquals(instance.getMessageCssClass(playerName), SocialStatus.SELF.getCssClass());
   }
 
   @Test
   public void getMessageCssClassOther() throws Exception {
     String playerName = "somePlayer";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    playerInfoBean.setFriend(false);
-    playerInfoBean.setFoe(false);
+    playerInfoBean.setSocialStatus(OTHER);
     playerInfoBean.setChatOnly(false);
-    assertEquals(instance.getMessageCssClass(playerInfoBean), null);
+    assertEquals(instance.getMessageCssClass(playerName), null);
   }
 
   @Test

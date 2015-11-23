@@ -6,6 +6,7 @@ import com.faforever.client.legacy.domain.Player;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
@@ -14,7 +15,10 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleSetProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+
+import static com.faforever.client.chat.SocialStatus.OTHER;
 
 /**
  * Represents a player with username, clan, country, friend/foe flag and so on. Can also be a chat-only user. This
@@ -28,8 +32,7 @@ public class PlayerInfoBean {
   private final StringProperty country;
   private final StringProperty avatarUrl;
   private final StringProperty avatarTooltip;
-  private final BooleanProperty friend;
-  private final BooleanProperty foe;
+  private final ObjectProperty<SocialStatus> socialStatus;
   private final SetProperty<String> moderatorForChannels;
   private final BooleanProperty chatOnly;
   private final FloatProperty globalRatingDeviation;
@@ -58,9 +61,7 @@ public class PlayerInfoBean {
     country = new SimpleStringProperty();
     avatarUrl = new SimpleStringProperty();
     avatarTooltip = new SimpleStringProperty();
-    friend = new SimpleBooleanProperty();
-    foe = new SimpleBooleanProperty();
-    moderatorForChannels = new SimpleSetProperty<>();
+    moderatorForChannels = new SimpleSetProperty<>(FXCollections.observableSet());
     chatOnly = new SimpleBooleanProperty(true);
     globalRatingDeviation = new SimpleFloatProperty();
     globalRatingMean = new SimpleFloatProperty();
@@ -69,11 +70,24 @@ public class PlayerInfoBean {
     gameStatus = new SimpleObjectProperty<>();
     gameUid = new SimpleIntegerProperty();
     numberOfGames = new SimpleIntegerProperty();
+    socialStatus = new SimpleObjectProperty<>(OTHER);
   }
   public PlayerInfoBean(String username) {
     this();
     this.gameStatus.set(GameStatus.NONE);
     this.username.set(username);
+  }
+
+  public SocialStatus getSocialStatus() {
+    return socialStatus.get();
+  }
+
+  public void setSocialStatus(SocialStatus socialStatus) {
+    this.socialStatus.set(socialStatus);
+  }
+
+  public ObjectProperty<SocialStatus> socialStatusProperty() {
+    return socialStatus;
   }
 
   public int getId() {
@@ -174,44 +188,12 @@ public class PlayerInfoBean {
     return avatarTooltip;
   }
 
-  public boolean isFriend() {
-    return friend.get();
-  }
-
-  public BooleanProperty friendProperty() {
-    return friend;
-  }
-
-  public boolean isFoe() {
-    return foe.get();
-  }
-
-  public BooleanProperty foeProperty() {
-    return foe;
-  }
-
   public boolean isChatOnly() {
     return chatOnly.get();
   }
 
   public BooleanProperty chatOnlyProperty() {
     return chatOnly;
-  }
-
-  public boolean getFriend() {
-    return friend.get();
-  }
-
-  public void setFriend(boolean friend) {
-    this.friend.set(friend);
-  }
-
-  public boolean getFoe() {
-    return foe.get();
-  }
-
-  public void setFoe(boolean foe) {
-    this.foe.set(foe);
   }
 
   public ObservableSet<String> getModeratorForChannels() {

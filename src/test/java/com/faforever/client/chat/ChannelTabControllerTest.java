@@ -102,6 +102,6 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     playerInfoBean.moderatorForChannelsProperty().set(FXCollections.observableSet(CHANNEL_NAME));
     instance.setChannelName(CHANNEL_NAME);
 
-    assertEquals(instance.getMessageCssClass(playerInfoBean), ChannelTabController.CSS_CLASS_MODERATOR);
+    assertEquals(instance.getMessageCssClass(playerName), ChannelTabController.CSS_CLASS_MODERATOR);
   }
 }

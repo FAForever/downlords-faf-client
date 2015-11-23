@@ -43,8 +43,6 @@ import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import netscape.javascript.JSObject;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -77,9 +75,9 @@ import static com.google.common.html.HtmlEscapers.htmlEscaper;
  */
 public abstract class AbstractChatTabController {
 
-  protected static final String CSS_CLASS_SELF = "self";
-  protected static final String CSS_CLASS_FRIEND = "friend";
-  protected static final String CSS_CLASS_FOE = "foe";
+  protected static final String CSS_CLASS_SELF = SocialStatus.SELF.getCssClass();
+  protected static final String CSS_CLASS_FRIEND = SocialStatus.FRIEND.getCssClass();
+  protected static final String CSS_CLASS_FOE = SocialStatus.FOE.getCssClass();
   protected static final String CSS_CLASS_CHAT_ONLY = "chat_only";
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -593,8 +591,7 @@ public abstract class AbstractChatTabController {
         cssClasses.add(MESSAGE_CSS_CLASS);
       }
 
-      PlayerInfoBean playerInfo = playerService.getPlayerForUsername(chatMessage.getUsername());
-      String messageColorClass = getMessageCssClass(playerInfo);
+      String messageColorClass = getMessageCssClass(login);
 
       if (messageColorClass != null) {
         cssClasses.add(messageColorClass);
@@ -610,24 +607,19 @@ public abstract class AbstractChatTabController {
     }
   }
 
-  @Nullable
-  protected String getMessageCssClass(@NotNull PlayerInfoBean playerInfoBean) {
-    if (playerInfoBean.isFriend()) {
-      return CSS_CLASS_FRIEND;
-    }
-    if (playerInfoBean.isFoe()) {
-      return CSS_CLASS_FOE;
-    }
-
-    if (playerInfoBean.isChatOnly()) {
+  protected String getMessageCssClass(String login) {
+    String cssClass;
+    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(login);
+    if (playerInfoBean == null) {
       return CSS_CLASS_CHAT_ONLY;
+    } else {
+      cssClass = playerInfoBean.getSocialStatus().getCssClass();
     }
 
-    if (playerInfoBean.getUsername().equals(userService.getUsername())) {
-      return CSS_CLASS_SELF;
+    if (cssClass.equals("") && playerInfoBean.isChatOnly()) {
+      cssClass = CSS_CLASS_CHAT_ONLY;
     }
-
-    return null;
+    return cssClass;
   }
 
   @VisibleForTesting

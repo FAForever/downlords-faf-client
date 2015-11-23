@@ -9,6 +9,8 @@ import javafx.scene.web.WebView;
 
 import javax.annotation.Resource;
 
+import static com.faforever.client.chat.SocialStatus.FOE;
+
 public class PrivateChatTabController extends AbstractChatTabController {
 
   @FXML
@@ -49,7 +51,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getUsername());
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
-    if (playerInfoBean.isFoe() && chatPrefs.getHideFoeMessages()) {
+    if (playerInfoBean.getSocialStatus() == FOE && chatPrefs.getHideFoeMessages()) {
       return;
     }
 

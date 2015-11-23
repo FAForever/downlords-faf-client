@@ -31,6 +31,10 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
+import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.chat.SocialStatus.FRIEND;
+import static com.faforever.client.chat.SocialStatus.OTHER;
+import static com.faforever.client.chat.SocialStatus.SELF;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 
 public class ChatUserContextMenuController {
@@ -144,19 +148,15 @@ public class ChatUserContextMenuController {
 
     removeCustomColorItem.visibleProperty().bind(chatPrefs.chatColorModeProperty().isEqualTo(CUSTOM)
         .and(colorPicker.valueProperty().isNotNull())
-        .and(playerInfoBean.usernameProperty().isNotEqualTo(userService.getUsername())));
+        .and(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF)));
     colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty()
         .isEqualTo(CUSTOM)
-        .and(playerInfoBean.usernameProperty().isNotEqualTo(userService.getUsername())
-            .and(playerInfoBean.foeProperty()).not()
-            .and(playerInfoBean.friendProperty().not())));
+        .and(playerInfoBean.socialStatusProperty().isEqualTo(OTHER)));
 
-    addFriendItem.visibleProperty().bind(playerInfoBean.friendProperty().not()
-        .and(playerInfoBean.usernameProperty().isNotEqualTo(userService.getUsername())));
-    removeFriendItem.visibleProperty().bind(playerInfoBean.friendProperty());
-    addFoeItem.visibleProperty().bind(playerInfoBean.foeProperty().not()
-        .and(playerInfoBean.usernameProperty().isNotEqualTo(userService.getUsername())));
-    removeFoeItem.visibleProperty().bind(playerInfoBean.foeProperty());
+    addFriendItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(FRIEND).and(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF)));
+    removeFriendItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isEqualTo(FRIEND));
+    addFoeItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(FOE).and(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF)));
+    removeFoeItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isEqualTo(FOE));
 
     joinGameItem.visibleProperty().bind(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.LOBBY).or(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.HOST)));
     watchGameItem.visibleProperty().bind(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.PLAYING));
@@ -188,7 +188,7 @@ public class ChatUserContextMenuController {
 
   @FXML
   void onAddFriend() {
-    if (playerInfoBean.isFoe()) {
+    if (playerInfoBean.getSocialStatus() == FOE) {
       playerService.removeFoe(playerInfoBean.getUsername());
     }
     playerService.addFriend(playerInfoBean.getUsername());
@@ -201,7 +201,7 @@ public class ChatUserContextMenuController {
 
   @FXML
   void onAddFoe() {
-    if (playerInfoBean.isFriend()) {
+    if (playerInfoBean.getSocialStatus() == FRIEND) {
       playerService.removeFriend(playerInfoBean.getUsername());
     }
     playerService.addFoe(playerInfoBean.getUsername());

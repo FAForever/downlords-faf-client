@@ -31,6 +31,11 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.chat.SocialStatus.FRIEND;
+import static com.faforever.client.chat.SocialStatus.OTHER;
+import static com.faforever.client.chat.SocialStatus.SELF;
+
 public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, OnFoeListListener, OnFriendListListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -139,8 +144,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   @Override
   public void addFriend(String username) {
-    players.get(username).setFriend(true);
-    players.get(username).setFoe(false);
+    players.get(username).setSocialStatus(FRIEND);
     friendList.add(username);
     foeList.remove(username);
 
@@ -149,7 +153,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   @Override
   public void removeFriend(String username) {
-    players.get(username).setFriend(false);
+    players.get(username).setSocialStatus(OTHER);
     friendList.remove(username);
 
     lobbyServerAccessor.setFriends(friendList);
@@ -157,8 +161,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   @Override
   public void addFoe(String username) {
-    players.get(username).setFoe(true);
-    players.get(username).setFriend(false);
+    players.get(username).setSocialStatus(FOE);
     foeList.add(username);
     friendList.remove(username);
 
@@ -167,7 +170,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   @Override
   public void removeFoe(String username) {
-    players.get(username).setFoe(false);
+    players.get(username).setSocialStatus(OTHER);
     foeList.remove(username);
 
     lobbyServerAccessor.setFoes(foeList);
@@ -197,10 +200,18 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     if (player.getLogin().equals(userService.getUsername())) {
       PlayerInfoBean playerInfoBean = getCurrentPlayer();
       playerInfoBean.updateFromPlayerInfo(player);
+      playerInfoBean.setSocialStatus(SELF);
     } else {
       PlayerInfoBean playerInfoBean = registerAndGetPlayerForUsername(player.getLogin());
-      playerInfoBean.setFriend(friendList.contains(player.getLogin()));
-      playerInfoBean.setFoe(foeList.contains(player.getLogin()));
+
+      if (friendList.contains(player.getLogin())) {
+        playerInfoBean.setSocialStatus(FRIEND);
+      } else if (friendList.contains(player.getLogin())) {
+        playerInfoBean.setSocialStatus(FOE);
+      } else {
+        playerInfoBean.setSocialStatus(OTHER);
+      }
+
       playerInfoBean.updateFromPlayerInfo(player);
     }
   }
@@ -212,7 +223,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     for (String foe : foes) {
       PlayerInfoBean playerInfoBean = players.get(foe);
       if (playerInfoBean != null) {
-        playerInfoBean.setFoe(true);
+        playerInfoBean.setSocialStatus(FOE);
       }
     }
   }
@@ -224,7 +235,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     for (String friend : friendList) {
       PlayerInfoBean playerInfoBean = players.get(friend);
       if (playerInfoBean != null) {
-        playerInfoBean.setFriend(true);
+        playerInfoBean.setSocialStatus(FRIEND);
       }
     }
   }

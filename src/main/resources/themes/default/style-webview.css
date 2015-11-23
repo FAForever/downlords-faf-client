@@ -12,6 +12,7 @@ html, body {
   /* Use same as -fx-light-text-color */
   color: #BFBEBA;
   font-family: "Segoe UI", "Arial", "Tahoma", "sans-serif";
+  overflow: hidden;
 }
 
 a {

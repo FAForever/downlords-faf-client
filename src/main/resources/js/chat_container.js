@@ -47,7 +47,7 @@ function setAllMessageColors(userListString) {
 
   for (var user in userList) {
     if (userList.hasOwnProperty(user)) {
-      setUserMessageColor(user, userList[user]);
+      updateUserMessageColor(user, userList[user]);
     }
   }
 }
@@ -59,7 +59,7 @@ function removeAllMessageColors() {
   }
 }
 
-function setUserMessageColor(user, color) {
+function updateUserMessageColor(user, color) {
   var messages = document.getElementsByClassName("user-" + user);
   for (var i = 0; i < messages.length; i++) {
     messages[i].style.color = color;

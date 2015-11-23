@@ -22,8 +22,6 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
@@ -34,6 +32,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.faforever.client.chat.ChatColorMode.DEFAULT;
+import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.chat.SocialStatus.OTHER;
+import static com.faforever.client.chat.SocialStatus.SELF;
 
 public class ChannelTabController extends AbstractChatTabController {
 
@@ -134,13 +137,13 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @Override
-  @Nullable
-  protected String getMessageCssClass(@NotNull PlayerInfoBean playerInfoBean) {
-    if (playerInfoBean.getModeratorForChannels().contains(channelName)) {
+  protected String getMessageCssClass(String login) {
+    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(login);
+    if (playerInfoBean != null && playerInfoBean.getModeratorForChannels().contains(channelName)) {
       return CSS_CLASS_MODERATOR;
     }
 
-    return super.getMessageCssClass(playerInfoBean);
+    return super.getMessageCssClass(login);
 
   }
 
@@ -183,7 +186,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private void addChatColorListener() {
     preferencesService.getPreferences().getChat().chatColorModeProperty().addListener((observable, oldValue, newValue) -> {
-      if (!newValue.equals(ChatColorMode.DEFAULT)) {
+      if (newValue != DEFAULT) {
         setAllMessageColors();
       } else {
         removeAllMessageColors();
@@ -204,27 +207,26 @@ public class ChannelTabController extends AbstractChatTabController {
     getJsObject().call("removeAllMessageColors");
   }
 
-  public void setUserMessageColor(ChatUser chatUser) {
+  public void updateUserMessageColor(ChatUser chatUser) {
     String color = "";
     if (chatUser.getColor() != null) {
       color = JavaFxUtil.toRgbCode(chatUser.getColor());
     }
-    getJsObject().call("setUserMessageColor", chatUser.getUsername(), color);
+    getJsObject().call("updateUserMessageColor", chatUser.getUsername(), color);
   }
 
   private void removeUserMessageClass(PlayerInfoBean playerInfoBean, String cssClass) {
-    getJsObject().call("removeUserMessageClass", String.format("user-%s", playerInfoBean.getUsername()), cssClass);
-  }
+    Platform.runLater(() -> getJsObject().call("removeUserMessageClass", String.format("user-%s", playerInfoBean.getUsername()), cssClass));
 
+  }
   private void setUserMessageClass(PlayerInfoBean playerInfoBean, String cssClass) {
-    getJsObject().call("setUserMessageClass", String.format("user-%s", playerInfoBean.getUsername()), cssClass);
+    Platform.runLater(() -> getJsObject().call("setUserMessageClass", String.format("user-%s", playerInfoBean.getUsername()), cssClass));
   }
 
   private void updateUserMessageDisplay(PlayerInfoBean playerInfoBean, String display) {
-    getJsObject().call("updateUserMessageDisplay", String.format("user-%s", playerInfoBean.getUsername()), display);
+    Platform.runLater(() -> getJsObject().call("updateUserMessageDisplay", String.format("user-%s", playerInfoBean.getUsername()), display));
   }
 
-  //TODO: extract to smaller methods
   private void onUserJoinedChannel(ChatUser chatUser) {
     JavaFxUtil.assertBackgroundThread();
 
@@ -245,73 +247,57 @@ public class ChannelTabController extends AbstractChatTabController {
       }
     });
 
-    playerInfoBean.friendProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
-        addToPane(playerInfoBean, friendsPane);
-        removeFromPane(playerInfoBean, foesPane);
-        removeFromPane(playerInfoBean, othersPane);
-        removeFromPane(playerInfoBean, chatOnlyPane);
-        setUserMessageClass(playerInfoBean, CSS_CLASS_FRIEND);
-
+    playerInfoBean.socialStatusProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == OTHER && playerInfoBean.isChatOnly()) {
+        addToPane(playerInfoBean, chatOnlyPane);
+        setUserMessageClass(playerInfoBean, CSS_CLASS_CHAT_ONLY);
       } else {
-        removeFromPane(playerInfoBean, friendsPane);
-        if (!playerInfoBean.isFoe()) {
-          addToPane(playerInfoBean, othersPane);
-        }
-        removeUserMessageClass(playerInfoBean, CSS_CLASS_FRIEND);
+        addToPane(playerInfoBean, getPaneForSocialStatus(newValue));
+        setUserMessageClass(playerInfoBean, newValue.getCssClass());
       }
-    });
-    playerInfoBean.foeProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
-        addToPane(playerInfoBean, foesPane);
-        removeFromPane(playerInfoBean, friendsPane);
-        removeFromPane(playerInfoBean, othersPane);
+
+      if (chatPrefs.getHideFoeMessages() && newValue == FOE) {
+        updateUserMessageDisplay(playerInfoBean, "none");
+      }
+
+      if (oldValue == OTHER && playerInfoBean.isChatOnly()) {
         removeFromPane(playerInfoBean, chatOnlyPane);
-        setUserMessageClass(playerInfoBean, CSS_CLASS_FOE);
-        if (chatPrefs.getHideFoeMessages()) {
-          updateUserMessageDisplay(playerInfoBean, "none");
-        }
-
+        removeUserMessageClass(playerInfoBean, CSS_CLASS_CHAT_ONLY);
       } else {
-        removeFromPane(playerInfoBean, foesPane);
-        if (playerInfoBean.isFriend()) {
-          addToPane(playerInfoBean, friendsPane);
-        } else if (playerInfoBean.isChatOnly()) {
-          addToPane(playerInfoBean, chatOnlyPane);
-        } else {
-          addToPane(playerInfoBean, othersPane);
-        }
+        removeFromPane(playerInfoBean, getPaneForSocialStatus(oldValue));
+        removeUserMessageClass(playerInfoBean, oldValue.getCssClass());
+      }
 
-        if (chatPrefs.getHideFoeMessages()) {
-          updateUserMessageDisplay(playerInfoBean, "");
-        }
-        removeUserMessageClass(playerInfoBean, CSS_CLASS_FOE);
+      if (chatPrefs.getHideFoeMessages() && oldValue == FOE) {
+        updateUserMessageDisplay(playerInfoBean, "");
       }
     });
 
     playerInfoBean.chatOnlyProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
-        removeFromPane(playerInfoBean, othersPane);
-        removeFromPane(playerInfoBean, friendsPane);
-        removeFromPane(playerInfoBean, foesPane);
-        setUserMessageClass(playerInfoBean, CSS_CLASS_CHAT_ONLY);
-      } else {
-        removeFromPane(playerInfoBean, chatOnlyPane);
-        if (!playerInfoBean.isFoe() && !playerInfoBean.isFriend() && !playerInfoBean.getModeratorForChannels().contains(channelName)) {
-          addToPane(playerInfoBean, othersPane);
+      if (playerInfoBean.getSocialStatus() == OTHER && !chatUser.getModeratorInChannels().contains(username)) {
+        if (newValue) {
+          removeFromPane(playerInfoBean, othersPane);
+          addToPane(playerInfoBean, chatOnlyPane);
+          setUserMessageClass(playerInfoBean, CSS_CLASS_CHAT_ONLY);
+        } else {
+          removeFromPane(playerInfoBean, chatOnlyPane);
+          addToPane(playerInfoBean, getPaneForSocialStatus(playerInfoBean.getSocialStatus()));
+          removeUserMessageClass(playerInfoBean, CSS_CLASS_CHAT_ONLY);
         }
-        removeUserMessageClass(playerInfoBean, CSS_CLASS_CHAT_ONLY);
       }
     });
+
     playerInfoBean.getModeratorForChannels().addListener((SetChangeListener<String>) change -> {
       if (change.wasAdded()) {
         addToPane(playerInfoBean, moderatorsPane);
         removeFromPane(playerInfoBean, othersPane);
+        removeFromPane(playerInfoBean, chatOnlyPane);
         setUserMessageClass(playerInfoBean, CSS_CLASS_MODERATOR);
 
       } else {
         removeFromPane(playerInfoBean, moderatorsPane);
-        if (!playerInfoBean.isFoe() && !playerInfoBean.isFriend()) {
+        SocialStatus socialStatus = playerInfoBean.getSocialStatus();
+        if (socialStatus == OTHER || socialStatus == SELF) {
           addToPane(playerInfoBean, othersPane);
         }
         removeUserMessageClass(playerInfoBean, CSS_CLASS_MODERATOR);
@@ -319,7 +305,7 @@ public class ChannelTabController extends AbstractChatTabController {
     });
 
     chatPrefs.hideFoeMessagesProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue && playerInfoBean.isFoe()) {
+      if (newValue && playerInfoBean.getSocialStatus() == FOE) {
         updateUserMessageDisplay(playerInfoBean, "none");
       } else {
         updateUserMessageDisplay(playerInfoBean, "");
@@ -327,7 +313,7 @@ public class ChannelTabController extends AbstractChatTabController {
     });
 
     chatUser.colorProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> setUserMessageColor(chatUser));
+      Platform.runLater(() -> updateUserMessageColor(chatUser));
     });
 
     Collection<Pane> targetPanesForUser = getTargetPanesForUser(playerInfoBean);
@@ -335,6 +321,17 @@ public class ChannelTabController extends AbstractChatTabController {
 
     for (Pane pane : targetPanesForUser) {
       createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
+    }
+  }
+
+  private Pane getPaneForSocialStatus(SocialStatus socialStatus) {
+    switch (socialStatus) {
+      case FRIEND:
+        return friendsPane;
+      case FOE:
+        return foesPane;
+      default:
+        return othersPane;
     }
   }
 
@@ -394,9 +391,7 @@ public class ChannelTabController extends AbstractChatTabController {
     chatUserControl.setPlayerInfoBean(playerInfoBean);
     paneToChatUserControlMap.put(pane, chatUserControl);
 
-    chatUserControl.setColorsAllowedInPane(
-        (pane == othersPane || pane == chatOnlyPane) && !userService.getUsername().equals(username)
-    );
+    chatUserControl.setColorsAllowedInPane((pane == othersPane || pane == chatOnlyPane) && playerInfoBean.getSocialStatus() != SELF);
 
     Platform.runLater(() -> {
       addChatUserControlSorted(pane, chatUserControl);
@@ -412,7 +407,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private void addChatUserControlSorted(Pane pane, ChatUserControl chatUserControl) {
     ObservableList<Node> children = pane.getChildren();
 
-    if (chatUserControl.getPlayerInfoBean().getUsername().equals(userService.getUsername())) {
+    if (chatUserControl.getPlayerInfoBean().getSocialStatus() == SELF) {
       children.add(0, chatUserControl);
       return;
     }
@@ -441,22 +436,15 @@ public class ChannelTabController extends AbstractChatTabController {
   private Collection<Pane> getTargetPanesForUser(PlayerInfoBean playerInfoBean) {
     ArrayList<Pane> panes = new ArrayList<>(3);
 
-    if (playerInfoBean.isFriend()) {
-      panes.add(friendsPane);
-    } else if (playerInfoBean.isFoe()) {
-      panes.add(foesPane);
-    }
-
     if (playerInfoBean.getModeratorForChannels().contains(channelName)) {
       panes.add(moderatorsPane);
     }
 
-    if (playerInfoBean.isChatOnly()) {
+    Pane pane = getPaneForSocialStatus(playerInfoBean.getSocialStatus());
+    if (pane == othersPane && playerInfoBean.isChatOnly()) {
       panes.add(chatOnlyPane);
-    }
-
-    if (panes.isEmpty()) {
-      panes.add(othersPane);
+    } else {
+      panes.add(pane);
     }
 
     return panes;
