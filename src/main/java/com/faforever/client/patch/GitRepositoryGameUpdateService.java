@@ -10,10 +10,10 @@ import com.faforever.client.task.TaskService;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,19 +45,19 @@ public class GitRepositoryGameUpdateService extends AbstractPatchService impleme
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Autowired
+  @Resource
   TaskService taskService;
 
-  @Autowired
+  @Resource
   NotificationService notificationService;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
-  @Autowired
+  @Resource
   GitWrapper gitWrapper;
 
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
 
   /**

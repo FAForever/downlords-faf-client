@@ -12,11 +12,11 @@ import jbsdiff.Patch;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,13 +34,13 @@ public class GitGameUpdateTask extends AbstractPrioritizedTask<Void> {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String BINARY_PATCH_DIRECTORY = "bsdiff4";
   private final Gson gson;
-  @Autowired
+  @Resource
   I18n i18n;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-  @Autowired
+  @Resource
   GitWrapper gitWrapper;
-  @Autowired
+  @Resource
   Environment environment;
   private Path binaryPatchRepoDirectory;
   private String patchRepositoryUri;

@@ -4,15 +4,16 @@ import com.faforever.client.preferences.PreferencesService;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
 
 
 public class SceneFactoryImpl implements SceneFactory {
 
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
 
-  @Autowired
+  @Resource
   FxmlLoader fxmlLoader;
 
   @Override

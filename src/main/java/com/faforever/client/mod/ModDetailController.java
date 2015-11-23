@@ -17,7 +17,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
 
 import static java.util.Collections.singletonList;
 
@@ -42,13 +43,13 @@ public class ModDetailController {
   @FXML
   Node modDetailRoot;
 
-  @Autowired
+  @Resource
   ModService modService;
-  @Autowired
+  @Resource
   NotificationService notificationService;
-  @Autowired
+  @Resource
   I18n i18n;
-  @Autowired
+  @Resource
   ReportingService reportingService;
 
   private ModInfoBean mod;

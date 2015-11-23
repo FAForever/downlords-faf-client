@@ -6,10 +6,9 @@ import com.faforever.client.legacy.map.Comment;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 
 public class CommentCardController {
 
@@ -22,11 +21,8 @@ public class CommentCardController {
   @FXML
   GridPane root;
 
-  @Autowired
+  @Resource
   I18n i18n;
-
-  @Autowired
-  Locale locale;
 
   public GridPane getRoot() {
     return root;

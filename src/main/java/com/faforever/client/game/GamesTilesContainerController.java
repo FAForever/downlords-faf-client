@@ -7,9 +7,9 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.FlowPane;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +21,7 @@ public class GamesTilesContainerController {
   @FXML
   public ScrollPane tiledScrollPane;
 
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
 
   private Map<Integer, Node> uidToGameCard;

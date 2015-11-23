@@ -10,9 +10,9 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.layout.VBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 
@@ -26,13 +26,13 @@ public class TeamCardController {
   @FXML
   VBox teamPane;
 
-  @Autowired
+  @Resource
   PlayerService playerService;
 
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
   /**

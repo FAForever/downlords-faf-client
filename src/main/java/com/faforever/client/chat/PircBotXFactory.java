@@ -5,5 +5,5 @@ import org.pircbotx.PircBotX;
 
 public interface PircBotXFactory {
 
-  PircBotX createPircBotX(Configuration<PircBotX> configuration);
+  ShutdownablePircBotX createPircBotX(Configuration<PircBotX> configuration);
 }

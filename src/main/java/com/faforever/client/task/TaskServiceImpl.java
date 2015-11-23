@@ -2,9 +2,9 @@ package com.faforever.client.task;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -12,7 +12,7 @@ public class TaskServiceImpl implements TaskService {
 
   private final ObservableList<PrioritizedTask<?>> activeTasks;
 
-  @Autowired
+  @Resource
   ScheduledThreadPoolExecutor threadPoolExecutor;
 
   private ObservableList<PrioritizedTask<?>> unmodifiableObservableList;

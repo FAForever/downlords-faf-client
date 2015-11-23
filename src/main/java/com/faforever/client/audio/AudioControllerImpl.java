@@ -5,10 +5,10 @@ import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ThemeUtil;
 import javafx.scene.media.AudioClip;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.IOException;
 
 public class AudioControllerImpl implements AudioController {
@@ -17,13 +17,13 @@ public class AudioControllerImpl implements AudioController {
   private static final String MENTION_SOUND = "sounds/mention.mp3";
   private static final String PRIVATE_MESSAGE_SOUND = "sounds/pm.mp3";
 
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
 
-  @Autowired
+  @Resource
   MainController mainController;
 
-  @Autowired
+  @Resource
   AudioClipPlayer audioClipPlayer;
 
   private AudioClip chatMentionSound;

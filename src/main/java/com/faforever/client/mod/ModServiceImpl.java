@@ -63,6 +63,8 @@ public class ModServiceImpl implements ModService {
   @Resource
   LobbyServerAccessor lobbyServerAccessor;
   @Resource
+  ModsServerAccessor modsServerAccessor;
+  @Resource
   PreferencesService preferencesService;
   @Resource
   TaskService taskService;

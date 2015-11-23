@@ -6,8 +6,8 @@ import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.util.Unzipper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.io.BufferedInputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
@@ -20,10 +20,10 @@ public class DownloadMapTask extends AbstractPrioritizedTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
   private String mapUrl;

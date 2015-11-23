@@ -6,7 +6,6 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
@@ -16,6 +15,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -29,10 +29,10 @@ import java.util.concurrent.ScheduledExecutorService;
 @EnableAsync
 public class BaseConfig {
 
-  @Autowired
+  @Resource
   Environment environment;
 
-  @Autowired
+  @Resource
   ScheduledExecutorService scheduledExecutorService;
 
   @Bean

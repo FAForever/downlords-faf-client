@@ -1,16 +1,16 @@
 package com.faforever.client.i18n;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 
+import javax.annotation.Resource;
 import java.util.Locale;
 
 public class I18nImpl implements I18n {
 
-  @Autowired
+  @Resource
   MessageSource messageSource;
 
-  @Autowired
+  @Resource
   Locale locale;
 
   @Override

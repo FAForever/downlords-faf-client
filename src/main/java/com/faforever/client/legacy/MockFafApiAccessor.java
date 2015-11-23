@@ -1,5 +1,7 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.achievements.AchievementDefinition;
+import com.faforever.client.achievements.PlayerAchievement;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.events.AchievementDefinition;
 import com.faforever.client.events.PlayerAchievement;

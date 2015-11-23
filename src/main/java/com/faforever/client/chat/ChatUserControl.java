@@ -11,29 +11,29 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.stage.PopupWindow;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 
 public class ChatUserControl extends HBox {
 
   private static final String CLAN_TAG_FORMAT = "[%s]";
 
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
 
-  @Autowired
+  @Resource
   FxmlLoader fxmlLoader;
 
-  @Autowired
+  @Resource
   AvatarService avatarService;
 
-  @Autowired
+  @Resource
   CountryFlagService countryFlagService;
 
-  @Autowired
+  @Resource
   ChatController chatController;
 
   @FXML

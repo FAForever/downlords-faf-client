@@ -1,5 +1,6 @@
 package com.faforever.client.config;
 
+import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.audio.AudioClipPlayer;
 import com.faforever.client.audio.AudioClipPlayerImpl;
 import com.faforever.client.audio.AudioController;
@@ -63,22 +64,22 @@ import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.rankedmatch.Ranked1v1Controller;
 import com.faforever.client.replay.ReplayVaultController;
-import com.faforever.client.user.AchievementItemController;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.Resource;
+
 @org.springframework.context.annotation.Configuration
 @Import(BaseConfig.class)
 public class UiConfig {
 
-  @Autowired
+  @Resource
   Environment environment;
 
-  @Autowired
+  @Resource
   BaseConfig baseConfig;
 
   @Bean

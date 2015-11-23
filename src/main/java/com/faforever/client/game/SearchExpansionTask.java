@@ -1,11 +1,12 @@
 package com.faforever.client.game;
 
 import com.faforever.client.legacy.LobbyServerAccessor;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
 
 public class SearchExpansionTask implements Runnable {
 
-  @Autowired
+  @Resource
   LobbyServerAccessor lobbyServerAccessor;
   private float maxRadius;
   private float radius;

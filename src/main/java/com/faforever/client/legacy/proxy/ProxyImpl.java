@@ -10,9 +10,9 @@ import com.google.common.net.InetAddresses;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.Resource;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -121,9 +121,9 @@ public class ProxyImpl implements Proxy {
    * Lock to synchronize multiple threads trying to read/write/open a FAF proxy connection
    */
   private final Object proxyLock;
-  @Autowired
+  @Resource
   Environment environment;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
   @VisibleForTesting
   boolean gameLaunched;

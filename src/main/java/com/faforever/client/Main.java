@@ -29,6 +29,7 @@ public class Main extends Application {
 
     context = new AnnotationConfigApplicationContext();
     context.getBeanFactory().registerSingleton("hostService", new JavaFxHostService(getHostServices()));
+    context.getBeanFactory().registerSingleton("stage", stage);
     context.register(BaseConfig.class, UiConfig.class, ServiceConfig.class, TaskConfig.class, CacheConfig.class, LuceneConfig.class);
     context.registerShutdownHook();
     context.refresh();
@@ -36,7 +37,7 @@ public class Main extends Application {
     stage.getIcons().add(new Image("/images/tray_icon.png"));
     stage.initStyle(StageStyle.TRANSPARENT);
 
-    showLoginWindow(stage, context);
+    showLoginWindow(context);
   }
 
   @Override
@@ -45,9 +46,9 @@ public class Main extends Application {
     super.stop();
   }
 
-  private void showLoginWindow(Stage stage, ApplicationContext context) {
+  private void showLoginWindow(ApplicationContext context) {
     LoginController loginController = context.getBean(LoginController.class);
-    loginController.display(stage);
+    loginController.display();
   }
 
   public static void main(String[] args) {

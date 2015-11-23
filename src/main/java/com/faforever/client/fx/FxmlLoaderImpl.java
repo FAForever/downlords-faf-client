@@ -3,25 +3,25 @@ package com.faforever.client.fx;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.ThemeUtil;
 import javafx.fxml.FXMLLoader;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Locale;
 
 public class FxmlLoaderImpl implements FxmlLoader {
 
-  @Autowired
+  @Resource
   MessageSource messageSource;
 
-  @Autowired
+  @Resource
   Locale locale;
 
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
 
   private MessageSourceResourceBundle resources;

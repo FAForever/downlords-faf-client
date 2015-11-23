@@ -5,8 +5,8 @@ import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
@@ -15,7 +15,7 @@ import static com.faforever.client.task.AbstractPrioritizedTask.Priority.MEDIUM;
 
 public class MockStatisticsServerAccessor implements StatisticsServerAccessor {
 
-  @Autowired
+  @Resource
   TaskService taskService;
 
   @Override

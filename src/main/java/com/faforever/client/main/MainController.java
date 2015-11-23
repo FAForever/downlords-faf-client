@@ -2,7 +2,6 @@ package com.faforever.client.main;
 
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
-import com.faforever.client.chat.ChatService;
 import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.Faction;
@@ -76,11 +75,11 @@ import javafx.stage.PopupWindow;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -136,72 +135,73 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @FXML
   Pane rankedMatchNotificationPane;
 
-  @Autowired
+  @Resource
   Environment environment;
-  @Autowired
+  @Resource
   NewsController newsController;
-  @Autowired
+  @Resource
   ChatController chatController;
-  @Autowired
+  @Resource
   GamesController gamesController;
-  @Autowired
+  @Resource
   Ranked1v1Controller ranked1v1Controller;
-  @Autowired
+  @Resource
   LeaderboardController leaderboardController;
-  @Autowired
+  @Resource
   ReplayVaultController replayVaultController;
-  @Autowired
+  @Resource
   PersistentNotificationsController persistentNotificationsController;
-  @Autowired
+  @Resource
   TransientNotificationsController transientNotificationsController;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-  @Autowired
+  @Resource
   SceneFactory sceneFactory;
-  @Autowired
+  @Resource
   LobbyService lobbyService;
-  @Autowired
+  @Resource
   PortCheckService portCheckService;
-  @Autowired
-  ChatService chatService;
-  @Autowired
+  @Resource
   I18n i18n;
-  @Autowired
+  @Resource
   UserService userService;
-  @Autowired
+  @Resource
   GravatarService gravatarService;
-  @Autowired
+  @Resource
   TaskService taskService;
-  @Autowired
+  @Resource
   NotificationService notificationService;
-  @Autowired
+  @Resource
   SettingsController settingsController;
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
-  @Autowired
+  @Resource
   PlayerService playerService;
-  @Autowired
+  @Resource
   ModVaultController modVaultController;
-  @Autowired
+  @Resource
   MapVaultController mapMapVaultController;
-  @Autowired
+  @Resource
   CastsController castsController;
-  @Autowired
+  @Resource
   CommunityHubController communityHubController;
-  @Autowired
+  @Resource
   GameUpdateService gameUpdateService;
-  @Autowired
+  @Resource
   GameService gameService;
-  @Autowired
+  @Resource
   ClientUpdateService clientUpdateService;
-  @Autowired
+  @Resource
   UserMenuController userMenuController;
+  @Resource
+  Stage stage;
 
   @VisibleForTesting
   Popup persistentNotificationsPopup;
   private Popup userMenuPopup;
   private ChangeListener<Boolean> windowFocusListener;
   private Popup transientNotificationsPopup;
+
 
   @FXML
   void initialize() {
@@ -329,6 +329,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
     preferencesService.setOnChoseGameDirectoryListener(this);
     gameService.addOnRankedMatchNotificationListener(this);
+    userService.addOnLoginListener(this::onLoggedIn);
   }
 
   private Rectangle2D getTransientNotificationAreaBounds() {
@@ -379,12 +380,14 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     userInfoWindow.show();
   }
 
-  public void display(Stage stage) {
+  private void onLoggedIn() {
+    Platform.runLater(this::display);
+  }
+
+  public void display() {
     lobbyService.setOnFafConnectedListener(this);
     lobbyService.setOnLobbyConnectingListener(this);
     lobbyService.setOnFafDisconnectedListener(this);
-
-    chatService.connect();
 
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
 

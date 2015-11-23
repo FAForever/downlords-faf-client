@@ -19,9 +19,9 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -53,17 +53,17 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.SECONDS;
   private static final Object FILES_TO_UPDATE_LOCK = new Object();
 
-  @Autowired
+  @Resource
   I18n i18n;
-  @Autowired
+  @Resource
   ModService modService;
-  @Autowired
+  @Resource
   NotificationService notificationService;
-  @Autowired
+  @Resource
   UpdateServerAccessor updateServerAccessor;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-  @Autowired
+  @Resource
   Environment environment;
 
   private String targetDirectoryName;

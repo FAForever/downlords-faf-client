@@ -1,5 +1,7 @@
 package com.faforever.client.config;
 
+import com.faforever.client.achievements.AchievementService;
+import com.faforever.client.achievements.AchievementServiceImpl;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.FafApiAccessorImpl;
 import com.faforever.client.api.LocalHttpVerificationCodeReceiver;
@@ -49,9 +51,6 @@ import com.faforever.client.news.LegacyNewsService;
 import com.faforever.client.news.NewsService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
-import com.faforever.client.parsecom.CloudAccessor;
-import com.faforever.client.parsecom.MockCloudAccessor;
-import com.faforever.client.parsecom.ParseCloudAccessor;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.patch.GameUpdateServiceImpl;
 import com.faforever.client.patch.GitWrapper;
@@ -76,8 +75,6 @@ import com.faforever.client.replay.ReplayService;
 import com.faforever.client.replay.ReplayServiceImpl;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.reporting.ReportingServiceImpl;
-import com.faforever.client.stats.AchievementService;
-import com.faforever.client.stats.AchievementServiceImpl;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.stats.StatisticsServiceImpl;
 import com.faforever.client.task.TaskService;
@@ -105,11 +102,13 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
+import javax.annotation.Resource;
+
 @org.springframework.context.annotation.Configuration
 @Import(BaseConfig.class)
 public class ServiceConfig {
 
-  @Autowired
+  @Resource
   Environment environment;
 
   @Bean
@@ -339,15 +338,6 @@ public class ServiceConfig {
         return new WindowsUidService();
       default:
         return new UnixUidService();
-    }
-  }
-
-  @Bean
-  CloudAccessor cloudAccessor() {
-    if (environment.containsProperty("faf.testing")) {
-      return new MockCloudAccessor();
-    } else {
-      return new ParseCloudAccessor();
     }
   }
 

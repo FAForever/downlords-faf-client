@@ -4,9 +4,9 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 
 public class CommunityHubController {
 
@@ -15,23 +15,23 @@ public class CommunityHubController {
   @FXML
   Pane flowPane;
 
-  @Autowired
+  @Resource
   LastNewsController lastNewsController;
-  @Autowired
+  @Resource
   ConcurrentUsersController concurrentUsersController;
-  @Autowired
+  @Resource
   LastCastController lastCastController;
-  @Autowired
+  @Resource
   UpcomingEventsController upcomingEventsController;
-  @Autowired
+  @Resource
   MapOfTheDayController mapOfTheDayController;
-  @Autowired
+  @Resource
   TopPlayersController topPlayersController;
-  @Autowired
+  @Resource
   DonationWallController donationWallController;
-  @Autowired
+  @Resource
   RecentForumPostsController recentForumPostsController;
-  @Autowired
+  @Resource
   MostActivePlayersController mostActivePlayersController;
 
   @PostConstruct

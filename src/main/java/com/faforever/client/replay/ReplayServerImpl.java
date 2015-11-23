@@ -17,11 +17,11 @@ import javafx.concurrent.Task;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,25 +44,25 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
    */
   private static final byte[] LIVE_REPLAY_PREFIX = new byte[]{'P', '/'};
 
-  @Autowired
+  @Resource
   Environment environment;
 
-  @Autowired
+  @Resource
   NotificationService notificationService;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
-  @Autowired
+  @Resource
   GameService gameService;
 
-  @Autowired
+  @Resource
   UserService userService;
 
-  @Autowired
+  @Resource
   ReplayFileWriter replayFileWriter;
 
-  @Autowired
+  @Resource
   ClientUpdateService clientUpdateService;
 
   private LocalReplayInfo replayInfo;

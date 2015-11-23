@@ -16,7 +16,6 @@ import javafx.collections.ObservableMap;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import org.pircbotx.Configuration;
-import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.hooks.Event;
@@ -33,14 +32,12 @@ import org.pircbotx.hooks.events.QuitEvent;
 import org.pircbotx.hooks.events.UserListEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.util.ReflectionUtils;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -73,30 +70,29 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
    */
   private final ObservableMap<String, ObservableMap<String, ChatUser>> chatUserLists;
 
-  @Autowired
+  @Resource
   Environment environment;
 
-  @Autowired
+  @Resource
   UserService userService;
 
-  @Autowired
+  @Resource
   TaskService taskService;
 
-  @Autowired
+  @Resource
   LobbyServerAccessor lobbyServerAccessor;
 
-  @Autowired
+  @Resource
   I18n i18n;
 
-  @Autowired
+  @Resource
   PircBotXFactory pircBotXFactory;
 
-  @Autowired
+  @Resource
   NotificationService notificationService;
 
   private Configuration configuration;
-  private PircBotX pircBotX;
-  private boolean initialized;
+  private ShutdownablePircBotX pircBotX;
   private String defaultChannelName;
   private Service<Void> connectionService;
 
@@ -145,8 +141,12 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     addOnChatUserQuitListener(this);
     addOnChatDisconnectedListener(this);
     addOnModeratorSetListener(this);
+    addOnChatConnectedListener(this);
 
     defaultChannelName = environment.getProperty("irc.defaultChannel");
+
+    userService.addOnLogoutListener(this::disconnect);
+    userService.addOnLoginListener(this::connect);
   }
 
   private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
@@ -163,16 +163,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       chatUsers.put(chatUser.getUsername(), chatUser);
     }
     return chatUsers;
-  }
-
-  private Exception extractDisconnectException(DisconnectEvent event) {
-    Field disconnectExceptionField = ReflectionUtils.findField(DisconnectEvent.class, "disconnectException");
-    ReflectionUtils.makeAccessible(disconnectExceptionField);
-    try {
-      return (Exception) disconnectExceptionField.get(event);
-    } catch (IllegalAccessException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   @Override
@@ -211,7 +201,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   @Override
   public void addOnChatDisconnectedListener(final OnChatDisconnectedListener listener) {
     addEventListener(DisconnectEvent.class,
-        event -> listener.onDisconnected(extractDisconnectException(event)));
+        event -> listener.onDisconnected());
   }
 
   @Override
@@ -260,9 +250,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void connect() {
-    if (!initialized) {
-      init();
-    }
+    init();
 
     connectionService = executeInBackground(new Task<Void>() {
       @Override
@@ -282,27 +270,13 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     });
   }
 
-  @SuppressWarnings("unchecked")
-  private void init() {
-    String username = userService.getUsername();
-
-    configuration = new Configuration.Builder()
-        .setName(username)
-        .setLogin(username)
-        .setRealName(username)
-        .setServer(environment.getProperty("irc.host"), environment.getProperty("irc.port", int.class))
-        .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-        .setAutoSplitMessage(true)
-        .setEncoding(StandardCharsets.UTF_8)
-        .setAutoReconnect(false)
-        .addListener(this)
-        .setSocketTimeout(SOCKET_TIMEOUT)
-        .buildConfiguration();
-
-    addOnChatConnectedListener(this);
-
-    pircBotX = pircBotXFactory.createPircBotX(configuration);
-    initialized = true;
+  @Override
+  public void disconnect() {
+    logger.info("Disconnecting from IRC");
+    if (connectionService != null) {
+      connectionService.cancel();
+    }
+    pircBotX.shutdown();
   }
 
   @Override
@@ -376,6 +350,26 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     }
   }
 
+  @SuppressWarnings("unchecked")
+  private void init() {
+    String username = userService.getUsername();
+
+    configuration = new Configuration.Builder()
+        .setName(username)
+        .setLogin(username)
+        .setRealName(username)
+        .setServer(environment.getProperty("irc.host"), environment.getProperty("irc.port", int.class))
+        .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+        .setAutoSplitMessage(true)
+        .setEncoding(StandardCharsets.UTF_8)
+        .setAutoReconnect(false)
+        .addListener(this)
+        .setSocketTimeout(SOCKET_TIMEOUT)
+        .buildConfiguration();
+
+    pircBotX = pircBotXFactory.createPircBotX(configuration);
+  }
+
   @Override
   @SuppressWarnings("unchecked")
   public void onEvent(Event event) throws Exception {
@@ -401,7 +395,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  public void onDisconnected(Exception e) {
+  public void onDisconnected() {
     synchronized (chatUserLists) {
       chatUserLists.values().forEach(ObservableMap::clear);
       chatUserLists.clear();

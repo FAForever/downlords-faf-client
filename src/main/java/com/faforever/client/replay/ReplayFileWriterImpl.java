@@ -7,9 +7,9 @@ import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.Resource;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -24,9 +24,9 @@ public class ReplayFileWriterImpl implements ReplayFileWriter {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final Gson gson;
-  @Autowired
+  @Resource
   Environment environment;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
 
   public ReplayFileWriterImpl() {

@@ -28,10 +28,10 @@ import javafx.util.Callback;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.util.Objects;
 import java.util.Set;
@@ -75,17 +75,17 @@ public class CreateGameController {
   @FXML
   Button createGameButton;
 
-  @Autowired
+  @Resource
   Environment environment;
-  @Autowired
+  @Resource
   MapService mapService;
-  @Autowired
+  @Resource
   ModService modService;
-  @Autowired
+  @Resource
   GameService gameService;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-  @Autowired
+  @Resource
   I18n i18n;
   @VisibleForTesting
   FilteredList<MapInfoBean> filteredMaps;

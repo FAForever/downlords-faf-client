@@ -10,10 +10,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -29,9 +29,9 @@ import java.nio.charset.StandardCharsets;
 public class ImgurUploadTask extends AbstractPrioritizedTask<String> {
 
   private final Gson gson;
-  @Autowired
+  @Resource
   I18n i18n;
-  @Autowired
+  @Resource
   Environment environment;
   private Image image;
   private int maxUploadSize;

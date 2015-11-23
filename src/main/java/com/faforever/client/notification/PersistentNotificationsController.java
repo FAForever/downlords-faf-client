@@ -7,10 +7,10 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -25,11 +25,11 @@ public class PersistentNotificationsController {
   Label noNotificationsLabel;
   @FXML
   Pane persistentNotificationsRoot;
-  @Autowired
+  @Resource
   NotificationService notificationService;
-  @Autowired
+  @Resource
   AudioController audioController;
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
 
   public PersistentNotificationsController() {

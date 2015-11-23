@@ -2,7 +2,7 @@
 
 <?import javafx.scene.control.TreeTableColumn?>
 <?import javafx.scene.control.TreeTableView?>
-<TreeTableView xmlns:fx="http://javafx.com/fxml/1" fx:id="replaysTable" prefHeight="200.0" prefWidth="200.0"
+<TreeTableView xmlns:fx="http://javafx.com/fxml/1" fx:id="replayVaultRoot" prefHeight="200.0" prefWidth="200.0"
                showRoot="false" xmlns="http://javafx.com/javafx/8.0.40"
                fx:controller="com.faforever.client.replay.ReplayVaultController">
   <columns>

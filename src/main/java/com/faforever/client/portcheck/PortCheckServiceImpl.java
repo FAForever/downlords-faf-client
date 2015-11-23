@@ -10,10 +10,10 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,19 +29,19 @@ public class PortCheckServiceImpl implements PortCheckService {
 
   private static final String PORT_UNREACHABLE_NOTIFICATION_ID = "portUnreachable";
 
-  @Autowired
+  @Resource
   TaskService taskService;
-  @Autowired
+  @Resource
   Environment environment;
-  @Autowired
+  @Resource
   NotificationService notificationService;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-  @Autowired
+  @Resource
   HostService hostService;
-  @Autowired
+  @Resource
   I18n i18n;
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
 
   @Override
