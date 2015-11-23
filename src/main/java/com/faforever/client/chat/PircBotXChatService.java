@@ -198,13 +198,15 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     return chatUsers;
   }
 
-  private Exception extractDisconnectException(DisconnectEvent event) {
-    Field disconnectExceptionField = ReflectionUtils.findField(DisconnectEvent.class, "disconnectException");
-    ReflectionUtils.makeAccessible(disconnectExceptionField);
-    try {
-      return (Exception) disconnectExceptionField.get(event);
-    } catch (IllegalAccessException e) {
-      throw new RuntimeException(e);
+  @Override
+  @SuppressWarnings("unchecked")
+  public void onEvent(Event event) throws Exception {
+    if (!eventListeners.containsKey(event.getClass())) {
+      return;
+    }
+
+    for (ChatEventListener listener : eventListeners.get(event.getClass())) {
+      listener.onEvent(event);
     }
   }
 
@@ -486,6 +488,15 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       chatUserLists.values().forEach(ObservableMap::clear);
       chatUserLists.clear();
     }
+  }
+
+  @Override
+  public void onModeratorSet(String channelName, String username) {
+    ChatUser chatUser = getChatUsersForChannel(channelName).get(username);
+    if (chatUser == null) {
+      return;
+    }
+    chatUser.getModeratorInChannels().add(channelName);
   }
 
 }
