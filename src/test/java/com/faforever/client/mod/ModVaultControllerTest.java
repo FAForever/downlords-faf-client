@@ -11,7 +11,6 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -64,7 +63,6 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
               .get()
       );
     }
-    when(modService.requestMods()).thenReturn(CompletableFuture.completedFuture(mods));
 
     ModTileController modTileController = mock(ModTileController.class);
     doAnswer(invocation -> new Pane()).when(modTileController).getRoot();
@@ -90,7 +88,6 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
 
     instance.setUpIfNecessary();
 
-    verify(modService).requestMods();
     assertTrue(latch.await(5000, TimeUnit.MILLISECONDS));
   }
 

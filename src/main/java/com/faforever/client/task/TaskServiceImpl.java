@@ -4,6 +4,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PreDestroy;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -43,5 +44,10 @@ public class TaskServiceImpl implements TaskService {
   @Override
   public ObservableList<PrioritizedTask<?>> getActiveTasks() {
     return unmodifiableObservableList;
+  }
+
+  @PreDestroy
+  void preDestroy() {
+    threadPoolExecutor.shutdownNow();
   }
 }

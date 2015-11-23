@@ -7,11 +7,15 @@ import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Rectangle2D;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Screen;
@@ -27,7 +31,9 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 /**
  * Utility class to fix some annoying JavaFX shortcomings.
@@ -56,6 +62,46 @@ public class JavaFxUtil {
 
   private JavaFxUtil() {
     // Utility class
+  }
+
+  public static void makeAutoCompletable(TextField textField, Function<String, List<CustomMenuItem>> itemsFactory,
+                                         Function<CustomMenuItem, String> itemToString) {
+    final ContextMenu contextMenu = new ContextMenu();
+    contextMenu.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+      // Context menu usually closes on space, but not anymore ;-)
+      if (event.getCode() == KeyCode.SPACE) {
+        event.consume();
+      }
+    });
+
+    textField.textProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue.isEmpty()) {
+        contextMenu.hide();
+        return;
+      }
+
+      if (oldValue.trim().equalsIgnoreCase(newValue)) {
+        return;
+      }
+
+      List<CustomMenuItem> menuItems = itemsFactory.apply(newValue);
+
+      logger.warn("Showing: " + contextMenu.isShowing());
+
+      contextMenu.getItems().setAll(menuItems);
+      contextMenu.setOnAction(event -> {
+        if (event.getTarget() instanceof CustomMenuItem) {
+          CustomMenuItem menuItem = (CustomMenuItem) event.getTarget();
+          String string = itemToString.apply(menuItem);
+          textField.setText(string);
+        }
+      });
+      if (contextMenu.getItems().isEmpty()) {
+        contextMenu.hide();
+      } else if (!contextMenu.isShowing()) {
+        contextMenu.show(textField, Side.BOTTOM, 0, 0);
+      }
+    });
   }
 
   public static void makeNumericTextField(TextField textField) {

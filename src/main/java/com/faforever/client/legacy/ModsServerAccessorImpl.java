@@ -4,7 +4,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.ModInfo;
 import com.faforever.client.legacy.domain.ModSearchResult;
-import com.faforever.client.legacy.domain.SearchModMessage;
 import com.faforever.client.legacy.domain.ServerCommand;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
@@ -110,13 +109,6 @@ public class ModsServerAccessorImpl extends AbstractServerAccessor implements Mo
     disconnectedGracefully = true;
     IOUtils.closeQuietly(socket);
     logger.info("Disconnected from mods server");
-  }
-
-  @Override
-  public CompletableFuture<List<ModInfo>> searchMod(String name) {
-    searchModFuture = new CompletableFuture<>();
-    writeToServer(new SearchModMessage(name, SearchModMessage.ModType.ALL));
-    return searchModFuture;
   }
 
   private void writeToServer(ClientMessage message) {

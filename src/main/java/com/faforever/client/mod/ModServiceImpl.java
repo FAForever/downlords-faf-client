@@ -1,8 +1,11 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.legacy.ModsServerAccessor;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ConcurrentUtil;
 import javafx.beans.property.DoubleProperty;
@@ -11,13 +14,15 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.store.Directory;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
@@ -29,6 +34,9 @@ import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -36,6 +44,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -51,16 +60,29 @@ public class ModServiceImpl implements ModService {
   private static final Pattern ACTIVE_MODS_PATTERN = Pattern.compile("active_mods\\s*=\\s*\\{.*?}", Pattern.DOTALL);
   private static final Pattern ACTIVE_MOD_PATTERN = Pattern.compile("\\['(.*?)']\\s*=\\s*(true|false)", Pattern.DOTALL);
 
-  @Autowired
+  @Resource
   LobbyServerAccessor lobbyServerAccessor;
-  @Autowired
-  ModsServerAccessor modsServerAccessor;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-  @Autowired
+  @Resource
   TaskService taskService;
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
+  @Resource
+  FafApiAccessor fafApiAccessor;
+  @Resource
+  ReportingService reportingService;
+  @Resource
+  NotificationService notificationService;
+  @Resource
+  I18n i18n;
+  @Resource
+  Directory directory;
+  @Resource
+  IndexWriterConfig indexWriterConfig;
+  @Resource
+  Executor executor;
+
 
   private Path modsDirectory;
   private Map<Path, ModInfoBean> pathToMod;
@@ -196,12 +218,6 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableFuture<List<ModInfoBean>> requestMods() {
-    return lobbyServerAccessor.requestMods()
-        .thenApply(modInfos -> modInfos.stream().map(ModInfoBean::fromModInfo).collect(Collectors.toList()));
-  }
-
-  @Override
   public boolean isModInstalled(String uid) {
     return getInstalledUiModsUids().contains(uid) || getInstalledModUids().contains(uid);
   }
@@ -226,13 +242,47 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableFuture<List<ModInfoBean>> searchMod(String name) {
-    modsServerAccessor.connect();
-    return modsServerAccessor.searchMod(name)
-        .thenApply(modInfos -> modInfos.stream()
-            .map(ModInfoBean::fromModInfo)
-            .collect(Collectors.toList())
-        );
+  public List<ModInfoBean> searchMod(String name) {
+    return null;
+  }
+
+  @Override
+  public CompletableFuture<List<ModInfoBean>> getAvailableMods() {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getMods(), executor);
+  }
+
+  @Override
+  public List<ModInfoBean> getMostDownloadedMods(int count) {
+    return getTopElements(ModInfoBean.DOWNLOADS_COMPARATOR, count);
+  }
+
+  @Override
+  public List<ModInfoBean> getMostLikedMods(int count) {
+    return getTopElements(ModInfoBean.LIKES_COMPARATOR, count);
+  }
+
+  @Override
+  public List<ModInfoBean> getNewestMods(int count) {
+    return getTopElements(ModInfoBean.PUBLISH_DATE_COMPARATOR, count);
+  }
+
+  @Override
+  public List<ModInfoBean> getMostLikedUiMods(int count) {
+    return getTopElements(ModInfoBean.UI_LIKES_COMPARATOR, count);
+  }
+
+  private List<ModInfoBean> getTopElements(Comparator<? super ModInfoBean> comparator, int count) {
+    List<ModInfoBean> mods = fafApiAccessor.getMods();
+
+    Collections.sort(mods, comparator.reversed());
+    List<ModInfoBean> newestMods = new ArrayList<>(count);
+    for (ModInfoBean modInfoBean : mods) {
+      newestMods.add(modInfoBean);
+      if (newestMods.size() == count) {
+        return newestMods;
+      }
+    }
+    return newestMods;
   }
 
   private Map<String, Boolean> readModStates() throws IOException {
@@ -367,6 +417,4 @@ public class ModServiceImpl implements ModService {
 
     return path.resolve(iconPath);
   }
-
-
 }

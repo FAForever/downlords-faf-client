@@ -5,6 +5,8 @@ import com.faforever.client.events.AchievementDefinition;
 import com.faforever.client.events.ListResult;
 import com.faforever.client.events.PlayerAchievement;
 import com.faforever.client.fx.HostService;
+import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
@@ -19,6 +21,8 @@ import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonObjectParser;
+import com.google.api.client.json.JsonParser;
+import com.google.api.client.json.JsonToken;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.reflect.TypeToken;
@@ -30,8 +34,10 @@ import org.springframework.cache.annotation.Cacheable;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -110,6 +116,13 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
+  public List<String> getModNames() {
+    logger.debug("Loading mod names");
+    return sendGetRequest("/mods?fields[mod]=name", new TypeToken<List<String>>() {
+    }.getType());
+  }
+
+  @Override
   public void authorize(int playerId) {
     try {
       AuthorizationCodeFlow flow = new AuthorizationCodeFlow.Builder(
@@ -129,6 +142,13 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  @Cacheable(CacheNames.MODS)
+  public List<ModInfoBean> getMods() {
+    logger.debug("Loading available mods");
+    return sendGetRequest("/mods", ModInfo.class);
   }
 
   private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {
@@ -171,7 +191,12 @@ public class FafApiAccessorImpl implements FafApiAccessor {
       HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(baseUrl + endpointPath));
       request.setParser(new JsonObjectParser(jsonFactory));
       credential.initialize(request);
-      return (T) request.execute().parseAs(type);
+      try (InputStream inputStream = request.execute().getContent()) {
+        JsonParser jsonParser = jsonFactory.createJsonParser(inputStream, StandardCharsets.UTF_8);
+
+        JsonToken jsonToken = jsonParser.nextToken();
+      }
+      return null;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

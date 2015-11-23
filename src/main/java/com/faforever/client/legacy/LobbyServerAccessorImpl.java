@@ -23,7 +23,6 @@ import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.legacy.domain.ModInfo;
 import com.faforever.client.legacy.domain.PlayerInfo;
 import com.faforever.client.legacy.domain.Ranked1v1SearchExpansionMessage;
-import com.faforever.client.legacy.domain.RequestModsMessage;
 import com.faforever.client.legacy.domain.ServerCommand;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
@@ -359,13 +358,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   @Override
   public void expand1v1Search(float radius) {
     writeToServer(new Ranked1v1SearchExpansionMessage(radius));
-  }
-
-  @Override
-  public CompletableFuture<List<ModInfo>> requestMods() {
-    modListFuture = new CompletableFuture<>();
-    writeToServer(new RequestModsMessage());
-    return modListFuture;
   }
 
   @Override
