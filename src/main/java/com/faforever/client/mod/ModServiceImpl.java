@@ -1,8 +1,14 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.legacy.ModsServerAccessor;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ConcurrentUtil;
 import javafx.beans.property.DoubleProperty;
@@ -11,13 +17,20 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.store.Directory;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
@@ -29,6 +42,9 @@ import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -51,16 +67,27 @@ public class ModServiceImpl implements ModService {
   private static final Pattern ACTIVE_MODS_PATTERN = Pattern.compile("active_mods\\s*=\\s*\\{.*?}", Pattern.DOTALL);
   private static final Pattern ACTIVE_MOD_PATTERN = Pattern.compile("\\['(.*?)']\\s*=\\s*(true|false)", Pattern.DOTALL);
 
-  @Autowired
+  @Resource
   LobbyServerAccessor lobbyServerAccessor;
-  @Autowired
-  ModsServerAccessor modsServerAccessor;
-  @Autowired
+  @Resource
   PreferencesService preferencesService;
-  @Autowired
+  @Resource
   TaskService taskService;
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
+  @Resource
+  FafApiAccessor fafApiAccessor;
+  @Resource
+  ReportingService reportingService;
+  @Resource
+  NotificationService notificationService;
+  @Resource
+  I18n i18n;
+  @Resource
+  Directory directory;
+  @Resource
+  IndexWriterConfig indexWriterConfig;
+
 
   private Path modsDirectory;
   private Map<Path, ModInfoBean> pathToMod;
@@ -196,12 +223,6 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableFuture<List<ModInfoBean>> requestMods() {
-    return lobbyServerAccessor.requestMods()
-        .thenApply(modInfos -> modInfos.stream().map(ModInfoBean::fromModInfo).collect(Collectors.toList()));
-  }
-
-  @Override
   public boolean isModInstalled(String uid) {
     return getInstalledUiModsUids().contains(uid) || getInstalledModUids().contains(uid);
   }
@@ -226,13 +247,42 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableFuture<List<ModInfoBean>> searchMod(String name) {
-    modsServerAccessor.connect();
-    return modsServerAccessor.searchMod(name)
-        .thenApply(modInfos -> modInfos.stream()
-            .map(ModInfoBean::fromModInfo)
-            .collect(Collectors.toList())
-        );
+  public List<ModInfoBean> searchMod(String name) {
+    return null;
+  }
+
+  @Override
+  public CompletableFuture<List<ModInfoBean>> getAvailableMods() {
+
+    return fafApiAccessor.getMods();
+  }
+
+  @Override
+  public void indexAvailableMods() {
+
+    fafApiAccessor.getMods().thenAccept(modInfoBeans -> {
+      try (IndexWriter indexWriter = new IndexWriter(directory, indexWriterConfig)) {
+        modInfoBeans.forEach(modInfoBean -> {
+          Document document = new Document();
+          document.add(new StringField(ModInfoBean.FIELD_ID, modInfoBean.getUid(), Field.Store.YES));
+          document.add(new TextField(ModInfoBean.FIELD_NAME, modInfoBean.getName(), Field.Store.YES));
+          document.add(new StringField(ModInfoBean.FIELD_AUTHOR, modInfoBean.getAuthor(), Field.Store.YES));
+          document.add(new TextField(ModInfoBean.FIELD_DESCRIPTION, modInfoBean.getDescription(), Field.Store.NO));
+          try {
+            indexWriter.addDocument(document);
+          } catch (IOException e) {
+            logger.warn("Could not add mod " + modInfoBean.getUid() + " to index", e);
+          }
+        });
+      } catch (IOException e) {
+        logger.warn("Index writer could not be opened", e);
+      }
+    }).exceptionally(throwable -> {
+      logger.warn("Could not index mods", throwable);
+      notificationService.addNotification(new PersistentNotification(i18n.get("mods.indexingFailed.title"),
+          Severity.WARN, Collections.singletonList(new ReportAction(i18n, reportingService, throwable))));
+      return null;
+    });
   }
 
   private Map<String, Boolean> readModStates() throws IOException {
@@ -368,5 +418,20 @@ public class ModServiceImpl implements ModService {
     return path.resolve(iconPath);
   }
 
+  @Override
+  public List<ModInfoBean> getMostDownloadedMods(int count) {
+    return getTopElements();
+  }
 
+  private List<ModInfoBean> getTopElements(Comparator<? super ModInfoBean> comparator) {
+    Collections.sort(modInfoBeans, comparator.reversed());
+    List<ModInfoBean> newestMods = new ArrayList<>();
+    for (ModInfoBean modInfoBean : modInfoBeans) {
+      newestMods.add(modInfoBean);
+      if (newestMods.size() == TOP_ELEMENT_COUNT) {
+        return newestMods;
+      }
+    }
+    return newestMods;
+  }
 }

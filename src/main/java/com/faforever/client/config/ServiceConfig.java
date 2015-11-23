@@ -95,6 +95,9 @@ import com.faforever.client.user.UserServiceImpl;
 import com.faforever.client.util.OperatingSystem;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.util.TimeServiceImpl;
+import com.google.api.client.util.Beta;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.RAMDirectory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -364,5 +367,10 @@ public class ServiceConfig {
   @Bean
   LocalHttpVerificationCodeReceiver verificationCodeReceiver() {
     return new LocalHttpVerificationCodeReceiver();
+  }
+
+  @Beta
+  Directory directory() {
+    return new RAMDirectory();
   }
 }

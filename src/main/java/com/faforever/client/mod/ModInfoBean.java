@@ -24,6 +24,13 @@ import static com.faforever.client.util.TimeUtil.fromPythonTime;
 
 public class ModInfoBean {
 
+  public static final String FIELD_ID = "id";
+  public static final String FIELD_NAME = "name";
+  public static final String FIELD_DESCRIPTION = "description";
+  public static final String FIELD_AUTHOR = "author";
+  public static final Comparator<? super ModInfoBean> LIKES_COMPARATOR = (o1, o2) -> Integer.compare(o1.getLikes(), o2.getLikes());
+  public static final Comparator<? super ModInfoBean> PUBLISH_DATE_COMPARATOR = (o1, o2) -> o1.getPublishDate().compareTo(o2.getPublishDate());
+  public static final Comparator<? super ModInfoBean> DOWNLOADS_COMPARATOR = (o1, o2) -> Integer.compare(o1.getDownloads(), o2.getDownloads());
   private final StringProperty name;
   private final ObjectProperty<Path> imagePath;
   private final StringProperty uid;
@@ -36,20 +43,21 @@ public class ModInfoBean {
   private final ListProperty<String> comments;
   private final BooleanProperty selected;
   private final IntegerProperty likes;
-  public static final Comparator<? super ModInfoBean> LIKES_COMPARATOR = (o1, o2) -> Integer.compare(o1.getLikes(), o2.getLikes());
   private final IntegerProperty played;
   private final ObjectProperty<Instant> publishDate;
-  public static final Comparator<? super ModInfoBean> PUBLISH_DATE_COMPARATOR = (o1, o2) -> o1.getPublishDate().compareTo(o2.getPublishDate());
   private final IntegerProperty downloads;
-  public static final Comparator<? super ModInfoBean> DOWNLOADS_COMPARATOR = (o1, o2) -> Integer.compare(o1.getDownloads(), o2.getDownloads());
   private final ObjectProperty<URL> downloadUrl;
 
   public ModInfoBean() {
-    name = new SimpleStringProperty();
+    this(null, null, null, null);
+  }
+
+  public ModInfoBean(String uid, String name, String description, String author) {
+    this.name = new SimpleStringProperty(name);
     imagePath = new SimpleObjectProperty<>();
-    uid = new SimpleStringProperty();
-    description = new SimpleStringProperty();
-    author = new SimpleStringProperty();
+    this.uid = new SimpleStringProperty(uid);
+    this.description = new SimpleStringProperty(description);
+    this.author = new SimpleStringProperty(author);
     selectable = new SimpleBooleanProperty();
     uiOnly = new SimpleBooleanProperty();
     version = new SimpleStringProperty();

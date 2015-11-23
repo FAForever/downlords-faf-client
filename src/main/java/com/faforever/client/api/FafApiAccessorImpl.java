@@ -5,6 +5,7 @@ import com.faforever.client.events.AchievementDefinition;
 import com.faforever.client.events.ListResult;
 import com.faforever.client.events.PlayerAchievement;
 import com.faforever.client.fx.HostService;
+import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
@@ -35,6 +36,7 @@ import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.regex.Pattern;
 
@@ -110,6 +112,13 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
+  public List<String> getModNames() {
+    logger.debug("Loading mod names");
+    return sendGetRequest("/mods?fields[mod]=name", new TypeToken<List<String>>() {
+    }.getType());
+  }
+
+  @Override
   public void authorize(int playerId) {
     try {
       AuthorizationCodeFlow flow = new AuthorizationCodeFlow.Builder(
@@ -129,6 +138,11 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public CompletableFuture<List<ModInfoBean>> getMods() {
+    throw new UnsupportedOperationException("Not yet implemented");
   }
 
   private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {

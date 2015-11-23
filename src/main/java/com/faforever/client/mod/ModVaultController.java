@@ -1,29 +1,36 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.search.suggest.Lookup;
+import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
+import org.apache.lucene.store.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 public class ModVaultController {
@@ -60,6 +67,12 @@ public class ModVaultController {
   I18n i18n;
   @Resource
   ReportingService reportingService;
+  @Resource
+  Directory directory;
+  @Resource
+  ExecutorService executorService;
+  @Resource
+  Analyzer analyzer;
 
   public Node getRoot() {
     return modVaultRoot;
@@ -80,6 +93,14 @@ public class ModVaultController {
     AnchorPane.setBottomAnchor(modDetailRoot, 0d);
     AnchorPane.setLeftAnchor(modDetailRoot, 0d);
     modDetailRoot.setVisible(false);
+
+    searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue.isEmpty()) {
+        return;
+      }
+
+      modService.searchMod(newValue);
+    });
   }
 
   private void displayShowroomMods(List<ModInfoBean> modInfoBeans) {
@@ -108,31 +129,42 @@ public class ModVaultController {
     });
   }
 
-  private List<ModInfoBean> getTopElements(List<ModInfoBean> modInfoBeans, Comparator<? super ModInfoBean> comparator) {
-    Collections.sort(modInfoBeans, comparator.reversed());
-    List<ModInfoBean> newestMods = new ArrayList<>();
-    for (ModInfoBean modInfoBean : modInfoBeans) {
-      newestMods.add(modInfoBean);
-      if (newestMods.size() == TOP_ELEMENT_COUNT) {
-        return newestMods;
-      }
-    }
-    return newestMods;
-  }
-
   public void setUpIfNecessary() {
-    modService.requestMods()
-        .thenAccept(this::displayShowroomMods)
-        .exceptionally(throwable -> {
-          logger.warn("Mods could not be loaded", throwable);
-          return null;
-        });
+    CompletableFuture<List<ModInfoBean>> availableMods = modService.getAvailableMods();
+
+    try {
+      AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(directory, analyzer);
+      ModInfoBeanIterator iterator = new ModInfoBeanIterator(availableMods.get().iterator());
+      suggester.build(iterator);
+
+      JavaFxUtil.makeAutoCompletable(searchTextField, string -> {
+        try {
+          List<Lookup.LookupResult> results = suggester.lookup(string, 5, true, false);
+          List<CustomMenuItem> items = new ArrayList<>();
+
+          for (Lookup.LookupResult result : results) {
+            ModInfoBean modInfoBean = iterator.deserialize(result.payload.bytes);
+
+            String name = modInfoBean.getName();
+            CustomMenuItem customMenuItem = new CustomMenuItem(new Label(name), true);
+            customMenuItem.setUserData(name);
+            items.add(customMenuItem);
+          }
+          return items;
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }, customMenuItem -> (String) customMenuItem.getUserData());
+    } catch (InterruptedException | ExecutionException | IOException e) {
+      logger.warn("Search could not be executed", e);
+    }
   }
 
   @FXML
   void onShowModDetail(ModInfoBean mod) {
     modDetailController.setMod(mod);
     modDetailController.getRoot().setVisible(true);
+    modDetailController.getRoot().requestFocus();
   }
 
   @FXML
@@ -142,18 +174,8 @@ public class ModVaultController {
       return;
     }
 
-    modService.searchMod(searchTextField.getText())
-        .thenAccept(this::displaySearchResult)
-        .exceptionally(throwable -> {
-          notificationService.addNotification(
-              new ImmediateNotification(
-                  i18n.get("errorTitle"),
-                  i18n.get("modVault.searchFailed"),
-                  Severity.ERROR,
-                  Collections.singletonList(new ReportAction(i18n, reportingService, throwable)))
-          );
-          return null;
-        });
+    List<ModInfoBean> modInfoBeans = modService.searchMod(searchTextField.getText());
+    displaySearchResult(modInfoBeans);
   }
 
   @FXML

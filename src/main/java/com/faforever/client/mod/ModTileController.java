@@ -53,6 +53,11 @@ public class ModTileController {
   private ModInfoBean mod;
   private Consumer<ModInfoBean> onOpenDetailListener;
 
+  @FXML
+  void initialize() {
+    progressLabel.visibleProperty().bind(progressBar.visibleProperty());
+  }
+
   public void setMod(ModInfoBean mod) {
     this.mod = mod;
     Image image;

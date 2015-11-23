@@ -1,7 +1,6 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.legacy.domain.ModInfo;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -331,13 +330,6 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     instance.loadInstalledMods();
 
     assertThat(instance.getInstalledMods().size(), is(1));
-  }
-
-  @Test
-  public void testRequestMods() throws Exception {
-    when(lobbyServerAccessor.requestMods()).thenReturn(CompletableFuture.completedFuture(Collections.<ModInfo>emptyList()));
-    instance.requestMods();
-    verify(lobbyServerAccessor).requestMods();
   }
 
   @Test
