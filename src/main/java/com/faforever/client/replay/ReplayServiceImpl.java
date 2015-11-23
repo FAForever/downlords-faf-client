@@ -1,5 +1,6 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameType;
 import com.faforever.client.i18n.I18n;
@@ -15,6 +16,7 @@ import com.faforever.client.task.TaskService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.primitives.Bytes;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -79,6 +81,7 @@ public class ReplayServiceImpl implements ReplayService {
   @Resource
   ApplicationContext applicationContext;
 
+
   @Override
   public Collection<ReplayInfoBean> getLocalReplays() throws IOException {
     Collection<ReplayInfoBean> replayInfos = new ArrayList<>();
@@ -142,14 +145,37 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
+  public void runLiveReplay(int replayId, String playerName) throws IOException {
+    //FIXME if getByUid returns null then handle null
+
+    GameInfoBean gameInfoBean = gameService.getByUid(replayId);
+
+    URIBuilder uriBuilder = new URIBuilder();
+    uriBuilder.setScheme(FAF_LIFE_PROTOCOL);
+    uriBuilder.setHost(environment.getProperty("lobby.host"));
+    uriBuilder.setPath("/" + replayId + "/" + playerName + SUP_COM_REPLAY_FILE_ENDING);
+    uriBuilder.addParameter("map", gameInfoBean.getMapTechnicalName());
+    uriBuilder.addParameter("mod", gameInfoBean.getFeaturedMod());
+
+    URI uri = null;
+    try {
+      uri = uriBuilder.build();
+      runLiveReplay(uri);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
   public void runLiveReplay(URI uri) throws IOException {
+    logger.debug("Running replay from URL: {}", uri);
     if (!uri.getScheme().equals(FAF_LIFE_PROTOCOL)) {
       throw new IllegalArgumentException("Invalid protocol: " + uri.getScheme());
     }
 
     Map<String, String> queryParams = Splitter.on('&').trimResults().withKeyValueSeparator("=").split(uri.getQuery());
 
-    String mod = queryParams.get("mod");
+    String gameType = queryParams.get("mod");
     String mapName = queryParams.get("map");
     Integer replayId = Integer.parseInt(uri.getPath().split("/")[1]);
 

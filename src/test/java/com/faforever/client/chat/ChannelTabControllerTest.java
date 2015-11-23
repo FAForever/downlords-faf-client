@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.fx.HostService;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -9,7 +10,8 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
-import javafx.stage.Stage;
+import javafx.collections.FXCollections;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -30,8 +32,6 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   ChatService chatService;
   @Mock
-  ChannelTabController instance;
-  @Mock
   UserService userService;
   @Mock
   ImageUploadService imageUploadService;
@@ -47,11 +47,13 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   Preferences preferences;
   @Mock
   ChatPrefs chatPrefs;
+  @Mock
+  I18n i18n;
 
-  @Override
-  public void start(Stage stage) throws Exception {
-    super.start(stage);
+  private ChannelTabController instance;
 
+  @Before
+  public void setUp() throws Exception {
     instance = loadController("channel_tab.fxml");
     instance.chatService = chatService;
     instance.userService = userService;
@@ -60,6 +62,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     instance.timeService = timeService;
     instance.preferencesService = preferencesService;
     instance.hostService = hostService;
+    instance.i18n = i18n;
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getCacheDirectory()).thenReturn(tempDir.getRoot().toPath());
@@ -83,8 +86,22 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetChannelName() throws Exception {
+    when(chatService.getChatUsersForChannel(CHANNEL_NAME)).thenReturn(FXCollections.emptyObservableMap());
+
     instance.setChannelName(CHANNEL_NAME);
 
     verify(chatService).addChannelUserListListener(eq(CHANNEL_NAME), any());
+  }
+
+  @Test
+  public void testGetMessageCssClassModerator() throws Exception {
+    String playerName = "junit";
+    when(chatService.getChatUsersForChannel(CHANNEL_NAME)).thenReturn(FXCollections.emptyObservableMap());
+
+    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
+    playerInfoBean.moderatorForChannelsProperty().set(FXCollections.observableSet(CHANNEL_NAME));
+    instance.setChannelName(CHANNEL_NAME);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    assertEquals(instance.getMessageCssClass(playerName), ChannelTabController.CSS_CLASS_MODERATOR);
   }
 }

@@ -12,6 +12,7 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.RatingUtil;
 import javafx.application.Platform;
@@ -101,8 +102,6 @@ public class GamesController {
   private FilteredList<GameInfoBean> filteredItems;
   private Stage mapDetailPopup;
 
-  //TODO Implement into options menu
-  private boolean tilesPaneSelected = false;
   private boolean firstGeneratedPane = true;
   private GameInfoBean currentGameInfoBean;
 
@@ -139,20 +138,43 @@ public class GamesController {
     filteredItems = new FilteredList<>(gameInfoBeans);
     filteredItems.setPredicate(OPEN_GAMES_PREDICATE);
 
-    onTableButtonPressed();
+    if (preferencesService.getPreferences().getTilePaneSelected()) {
+      onTilesButtonPressed();
+    } else {
+      onTableButtonPressed();
+    }
+  }
+
+  @FXML
+  void onTilesButtonPressed() {
+    Preferences preferences = preferencesService.getPreferences();
+    if (!preferences.getTilePaneSelected() || isFirstGeneratedPane()) {
+      GamesTilesContainerController gamesTilesContainerController = applicationContext.getBean(GamesTilesContainerController.class);
+      gamesTilesContainerController.createTiledFlowPane(filteredItems);
+
+      Node root = gamesTilesContainerController.getRoot();
+      populateContainer(root);
+
+      preferences.setTilePaneSelected(true);
+      firstGeneratedPane = false;
+      preferencesService.storeInBackground();
+    }
   }
 
   @FXML
   void onTableButtonPressed() {
-    if (tilesPaneSelected || isFirstGeneratedPane()) {
+    Preferences preferences = preferencesService.getPreferences();
+    if (preferences.getTilePaneSelected() || isFirstGeneratedPane()) {
       GamesTableController gamesTableController = applicationContext.getBean(GamesTableController.class);
       Platform.runLater(() -> {
         gamesTableController.initializeGameTable(filteredItems);
 
         Node root = gamesTableController.getRoot();
         populateContainer(root);
+
+        preferences.setTilePaneSelected(false);
         firstGeneratedPane = false;
-        tilesPaneSelected = false;
+        preferencesService.storeInBackground();
       });
     }
   }
@@ -172,9 +194,9 @@ public class GamesController {
   public void displayGameDetail(GameInfoBean gameInfoBean) {
     currentGameInfoBean = gameInfoBean;
     gameTitleLabel.setText(gameInfoBean.getTitle());
-    mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getTechnicalName()));
+    mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapTechnicalName()));
 
-    gameInfoBean.technicalNameProperty().addListener((observable, oldValue, newValue) -> {
+    gameInfoBean.mapTechnicalNameProperty().addListener((observable, oldValue, newValue) -> {
       Platform.runLater(() -> {
         gameTitleLabel.setText(newValue);
         mapImageView.setImage(mapService.loadLargePreview(newValue));
@@ -183,7 +205,7 @@ public class GamesController {
 
     numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     hostLabel.textProperty().bind(gameInfoBean.hostProperty());
-    mapLabel.textProperty().bind(gameInfoBean.technicalNameProperty());
+    mapLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
 
     gameInfoBean.featuredModProperty().addListener((observable, oldValue, newValue) -> {
       updateGameType(newValue);
@@ -259,19 +281,6 @@ public class GamesController {
   }
 
   @FXML
-  void onTilesButtonPressed() {
-    if (!tilesPaneSelected || isFirstGeneratedPane()) {
-      GamesTilesContainerController gamesTilesContainerController = applicationContext.getBean(GamesTilesContainerController.class);
-      gamesTilesContainerController.createTiledFlowPane(filteredItems);
-
-      Node root = gamesTilesContainerController.getRoot();
-      populateContainer(root);
-      firstGeneratedPane = false;
-      tilesPaneSelected = true;
-    }
-  }
-
-  @FXML
   void onCreateGameButtonClicked(ActionEvent actionEvent) {
     Button button = (Button) actionEvent.getSource();
 
@@ -286,7 +295,7 @@ public class GamesController {
     }
     mapDetailPopup = getMapDetailPopup();
     MapDetailController mapDetailController = applicationContext.getBean(MapDetailController.class);
-    MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultByName(currentGameInfoBean.getTechnicalName());
+    MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultByName(currentGameInfoBean.getMapTechnicalName());
     if (mapInfoBean == null) {
       mapDetailPopup.hide();
       String title = i18n.get("errorTitle");

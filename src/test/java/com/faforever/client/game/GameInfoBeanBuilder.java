@@ -17,7 +17,7 @@ public class GameInfoBeanBuilder {
     gameInfoBean.setFeaturedModVersions(FXCollections.emptyObservableMap());
     gameInfoBean.setVictoryCondition(VictoryCondition.DEMORALIZATION);
     gameInfoBean.setHost("Host");
-    gameInfoBean.setTechnicalName("mapName");
+    gameInfoBean.setMapTechnicalName("mapName");
     gameInfoBean.setNumPlayers(1);
     gameInfoBean.setNumPlayers(2);
     gameInfoBean.setOptions(FXCollections.emptyObservableList());

@@ -7,11 +7,12 @@ All the following applies to the content of a WebViews (chat, news), therefore i
 html, body {
   /* TODO JDK-8116513 WebView does not yet allow transparency. As a workaround, we use a black background together with WebView set to blend mode ADD. */
   background-color: black;
-  margin: 0;
+  margin: 0, 0, 0, 5px;
   padding: 0;
   /* Use same as -fx-light-text-color */
-  color: #F5F5F5;
-  font-family: "Segoe UI","Arial","Tahoma","sans-serif";
+  color: #BFBEBA;
+  font-family: "Segoe UI", "Arial", "Tahoma", "sans-serif";
+  overflow: hidden;
 }
 
 a {
@@ -20,15 +21,34 @@ a {
   text-decoration: none;
 }
 
+/***************** Chat Colors (WebView) *****************/
+/*!important indicates that randomColors cannot override*/
+
+.self {
+  color: #FFA500 !important;
+}
+
+.friend {
+  color: #16B7EB !important;
+}
+
+.foe {
+  color: #FF0000 !important;
+}
+
+.moderator {
+  color: #FFFFFF !important;
+}
+
+.chat_only {
+  color: #808080;
+}
+
 /***************** Chat (WebView) *****************/
 
 #chat-table {
   width: 100%;
   border-collapse: collapse;
-}
-
-.own-username {
-  color: orange;
 }
 
 .chat-message {
@@ -45,7 +65,7 @@ a {
 }
 
 .chat-message:nth-of-type(odd) {
-  background-color: rgba(255,255,255,0.06667);
+  background-color: rgba(255, 255, 255, 0.06667);
 }
 
 .chat-message * {
@@ -66,7 +86,7 @@ a {
   padding: 0 2px;
 }
 
-.avatar>img {
+.avatar > img {
   display: block;
 }
 
@@ -80,10 +100,7 @@ a {
   max-width: 50%;
   text-align: right;
   white-space: nowrap;
-}
-
-.chat-message.self {
-  color: orange;
+  cursor: pointer;
 }
 
 .chat-message .time {

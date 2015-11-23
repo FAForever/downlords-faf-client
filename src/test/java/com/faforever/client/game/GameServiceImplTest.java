@@ -154,7 +154,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     simMods.put("123-456-789", "Fake mod name");
 
     when(gameInfoBean.getSimMods()).thenReturn(simMods);
-    when(gameInfoBean.getTechnicalName()).thenReturn("map");
+    when(gameInfoBean.getMapTechnicalName()).thenReturn("map");
 
     when(mapService.isAvailable("map")).thenReturn(true);
     when(lobbyServerAccessor.requestJoinGame(gameInfoBean, null)).thenReturn(completedFuture(null));

@@ -22,32 +22,36 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="userInfoRoot" minHeight="256.0" minWidth="256.0" prefHeight="700.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.chat.UserInfoWindowController">
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="userInfoRoot" minHeight="256.0" minWidth="256.0" prefHeight="700.0"
+          prefWidth="900.0" xmlns="http://javafx.com/javafx/8.0.40"
+          fx:controller="com.faforever.client.chat.UserInfoWindowController">
   <columnConstraints>
-    <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
-    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+    <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
+    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
   </columnConstraints>
   <rowConstraints>
-    <RowConstraints minHeight="50.0" vgrow="NEVER" />
-    <RowConstraints minHeight="50.0" vgrow="NEVER" />
-    <RowConstraints minHeight="10.0" vgrow="ALWAYS" />
+    <RowConstraints minHeight="50.0" vgrow="NEVER"/>
+    <RowConstraints minHeight="50.0" vgrow="NEVER"/>
+    <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
   </rowConstraints>
   <children>
     <Label fx:id="usernameLabel" text="&lt;Username&gt;" GridPane.columnIndex="1" GridPane.columnSpan="2147483647">
       <font>
-        <Font size="32.0" />
+        <Font size="32.0"/>
       </font>
     </Label>
-    <Label fx:id="countryLabel" text="&lt;Country&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.valignment="TOP">
+    <Label fx:id="countryLabel" text="&lt;Country&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1"
+           GridPane.valignment="TOP">
       <GridPane.margin>
-        <Insets left="5.0" />
+        <Insets left="5.0"/>
       </GridPane.margin>
       <graphic>
-        <ImageView fx:id="countryImageView" pickOnBounds="true" preserveRatio="true" />
+        <ImageView fx:id="countryImageView" pickOnBounds="true" preserveRatio="true"/>
       </graphic>
     </Label>
-    <TabPane tabClosingPolicy="UNAVAILABLE" GridPane.columnSpan="2147483647" GridPane.rowIndex="2" GridPane.rowSpan="2147483647">
+    <TabPane tabClosingPolicy="UNAVAILABLE" GridPane.columnSpan="2147483647" GridPane.rowIndex="2"
+             GridPane.rowSpan="2147483647">
       <tabs>
         <Tab closable="false" text="%userInfo.ratingOverTime">
           <content>
@@ -55,20 +59,24 @@
               <children>
                 <HBox alignment="TOP_RIGHT" spacing="10.0">
                   <children>
-                    <ToggleButton fx:id="ratingOver90DaysButton" mnemonicParsing="false" onAction="#onRatingOver90DaysButtonClicked" selected="true" text="%userInfo.ratingOverTime.last3Months">
+                    <ToggleButton fx:id="ratingOver90DaysButton" mnemonicParsing="false"
+                                  onAction="#onRatingOver90DaysButtonClicked" selected="true"
+                                  text="%userInfo.ratingOverTime.last3Months">
                       <toggleGroup>
-                        <ToggleGroup fx:id="timeRange" />
+                        <ToggleGroup fx:id="timeRange"/>
                       </toggleGroup>
                     </ToggleButton>
-                    <ToggleButton fx:id="ratingOver365DaysButton" mnemonicParsing="false" onAction="#onRatingOver365DaysButtonClicked" text="%userInfo.ratingOverTime.lastYear" toggleGroup="$timeRange" />
+                    <ToggleButton fx:id="ratingOver365DaysButton" mnemonicParsing="false"
+                                  onAction="#onRatingOver365DaysButtonClicked" text="%userInfo.ratingOverTime.lastYear"
+                                  toggleGroup="$timeRange"/>
                   </children>
                 </HBox>
                 <LineChart fx:id="rating90DaysChart" createSymbols="false" legendVisible="false" VBox.vgrow="ALWAYS">
                   <xAxis>
-                    <NumberAxis fx:id="rating90DaysXAxis" autoRanging="true" forceZeroInRange="false" side="BOTTOM" />
+                    <NumberAxis fx:id="rating90DaysXAxis" autoRanging="true" forceZeroInRange="false" side="BOTTOM"/>
                   </xAxis>
                   <yAxis>
-                    <NumberAxis fx:id="rating90DaysYAxis" autoRanging="true" forceZeroInRange="false" side="LEFT" />
+                    <NumberAxis fx:id="rating90DaysYAxis" autoRanging="true" forceZeroInRange="false" side="LEFT"/>
                   </yAxis>
                 </LineChart>
               </children>
@@ -82,9 +90,11 @@
               <content>
                 <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
                   <children>
-                    <Label fx:id="loadingProgressLabel" alignment="CENTER" contentDisplay="TOP" graphicTextGap="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="%achievements.loading" VBox.vgrow="ALWAYS">
+                    <Label fx:id="loadingProgressLabel" alignment="CENTER" contentDisplay="TOP" graphicTextGap="10.0"
+                           maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                           text="%achievements.loading" VBox.vgrow="ALWAYS">
                       <graphic>
-                        <ProgressIndicator fx:id="loadingProgressIndicator" prefHeight="50.0" prefWidth="50.0" />
+                        <ProgressIndicator fx:id="loadingProgressIndicator" prefHeight="50.0" prefWidth="50.0"/>
                       </graphic>
                     </Label>
                     <GridPane VBox.vgrow="NEVER">
@@ -113,45 +123,49 @@
                     </GridPane>
                     <GridPane fx:id="mostRecentAchievementPane" hgap="20.0" VBox.vgrow="NEVER">
                       <columnConstraints>
-                        <ColumnConstraints hgrow="NEVER" />
-                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                        <ColumnConstraints hgrow="NEVER"/>
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
                       </columnConstraints>
                       <rowConstraints>
-                        <RowConstraints vgrow="NEVER" />
-                        <RowConstraints vgrow="NEVER" />
-                                    <RowConstraints vgrow="NEVER" />
-                        <RowConstraints vgrow="ALWAYS" />
-                        <RowConstraints vgrow="NEVER" />
-                        <RowConstraints vgrow="NEVER" />
+                        <RowConstraints vgrow="NEVER"/>
+                        <RowConstraints vgrow="NEVER"/>
+                        <RowConstraints vgrow="NEVER"/>
+                        <RowConstraints vgrow="ALWAYS"/>
+                        <RowConstraints vgrow="NEVER"/>
+                        <RowConstraints vgrow="NEVER"/>
                       </rowConstraints>
                       <children>
-                        <ImageView fx:id="mostRecentAchievementImageView" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" GridPane.rowSpan="4" />
-                        <Label text="%achievements.mostRecent" GridPane.columnIndex="1" />
-                        <Label fx:id="mostRecentAchievementNameLabel" styleClass="achievement-title" text="&lt;Title&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.valignment="TOP" />
-                                    <Label fx:id="mostRecentAchievementDescriptionLabel" text="&lt;Description&gt;" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.valignment="TOP" />
+                        <ImageView fx:id="mostRecentAchievementImageView" fitHeight="100.0" fitWidth="100.0"
+                                   pickOnBounds="true" preserveRatio="true" GridPane.rowSpan="4"/>
+                        <Label text="%achievements.mostRecent" GridPane.columnIndex="1"/>
+                        <Label fx:id="mostRecentAchievementNameLabel" styleClass="achievement-title"
+                               text="&lt;Title&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                               GridPane.valignment="TOP"/>
+                        <Label fx:id="mostRecentAchievementDescriptionLabel" text="&lt;Description&gt;"
+                               GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.valignment="TOP"/>
                       </children>
                     </GridPane>
-                              <HBox alignment="CENTER" spacing="10.0">
-                                 <children>
-                          <Separator HBox.hgrow="ALWAYS" />
-                                    <Label styleClass="h1" text="%achievements.unlocked" />
-                                    <Separator HBox.hgrow="ALWAYS" />
-                                 </children>
-                                <VBox.margin>
-                                  <Insets top="20.0"/>
-                                </VBox.margin>
-                              </HBox>
+                    <HBox alignment="CENTER" spacing="10.0">
+                      <children>
+                        <Separator HBox.hgrow="ALWAYS"/>
+                        <Label styleClass="h1" text="%achievements.unlocked"/>
+                        <Separator HBox.hgrow="ALWAYS"/>
+                      </children>
+                      <VBox.margin>
+                        <Insets top="20.0"/>
+                      </VBox.margin>
+                    </HBox>
                     <FlowPane fx:id="achievedAchievementsContainer" hgap="10.0" vgap="10.0"/>
-                              <HBox alignment="CENTER" spacing="10.0">
-                                 <children>
-                                    <Separator HBox.hgrow="ALWAYS" />
-                                    <Label styleClass="h1" text="%achievements.open" />
-                                    <Separator HBox.hgrow="ALWAYS" />
-                                 </children>
-                                <VBox.margin>
-                                  <Insets top="20.0"/>
-                                </VBox.margin>
-                              </HBox>
+                    <HBox alignment="CENTER" spacing="10.0">
+                      <children>
+                        <Separator HBox.hgrow="ALWAYS"/>
+                        <Label styleClass="h1" text="%achievements.open"/>
+                        <Separator HBox.hgrow="ALWAYS"/>
+                      </children>
+                      <VBox.margin>
+                        <Insets top="20.0"/>
+                      </VBox.margin>
+                    </HBox>
                     <FlowPane fx:id="availableAchievementsContainer" hgap="10.0" vgap="10.0">
                       <VBox.margin>
                         <Insets/>
@@ -159,7 +173,7 @@
                     </FlowPane>
                   </children>
                   <padding>
-                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
                   </padding>
                 </VBox>
               </content>
@@ -168,11 +182,12 @@
         </Tab>
       </tabs>
     </TabPane>
-    <Button mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowSpan="2" GridPane.valignment="TOP">
+    <Button mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowSpan="2"
+            GridPane.valignment="TOP">
       <graphic>
         <ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
           <image>
-            <Image url="@images/add_friend.png" />
+            <Image url="@images/add_friend.png"/>
           </image>
         </ImageView>
       </graphic>
@@ -181,6 +196,6 @@
                GridPane.rowSpan="2"/>
   </children>
   <padding>
-    <Insets bottom="5.0" left="5.0" right="5.0" top="32.0" />
+    <Insets bottom="5.0" left="5.0" right="5.0" top="32.0"/>
   </padding>
 </GridPane>

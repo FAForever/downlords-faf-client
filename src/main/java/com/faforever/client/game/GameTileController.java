@@ -72,11 +72,11 @@ public class GameTileController {
     gameTitleLabel.setText(gameInfoBean.getTitle());
     hostLabel.setText(gameInfoBean.getHost());
 
-    JavaFxUtil.bindOnApplicationThread(gameMapLabel.textProperty(), gameInfoBean::getTechnicalName, gameInfoBean.technicalNameProperty());
+    JavaFxUtil.bindOnApplicationThread(gameMapLabel.textProperty(), gameInfoBean::getMapTechnicalName, gameInfoBean.mapTechnicalNameProperty());
     JavaFxUtil.bindOnApplicationThread(numberOfPlayersLabel.textProperty(), () -> i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()), gameInfoBean.numPlayersProperty());
-    JavaFxUtil.bindOnApplicationThread(mapImageView.imageProperty(), () -> mapService.loadSmallPreview(gameInfoBean.getTechnicalName()), gameInfoBean.technicalNameProperty());
-    JavaFxUtil.bindOnApplicationThread(modsLabel.textProperty(), () -> Joiner.on(i18n.get("textSeparator")).join(gameInfoBean.getSimMods().values()), gameInfoBean.technicalNameProperty());
-    JavaFxUtil.bindOnApplicationThread(modsLabel.visibleProperty(), () -> !gameInfoBean.getSimMods().isEmpty(), gameInfoBean.technicalNameProperty());
+    JavaFxUtil.bindOnApplicationThread(mapImageView.imageProperty(), () -> mapService.loadSmallPreview(gameInfoBean.getMapTechnicalName()), gameInfoBean.mapTechnicalNameProperty());
+    JavaFxUtil.bindOnApplicationThread(modsLabel.textProperty(), () -> Joiner.on(i18n.get("textSeparator")).join(gameInfoBean.getSimMods().values()), gameInfoBean.mapTechnicalNameProperty());
+    JavaFxUtil.bindOnApplicationThread(modsLabel.visibleProperty(), () -> !gameInfoBean.getSimMods().isEmpty(), gameInfoBean.mapTechnicalNameProperty());
 
     numberOfPlayersLabel.setText(i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
     gameInfoBean.numPlayersProperty().addListener(((observable3, oldValue3, newValue3) -> {
@@ -86,9 +86,9 @@ public class GameTileController {
     displaySimMods(gameInfoBean.getSimMods());
     gameInfoBean.getSimMods().addListener((MapChangeListener<String, String>) change -> displaySimMods(change.getMap()));
 
-    Image image = mapService.loadSmallPreview(gameInfoBean.getTechnicalName());
+    Image image = mapService.loadSmallPreview(gameInfoBean.getMapTechnicalName());
     mapImageView.setImage(image);
-    gameInfoBean.technicalNameProperty().addListener((observable, oldValue, newValue) -> {
+    gameInfoBean.mapTechnicalNameProperty().addListener((observable, oldValue, newValue) -> {
       Image newImage = mapService.loadSmallPreview(newValue);
       mapImageView.setImage(newImage);
     });
@@ -114,7 +114,9 @@ public class GameTileController {
 
   @FXML
   void onClick(MouseEvent mouseEvent) {
+    gameTileRoot.requestFocus();
     gamesController.displayGameDetail(gameInfoBean);
+
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
       mouseEvent.consume();
       gamesController.onJoinGame(gameInfoBean, null, mouseEvent.getScreenX(), mouseEvent.getScreenY());

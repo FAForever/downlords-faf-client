@@ -1,10 +1,14 @@
 package com.faforever.client.player;
 
 import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.game.GameInfoBean;
+import com.faforever.client.game.GameService;
+import com.faforever.client.legacy.GameStatus;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnFoeListListener;
 import com.faforever.client.legacy.OnFriendListListener;
 import com.faforever.client.legacy.OnPlayerInfoListener;
+import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.Player;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
@@ -16,6 +20,7 @@ import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -25,6 +30,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.chat.SocialStatus.FRIEND;
+import static com.faforever.client.chat.SocialStatus.OTHER;
+import static com.faforever.client.chat.SocialStatus.SELF;
 
 public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, OnFoeListListener, OnFriendListListener {
 
@@ -38,15 +48,28 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   @Resource
   UserService userService;
 
+  @Autowired
+  GameService gameService;
+
   private List<String> foeList;
   private List<String> friendList;
   private ObjectProperty<PlayerInfoBean> currentPlayer;
+  private GameStatus gameStatus;
 
   public PlayerServiceImpl() {
     players = FXCollections.observableHashMap();
     friendList = new ArrayList<>();
     foeList = new ArrayList<>();
+    gameStatus = GameStatus.NONE;
     currentPlayer = new SimpleObjectProperty<>();
+  }
+
+  public GameStatus getGameStatus() {
+    return gameStatus;
+  }
+
+  public void setGameStatus(GameStatus gameStatus) {
+    this.gameStatus = gameStatus;
   }
 
   @PostConstruct
@@ -54,11 +77,53 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     lobbyServerAccessor.setOnPlayerInfoMessageListener(this);
     lobbyServerAccessor.setOnFoeListListener(this);
     lobbyServerAccessor.setOnFriendListListener(this);
+    gameService.addOnGameInfoBeanListener(change -> {
+      while (change.next()) {
+        for (GameInfoBean gameInfoBean : change.getRemoved()) {
+          gameInfoBean.setStatus(GameState.CLOSED);
+          gameInfoBean.getTeams().forEach((team, players) -> updatePlayerInfoBean(players, gameInfoBean));
+        }
+        for (GameInfoBean gameInfoBean : change.getAddedSubList()) {
+          gameInfoBean.getTeams().forEach((team, players) -> updatePlayerInfoBean(players, gameInfoBean));
+          gameInfoBean.statusProperty().addListener(change2 -> {
+            gameInfoBean.getTeams().forEach((team, updatedPlayer) -> updatePlayerInfoBean(updatedPlayer, gameInfoBean));
+          });
+        }
+      }
+    });
+  }
+
+  //FIXME ugly fix until host can be resolved from gamestate
+  private void updatePlayerInfoBean(List<String> players, GameInfoBean gameInfoBean) {
+    for (String player : players) {
+      PlayerInfoBean playerInfoBean = getPlayerForUsername(player);
+      if(playerInfoBean == null) {
+        continue;
+      }
+      updatePlayerGameStatus(playerInfoBean, GameStatus.getFromGameState(gameInfoBean.getStatus()));
+      playerInfoBean.setGameUid(gameInfoBean.getUid());
+    }
+    if (GameStatus.getFromGameState(gameInfoBean.getStatus()) == GameStatus.LOBBY) {
+      PlayerInfoBean host = getPlayerForUsername(gameInfoBean.getHost());
+      updatePlayerGameStatus(host, GameStatus.HOST);
+    }
+  }
+
+  @Override
+  public void updatePlayerGameStatus(PlayerInfoBean playerInfoBean, GameStatus gameStatus) {
+    if (playerInfoBean != null && playerInfoBean.getGameStatus() != gameStatus) {
+      //FIXME until api, host is set twice or ugly code, I chose to set twice
+      playerInfoBean.setGameStatus(gameStatus);
+    }
   }
 
   @Override
   public PlayerInfoBean getPlayerForUsername(String username) {
-    return players.get(username);
+    PlayerInfoBean playerInfoBean = players.get(username);
+    if (playerInfoBean == null) {
+      logger.warn("Unknown user: {}", username);
+    }
+    return playerInfoBean;
   }
 
   @Override
@@ -79,8 +144,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   @Override
   public void addFriend(String username) {
-    players.get(username).setFriend(true);
-    players.get(username).setFoe(false);
+    players.get(username).setSocialStatus(FRIEND);
     friendList.add(username);
     foeList.remove(username);
 
@@ -89,7 +153,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   @Override
   public void removeFriend(String username) {
-    players.get(username).setFriend(false);
+    players.get(username).setSocialStatus(OTHER);
     friendList.remove(username);
 
     lobbyServerAccessor.setFriends(friendList);
@@ -97,8 +161,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   @Override
   public void addFoe(String username) {
-    players.get(username).setFoe(true);
-    players.get(username).setFriend(false);
+    players.get(username).setSocialStatus(FOE);
     foeList.add(username);
     friendList.remove(username);
 
@@ -107,7 +170,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
 
   @Override
   public void removeFoe(String username) {
-    players.get(username).setFoe(false);
+    players.get(username).setSocialStatus(OTHER);
     foeList.remove(username);
 
     lobbyServerAccessor.setFoes(foeList);
@@ -137,10 +200,18 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     if (player.getLogin().equals(userService.getUsername())) {
       PlayerInfoBean playerInfoBean = getCurrentPlayer();
       playerInfoBean.updateFromPlayerInfo(player);
+      playerInfoBean.setSocialStatus(SELF);
     } else {
       PlayerInfoBean playerInfoBean = registerAndGetPlayerForUsername(player.getLogin());
-      playerInfoBean.setFriend(friendList.contains(player.getLogin()));
-      playerInfoBean.setFoe(foeList.contains(player.getLogin()));
+
+      if (friendList.contains(player.getLogin())) {
+        playerInfoBean.setSocialStatus(FRIEND);
+      } else if (friendList.contains(player.getLogin())) {
+        playerInfoBean.setSocialStatus(FOE);
+      } else {
+        playerInfoBean.setSocialStatus(OTHER);
+      }
+
       playerInfoBean.updateFromPlayerInfo(player);
     }
   }
@@ -152,7 +223,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     for (String foe : foes) {
       PlayerInfoBean playerInfoBean = players.get(foe);
       if (playerInfoBean != null) {
-        playerInfoBean.setFoe(true);
+        playerInfoBean.setSocialStatus(FOE);
       }
     }
   }
@@ -164,7 +235,7 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
     for (String friend : friendList) {
       PlayerInfoBean playerInfoBean = players.get(friend);
       if (playerInfoBean != null) {
-        playerInfoBean.setFriend(true);
+        playerInfoBean.setSocialStatus(FRIEND);
       }
     }
   }

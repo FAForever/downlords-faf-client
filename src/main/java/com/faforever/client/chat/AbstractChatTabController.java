@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.HostService;
+import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
@@ -10,6 +11,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.uploader.ImageUploadService;
@@ -17,6 +19,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.ByteCopier;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.util.TimeService;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
 import javafx.application.Platform;
@@ -33,6 +36,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
@@ -56,12 +60,12 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.faforever.client.chat.ChatColorMode.CUSTOM;
+import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 
 /**
@@ -71,6 +75,10 @@ import static com.google.common.html.HtmlEscapers.htmlEscaper;
  */
 public abstract class AbstractChatTabController {
 
+  protected static final String CSS_CLASS_SELF = SocialStatus.SELF.getCssClass();
+  protected static final String CSS_CLASS_FRIEND = SocialStatus.FRIEND.getCssClass();
+  protected static final String CSS_CLASS_FOE = SocialStatus.FOE.getCssClass();
+  protected static final String CSS_CLASS_CHAT_ONLY = "chat_only";
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final org.springframework.core.io.Resource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
@@ -79,26 +87,19 @@ public abstract class AbstractChatTabController {
   private static final org.springframework.core.io.Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
-  private static final String FRIEND_CSS_CLASS = "friend";
-  private static final String CSS_STYLE_SELF = "self";
-
   /**
    * This is the member name within the JavaScript code that provides access to this chat tab instance.
    */
   private static final String CHAT_TAB_REFERENCE_IN_JAVASCRIPT = "chatTab";
   private static final String ACTION_PREFIX = "/me ";
   private static final String JOIN_PREFIX = "/join ";
-
   /**
    * Added if a message is what IRC calls an "action".
    */
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
   private final List<ChatMessage> waitingMessages;
-  /**
-   * Maps a user name to a css style class.
-   */
-  private final Map<String, String> userToCssStyle;
+
   @Resource
   UserService userService;
   @Resource
@@ -114,7 +115,9 @@ public abstract class AbstractChatTabController {
   @Resource
   TimeService timeService;
   @Resource
-  PlayerInfoTooltipController playerInfoTooltipController;
+  PlayerCardTooltipController playerCardTooltipController;
+  @Resource
+  ChatController chatController;
   @Resource
   I18n i18n;
   @Resource
@@ -148,11 +151,10 @@ public abstract class AbstractChatTabController {
   private int nextAutoCompleteIndex;
   private String autoCompletePartialName;
   private Pattern mentionPattern;
-  private Popup playerInfoTooltip;
+  private Popup playerCardTooltip;
   private Tooltip linkPreviewTooltip;
 
   public AbstractChatTabController() {
-    userToCssStyle = new HashMap<>();
     waitingMessages = new ArrayList<>();
   }
 
@@ -162,54 +164,12 @@ public abstract class AbstractChatTabController {
 
   @PostConstruct
   void postConstruct() {
-    userToCssStyle.put(userService.getUsername(), CSS_STYLE_SELF);
     mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b");
 
-    initChatView();
+    Platform.runLater(this::initChatView);
 
     addFocusListeners();
     addImagePasteListener();
-  }
-
-  private void initChatView() {
-    WebView messagesWebView = getMessagesWebView();
-    JavaFxUtil.configureWebView(messagesWebView, preferencesService);
-
-    messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
-    messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
-      preferencesService.storeInBackground();
-    });
-
-    Double zoom = preferencesService.getPreferences().getChat().getZoom();
-    if (zoom != null) {
-      messagesWebView.setZoom(zoom);
-    }
-
-    engine = messagesWebView.getEngine();
-    ((JSObject) engine.executeScript("window")).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
-    engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
-      if (Worker.State.SUCCEEDED.equals(newValue)) {
-        synchronized (waitingMessages) {
-          waitingMessages.forEach(this::appendMessage);
-          waitingMessages.clear();
-          isChatReady = true;
-        }
-      }
-    });
-
-    try (InputStream inputStream = CHAT_HTML_RESOURCE.getInputStream()) {
-      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-      ByteCopier.from(inputStream).to(byteArrayOutputStream).copy();
-
-      String chatContainerHtml = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8)
-          .replace("{chat-container-js}", CHAT_JS_RESOURCE.getURL().toExternalForm())
-          .replace("{auto-linker-js}", AUTOLINKER_JS_RESOURCE.getURL().toExternalForm());
-
-      engine.loadContent(chatContainerHtml);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   /**
@@ -257,8 +217,6 @@ public abstract class AbstractChatTabController {
     });
   }
 
-  protected abstract WebView getMessagesWebView();
-
   public abstract Tab getRoot();
 
   protected abstract TextInputControl getMessageTextField();
@@ -287,6 +245,53 @@ public abstract class AbstractChatTabController {
     });
   }
 
+  private void initChatView() {
+    WebView messagesWebView = getMessagesWebView();
+    JavaFxUtil.configureWebView(messagesWebView, preferencesService);
+
+    messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
+    messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
+      preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
+      preferencesService.storeInBackground();
+    });
+
+    Double zoom = preferencesService.getPreferences().getChat().getZoom();
+    if (zoom != null) {
+      messagesWebView.setZoom(zoom);
+    }
+
+    engine = messagesWebView.getEngine();
+    (getJsObject()).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
+    engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
+      if (Worker.State.SUCCEEDED.equals(newValue)) {
+        synchronized (waitingMessages) {
+          waitingMessages.forEach(AbstractChatTabController.this::appendMessage);
+          waitingMessages.clear();
+          isChatReady = true;
+        }
+      }
+    });
+
+    try (InputStream inputStream = CHAT_HTML_RESOURCE.getInputStream()) {
+      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+      ByteCopier.from(inputStream).to(byteArrayOutputStream).copy();
+
+      String chatContainerHtml = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8)
+          .replace("{chat-container-js}", CHAT_JS_RESOURCE.getURL().toExternalForm())
+          .replace("{auto-linker-js}", AUTOLINKER_JS_RESOURCE.getURL().toExternalForm());
+
+      engine.loadContent(chatContainerHtml);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  protected abstract WebView getMessagesWebView();
+
+  protected JSObject getJsObject() {
+    return (JSObject) engine.executeScript("window");
+  }
+
   private void resetAutoCompletion() {
     possibleAutoCompletions = null;
     nextAutoCompleteIndex = -1;
@@ -298,27 +303,34 @@ public abstract class AbstractChatTabController {
    */
   public void playerInfo(String username) {
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(username);
-    if (playerInfoBean == null) {
+    if (playerInfoBean == null || playerInfoBean.isChatOnly()) {
       return;
     }
 
-    playerInfoTooltipController.setPlayerInfoBean(playerInfoBean);
+    playerCardTooltipController.setPlayer(playerInfoBean);
 
-    playerInfoTooltip = new Popup();
-    playerInfoTooltip.getContent().setAll(playerInfoTooltipController.getRoot());
-    playerInfoTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
-    playerInfoTooltip.show(getRoot().getTabPane(), lastMouseX, lastMouseY - 10);
+    playerCardTooltip = new Popup();
+    playerCardTooltip.getContent().setAll(playerCardTooltipController.getRoot());
+    playerCardTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
+    playerCardTooltip.show(getRoot().getTabPane(), lastMouseX, lastMouseY - 10);
   }
 
   /**
    * Called from JavaScript when user no longer hovers over a user name.
    */
   public void hidePlayerInfo() {
-    if (playerInfoTooltip == null) {
+    if (playerCardTooltip == null) {
       return;
     }
-    playerInfoTooltip.hide();
-    playerInfoTooltip = null;
+    playerCardTooltip.hide();
+    playerCardTooltip = null;
+  }
+
+  /**
+   * Called from JavaScript when user clicks on user name in chat
+   */
+  public void openPrivateMessageTab(String username) {
+    chatController.openPrivateMessageTabForUser(username);
   }
 
   /**
@@ -491,6 +503,7 @@ public abstract class AbstractChatTabController {
           messageTextField.requestFocus();
           onChatMessage(new ChatMessage(Instant.now(), userService.getUsername(), message, true));
         }).exceptionally(throwable -> {
+
       // TODO display error to user somehow
       logger.warn("Message could not be sent: {}", text, throwable);
       messageTextField.setDisable(false);
@@ -530,6 +543,11 @@ public abstract class AbstractChatTabController {
     }
   }
 
+  // FIXME remove it
+  public void log(String string) {
+    logger.warn(string);
+  }
+
   private void appendMessage(ChatMessage chatMessage) {
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getUsername());
 
@@ -565,10 +583,7 @@ public abstract class AbstractChatTabController {
           .replace("{text}", text);
 
       Collection<String> cssClasses = new ArrayList<>();
-
-      if (userToCssStyle.containsKey(login)) {
-        cssClasses.add(userToCssStyle.get(login));
-      }
+      cssClasses.add(String.format("user-%s", chatMessage.getUsername()));
 
       if (chatMessage.isAction()) {
         cssClasses.add(ACTION_CSS_CLASS);
@@ -576,17 +591,61 @@ public abstract class AbstractChatTabController {
         cssClasses.add(MESSAGE_CSS_CLASS);
       }
 
-      PlayerInfoBean playerInfo = playerService.getPlayerForUsername(chatMessage.getUsername());
-      if (playerInfo != null && playerInfo.isFriend()) {
-        cssClasses.add(FRIEND_CSS_CLASS);
+      String messageColorClass = getMessageCssClass(login);
+
+      if (messageColorClass != null) {
+        cssClasses.add(messageColorClass);
       }
 
       html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
+      html = html.replace("{inline-style}", getInlineStyle(login, messageColorClass));
 
       addToMessageContainer(html);
+
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  protected String getMessageCssClass(String login) {
+    String cssClass;
+    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(login);
+    if (playerInfoBean == null) {
+      return CSS_CLASS_CHAT_ONLY;
+    } else {
+      cssClass = playerInfoBean.getSocialStatus().getCssClass();
+    }
+
+    if (cssClass.equals("") && playerInfoBean.isChatOnly()) {
+      cssClass = CSS_CLASS_CHAT_ONLY;
+    }
+    return cssClass;
+  }
+
+  @VisibleForTesting
+  String getInlineStyle(String username, String messageColorClass) {
+    ChatUser chatUser = chatService.createOrGetChatUser(username);
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    String inlineStyle = "style=\"%s%s\"";
+    String color = "";
+    String display = "";
+
+
+    if ((chatPrefs.getChatColorMode().equals(RANDOM) && (messageColorClass == null || messageColorClass.equals(CSS_CLASS_CHAT_ONLY)))) {
+      color = createInlineStyleFromHexColor(chatUser.getColor());
+    } else if (chatPrefs.getChatColorMode().equals(CUSTOM) && chatUser.getColor() != null) {
+      color = createInlineStyleFromHexColor(chatUser.getColor());
+    }
+
+    if (chatPrefs.getHideFoeMessages() && messageColorClass != null && messageColorClass.equals(CSS_CLASS_FOE)) {
+      display = "display: none;";
+    }
+    return String.format(inlineStyle, color, display);
+  }
+
+  @VisibleForTesting
+  String createInlineStyleFromHexColor(Color messageColor) {
+    return String.format("color: %s;", JavaFxUtil.toRgbCode(messageColor));
   }
 
   private String highlightOwnUsername(String text) {

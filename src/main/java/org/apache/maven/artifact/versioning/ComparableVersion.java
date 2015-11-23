@@ -389,12 +389,12 @@ public class ComparableVersion
     return items.compareTo(o.items);
   }
 
-  public String toString() {
-    return value;
-  }
-
   public String getCanonical() {
     return canonical;
+  }
+
+  public String toString() {
+    return value;
   }
 
 
