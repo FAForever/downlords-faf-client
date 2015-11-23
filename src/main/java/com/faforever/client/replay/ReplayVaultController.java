@@ -10,6 +10,7 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.TimeService;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
@@ -41,65 +42,52 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class ReplayVaultController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
-  TreeTableView<ReplayInfoBean> replaysTable;
-
+  TreeTableView<ReplayInfoBean> replayVaultRoot;
   @FXML
   TreeTableColumn<ReplayInfoBean, Number> idColumn;
-
   @FXML
   TreeTableColumn<ReplayInfoBean, String> titleColumn;
-
   @FXML
   TreeTableColumn<ReplayInfoBean, String> playersColumn;
-
   @FXML
   TreeTableColumn<ReplayInfoBean, Instant> timeColumn;
-
   @FXML
   TreeTableColumn<ReplayInfoBean, Duration> durationColumn;
-
   @FXML
   TreeTableColumn<ReplayInfoBean, String> gameTypeColumn;
-
   @FXML
   TreeTableColumn<ReplayInfoBean, String> mapColumn;
 
   @Resource
   NotificationService notificationService;
-
   @Resource
   ReplayService replayService;
-
   @Resource
   MapService mapService;
-
   @Resource
   TaskService taskService;
-
   @Resource
   I18n i18n;
-
   @Resource
   TimeService timeService;
-
   @Resource
   ReportingService reportingService;
-
   @Resource
   FxmlLoader fxmlLoader;
-
   @Resource
   ApplicationContext applicationContext;
 
-  private TreeItem<ReplayInfoBean> localReplaysRoot;
-
-  private TreeItem<ReplayInfoBean> onlineReplaysRoot;
+  @VisibleForTesting
+  TreeItem<ReplayInfoBean> localReplaysRoot;
+  @VisibleForTesting
+  TreeItem<ReplayInfoBean> onlineReplaysRoot;
 
 
   @SuppressWarnings("unchecked")
@@ -114,9 +102,9 @@ public class ReplayVaultController {
     TreeItem<ReplayInfoBean> tableRoot = new TreeItem<>(new ReplayInfoBean("invisibleRootItem"));
     tableRoot.getChildren().addAll(localReplaysRoot, onlineReplaysRoot);
 
-    replaysTable.setRoot(tableRoot);
-    replaysTable.setRowFactory(param -> replayRowFactory());
-    replaysTable.getSortOrder().setAll(Collections.singletonList(timeColumn));
+    replayVaultRoot.setRoot(tableRoot);
+    replayVaultRoot.setRowFactory(param -> replayRowFactory());
+    replayVaultRoot.getSortOrder().setAll(Collections.singletonList(timeColumn));
 
     idColumn.setCellValueFactory(param -> param.getValue().getValue().idProperty());
     idColumn.setCellFactory(this::idCellFactory);
@@ -281,12 +269,8 @@ public class ReplayVaultController {
   }
 
   private void addLocalReplays(Collection<ReplayInfoBean> result) {
-    Collection<TreeItem<ReplayInfoBean>> items = new ArrayList<>();
-
-    for (ReplayInfoBean bean : result) {
-      items.add(new TreeItem<>(bean));
-    }
-
+    Collection<TreeItem<ReplayInfoBean>> items = result.stream()
+        .map(TreeItem::new).collect(Collectors.toCollection(ArrayList::new));
     Platform.runLater(() -> localReplaysRoot.getChildren().addAll(items));
   }
 
@@ -301,20 +285,16 @@ public class ReplayVaultController {
               Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(throwable)))
           ));
           return null;
-    });
+        });
   }
 
   private void addOnlineReplays(Collection<ReplayInfoBean> result) {
-    Collection<TreeItem<ReplayInfoBean>> items = new ArrayList<>();
-
-    for (ReplayInfoBean bean : result) {
-      items.add(new TreeItem<>(bean));
-    }
-
+    Collection<TreeItem<ReplayInfoBean>> items = result.stream()
+        .map(TreeItem::new).collect(Collectors.toCollection(ArrayList::new));
     Platform.runLater(() -> onlineReplaysRoot.getChildren().addAll(items));
   }
 
   public Node getRoot() {
-    return replaysTable;
+    return replayVaultRoot;
   }
 }

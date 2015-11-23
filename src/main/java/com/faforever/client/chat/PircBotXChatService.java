@@ -37,13 +37,11 @@ import org.pircbotx.hooks.events.UserListEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
-import org.springframework.util.ReflectionUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -105,7 +103,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   private Configuration configuration;
   private ShutdownablePircBotX pircBotX;
-  private boolean initialized;
   private String defaultChannelName;
   private Service<Void> connectionService;
   private CountDownLatch ircConnectedLatch;
@@ -158,6 +155,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     addOnChatUserQuitListener(this);
     addOnChatDisconnectedListener(this);
     addOnModeratorSetListener(this);
+    addOnChatConnectedListener(this);
     addUserToColorListener();
 
     defaultChannelName = environment.getProperty("irc.defaultChannel");
@@ -211,27 +209,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public void onEvent(Event event) throws Exception {
-    if (!eventListeners.containsKey(event.getClass())) {
-      return;
-    }
-
-    for (ChatEventListener listener : eventListeners.get(event.getClass())) {
-      listener.onEvent(event);
-    }
-  }
-
-  @Override
-  public void onModeratorSet(String channelName, String username) {
-    ChatUser chatUser = getChatUsersForChannel(channelName).get(username);
-    if (chatUser == null) {
-      return;
-    }
-    chatUser.getModeratorInChannels().add(channelName);
-  }
-
-  @Override
   public void addOnMessageListener(final OnChatMessageListener listener) {
     addEventListener(MessageEvent.class, event -> listener.onMessage(event.getChannel().getName(),
         new ChatMessage(
@@ -267,7 +244,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   @Override
   public void addOnChatDisconnectedListener(final OnChatDisconnectedListener listener) {
     addEventListener(DisconnectEvent.class,
-        event -> listener.onDisconnected(extractDisconnectException(event)));
+        event -> listener.onDisconnected());
   }
 
   @Override
@@ -315,9 +292,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void connect() {
-    if (!initialized) {
-      init();
-    }
+    init();
 
     connectionService = executeInBackground(new Task<Void>() {
       @Override
@@ -487,10 +462,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
         .setSocketTimeout(SOCKET_TIMEOUT)
         .buildConfiguration();
 
-    addOnChatConnectedListener(this);
-
     pircBotX = pircBotXFactory.createPircBotX(configuration);
-    initialized = true;
   }
 
   @Override
@@ -509,7 +481,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  public void onDisconnected(Exception e) {
+  public void onDisconnected() {
     synchronized (chatUserLists) {
       chatUserLists.values().forEach(ObservableMap::clear);
       chatUserLists.clear();

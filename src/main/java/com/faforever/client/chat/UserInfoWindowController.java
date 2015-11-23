@@ -1,15 +1,15 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.events.AchievementDefinition;
-import com.faforever.client.events.PlayerAchievement;
+import com.faforever.client.achievements.AchievementDefinition;
+import com.faforever.client.achievements.AchievementItemController;
+import com.faforever.client.achievements.AchievementService;
+import com.faforever.client.achievements.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.stats.AchievementService;
 import com.faforever.client.stats.PlayerStatistics;
 import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.stats.StatisticsService;
-import com.faforever.client.user.AchievementItemController;
 import com.faforever.client.util.AchievementUtil;
 import com.faforever.client.util.RatingUtil;
 import com.neovisionaries.i18n.CountryCode;
@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import static com.faforever.client.events.AchievementState.UNLOCKED;
+import static com.faforever.client.achievements.AchievementState.UNLOCKED;
 
 public class UserInfoWindowController {
 

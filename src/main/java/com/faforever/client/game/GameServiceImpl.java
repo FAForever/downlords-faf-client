@@ -42,6 +42,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.net.URI;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -224,10 +225,10 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
-  public void runWithReplay(String replayUrl, Integer replayId, String gameType, String mapName) throws IOException {
+  public void runWithReplay(URI replayUrl, Integer replayId) throws IOException {
     //FIXME needs to update
     //downloadMapIfNecessary(map);
-    Process process = forgedAllianceService.startReplay(replayUrl, replayId, gameType);
+    Process process = forgedAllianceService.startReplay(replayUrl, replayId);
     onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
 
     this.ratingMode = RatingMode.NONE;

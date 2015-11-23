@@ -51,17 +51,20 @@ public class ChatController implements
     chatService.addOnChatUserJoinedChannelListener(this);
     chatService.addOnChatUserLeftChannelListener(this);
     chatService.addOnJoinChannelsRequestListener(this);
+    chatService.addOnChatDisconnectedListener(this::onDisconnected);
   }
 
   @FXML
   private void initialize() {
-    onDisconnected(null);
+    onDisconnected();
   }
 
   @Override
-  public void onDisconnected(Exception e) {
+  public void onDisconnected() {
     connectingProgressPane.setVisible(true);
     chatsTabPane.setVisible(false);
+    nameToChatTabController.clear();
+    chatsTabPane.getTabs().removeAll();
   }
 
   @Override

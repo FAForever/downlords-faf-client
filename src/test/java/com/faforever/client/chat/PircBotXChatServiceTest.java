@@ -361,9 +361,25 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     CompletableFuture<Boolean> onChatConnectedFuture = new CompletableFuture<>();
     instance.addOnChatConnectedListener(() -> onChatConnectedFuture.complete(null));
 
+    String password = "123";
+    when(userService.getPassword()).thenReturn(password);
+
+    mockTaskService();
+
     instance.onEvent(new ConnectEvent<>(pircBotX));
 
     assertThat(onChatConnectedFuture.get(TIMEOUT, TIMEOUT_UNIT), is(nullValue()));
+  }
+
+  @SuppressWarnings("unchecked")
+  private void mockTaskService() {
+    doAnswer((InvocationOnMock invocation) -> {
+      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(0, PrioritizedTask.class);
+      prioritizedTask.run();
+
+      Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
+      return CompletableFuture.completedFuture(result.get(1, TimeUnit.SECONDS));
+    }).when(instance.taskService).submitTask(any());
   }
 
   @Test
@@ -388,13 +404,12 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testAddOnChatDisconnectedListener() throws Exception {
-    CompletableFuture<Exception> onChatDisconnectedFuture = new CompletableFuture<>();
-    instance.addOnChatDisconnectedListener(onChatDisconnectedFuture::complete);
+    CompletableFuture<Void> onChatDisconnectedFuture = new CompletableFuture<>();
+    instance.addOnChatDisconnectedListener(() -> onChatDisconnectedFuture.complete(null));
 
-    Exception disconnectException = new Exception();
-    instance.onEvent(new DisconnectEvent<>(pircBotX, daoSnapshot, disconnectException));
+    instance.onEvent(new DisconnectEvent<>(pircBotX, daoSnapshot, null));
 
-    assertThat(onChatDisconnectedFuture.get(TIMEOUT, TIMEOUT_UNIT), is(disconnectException));
+    onChatDisconnectedFuture.get(TIMEOUT, TIMEOUT_UNIT);
   }
 
   @Test
@@ -522,17 +537,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(message));
     verify(pircBotX).sendIRC();
     verify(outputIrc).message(DEFAULT_CHANNEL_NAME, message);
-  }
-
-  @SuppressWarnings("unchecked")
-  private void mockTaskService() {
-    doAnswer((InvocationOnMock invocation) -> {
-      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(0, PrioritizedTask.class);
-      prioritizedTask.run();
-
-      Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
-      return CompletableFuture.completedFuture(result.get(1, TimeUnit.SECONDS));
-    }).when(instance.taskService).submitTask(any());
   }
 
   @Test
@@ -678,7 +682,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser1);
     assertThat(instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME).values(), hasSize(1));
 
-    instance.onDisconnected(new Exception("test exception"));
+    instance.onDisconnected();
 
     assertThat(instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME).values(), empty());
   }

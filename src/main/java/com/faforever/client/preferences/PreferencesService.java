@@ -46,14 +46,14 @@ public class PreferencesService {
    * Points to the FAF data directory where log files, config files and others are held. The returned value varies
    * depending on the operating system.
    */
-  public static final Path FAF_DATA_DIRECTORY;
+  private static final Path FAF_DATA_DIRECTORY;
   private static final long STORE_DELAY = 1000;
   private static final Charset CHARSET = StandardCharsets.UTF_8;
   private static final String PREFS_FILE_NAME = "client.prefs";
   private static final String APP_DATA_SUB_FOLDER = "Forged Alliance Forever";
   private static final String USER_HOME_SUB_FOLDER = ".faforever";
   private static final String REPLAYS_SUB_FOLDER = "replays";
-  private static final String CORRUPTED_REPLAYS_SUB_FOLDER = "corrupted";
+  private static final String CORRUPTED_REPLAYS_SUB_FOLDER = "corrupt";
   private static final String CACHE_SUB_FOLDER = "cache";
   private static final Collection<Path> USUAL_GAME_PATHS = Arrays.asList(
       Paths.get(System.getenv("ProgramFiles") + "\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),

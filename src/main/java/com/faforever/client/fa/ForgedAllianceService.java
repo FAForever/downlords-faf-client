@@ -4,6 +4,7 @@ import com.faforever.client.game.Faction;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -17,5 +18,5 @@ public interface ForgedAllianceService {
 
   Process startReplay(Path path, @Nullable Integer replayId, String gameType) throws IOException;
 
-  Process startReplay(String replayUrl, Integer replayId, String gameType) throws IOException;
+  Process startReplay(URI replayUri, Integer replayId) throws IOException;
 }

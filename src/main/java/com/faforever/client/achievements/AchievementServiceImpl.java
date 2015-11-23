@@ -1,8 +1,6 @@
-package com.faforever.client.stats;
+package com.faforever.client.achievements;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.events.AchievementDefinition;
-import com.faforever.client.events.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.UpdatedAchievement;
