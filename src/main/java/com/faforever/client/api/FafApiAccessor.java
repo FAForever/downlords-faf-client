@@ -5,7 +5,6 @@ import com.faforever.client.achievements.PlayerAchievement;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public interface FafApiAccessor {
 
@@ -14,8 +13,6 @@ public interface FafApiAccessor {
   List<AchievementDefinition> getAchievementDefinitions();
 
   AchievementDefinition getAchievementDefinition(String achievementId);
-
-  List<String> getModNames();
 
   void authorize(int playerId);
 

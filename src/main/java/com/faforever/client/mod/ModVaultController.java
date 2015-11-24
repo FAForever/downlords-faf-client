@@ -51,6 +51,8 @@ public class ModVaultController {
   @FXML
   Pane popularModsPane;
   @FXML
+  Pane mostLikedMods;
+  @FXML
   Pane modVaultRoot;
 
   @Resource
@@ -153,6 +155,11 @@ public class ModVaultController {
     searchResultGroup.setVisible(false);
 
     modService.getMostDownloadedMods(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateMods(modInfoBeans, popularModsPane))
+        .exceptionally(throwable -> {
+          logger.warn("Could not populate mods", throwable);
+          return null;
+        });
+    modService.getMostLikedMods(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateMods(modInfoBeans, mostLikedMods))
         .exceptionally(throwable -> {
           logger.warn("Could not populate mods", throwable);
           return null;

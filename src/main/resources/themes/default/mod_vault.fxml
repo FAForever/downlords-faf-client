@@ -17,48 +17,56 @@
                   AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                   AnchorPane.topAnchor="0.0">
          <content>
-            <VBox spacing="5.0" styleClass="mod-vault">
+            <VBox alignment="TOP_CENTER">
                <children>
-                  <Label styleClass="h1" text="%modVault.title"/>
-                  <Label text="%modVault.description"/>
-                  <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="10.0">
+                  <VBox maxWidth="1200.0" spacing="5.0" styleClass="mod-vault">
                      <children>
-                        <TextField fx:id="searchTextField" promptText="%modVault.searchPrompt" HBox.hgrow="ALWAYS"/>
-                        <Button maxHeight="1.7976931348623157E308" mnemonicParsing="false"
-                                onAction="#onResetButtonClicked" styleClass="fontawesome" text="">
-                           <padding>
-                              <Insets left="20.0" right="20.0"/>
-                           </padding>
-                        </Button>
-                        <Button defaultButton="true" maxHeight="1.7976931348623157E308" mnemonicParsing="false"
-                                onAction="#onSearchModButtonClicked" styleClass="fontawesome" text="">
-                           <padding>
-                              <Insets left="20.0" right="20.0"/>
-                           </padding>
-                        </Button>
+                        <HBox maxWidth="1.7976931348623157E308" spacing="10.0">
+                           <children>
+                              <TextField fx:id="searchTextField" promptText="%modVault.searchPrompt"
+                                         HBox.hgrow="ALWAYS"/>
+                              <Button maxHeight="1.7976931348623157E308" mnemonicParsing="false"
+                                      onAction="#onResetButtonClicked" styleClass="fontawesome" text="">
+                                 <padding>
+                                    <Insets left="20.0" right="20.0"/>
+                                 </padding>
+                              </Button>
+                              <Button defaultButton="true" maxHeight="1.7976931348623157E308" mnemonicParsing="false"
+                                      onAction="#onSearchModButtonClicked" styleClass="fontawesome" text="">
+                                 <padding>
+                                    <Insets left="20.0" right="20.0"/>
+                                 </padding>
+                              </Button>
+                           </children>
+                        </HBox>
+                        <VBox fx:id="showroomGroup" spacing="5.0">
+                           <children>
+                              <Label styleClass="h2" text="%modVault.recommendedUidMods"/>
+                              <FlowPane fx:id="recommendedUiModsPane" hgap="10.0" maxWidth="1.7976931348623157E308"
+                                        prefWrapLength="1200.0" vgap="10.0"/>
+                              <Label styleClass="h2" text="%modVault.newestMods"/>
+                              <FlowPane fx:id="newestModsPane" hgap="10.0" maxWidth="1.7976931348623157E308"
+                                        prefWrapLength="1200.0" vgap="10.0"/>
+                              <Label styleClass="h2" text="%modVault.popularMods"/>
+                              <FlowPane fx:id="popularModsPane" hgap="10.0" maxWidth="1.7976931348623157E308"
+                                        prefWrapLength="1200.0" vgap="10.0"/>
+                              <Label styleClass="h2" text="%modVault.mostLikedMods"/>
+                              <FlowPane fx:id="mostLikedMods" hgap="10.0" maxWidth="1.7976931348623157E308"
+                                        prefWrapLength="1200.0" vgap="10.0"/>
+                           </children>
+                        </VBox>
+                        <VBox fx:id="searchResultGroup" spacing="5.0">
+                           <children>
+                              <Label styleClass="h1" text="%modVault.searchResult"/>
+                              <FlowPane fx:id="searchResultPane" hgap="10.0" vgap="10.0"/>
+                           </children>
+                        </VBox>
                      </children>
-                  </HBox>
-                  <VBox fx:id="showroomGroup" spacing="5.0">
-                     <children>
-                        <Label styleClass="h2" text="%modVault.recommendedUidMods"/>
-                        <FlowPane fx:id="recommendedUiModsPane" hgap="10.0" maxWidth="1.7976931348623157E308"
-                                  vgap="10.0"/>
-                        <Label styleClass="h2" text="%modVault.newestMods"/>
-                        <FlowPane fx:id="newestModsPane" hgap="10.0" maxWidth="1.7976931348623157E308" vgap="10.0"/>
-                        <Label styleClass="h2" text="%modVault.popularMods"/>
-                        <FlowPane fx:id="popularModsPane" hgap="10.0" maxWidth="1.7976931348623157E308" vgap="10.0"/>
-                     </children>
-                  </VBox>
-                  <VBox fx:id="searchResultGroup" spacing="5.0">
-                     <children>
-                        <Label styleClass="h1" text="%modVault.searchResult"/>
-                        <FlowPane fx:id="searchResultPane" hgap="10.0" vgap="10.0"/>
-                     </children>
+                     <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                     </padding>
                   </VBox>
                </children>
-               <padding>
-                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
-               </padding>
             </VBox>
          </content>
       </ScrollPane>

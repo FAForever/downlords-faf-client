@@ -72,7 +72,7 @@ public class ModTileControllerTest extends AbstractPlainJavaFxTest {
 
     instance.setMod(mod);
 
-    assertThat(instance.thumbnailImageView.getImage(), is(nullValue()));
+    assertThat(instance.thumbnailImageView.getImage(), notNullValue());
   }
 
   @Test

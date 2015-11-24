@@ -210,7 +210,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private <T> T extractObject(Class<T> type, JsonParser jsonParser) throws IOException, IllegalAccessException {
     T object = null;
     String id = null;
-    while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
+    JsonToken currentToken = jsonParser.nextToken();
+    while (currentToken != null && currentToken != JsonToken.END_OBJECT) {
       switch (jsonParser.getCurrentToken()) {
         case START_OBJECT:
           break;
@@ -224,6 +225,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
           }
           break;
       }
+      currentToken = jsonParser.nextToken();
     }
     Field idField = ReflectionUtils.findField(type, "id");
     ReflectionUtils.makeAccessible(idField);

@@ -3,6 +3,7 @@ package com.faforever.client.mod;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class ModInfoBeanBuilder {
 
@@ -14,6 +15,7 @@ public class ModInfoBeanBuilder {
 
   public ModInfoBeanBuilder defaultValues() {
     modInfo.setPublishDate(LocalDateTime.now());
+    uid(UUID.randomUUID().toString());
     return this;
   }
 
