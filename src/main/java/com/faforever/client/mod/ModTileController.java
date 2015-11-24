@@ -4,7 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.util.ThemeUtil;
+import com.faforever.client.util.IdenticonUtil;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -14,9 +14,9 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Resource;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class ModTileController {
@@ -65,7 +65,7 @@ public class ModTileController {
     if (StringUtils.isNotEmpty(mod.getThumbnailUrl())) {
       image = new Image(mod.getThumbnailUrl());
     } else {
-      image = new Image(ThemeUtil.themeFile(preferencesService.getPreferences().getTheme(), "images/unknown_mod.png"), true);
+      image = IdenticonUtil.createIdenticon(mod.getId());
     }
     thumbnailImageView.setImage(image);
     nameLabel.setText(mod.getName());
@@ -78,13 +78,13 @@ public class ModTileController {
     modService.getInstalledMods().addListener((ListChangeListener<ModInfoBean>) change -> {
       while (change.next()) {
         for (ModInfoBean modInfoBean : change.getAddedSubList()) {
-          if (mod.getUid().equals(modInfoBean.getUid())) {
+          if (mod.getId().equals(modInfoBean.getId())) {
             setInstalled(true);
             return;
           }
         }
         for (ModInfoBean modInfoBean : change.getRemoved()) {
-          if (mod.getUid().equals(modInfoBean.getUid())) {
+          if (mod.getId().equals(modInfoBean.getId())) {
             setInstalled(false);
             return;
           }

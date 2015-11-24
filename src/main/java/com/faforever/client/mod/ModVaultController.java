@@ -25,16 +25,16 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 public class ModVaultController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int TOP_ELEMENT_COUNT = 7;
+  private static final int MAX_SUGGESTIONS = 10;
 
   @FXML
   Pane searchResultGroup;
@@ -71,6 +71,7 @@ public class ModVaultController {
   ExecutorService executorService;
   @Resource
   Analyzer analyzer;
+  private boolean initialized;
 
   public Node getRoot() {
     return modVaultRoot;
@@ -101,13 +102,71 @@ public class ModVaultController {
     });
   }
 
+  public void setUpIfNecessary() {
+    if (initialized) {
+      return;
+    }
+    initialized = true;
+
+    displayShowroomMods();
+
+    try {
+      AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(directory, analyzer);
+      ModInfoBeanIterator iterator = new ModInfoBeanIterator(modService.getAvailableMods().get().iterator());
+      suggester.build(iterator);
+
+      JavaFxUtil.makeSuggestionField(searchTextField, string -> {
+        try {
+          List<Lookup.LookupResult> results = suggester.lookup(string, MAX_SUGGESTIONS, true, false);
+
+          return results.stream()
+              .sorted()
+              .map(result -> {
+                ModInfoBean modInfoBean = iterator.deserialize(result.payload.bytes);
+                String name = modInfoBean.getName();
+                CustomMenuItem customMenuItem = new CustomMenuItem(new Label(name), true) {
+                  @Override
+                  public int hashCode() {
+                    return ((Label) getContent()).getText().hashCode();
+                  }
+
+                  @Override
+                  public boolean equals(Object obj) {
+                    return ((Label) getContent()).getText().equals(((Label) ((CustomMenuItem) obj).getContent()).getText());
+                  }
+                };
+                customMenuItem.setUserData(name);
+                return customMenuItem;
+              })
+              .collect(Collectors.toSet());
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }, customMenuItem -> (String) customMenuItem.getUserData());
+    } catch (InterruptedException | ExecutionException | IOException e) {
+      logger.warn("Search could not be executed", e);
+    }
+  }
+
   private void displayShowroomMods() {
     showroomGroup.setVisible(true);
     searchResultGroup.setVisible(false);
 
-    populateMods(modService.getMostDownloadedMods(TOP_ELEMENT_COUNT), popularModsPane);
-    populateMods(modService.getNewestMods(TOP_ELEMENT_COUNT), newestModsPane);
-    populateMods(modService.getMostLikedUiMods(TOP_ELEMENT_COUNT), recommendedUiModsPane);
+    modService.getMostDownloadedMods(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateMods(modInfoBeans, popularModsPane))
+        .exceptionally(throwable -> {
+          logger.warn("Could not populate mods", throwable);
+          return null;
+        });
+    modService.getNewestMods(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateMods(modInfoBeans, newestModsPane))
+        .exceptionally(throwable -> {
+          logger.warn("Could not populate mods", throwable);
+          return null;
+        });
+    modService.getMostLikedUiMods(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateMods(modInfoBeans, recommendedUiModsPane))
+        .exceptionally(throwable -> {
+          logger.warn("Could not populate mods", throwable);
+          return null;
+        });
   }
 
   private void populateMods(List<ModInfoBean> modInfoBeans, Pane pane) {
@@ -121,37 +180,6 @@ public class ModVaultController {
         children.add(controller.getRoot());
       }
     });
-  }
-
-  public void setUpIfNecessary() {
-    CompletableFuture<List<ModInfoBean>> availableMods = modService.getAvailableMods();
-
-    try {
-      AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(directory, analyzer);
-      ModInfoBeanIterator iterator = new ModInfoBeanIterator(availableMods.get().iterator());
-      suggester.build(iterator);
-
-      JavaFxUtil.makeAutoCompletable(searchTextField, string -> {
-        try {
-          List<Lookup.LookupResult> results = suggester.lookup(string, 5, true, false);
-          List<CustomMenuItem> items = new ArrayList<>();
-
-          for (Lookup.LookupResult result : results) {
-            ModInfoBean modInfoBean = iterator.deserialize(result.payload.bytes);
-
-            String name = modInfoBean.getName();
-            CustomMenuItem customMenuItem = new CustomMenuItem(new Label(name), true);
-            customMenuItem.setUserData(name);
-            items.add(customMenuItem);
-          }
-          return items;
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }, customMenuItem -> (String) customMenuItem.getUserData());
-    } catch (InterruptedException | ExecutionException | IOException e) {
-      logger.warn("Search could not be executed", e);
-    }
   }
 
   @FXML

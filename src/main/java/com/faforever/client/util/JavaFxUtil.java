@@ -31,7 +31,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
@@ -64,7 +64,7 @@ public class JavaFxUtil {
     // Utility class
   }
 
-  public static void makeAutoCompletable(TextField textField, Function<String, List<CustomMenuItem>> itemsFactory,
+  public static void makeSuggestionField(TextField textField, Function<String, Set<CustomMenuItem>> itemsFactory,
                                          Function<CustomMenuItem, String> itemToString) {
     final ContextMenu contextMenu = new ContextMenu();
     contextMenu.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
@@ -84,10 +84,10 @@ public class JavaFxUtil {
         return;
       }
 
-      List<CustomMenuItem> menuItems = itemsFactory.apply(newValue);
+      Set<CustomMenuItem> menuItems = itemsFactory.apply(newValue);
 
-      logger.warn("Showing: " + contextMenu.isShowing());
-
+      contextMenu.prefWidthProperty().bind(textField.widthProperty());
+      contextMenu.maxWidthProperty().bind(textField.widthProperty());
       contextMenu.getItems().setAll(menuItems);
       contextMenu.setOnAction(event -> {
         if (event.getTarget() instanceof CustomMenuItem) {

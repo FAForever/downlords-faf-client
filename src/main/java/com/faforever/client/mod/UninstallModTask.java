@@ -32,7 +32,7 @@ public class UninstallModTask extends AbstractPrioritizedTask<Void> {
   protected Void call() throws Exception {
     Objects.requireNonNull(mod, "mod has not been set");
 
-    logger.info("Uninstalling mod '{}' ({})", mod.getName(), mod.getUid());
+    logger.info("Uninstalling mod '{}' ({})", mod.getName(), mod.getId());
     Path modPath = modService.getPathForMod(mod);
 
     ResourceLocks.acquireDiskLock();

@@ -1,8 +1,8 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.api.Mod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.ClientMessage;
-import com.faforever.client.legacy.domain.ModInfo;
 import com.faforever.client.legacy.domain.ModSearchResult;
 import com.faforever.client.legacy.domain.ServerCommand;
 import com.faforever.client.legacy.domain.ServerMessage;
@@ -47,7 +47,7 @@ public class ModsServerAccessorImpl extends AbstractServerAccessor implements Mo
   private ServerWriter serverWriter;
   private boolean disconnectedGracefully;
   private Socket socket;
-  private CompletableFuture<List<ModInfo>> searchModFuture;
+  private CompletableFuture<List<Mod>> searchModFuture;
 
   public ModsServerAccessorImpl() {
     gson = new GsonBuilder()

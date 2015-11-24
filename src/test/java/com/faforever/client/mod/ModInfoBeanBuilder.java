@@ -2,7 +2,7 @@ package com.faforever.client.mod;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 public class ModInfoBeanBuilder {
 
@@ -13,12 +13,12 @@ public class ModInfoBeanBuilder {
   }
 
   public ModInfoBeanBuilder defaultValues() {
-    modInfo.setPublishDate(Instant.now());
+    modInfo.setPublishDate(LocalDateTime.now());
     return this;
   }
 
   public ModInfoBeanBuilder uid(String uid) {
-    modInfo.setUid(uid);
+    modInfo.setId(uid);
     return this;
   }
 

@@ -42,11 +42,11 @@ public interface ModService {
    */
   CompletableFuture<List<ModInfoBean>> getAvailableMods();
 
-  List<ModInfoBean> getMostDownloadedMods(int count);
+  CompletableFuture<List<ModInfoBean>> getMostDownloadedMods(int count);
 
-  List<ModInfoBean> getMostLikedMods(int count);
+  CompletableFuture<List<ModInfoBean>> getMostLikedMods(int count);
 
-  List<ModInfoBean> getNewestMods(int count);
+  CompletableFuture<List<ModInfoBean>> getNewestMods(int count);
 
-  List<ModInfoBean> getMostLikedUiMods(int count);
+  CompletableFuture<List<ModInfoBean>> getMostLikedUiMods(int count);
 }

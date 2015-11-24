@@ -1,8 +1,10 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.config.CacheNames;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.legacy.ModsServerAccessor;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
@@ -19,6 +21,7 @@ import org.apache.lucene.store.Directory;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
@@ -34,8 +37,6 @@ import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -84,6 +85,8 @@ public class ModServiceImpl implements ModService {
   IndexWriterConfig indexWriterConfig;
   @Resource
   Executor executor;
+  @Resource
+  ModService modService;
 
 
   private Path modsDirectory;
@@ -186,7 +189,7 @@ public class ModServiceImpl implements ModService {
   @Override
   public Set<String> getInstalledModUids() {
     return getInstalledMods().stream()
-        .map(ModInfoBean::getUid)
+        .map(ModInfoBean::getId)
         .collect(Collectors.toSet());
   }
 
@@ -194,7 +197,7 @@ public class ModServiceImpl implements ModService {
   public Set<String> getInstalledUiModsUids() {
     return getInstalledMods().stream()
         .filter(ModInfoBean::getUiOnly)
-        .map(ModInfoBean::getUid)
+        .map(ModInfoBean::getId)
         .collect(Collectors.toSet());
   }
 
@@ -236,7 +239,7 @@ public class ModServiceImpl implements ModService {
     for (Map.Entry<Path, ModInfoBean> entry : pathToMod.entrySet()) {
       ModInfoBean modInfoBean = entry.getValue();
 
-      if (mod.getUid().equals(modInfoBean.getUid())) {
+      if (mod.getId().equals(modInfoBean.getId())) {
         return entry.getKey();
       }
     }
@@ -249,42 +252,43 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
+  @Cacheable(CacheNames.MODS)
   public CompletableFuture<List<ModInfoBean>> getAvailableMods() {
-    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getMods(), executor);
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getMods().stream()
+            .map(ModInfoBean::fromModInfo)
+            .collect(Collectors.toList())
+        , executor);
   }
 
   @Override
-  public List<ModInfoBean> getMostDownloadedMods(int count) {
+  public CompletableFuture<List<ModInfoBean>> getMostDownloadedMods(int count) {
     return getTopElements(ModInfoBean.DOWNLOADS_COMPARATOR, count);
   }
 
   @Override
-  public List<ModInfoBean> getMostLikedMods(int count) {
+  public CompletableFuture<List<ModInfoBean>> getMostLikedMods(int count) {
     return getTopElements(ModInfoBean.LIKES_COMPARATOR, count);
   }
 
   @Override
-  public List<ModInfoBean> getNewestMods(int count) {
+  public CompletableFuture<List<ModInfoBean>> getNewestMods(int count) {
     return getTopElements(ModInfoBean.PUBLISH_DATE_COMPARATOR, count);
   }
 
   @Override
-  public List<ModInfoBean> getMostLikedUiMods(int count) {
-    return getTopElements(ModInfoBean.UI_LIKES_COMPARATOR, count);
+  public CompletableFuture<List<ModInfoBean>> getMostLikedUiMods(int count) {
+    return modService.getAvailableMods().thenApply(modInfoBeans -> modInfoBeans.stream()
+        .filter(ModInfoBean::getUiOnly)
+        .sorted(ModInfoBean.LIKES_COMPARATOR.reversed())
+        .limit(count)
+        .collect(Collectors.toList()));
   }
 
-  private List<ModInfoBean> getTopElements(Comparator<? super ModInfoBean> comparator, int count) {
-    List<ModInfoBean> mods = fafApiAccessor.getMods();
-
-    Collections.sort(mods, comparator.reversed());
-    List<ModInfoBean> newestMods = new ArrayList<>(count);
-    for (ModInfoBean modInfoBean : mods) {
-      newestMods.add(modInfoBean);
-      if (newestMods.size() == count) {
-        return newestMods;
-      }
-    }
-    return newestMods;
+  private CompletableFuture<List<ModInfoBean>> getTopElements(Comparator<? super ModInfoBean> comparator, int count) {
+    return modService.getAvailableMods().thenApply(modInfoBeans -> modInfoBeans.stream()
+        .sorted(comparator)
+        .limit(count)
+        .collect(Collectors.toList()));
   }
 
   private Map<String, Boolean> readModStates() throws IOException {
@@ -371,7 +375,7 @@ public class ModServiceImpl implements ModService {
       Properties properties = new Properties();
       properties.load(inputStream);
 
-      modInfoBean.setUid(stripQuotes(properties.getProperty("uid")));
+      modInfoBean.setId(stripQuotes(properties.getProperty("uid")));
       modInfoBean.setName(stripQuotes(properties.getProperty("name")));
       modInfoBean.setDescription(stripQuotes(properties.getProperty("description")));
       modInfoBean.setAuthor(stripQuotes(properties.getProperty("author")));

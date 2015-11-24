@@ -76,9 +76,11 @@ public class ModInfoBeanIterator implements InputIterator {
     return new BytesRef(currentMod.getName().getBytes(StandardCharsets.UTF_8));
   }
 
-  public ModInfoBean deserialize(byte[] bytes) throws IOException {
+  public ModInfoBean deserialize(byte[] bytes) {
     try (Reader reader = new InputStreamReader(new ByteArrayInputStream(bytes), StandardCharsets.UTF_8)) {
       return gson.fromJson(reader, ModInfoBean.class);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 }

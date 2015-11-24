@@ -333,7 +333,7 @@ public class CreateGameController {
     ObservableList<ModInfoBean> selectedMods = modListView.getSelectionModel().getSelectedItems();
 
     Set<String> simMods = selectedMods.stream()
-        .map(ModInfoBean::getUid)
+        .map(ModInfoBean::getId)
         .collect(Collectors.toSet());
 
     NewGameInfo newGameInfo = new NewGameInfo(
