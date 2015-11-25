@@ -4,13 +4,9 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.beans.Observable;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.SimpleAnalyzer;
-import org.apache.lucene.store.RAMDirectory;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
@@ -38,8 +34,6 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   private ApplicationContext applicationContext;
   @Mock
   private ModDetailController modDetailController;
-  @Spy
-  private Analyzer analyzer;
 
   @Before
   public void setUp() throws Exception {
@@ -47,8 +41,6 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
     instance.modService = modService;
     instance.applicationContext = applicationContext;
     instance.modDetailController = modDetailController;
-    instance.directory = new RAMDirectory();
-    instance.analyzer = new SimpleAnalyzer();
 
     when(modDetailController.getRoot()).thenReturn(new Pane());
 

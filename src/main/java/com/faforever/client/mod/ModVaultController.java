@@ -1,33 +1,25 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.search.suggest.Lookup;
-import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
-import org.apache.lucene.store.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ModVaultController {
@@ -37,11 +29,15 @@ public class ModVaultController {
   private static final int MAX_SUGGESTIONS = 10;
 
   @FXML
+  Pane contentPane;
+  @FXML
   Pane searchResultGroup;
   @FXML
   Pane searchResultPane;
   @FXML
   Pane showroomGroup;
+  @FXML
+  Pane loadingPane;
   @FXML
   TextField searchTextField;
   @FXML
@@ -61,18 +57,6 @@ public class ModVaultController {
   ApplicationContext applicationContext;
   @Resource
   ModDetailController modDetailController;
-  @Resource
-  NotificationService notificationService;
-  @Resource
-  I18n i18n;
-  @Resource
-  ReportingService reportingService;
-  @Resource
-  Directory directory;
-  @Resource
-  ExecutorService executorService;
-  @Resource
-  Analyzer analyzer;
   private boolean initialized;
 
   public Node getRoot() {
@@ -81,6 +65,7 @@ public class ModVaultController {
 
   @FXML
   void initialize() {
+    loadingPane.managedProperty().bind(loadingPane.visibleProperty());
     showroomGroup.managedProperty().bind(showroomGroup.visibleProperty());
     searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
   }
@@ -88,20 +73,12 @@ public class ModVaultController {
   @PostConstruct
   void postConstruct() {
     Node modDetailRoot = modDetailController.getRoot();
-    modVaultRoot.getChildren().add(modDetailRoot);
+    contentPane.getChildren().add(modDetailRoot);
     AnchorPane.setTopAnchor(modDetailRoot, 0d);
     AnchorPane.setRightAnchor(modDetailRoot, 0d);
     AnchorPane.setBottomAnchor(modDetailRoot, 0d);
     AnchorPane.setLeftAnchor(modDetailRoot, 0d);
     modDetailRoot.setVisible(false);
-
-    searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue.isEmpty()) {
-        return;
-      }
-
-      modService.searchMod(newValue);
-    });
   }
 
   public void setUpIfNecessary() {
@@ -112,68 +89,26 @@ public class ModVaultController {
 
     displayShowroomMods();
 
-    try {
-      AnalyzingInfixSuggester suggester = new AnalyzingInfixSuggester(directory, analyzer);
-      ModInfoBeanIterator iterator = new ModInfoBeanIterator(modService.getAvailableMods().get().iterator());
-      suggester.build(iterator);
-
-      JavaFxUtil.makeSuggestionField(searchTextField, string -> {
-        try {
-          List<Lookup.LookupResult> results = suggester.lookup(string, MAX_SUGGESTIONS, true, false);
-
-          return results.stream()
-              .sorted()
-              .map(result -> {
-                ModInfoBean modInfoBean = iterator.deserialize(result.payload.bytes);
-                String name = modInfoBean.getName();
-                CustomMenuItem customMenuItem = new CustomMenuItem(new Label(name), true) {
-                  @Override
-                  public int hashCode() {
-                    return ((Label) getContent()).getText().hashCode();
-                  }
-
-                  @Override
-                  public boolean equals(Object obj) {
-                    return ((Label) getContent()).getText().equals(((Label) ((CustomMenuItem) obj).getContent()).getText());
-                  }
-                };
-                customMenuItem.setUserData(name);
-                return customMenuItem;
-              })
-              .collect(Collectors.toSet());
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }, customMenuItem -> (String) customMenuItem.getUserData());
-    } catch (InterruptedException | ExecutionException | IOException e) {
-      logger.warn("Search could not be executed", e);
-    }
+    JavaFxUtil.makeSuggestionField(searchTextField, this::createModSuggestions, item -> (String) item.getUserData());
   }
 
   private void displayShowroomMods() {
-    showroomGroup.setVisible(true);
-    searchResultGroup.setVisible(false);
-
+    enterLoadingState();
     modService.getMostDownloadedMods(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateMods(modInfoBeans, popularModsPane))
+        .thenCompose(aVoid -> modService.getMostLikedMods(TOP_ELEMENT_COUNT)).thenAccept(modInfoBeans -> populateMods(modInfoBeans, mostLikedMods))
+        .thenCompose(aVoid -> modService.getNewestMods(TOP_ELEMENT_COUNT)).thenAccept(modInfoBeans -> populateMods(modInfoBeans, newestModsPane))
+        .thenCompose(aVoid -> modService.getMostLikedUiMods(TOP_ELEMENT_COUNT)).thenAccept(modInfoBeans -> populateMods(modInfoBeans, recommendedUiModsPane))
+        .thenRun(this::enterShowroomState)
         .exceptionally(throwable -> {
           logger.warn("Could not populate mods", throwable);
           return null;
         });
-    modService.getMostLikedMods(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateMods(modInfoBeans, mostLikedMods))
-        .exceptionally(throwable -> {
-          logger.warn("Could not populate mods", throwable);
-          return null;
-        });
-    modService.getNewestMods(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateMods(modInfoBeans, newestModsPane))
-        .exceptionally(throwable -> {
-          logger.warn("Could not populate mods", throwable);
-          return null;
-        });
-    modService.getMostLikedUiMods(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateMods(modInfoBeans, recommendedUiModsPane))
-        .exceptionally(throwable -> {
-          logger.warn("Could not populate mods", throwable);
-          return null;
-        });
+  }
+
+  private void enterLoadingState() {
+    showroomGroup.setVisible(false);
+    searchResultGroup.setVisible(false);
+    loadingPane.setVisible(true);
   }
 
   private void populateMods(List<ModInfoBean> modInfoBeans, Pane pane) {
@@ -189,6 +124,40 @@ public class ModVaultController {
     });
   }
 
+  private CompletableFuture<Set<Label>> createModSuggestions(String string) {
+    return modService.lookupMod(string, MAX_SUGGESTIONS).thenApply(new Function<List<ModInfoBean>, Set<Label>>() {
+      @Override
+      public Set<Label> apply(List<ModInfoBean> modInfoBeans) {
+        return modInfoBeans.stream()
+            .map(result -> {
+              String name = result.getName();
+              Label item = new Label(name) {
+                @Override
+                public int hashCode() {
+                  return getText().hashCode();
+                }
+
+                @Override
+                public boolean equals(Object obj) {
+                  return obj != null
+                      && obj.getClass() == getClass()
+                      && getText().equals(((Label) obj).getText());
+                }
+              };
+              item.setUserData(name);
+              return item;
+            })
+            .collect(Collectors.toSet());
+      }
+    });
+  }
+
+  private void enterShowroomState() {
+    showroomGroup.setVisible(true);
+    searchResultGroup.setVisible(false);
+    loadingPane.setVisible(false);
+  }
+
   @FXML
   void onShowModDetail(ModInfoBean mod) {
     modDetailController.setMod(mod);
@@ -202,9 +171,10 @@ public class ModVaultController {
       onResetButtonClicked();
       return;
     }
+    enterSearchResultState();
 
-    List<ModInfoBean> modInfoBeans = modService.searchMod(searchTextField.getText());
-    displaySearchResult(modInfoBeans);
+    modService.lookupMod(searchTextField.getText(), 100)
+        .thenAccept(this::displaySearchResult);
   }
 
   @FXML
@@ -212,6 +182,12 @@ public class ModVaultController {
     searchTextField.clear();
     showroomGroup.setVisible(true);
     searchResultGroup.setVisible(false);
+  }
+
+  private void enterSearchResultState() {
+    showroomGroup.setVisible(false);
+    searchResultGroup.setVisible(true);
+    loadingPane.setVisible(false);
   }
 
   private void displaySearchResult(List<ModInfoBean> modInfoBeans) {

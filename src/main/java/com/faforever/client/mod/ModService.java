@@ -35,8 +35,6 @@ public interface ModService {
 
   Path getPathForMod(ModInfoBean mod);
 
-  List<ModInfoBean> searchMod(String name);
-
   /**
    * Returns mods available on the server.
    */
@@ -49,4 +47,6 @@ public interface ModService {
   CompletableFuture<List<ModInfoBean>> getNewestMods(int count);
 
   CompletableFuture<List<ModInfoBean>> getMostLikedUiMods(int count);
+
+  CompletableFuture<List<ModInfoBean>> lookupMod(String string, int maxSuggestions);
 }

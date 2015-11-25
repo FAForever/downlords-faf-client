@@ -4,20 +4,25 @@ import com.faforever.client.preferences.PreferencesService;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
-import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import javafx.stage.Popup;
+import javafx.stage.PopupWindow;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -33,6 +38,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 /**
@@ -64,19 +70,49 @@ public class JavaFxUtil {
     // Utility class
   }
 
-  public static void makeSuggestionField(TextField textField, Function<String, Set<CustomMenuItem>> itemsFactory,
+  public static void makeSuggestionField(TextField textField,
+                                         Function<String, CompletableFuture<Set<Label>>> itemsFactory,
                                          Function<CustomMenuItem, String> itemToString) {
-    final ContextMenu contextMenu = new ContextMenu();
-    contextMenu.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-      // Context menu usually closes on space, but not anymore ;-)
+    ListView<Label> listView = new ListView<>();
+    listView.prefWidthProperty().bind(textField.widthProperty());
+    listView.setFixedCellSize(24);
+
+    Popup popupControl = new Popup();
+    popupControl.setAutoHide(true);
+    popupControl.setAutoFix(false);
+    popupControl.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
+    popupControl.getScene().setRoot(listView);
+
+    BooleanProperty isUserSelecting = new SimpleBooleanProperty();
+
+    popupControl.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+      // Don't close on space
       if (event.getCode() == KeyCode.SPACE) {
         event.consume();
       }
     });
-
+    listView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue != null) {
+        isUserSelecting.set(true);
+        textField.setText(newValue.getText());
+      }
+    });
+    listView.setOnMouseClicked(event -> popupControl.hide());
+    textField.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+      if (event.getCode() == KeyCode.DOWN) {
+        listView.requestFocus();
+        listView.getSelectionModel().selectFirst();
+        textField.positionCaret(Integer.MAX_VALUE);
+      } else {
+        isUserSelecting.set(false);
+      }
+    });
     textField.textProperty().addListener((observable, oldValue, newValue) -> {
+      if (isUserSelecting.get()) {
+        return;
+      }
       if (newValue.isEmpty()) {
-        contextMenu.hide();
+        popupControl.hide();
         return;
       }
 
@@ -84,23 +120,16 @@ public class JavaFxUtil {
         return;
       }
 
-      Set<CustomMenuItem> menuItems = itemsFactory.apply(newValue);
-
-      contextMenu.prefWidthProperty().bind(textField.widthProperty());
-      contextMenu.maxWidthProperty().bind(textField.widthProperty());
-      contextMenu.getItems().setAll(menuItems);
-      contextMenu.setOnAction(event -> {
-        if (event.getTarget() instanceof CustomMenuItem) {
-          CustomMenuItem menuItem = (CustomMenuItem) event.getTarget();
-          String string = itemToString.apply(menuItem);
-          textField.setText(string);
+      itemsFactory.apply(newValue).thenAccept(items -> Platform.runLater(() -> {
+        listView.getItems().setAll(items);
+        listView.setPrefHeight(Math.min(120, items.size() * (listView.getFixedCellSize() + 2)));
+        if (listView.getItems().isEmpty()) {
+          popupControl.hide();
+        } else if (!popupControl.isShowing()) {
+          Bounds screenBounds = textField.localToScreen(textField.getBoundsInLocal());
+          popupControl.show(textField.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());
         }
-      });
-      if (contextMenu.getItems().isEmpty()) {
-        contextMenu.hide();
-      } else if (!contextMenu.isShowing()) {
-        contextMenu.show(textField, Side.BOTTOM, 0, 0);
-      }
+      }));
     });
   }
 

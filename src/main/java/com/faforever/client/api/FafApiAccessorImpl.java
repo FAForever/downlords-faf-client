@@ -4,6 +4,7 @@ import com.faforever.client.achievements.AchievementDefinition;
 import com.faforever.client.achievements.PlayerAchievement;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.HostService;
+import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
@@ -41,6 +42,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class FafApiAccessorImpl implements FafApiAccessor {
 
@@ -131,9 +133,12 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public List<Mod> getMods() {
+  @Cacheable(CacheNames.MODS)
+  public List<ModInfoBean> getMods() {
     logger.debug("Loading available mods");
-    return getMany("/mods", Mod.class);
+    return getMany("/mods", Mod.class).stream()
+        .map(ModInfoBean::fromModInfo)
+        .collect(Collectors.toList());
   }
 
   private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {

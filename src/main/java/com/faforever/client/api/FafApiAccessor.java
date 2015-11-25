@@ -2,8 +2,8 @@ package com.faforever.client.api;
 
 import com.faforever.client.achievements.AchievementDefinition;
 import com.faforever.client.achievements.PlayerAchievement;
+import com.faforever.client.mod.ModInfoBean;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface FafApiAccessor {
@@ -16,5 +16,5 @@ public interface FafApiAccessor {
 
   void authorize(int playerId);
 
-  Collection<Mod> getMods();
+  List<ModInfoBean> getMods();
 }

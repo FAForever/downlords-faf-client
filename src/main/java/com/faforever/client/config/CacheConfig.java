@@ -43,7 +43,7 @@ public class CacheConfig implements CachingConfigurer {
         new GuavaCache(STATISTICS, newBuilder().maximumSize(10).expireAfterAccess(20, MINUTES).build()),
         new GuavaCache(GRAVATAR, newBuilder().maximumSize(10).expireAfterAccess(120, MINUTES).build()),
         new GuavaCache(ACHIEVEMENTS, newBuilder().maximumSize(1).expireAfterAccess(120, MINUTES).build()),
-        new GuavaCache(MODS, newBuilder().maximumSize(1).expireAfterAccess(120, MINUTES).build())
+        new GuavaCache(MODS, newBuilder().maximumSize(10).expireAfterAccess(120, MINUTES).build())
     ));
     return simpleCacheManager;
   }

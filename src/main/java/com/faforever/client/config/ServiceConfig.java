@@ -26,10 +26,7 @@ import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.LobbyServerAccessorImpl;
 import com.faforever.client.legacy.MockFafApiAccessor;
 import com.faforever.client.legacy.MockLobbyServerAccessor;
-import com.faforever.client.legacy.MockModsServerAccessor;
 import com.faforever.client.legacy.MockStatisticsServerAccessor;
-import com.faforever.client.legacy.ModsServerAccessor;
-import com.faforever.client.legacy.ModsServerAccessorImpl;
 import com.faforever.client.legacy.StatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessorImpl;
 import com.faforever.client.legacy.UidService;
@@ -95,7 +92,6 @@ import com.faforever.client.util.TimeServiceImpl;
 import com.google.api.client.util.Beta;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
@@ -143,14 +139,6 @@ public class ServiceConfig {
       return new MockStatisticsServerAccessor();
     }
     return new StatisticsServerAccessorImpl();
-  }
-
-  @Bean
-  ModsServerAccessor modsServerAccessor() {
-    if (environment.containsProperty("faf.testing")) {
-      return new MockModsServerAccessor();
-    }
-    return new ModsServerAccessorImpl();
   }
 
   @Bean

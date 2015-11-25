@@ -13,6 +13,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
+import org.apache.lucene.analysis.core.SimpleAnalyzer;
+import org.apache.lucene.store.RAMDirectory;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
@@ -85,6 +87,8 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     instance.applicationContext = applicationContext;
     instance.taskService = taskService;
     instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.directory = new RAMDirectory();
+    instance.analyzer = new SimpleAnalyzer();
 
     gamePrefsPath = faDataDirectory.getRoot().toPath().resolve("game.prefs");
 
