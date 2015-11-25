@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static java.nio.charset.StandardCharsets.US_ASCII;
+
 public class PreferencesService {
 
   /**
@@ -206,6 +208,15 @@ public class PreferencesService {
     logger.info("Found game path at {}", gamePath);
     preferences.getForgedAlliance().setPath(gamePath);
     storeInBackground();
+
+    Path faPathFile = getFafDataDirectory().resolve("fa_path.lua");
+    try {
+      Files.createDirectories(faPathFile.getParent());
+      Files.write(faPathFile, String.format("fa_path = '%s'\n", gamePath.toAbsolutePath()).getBytes(US_ASCII));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
     return true;
   }
 
