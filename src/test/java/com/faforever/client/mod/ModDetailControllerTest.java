@@ -72,7 +72,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
 
     instance.setMod(mod);
 
-    assertThat(instance.thumbnailImageView.getImage(), is(nullValue()));
+    assertThat(instance.thumbnailImageView.getImage(), notNullValue());
   }
 
   @Test
@@ -117,8 +117,6 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
     CompletableFuture<Void> future = new CompletableFuture<>();
     future.completeExceptionally(new Exception("test exception"));
     when(modService.uninstallMod(mod)).thenReturn(future);
-
-    instance.setMod(ModInfoBeanBuilder.create().defaultValues().get());
 
     instance.onUninstallButtonClicked();
 

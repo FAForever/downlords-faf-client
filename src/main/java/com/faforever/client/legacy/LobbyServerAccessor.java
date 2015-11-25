@@ -6,7 +6,6 @@ import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.LoginInfo;
-import com.faforever.client.legacy.domain.ModInfo;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 import org.jetbrains.annotations.Nullable;
@@ -71,11 +70,6 @@ public interface LobbyServerAccessor {
   void stopSearchingRanked();
 
   void expand1v1Search(float radius);
-
-  /**
-   * Returns the 100 most liked mods.
-   */
-  CompletableFuture<List<ModInfo>> requestMods();
 
   @Nullable
   Long getSessionId();

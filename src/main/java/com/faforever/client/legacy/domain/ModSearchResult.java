@@ -1,20 +1,22 @@
 package com.faforever.client.legacy.domain;
 
+import com.faforever.client.api.Mod;
+
 import java.util.List;
 
 public class ModSearchResult extends ServerMessage {
 
-  private List<ModInfo> modList;
+  private List<Mod> modList;
 
   public ModSearchResult() {
     super(ServerMessageType.MOD_RESULT_LIST);
   }
 
-  public List<ModInfo> getModList() {
+  public List<Mod> getModList() {
     return modList;
   }
 
-  public void setModList(List<ModInfo> modList) {
+  public void setModList(List<Mod> modList) {
     this.modList = modList;
   }
 }

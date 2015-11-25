@@ -2,6 +2,7 @@ package com.faforever.client;
 
 import com.faforever.client.config.BaseConfig;
 import com.faforever.client.config.CacheConfig;
+import com.faforever.client.config.LuceneConfig;
 import com.faforever.client.config.ServiceConfig;
 import com.faforever.client.config.TaskConfig;
 import com.faforever.client.config.UiConfig;
@@ -29,7 +30,7 @@ public class Main extends Application {
     context = new AnnotationConfigApplicationContext();
     context.getBeanFactory().registerSingleton("hostService", new JavaFxHostService(getHostServices()));
     context.getBeanFactory().registerSingleton("stage", stage);
-    context.register(BaseConfig.class, UiConfig.class, ServiceConfig.class, TaskConfig.class, CacheConfig.class);
+    context.register(BaseConfig.class, UiConfig.class, ServiceConfig.class, TaskConfig.class, CacheConfig.class, LuceneConfig.class);
     context.registerShutdownHook();
     context.refresh();
 
@@ -51,8 +52,6 @@ public class Main extends Application {
   }
 
   public static void main(String[] args) {
-    // System.setProperty("prism.text", "t2k");
-    // System.setProperty("prism.order", "sw");
 
     PreferencesService.configureLogging();
     launch(args);

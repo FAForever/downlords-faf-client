@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -58,13 +59,19 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
     for (int i = 0; i < 5; i++) {
       mods.add(
           ModInfoBeanBuilder.create()
+              .name("Mod " + i)
               .defaultValues()
               .uid(String.valueOf(i))
               .uidMod(i < 2)
               .get()
       );
     }
-    when(modService.requestMods()).thenReturn(CompletableFuture.completedFuture(mods));
+
+    when(modService.getMostDownloadedMods(anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
+    when(modService.getMostLikedUiMods(anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
+    when(modService.getNewestMods(anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
+    when(modService.getMostLikedMods(anyInt())).thenReturn(CompletableFuture.completedFuture(mods));
+    when(modService.getAvailableMods()).thenReturn(CompletableFuture.completedFuture(mods));
 
     ModTileController modTileController = mock(ModTileController.class);
     doAnswer(invocation -> new Pane()).when(modTileController).getRoot();
@@ -90,7 +97,6 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
 
     instance.setUpIfNecessary();
 
-    verify(modService).requestMods();
     assertTrue(latch.await(5000, TimeUnit.MILLISECONDS));
   }
 

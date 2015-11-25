@@ -4,6 +4,7 @@ import com.faforever.client.achievements.AchievementDefinition;
 import com.faforever.client.achievements.PlayerAchievement;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.HostService;
+import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
@@ -17,25 +18,31 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.JsonObjectParser;
+import com.google.api.client.json.JsonParser;
+import com.google.api.client.json.JsonToken;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.reflect.TypeToken;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.util.ReflectionUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Type;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class FafApiAccessorImpl implements FafApiAccessor {
 
@@ -77,7 +84,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @PostConstruct
   void postConstruct() throws IOException {
-    Path playServicesDirectory = preferencesService.getPreferencesDirectory().resolve("play-services");
+    Path playServicesDirectory = preferencesService.getPreferencesDirectory().resolve("oauth");
     dataStoreFactory = new FileDataStoreFactory(playServicesDirectory.toFile());
   }
 
@@ -85,10 +92,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @SuppressWarnings("unchecked")
   public List<PlayerAchievement> getPlayerAchievements(int playerId) {
     logger.debug("Loading achievements for player: {}", playerId);
-    Type returnType = new TypeToken<ListResult<PlayerAchievement>>() {
-    }.getType();
-    return ((ListResult<PlayerAchievement>) sendGetRequest("/players/" + playerId + "/achievements", returnType))
-        .getItems();
+    return getMany("/players/" + playerId + "/achievements", PlayerAchievement.class);
   }
 
   @Override
@@ -96,16 +100,14 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Cacheable(CacheNames.ACHIEVEMENTS)
   public List<AchievementDefinition> getAchievementDefinitions() {
     logger.debug("Loading achievement definitions");
-    Type returnType = new TypeToken<ListResult<AchievementDefinition>>() {
-    }.getType();
-    return ((ListResult<AchievementDefinition>) sendGetRequest("/achievements", returnType)).getItems();
+    return getMany("/achievements", AchievementDefinition.class);
   }
 
   @Override
   @Cacheable(CacheNames.ACHIEVEMENTS)
   public AchievementDefinition getAchievementDefinition(String achievementId) {
     logger.debug("Getting definition for achievement {}", achievementId);
-    return sendGetRequest("/achievements/" + achievementId, AchievementDefinition.class);
+    return getSingle("/achievements/" + achievementId, AchievementDefinition.class);
   }
 
   @Override
@@ -128,6 +130,15 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  @Cacheable(CacheNames.MODS)
+  public List<ModInfoBean> getMods() {
+    logger.debug("Loading available mods");
+    return getMany("/mods", Mod.class).stream()
+        .map(ModInfoBean::fromModInfo)
+        .collect(Collectors.toList());
   }
 
   private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {
@@ -161,18 +172,69 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> T sendGetRequest(String endpointPath, Type type) {
+  private <T> T getSingle(String endpointPath, Class<T> type) {
+    try (InputStream inputStream = executeGet(endpointPath)) {
+      JsonParser jsonParser = jsonFactory.createJsonParser(inputStream, StandardCharsets.UTF_8);
+      jsonParser.nextToken();
+      jsonParser.skipToKey("data");
+
+      return extractObject(type, jsonParser);
+    } catch (IOException | IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> List<T> getMany(String endpointPath, Class<T> type) {
+    ArrayList<T> result = new ArrayList<>();
+    try (InputStream inputStream = executeGet(endpointPath)) {
+      JsonParser jsonParser = jsonFactory.createJsonParser(inputStream, StandardCharsets.UTF_8);
+      jsonParser.nextToken();
+      jsonParser.skipToKey("data");
+
+      while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
+        T object = extractObject(type, jsonParser);
+        result.add(object);
+      }
+      return result;
+    } catch (IOException | IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private InputStream executeGet(String endpointPath) throws IOException {
     if (requestFactory == null) {
       throw new IllegalStateException("authorize() must be called first");
     }
+    HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(baseUrl + endpointPath));
+    credential.initialize(request);
+    return request.execute().getContent();
+  }
 
-    try {
-      HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(baseUrl + endpointPath));
-      request.setParser(new JsonObjectParser(jsonFactory));
-      credential.initialize(request);
-      return (T) request.execute().parseAs(type);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+  @Nullable
+  private <T> T extractObject(Class<T> type, JsonParser jsonParser) throws IOException, IllegalAccessException {
+    T object = null;
+    String id = null;
+    JsonToken currentToken = jsonParser.nextToken();
+    while (currentToken != null && currentToken != JsonToken.END_OBJECT) {
+      switch (jsonParser.getCurrentToken()) {
+        case START_OBJECT:
+          break;
+        case FIELD_NAME:
+          if ("attributes".equals(jsonParser.getCurrentName())) {
+            jsonParser.nextToken();
+            object = jsonParser.parse(type);
+          } else if ("id".equals(jsonParser.getCurrentName())) {
+            jsonParser.nextToken();
+            id = jsonParser.getText();
+          }
+          break;
+      }
+      currentToken = jsonParser.nextToken();
     }
+    Field idField = ReflectionUtils.findField(type, "id");
+    ReflectionUtils.makeAccessible(idField);
+    idField.set(object, id);
+    return object;
   }
 }

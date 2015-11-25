@@ -1,7 +1,6 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.legacy.domain.ModInfo;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -14,6 +13,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
+import org.apache.lucene.analysis.core.SimpleAnalyzer;
+import org.apache.lucene.store.RAMDirectory;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
@@ -86,6 +87,8 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     instance.applicationContext = applicationContext;
     instance.taskService = taskService;
     instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.directory = new RAMDirectory();
+    instance.analyzer = new SimpleAnalyzer();
 
     gamePrefsPath = faDataDirectory.getRoot().toPath().resolve("game.prefs");
 
@@ -296,7 +299,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(modInfoBean.getDescription(), is("Version 5.0. This mod provides global icon support for any mod that places their icons in the proper folder structure. See Readme"));
     assertThat(modInfoBean.getImagePath(), nullValue());
     assertThat(modInfoBean.getSelectable(), is(true));
-    assertThat(modInfoBean.getUid(), is("9e8ea941-c306-4751-b367-f00000000005"));
+    assertThat(modInfoBean.getId(), is("9e8ea941-c306-4751-b367-f00000000005"));
     assertThat(modInfoBean.getUiOnly(), is(false));
 
     modInfoBean = installedMods.get(1);
@@ -307,7 +310,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(modInfoBean.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
     assertThat(modInfoBean.getImagePath(), is(modsDirectory.getRoot().toPath().resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
     assertThat(modInfoBean.getSelectable(), is(true));
-    assertThat(modInfoBean.getUid(), is("9e8ea941-c306-4751-b367-a11000000502"));
+    assertThat(modInfoBean.getId(), is("9e8ea941-c306-4751-b367-a11000000502"));
     assertThat(modInfoBean.getUiOnly(), is(false));
 
     modInfoBean = installedMods.get(2);
@@ -318,7 +321,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(modInfoBean.getDescription(), is("EcoManager v3, more efficient energy throttling"));
     assertThat(modInfoBean.getImagePath(), nullValue());
     assertThat(modInfoBean.getSelectable(), is(true));
-    assertThat(modInfoBean.getUid(), is("b2cde810-15d0-4bfa-af66-ec2d6ecd561b"));
+    assertThat(modInfoBean.getId(), is("b2cde810-15d0-4bfa-af66-ec2d6ecd561b"));
     assertThat(modInfoBean.getUiOnly(), is(true));
   }
 
@@ -331,13 +334,6 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     instance.loadInstalledMods();
 
     assertThat(instance.getInstalledMods().size(), is(1));
-  }
-
-  @Test
-  public void testRequestMods() throws Exception {
-    when(lobbyServerAccessor.requestMods()).thenReturn(CompletableFuture.completedFuture(Collections.<ModInfo>emptyList()));
-    instance.requestMods();
-    verify(lobbyServerAccessor).requestMods();
   }
 
   @Test

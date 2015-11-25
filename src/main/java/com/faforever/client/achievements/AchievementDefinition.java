@@ -94,4 +94,24 @@ public class AchievementDefinition {
   public void setUnlockedIconUrl(String unlockedIconUrl) {
     this.unlockedIconUrl = unlockedIconUrl;
   }
+
+  @Override
+  public int hashCode() {
+    return id != null ? id.hashCode() : 0;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    AchievementDefinition that = (AchievementDefinition) o;
+
+    return !(id != null ? !id.equals(that.id) : that.id != null);
+
+  }
 }

@@ -221,6 +221,13 @@
   -fx-font-weight: 700;
 }
 
+
+/***************** Text variations *****************/
+
+.secondary {
+  -fx-text-fill: -fx-dark-text-color;
+}
+
 /***************** Icons (FontAwesome) *****************/
 
 .fontawesome {

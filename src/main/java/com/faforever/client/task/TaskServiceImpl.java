@@ -3,6 +3,7 @@ package com.faforever.client.task;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -43,5 +44,10 @@ public class TaskServiceImpl implements TaskService {
   @Override
   public ObservableList<PrioritizedTask<?>> getActiveTasks() {
     return unmodifiableObservableList;
+  }
+
+  @PreDestroy
+  void preDestroy() {
+    threadPoolExecutor.shutdownNow();
   }
 }

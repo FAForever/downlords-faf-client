@@ -29,13 +29,24 @@ public interface ModService {
 
   void enableSimMods(Set<String> simMods) throws IOException;
 
-  CompletableFuture<List<ModInfoBean>> requestMods();
-
   boolean isModInstalled(String uid);
 
   CompletableFuture<Void> uninstallMod(ModInfoBean mod);
 
   Path getPathForMod(ModInfoBean mod);
 
-  CompletableFuture<List<ModInfoBean>> searchMod(String name);
+  /**
+   * Returns mods available on the server.
+   */
+  CompletableFuture<List<ModInfoBean>> getAvailableMods();
+
+  CompletableFuture<List<ModInfoBean>> getMostDownloadedMods(int count);
+
+  CompletableFuture<List<ModInfoBean>> getMostLikedMods(int count);
+
+  CompletableFuture<List<ModInfoBean>> getNewestMods(int count);
+
+  CompletableFuture<List<ModInfoBean>> getMostLikedUiMods(int count);
+
+  CompletableFuture<List<ModInfoBean>> lookupMod(String string, int maxSuggestions);
 }

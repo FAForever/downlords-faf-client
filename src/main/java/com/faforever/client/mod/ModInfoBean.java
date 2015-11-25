@@ -1,6 +1,6 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.api.Mod;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
@@ -13,20 +13,25 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Objects;
 
-import static com.faforever.client.util.TimeUtil.fromPythonTime;
-
 public class ModInfoBean {
-
+  public static final Comparator<? super ModInfoBean> LIKES_COMPARATOR = (o1, o2) -> Integer.compare(o1.getLikes(), o2.getLikes());
+  public static final Comparator<? super ModInfoBean> PUBLISH_DATE_COMPARATOR = (o1, o2) -> o1.getPublishDate().compareTo(o2.getPublishDate());
+  public static final Comparator<? super ModInfoBean> DOWNLOADS_COMPARATOR = (o1, o2) -> Integer.compare(o1.getDownloads(), o2.getDownloads());
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final StringProperty name;
   private final ObjectProperty<Path> imagePath;
-  private final StringProperty uid;
+  private final StringProperty id;
   private final StringProperty description;
   private final StringProperty author;
   private final BooleanProperty selectable;
@@ -36,18 +41,15 @@ public class ModInfoBean {
   private final ListProperty<String> comments;
   private final BooleanProperty selected;
   private final IntegerProperty likes;
-  public static final Comparator<? super ModInfoBean> LIKES_COMPARATOR = (o1, o2) -> Integer.compare(o1.getLikes(), o2.getLikes());
   private final IntegerProperty played;
-  private final ObjectProperty<Instant> publishDate;
-  public static final Comparator<? super ModInfoBean> PUBLISH_DATE_COMPARATOR = (o1, o2) -> o1.getPublishDate().compareTo(o2.getPublishDate());
+  private final ObjectProperty<LocalDateTime> publishDate;
   private final IntegerProperty downloads;
-  public static final Comparator<? super ModInfoBean> DOWNLOADS_COMPARATOR = (o1, o2) -> Integer.compare(o1.getDownloads(), o2.getDownloads());
   private final ObjectProperty<URL> downloadUrl;
 
   public ModInfoBean() {
     name = new SimpleStringProperty();
     imagePath = new SimpleObjectProperty<>();
-    uid = new SimpleStringProperty();
+    id = new SimpleStringProperty();
     description = new SimpleStringProperty();
     author = new SimpleStringProperty();
     selectable = new SimpleBooleanProperty();
@@ -171,16 +173,16 @@ public class ModInfoBean {
     return name;
   }
 
-  public String getUid() {
-    return uid.get();
+  public String getId() {
+    return id.get();
   }
 
-  public void setUid(String uid) {
-    this.uid.set(uid);
+  public void setId(String id) {
+    this.id.set(id);
   }
 
-  public StringProperty uidProperty() {
-    return uid;
+  public StringProperty idProperty() {
+    return id;
   }
 
   public int getLikes() {
@@ -207,15 +209,15 @@ public class ModInfoBean {
     return played;
   }
 
-  public Instant getPublishDate() {
+  public LocalDateTime getPublishDate() {
     return publishDate.get();
   }
 
-  public void setPublishDate(Instant publishDate) {
+  public void setPublishDate(LocalDateTime publishDate) {
     this.publishDate.set(publishDate);
   }
 
-  public ObjectProperty<Instant> publishDateProperty() {
+  public ObjectProperty<LocalDateTime> publishDateProperty() {
     return publishDate;
   }
 
@@ -249,7 +251,7 @@ public class ModInfoBean {
 
   @Override
   public int hashCode() {
-    return Objects.hash(uid.get());
+    return Objects.hash(id.get());
   }
 
   @Override
@@ -261,25 +263,7 @@ public class ModInfoBean {
       return false;
     }
     ModInfoBean that = (ModInfoBean) o;
-    return Objects.equals(uid.get(), that.uid.get());
-  }
-
-  public static ModInfoBean fromModInfo(ModInfo modInfo) {
-    ModInfoBean modInfoBean = new ModInfoBean();
-    modInfoBean.setUiOnly(modInfo.isUi() == 1);
-    modInfoBean.setName(modInfo.getName());
-    modInfoBean.setAuthor(modInfo.getAuthor());
-    modInfoBean.setVersion(modInfo.getVersion());
-    modInfoBean.setLikes(modInfo.getLikes());
-    modInfoBean.setPlayed(modInfo.getPlayed());
-    modInfoBean.setPublishDate(fromPythonTime(modInfo.getDate()));
-    modInfoBean.setDescription(modInfo.getDescription());
-    modInfoBean.setUid(modInfo.getUid());
-    modInfoBean.setDownloads(modInfo.getDownloads());
-    modInfoBean.setThumbnailUrl(modInfo.getThumbnail());
-    modInfoBean.getComments().setAll(modInfo.getComments());
-    modInfoBean.setDownloadUrl(modInfo.getLink());
-    return modInfoBean;
+    return Objects.equals(id.get(), that.id.get());
   }
 
   public ObservableList<String> getComments() {
@@ -288,5 +272,28 @@ public class ModInfoBean {
 
   public void setComments(ObservableList<String> comments) {
     this.comments.set(comments);
+  }
+
+  public static ModInfoBean fromModInfo(Mod mod) {
+    ModInfoBean modInfoBean = new ModInfoBean();
+    modInfoBean.setUiOnly(mod.isUi());
+    modInfoBean.setName(mod.getName());
+    modInfoBean.setAuthor(mod.getAuthor());
+    modInfoBean.setVersion(mod.getVersion());
+    modInfoBean.setLikes(mod.getLikes());
+//    modInfoBean.setPlayed(mod.getPlayed());
+    modInfoBean.setPublishDate(mod.getCreateTime());
+    modInfoBean.setDescription(mod.getDescription());
+    modInfoBean.setId(mod.getId());
+    modInfoBean.setDownloads(mod.getDownloads());
+    modInfoBean.setThumbnailUrl(mod.getThumbnailUrl());
+//    modInfoBean.getComments().setAll(mod.getComments());
+    try {
+      modInfoBean.setDownloadUrl(new URL(mod.getDownloadUrl()));
+    } catch (MalformedURLException e) {
+      logger.warn("Mod '{}' has an invalid URL: {}", mod.getId(), mod.getDownloadUrl());
+      modInfoBean.setDownloadUrl(null);
+    }
+    return modInfoBean;
   }
 }

@@ -1,29 +1,26 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.legacy.domain.ModInfo;
-
-import java.util.ArrayList;
+import com.faforever.client.api.Mod;
 
 public class ModInfoBuilder {
 
-  private final ModInfo modInfo;
+  private final Mod mod;
 
   public ModInfoBuilder() {
-    modInfo = new ModInfo();
+    mod = new Mod();
   }
 
   public ModInfoBuilder defaultValues() {
-    modInfo.setComments(new ArrayList<>());
     return this;
   }
 
-  public ModInfoBuilder uid(String uid) {
-    modInfo.setUid(uid);
+  public ModInfoBuilder id(String id) {
+    mod.setId(id);
     return this;
   }
 
-  public ModInfo get() {
-    return modInfo;
+  public Mod get() {
+    return mod;
   }
 
   public static ModInfoBuilder create() {

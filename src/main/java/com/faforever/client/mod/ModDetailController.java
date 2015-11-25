@@ -6,6 +6,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.util.IdenticonUtil;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -14,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import org.apache.commons.lang3.StringUtils;
 
@@ -61,17 +63,33 @@ public class ModDetailController {
     progressBar.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
     progressLabel.managedProperty().bind(progressLabel.visibleProperty());
     progressLabel.visibleProperty().bind(progressBar.visibleProperty());
+
+    modDetailRoot.setOnKeyPressed(keyEvent -> {
+      if (keyEvent.getCode() == KeyCode.ESCAPE){
+        onCloseButtonClicked();
+      }
+    });
+  }
+
+  public void onCloseButtonClicked() {
+    getRoot().setVisible(false);
+  }
+
+  public Node getRoot() {
+    return modDetailRoot;
   }
 
   public void setMod(ModInfoBean mod) {
     this.mod = mod;
     if (StringUtils.isNotEmpty(mod.getThumbnailUrl())) {
       thumbnailImageView.setImage(new Image(mod.getThumbnailUrl()));
+    } else {
+      thumbnailImageView.setImage(IdenticonUtil.createIdenticon(mod.getId()));
     }
     nameLabel.setText(mod.getName());
     authorLabel.setText(mod.getAuthor());
 
-    boolean modInstalled = modService.isModInstalled(mod.getUid());
+    boolean modInstalled = modService.isModInstalled(mod.getId());
     installButton.setVisible(!modInstalled);
     uninstallButton.setVisible(modInstalled);
 
@@ -80,20 +98,20 @@ public class ModDetailController {
     modService.getInstalledMods().addListener((ListChangeListener<ModInfoBean>) change -> {
       while (change.next()) {
         for (ModInfoBean modInfoBean : change.getAddedSubList()) {
-          if (mod.getUid().equals(modInfoBean.getUid())) {
+          if (mod.getId().equals(modInfoBean.getId())) {
             setInstalled(true);
             return;
           }
         }
         for (ModInfoBean modInfoBean : change.getRemoved()) {
-          if (mod.getUid().equals(modInfoBean.getUid())) {
+          if (mod.getId().equals(modInfoBean.getId())) {
             setInstalled(false);
             return;
           }
         }
       }
     });
-    setInstalled(modService.isModInstalled(mod.getUid()));
+    setInstalled(modService.isModInstalled(mod.getId()));
   }
 
   private void setInstalled(boolean installed) {
@@ -133,14 +151,6 @@ public class ModDetailController {
   @FXML
   void onDimmerClicked() {
     onCloseButtonClicked();
-  }
-
-  public void onCloseButtonClicked() {
-    getRoot().setVisible(false);
-  }
-
-  public Node getRoot() {
-    return modDetailRoot;
   }
 
   public void onContentPaneClicked(MouseEvent event) {

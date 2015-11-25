@@ -44,7 +44,7 @@ public class LegacyNewsService implements NewsService {
         result.add(new NewsItem(author, link, title, content, publishedDate));
       }
     } catch (FeedException | IOException e) {
-      throw new RuntimeException(e);
+      logger.warn("News could not be fetched", e);
     }
 
     return result;

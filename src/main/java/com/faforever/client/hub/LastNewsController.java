@@ -45,13 +45,15 @@ public class LastNewsController {
     String theme = preferencesService.getPreferences().getTheme();
 
     List<NewsItem> newsItems = newsService.fetchNews();
-    NewsItem newsItem = newsItems.get(0);
-    authoredLabel.setText(i18n.get("news.authoredFormat", newsItem.getAuthor(), newsItem.getDate()));
+    if (!newsItems.isEmpty()) {
+      NewsItem newsItem = newsItems.get(0);
+      authoredLabel.setText(i18n.get("news.authoredFormat", newsItem.getAuthor(), newsItem.getDate()));
 
-    titleLabel.setText(newsItem.getTitle());
+      titleLabel.setText(newsItem.getTitle());
 
-    String text = Jsoup.parse(newsItem.getContent()).text();
-    textLabel.setText(text);
+      String text = Jsoup.parse(newsItem.getContent()).text();
+      textLabel.setText(text);
+    }
 
     // TODO only use this if there's no thumbnail. However, there's never a thumbnail ATM.
     imageView.setImage(new Image(ThemeUtil.themeFile(theme, "images/news_fallback.jpg")));

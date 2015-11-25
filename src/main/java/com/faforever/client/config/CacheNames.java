@@ -10,6 +10,7 @@ public final class CacheNames {
   public static final String STATISTICS = "statistics";
   public static final String GRAVATAR = "gravatar";
   public static final String ACHIEVEMENTS = "achievements";
+  public static final String MODS = "mods";
 
   private CacheNames() {
     throw new AssertionError("Not instantiatable");

@@ -1,5 +1,6 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.api.Mod;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
@@ -21,10 +22,8 @@ import com.faforever.client.legacy.domain.InitSessionMessage;
 import com.faforever.client.legacy.domain.JoinGameMessage;
 import com.faforever.client.legacy.domain.LoginInfo;
 import com.faforever.client.legacy.domain.LoginMessage;
-import com.faforever.client.legacy.domain.ModInfo;
 import com.faforever.client.legacy.domain.PlayersInfo;
 import com.faforever.client.legacy.domain.Ranked1v1SearchExpansionMessage;
-import com.faforever.client.legacy.domain.RequestModsMessage;
 import com.faforever.client.legacy.domain.ServerCommand;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
@@ -118,8 +117,8 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private OnPlayerInfoListener onPlayerInfoListener;
   private OnFriendListListener onFriendListListener;
   private OnFoeListListener onFoeListListener;
-  private CompletableFuture<List<ModInfo>> modListFuture;
-  private Set<ModInfo> collectedModInfos;
+  private CompletableFuture<List<Mod>> modListFuture;
+  private Set<Mod> collectedMods;
   private Collection<Consumer<LoginInfo>> onLoggedInListeners;
   private ObjectProperty<Long> sessionId;
   private StringProperty login;
@@ -134,7 +133,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     onRankedMatchNotificationListeners = new ArrayList<>();
     onUpdatedAchievementsListeners = new ArrayList<>();
     onLoggedInListeners = new ArrayList<>();
-    collectedModInfos = new HashSet<>();
+    collectedMods = new HashSet<>();
     sessionId = new SimpleObjectProperty<>();
     login = new SimpleStringProperty();
     gson = new GsonBuilder()
@@ -364,13 +363,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public CompletableFuture<List<ModInfo>> requestMods() {
-    modListFuture = new CompletableFuture<>();
-    writeToServer(new RequestModsMessage());
-    return modListFuture;
-  }
-
-  @Override
   public Long getSessionId() {
     return sessionId.get();
   }
@@ -489,8 +481,8 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           break;
 
         case MOD_VAULT_INFO:
-          ModInfo modInfo = gson.fromJson(jsonString, ModInfo.class);
-          onModInfo(modInfo);
+          Mod mod = gson.fromJson(jsonString, Mod.class);
+          onModInfo(mod);
           break;
 
         case UPDATED_ACHIEVEMENTS:
@@ -560,11 +552,11 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
    * don't really know how many there will be. However, at the moment, we "know" that the server sends 100 mods. So
    * let's wait for these and pray that this number will never change until we get a proper server API.
    */
-  private void onModInfo(ModInfo modInfo) {
-    collectedModInfos.add(modInfo);
-    if (collectedModInfos.size() == 100) {
-      modListFuture.complete(new ArrayList<>(collectedModInfos));
-      collectedModInfos.clear();
+  private void onModInfo(Mod mod) {
+    collectedMods.add(mod);
+    if (collectedMods.size() == 100) {
+      modListFuture.complete(new ArrayList<>(collectedMods));
+      collectedMods.clear();
     }
   }
 

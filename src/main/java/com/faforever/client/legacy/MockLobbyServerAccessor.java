@@ -12,7 +12,6 @@ import com.faforever.client.legacy.domain.GameLaunchInfo;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeInfo;
 import com.faforever.client.legacy.domain.LoginInfo;
-import com.faforever.client.legacy.domain.ModInfo;
 import com.faforever.client.legacy.domain.Player;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
@@ -286,11 +285,6 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
   @Override
   public void expand1v1Search(float radius) {
-  }
-
-  @Override
-  public CompletableFuture<List<ModInfo>> requestMods() {
-    return CompletableFuture.completedFuture(null);
   }
 
   @Override
