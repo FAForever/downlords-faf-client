@@ -250,8 +250,8 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
 
         logger.debug("Message from FAF relay server: {}", message);
 
-        GpgpServerMessage gpgpServerMessage = gson.fromJson(message, GpgpServerMessage.class);
-        dispatchServerCommand(gpgpServerMessage.getCommand(), message);
+        GpgServerMessage gpgServerMessage = gson.fromJson(message, GpgServerMessage.class);
+        dispatchServerCommand(gpgServerMessage.getCommand(), message);
       }
     } catch (EOFException | SocketException e) {
       logger.info("Disconnected from FAF relay server (" + e.getMessage() + ")");
@@ -494,25 +494,25 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
     writeToFa(joinGameMessage);
   }
 
-  private void writeToFaUdp(GpgpServerMessage gpgpServerMessage) throws IOException {
-    writeHeader(gpgpServerMessage);
-    faOutputStream.writeUdpArgs(gpgpServerMessage.getArgs());
+  private void writeToFaUdp(GpgServerMessage gpgServerMessage) throws IOException {
+    writeHeader(gpgServerMessage);
+    faOutputStream.writeUdpArgs(gpgServerMessage.getArgs());
     faOutputStream.flush();
   }
 
-  private void writeToFa(GpgpServerMessage gpgpServerMessage) throws IOException {
-    writeHeader(gpgpServerMessage);
-    faOutputStream.writeArgs(gpgpServerMessage.getArgs());
+  private void writeToFa(GpgServerMessage gpgServerMessage) throws IOException {
+    writeHeader(gpgServerMessage);
+    faOutputStream.writeArgs(gpgServerMessage.getArgs());
     faOutputStream.flush();
   }
 
-  private void writeHeader(GpgpServerMessage gpgpServerMessage) throws IOException {
-    String commandString = gpgpServerMessage.getCommand().getString();
+  private void writeHeader(GpgServerMessage gpgServerMessage) throws IOException {
+    String commandString = gpgServerMessage.getCommand().getString();
 
     int headerSize = commandString.length();
     String headerField = commandString.replace("\t", "/t").replace("\n", "/n");
 
-    logger.debug("Writing data to FA, command: {}, args: {}", commandString, gpgpServerMessage.getArgs());
+    logger.debug("Writing data to FA, command: {}, args: {}", commandString, gpgServerMessage.getArgs());
 
     faOutputStream.writeInt(headerSize);
     faOutputStream.writeString(headerField);

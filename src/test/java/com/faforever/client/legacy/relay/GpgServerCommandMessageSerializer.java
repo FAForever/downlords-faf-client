@@ -3,7 +3,7 @@ package com.faforever.client.legacy.relay;
 import com.faforever.client.legacy.writer.JsonMessageSerializer;
 import com.google.gson.GsonBuilder;
 
-public class GpgServerCommandMessageSerializer extends JsonMessageSerializer<GpgpServerMessage> {
+public class GpgServerCommandMessageSerializer extends JsonMessageSerializer<GpgServerMessage> {
 
   @Override
   protected void addTypeAdapters(GsonBuilder gsonBuilder) {

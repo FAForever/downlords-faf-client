@@ -2,7 +2,7 @@ package com.faforever.client.legacy.relay;
 
 import com.faforever.client.util.Validator;
 
-public class CreateLobbyServerMessage extends GpgpServerMessage {
+public class CreateLobbyServerMessage extends GpgServerMessage {
 
   private static final int LOBBY_MODE_INDEX = 0;
   private static final int PORT_INDEX = 1;
