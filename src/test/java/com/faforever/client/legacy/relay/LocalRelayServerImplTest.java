@@ -4,6 +4,7 @@ import com.faforever.client.game.GameType;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameLaunchInfoListener;
 import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.gson.GpgClientCommandTypeAdapter;
 import com.faforever.client.legacy.io.QDataInputStream;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.legacy.proxy.ProxyUtils;
@@ -66,8 +67,8 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private static final int GAME_PORT = 6112;
   @Rule
   public TemporaryFolder cacheDirectory = new TemporaryFolder();
-  private BlockingQueue<LobbyMessage> messagesReceivedByFafServer;
-  private BlockingQueue<RelayServerMessage> messagesReceivedByGame;
+  private BlockingQueue<GpgClientMessage> messagesReceivedByFafServer;
+  private BlockingQueue<GpgpServerMessage> messagesReceivedByGame;
   private LocalRelayServerImpl instance;
   private FaDataOutputStream gameToRelayOutputStream;
   private FaDataInputStream gameFromRelayInputStream;
@@ -143,22 +144,22 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     WaitForAsyncUtils.async(() -> {
       Gson gson = new GsonBuilder()
-          .registerTypeAdapter(LobbyAction.class, new RelayServerActionDeserializer())
+          .registerTypeAdapter(GpgClientCommand.class, GpgClientCommandTypeAdapter.class)
           .create();
 
       try (Socket socket = fafRelayServerSocket.accept()) {
         localToServerSocket = socket;
         QDataInputStream qDataInputStream = new QDataInputStream(new DataInputStream(socket.getInputStream()));
         serverToRelayWriter = new ServerWriter(socket.getOutputStream());
-        serverToRelayWriter.registerMessageSerializer(new RelayServerMessageSerializer(), RelayServerMessage.class);
+        serverToRelayWriter.registerMessageSerializer(new GpgServerCommandMessageSerializer(), GpgpServerMessage.class);
 
         while (!stopped) {
           int blockSize = qDataInputStream.readInt();
           String json = qDataInputStream.readQString();
 
-          LobbyMessage lobbyMessage = gson.fromJson(json, LobbyMessage.class);
+          GpgClientMessage gpgClientMessage = gson.fromJson(json, GpgClientMessage.class);
 
-          messagesReceivedByFafServer.add(lobbyMessage);
+          messagesReceivedByFafServer.add(gpgClientMessage);
         }
       } catch (IOException e) {
         System.out.println("Closing fake FAF relay server: " + e.getMessage());
@@ -175,8 +176,8 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.async(() -> {
       while (!stopped) {
         try {
-          RelayServerCommand command = RelayServerCommand.fromString(gameFromRelayInputStream.readString());
-          RelayServerMessage message = new RelayServerMessage(command);
+          GpgServerCommandServerCommand command = GpgServerCommandServerCommand.fromString(gameFromRelayInputStream.readString());
+          GpgpServerMessage message = new GpgpServerMessage(command);
           message.setArgs(gameFromRelayInputStream.readChunks());
 
           messagesReceivedByGame.add(message);
@@ -201,8 +202,8 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   }
 
   private void verifyAuthenticateMessage() throws InterruptedException {
-    LobbyMessage authenticateMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(authenticateMessage.getAction(), is(LobbyAction.AUTHENTICATE));
+    GpgClientMessage authenticateMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(authenticateMessage.getAction(), is(GpgClientCommand.AUTHENTICATE));
     assertThat(authenticateMessage.getChunks(), hasSize(2));
     assertThat(((Double) authenticateMessage.getChunks().get(0)).longValue(), is(SESSION_ID));
     assertThat(authenticateMessage.getChunks().get(1), is(USER_ID));
@@ -212,17 +213,17 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   public void testIdle() throws Exception {
     verifyAuthenticateMessage();
 
-    sendFromGame(new LobbyMessage(LobbyAction.GAME_STATE, singletonList("Idle")));
+    sendFromGame(new GpgClientMessage(GpgClientCommand.GAME_STATE, singletonList("Idle")));
 
-    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(lobbyMessage.getAction(), is(LobbyAction.GAME_STATE));
-    assertThat(lobbyMessage.getChunks().get(0), is("Idle"));
+    GpgClientMessage gpgClientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgClientMessage.getAction(), is(GpgClientCommand.GAME_STATE));
+    assertThat(gpgClientMessage.getChunks().get(0), is("Idle"));
   }
 
   /**
    * Writes the specified message to the local relay server as if it was sent by the game.
    */
-  private void sendFromGame(LobbyMessage message) throws IOException {
+  private void sendFromGame(GpgClientMessage message) throws IOException {
     String action = message.getAction().getString();
 
     int headerSize = action.length();
@@ -238,10 +239,10 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   public void testCreateLobbyUponIdle() throws Exception {
     verifyAuthenticateMessage();
 
-    sendFromGame(new LobbyMessage(LobbyAction.GAME_STATE, singletonList("Idle")));
+    sendFromGame(new GpgClientMessage(GpgClientCommand.GAME_STATE, singletonList("Idle")));
 
-    RelayServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(relayMessage.getCommand(), is(RelayServerCommand.CREATE_LOBBY));
+    GpgpServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(relayMessage.getCommand(), is(GpgServerCommandServerCommand.CREATE_LOBBY));
     assertThat(relayMessage.getArgs(), contains(LobbyMode.DEFAULT_LOBBY.getMode(), GAME_PORT, "junit", (int) USER_ID, 1));
   }
 
@@ -250,37 +251,37 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     verifyAuthenticateMessage();
     enableP2pProxy();
 
-    sendFromGame(new LobbyMessage(LobbyAction.GAME_STATE, singletonList("Idle")));
+    sendFromGame(new GpgClientMessage(GpgClientCommand.GAME_STATE, singletonList("Idle")));
 
-    RelayServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(relayMessage.getCommand(), is(RelayServerCommand.CREATE_LOBBY));
+    GpgpServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(relayMessage.getCommand(), is(GpgServerCommandServerCommand.CREATE_LOBBY));
     assertThat(relayMessage.getArgs(), contains(LobbyMode.DEFAULT_LOBBY.getMode(), ProxyUtils.translateToProxyPort(GAME_PORT), "junit", (int) USER_ID, 1));
   }
 
   private void enableP2pProxy() throws IOException, InterruptedException {
     CountDownLatch p2pProxyEnabledLatch = new CountDownLatch(1);
     instance.addOnP2pProxyEnabledChangeListener((observable, oldValue, newValue) -> p2pProxyEnabledLatch.countDown());
-    sendFromServer(new RelayServerMessage(RelayServerCommand.P2P_RECONNECT));
+    sendFromServer(new GpgpServerMessage(GpgServerCommandServerCommand.P2P_RECONNECT));
     p2pProxyEnabledLatch.await();
   }
 
   /**
    * Writes the specified message to the local relay server as if it was sent by the FAF server.
    */
-  private void sendFromServer(RelayServerMessage relayServerMessage) {
-    serverToRelayWriter.write(relayServerMessage);
+  private void sendFromServer(GpgpServerMessage gpgpServerMessage) {
+    serverToRelayWriter.write(gpgpServerMessage);
   }
 
   @Test
   public void testSendNatPacket() throws Exception {
     verifyAuthenticateMessage();
 
-    RelayServerMessage relayServerMessage = new RelayServerMessage(RelayServerCommand.SEND_NAT_PACKET);
-    relayServerMessage.setArgs(Arrays.asList("37.58.123.2:30351", "/PLAYERID 21447 Downlord"));
-    sendFromServer(relayServerMessage);
+    GpgpServerMessage gpgpServerMessage = new GpgpServerMessage(GpgServerCommandServerCommand.SEND_NAT_PACKET);
+    gpgpServerMessage.setArgs(Arrays.asList("37.58.123.2:30351", "/PLAYERID 21447 Downlord"));
+    sendFromServer(gpgpServerMessage);
 
-    RelayServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(relayMessage.getCommand(), is(RelayServerCommand.SEND_NAT_PACKET));
+    GpgpServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(relayMessage.getCommand(), is(GpgServerCommandServerCommand.SEND_NAT_PACKET));
     assertThat(relayMessage.getArgs(), contains("37.58.123.2:30351", "\b/PLAYERID 21447 Downlord"));
   }
 
@@ -295,10 +296,10 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     sendNatPacketMessage.setPublicAddress("37.58.123.2:6112");
     sendFromServer(sendNatPacketMessage);
 
-    RelayServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
+    GpgpServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
 
     verify(proxy).registerP2pPeerIfNecessary("37.58.123.2:6112");
-    assertThat(relayMessage.getCommand(), is(RelayServerCommand.SEND_NAT_PACKET));
+    assertThat(relayMessage.getCommand(), is(GpgServerCommandServerCommand.SEND_NAT_PACKET));
     assertThat(relayMessage.getArgs(), contains("127.0.0.1:53214"));
   }
 
@@ -315,11 +316,11 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     connectToPeerMessage.setPeerUid(4);
     sendFromServer(connectToPeerMessage);
 
-    RelayServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
+    GpgpServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
 
     verify(proxy).registerP2pPeerIfNecessary("37.58.123.2:6112");
     verify(proxy).setUidForPeer("37.58.123.2:6112", 4);
-    assertThat(relayMessage.getCommand(), is(RelayServerCommand.CONNECT_TO_PEER));
+    assertThat(relayMessage.getCommand(), is(GpgServerCommandServerCommand.CONNECT_TO_PEER));
     assertThat(relayMessage.getArgs(), contains("127.0.0.1:53214", "junit", 4));
   }
 
@@ -327,37 +328,37 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   public void testPing() throws Exception {
     verifyAuthenticateMessage();
 
-    sendFromServer(new RelayServerMessage(RelayServerCommand.PING));
+    sendFromServer(new GpgpServerMessage(GpgServerCommandServerCommand.PING));
 
-    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(lobbyMessage.getAction(), is(LobbyAction.PONG));
-    assertThat(lobbyMessage.getChunks(), empty());
+    GpgClientMessage gpgClientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgClientMessage.getAction(), is(GpgClientCommand.PONG));
+    assertThat(gpgClientMessage.getChunks(), empty());
   }
 
   @Test
   public void testHostGame() throws Exception {
     verifyAuthenticateMessage();
 
-    RelayServerMessage relayServerMessage = new RelayServerMessage(RelayServerCommand.HOST_GAME);
-    relayServerMessage.setArgs(singletonList("3v3 sand box.v0001"));
-    sendFromServer(relayServerMessage);
+    GpgpServerMessage gpgpServerMessage = new GpgpServerMessage(GpgServerCommandServerCommand.HOST_GAME);
+    gpgpServerMessage.setArgs(singletonList("3v3 sand box.v0001"));
+    sendFromServer(gpgpServerMessage);
 
-    relayServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(relayServerMessage.getCommand(), is(RelayServerCommand.HOST_GAME));
-    assertThat(relayServerMessage.getArgs(), contains("3v3 sand box.v0001"));
+    gpgpServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgpServerMessage.getCommand(), is(GpgServerCommandServerCommand.HOST_GAME));
+    assertThat(gpgpServerMessage.getArgs(), contains("3v3 sand box.v0001"));
   }
 
   @Test
   public void testJoinGame() throws Exception {
     verifyAuthenticateMessage();
 
-    RelayServerMessage relayServerMessage = new RelayServerMessage(RelayServerCommand.JOIN_GAME);
-    relayServerMessage.setArgs(Arrays.asList("86.128.102.173:6112", "TechMonkey", 81655));
-    sendFromServer(relayServerMessage);
+    GpgpServerMessage gpgpServerMessage = new GpgpServerMessage(GpgServerCommandServerCommand.JOIN_GAME);
+    gpgpServerMessage.setArgs(Arrays.asList("86.128.102.173:6112", "TechMonkey", 81655));
+    sendFromServer(gpgpServerMessage);
 
-    relayServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(relayServerMessage.getCommand(), is(RelayServerCommand.JOIN_GAME));
-    assertThat(relayServerMessage.getArgs(), contains("86.128.102.173:6112", "TechMonkey", 81655));
+    gpgpServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgpServerMessage.getCommand(), is(GpgServerCommandServerCommand.JOIN_GAME));
+    assertThat(gpgpServerMessage.getArgs(), contains("86.128.102.173:6112", "TechMonkey", 81655));
   }
 
   @Test
@@ -373,11 +374,11 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     joinGameMessage.setPeerUid(4);
     sendFromServer(joinGameMessage);
 
-    RelayServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
+    GpgpServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
 
     verify(proxy).registerP2pPeerIfNecessary("37.58.123.2:6112");
     verify(proxy).setUidForPeer("37.58.123.2:6112", 4);
-    assertThat(relayMessage.getCommand(), is(RelayServerCommand.JOIN_GAME));
+    assertThat(relayMessage.getCommand(), is(GpgServerCommandServerCommand.JOIN_GAME));
     assertThat(relayMessage.getArgs(), contains("127.0.0.1:53214", "junit", 4));
   }
 
@@ -385,27 +386,27 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   public void testConnectToPeer() throws Exception {
     verifyAuthenticateMessage();
 
-    RelayServerMessage relayServerMessage = new RelayServerMessage(RelayServerCommand.CONNECT_TO_PEER);
-    relayServerMessage.setArgs(Arrays.asList("80.2.69.214:6112", "Cadet", 79359));
-    sendFromServer(relayServerMessage);
+    GpgpServerMessage gpgpServerMessage = new GpgpServerMessage(GpgServerCommandServerCommand.CONNECT_TO_PEER);
+    gpgpServerMessage.setArgs(Arrays.asList("80.2.69.214:6112", "Cadet", 79359));
+    sendFromServer(gpgpServerMessage);
 
-    relayServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(relayServerMessage.getCommand(), is(RelayServerCommand.CONNECT_TO_PEER));
-    assertThat(relayServerMessage.getArgs(), contains("80.2.69.214:6112", "Cadet", 79359));
+    gpgpServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgpServerMessage.getCommand(), is(GpgServerCommandServerCommand.CONNECT_TO_PEER));
+    assertThat(gpgpServerMessage.getArgs(), contains("80.2.69.214:6112", "Cadet", 79359));
   }
 
   @Test
   public void testDisconnectFromPeer() throws Exception {
     verifyAuthenticateMessage();
 
-    RelayServerMessage relayServerMessage = new RelayServerMessage(RelayServerCommand.DISCONNECT_FROM_PEER);
+    GpgpServerMessage gpgpServerMessage = new GpgpServerMessage(GpgServerCommandServerCommand.DISCONNECT_FROM_PEER);
     // TODO fill with actual arguments
-    relayServerMessage.setArgs(singletonList(79359));
-    sendFromServer(relayServerMessage);
+    gpgpServerMessage.setArgs(singletonList(79359));
+    sendFromServer(gpgpServerMessage);
 
-    relayServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(relayServerMessage.getCommand(), is(RelayServerCommand.DISCONNECT_FROM_PEER));
-    assertThat(relayServerMessage.getArgs(), contains(79359));
+    gpgpServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgpServerMessage.getCommand(), is(GpgServerCommandServerCommand.DISCONNECT_FROM_PEER));
+    assertThat(gpgpServerMessage.getArgs(), contains(79359));
   }
 
   @Test
@@ -420,13 +421,13 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
         inetSocketAddress
     );
 
-    RelayServerMessage relayServerMessage = new RelayServerMessage(RelayServerCommand.CONNECT_TO_PROXY);
-    relayServerMessage.setArgs(Arrays.asList(playerNumber, 0, "junit", peerUid));
-    sendFromServer(relayServerMessage);
+    GpgpServerMessage gpgpServerMessage = new GpgpServerMessage(GpgServerCommandServerCommand.CONNECT_TO_PROXY);
+    gpgpServerMessage.setArgs(Arrays.asList(playerNumber, 0, "junit", peerUid));
+    sendFromServer(gpgpServerMessage);
 
-    relayServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(relayServerMessage.getCommand(), is(RelayServerCommand.CONNECT_TO_PEER));
-    assertThat(relayServerMessage.getArgs(),
+    gpgpServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgpServerMessage.getCommand(), is(GpgServerCommandServerCommand.CONNECT_TO_PEER));
+    assertThat(gpgpServerMessage.getArgs(),
         contains(SocketAddressUtil.toString(inetSocketAddress), "junit", peerUid));
   }
 
@@ -442,13 +443,13 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
         inetSocketAddress
     );
 
-    RelayServerMessage relayServerMessage = new RelayServerMessage(RelayServerCommand.JOIN_PROXY);
-    relayServerMessage.setArgs(Arrays.asList(playerNumber, 0, "junit", peerUid));
-    sendFromServer(relayServerMessage);
+    GpgpServerMessage gpgpServerMessage = new GpgpServerMessage(GpgServerCommandServerCommand.JOIN_PROXY);
+    gpgpServerMessage.setArgs(Arrays.asList(playerNumber, 0, "junit", peerUid));
+    sendFromServer(gpgpServerMessage);
 
-    relayServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(relayServerMessage.getCommand(), is(RelayServerCommand.JOIN_GAME));
-    assertThat(relayServerMessage.getArgs(),
+    gpgpServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgpServerMessage.getCommand(), is(GpgServerCommandServerCommand.JOIN_GAME));
+    assertThat(gpgpServerMessage.getArgs(),
         contains(SocketAddressUtil.toString(inetSocketAddress), "junit", peerUid));
   }
 
@@ -486,8 +487,8 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     CountDownLatch latch = new CountDownLatch(1);
     instance.addOnP2pProxyEnabledChangeListener((observable, oldValue, newValue) -> latch.countDown());
 
-    RelayServerMessage relayServerMessage = new RelayServerMessage(RelayServerCommand.P2P_RECONNECT);
-    sendFromServer(relayServerMessage);
+    GpgpServerMessage gpgpServerMessage = new GpgpServerMessage(GpgServerCommandServerCommand.P2P_RECONNECT);
+    sendFromServer(gpgpServerMessage);
 
     latch.await();
 
@@ -508,11 +509,11 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     verifyAuthenticateMessage();
     enableP2pProxy();
 
-    sendFromGame(new LobbyMessage(LobbyAction.PROCESS_NAT_PACKET, singletonList("127.0.0.1:53214")));
+    sendFromGame(new GpgClientMessage(GpgClientCommand.PROCESS_NAT_PACKET, singletonList("127.0.0.1:53214")));
 
-    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(lobbyMessage.getAction(), is(LobbyAction.PROCESS_NAT_PACKET));
-    assertThat(lobbyMessage.getChunks(), contains("37.58.123.2:6112"));
+    GpgClientMessage gpgClientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgClientMessage.getAction(), is(GpgClientCommand.PROCESS_NAT_PACKET));
+    assertThat(gpgClientMessage.getChunks(), contains("37.58.123.2:6112"));
   }
 
   @Test
@@ -520,11 +521,11 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     verifyAuthenticateMessage();
     enableP2pProxy();
 
-    sendFromGame(new LobbyMessage(LobbyAction.DISCONNECTED, singletonList(4)));
+    sendFromGame(new GpgClientMessage(GpgClientCommand.DISCONNECTED, singletonList(4)));
 
-    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(lobbyMessage.getAction(), is(LobbyAction.DISCONNECTED));
-    assertThat(lobbyMessage.getChunks(), contains(4.0));
+    GpgClientMessage gpgClientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgClientMessage.getAction(), is(GpgClientCommand.DISCONNECTED));
+    assertThat(gpgClientMessage.getChunks(), contains(4.0));
     verify(proxy).updateConnectedState(4, false);
   }
 
@@ -533,11 +534,11 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     verifyAuthenticateMessage();
     enableP2pProxy();
 
-    sendFromGame(new LobbyMessage(LobbyAction.CONNECTED, singletonList(4)));
+    sendFromGame(new GpgClientMessage(GpgClientCommand.CONNECTED, singletonList(4)));
 
-    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(lobbyMessage.getAction(), is(LobbyAction.CONNECTED));
-    assertThat(lobbyMessage.getChunks(), contains(4.0));
+    GpgClientMessage gpgClientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgClientMessage.getAction(), is(GpgClientCommand.CONNECTED));
+    assertThat(gpgClientMessage.getChunks(), contains(4.0));
     verify(proxy).updateConnectedState(4, true);
   }
 
@@ -546,11 +547,11 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     verifyAuthenticateMessage();
     enableP2pProxy();
 
-    sendFromGame(new LobbyMessage(LobbyAction.GAME_STATE, singletonList(LocalRelayServerImpl.GAME_STATE_LAUNCHING)));
+    sendFromGame(new GpgClientMessage(GpgClientCommand.GAME_STATE, singletonList(LocalRelayServerImpl.GAME_STATE_LAUNCHING)));
 
-    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(lobbyMessage.getAction(), is(LobbyAction.GAME_STATE));
-    assertThat(lobbyMessage.getChunks(), contains(LocalRelayServerImpl.GAME_STATE_LAUNCHING));
+    GpgClientMessage gpgClientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgClientMessage.getAction(), is(GpgClientCommand.GAME_STATE));
+    assertThat(gpgClientMessage.getChunks(), contains(LocalRelayServerImpl.GAME_STATE_LAUNCHING));
     verify(proxy).setGameLaunched(true);
   }
 
@@ -559,11 +560,11 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     verifyAuthenticateMessage();
     enableP2pProxy();
 
-    sendFromGame(new LobbyMessage(LobbyAction.GAME_STATE, singletonList(LocalRelayServerImpl.GAME_STATE_LOBBY)));
+    sendFromGame(new GpgClientMessage(GpgClientCommand.GAME_STATE, singletonList(LocalRelayServerImpl.GAME_STATE_LOBBY)));
 
-    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(lobbyMessage.getAction(), is(LobbyAction.GAME_STATE));
-    assertThat(lobbyMessage.getChunks(), contains(LocalRelayServerImpl.GAME_STATE_LOBBY));
+    GpgClientMessage gpgClientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgClientMessage.getAction(), is(GpgClientCommand.GAME_STATE));
+    assertThat(gpgClientMessage.getChunks(), contains(LocalRelayServerImpl.GAME_STATE_LOBBY));
     verify(proxy).setGameLaunched(false);
   }
 
@@ -572,10 +573,10 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     verifyAuthenticateMessage();
     enableP2pProxy();
 
-    sendFromGame(new LobbyMessage(LobbyAction.BOTTLENECK, emptyList()));
+    sendFromGame(new GpgClientMessage(GpgClientCommand.BOTTLENECK, emptyList()));
 
-    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(lobbyMessage.getAction(), is(LobbyAction.BOTTLENECK));
+    GpgClientMessage gpgClientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgClientMessage.getAction(), is(GpgClientCommand.BOTTLENECK));
     verify(proxy).setBottleneck(true);
   }
 
@@ -584,10 +585,10 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     verifyAuthenticateMessage();
     enableP2pProxy();
 
-    sendFromGame(new LobbyMessage(LobbyAction.BOTTLENECK_CLEARED, emptyList()));
+    sendFromGame(new GpgClientMessage(GpgClientCommand.BOTTLENECK_CLEARED, emptyList()));
 
-    LobbyMessage lobbyMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(lobbyMessage.getAction(), is(LobbyAction.BOTTLENECK_CLEARED));
+    GpgClientMessage gpgClientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgClientMessage.getAction(), is(GpgClientCommand.BOTTLENECK_CLEARED));
     verify(proxy).setBottleneck(false);
   }
 }

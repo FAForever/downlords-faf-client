@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.gson;
 
-import com.faforever.client.legacy.relay.LobbyAction;
+import com.faforever.client.legacy.relay.GpgClientCommand;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.junit.Before;
@@ -11,21 +11,21 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class LobbyActionTypeAdapterTest {
+public class GpgClientCommandTypeAdapterTest {
 
-  private RelayServerActionTypeAdapter instance;
+  private GpgClientCommandTypeAdapter instance;
 
   @Before
   public void setUp() throws Exception {
-    instance = RelayServerActionTypeAdapter.INSTANCE;
+    instance = GpgClientCommandTypeAdapter.INSTANCE;
   }
 
   @Test
   public void testWrite() throws Exception {
     JsonWriter out = mock(JsonWriter.class);
-    instance.write(out, LobbyAction.CONNECTED);
+    instance.write(out, GpgClientCommand.CONNECTED);
 
-    verify(out).value(LobbyAction.CONNECTED.getString());
+    verify(out).value(GpgClientCommand.CONNECTED.getString());
   }
 
   @Test
@@ -39,11 +39,11 @@ public class LobbyActionTypeAdapterTest {
   @Test
   public void testRead() throws Exception {
     JsonReader in = mock(JsonReader.class);
-    when(in.nextString()).thenReturn(LobbyAction.CHAT.getString());
+    when(in.nextString()).thenReturn(GpgClientCommand.CHAT.getString());
 
-    LobbyAction lobbyAction = instance.read(in);
+    GpgClientCommand gpgClientCommand = instance.read(in);
 
-    assertEquals(LobbyAction.CHAT, lobbyAction);
+    assertEquals(GpgClientCommand.CHAT, gpgClientCommand);
   }
 
   public void testReadNullReturnsNull() throws Exception {

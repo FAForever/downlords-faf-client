@@ -11,22 +11,22 @@ import java.util.List;
 /**
  * Represents a message received from the relay server (deserialized from JSON).
  */
-class RelayServerMessage implements SerializableMessage {
+class GpgpServerMessage implements SerializableMessage {
 
   /**
    * Contains the command to execute, but the server sends it as "key".
    */
-  private RelayServerCommand key;
+  private GpgServerCommandServerCommand key;
 
   /**
    * Contains the arguments, but the server thinks it's cool to confuse us by calling it "commands".
    */
   private List<Object> commands;
 
-  public RelayServerMessage() {
+  public GpgpServerMessage() {
   }
 
-  public RelayServerMessage(RelayServerCommand command) {
+  public GpgpServerMessage(GpgServerCommandServerCommand command) {
     this.key = command;
     this.commands = new ArrayList<>(Collections.nCopies(command.getNumberOfArgs(), null));
   }
@@ -34,7 +34,7 @@ class RelayServerMessage implements SerializableMessage {
   /**
    * Returns what the server sends as "key" but with a sane naming (command).
    */
-  public RelayServerCommand getCommand() {
+  public GpgServerCommandServerCommand getCommand() {
     return key;
   }
 

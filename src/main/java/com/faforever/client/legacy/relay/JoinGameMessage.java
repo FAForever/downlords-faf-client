@@ -1,13 +1,13 @@
 package com.faforever.client.legacy.relay;
 
-public class JoinGameMessage extends RelayServerMessage {
+public class JoinGameMessage extends GpgpServerMessage {
 
   private static final int PEER_ADDRESS_INDEX = 0;
   private static final int USERNAME_INDEX = 1;
   private static final int PEER_UID_INDEX = 2;
 
   public JoinGameMessage() {
-    super(RelayServerCommand.JOIN_GAME);
+    super(GpgServerCommandServerCommand.JOIN_GAME);
   }
 
   public String getPeerAddress() {

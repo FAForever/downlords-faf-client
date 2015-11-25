@@ -7,19 +7,18 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.faforever.client.legacy.relay.LobbyAction.PONG;
+import static com.faforever.client.legacy.relay.GpgClientCommand.PONG;
 
-public class LobbyMessage implements SerializableMessage {
+public class GpgClientMessage implements SerializableMessage {
 
   private String action;
-  // Because typos in protocols are cool (this class is JSON serialized).
   private List<Object> chunks;
 
-  public LobbyMessage(LobbyAction action, List<Object> chunks) {
+  public GpgClientMessage(GpgClientCommand action, List<Object> chunks) {
     this(action.getString(), chunks);
   }
 
-  public LobbyMessage(String action, List<Object> chunks) {
+  public GpgClientMessage(String action, List<Object> chunks) {
     this.action = action;
     this.chunks = chunks;
   }
@@ -28,16 +27,16 @@ public class LobbyMessage implements SerializableMessage {
     return chunks;
   }
 
-  public LobbyAction getAction() {
-    return LobbyAction.fromString(action);
+  public GpgClientCommand getAction() {
+    return GpgClientCommand.fromString(action);
   }
 
   public Collection<String> getStringsToMask() {
     return Collections.emptyList();
   }
 
-  public static LobbyMessage pong() {
-    return new LobbyMessage(PONG, Collections.emptyList());
+  public static GpgClientMessage pong() {
+    return new GpgClientMessage(PONG, Collections.emptyList());
   }
 
 }

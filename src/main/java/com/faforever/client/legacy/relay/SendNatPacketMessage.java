@@ -1,11 +1,11 @@
 package com.faforever.client.legacy.relay;
 
-public class SendNatPacketMessage extends RelayServerMessage {
+public class SendNatPacketMessage extends GpgpServerMessage {
 
   public static final int PUBLIC_ADDRESS_INDEX = 0;
 
   public SendNatPacketMessage() {
-    super(RelayServerCommand.SEND_NAT_PACKET);
+    super(GpgServerCommandServerCommand.SEND_NAT_PACKET);
   }
 
   public String getPublicAddress() {

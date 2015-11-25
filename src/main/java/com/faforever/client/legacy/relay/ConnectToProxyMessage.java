@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.relay;
 
-public class ConnectToProxyMessage extends RelayServerMessage {
+public class ConnectToProxyMessage extends GpgpServerMessage {
 
   private static final int PLAYER_NUMBER_INDEX = 0;
   private static final int USERNAME_INDEX = 2;

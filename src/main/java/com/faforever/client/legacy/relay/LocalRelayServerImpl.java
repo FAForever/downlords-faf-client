@@ -48,7 +48,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.faforever.client.legacy.relay.LobbyAction.AUTHENTICATE;
+import static com.faforever.client.legacy.relay.GpgClientCommand.AUTHENTICATE;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 import static java.util.Arrays.asList;
 
@@ -91,7 +91,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   public LocalRelayServerImpl() {
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-        .registerTypeAdapter(RelayServerCommand.class, RelayServerCommandTypeAdapter.INSTANCE)
+        .registerTypeAdapter(GpgServerCommandServerCommand.class, GpgServerCommandTypeAdapter.INSTANCE)
         .create();
     onReadyListeners = new ArrayList<>();
     onConnectionAcceptedListeners = new ArrayList<>();
@@ -189,7 +189,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
             this.fafInputStream = fafSocket.getInputStream();
             this.serverWriter = createServerWriter(fafSocket.getOutputStream());
 
-            serverWriter.write(new LobbyMessage(AUTHENTICATE, asList(lobbyServerAccessor.getSessionId(), userService.getUid())));
+            serverWriter.write(new GpgClientMessage(AUTHENTICATE, asList(lobbyServerAccessor.getSessionId(), userService.getUid())));
 
             redirectGameToServer();
             redirectServerToGame();
@@ -207,7 +207,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
 
   private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
     ServerWriter serverWriter = new ServerWriter(outputStream);
-    serverWriter.registerMessageSerializer(new RelayClientMessageSerializer(), LobbyMessage.class);
+    serverWriter.registerMessageSerializer(new GpgClientMessageSerializer(), GpgClientMessage.class);
     return serverWriter;
   }
 
@@ -250,8 +250,8 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
 
         logger.debug("Message from FAF relay server: {}", message);
 
-        RelayServerMessage relayServerMessage = gson.fromJson(message, RelayServerMessage.class);
-        dispatchServerCommand(relayServerMessage.getCommand(), message);
+        GpgpServerMessage gpgpServerMessage = gson.fromJson(message, GpgpServerMessage.class);
+        dispatchServerCommand(gpgpServerMessage.getCommand(), message);
       }
     } catch (EOFException | SocketException e) {
       logger.info("Disconnected from FAF relay server (" + e.getMessage() + ")");
@@ -276,18 +276,18 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
       logger.debug("Received message from FA: {}", message);
 
       List<Object> chunks = faInputStream.readChunks();
-      LobbyMessage lobbyMessage = new LobbyMessage(message, chunks);
+      GpgClientMessage gpgClientMessage = new GpgClientMessage(message, chunks);
 
       if (p2pProxyEnabled.get()) {
-        updateProxyState(lobbyMessage);
+        updateProxyState(gpgClientMessage);
       }
 
-      handleDataFromFa(lobbyMessage);
+      handleDataFromFa(gpgClientMessage);
     }
   }
 
-  private void handleDataFromFa(LobbyMessage lobbyMessage) throws IOException {
-    if (isHostGameMessage(lobbyMessage)) {
+  private void handleDataFromFa(GpgClientMessage gpgClientMessage) throws IOException {
+    if (isHostGameMessage(gpgClientMessage)) {
       int gamePort = preferencesService.getPreferences().getForgedAlliance().getPort();
       String username = userService.getUsername();
       if (lobbyMode == null) {
@@ -296,22 +296,22 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
 
       handleCreateLobby(new CreateLobbyServerMessage(lobbyMode, gamePort, username, userService.getUid(), 1));
     } else if (gameLaunchedListener != null
-        && lobbyMessage.getAction() == LobbyAction.GAME_STATE
-        && GAME_STATE_LAUNCHING.equals(lobbyMessage.getChunks().get(0))) {
+        && gpgClientMessage.getAction() == GpgClientCommand.GAME_STATE
+        && GAME_STATE_LAUNCHING.equals(gpgClientMessage.getChunks().get(0))) {
       gameLaunchedListener.accept(null);
     }
 
-    serverWriter.write(lobbyMessage);
+    serverWriter.write(gpgClientMessage);
   }
 
-  private boolean isHostGameMessage(LobbyMessage lobbyMessage) {
-    return lobbyMessage.getAction() == LobbyAction.GAME_STATE
-        && lobbyMessage.getChunks().get(0).equals("Idle");
+  private boolean isHostGameMessage(GpgClientMessage gpgClientMessage) {
+    return gpgClientMessage.getAction() == GpgClientCommand.GAME_STATE
+        && gpgClientMessage.getChunks().get(0).equals("Idle");
   }
 
-  private void updateProxyState(LobbyMessage lobbyMessage) {
-    LobbyAction action = lobbyMessage.getAction();
-    List<Object> chunks = lobbyMessage.getChunks();
+  private void updateProxyState(GpgClientMessage gpgClientMessage) {
+    GpgClientCommand action = gpgClientMessage.getAction();
+    List<Object> chunks = gpgClientMessage.getChunks();
 
     logger.debug("Received '{}' with chunks: {}", action.getString(), chunks);
 
@@ -347,7 +347,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
     }
   }
 
-  private void dispatchServerCommand(RelayServerCommand command, String jsonString) throws IOException {
+  private void dispatchServerCommand(GpgServerCommandServerCommand command, String jsonString) throws IOException {
     switch (command) {
       case PING:
         handlePing();
@@ -405,7 +405,7 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
   }
 
   private void handlePing() {
-    serverWriter.write(LobbyMessage.pong());
+    serverWriter.write(GpgClientMessage.pong());
   }
 
   private void handleSendNatPacket(SendNatPacketMessage sendNatPacketMessage) throws IOException {
@@ -494,25 +494,25 @@ public class LocalRelayServerImpl implements LocalRelayServer, Proxy.OnP2pProxyI
     writeToFa(joinGameMessage);
   }
 
-  private void writeToFaUdp(RelayServerMessage relayServerMessage) throws IOException {
-    writeHeader(relayServerMessage);
-    faOutputStream.writeUdpArgs(relayServerMessage.getArgs());
+  private void writeToFaUdp(GpgpServerMessage gpgpServerMessage) throws IOException {
+    writeHeader(gpgpServerMessage);
+    faOutputStream.writeUdpArgs(gpgpServerMessage.getArgs());
     faOutputStream.flush();
   }
 
-  private void writeToFa(RelayServerMessage relayServerMessage) throws IOException {
-    writeHeader(relayServerMessage);
-    faOutputStream.writeArgs(relayServerMessage.getArgs());
+  private void writeToFa(GpgpServerMessage gpgpServerMessage) throws IOException {
+    writeHeader(gpgpServerMessage);
+    faOutputStream.writeArgs(gpgpServerMessage.getArgs());
     faOutputStream.flush();
   }
 
-  private void writeHeader(RelayServerMessage relayServerMessage) throws IOException {
-    String commandString = relayServerMessage.getCommand().getString();
+  private void writeHeader(GpgpServerMessage gpgpServerMessage) throws IOException {
+    String commandString = gpgpServerMessage.getCommand().getString();
 
     int headerSize = commandString.length();
     String headerField = commandString.replace("\t", "/t").replace("\n", "/n");
 
-    logger.debug("Writing data to FA, command: {}, args: {}", commandString, relayServerMessage.getArgs());
+    logger.debug("Writing data to FA, command: {}, args: {}", commandString, gpgpServerMessage.getArgs());
 
     faOutputStream.writeInt(headerSize);
     faOutputStream.writeString(headerField);
