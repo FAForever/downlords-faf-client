@@ -16,13 +16,11 @@ public class PlayerCardTooltipController {
 
   @FXML
   Label playerInfo;
-
   @FXML
   ImageView playerFlag;
 
   @Resource
   CountryFlagService countryFlagService;
-
   @Resource
   I18n i18n;
 

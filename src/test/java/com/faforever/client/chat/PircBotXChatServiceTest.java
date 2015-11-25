@@ -182,6 +182,15 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(pircBotX.sendIRC()).thenReturn(outputIrc);
     when(pircBotX.getUserChannelDao()).thenReturn(userChannelDao);
 
+    doAnswer(invocation -> {
+      CompletableFuture<Object> future = new CompletableFuture<>();
+      WaitForAsyncUtils.async(() -> {
+        invocation.getArgumentAt(0, Task.class).run();
+        future.complete(null);
+      });
+      return future;
+    }).when(executorService).submit(any(Task.class));
+
     botStartedFuture = new CompletableFuture<>();
     doAnswer(invocation -> {
       botStartedFuture.complete(true);
@@ -635,15 +644,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     String password = "123";
 
     when(userService.getPassword()).thenReturn(password);
-
-    doAnswer(invocation -> {
-      CompletableFuture<Object> future = new CompletableFuture<>();
-      WaitForAsyncUtils.async(() -> {
-        invocation.getArgumentAt(0, Task.class).run();
-        future.complete(null);
-      });
-      return future;
-    }).when(executorService).submit(any(Task.class));
     instance.connect();
 
     botStartedFuture.get(TIMEOUT, TIMEOUT_UNIT);

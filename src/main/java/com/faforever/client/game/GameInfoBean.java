@@ -86,7 +86,7 @@ public class GameInfoBean {
     uid.set(gameInfo.getUid());
     host.set(gameInfo.getHost());
     title.set(StringEscapeUtils.unescapeHtml4(gameInfo.getTitle()));
-    mapTechnicalName.set(gameInfo.getMapFilePath());
+    mapTechnicalName.set(gameInfo.getMapname());
     featuredMod.set(gameInfo.getFeaturedMod());
     numPlayers.setValue(gameInfo.getNumPlayers());
     maxPlayers.setValue(gameInfo.getMaxPlayers());
