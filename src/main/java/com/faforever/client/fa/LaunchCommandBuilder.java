@@ -118,11 +118,15 @@ public class LaunchCommandBuilder {
     if (gameType == null) {
       throw new IllegalStateException("gameType has not been set");
     }
+    if (username == null) {
+      throw new IllegalStateException("username has not been set");
+    }
 
     List<String> command = new ArrayList<>(Arrays.asList(
         executable.toAbsolutePath().toString(),
         "/init", String.format("init_%s.lua", gameType),
-        "/nobugreport"
+        "/nobugreport",
+        "/profile", username
     ));
 
     if (faction != null) {
@@ -157,7 +161,7 @@ public class LaunchCommandBuilder {
       command.add(replayUri.toASCIIString());
     }
 
-    if (uid != null && username != null) {
+    if (uid != null) {
       command.add("/savereplay");
       command.add("gpgnet://localhost/" + uid + "/" + username + ".SCFAreplay");
     }
