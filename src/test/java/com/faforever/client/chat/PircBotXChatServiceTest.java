@@ -19,6 +19,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
+import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.After;
@@ -59,6 +60,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -96,70 +98,53 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Mock
   private User user1;
-
   @Mock
   private User user2;
-
   @Mock
   private Channel defaultChannel;
-
   @Mock
   private ShutdownablePircBotX pircBotX;
-
   @Mock
   private Configuration<PircBotX> configuration;
-
   @Mock
   private Environment environment;
-
   @Mock
   private ListenerManager<PircBotX> listenerManager;
-
   @Mock
   private UserChannelDaoSnapshot daoSnapshot;
-
   @Mock
   private UserSnapshot userSnapshot;
-
   @Mock
   private ChannelSnapshot channelSnapshot;
-
   @Mock
   private OutputIRC outputIrc;
-
   @Mock
   private UserService userService;
-
   @Mock
   private TaskService taskService;
-
   @Mock
   private PreferencesService preferencesService;
-
   @Mock
   private Preferences preferences;
-
   @Mock
   private ChatPrefs chatPrefs;
-
   @Mock
   private I18n i18n;
-
   @Mock
   private PircBotXFactory pircBotXFactory;
-
   @Mock
   private UserChannelDao<User, Channel> userChannelDao;
-
   @Mock
   private MapProperty<String, Color> userToColorProperty;
-
   @Mock
   private ObjectProperty<ChatColorMode> chatColorMode;
-
   @Mock
   private LobbyServerAccessor lobbyServerAccessor;
+  @Mock
+  private ExecutorService executorService;
+
   private CountDownLatch botShutdownLatch;
+  private CompletableFuture<Object> botStartedFuture;
 
   @Before
   public void setUp() throws Exception {
@@ -171,6 +156,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.i18n = i18n;
     instance.pircBotXFactory = pircBotXFactory;
     instance.preferencesService = preferencesService;
+    instance.executorService = executorService;
 
     chatUser1 = new ChatUser("chatUser1", null);
     chatUser2 = new ChatUser("chatUser2", null);
@@ -195,7 +181,10 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(pircBotX.getConfiguration()).thenReturn(configuration);
     when(pircBotX.sendIRC()).thenReturn(outputIrc);
     when(pircBotX.getUserChannelDao()).thenReturn(userChannelDao);
+
+    botStartedFuture = new CompletableFuture<>();
     doAnswer(invocation -> {
+      botStartedFuture.complete(true);
       botShutdownLatch.await();
       return null;
     }).when(pircBotX).startBot();
@@ -479,13 +468,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   public void testConnect() throws Exception {
     ArgumentCaptor<Configuration> captor = ArgumentCaptor.forClass(Configuration.class);
 
-    CompletableFuture<Boolean> botStartedFuture = new CompletableFuture<>();
-    doAnswer(invocation -> {
-      botStartedFuture.complete(true);
-      botShutdownLatch.await();
-      return null;
-    }).when(pircBotX).startBot();
-
     instance.connect();
     botStartedFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
@@ -653,11 +635,18 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     String password = "123";
 
     when(userService.getPassword()).thenReturn(password);
-    when(taskService.submitTask(any())).thenReturn(CompletableFuture.completedFuture(null));
 
+    doAnswer(invocation -> {
+      CompletableFuture<Object> future = new CompletableFuture<>();
+      WaitForAsyncUtils.async(() -> {
+        invocation.getArgumentAt(0, Task.class).run();
+        future.complete(null);
+      });
+      return future;
+    }).when(executorService).submit(any(Task.class));
     instance.connect();
 
-    mockTaskService();
+    botStartedFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
     CountDownLatch latch = new CountDownLatch(1);
     doAnswer(invocation -> {
@@ -665,6 +654,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(outputIrc).joinChannel(DEFAULT_CHANNEL_NAME);
 
+    mockTaskService();
     instance.onConnected();
 
     String md5Password = DigestUtils.md5Hex(password);
