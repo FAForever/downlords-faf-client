@@ -12,7 +12,6 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
@@ -40,6 +39,7 @@ import java.nio.file.Paths;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -73,7 +73,7 @@ public class JavaFxUtil {
 
   public static void makeSuggestionField(TextField textField,
                                          Function<String, CompletableFuture<Set<Label>>> itemsFactory,
-                                         Function<CustomMenuItem, String> itemToString) {
+                                         Consumer<Void> onAction) {
     ListView<Label> listView = new ListView<>();
     listView.prefWidthProperty().bind(textField.widthProperty());
     listView.setFixedCellSize(24);
@@ -99,6 +99,12 @@ public class JavaFxUtil {
       }
     });
     listView.setOnMouseClicked(event -> popupControl.hide());
+    listView.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+      if (event.getCode() == KeyCode.ENTER) {
+        onAction.accept(null);
+        popupControl.hide();
+      }
+    });
     textField.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
       if (event.getCode() == KeyCode.DOWN) {
         listView.requestFocus();
@@ -261,6 +267,7 @@ public class JavaFxUtil {
       dependency.addListener(observable -> updateFunction.run());
     }
   }
+
   public static String toRgbCode(Color color) {
     return String.format("#%02X%02X%02X",
         (int) (color.getRed() * 255),

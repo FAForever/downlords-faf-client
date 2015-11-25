@@ -89,7 +89,7 @@ public class ModVaultController {
 
     displayShowroomMods();
 
-    JavaFxUtil.makeSuggestionField(searchTextField, this::createModSuggestions, item -> (String) item.getUserData());
+    JavaFxUtil.makeSuggestionField(searchTextField, this::createModSuggestions, aVoid -> onSearchModButtonClicked());
   }
 
   private void displayShowroomMods() {
@@ -103,6 +103,18 @@ public class ModVaultController {
           logger.warn("Could not populate mods", throwable);
           return null;
         });
+  }
+
+  @FXML
+  void onSearchModButtonClicked() {
+    if (searchTextField.getText().isEmpty()) {
+      onResetButtonClicked();
+      return;
+    }
+    enterSearchResultState();
+
+    modService.lookupMod(searchTextField.getText(), 100)
+        .thenAccept(this::displaySearchResult);
   }
 
   private void enterLoadingState() {
@@ -122,6 +134,19 @@ public class ModVaultController {
         children.add(controller.getRoot());
       }
     });
+  }
+
+  @FXML
+  void onResetButtonClicked() {
+    searchTextField.clear();
+    showroomGroup.setVisible(true);
+    searchResultGroup.setVisible(false);
+  }
+
+  private void enterSearchResultState() {
+    showroomGroup.setVisible(false);
+    searchResultGroup.setVisible(true);
+    loadingPane.setVisible(false);
   }
 
   private CompletableFuture<Set<Label>> createModSuggestions(String string) {
@@ -163,31 +188,6 @@ public class ModVaultController {
     modDetailController.setMod(mod);
     modDetailController.getRoot().setVisible(true);
     modDetailController.getRoot().requestFocus();
-  }
-
-  @FXML
-  void onSearchModButtonClicked() {
-    if (searchTextField.getText().isEmpty()) {
-      onResetButtonClicked();
-      return;
-    }
-    enterSearchResultState();
-
-    modService.lookupMod(searchTextField.getText(), 100)
-        .thenAccept(this::displaySearchResult);
-  }
-
-  @FXML
-  void onResetButtonClicked() {
-    searchTextField.clear();
-    showroomGroup.setVisible(true);
-    searchResultGroup.setVisible(false);
-  }
-
-  private void enterSearchResultState() {
-    showroomGroup.setVisible(false);
-    searchResultGroup.setVisible(true);
-    loadingPane.setVisible(false);
   }
 
   private void displaySearchResult(List<ModInfoBean> modInfoBeans) {
