@@ -85,5 +85,13 @@ function updateUserMessageDisplay(user, display) {
   for (var i = 0; i < userMessages.length; i++) {
     userMessages[i].style.display = display;
   }
+}
 
+
+function highlightText(text) {
+  $('#chat-container').removeHighlight().highlight(text);
+}
+
+function removeHighlight() {
+  $('#chat-container').removeHighlight();
 }

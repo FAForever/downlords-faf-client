@@ -75,15 +75,14 @@ import static com.google.common.html.HtmlEscapers.htmlEscaper;
  */
 public abstract class AbstractChatTabController {
 
-  protected static final String CSS_CLASS_SELF = SocialStatus.SELF.getCssClass();
-  protected static final String CSS_CLASS_FRIEND = SocialStatus.FRIEND.getCssClass();
-  protected static final String CSS_CLASS_FOE = SocialStatus.FOE.getCssClass();
   protected static final String CSS_CLASS_CHAT_ONLY = "chat_only";
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final org.springframework.core.io.Resource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
   private static final org.springframework.core.io.Resource CHAT_JS_RESOURCE = new ClassPathResource("/js/chat_container.js");
   private static final org.springframework.core.io.Resource AUTOLINKER_JS_RESOURCE = new ClassPathResource("/js/Autolinker.min.js");
+  private static final org.springframework.core.io.Resource JQUERY_JS_RESOURCE = new ClassPathResource("js/jquery-2.1.4.min.js");
+  private static final org.springframework.core.io.Resource JQUERY_HIGHLIGHT_JS_RESOURCE = new ClassPathResource("js/jquery.highlight-5.closure.js");
   private static final org.springframework.core.io.Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
@@ -278,7 +277,10 @@ public abstract class AbstractChatTabController {
 
       String chatContainerHtml = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8)
           .replace("{chat-container-js}", CHAT_JS_RESOURCE.getURL().toExternalForm())
-          .replace("{auto-linker-js}", AUTOLINKER_JS_RESOURCE.getURL().toExternalForm());
+          .replace("{auto-linker-js}", AUTOLINKER_JS_RESOURCE.getURL().toExternalForm())
+          .replace("{jquery-js}", JQUERY_JS_RESOURCE.getURL().toExternalForm())
+          .replace("{jquery-highlight-js}", JQUERY_HIGHLIGHT_JS_RESOURCE.getURL().toExternalForm());
+
 
       engine.loadContent(chatContainerHtml);
     } catch (IOException e) {
@@ -637,7 +639,7 @@ public abstract class AbstractChatTabController {
       color = createInlineStyleFromHexColor(chatUser.getColor());
     }
 
-    if (chatPrefs.getHideFoeMessages() && messageColorClass != null && messageColorClass.equals(CSS_CLASS_FOE)) {
+    if (chatPrefs.getHideFoeMessages() && messageColorClass != null && messageColorClass.equals(SocialStatus.FOE.getCssClass())) {
       display = "display: none;";
     }
     return String.format(inlineStyle, color, display);
