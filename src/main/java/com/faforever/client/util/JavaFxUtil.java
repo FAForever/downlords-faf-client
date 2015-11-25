@@ -19,6 +19,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
@@ -259,5 +260,11 @@ public class JavaFxUtil {
     for (ObservableValue<?> dependency : dependencies) {
       dependency.addListener(observable -> updateFunction.run());
     }
+  }
+  public static String toRgbCode(Color color) {
+    return String.format("#%02X%02X%02X",
+        (int) (color.getRed() * 255),
+        (int) (color.getGreen() * 255),
+        (int) (color.getBlue() * 255));
   }
 }

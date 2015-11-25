@@ -18,6 +18,7 @@ import static org.mockito.Mockito.when;
 
 public class DialogFactoryImplTest extends AbstractPlainJavaFxTest {
 
+  private static final long TIMEOUT = 5000;
   private DialogFactoryImpl instance;
 
   @Before
@@ -35,12 +36,12 @@ public class DialogFactoryImplTest extends AbstractPlainJavaFxTest {
     when(instance.fxmlLoader.loadAndGetRoot("dialog.fxml")).thenReturn(pane);
 
     CompletableFuture<Alert> serviceStateDoneFuture = new CompletableFuture<>();
-    WaitForAsyncUtils.waitForAsyncFx(200, () -> {
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       Alert alert = instance.createAlert(Alert.AlertType.CONFIRMATION, "text");
       serviceStateDoneFuture.complete(alert);
     });
 
-    Alert alert = serviceStateDoneFuture.get(500, TimeUnit.MILLISECONDS);
+    Alert alert = serviceStateDoneFuture.get(TIMEOUT, TimeUnit.MILLISECONDS);
 
     assertNotNull(alert);
     assertEquals(pane, alert.getDialogPane());

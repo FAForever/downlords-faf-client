@@ -10,6 +10,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
+import org.pircbotx.User;
 
 import javax.annotation.Resource;
 import java.time.Instant;
@@ -113,6 +114,11 @@ public class MockChatService implements ChatService {
     }, CONNECTION_DELAY);
   }
 
+  private void simulateConnectionEstablished() {
+    onChatConnectedListeners.forEach(OnChatConnectedListener::onConnected);
+    joinChannel("#mockChannel");
+  }
+
   @Override
   public void disconnect() {
     timer.cancel();
@@ -135,6 +141,13 @@ public class MockChatService implements ChatService {
   public ObservableMap<String, ChatUser> getChatUsersForChannel(String channelName) {
     channelUserListListeners.putIfAbsent(channelName, FXCollections.observableHashMap());
     return channelUserListListeners.get(channelName);
+  }
+
+
+  //TODO implement
+  @Override
+  public ChatUser createOrGetChatUser(String username) {
+    return null;
   }
 
   @Override
@@ -160,9 +173,9 @@ public class MockChatService implements ChatService {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        ChatUser chatUser = new ChatUser(userService.getUsername());
-        ChatUser mockUser = new ChatUser("MockUser");
-        ChatUser moderatorUser = new ChatUser("MockModerator", Collections.singleton(channelName));
+        ChatUser chatUser = new ChatUser(userService.getUsername(), null);
+        ChatUser mockUser = new ChatUser("MockUser", null);
+        ChatUser moderatorUser = new ChatUser("MockModerator", Collections.singleton(channelName), null);
 
         for (OnChatUserJoinedChannelListener onChannelJoinedListener : onChannelJoinedListeners) {
           onChannelJoinedListener.onUserJoinedChannel(channelName, chatUser);
@@ -215,8 +228,15 @@ public class MockChatService implements ChatService {
 
   }
 
-  private void simulateConnectionEstablished() {
-    onChatConnectedListeners.forEach(OnChatConnectedListener::onConnected);
-    joinChannel("#mockChannel");
+  //TODO implement
+  @Override
+  public ChatUser createOrGetChatUser(User user) {
+    return null;
+  }
+
+  //TODO implement
+  @Override
+  public void addUserToColorListener() {
+
   }
 }

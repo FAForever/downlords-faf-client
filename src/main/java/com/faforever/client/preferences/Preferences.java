@@ -20,7 +20,6 @@ public class Preferences {
   private final LoginPrefs login;
   private final ChatPrefs chat;
   private final NotificationsPrefs notification;
-
   private final StringProperty theme;
   private final StringProperty lastGameType;
   private final StringProperty lastGameTitle;
@@ -29,7 +28,8 @@ public class Preferences {
   private final ListProperty<String> ignoredNotifications;
   private final IntegerProperty lastGameMinRating;
   private final IntegerProperty lastGameMaxRating;
-  private final Ranked1v1Prefs ranked1v1;
+  private final BooleanProperty tilePaneSelected;
+  private Ranked1v1Prefs ranked1v1;
 
   public Preferences() {
     chat = new ChatPrefs();
@@ -46,6 +46,19 @@ public class Preferences {
     lastGameMinRating = new SimpleIntegerProperty(800);
     lastGameMaxRating = new SimpleIntegerProperty(1300);
     ranked1v1 = new Ranked1v1Prefs();
+    tilePaneSelected = new SimpleBooleanProperty(true);
+  }
+
+  public boolean getTilePaneSelected() {
+    return tilePaneSelected.get();
+  }
+
+  public void setTilePaneSelected(boolean tilePaneSelected) {
+    this.tilePaneSelected.set(tilePaneSelected);
+  }
+
+  public BooleanProperty tilePaneSelectedProperty() {
+    return tilePaneSelected;
   }
 
   public WindowPrefs getMainWindow() {

@@ -1,6 +1,6 @@
 .root {
   -fx-font-size: 14px;
-  -fx-font-family: "Segoe UI","Arial","Tahoma","sans-serif";
+  -fx-font-family: "Segoe UI", "Arial", "Tahoma", "sans-serif";
 
   /***************************************************************************
    *                                                                         *
@@ -17,16 +17,16 @@
    * -fx-text-background-color, which should be used as the -fx-text-fill
    * value for text painted on top of backgrounds colored with -fx-background.
    */
-  -fx-background: derive(-fx-base,0%);
+  -fx-background: derive(-fx-base, 0%);
 
   /* Used for the inside of text boxes, password boxes, lists, trees, and
    * tables.  See also -fx-text-inner-color, which should be used as the
    * -fx-text-fill value for text painted on top of backgrounds colored
    * with -fx-control-inner-background.
    */
-  -fx-control-inner-background: derive(-fx-base,10%);
+  -fx-control-inner-background: derive(-fx-base, 10%);
   /* Version of -fx-control-inner-background for alternative rows */
-  -fx-control-inner-background-alt: derive(-fx-control-inner-background,2%);
+  -fx-control-inner-background-alt: derive(-fx-control-inner-background, 2%);
 
   /* One of these colors will be chosen based upon a ladder calculation
    * that uses the brightness of a background color.  Instead of using these
@@ -107,7 +107,7 @@
    * a little darker than -fx-color at the bottom and is used to fill the
    * body of many controls such as buttons.
    */
-  -fx-body-color: derive(-fx-color,10%);
+  -fx-body-color: derive(-fx-color, 10%);
 
   /* Darker than -fx-background and used to draw boxes around text boxes and
    * password boxes.
@@ -118,23 +118,22 @@
    * needed on top of -fx-background.
    */
   -fx-shadow-highlight-color: ladder(
-    -fx-background,
-    rgba(255,255,255,0.07) 0%,
-    rgba(255,255,255,0.07) 20%,
-    rgba(255,255,255,0.07) 70%,
-    rgba(255,255,255,0.7) 90%,
-    rgba(255,255,255,0.75) 100%
+      -fx-background,
+      rgba(255, 255, 255, 0.07) 0%,
+      rgba(255, 255, 255, 0.07) 20%,
+      rgba(255, 255, 255, 0.07) 70%,
+      rgba(255, 255, 255, 0.7) 90%,
+      rgba(255, 255, 255, 0.75) 100%
   );
 
   /* The color to use as -fx-text-fill when painting text on top of
    * backgrounds filled with -fx-base, -fx-color, and -fx-body-color.
    */
   -fx-text-base-color: ladder(
-    -fx-color,
-    -fx-mid-text-color   30%,
-    -fx-light-text-color 40%
+      -fx-color,
+      -fx-mid-text-color 30%,
+      -fx-light-text-color 40%
   );
-
 
   /* The color to use for -fx-text-fill when text is to be painted on top of
    * a background filled with the -fx-background color.
@@ -150,19 +149,19 @@
   -fx-selection-bar-non-focused: derive(-fx-accent, -50%);
 
   -fx-focused-text-base-color: ladder(
-    -fx-selection-bar,
-    -fx-dark-text-color 40%,
-    -fx-mid-text-color 50%,
-    -fx-light-text-color 60%
+      -fx-selection-bar,
+      -fx-dark-text-color 40%,
+      -fx-mid-text-color 50%,
+      -fx-light-text-color 60%
   );
 
   /* A little brighter than -fx-color and used to draw boxes around objects such
    * as progress bars, scroll bars, scroll panes, trees, tables, and lists.
    */
   -fx-box-border: ladder(
-    -fx-color,
-    derive(-fx-color,20%) 20%,
-    derive(-fx-color,40%) 30%
+      -fx-color,
+      derive(-fx-color, 20%) 20%,
+      derive(-fx-color, 40%) 30%
   );
 
   /* These are NOT from modena. */
@@ -175,15 +174,37 @@
 
 .scroll-bar > .increment-button > .increment-arrow,
 .scroll-bar > .decrement-button > .decrement-arrow {
-  -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,45%);
+  -fx-background-color: -fx-mark-highlight-color, derive(-fx-base, 45%);
 }
+
 .scroll-bar > .increment-button:hover > .increment-arrow,
 .scroll-bar > .decrement-button:hover > .decrement-arrow {
-  -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,50%);
+  -fx-background-color: -fx-mark-highlight-color, derive(-fx-base, 50%);
 }
+
 .scroll-bar > .increment-button:pressed > .increment-arrow,
 .scroll-bar > .decrement-button:pressed > .decrement-arrow {
-  -fx-background-color: -fx-mark-highlight-color,derive(-fx-base,55%);
+  -fx-background-color: -fx-mark-highlight-color, derive(-fx-base, 55%);
+}
+
+/***************** ChatUser *****************/
+.chat-user-control-avatar:hover {
+  -fx-background-color: -fx-control-inner-background;
+}
+
+/*TODO: to highlight gamestatus and clan (both imageviews) an actual grey image must be created and overlayed e.g.  -fx-image: url(images/grey-highlight.png);*/
+.chat-user-control-username:hover,
+.chat-user-control-clan:hover {
+  -fx-background-radius: 1.5;
+  -fx-background-insets: 1.2, 1.5, 1.2, 1.5;
+  -fx-background-color: -fx-control-inner-background;
+}
+
+/***************** ChatUser Context Menu *****************/
+.chat-user-context-menuitem-colorPicker {
+}
+
+.chat-user-context-menu-colorPicker {
 }
 
 /***************** Headings *****************/
@@ -219,9 +240,10 @@
 
 .chart-vertical-grid-lines,
 .chart-horizontal-grid-lines {
-  -fx-stroke: derive(-fx-background,10%);
+  -fx-stroke: derive(-fx-background, 10%);
   -fx-stroke-dash-array: 0.25em, 0.25em;
 }
+
 .chart-vertical-zero-line,
 .chart-horizontal-zero-line {
   -fx-stroke: derive(-fx-text-background-color, 40%);
@@ -271,6 +293,7 @@
   -fx-background-color: -fx-body-color;
   -fx-background-insets: 0;
 }
+
 .button:hover,
 .toggle-button:hover,
 .radio-button:hover > .radio,
@@ -292,6 +315,7 @@
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:hover {
   -fx-color: -fx-hover-base;
 }
+
 .button:armed,
 .toggle-button:armed,
 .radio-button:armed > .radio,
@@ -312,6 +336,7 @@
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:pressed {
   -fx-color: -fx-pressed-base;
 }
+
 .button:focused,
 .toggle-button:focused,
 .radio-button:focused > .radio,
@@ -339,14 +364,13 @@
 /***************** Toggle button *****************/
 
 .toggle-button:selected {
-  -fx-background-color:
-    -fx-accent,
-    linear-gradient(to bottom,
+  -fx-background-color: -fx-accent,
+  linear-gradient(to bottom,
       derive(-fx-color, -22%) 0%,
       derive(-fx-color, -13%) 20%,
       derive(-fx-color, -11%) 50%),
-    -fx-faint-focus-color,
-    linear-gradient(to bottom,
+  -fx-faint-focus-color,
+  linear-gradient(to bottom,
       derive(-fx-color, -22%) 0%,
       derive(-fx-color, -13%) 20%,
       derive(-fx-color, -11%) 50%);
@@ -355,14 +379,13 @@
 }
 
 .toggle-button:selected:focused {
-  -fx-background-color:
-    -fx-focus-color,
-    linear-gradient(to bottom,
+  -fx-background-color: -fx-focus-color,
+  linear-gradient(to bottom,
       derive(-fx-color, -22%) 0%,
       derive(-fx-color, -13%) 20%,
       derive(-fx-color, -11%) 50%),
-    -fx-faint-focus-color,
-    linear-gradient(to bottom,
+  -fx-faint-focus-color,
+  linear-gradient(to bottom,
       derive(-fx-color, -22%) 0%,
       derive(-fx-color, -13%) 20%,
       derive(-fx-color, -11%) 50%);
@@ -507,13 +530,14 @@
   -fx-background-color: transparent;
   -fx-background-repeat: no-repeat;
 }
+
 .status-bar-menu-button > .label {
   -fx-padding: 0 2 0 0;
 }
+
 .status-bar-menu-button:openvertically > .arrow-button > .arrow {
   -fx-shape: "M0 1 L1 1 L.5 0 Z";
 }
-
 
 /***************** 1v1 match buttons *****************/
 
@@ -702,11 +726,43 @@
   -fx-background-color: transparent;
 }
 
+/***************** Channel Tab *****************/
+
+.channel-tab-friends-title * {
+  -fx-text-fill: #16B7EB;
+}
+
+.channel-tab-foes-title * {
+  -fx-text-fill: #FF0000;
+}
+
+.channel-tab-moderators-title * {
+  -fx-text-fill: #FFFFFF;
+}
+
+.channel-tab-chat-only-title * {
+  -fx-text-fill: #808080;
+}
+
+.channel-tab-others-title * {
+  -fx-text-fill: #BFBEBA;
+}
+
+.self * {
+  -fx-text-fill: #FFA500;
+}
+
 /***************** Range Slider *****************/
 
 .slider > .axis:bottom {
-  -fx-padding : 50, 50, 50, 50;
-  -fx-margin : 50, 50, 50, 50;
+  -fx-padding: 50, 50, 50, 50;
+  -fx-margin: 50, 50, 50, 50;
+}
+
+/***************** Played Card Tooltip*****************/
+
+.player-card-tooltip {
+  -fx-padding: 2, 10, 2, 10;
 }
 
 /***************** Progress bar *****************/
@@ -716,9 +772,11 @@
   -fx-indeterminate-bar-animation-time: 1.5;
   -fx-pref-height: 10;
 }
+
 .progress-bar > .bar {
   -fx-padding: 0;
 }
+
 .progress-bar:indeterminate > .bar {
   -fx-background-color: linear-gradient(to left, transparent, -fx-accent);
 }
@@ -726,7 +784,7 @@
 /***************** Large Map Preview *****************/
 
 .map-preview-large {
-  -fx-padding: 10px,5px,5px,5px;
+  -fx-padding: 10px, 5px, 5px, 5px;
 }
 
 .map-preview-large .max-player-label {
@@ -734,17 +792,18 @@
 }
 
 .map-preview-large .comment-container-scroll-pane {
-  -fx-padding: 5px,5px,5px,5px;
+  -fx-padding: 5px, 5px, 5px, 5px;
   -fx-max-height: 500px;
 }
 
 .map-preview-large .comment-container {
   -fx-spacing: 10;
-  -fx-background-color: derive(-fx-base,-50%);
+  -fx-background-color: derive(-fx-base, -50%);
 }
+
 /*FIXME can't seem to get the padding correctly */
 .map-preview-large .large-image-preview {
-  -fx-padding: 0,30px,0,0;
+  -fx-padding: 0, 30px, 0, 0;
 }
 
 .comment-card {
@@ -771,12 +830,13 @@
   -fx-pref-width: 360;
   -fx-max-width: 360;
   -fx-padding: 10;
+  -fx-cursor: hand;
 }
 
 .game-tile-root .lock-icon {
   -fx-font-size: 2em;
   -fx-effect: dropshadow(gaussian, black, 5, 0.5, 0, 0);
-  -fx-margin: 10;
+  -fx-margin: 10px;
 }
 
 .game-tile-root:hover,
@@ -789,14 +849,37 @@
   -fx-font-size: 1.2em;
 }
 
-/***************** Game Tooltip *****************/
+.game-tile-root .prefix {
+  -fx-text-fill: -fx-dark-text-color;
+  -fx-font-style: italic;
+}
 
+/***************** Game Tooltip *****************/
+/*TODO: em is nested*/
 .game-tooltip {
-  -fx-font-size: 1.2em;
+  -fx-font-size: 15px;
 }
 
 .game-tooltip .teams-pane {
   -fx-spacing: 10;
+}
+
+/***************** Game Status Tooltip *****************/
+/*Inherits game-tooltip*/
+
+.game-status-tooltip-mapname {
+  -fx-padding: 5px, 5px, 2px, 2px;
+  -fx-font-size: 1.5em;
+}
+
+.game-status-tooltip-gametitle {
+  -fx-padding: 5px, 5px, 2px, 2px;
+  -fx-font-size: 1.5em;
+}
+
+.game-status-tooltip-featuredmod {
+  -fx-padding: 5px, 5px, 2px, 2px;
+  -fx-font-size: 1.5em;
 }
 
 /***************** Game detail *****************/
@@ -806,12 +889,11 @@
   -fx-font-size: 1.5em;
 }
 
-
 /***************** Map Preview *****************/
 
 .map-preview {
-  -fx-effect: -fx-drop-shadow;
   -fx-cursor: hand;
+  -fx-effect: -fx-drop-shadow;
 }
 
 /***************** Window decoration *****************/
@@ -855,9 +937,11 @@
   -fx-min-width: 48px;
   -fx-max-width: 48px;
 }
+
 .close-button:hover {
   -fx-background-color: #D32F2F;
 }
+
 .close-button:pressed {
   -fx-background-color: derive(#D32F2F, -40%);
 }
@@ -884,7 +968,7 @@
 }
 
 .login-icon {
- -fx-effect: -fx-drop-shadow;
+  -fx-effect: -fx-drop-shadow;
 }
 
 /***************** Web view *****************/
@@ -892,7 +976,6 @@
 .web-view {
   -fx-background: transparent;
 }
-
 
 /***************** Settings window *****************/
 

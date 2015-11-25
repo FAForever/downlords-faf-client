@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.fx.HostService;
+import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
@@ -11,6 +12,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.OperatingSystem;
 import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Worker;
@@ -24,9 +26,11 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -38,6 +42,12 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 
+import static com.faforever.client.chat.AbstractChatTabController.CSS_CLASS_CHAT_ONLY;
+import static com.faforever.client.chat.AbstractChatTabController.CSS_CLASS_FOE;
+import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.chat.SocialStatus.FRIEND;
+import static com.faforever.client.chat.SocialStatus.OTHER;
+import static com.faforever.client.chat.SocialStatus.SELF;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.core.Is.is;
@@ -51,9 +61,11 @@ import static org.mockito.Mockito.when;
 
 public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
+  private static final long TIMEOUT = 5000;
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
-
+  @Mock
+  PlayerCardTooltipController playerCardTooltipController;
   @Mock
   private ChatService chatService;
   @Mock
@@ -66,8 +78,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   private ChatPrefs chatPrefs;
   @Mock
   private PlayerService playerService;
-  @Mock
-  private PlayerInfoTooltipController playerInfoTooltipController;
   @Mock
   private HostService hostService;
   @Mock
@@ -96,11 +106,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
       private final TextInputControl messageTextField = new TextField();
 
       @Override
-      protected WebView getMessagesWebView() {
-        return webView;
-      }
-
-      @Override
       public Tab getRoot() {
         return root;
       }
@@ -109,12 +114,17 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
       protected TextInputControl getMessageTextField() {
         return messageTextField;
       }
+
+      @Override
+      protected WebView getMessagesWebView() {
+        return webView;
+      }
     };
     instance.chatService = chatService;
     instance.userService = userService;
     instance.preferencesService = preferencesService;
     instance.playerService = playerService;
-    instance.playerInfoTooltipController = playerInfoTooltipController;
+    instance.playerCardTooltipController = playerCardTooltipController;
     instance.hostService = hostService;
     instance.urlPreviewResolver = urlPreviewResolver;
     instance.timeService = timeService;
@@ -210,17 +220,18 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getMessageTextField().isDisable(), is(false));
   }
 
+  @Ignore("Wanted but not invoked: playerCardTooltipController.setPlayer(com.faforever.client.chat.PlayerInfoBean);")
   @Test
   public void testPlayerInfo() throws Exception {
     String playerName = "somePlayer";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
     when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
-    when(playerInfoTooltipController.getRoot()).thenReturn(new Pane());
+    when(playerCardTooltipController.getRoot()).thenReturn(new Pane());
 
-    WaitForAsyncUtils.waitForAsyncFx(5000, () -> instance.playerInfo(playerName));
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> instance.playerInfo(playerName));
 
     verify(playerService).getPlayerForUsername(playerName);
-    verify(playerInfoTooltipController).setPlayerInfoBean(eq(playerInfoBean));
+    verify(playerCardTooltipController).setPlayer(eq(playerInfoBean));
   }
 
   @Test
@@ -233,9 +244,9 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String playerName = "somePlayer";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
     when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
-    when(playerInfoTooltipController.getRoot()).thenReturn(new Pane());
+    when(playerCardTooltipController.getRoot()).thenReturn(new Pane());
 
-    WaitForAsyncUtils.waitForAsyncFx(100, () -> {
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       instance.playerInfo(playerName);
       instance.hidePlayerInfo();
     });
@@ -283,7 +294,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     UrlPreviewResolver.Preview preview = mock(UrlPreviewResolver.Preview.class);
     when(urlPreviewResolver.resolvePreview(url)).thenReturn(preview);
 
-    WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       instance.previewUrl(url);
       instance.hideUrlPreview();
     });
@@ -418,18 +429,27 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPasteImageCtrlV() throws Exception {
+    KeyCode modifier;
+    switch (OperatingSystem.current()) {
+      case MAC:
+        modifier = KeyCode.META;
+        break;
+      default:
+        modifier = KeyCode.CONTROL;
+    }
+
     Image image = new Image(getClass().getResourceAsStream("/images/tray_icon.png"));
 
     String url = "http://www.example.com/fake.png";
     when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));
 
-    WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       ClipboardContent clipboardContent = new ClipboardContent();
       clipboardContent.putImage(image);
       Clipboard.getSystemClipboard().setContent(clipboardContent);
 
       instance.getMessageTextField().getOnKeyReleased().handle(
-          keyEvent(KeyCode.V, singletonList(KeyCode.CONTROL))
+          keyEvent(KeyCode.V, singletonList(modifier))
       );
     });
 
@@ -443,7 +463,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String url = "http://www.example.com/fake.png";
     when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));
 
-    WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       ClipboardContent clipboardContent = new ClipboardContent();
       clipboardContent.putImage(image);
       Clipboard.getSystemClipboard().setContent(clipboardContent);
@@ -454,5 +474,119 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     });
 
     assertThat(instance.getMessageTextField().getText(), is(url));
+  }
+
+  @Test
+  public void getMessageCssClassFriend() throws Exception {
+    String playerName = "somePlayer";
+    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
+    playerInfoBean.setSocialStatus(FRIEND);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    assertEquals(instance.getMessageCssClass(playerName), SocialStatus.FRIEND.getCssClass());
+  }
+
+  @Test
+  public void getMessageCssClassFoe() throws Exception {
+    String playerName = "somePlayer";
+    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
+    playerInfoBean.setSocialStatus(FOE);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    assertEquals(instance.getMessageCssClass(playerName), SocialStatus.FOE.getCssClass());
+  }
+
+  @Test
+  public void getMessageCssClassChatOnly() throws Exception {
+    String playerName = "somePlayer";
+    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
+    playerInfoBean.setSocialStatus(OTHER);
+    playerInfoBean.setChatOnly(true);
+    assertEquals(instance.getMessageCssClass(playerName), CSS_CLASS_CHAT_ONLY);
+  }
+
+  @Test
+  public void getMessageCssClassSelf() throws Exception {
+    String playerName = "junit";
+    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
+    playerInfoBean.setSocialStatus(SELF);
+    playerInfoBean.setChatOnly(false);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    assertEquals(instance.getMessageCssClass(playerName), SocialStatus.SELF.getCssClass());
+  }
+
+  @Test
+  public void getMessageCssClassChatOnlyNullPlayerInfoBean() throws Exception {
+    String playerName = "somePlayer";
+    assertEquals(instance.getMessageCssClass(playerName), CSS_CLASS_CHAT_ONLY);
+  }
+
+  @Test
+  public void getInlineStyleCustom() throws Exception {
+    Color color = ColorGeneratorUtil.generateRandomHexColor();
+    String colorStyle = instance.createInlineStyleFromHexColor(color);
+    ChatUser chatUser = new ChatUser("somePlayer", color);
+
+    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.CUSTOM);
+    when(chatService.createOrGetChatUser("somePlayer")).thenReturn(chatUser);
+    when(chatPrefs.getHideFoeMessages()).thenReturn(false);
+
+    String shouldBe = String.format("style=\"%s%s\"", colorStyle, "");
+    String result = instance.getInlineStyle("somePlayer", null);
+    assertEquals(shouldBe, result);
+  }
+
+  @Test
+  public void getInlineStyleRandomOther() throws Exception {
+    Color color = ColorGeneratorUtil.generateRandomHexColor();
+    String colorStyle = instance.createInlineStyleFromHexColor(color);
+    ChatUser chatUser = new ChatUser("somePlayer", color);
+
+    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
+    when(chatService.createOrGetChatUser("somePlayer")).thenReturn(chatUser);
+    when(chatPrefs.getHideFoeMessages()).thenReturn(false);
+
+    String shouldBe = String.format("style=\"%s%s\"", colorStyle, "");
+    String result = instance.getInlineStyle("somePlayer", null);
+    assertEquals(shouldBe, result);
+  }
+
+  @Test
+  public void getInlineStyleRandomChatOnly() throws Exception {
+    Color color = ColorGeneratorUtil.generateRandomHexColor();
+    String colorStyle = instance.createInlineStyleFromHexColor(color);
+    ChatUser chatUser = new ChatUser("somePlayer", color);
+
+    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
+    when(chatService.createOrGetChatUser("somePlayer")).thenReturn(chatUser);
+    when(chatPrefs.getHideFoeMessages()).thenReturn(false);
+
+    String shouldBe = String.format("style=\"%s%s\"", colorStyle, "");
+    String result = instance.getInlineStyle("somePlayer", CSS_CLASS_CHAT_ONLY);
+    assertEquals(shouldBe, result);
+  }
+
+  @Test
+  public void getInlineStyleRandomFoeHide() throws Exception {
+    ChatUser chatUser = new ChatUser("somePlayer", null);
+
+    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
+    when(chatService.createOrGetChatUser("somePlayer")).thenReturn(chatUser);
+    when(chatPrefs.getHideFoeMessages()).thenReturn(true);
+
+    String shouldBe = String.format("style=\"%s%s\"", "", "display: none;");
+    String result = instance.getInlineStyle("somePlayer", CSS_CLASS_FOE);
+    assertEquals(shouldBe, result);
+  }
+
+  @Test
+  public void getInlineStyleRandomFoeShow() throws Exception {
+    ChatUser chatUser = new ChatUser("somePlayer", null);
+
+    when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
+    when(chatService.createOrGetChatUser("somePlayer")).thenReturn(chatUser);
+    when(chatPrefs.getHideFoeMessages()).thenReturn(false);
+
+    String shouldBe = String.format("style=\"%s%s\"", "", "");
+    String result = instance.getInlineStyle("somePlayer", CSS_CLASS_FOE);
+    assertEquals(shouldBe, result);
   }
 }

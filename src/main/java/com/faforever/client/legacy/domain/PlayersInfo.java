@@ -2,11 +2,11 @@ package com.faforever.client.legacy.domain;
 
 import java.util.List;
 
-public class PlayerInfo extends ServerMessage {
+public class PlayersInfo extends ServerMessage {
 
   private List<Player> players;
 
-  public PlayerInfo() {
+  public PlayersInfo() {
     super(ServerMessageType.PLAYER_INFO);
   }
 

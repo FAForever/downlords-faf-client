@@ -213,8 +213,6 @@ public class CreateGameController {
 
   private void initGameTypeComboBox() {
     gameService.addOnGameTypeInfoListener(change -> {
-      change.getValueAdded();
-
       gameTypeListView.getItems().add(change.getValueAdded());
       selectLastOrDefaultGameType();
     });

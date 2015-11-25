@@ -22,7 +22,8 @@ import com.faforever.client.legacy.domain.InitSessionMessage;
 import com.faforever.client.legacy.domain.JoinGameMessage;
 import com.faforever.client.legacy.domain.LoginInfo;
 import com.faforever.client.legacy.domain.LoginMessage;
-import com.faforever.client.legacy.domain.PlayerInfo;
+import com.faforever.client.legacy.domain.ModInfo;
+import com.faforever.client.legacy.domain.PlayersInfo;
 import com.faforever.client.legacy.domain.Ranked1v1SearchExpansionMessage;
 import com.faforever.client.legacy.domain.ServerCommand;
 import com.faforever.client.legacy.domain.ServerMessage;
@@ -447,7 +448,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           break;
 
         case PLAYER_INFO:
-          PlayerInfo player = gson.fromJson(jsonString, PlayerInfo.class);
+          PlayersInfo player = gson.fromJson(jsonString, PlayersInfo.class);
           player.getPlayers().forEach(onPlayerInfoListener::onPlayerInfo);
           break;
 

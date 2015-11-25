@@ -160,7 +160,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     Set<String> simModUIds = gameInfoBean.getSimMods().keySet();
 
     return updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
-        .thenRun(() -> downloadMapIfNecessary(gameInfoBean.getTechnicalName())
+        .thenRun(() -> downloadMapIfNecessary(gameInfoBean.getMapTechnicalName())
             .thenRun(() -> lobbyServerAccessor.requestJoinGame(gameInfoBean, password)
                 .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL))))
         .exceptionally(throwable -> {
@@ -226,6 +226,8 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   @Override
   public void runWithReplay(URI replayUrl, Integer replayId) throws IOException {
+    //FIXME needs to update
+    //downloadMapIfNecessary(map);
     Process process = forgedAllianceService.startReplay(replayUrl, replayId);
     onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
 
@@ -245,7 +247,11 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   @Override
   public GameInfoBean getByUid(int uid) {
-    return uidToGameInfoBean.get(uid);
+    GameInfoBean gameInfoBean = uidToGameInfoBean.get(uid);
+    if (gameInfoBean == null) {
+      logger.warn("Can't find {} in gameInfoBean map", uid);
+    }
+    return gameInfoBean;
   }
 
   @Override

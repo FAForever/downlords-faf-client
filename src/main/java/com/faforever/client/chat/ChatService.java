@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.legacy.OnJoinChannelsRequestListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
+import org.pircbotx.User;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -39,6 +40,8 @@ public interface ChatService {
    */
   ObservableMap<String, ChatUser> getChatUsersForChannel(String channelName);
 
+  ChatUser createOrGetChatUser(String username);
+
   void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener);
 
   void leaveChannel(String channelName);
@@ -55,4 +58,8 @@ public interface ChatService {
   boolean isDefaultChannel(String channelName);
 
   void close();
+
+  ChatUser createOrGetChatUser(User user);
+
+  void addUserToColorListener();
 }

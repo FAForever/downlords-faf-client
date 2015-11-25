@@ -1,6 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.game.GameService;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnFoeListListener;
 import com.faforever.client.legacy.OnFriendListListener;
@@ -14,6 +15,8 @@ import org.mockito.MockitoAnnotations;
 import java.util.Arrays;
 import java.util.Set;
 
+import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
@@ -27,9 +30,12 @@ import static org.mockito.Mockito.verify;
 public class PlayerServiceImplTest {
 
   @Mock
-  UserService userService;
+  GameService gameService;
   @Mock
   LobbyServerAccessor lobbyServerAccessor;
+  @Mock
+  UserService userService;
+
   private PlayerServiceImpl instance;
 
   @Before
@@ -39,6 +45,7 @@ public class PlayerServiceImplTest {
     instance = new PlayerServiceImpl();
     instance.lobbyServerAccessor = lobbyServerAccessor;
     instance.userService = userService;
+    instance.gameService = gameService;
   }
 
   @Test
@@ -111,18 +118,18 @@ public class PlayerServiceImplTest {
     instance.addFriend("ashley");
 
     verify(lobbyServerAccessor, times(2)).setFriends(eq(Arrays.asList("lisa", "ashley")));
-    assertTrue("Property 'friend' was not set to true", lisa.getFriend());
-    assertTrue("Property 'friend' was not set to true", ashley.getFriend());
+    assertTrue("Property 'friend' was not set to true", lisa.getSocialStatus() == FRIEND);
+    assertTrue("Property 'friend' was not set to true", ashley.getSocialStatus() == FRIEND);
   }
 
   @Test
   public void testAddFriendIsFoe() throws Exception {
     PlayerInfoBean playerInfoBean = instance.registerAndGetPlayerForUsername("player");
-    playerInfoBean.setFoe(true);
+    playerInfoBean.setSocialStatus(FOE);
 
     instance.addFriend("player");
 
-    assertFalse("Property 'foe' is still true", playerInfoBean.getFoe());
+    assertFalse("Property 'foe' is still true", playerInfoBean.getSocialStatus() == FOE);
   }
 
   @Test
@@ -139,8 +146,8 @@ public class PlayerServiceImplTest {
     instance.removeFriend("player1");
     verify(lobbyServerAccessor, times(3)).setFriends(eq(singletonList("player2")));
 
-    assertFalse("Property 'friend' was not set to false", player1.getFriend());
-    assertTrue("Property 'friend' was not set to true", player2.getFriend());
+    assertFalse("Property 'friend' was not set to false", player1.getSocialStatus() == FRIEND);
+    assertTrue("Property 'friend' was not set to true", player2.getSocialStatus() == FRIEND);
   }
 
   @Test
@@ -152,18 +159,18 @@ public class PlayerServiceImplTest {
     instance.addFoe("player2");
 
     verify(lobbyServerAccessor, times(2)).setFoes(Arrays.asList("player1", "player2"));
-    assertTrue("Property 'foe' was not set to true", player1.getFoe());
-    assertTrue("Property 'foe' was not set to true", player2.getFoe());
+    assertTrue("Property 'foe' was not set to true", player1.getSocialStatus() == FOE);
+    assertTrue("Property 'foe' was not set to true", player2.getSocialStatus() == FOE);
   }
 
   @Test
   public void testAddFoeIsFriend() throws Exception {
     PlayerInfoBean playerInfoBean = instance.registerAndGetPlayerForUsername("player");
-    playerInfoBean.setFriend(true);
+    playerInfoBean.setSocialStatus(FRIEND);
 
     instance.addFoe("player");
 
-    assertFalse("Property 'friend' is still true", playerInfoBean.getFriend());
+    assertFalse("Property 'friend' is still true", playerInfoBean.getSocialStatus() == FRIEND);
   }
 
   @Test
@@ -173,7 +180,7 @@ public class PlayerServiceImplTest {
     instance.addFriend("player");
     instance.removeFriend("player");
 
-    assertFalse("Property 'friend' was not set to false", player.getFriend());
+    assertFalse("Property 'friend' was not set to false", player.getSocialStatus() == FRIEND);
   }
 
   @Test

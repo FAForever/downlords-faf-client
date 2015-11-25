@@ -23,9 +23,6 @@ public class AbstractPatchService {
    */
   protected boolean checkDirectories() {
     Path faDirectory = preferencesService.getPreferences().getForgedAlliance().getPath();
-    if (faDirectory == null) {
-      return false;
-    }
-    return true;
+    return faDirectory != null;
   }
 }

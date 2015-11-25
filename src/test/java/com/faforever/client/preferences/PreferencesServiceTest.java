@@ -75,6 +75,6 @@ public class PreferencesServiceTest {
 
   @Test
   public void testConfigureLogging() throws Exception {
-    instance.configureLogging();
+    PreferencesService.configureLogging();
   }
 }

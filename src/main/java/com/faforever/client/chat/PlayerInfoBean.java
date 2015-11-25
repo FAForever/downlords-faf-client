@@ -1,21 +1,28 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.legacy.GameStatus;
+import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.Player;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleSetProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+
+import static com.faforever.client.chat.SocialStatus.OTHER;
 
 /**
  * Represents a player with username, clan, country, friend/foe flag and so on. Can also be a chat-only user. This
- * represents the combination of a PlayerInfo (from the FAF server) and a ChatUser (from IRC).
+ * represents the combination of a PlayersInfo (from the FAF server) and a ChatUser (from IRC).
  */
 public class PlayerInfoBean {
 
@@ -25,14 +32,15 @@ public class PlayerInfoBean {
   private final StringProperty country;
   private final StringProperty avatarUrl;
   private final StringProperty avatarTooltip;
-  private final BooleanProperty friend;
-  private final BooleanProperty foe;
-  private final SetProperty<String> moderatorInChannels;
+  private final ObjectProperty<SocialStatus> socialStatus;
+  private final SetProperty<String> moderatorForChannels;
   private final BooleanProperty chatOnly;
   private final FloatProperty globalRatingDeviation;
   private final FloatProperty globalRatingMean;
   private final FloatProperty leaderboardRatingDeviation;
   private final FloatProperty leaderboardRatingMean;
+  private final IntegerProperty gameUid;
+  private final SimpleObjectProperty<GameStatus> gameStatus;
   private final IntegerProperty numberOfGames;
   public PlayerInfoBean(Player player) {
     this();
@@ -53,20 +61,33 @@ public class PlayerInfoBean {
     country = new SimpleStringProperty();
     avatarUrl = new SimpleStringProperty();
     avatarTooltip = new SimpleStringProperty();
-    friend = new SimpleBooleanProperty();
-    foe = new SimpleBooleanProperty();
-    moderatorInChannels = new SimpleSetProperty<>();
+    moderatorForChannels = new SimpleSetProperty<>(FXCollections.observableSet());
     chatOnly = new SimpleBooleanProperty(true);
     globalRatingDeviation = new SimpleFloatProperty();
     globalRatingMean = new SimpleFloatProperty();
     leaderboardRatingDeviation = new SimpleFloatProperty();
     leaderboardRatingMean = new SimpleFloatProperty();
+    gameStatus = new SimpleObjectProperty<>();
+    gameUid = new SimpleIntegerProperty();
     numberOfGames = new SimpleIntegerProperty();
+    socialStatus = new SimpleObjectProperty<>(OTHER);
   }
   public PlayerInfoBean(String username) {
     this();
-
+    this.gameStatus.set(GameStatus.NONE);
     this.username.set(username);
+  }
+
+  public SocialStatus getSocialStatus() {
+    return socialStatus.get();
+  }
+
+  public void setSocialStatus(SocialStatus socialStatus) {
+    this.socialStatus.set(socialStatus);
+  }
+
+  public ObjectProperty<SocialStatus> socialStatusProperty() {
+    return socialStatus;
   }
 
   public int getId() {
@@ -167,60 +188,28 @@ public class PlayerInfoBean {
     return avatarTooltip;
   }
 
-  public boolean isFriend() {
-    return friend.get();
-  }
-
-  public BooleanProperty friendProperty() {
-    return friend;
-  }
-
-  public boolean isFoe() {
-    return foe.get();
-  }
-
-  public BooleanProperty foeProperty() {
-    return foe;
-  }
-
   public boolean isChatOnly() {
     return chatOnly.get();
-  }
-
-  public void setChatOnly(boolean chatOnly) {
-    this.chatOnly.set(chatOnly);
   }
 
   public BooleanProperty chatOnlyProperty() {
     return chatOnly;
   }
 
-  public boolean getFriend() {
-    return friend.get();
+  public ObservableSet<String> getModeratorForChannels() {
+    return moderatorForChannels.get();
   }
 
-  public void setFriend(boolean friend) {
-    this.friend.set(friend);
+  public SetProperty<String> moderatorForChannelsProperty() {
+    return moderatorForChannels;
   }
 
-  public boolean getFoe() {
-    return foe.get();
-  }
-
-  public void setFoe(boolean foe) {
-    this.foe.set(foe);
-  }
-
-  public ObservableSet<String> getModeratorInChannels() {
-    return moderatorInChannels.get();
-  }
-
-  public SetProperty<String> moderatorInChannelsProperty() {
-    return moderatorInChannels;
-  }
-
-  public boolean getIrcOnly() {
+  public boolean getChatOnly() {
     return chatOnly.get();
+  }
+
+  public void setChatOnly(boolean chatOnly) {
+    this.chatOnly.set(chatOnly);
   }
 
   public float getGlobalRatingDeviation() {
@@ -247,16 +236,32 @@ public class PlayerInfoBean {
     return globalRatingMean;
   }
 
-  public float getLeaderboardRatingDeviation() {
-    return leaderboardRatingDeviation.get();
+  public GameStatus getGameStatus() {
+    return gameStatus.get();
   }
 
-  public void setLeaderboardRatingDeviation(float leaderboardRatingDeviation) {
-    this.leaderboardRatingDeviation.set(leaderboardRatingDeviation);
+  public void setGameStatus(GameStatus gameStatus) {
+    this.gameStatus.set(gameStatus);
   }
 
-  public FloatProperty leaderboardRatingDeviationProperty() {
-    return leaderboardRatingDeviation;
+  public SimpleObjectProperty<GameStatus> gameStatusProperty() {
+    return gameStatus;
+  }
+
+  public void setGameStatusFromGameState(GameState gameState){
+    gameStatus.set(GameStatus.getFromGameState(gameState));
+  }
+
+  public int getGameUid() {
+    return gameUid.get();
+  }
+
+  public void setGameUid(int gameUid) {
+    this.gameUid.set(gameUid);
+  }
+
+  public IntegerProperty gameUidProperty() {
+    return gameUid;
   }
 
   public float getLeaderboardRatingMean() {
@@ -269,6 +274,18 @@ public class PlayerInfoBean {
 
   public FloatProperty leaderboardRatingMeanProperty() {
     return leaderboardRatingMean;
+  }
+
+  public float getLeaderboardRatingDeviation() {
+    return leaderboardRatingDeviation.get();
+  }
+
+  public void setLeaderboardRatingDeviation(float leaderboardRatingDeviation) {
+    this.leaderboardRatingDeviation.set(leaderboardRatingDeviation);
+  }
+
+  public FloatProperty leaderboardRatingDeviationProperty() {
+    return leaderboardRatingDeviation;
   }
 
   public void updateFromPlayerInfo(Player player) {

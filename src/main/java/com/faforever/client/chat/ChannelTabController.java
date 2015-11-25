@@ -1,8 +1,13 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.JavaFxUtil;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.gson.Gson;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -13,10 +18,14 @@ import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,12 +33,31 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.faforever.client.chat.ChatColorMode.DEFAULT;
+import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.chat.SocialStatus.OTHER;
+import static com.faforever.client.chat.SocialStatus.SELF;
+
 public class ChannelTabController extends AbstractChatTabController {
 
+  @VisibleForTesting
+  static final String CSS_CLASS_MODERATOR = "moderator";
   /**
    * Keeps track of which ChatUserControl in which pane belongs to which user.
    */
   private final Map<String, Map<Pane, ChatUserControl>> userToChatUserControls;
+  @FXML
+  VBox channelTabScrollPaneVBox;
+  @FXML
+  TitledPane moderatorsTitlePane;
+  @FXML
+  TitledPane friendsTitlePane;
+  @FXML
+  TitledPane othersTitlePane;
+  @FXML
+  TitledPane chatOnlyTitlePane;
+  @FXML
+  TitledPane foesTitlePane;
   @FXML
   Tab channelTabRoot;
   @FXML
@@ -50,6 +78,8 @@ public class ChannelTabController extends AbstractChatTabController {
   TextField messageTextField;
   @Resource
   ApplicationContext applicationContext;
+  @Autowired
+  I18n i18n;
   private String channelName;
 
   public ChannelTabController() {
@@ -59,9 +89,14 @@ public class ChannelTabController extends AbstractChatTabController {
   public void setChannelName(String channelName) {
     super.setReceiver(channelName);
     this.channelName = channelName;
-
     channelTabRoot.setId(channelName);
     channelTabRoot.setText(channelName);
+
+
+    userSearchTextField.setPromptText(i18n.get("chat.userCount", chatService.getChatUsersForChannel(channelName).size()));
+    chatService.getChatUsersForChannel(channelName).addListener((InvalidationListener) change -> {
+      Platform.runLater(() -> userSearchTextField.setPromptText(i18n.get("chat.userCount", chatService.getChatUsersForChannel(channelName).size())));
+    });
 
     chatService.addChannelUserListListener(channelName, change -> {
       if (change.wasAdded()) {
@@ -87,11 +122,6 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @Override
-  protected WebView getMessagesWebView() {
-    return messagesWebView;
-  }
-
-  @Override
   public Tab getRoot() {
     return channelTabRoot;
   }
@@ -99,6 +129,22 @@ public class ChannelTabController extends AbstractChatTabController {
   @Override
   protected TextInputControl getMessageTextField() {
     return messageTextField;
+  }
+
+  @Override
+  protected WebView getMessagesWebView() {
+    return messagesWebView;
+  }
+
+  @Override
+  protected String getMessageCssClass(String login) {
+    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(login);
+    if (playerInfoBean != null && playerInfoBean.getModeratorForChannels().contains(channelName)) {
+      return CSS_CLASS_MODERATOR;
+    }
+
+    return super.getMessageCssClass(login);
+
   }
 
   @FXML
@@ -131,13 +177,65 @@ public class ChannelTabController extends AbstractChatTabController {
     chatUserControl.setManaged(display);
   }
 
+  @PostConstruct
+  void init() {
+    channelTabScrollPaneVBox.setMinWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
+    channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
+    addChatColorListener();
+  }
+
+  private void addChatColorListener() {
+    preferencesService.getPreferences().getChat().chatColorModeProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue != DEFAULT) {
+        setAllMessageColors();
+      } else {
+        removeAllMessageColors();
+      }
+    });
+  }
+
+  private void setAllMessageColors() {
+    ObservableMap<String, ChatUser> chatUsersForChannel = chatService.getChatUsersForChannel(channelName);
+    Map<String, String> userToColor = new HashMap<>();
+    chatUsersForChannel.values().stream().filter(chatUser -> chatUser.getColor() != null).forEach(chatUser -> {
+      userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor()));
+    });
+    getJsObject().call("setAllMessageColors", new Gson().toJson(userToColor));
+  }
+
+  private void removeAllMessageColors() {
+    getJsObject().call("removeAllMessageColors");
+  }
+
+  public void updateUserMessageColor(ChatUser chatUser) {
+    String color = "";
+    if (chatUser.getColor() != null) {
+      color = JavaFxUtil.toRgbCode(chatUser.getColor());
+    }
+    getJsObject().call("updateUserMessageColor", chatUser.getUsername(), color);
+  }
+
+  private void removeUserMessageClass(PlayerInfoBean playerInfoBean, String cssClass) {
+    Platform.runLater(() -> getJsObject().call("removeUserMessageClass", String.format("user-%s", playerInfoBean.getUsername()), cssClass));
+
+  }
+  private void setUserMessageClass(PlayerInfoBean playerInfoBean, String cssClass) {
+    Platform.runLater(() -> getJsObject().call("setUserMessageClass", String.format("user-%s", playerInfoBean.getUsername()), cssClass));
+  }
+
+  private void updateUserMessageDisplay(PlayerInfoBean playerInfoBean, String display) {
+    Platform.runLater(() -> getJsObject().call("updateUserMessageDisplay", String.format("user-%s", playerInfoBean.getUsername()), display));
+  }
+
   private void onUserJoinedChannel(ChatUser chatUser) {
     JavaFxUtil.assertBackgroundThread();
+
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
     String username = chatUser.getUsername();
     PlayerInfoBean playerInfoBean = playerService.registerAndGetPlayerForUsername(username);
 
-    playerInfoBean.moderatorInChannelsProperty().bind(chatUser.moderatorInChannelsProperty());
+    playerInfoBean.moderatorForChannelsProperty().bind(chatUser.moderatorInChannelsProperty());
     playerInfoBean.usernameProperty().bind(chatUser.usernameProperty());
     playerInfoBean.usernameProperty().addListener((observable, oldValue, newValue) -> {
       for (Map.Entry<Pane, ChatUserControl> entry : userToChatUserControls.get(oldValue).entrySet()) {
@@ -149,59 +247,91 @@ public class ChannelTabController extends AbstractChatTabController {
       }
     });
 
-    playerInfoBean.friendProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
-        addToPane(playerInfoBean, friendsPane);
-        removeFromPane(playerInfoBean, foesPane);
-        removeFromPane(playerInfoBean, othersPane);
-      } else {
-        removeFromPane(playerInfoBean, friendsPane);
-        if (!playerInfoBean.isFoe()) {
-          addToPane(playerInfoBean, othersPane);
-        }
-      }
-    });
-    playerInfoBean.foeProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
-        addToPane(playerInfoBean, foesPane);
-        removeFromPane(playerInfoBean, friendsPane);
-        removeFromPane(playerInfoBean, othersPane);
-      } else {
-        removeFromPane(playerInfoBean, foesPane);
-        if (!playerInfoBean.isFriend()) {
-          addToPane(playerInfoBean, othersPane);
-        }
-      }
-    });
-    playerInfoBean.chatOnlyProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
+    playerInfoBean.socialStatusProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == OTHER && playerInfoBean.isChatOnly()) {
         addToPane(playerInfoBean, chatOnlyPane);
-        removeFromPane(playerInfoBean, othersPane);
+        setUserMessageClass(playerInfoBean, CSS_CLASS_CHAT_ONLY);
       } else {
+        addToPane(playerInfoBean, getPaneForSocialStatus(newValue));
+        setUserMessageClass(playerInfoBean, newValue.getCssClass());
+      }
+
+      if (chatPrefs.getHideFoeMessages() && newValue == FOE) {
+        updateUserMessageDisplay(playerInfoBean, "none");
+      }
+
+      if (oldValue == OTHER && playerInfoBean.isChatOnly()) {
         removeFromPane(playerInfoBean, chatOnlyPane);
-        if (!playerInfoBean.isFoe() && !playerInfoBean.isFriend() && !playerInfoBean.getModeratorInChannels().contains(channelName)) {
-          addToPane(playerInfoBean, othersPane);
-        }
+        removeUserMessageClass(playerInfoBean, CSS_CLASS_CHAT_ONLY);
+      } else {
+        removeFromPane(playerInfoBean, getPaneForSocialStatus(oldValue));
+        removeUserMessageClass(playerInfoBean, oldValue.getCssClass());
+      }
+
+      if (chatPrefs.getHideFoeMessages() && oldValue == FOE) {
+        updateUserMessageDisplay(playerInfoBean, "");
       }
     });
-    playerInfoBean.getModeratorInChannels().addListener((SetChangeListener<String>) change -> {
-      if (change.wasAdded()) {
-        addToPane(playerInfoBean, moderatorsPane);
-        removeFromPane(playerInfoBean, othersPane);
-      } else {
-        removeFromPane(playerInfoBean, moderatorsPane);
-        if (!playerInfoBean.isFoe() && !playerInfoBean.isFriend()) {
-          addToPane(playerInfoBean, othersPane);
+
+    playerInfoBean.chatOnlyProperty().addListener((observable, oldValue, newValue) -> {
+      if (playerInfoBean.getSocialStatus() == OTHER && !chatUser.getModeratorInChannels().contains(username)) {
+        if (newValue) {
+          removeFromPane(playerInfoBean, othersPane);
+          addToPane(playerInfoBean, chatOnlyPane);
+          setUserMessageClass(playerInfoBean, CSS_CLASS_CHAT_ONLY);
+        } else {
+          removeFromPane(playerInfoBean, chatOnlyPane);
+          addToPane(playerInfoBean, getPaneForSocialStatus(playerInfoBean.getSocialStatus()));
+          removeUserMessageClass(playerInfoBean, CSS_CLASS_CHAT_ONLY);
         }
       }
     });
 
+    playerInfoBean.getModeratorForChannels().addListener((SetChangeListener<String>) change -> {
+      if (change.wasAdded()) {
+        addToPane(playerInfoBean, moderatorsPane);
+        removeFromPane(playerInfoBean, othersPane);
+        removeFromPane(playerInfoBean, chatOnlyPane);
+        setUserMessageClass(playerInfoBean, CSS_CLASS_MODERATOR);
+
+      } else {
+        removeFromPane(playerInfoBean, moderatorsPane);
+        SocialStatus socialStatus = playerInfoBean.getSocialStatus();
+        if (socialStatus == OTHER || socialStatus == SELF) {
+          addToPane(playerInfoBean, othersPane);
+        }
+        removeUserMessageClass(playerInfoBean, CSS_CLASS_MODERATOR);
+      }
+    });
+
+    chatPrefs.hideFoeMessagesProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue && playerInfoBean.getSocialStatus() == FOE) {
+        updateUserMessageDisplay(playerInfoBean, "none");
+      } else {
+        updateUserMessageDisplay(playerInfoBean, "");
+      }
+    });
+
+    chatUser.colorProperty().addListener((observable, oldValue, newValue) -> {
+      Platform.runLater(() -> updateUserMessageColor(chatUser));
+    });
 
     Collection<Pane> targetPanesForUser = getTargetPanesForUser(playerInfoBean);
     userToChatUserControls.putIfAbsent(username, new HashMap<>(targetPanesForUser.size(), 1));
 
     for (Pane pane : targetPanesForUser) {
       createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
+    }
+  }
+
+  private Pane getPaneForSocialStatus(SocialStatus socialStatus) {
+    switch (socialStatus) {
+      case FRIEND:
+        return friendsPane;
+      case FOE:
+        return foesPane;
+      default:
+        return othersPane;
     }
   }
 
@@ -220,8 +350,8 @@ public class ChannelTabController extends AbstractChatTabController {
     userToChatUserControls.remove(username);
   }
 
-  private void addToPane(PlayerInfoBean playerInfoBean, Pane pane) {
-    createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
+  private ChatUserControl addToPane(PlayerInfoBean playerInfoBean, Pane pane) {
+    return createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
   }
 
   private void removeFromPane(PlayerInfoBean playerInfoBean, Pane pane) {
@@ -244,7 +374,7 @@ public class ChannelTabController extends AbstractChatTabController {
    * pane if there isn't already such a control in this pane. After the control has been added, the user search filter
    * is applied.
    */
-  private void createChatUserControlForPlayerIfNecessary(Pane pane, PlayerInfoBean playerInfoBean) {
+  private ChatUserControl createChatUserControlForPlayerIfNecessary(Pane pane, PlayerInfoBean playerInfoBean) {
     String username = playerInfoBean.getUsername();
     if (!userToChatUserControls.containsKey(username)) {
       userToChatUserControls.put(username, new HashMap<>(1, 1));
@@ -254,17 +384,21 @@ public class ChannelTabController extends AbstractChatTabController {
 
     ChatUserControl existingChatUserControl = paneToChatUserControlMap.get(pane);
     if (existingChatUserControl != null) {
-      return;
+      return existingChatUserControl;
     }
 
     ChatUserControl chatUserControl = applicationContext.getBean(ChatUserControl.class);
     chatUserControl.setPlayerInfoBean(playerInfoBean);
     paneToChatUserControlMap.put(pane, chatUserControl);
 
+    chatUserControl.setColorsAllowedInPane((pane == othersPane || pane == chatOnlyPane) && playerInfoBean.getSocialStatus() != SELF);
+
     Platform.runLater(() -> {
       addChatUserControlSorted(pane, chatUserControl);
       applyUserSearchFilter(chatUserControl);
     });
+
+    return chatUserControl;
   }
 
   /**
@@ -272,15 +406,25 @@ public class ChannelTabController extends AbstractChatTabController {
    */
   private void addChatUserControlSorted(Pane pane, ChatUserControl chatUserControl) {
     ObservableList<Node> children = pane.getChildren();
+
+    if (chatUserControl.getPlayerInfoBean().getSocialStatus() == SELF) {
+      children.add(0, chatUserControl);
+      return;
+    }
+
     for (Node child : children) {
       if (!(child instanceof ChatUserControl)) {
         continue;
       }
 
-      String username1 = chatUserControl.getPlayerInfoBean().getUsername();
-      String username2 = ((ChatUserControl) child).getPlayerInfoBean().getUsername();
+      String newUser = chatUserControl.getPlayerInfoBean().getUsername();
+      String nextUser = ((ChatUserControl) child).getPlayerInfoBean().getUsername();
 
-      if (username1.compareTo(username2) < 0) {
+      if (nextUser.equals(userService.getUsername())) {
+        continue;
+      }
+
+      if (newUser.compareToIgnoreCase(nextUser) < 0) {
         children.add(children.indexOf(child), chatUserControl);
         return;
       }
@@ -292,22 +436,15 @@ public class ChannelTabController extends AbstractChatTabController {
   private Collection<Pane> getTargetPanesForUser(PlayerInfoBean playerInfoBean) {
     ArrayList<Pane> panes = new ArrayList<>(3);
 
-    if (playerInfoBean.isFriend()) {
-      panes.add(friendsPane);
-    } else if (playerInfoBean.isFoe()) {
-      panes.add(foesPane);
-    }
-
-    if (playerInfoBean.getModeratorInChannels().contains(channelName)) {
+    if (playerInfoBean.getModeratorForChannels().contains(channelName)) {
       panes.add(moderatorsPane);
     }
 
-    if (playerInfoBean.isChatOnly()) {
+    Pane pane = getPaneForSocialStatus(playerInfoBean.getSocialStatus());
+    if (pane == othersPane && playerInfoBean.isChatOnly()) {
       panes.add(chatOnlyPane);
-    }
-
-    if (panes.isEmpty()) {
-      panes.add(othersPane);
+    } else {
+      panes.add(pane);
     }
 
     return panes;

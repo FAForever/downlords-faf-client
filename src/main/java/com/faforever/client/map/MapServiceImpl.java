@@ -42,6 +42,7 @@ public class MapServiceImpl implements MapService {
     X1MP_005, X1MP_006, X1MP_007, X1MP_008, X1MP_009, X1MP_010, X1MP_011, X1MP_012, X1MP_014, X1MP_017;
 
     private static final Map<String, OfficialMap> fromString;
+
     static {
       fromString = new HashMap<>();
       for (OfficialMap officialMap : values()) {
