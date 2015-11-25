@@ -134,6 +134,13 @@ public class PreferencesService {
       initDefaultPreferences();
     }
 
+    Path gamePrefs = preferences.getForgedAlliance().getPreferencesFile();
+    if (Files.notExists(gamePrefs)) {
+      logger.info("Initializing game preferences file: {}", gamePrefs);
+      Files.createDirectories(gamePrefs.getParent());
+      Files.copy(getClass().getResourceAsStream("/game.prefs"), gamePrefs);
+    }
+
     Path path = preferences.getForgedAlliance().getPath();
     if (path == null || Files.notExists(path)) {
       logger.info("Game path is not specified or non-existent, trying to detect");

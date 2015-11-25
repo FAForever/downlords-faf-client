@@ -67,7 +67,7 @@ public class MapServiceImpl implements MapService {
   }
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final Pattern MAP_SIZE_PATTERN = Pattern.compile("\\{(\\d+),\\s*(\\d+)\\}");
+  private static final Pattern MAP_SIZE_PATTERN = Pattern.compile("(\\d+),\\s*(\\d+)");
 
   @Resource
   Environment environment;
