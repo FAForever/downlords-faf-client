@@ -29,11 +29,6 @@ public class MapSize implements Comparable<MapSize> {
   }
 
   @Override
-  public String toString() {
-    return String.format("%dx%d", width, height);
-  }
-
-  @Override
   public int compareTo(@NotNull MapSize o) {
     int dimension = width * height;
     int otherDimension = o.width * o.height;
@@ -43,5 +38,35 @@ public class MapSize implements Comparable<MapSize> {
     }
 
     return Integer.compare(dimension, otherDimension);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = width;
+    result = 31 * result + height;
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    MapSize mapSize = (MapSize) o;
+
+    if (width != mapSize.width) {
+      return false;
+    }
+    return height == mapSize.height;
+
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%dx%d", width, height);
   }
 }

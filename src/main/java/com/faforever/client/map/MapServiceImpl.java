@@ -2,6 +2,7 @@ package com.faforever.client.map;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.game.MapInfoBean;
+import com.faforever.client.game.MapSize;
 import com.faforever.client.legacy.map.Comment;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.preferences.PreferencesService;
@@ -10,6 +11,7 @@ import com.faforever.client.util.ThemeUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
@@ -18,19 +20,28 @@ import org.springframework.core.env.Environment;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.faforever.client.util.LuaUtil.stripQuotes;
 
 public class MapServiceImpl implements MapService {
 
@@ -56,6 +67,7 @@ public class MapServiceImpl implements MapService {
   }
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final Pattern MAP_SIZE_PATTERN = Pattern.compile("\\{(\\d+),\\s*(\\d+)\\}");
 
   @Resource
   Environment environment;
@@ -109,27 +121,42 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public ObservableList<MapInfoBean> getLocalMaps() {
-    ObservableList<MapInfoBean> maps = FXCollections.observableArrayList();
+    Path officialMapsPath = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("maps");
 
-    Path mapsDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
-    if (Files.notExists(mapsDirectory)) {
-      logger.warn("Local map directory does not exist: ", mapsDirectory);
-      return FXCollections.emptyObservableList();
+    Collection<Path> mapPaths = new LinkedList<>();
+
+    for (OfficialMap officialMap : OfficialMap.values()) {
+      mapPaths.add(officialMapsPath.resolve(officialMap.name()));
     }
 
-    try (DirectoryStream<Path> stream = Files.newDirectoryStream(mapsDirectory)) {
-      for (Path path : stream) {
-        String mapName = path.getFileName().toString();
-        maps.add(new MapInfoBean(mapName));
+    Path customMapsPath = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
+    if (Files.notExists(customMapsPath)) {
+      logger.warn("Custom map directory does not exist: {}", customMapsPath);
+    } else {
+      try (DirectoryStream<Path> stream = Files.newDirectoryStream(customMapsPath)) {
+        for (Path mapPath : stream) {
+          mapPaths.add(mapPath);
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    }
+
+    ObservableList<MapInfoBean> maps = FXCollections.observableArrayList();
+    for (Path mapPath : mapPaths) {
+      try {
+        MapInfoBean mapInfoBean = readMap(mapPath);
+        if (mapInfoBean != null) {
+          maps.add(mapInfoBean);
+        }
+      } catch (IOException e) {
+        logger.warn("Map could not be read: " + mapPath, e);
+      }
     }
 
     return maps;
   }
 
-  //FIXME implement official map detection
   @Override
   public MapInfoBean getMapInfoBeanLocallyFromName(String mapName) {
     logger.debug("Trying to return {} mapInfoBean locally", mapName);
@@ -140,6 +167,37 @@ public class MapServiceImpl implements MapService {
       }
     }
     return null;
+  }
+
+  @Nullable
+  private MapInfoBean readMap(Path mapPath) throws IOException {
+    if (!Files.isDirectory(mapPath)) {
+      logger.warn("Map does not exist: {}", mapPath);
+      return null;
+    }
+    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(mapPath, "*_scenario.lua")) {
+      Iterator<Path> iterator = directoryStream.iterator();
+      if (!iterator.hasNext()) {
+        return null;
+      }
+
+      try (InputStream inputStream = Files.newInputStream(iterator.next())) {
+        Properties properties = new Properties();
+        properties.load(inputStream);
+
+        MapInfoBean mapInfoBean = new MapInfoBean(mapPath.getFileName().toString());
+        mapInfoBean.setDisplayName(stripQuotes(properties.getProperty("name")));
+        mapInfoBean.setDescription(stripQuotes(properties.getProperty("description")));
+
+        Matcher matcher = MAP_SIZE_PATTERN.matcher(properties.getProperty("size"));
+        if (matcher.find()) {
+          int width = Integer.parseInt(matcher.group(1));
+          int height = Integer.parseInt(matcher.group(2));
+          mapInfoBean.setSize(new MapSize(width, height));
+        }
+        return mapInfoBean;
+      }
+    }
   }
 
   @Override
