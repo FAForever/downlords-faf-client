@@ -334,7 +334,7 @@ public class CreateGameController {
         titleTextField.getText(),
         Strings.emptyToNull(passwordTextField.getText()),
         gameTypeListView.getSelectionModel().getSelectedItem().getName(),
-        mapListView.getSelectionModel().getSelectedItem().getDisplayName(),
+        mapListView.getSelectionModel().getSelectedItem().getTechnicalName(),
         null,
         simMods);
 
