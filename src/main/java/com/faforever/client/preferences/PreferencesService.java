@@ -212,7 +212,8 @@ public class PreferencesService {
     Path faPathFile = getFafDataDirectory().resolve("fa_path.lua");
     try {
       Files.createDirectories(faPathFile.getParent());
-      Files.write(faPathFile, String.format("fa_path = '%s'\n", gamePath.toAbsolutePath()).getBytes(US_ASCII));
+      Files.write(faPathFile, String.format("fa_path = '%s'\n",
+          gamePath.toAbsolutePath().toString().replace("\\", "\\\\")).getBytes(US_ASCII));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
