@@ -705,7 +705,8 @@ public abstract class AbstractChatTabController {
     TabPane tabPane = getRoot().getTabPane();
     return tabPane != null
         && JavaFxUtil.isVisibleRecursively(tabPane)
-        && tabPane.getScene().getWindow().isFocused();
+        && tabPane.getScene().getWindow().isFocused()
+        && tabPane.getScene().getWindow().isShowing();
 
   }
 }
