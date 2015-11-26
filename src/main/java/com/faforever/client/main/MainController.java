@@ -770,4 +770,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     Bounds screenBounds = button.localToScreen(button.getBoundsInLocal());
     userMenuPopup.show(button.getScene().getWindow(), screenBounds.getMaxX(), screenBounds.getMaxY());
   }
+
+  public void selectChatTab() {
+    chatButton.fire();
+  }
 }

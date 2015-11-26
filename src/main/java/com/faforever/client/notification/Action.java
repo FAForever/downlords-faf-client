@@ -1,6 +1,6 @@
 package com.faforever.client.notification;
 
-import javafx.event.ActionEvent;
+import javafx.event.Event;
 
 /**
  * Notifications have actions associated with it. This class represents such an action, which is usually displayed to
@@ -10,7 +10,7 @@ public class Action {
 
   public interface ActionCallback {
 
-    void call(ActionEvent event);
+    void call(Event event);
   }
 
   public enum Type {
@@ -22,11 +22,8 @@ public class Action {
   private final ActionCallback callback;
   private final Type type;
 
-  /**
-   * Creates an action that does nothing.
-   */
-  public Action(String title) {
-    this(title, Type.OK_DONE, null);
+  public Action(ActionCallback callback) {
+    this(null, Type.OK_DONE, callback);
   }
 
   /**
@@ -36,6 +33,13 @@ public class Action {
     this.title = title;
     this.type = type;
     this.callback = callback;
+  }
+
+  /**
+   * Creates an action that does nothing.
+   */
+  public Action(String title) {
+    this(title, Type.OK_DONE, null);
   }
 
   /**
@@ -49,7 +53,7 @@ public class Action {
   /**
    * Calls the specified callback, if any. Subclasses may override.
    */
-  public void call(ActionEvent event) {
+  public void call(Event event) {
     if (callback != null) {
       callback.call(event);
     }

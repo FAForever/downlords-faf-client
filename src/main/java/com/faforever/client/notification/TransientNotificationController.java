@@ -9,10 +9,13 @@ import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import static javafx.util.Duration.millis;
@@ -32,6 +35,9 @@ public class TransientNotificationController {
   PreferencesService preferencesService;
 
   private ChangeListener<Number> animationListener;
+  private Action action;
+  private Timeline timeline;
+  private int toastDisplayTime;
 
   @FXML
   void initialize() {
@@ -55,9 +61,8 @@ public class TransientNotificationController {
   }
 
   private void animate(Number height) {
-    int toastDisplayTime = preferencesService.getPreferences().getNotification().getToastDisplayTime();
 
-    Timeline timeline = new Timeline();
+    timeline = new Timeline();
     timeline.setAutoReverse(true);
     timeline.setCycleCount(2);
     timeline.getKeyFrames().addAll(
@@ -68,10 +73,20 @@ public class TransientNotificationController {
     timeline.playFromStart();
   }
 
+  @PostConstruct
+  void postConstruct() {
+    // Divided by two because it's used in a cycle
+    toastDisplayTime = preferencesService.getPreferences().getNotification().getToastDisplayTime() / 2;
+
+    transientNotificationRoot.setOnMouseEntered(event -> timeline.pause());
+    transientNotificationRoot.setOnMouseExited(event -> timeline.playFrom(Duration.millis(300 + toastDisplayTime)));
+  }
+
   public void setNotification(TransientNotification notification) {
     titleLabel.setText(notification.getTitle());
     messageLabel.setText(notification.getText());
     imageView.setImage(notification.getImage());
+    action = notification.getAction();
   }
 
   @FXML
@@ -80,10 +95,16 @@ public class TransientNotificationController {
   }
 
   private void dismiss() {
+    timeline.stop();
     ((Pane) transientNotificationRoot.getParent()).getChildren().remove(this.getRoot());
   }
 
   public Region getRoot() {
     return transientNotificationRoot;
+  }
+
+  @FXML
+  public void onClicked(MouseEvent event) {
+    action.call(event);
   }
 }

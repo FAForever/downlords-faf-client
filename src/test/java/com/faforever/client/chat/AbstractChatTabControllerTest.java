@@ -413,11 +413,13 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnChatMessage() throws Exception {
+    // TODO assert something, maybe we can spy on engine
     instance.onChatMessage(new ChatMessage(Instant.now(), "junit", "Test message"));
   }
 
   @Test
   public void testOnChatMessageAction() throws Exception {
+    // TODO assert something, maybe we can spy on engine
     instance.onChatMessage(new ChatMessage(Instant.now(), "junit", "Test action", true));
   }
 
