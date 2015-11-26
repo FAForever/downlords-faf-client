@@ -1,20 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
 <Tab xmlns:fx="http://javafx.com/fxml/1" fx:id="channelTabRoot" xmlns="http://javafx.com/javafx/8.0.40"
      fx:controller="com.faforever.client.chat.ChannelTabController">
-  <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0">
+  <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
+        onKeyReleased="#onKeyReleased">
     <children>
       <SplitPane dividerPositions="0.9" focusTraversable="false" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
         <items>
-          <WebView fx:id="messagesWebView" blendMode="ADD" minHeight="100.0" minWidth="100.0" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+          <AnchorPane>
+            <children>
+              <WebView fx:id="messagesWebView" blendMode="ADD" minHeight="100.0" minWidth="100.0" prefHeight="-1.0"
+                       prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                       AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+              <HBox fx:id="searchFieldContainer" visible="false" AnchorPane.rightAnchor="0.0"
+                    AnchorPane.topAnchor="0.0">
+                <children>
+                  <Button fx:id="closeSearchFieldButton" contentDisplay="RIGHT" focusTraversable="false"
+                          mnemonicParsing="false" onMouseClicked="#onSearchFieldClose"
+                          styleClass="close-search-text-button" visible="false"/>
+                  <TextField fx:id="searchField" promptText="%chat.search" visible="false"/>
+                </children>
+              </HBox>
+            </children>
+          </AnchorPane>
           <VBox fx:id="channelTabScrollPaneVBox" maxHeight="1.7976931348623157E308" SplitPane.resizableWithParent="false">
             <children>
               <TextField fx:id="userSearchTextField" />

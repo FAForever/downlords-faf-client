@@ -41,6 +41,9 @@ public class ChatUserContextMenuController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @FXML
+  MenuItem sendPrivateMessageItem;
+
+  @FXML
   SeparatorMenuItem socialSeperator;
 
   @FXML
@@ -153,14 +156,19 @@ public class ChatUserContextMenuController {
         .isEqualTo(CUSTOM)
         .and(playerInfoBean.socialStatusProperty().isEqualTo(OTHER)));
 
+    sendPrivateMessageItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF));
+
     addFriendItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(FRIEND).and(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF)));
     removeFriendItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isEqualTo(FRIEND));
     addFoeItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(FOE).and(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF)));
     removeFoeItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isEqualTo(FOE));
 
-    joinGameItem.visibleProperty().bind(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.LOBBY).or(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.HOST)));
+    joinGameItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF)
+        .and(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.LOBBY)
+            .or(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.HOST))));
     watchGameItem.visibleProperty().bind(playerInfoBean.gameStatusProperty().isEqualTo(GameStatus.PLAYING));
-    inviteItem.visibleProperty().bind(playerInfoBean.gameStatusProperty().isNotEqualTo(GameStatus.PLAYING));
+    inviteItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF)
+        .and(playerInfoBean.gameStatusProperty().isNotEqualTo(GameStatus.PLAYING)));
 
     socialSeperator.visibleProperty().bind(addFriendItem.visibleProperty().or(
         removeFriendItem.visibleProperty().or(

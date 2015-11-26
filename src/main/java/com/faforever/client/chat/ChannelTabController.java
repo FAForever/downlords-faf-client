@@ -13,16 +13,20 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.SetChangeListener;
 import javafx.concurrent.Task;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TitledPane;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
@@ -46,6 +50,12 @@ public class ChannelTabController extends AbstractChatTabController {
    * Keeps track of which ChatUserControl in which pane belongs to which user.
    */
   private final Map<String, Map<Pane, ChatUserControl>> userToChatUserControls;
+  @FXML
+  HBox searchFieldContainer;
+  @FXML
+  Button closeSearchFieldButton;
+  @FXML
+  TextField searchField;
   @FXML
   VBox channelTabScrollPaneVBox;
   @FXML
@@ -78,7 +88,7 @@ public class ChannelTabController extends AbstractChatTabController {
   TextField messageTextField;
   @Resource
   ApplicationContext applicationContext;
-  @Autowired
+  @Resource
   I18n i18n;
   private String channelName;
 
@@ -91,7 +101,6 @@ public class ChannelTabController extends AbstractChatTabController {
     this.channelName = channelName;
     channelTabRoot.setId(channelName);
     channelTabRoot.setText(channelName);
-
 
     userSearchTextField.setPromptText(i18n.get("chat.userCount", chatService.getChatUsersForChannel(channelName).size()));
     chatService.getChatUsersForChannel(channelName).addListener((InvalidationListener) change -> {
@@ -119,6 +128,10 @@ public class ChannelTabController extends AbstractChatTabController {
     });
 
     channelTabRoot.setOnCloseRequest(event -> chatService.leaveChannel(channelName));
+
+    searchFieldContainer.visibleProperty().bind(searchField.visibleProperty());
+    closeSearchFieldButton.visibleProperty().bind(searchField.visibleProperty());
+    addSearchFieldListener();
   }
 
   @Override
@@ -448,5 +461,32 @@ public class ChannelTabController extends AbstractChatTabController {
     }
 
     return panes;
+  }
+
+  @FXML
+  void onKeyReleased(KeyEvent event) {
+    if (event.getCode() == KeyCode.ESCAPE) {
+      onSearchFieldClose(event);
+    } else if (event.isControlDown() && event.getCode() == KeyCode.F) {
+      searchField.clear();
+      searchField.setVisible(!searchField.isVisible());
+      searchField.requestFocus();
+    }
+  }
+
+  @FXML
+  void onSearchFieldClose(Event event) {
+    searchField.setVisible(false);
+    searchField.clear();
+  }
+
+  public void addSearchFieldListener() {
+    searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue.isEmpty() || newValue.equals(" ")) {
+        getJsObject().call("removeHighlight");
+      } else {
+        getJsObject().call("highlightText", newValue);
+      }
+    });
   }
 }

@@ -9,7 +9,8 @@
              fx:controller="com.faforever.client.chat.ChatUserContextMenuController">
   <items>
     <MenuItem mnemonicParsing="false" onAction="#onUserInfo" text="%chat.userContext.userInfo" />
-    <MenuItem mnemonicParsing="false" onAction="#onSendPrivateMessage" text="%chat.userContext.privateMessage" />
+    <MenuItem fx:id="sendPrivateMessageItem" mnemonicParsing="false" onAction="#onSendPrivateMessage"
+              text="%chat.userContext.privateMessage"/>
     <CustomMenuItem fx:id="colorPickerMenuItem" hideOnClick="false" mnemonicParsing="false">
       <content>
         <ColorPicker fx:id="colorPicker"/>

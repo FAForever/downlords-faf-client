@@ -977,6 +977,13 @@
   -fx-background: transparent;
 }
 
+.close-search-text-button {
+  -fx-background-image: url('images/close.png');
+  -fx-background-size: stretch;
+  -fx-min-width: 48px;
+  -fx-max-width: 48px;
+}
+
 /***************** Settings window *****************/
 
 .settings-head {

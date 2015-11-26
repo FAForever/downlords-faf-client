@@ -43,7 +43,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 
 import static com.faforever.client.chat.AbstractChatTabController.CSS_CLASS_CHAT_ONLY;
-import static com.faforever.client.chat.AbstractChatTabController.CSS_CLASS_FOE;
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.faforever.client.chat.SocialStatus.OTHER;
@@ -573,7 +572,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(chatPrefs.getHideFoeMessages()).thenReturn(true);
 
     String shouldBe = String.format("style=\"%s%s\"", "", "display: none;");
-    String result = instance.getInlineStyle("somePlayer", CSS_CLASS_FOE);
+    String result = instance.getInlineStyle("somePlayer", SocialStatus.FOE.getCssClass());
     assertEquals(shouldBe, result);
   }
 
@@ -586,7 +585,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
 
     String shouldBe = String.format("style=\"%s%s\"", "", "");
-    String result = instance.getInlineStyle("somePlayer", CSS_CLASS_FOE);
+    String result = instance.getInlineStyle("somePlayer", SocialStatus.FOE.getCssClass());
     assertEquals(shouldBe, result);
   }
 }

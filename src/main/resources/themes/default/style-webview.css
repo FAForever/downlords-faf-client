@@ -12,13 +12,19 @@ html, body {
   /* Use same as -fx-light-text-color */
   color: #BFBEBA;
   font-family: "Segoe UI", "Arial", "Tahoma", "sans-serif";
-  overflow: hidden;
 }
 
 a {
   /* Use same as -fx-accent */
   color: #609e15;
   text-decoration: none;
+}
+
+/***************** Search (WebView) *****************/
+.highlight {
+  background-color: rgba(255, 255, 0, 0.7);
+  color: black;
+  border-radius: 5px;
 }
 
 /***************** Chat Colors (WebView) *****************/
@@ -54,6 +60,7 @@ a {
 .chat-message {
   /* Same height as avatar */
   line-height: 20px;
+  overflow: hidden;
 }
 
 .chat-message.message .username::after {
