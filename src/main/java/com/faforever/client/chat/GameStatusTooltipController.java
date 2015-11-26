@@ -10,8 +10,9 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+
+import javax.annotation.Resource;
 
 public class GameStatusTooltipController {
 
@@ -25,11 +26,11 @@ public class GameStatusTooltipController {
   ImageView mapPreview;
   @FXML
   VBox gameStatusTooltipRoot;
-  @Autowired
+  @Resource
   MapService mapService;
-  @Autowired
+  @Resource
   ApplicationContext applicationContext;
-  @Autowired
+  @Resource
   I18n i18n;
 
   public void setGameInfoBean(GameInfoBean gameInfoBean) {

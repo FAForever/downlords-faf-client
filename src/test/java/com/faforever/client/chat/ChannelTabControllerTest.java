@@ -11,6 +11,8 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -103,5 +105,34 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     instance.setChannelName(CHANNEL_NAME);
     when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
     assertEquals(instance.getMessageCssClass(playerName), ChannelTabController.CSS_CLASS_MODERATOR);
+  }
+
+  @Test
+  public void onSearchFieldCloseTest() throws Exception {
+    instance.onSearchFieldClose(null);
+    assertTrue(!instance.searchField.isVisible());
+    assertEquals("", instance.searchField.getText());
+  }
+
+  @Test
+  public void onKeyReleasedTestEscape() throws Exception {
+    KeyEvent keyEvent = new KeyEvent(null, null, null, null, null, KeyCode.ESCAPE, false, false, false, false);
+
+    assertTrue(!instance.searchField.isVisible());
+    instance.onKeyReleased(keyEvent);
+    assertTrue(!instance.searchField.isVisible());
+    assertEquals("", instance.searchField.getText());
+  }
+
+  @Test
+  public void onKeyReleasedTestCtrlF() throws Exception {
+    KeyEvent keyEvent = new KeyEvent(null, null, null, null, null, KeyCode.F, false, true, false, false);
+
+    assertTrue(!instance.searchField.isVisible());
+    instance.onKeyReleased(keyEvent);
+    assertTrue(instance.searchField.isVisible());
+    assertEquals("", instance.searchField.getText());
+    instance.onKeyReleased(keyEvent);
+    assertTrue(!instance.searchField.isVisible());
   }
 }

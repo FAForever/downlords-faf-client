@@ -467,9 +467,7 @@ public class ChannelTabController extends AbstractChatTabController {
   void onKeyReleased(KeyEvent event) {
     if (event.getCode() == KeyCode.ESCAPE) {
       onSearchFieldClose(event);
-    }
-
-    if (event.isControlDown() && event.getText().equals("f")) {
+    } else if (event.isControlDown() && event.getCode() == KeyCode.F) {
       searchField.setText("");
       searchField.setVisible(!searchField.isVisible());
       searchField.requestFocus();
