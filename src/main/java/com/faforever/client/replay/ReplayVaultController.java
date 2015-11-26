@@ -83,6 +83,8 @@ public class ReplayVaultController {
   FxmlLoader fxmlLoader;
   @Resource
   ApplicationContext applicationContext;
+  @Resource
+  String locale;
 
   @VisibleForTesting
   TreeItem<ReplayInfoBean> localReplaysRoot;
@@ -208,7 +210,7 @@ public class ReplayVaultController {
         if (object.intValue() == 0) {
           return "";
         }
-        return String.valueOf(object.intValue());
+        return String.format(locale, "%d", object.intValue());
       }
 
       @Override

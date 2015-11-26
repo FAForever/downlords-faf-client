@@ -30,6 +30,7 @@ import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -83,6 +84,8 @@ public class CreateGameController {
   PreferencesService preferencesService;
   @Resource
   I18n i18n;
+  @Resource
+  Locale locale;
   @VisibleForTesting
   FilteredList<MapInfoBean> filteredMaps;
 
@@ -223,8 +226,8 @@ public class CreateGameController {
     int lastGameMinRating = preferencesService.getPreferences().getLastGameMinRating();
     int lastGameMaxRating = preferencesService.getPreferences().getLastGameMaxRating();
 
-    minRankingTextField.setText(String.valueOf(lastGameMinRating));
-    maxRankingTextField.setText(String.valueOf(lastGameMaxRating));
+    minRankingTextField.setText(String.format(locale, "%d", lastGameMinRating));
+    maxRankingTextField.setText(String.format(locale, "%d", lastGameMaxRating));
 
     minRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       preferencesService.getPreferences().setLastGameMinRating(Integer.parseInt(newValue));

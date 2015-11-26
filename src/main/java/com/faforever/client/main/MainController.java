@@ -83,6 +83,7 @@ import javax.annotation.Resource;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
@@ -195,6 +196,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   UserMenuController userMenuController;
   @Resource
   Stage stage;
+  @Resource
+  Locale locale;
 
   @VisibleForTesting
   Popup persistentNotificationsPopup;
@@ -353,7 +356,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     JavaFxUtil.assertApplicationThread();
 
     int numberOfNotifications = notifications.size();
-    notificationsButton.setText(String.valueOf(numberOfNotifications));
+    notificationsButton.setText(String.format(locale, "%d", numberOfNotifications));
 
     Severity highestSeverity = null;
     for (PersistentNotification notification : notifications) {

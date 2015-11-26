@@ -34,6 +34,7 @@ import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -96,6 +97,8 @@ public class Ranked1v1Controller {
   LeaderboardService leaderboardService;
   @Resource
   I18n i18n;
+  @Resource
+  Locale locale;
 
   @VisibleForTesting
   HashMap<Faction, ToggleButton> factionsToButtons;
@@ -230,7 +233,7 @@ public class Ranked1v1Controller {
     } else {
       ratingProgressIndicator.setVisible(false);
       ratingLabel.setVisible(true);
-      ratingLabel.setText(String.valueOf(rating));
+      ratingLabel.setText(String.format(locale, "%d", rating));
 
       updateRatingHint(rating);
     }
@@ -283,7 +286,7 @@ public class Ranked1v1Controller {
     series.getData().addAll(ratingDistributionMap.stream()
         .map(item -> {
           int maxRating = item.getMaxRating();
-          XYChart.Data<String, Integer> data = new XYChart.Data<>(String.valueOf(maxRating), item.getPlayers());
+          XYChart.Data<String, Integer> data = new XYChart.Data<>(String.format(locale, "%d", maxRating), item.getPlayers());
           if (maxRating == RatingUtil.getRoundedLeaderboardRating(player)) {
             data.nodeProperty().addListener((observable, oldValue, newValue) -> {
               newValue.pseudoClassStateChanged(NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS, true);
