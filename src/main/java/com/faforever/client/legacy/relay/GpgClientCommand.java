@@ -7,7 +7,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum LobbyAction {
+public enum GpgClientCommand {
   PROCESS_NAT_PACKET("ProcessNatPacket"),
   DISCONNECTED("Disconnected"),
   CONNECTED("Connected"),
@@ -24,24 +24,25 @@ public enum LobbyAction {
   AUTHENTICATE("Authenticate"),
   CLEAR_SLOT("ClearSlot"),
   AI_OPTION("AIOption"),
+  JSON_STATS("JsonStats"),
   // Yes, these are the only lower-cased in the protocol. Because fuck you.
   CONNECTED_TO_HOST("connectedToHost"),
   PONG("pong");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private static final Map<String, LobbyAction> fromString;
+  private static final Map<String, GpgClientCommand> fromString;
 
   static {
     fromString = new HashMap<>();
-    for (LobbyAction action : values()) {
+    for (GpgClientCommand action : values()) {
       fromString.put(action.string, action);
     }
   }
 
   private final String string;
 
-  LobbyAction(String string) {
+  GpgClientCommand(String string) {
     this.string = string;
   }
 
@@ -49,8 +50,8 @@ public enum LobbyAction {
     return string;
   }
 
-  public static LobbyAction fromString(String string) {
-    LobbyAction action = fromString.get(string);
+  public static GpgClientCommand fromString(String string) {
+    GpgClientCommand action = fromString.get(string);
     if (action == null) {
       logger.warn("Unknown lobby action: {}", string);
     }

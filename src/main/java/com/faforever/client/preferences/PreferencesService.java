@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static java.nio.charset.StandardCharsets.US_ASCII;
+
 public class PreferencesService {
 
   /**
@@ -134,6 +136,13 @@ public class PreferencesService {
       initDefaultPreferences();
     }
 
+    Path gamePrefs = preferences.getForgedAlliance().getPreferencesFile();
+    if (Files.notExists(gamePrefs)) {
+      logger.info("Initializing game preferences file: {}", gamePrefs);
+      Files.createDirectories(gamePrefs.getParent());
+      Files.copy(getClass().getResourceAsStream("/game.prefs"), gamePrefs);
+    }
+
     Path path = preferences.getForgedAlliance().getPath();
     if (path == null || Files.notExists(path)) {
       logger.info("Game path is not specified or non-existent, trying to detect");
@@ -199,6 +208,16 @@ public class PreferencesService {
     logger.info("Found game path at {}", gamePath);
     preferences.getForgedAlliance().setPath(gamePath);
     storeInBackground();
+
+    Path faPathFile = getFafDataDirectory().resolve("fa_path.lua");
+    try {
+      Files.createDirectories(faPathFile.getParent());
+      Files.write(faPathFile, String.format("fa_path = '%s'\n",
+          gamePath.toAbsolutePath().toString().replace("\\", "\\\\")).getBytes(US_ASCII));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
     return true;
   }
 

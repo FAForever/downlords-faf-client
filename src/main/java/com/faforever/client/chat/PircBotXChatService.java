@@ -15,7 +15,6 @@ import com.google.common.collect.ImmutableSortedSet;
 import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
-import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
 import org.pircbotx.Configuration;
@@ -50,11 +49,11 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
-import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.synchronizedObservableMap;
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
@@ -79,34 +78,29 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Resource
   PreferencesService preferencesService;
-
   @Resource
   Environment environment;
-
   @Resource
   UserService userService;
-
   @Resource
   TaskService taskService;
-
   @Resource
   LobbyServerAccessor lobbyServerAccessor;
-
   @Resource
   I18n i18n;
-
   @Resource
   PircBotXFactory pircBotXFactory;
-
   @Resource
   NotificationService notificationService;
+  @Resource
+  ExecutorService executorService;
 
   private Configuration configuration;
   private ShutdownablePircBotX pircBotX;
   private String defaultChannelName;
-  private Service<Void> connectionService;
   private CountDownLatch ircConnectedLatch;
   private Map<String, ChatUser> chatUsersByName;
+  private Task<Void> connectionTask;
 
 
   public PircBotXChatService() {
@@ -296,7 +290,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   public void connect() {
     init();
 
-    connectionService = executeInBackground(new Task<Void>() {
+    connectionTask = new Task<Void>() {
       @Override
       protected Void call() throws Exception {
         while (!isCancelled()) {
@@ -312,14 +306,15 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
         }
         return null;
       }
-    });
+    };
+    executorService.submit(connectionTask);
   }
 
   @Override
   public void disconnect() {
     logger.info("Disconnecting from IRC");
-    if (connectionService != null) {
-      connectionService.cancel();
+    if (connectionTask != null) {
+      connectionTask.cancel();
     }
     pircBotX.shutdown();
   }
@@ -414,8 +409,8 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void close() {
-    if (connectionService != null) {
-      Platform.runLater(connectionService::cancel);
+    if (connectionTask != null) {
+      Platform.runLater(connectionTask::cancel);
     }
   }
 

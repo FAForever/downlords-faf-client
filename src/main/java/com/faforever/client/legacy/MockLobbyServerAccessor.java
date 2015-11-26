@@ -297,7 +297,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
     gameInfo.setUid(uid);
     gameInfo.setTitle(title);
     gameInfo.setFeaturedMod(featuredMod);
-    gameInfo.setMapFilePath(mapName);
+    gameInfo.setMapname(mapName);
     gameInfo.setNumPlayers(numPlayers);
     gameInfo.setMaxPlayers(maxPlayers);
     gameInfo.setHost(host);

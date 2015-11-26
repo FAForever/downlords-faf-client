@@ -49,6 +49,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.faforever.client.util.LuaUtil.stripQuotes;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 
@@ -56,7 +57,6 @@ public class ModServiceImpl implements ModService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private static final Pattern QUOTED_TEXT_PATTERN = Pattern.compile("\"(.*?)\"");
   private static final Pattern ACTIVE_MODS_PATTERN = Pattern.compile("active_mods\\s*=\\s*\\{.*?}", Pattern.DOTALL);
   private static final Pattern ACTIVE_MOD_PATTERN = Pattern.compile("\\['(.*?)']\\s*=\\s*(true|false)", Pattern.DOTALL);
   private static final Lock LOOKUP_LOCK = new ReentrantLock();
@@ -403,19 +403,6 @@ public class ModServiceImpl implements ModService {
     }
 
     return modInfoBean;
-  }
-
-  private static String stripQuotes(String string) {
-    if (string == null) {
-      return null;
-    }
-
-    Matcher matcher = QUOTED_TEXT_PATTERN.matcher(string);
-    if (matcher.find()) {
-      return matcher.group(1);
-    }
-
-    return string;
   }
 
   private static Path extractIconPath(Path path, Properties properties) {

@@ -26,13 +26,10 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.lang.invoke.MethodHandles;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,7 +37,6 @@ import java.util.stream.Collectors;
 public class CreateGameController {
 
   public static final int MAX_RATING_LENGTH = 4;
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
   Label mapSizeLabel;
@@ -338,7 +334,7 @@ public class CreateGameController {
         titleTextField.getText(),
         Strings.emptyToNull(passwordTextField.getText()),
         gameTypeListView.getSelectionModel().getSelectedItem().getName(),
-        mapListView.getSelectionModel().getSelectedItem().getDisplayName(),
+        mapListView.getSelectionModel().getSelectedItem().getTechnicalName(),
         null,
         simMods);
 

@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Enumeration of known server commands (the "command" part of a server domain).
  */
-enum RelayServerCommand {
+enum GpgServerCommandServerCommand {
   PING("ping", 0),
   HOST_GAME("HostGame", 0),
   SEND_NAT_PACKET("SendNatPacket", 1),
@@ -19,12 +19,12 @@ enum RelayServerCommand {
   JOIN_PROXY("JoinProxy", 4),
   CONNECTIVITY_STATE("ConnectivityState", 2);
 
-  private static final Map<String, RelayServerCommand> fromString;
+  private static final Map<String, GpgServerCommandServerCommand> fromString;
 
   static {
     fromString = new HashMap<>(values().length, 1);
-    for (RelayServerCommand relayServerCommand : values()) {
-      fromString.put(relayServerCommand.string, relayServerCommand);
+    for (GpgServerCommandServerCommand gpgServerCommandServerCommand : values()) {
+      fromString.put(gpgServerCommandServerCommand.string, gpgServerCommandServerCommand);
     }
   }
 
@@ -32,7 +32,7 @@ enum RelayServerCommand {
 
   private final String string;
 
-  RelayServerCommand(String string, int numberOfArgs) {
+  GpgServerCommandServerCommand(String string, int numberOfArgs) {
     this.string = string;
     this.numberOfArgs = numberOfArgs;
   }
@@ -45,15 +45,15 @@ enum RelayServerCommand {
     return numberOfArgs;
   }
 
-  public static RelayServerCommand fromString(String string) {
-    RelayServerCommand relayServerCommand = fromString.get(string);
-    if (relayServerCommand == null) {
+  public static GpgServerCommandServerCommand fromString(String string) {
+    GpgServerCommandServerCommand gpgServerCommandServerCommand = fromString.get(string);
+    if (gpgServerCommandServerCommand == null) {
       /*
        * If an unknown command is received, ignoring it would probably cause the application to enter an unknown state.
        * So it's better to crash right now so there's no doubt that something went wrong.
        */
       throw new IllegalArgumentException("Unknown relay server command: " + string);
     }
-    return relayServerCommand;
+    return gpgServerCommandServerCommand;
   }
 }

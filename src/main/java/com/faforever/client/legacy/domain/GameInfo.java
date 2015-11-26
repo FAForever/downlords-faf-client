@@ -21,7 +21,7 @@ public class GameInfo extends ServerMessage {
   // FAF calls this "game_type" but it's actually the victory condition.
   private VictoryCondition gameType;
   private Map<String, String> simMods;
-  private String mapFilePath;
+  private String mapname;
 
   @Override
   public String toString() {
@@ -64,12 +64,12 @@ public class GameInfo extends ServerMessage {
     this.host = host;
   }
 
-  public String getMapFilePath() {
-    return mapFilePath;
+  public String getMapname() {
+    return mapname;
   }
 
-  public void setMapFilePath(String mapFilePath) {
-    this.mapFilePath = mapFilePath;
+  public void setMapname(String mapname) {
+    this.mapname = mapname;
   }
 
   public Boolean[] getOptions() {

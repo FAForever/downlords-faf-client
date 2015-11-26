@@ -376,7 +376,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfo.setUid(1);
     gameInfo.setHost("host");
     gameInfo.setTitle("title");
-    gameInfo.setMapFilePath("mapName");
+    gameInfo.setMapname("mapName");
     gameInfo.setFeaturedMod("mod");
     gameInfo.setNumPlayers(2);
     gameInfo.setMaxPlayers(4);

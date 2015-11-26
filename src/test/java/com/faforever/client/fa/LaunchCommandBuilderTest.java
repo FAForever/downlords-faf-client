@@ -18,7 +18,8 @@ public class LaunchCommandBuilderTest {
     return LaunchCommandBuilder.create()
         .executable(Paths.get("."))
         .logFile(Paths.get("."))
-        .gameType(GameType.DEFAULT.getString());
+        .gameType(GameType.DEFAULT.getString())
+        .username("junit");
   }
 
   @Test(expected = IllegalStateException.class)
@@ -46,8 +47,8 @@ public class LaunchCommandBuilderTest {
     defaultBuilder().country(null).build();
   }
 
-  @Test
-  public void testUsernameNullAllowed() throws Exception {
+  @Test(expected = IllegalStateException.class)
+  public void testUsernameNullNotAllowed() throws Exception {
     defaultBuilder().username(null).build();
   }
 
