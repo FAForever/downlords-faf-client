@@ -382,6 +382,7 @@ public abstract class AbstractChatTabController {
       sendAction(messageTextField, text);
     } else if (text.startsWith(JOIN_PREFIX)) {
       chatService.joinChannel(text.replaceFirst(Pattern.quote(JOIN_PREFIX), ""));
+      messageTextField.clear();
     } else {
       sendMessage();
     }

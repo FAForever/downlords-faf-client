@@ -468,7 +468,7 @@ public class ChannelTabController extends AbstractChatTabController {
     if (event.getCode() == KeyCode.ESCAPE) {
       onSearchFieldClose(event);
     } else if (event.isControlDown() && event.getCode() == KeyCode.F) {
-      searchField.setText("");
+      searchField.clear();
       searchField.setVisible(!searchField.isVisible());
       searchField.requestFocus();
     }
@@ -477,7 +477,7 @@ public class ChannelTabController extends AbstractChatTabController {
   @FXML
   void onSearchFieldClose(Event event) {
     searchField.setVisible(false);
-    searchField.setText("");
+    searchField.clear();
   }
 
   public void addSearchFieldListener() {
