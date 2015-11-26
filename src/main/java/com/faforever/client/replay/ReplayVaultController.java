@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -84,7 +85,7 @@ public class ReplayVaultController {
   @Resource
   ApplicationContext applicationContext;
   @Resource
-  String locale;
+  Locale locale;
 
   @VisibleForTesting
   TreeItem<ReplayInfoBean> localReplaysRoot;
