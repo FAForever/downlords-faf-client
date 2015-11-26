@@ -11,6 +11,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.hash.Hashing;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleMapProperty;
@@ -21,7 +22,6 @@ import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
 import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -55,6 +55,7 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -657,7 +658,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     mockTaskService();
     instance.onConnected();
 
-    String md5Password = DigestUtils.md5Hex(password);
+    String md5Password = Hashing.md5().hashString(password, StandardCharsets.UTF_8).toString();
     verify(outputIrc).message("NICKSERV", String.format("IDENTIFY %s", md5Password));
 
     assertTrue("Channel has not been joined within timeout", latch.await(TIMEOUT, TIMEOUT_UNIT));

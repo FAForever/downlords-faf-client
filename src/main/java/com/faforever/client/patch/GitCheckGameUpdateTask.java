@@ -3,13 +3,13 @@ package com.faforever.client.patch;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.AbstractPrioritizedTask;
+import com.google.common.hash.Hashing;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
-import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.BufferedReader;
@@ -93,7 +93,7 @@ public class GitCheckGameUpdateTask extends AbstractPrioritizedTask<Boolean> {
 
         byte[] bytesOfFileToCheck = Files.readAllBytes(fileToCheck);
 
-        String actualMd5 = DigestUtils.md5DigestAsHex(bytesOfFileToCheck);
+        String actualMd5 = Hashing.md5().hashBytes(bytesOfFileToCheck).toString();
         if (!actualMd5.equals(expectedMd5)) {
           logger.info("At least one binary file is out of date: {}. Expected checksum: {} but got: {}", fileName, expectedMd5, actualMd5);
           return false;

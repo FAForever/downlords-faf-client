@@ -7,6 +7,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Strings;
+import com.google.common.hash.Hashing;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -16,7 +17,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +27,7 @@ import java.lang.invoke.MethodHandles;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class LoginController {
 
@@ -138,7 +139,7 @@ public class LoginController {
     String username = usernameInput.getText();
     String password = passwordInput.getText();
 
-    password = DigestUtils.sha256Hex(password);
+    password = Hashing.sha256().hashString(password, UTF_8).toString();
 
     boolean autoLogin = autoLoginCheckBox.isSelected();
 

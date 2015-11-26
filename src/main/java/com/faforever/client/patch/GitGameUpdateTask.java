@@ -4,6 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.util.OperatingSystem;
+import com.google.common.hash.Hashing;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -13,7 +14,6 @@ import org.apache.commons.compress.compressors.CompressorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
-import org.springframework.util.DigestUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -129,7 +129,7 @@ public class GitGameUpdateTask extends AbstractPrioritizedTask<Void> {
 
   private Path getPatchFile(byte[] bytesOfFileToPatch) {
     Path patchSourceDirectory = binaryPatchRepoDirectory.resolve(BINARY_PATCH_DIRECTORY);
-    return patchSourceDirectory.resolve(DigestUtils.md5DigestAsHex(bytesOfFileToPatch));
+    return patchSourceDirectory.resolve(Hashing.md5().hashBytes(bytesOfFileToPatch).toString());
   }
 
   private void patchFile(Path fileToPatch, byte[] bytesOfFileToPatch, Path patchFile) throws IOException, CompressorException, InvalidHeaderException {
@@ -145,7 +145,7 @@ public class GitGameUpdateTask extends AbstractPrioritizedTask<Void> {
   }
 
   private void verifyPatchedFile(String expectedMd5AfterPatch, Path fileToPatch) throws IOException {
-    String md5OfPatchedFile = DigestUtils.md5DigestAsHex(Files.readAllBytes(fileToPatch));
+    String md5OfPatchedFile = Hashing.md5().hashBytes(Files.readAllBytes(fileToPatch)).toString();
 
     if (!md5OfPatchedFile.equals(expectedMd5AfterPatch)) {
       throw new PatchingFailedException(

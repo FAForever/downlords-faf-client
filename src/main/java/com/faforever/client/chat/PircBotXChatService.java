@@ -12,6 +12,7 @@ import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.hash.Hashing;
 import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -41,7 +42,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,9 +54,9 @@ import java.util.concurrent.ExecutorService;
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.synchronizedObservableMap;
-import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
 
 public class PircBotXChatService implements ChatService, Listener, OnChatConnectedListener,
     OnChatUserListListener, OnChatUserJoinedChannelListener, OnChatUserQuitListener, OnChatDisconnectedListener,
@@ -453,7 +453,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
         .setServer(environment.getProperty("irc.host"), environment.getProperty("irc.port", int.class))
         .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
         .setAutoSplitMessage(true)
-        .setEncoding(StandardCharsets.UTF_8)
+        .setEncoding(UTF_8)
         .setAutoReconnect(false)
         .addListener(this)
         .setSocketTimeout(SOCKET_TIMEOUT)
@@ -464,7 +464,7 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @Override
   public void onConnected() {
-    sendMessageInBackground("NICKSERV", "IDENTIFY " + md5Hex(userService.getPassword()))
+    sendMessageInBackground("NICKSERV", "IDENTIFY " + Hashing.md5().hashString(userService.getPassword(), UTF_8))
         .thenAccept(s1 -> {
           ircConnectedLatch.countDown();
           pircBotX.sendIRC().joinChannel(defaultChannelName);

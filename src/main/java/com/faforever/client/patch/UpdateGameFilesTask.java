@@ -10,12 +10,12 @@ import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.ByteCopier;
 import com.faforever.client.util.OperatingSystem;
+import com.google.common.hash.Hashing;
 import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import net.dongliu.vcdiff.VcdiffDecoder;
 import net.dongliu.vcdiff.exception.VcdiffDecodeException;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -220,10 +220,8 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
               updateServerAccessor.modPatchTo(targetDirectoryName, filename, modVersions);
             }
           } else {
-            try (InputStream inputStream = Files.newInputStream(fileToPatch)) {
-              String currentMd5 = DigestUtils.md5Hex(inputStream);
-              updateServerAccessor.update(targetDirectoryName, filename, currentMd5);
-            }
+            String currentMd5 = com.google.common.io.Files.hash(fileToPatch.toFile(), Hashing.md5()).toString();
+            updateServerAccessor.update(targetDirectoryName, filename, currentMd5);
           }
         }
       }
