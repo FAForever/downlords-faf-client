@@ -95,7 +95,7 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
             recordAndRelay(serverSocket, new BufferedOutputStream(fafReplayServerSocket.getOutputStream()));
           }
         } catch (IOException e) {
-          logger.warn("Error while recording replay", e);
+          logger.warn("Error in replay server", e);
           notificationService.addNotification(new PersistentNotification(
                   i18n.get("replayServer.listeningFailed", localReplayServerPort),
                   Severity.WARN,

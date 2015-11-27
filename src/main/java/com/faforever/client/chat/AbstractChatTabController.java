@@ -5,11 +5,14 @@ import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.MainController;
+import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -17,6 +20,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ByteCopier;
+import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
@@ -26,6 +30,7 @@ import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -41,6 +46,8 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import netscape.javascript.JSObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -127,6 +134,10 @@ public abstract class AbstractChatTabController {
   NotificationService notificationService;
   @Resource
   ReportingService reportingService;
+  @Resource
+  Stage stage;
+  @Resource
+  MainController mainController;
 
   private boolean isChatReady;
   private WebEngine engine;
@@ -546,11 +557,6 @@ public abstract class AbstractChatTabController {
     }
   }
 
-  // FIXME remove it
-  public void log(String string) {
-    logger.warn(string);
-  }
-
   private void appendMessage(ChatMessage chatMessage) {
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getUsername());
 
@@ -575,6 +581,7 @@ public abstract class AbstractChatTabController {
         text = highlightOwnUsername(text);
         if (!hasFocus()) {
           audioController.playChatMentionSound();
+          showNotificationIfNecessary(chatMessage);
         }
       }
 
@@ -610,6 +617,25 @@ public abstract class AbstractChatTabController {
     }
   }
 
+  protected void showNotificationIfNecessary(ChatMessage chatMessage) {
+    final TabPane tabPane = getRoot().getTabPane();
+    Scene scene = tabPane.getScene();
+    final Window window = scene.getWindow();
+
+    if (!window.isFocused()) {
+      notificationService.addNotification(new TransientNotification(
+          chatMessage.getUsername(),
+          chatMessage.getMessage(),
+          IdenticonUtil.createIdenticon(chatMessage.getUsername()),
+          new Action(event -> {
+            mainController.selectChatTab();
+            stage.toFront();
+            tabPane.getSelectionModel().select(getRoot());
+          }))
+      );
+    }
+  }
+
   protected String getMessageCssClass(String login) {
     String cssClass;
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(login);
@@ -632,7 +658,6 @@ public abstract class AbstractChatTabController {
     String inlineStyle = "style=\"%s%s\"";
     String color = "";
     String display = "";
-
 
     if ((chatPrefs.getChatColorMode().equals(RANDOM) && (messageColorClass == null || messageColorClass.equals(CSS_CLASS_CHAT_ONLY)))) {
       color = createInlineStyleFromHexColor(chatUser.getColor());
@@ -680,7 +705,8 @@ public abstract class AbstractChatTabController {
     TabPane tabPane = getRoot().getTabPane();
     return tabPane != null
         && JavaFxUtil.isVisibleRecursively(tabPane)
-        && tabPane.getScene().getWindow().isFocused();
+        && tabPane.getScene().getWindow().isFocused()
+        && tabPane.getScene().getWindow().isShowing();
 
   }
 }

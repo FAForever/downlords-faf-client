@@ -10,8 +10,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
+import javafx.scene.paint.Color;
 import org.pircbotx.User;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -57,6 +59,11 @@ public class MockChatService implements ChatService {
     channelUserListListeners = new HashMap<>();
 
     timer = new Timer(true);
+  }
+
+  @PostConstruct
+  void postConstruct() {
+    userService.addOnLoginListener(this::connect);
   }
 
   @Override
@@ -144,10 +151,9 @@ public class MockChatService implements ChatService {
   }
 
 
-  //TODO implement
   @Override
   public ChatUser createOrGetChatUser(String username) {
-    return null;
+    return new ChatUser(username, Color.ALICEBLUE);
   }
 
   @Override
@@ -207,7 +213,7 @@ public class MockChatService implements ChatService {
               )
           );
 
-          onChatMessageListener.onMessage(channelName, chatMessage);
+          onChatMessageListener.onMessage(userService.getUsername(), chatMessage);
         }
       }
     }, 0, CHAT_MESSAGE_INTERVAL);

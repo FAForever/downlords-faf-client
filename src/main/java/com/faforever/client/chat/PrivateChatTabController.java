@@ -2,23 +2,28 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.preferences.ChatPrefs;
+import com.sun.javafx.scene.control.skin.TabPaneSkin;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.web.WebView;
 
 import javax.annotation.Resource;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
+import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
 
 public class PrivateChatTabController extends AbstractChatTabController {
 
+  private static final PseudoClass UNREAD_PSEUDO_STATE = PseudoClass.getPseudoClass("unread");
+
   @FXML
   Tab privateChatTabRoot;
-
   @FXML
   WebView messagesWebView;
-
   @FXML
   TextInputControl messageTextField;
 
@@ -29,6 +34,21 @@ public class PrivateChatTabController extends AbstractChatTabController {
     super.setReceiver(username);
     privateChatTabRoot.setId(username);
     privateChatTabRoot.setText(username);
+  }
+
+  @FXML
+  void initialize() {
+    privateChatTabRoot.selectedProperty().addListener((observable, oldValue, newValue) -> setUnread(false));
+  }
+
+  private void setUnread(boolean unread) {
+    TabPane tabPane = privateChatTabRoot.getTabPane();
+    if (tabPane == null) {
+      return;
+    }
+    TabPaneSkin skin = (TabPaneSkin) tabPane.getSkin();
+    Node tab = (Node) skin.queryAccessibleAttribute(ITEM_AT_INDEX, tabPane.getTabs().indexOf(privateChatTabRoot));
+    tab.pseudoClassStateChanged(UNREAD_PSEUDO_STATE, unread);
   }
 
   @Override
@@ -59,6 +79,8 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
     if (!hasFocus()) {
       audioController.playPrivateMessageSound();
+      showNotificationIfNecessary(chatMessage);
+      setUnread(true);
     }
   }
 }

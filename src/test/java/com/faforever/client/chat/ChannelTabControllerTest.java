@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.fx.HostService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -11,6 +12,7 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
+import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import org.junit.Before;
@@ -18,6 +20,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
+import org.testfx.util.WaitForAsyncUtils;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -27,30 +30,33 @@ import static org.mockito.Mockito.when;
 
 public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
+  public static final String USER_NAME = "junit";
   private static final String CHANNEL_NAME = "#testChannel";
 
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
   @Mock
-  ChatService chatService;
+  private ChatService chatService;
   @Mock
-  UserService userService;
+  private UserService userService;
   @Mock
-  ImageUploadService imageUploadService;
+  private ImageUploadService imageUploadService;
   @Mock
-  PlayerService playerService;
+  private PlayerService playerService;
   @Mock
-  TimeService timeService;
+  private TimeService timeService;
   @Mock
-  PreferencesService preferencesService;
+  private PreferencesService preferencesService;
   @Mock
-  HostService hostService;
+  private HostService hostService;
   @Mock
-  Preferences preferences;
+  private Preferences preferences;
   @Mock
-  ChatPrefs chatPrefs;
+  private ChatPrefs chatPrefs;
   @Mock
-  I18n i18n;
+  private I18n i18n;
+  @Mock
+  private NotificationService notificationService;
 
   private ChannelTabController instance;
 
@@ -62,6 +68,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     instance.imageUploadService = imageUploadService;
     instance.playerService = playerService;
     instance.timeService = timeService;
+    instance.notificationService = notificationService;
     instance.preferencesService = preferencesService;
     instance.hostService = hostService;
     instance.i18n = i18n;
@@ -71,10 +78,15 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getTheme()).thenReturn("default");
     when(preferences.getChat()).thenReturn(chatPrefs);
     when(chatPrefs.getZoom()).thenReturn(1d);
-    when(userService.getUsername()).thenReturn("junit");
+    when(userService.getUsername()).thenReturn(USER_NAME);
 
     instance.postConstruct();
+
+    TabPane tabPane = new TabPane();
+    tabPane.getTabs().add(instance.getRoot());
+    WaitForAsyncUtils.waitForAsyncFx(5000, () -> getRoot().getChildren().add(tabPane));
   }
+
 
   @Test
   public void testGetMessagesWebView() throws Exception {

@@ -734,6 +734,10 @@
   -fx-background-color: transparent;
 }
 
+.tab:unread {
+  -fx-background-color: -fx-accent;
+}
+
 /***************** Channel Tab *****************/
 
 .channel-tab-friends-title * {
