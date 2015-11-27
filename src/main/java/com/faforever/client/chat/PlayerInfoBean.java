@@ -289,6 +289,7 @@ public class PlayerInfoBean {
   }
 
   public void updateFromPlayerInfo(Player player) {
+    setId(player.getId());
     setChatOnly(false);
     setClan(player.getClan());
     setCountry(player.getCountry());

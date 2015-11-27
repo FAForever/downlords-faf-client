@@ -176,6 +176,6 @@ public class FafApiAccessorImplTest {
     mockResponse("{}");
 
     instance.authorize(123);
-    verify(hostServices).showDocument("http://api.example.com/auth?client_id=456&redirect_uri=http%3A%2F%2Flocalhost%3A1234&response_type=code&scope=read_achievements%20write_achievements%20write_events");
+    verify(hostServices).showDocument("http://api.example.com/auth?client_id=456&redirect_uri=http%3A%2F%2Flocalhost%3A1234&response_type=code&scope=read_achievements%20read_events");
   }
 }

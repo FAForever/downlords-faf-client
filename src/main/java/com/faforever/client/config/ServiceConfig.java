@@ -10,6 +10,8 @@ import com.faforever.client.chat.MockChatService;
 import com.faforever.client.chat.PircBotXChatService;
 import com.faforever.client.chat.PircBotXFactory;
 import com.faforever.client.chat.PircBotXFactoryImpl;
+import com.faforever.client.events.EventService;
+import com.faforever.client.events.EventServiceImpl;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.ForgedAllianceServiceImpl;
 import com.faforever.client.game.GameService;
@@ -332,6 +334,11 @@ public class ServiceConfig {
   @Bean
   AchievementService achievementService() {
     return new AchievementServiceImpl();
+  }
+
+  @Bean
+  EventService eventService() {
+    return new EventServiceImpl();
   }
 
   @Bean

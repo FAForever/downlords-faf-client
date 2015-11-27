@@ -25,6 +25,11 @@ public class AchievementDefinitionBuilder {
     return this;
   }
 
+  public AchievementDefinitionBuilder id(String id) {
+    achievementDefinition.setId(id);
+    return this;
+  }
+
   public AchievementDefinitionBuilder type(AchievementType type) {
     achievementDefinition.setType(type);
     return this;

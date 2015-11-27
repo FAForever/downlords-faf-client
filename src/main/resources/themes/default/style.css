@@ -65,37 +65,37 @@
   -fx-color: -fx-base;
 
   /* Chart Color Palette */
-  CHART_COLOR_1: #f3622d;
-  CHART_COLOR_2: #fba71b;
-  CHART_COLOR_3: #57b757;
-  CHART_COLOR_4: #41a9c9;
-  CHART_COLOR_5: #4258c9;
-  CHART_COLOR_6: #9a42c8;
-  CHART_COLOR_7: #c84164;
-  CHART_COLOR_8: #888888;
+  CHART_COLOR_1: #609E15;
+  CHART_COLOR_2: #9BD454;
+  CHART_COLOR_3: #117D3C;
+  CHART_COLOR_4: #42A86B;
+  CHART_COLOR_5: #AE3417;
+  CHART_COLOR_6: #E9775C;
+  CHART_COLOR_7: #951448;
+  CHART_COLOR_8: #C84F80;
   /* Chart Color Palette Semi-Transparent
    * These are used by charts that need semi transparent versions of the above colors, such as BubbleChart. They
    * are exactly the same colors as above just with alpha
    *
    * 20% opacity
    */
-  CHART_COLOR_1_TRANS_20: #f3622d33;
-  CHART_COLOR_2_TRANS_20: #fba71b33;
-  CHART_COLOR_3_TRANS_20: #57b75733;
-  CHART_COLOR_4_TRANS_20: #41a9c933;
-  CHART_COLOR_5_TRANS_20: #4258c933;
-  CHART_COLOR_6_TRANS_20: #9a42c833;
-  CHART_COLOR_7_TRANS_20: #c8416433;
-  CHART_COLOR_8_TRANS_20: #88888833;
+  CHART_COLOR_1_TRANS_20: #609E1533;
+  CHART_COLOR_2_TRANS_20: #9BD45433;
+  CHART_COLOR_3_TRANS_20: #117D3C33;
+  CHART_COLOR_4_TRANS_20: #42A86B33;
+  CHART_COLOR_5_TRANS_20: #AE341733;
+  CHART_COLOR_6_TRANS_20: #E9775C33;
+  CHART_COLOR_7_TRANS_20: #95144833;
+  CHART_COLOR_8_TRANS_20: #C84F8033;
   /* 70% opacity */
-  CHART_COLOR_1_TRANS_70: #f3622db3;
-  CHART_COLOR_2_TRANS_70: #fba71bb3;
-  CHART_COLOR_3_TRANS_70: #57b757b3;
-  CHART_COLOR_4_TRANS_70: #41a9c9b3;
-  CHART_COLOR_5_TRANS_70: #4258c9b3;
-  CHART_COLOR_6_TRANS_70: #9a42c8b3;
-  CHART_COLOR_7_TRANS_70: #c84164b3;
-  CHART_COLOR_8_TRANS_70: #888888b3;
+  CHART_COLOR_1_TRANS_70: #609E15b3;
+  CHART_COLOR_2_TRANS_70: #9BD454b3;
+  CHART_COLOR_3_TRANS_70: #117D3Cb3;
+  CHART_COLOR_4_TRANS_70: #42A86Bb3;
+  CHART_COLOR_5_TRANS_70: #AE3417b3;
+  CHART_COLOR_6_TRANS_70: #E9775Cb3;
+  CHART_COLOR_7_TRANS_70: #951448b3;
+  CHART_COLOR_8_TRANS_70: #C84F80b3;
 
   /***************************************************************************
    *                                                                         *
@@ -722,12 +722,21 @@
 
 /***************** Tabs *****************/
 
+.tab-header-area {
+  -fx-border-color: -fx-box-border;
+  -fx-border-width: 0 0 1 0;
+}
+
 .tab-header-background {
   -fx-background-color: transparent;
 }
 
+.tab:selected {
+    -fx-background-color: -fx-outer-border, -fx-inner-border, derive(-fx-body-color, 30%);
+}
+
 .tab:unread {
-  -fx-background-color: -fx-accent;
+  -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-accent;
 }
 
 /***************** Channel Tab *****************/

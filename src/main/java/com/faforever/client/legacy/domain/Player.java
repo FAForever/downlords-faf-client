@@ -8,6 +8,7 @@ import java.util.Map;
  */
 public class Player {
 
+  private int id;
   private String clan;
   private String login;
   private Avatar avatar;
@@ -97,5 +98,13 @@ public class Player {
 
   public void setLadderRatingDeviation(float ladderRatingDeviation) {
     this.ladderRatingDeviation = ladderRatingDeviation;
+  }
+
+  public int getId() {
+    return id;
+  }
+
+  public void setId(int id) {
+    this.id = id;
   }
 }
