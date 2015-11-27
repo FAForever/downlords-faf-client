@@ -125,4 +125,14 @@ public class FilterUserControllerTest extends AbstractPlainJavaFxTest {
     assertEquals(NONE, instance.gameStatusFilter);
     assertEquals(i18n.get("chat.filter.gameStatus.none"), instance.gameStatusMenu.getText());
   }
+
+  @Test
+  public void testOnClearGameStatus() throws Exception {
+    when(channelTabController.getUserToChatUserControls()).thenReturn(new HashMap<>());
+    when(i18n.get("chat.filter.gameStatus")).thenReturn("gameStatus");
+
+    instance.onClearGameStatus(null);
+    assertEquals(null, instance.gameStatusFilter);
+    assertEquals(i18n.get("chat.filter.gameStatus"), instance.gameStatusMenu.getText());
+  }
 }
