@@ -28,8 +28,9 @@
                GridPane.rowIndex="1"/>
     <AnchorPane GridPane.rowIndex="3">
       <children>
-        <MenuButton mnemonicParsing="false" text="%chat.filter.gameStatus" AnchorPane.bottomAnchor="0.0"
-                    AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <MenuButton fx:id="gameStatusMenu" mnemonicParsing="false" text="%chat.filter.gameStatus"
+                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                    AnchorPane.topAnchor="0.0">
           <items>
             <MenuItem mnemonicParsing="false" onAction="#onGameStatusPlaying" text="%chat.filter.gameStatus.playing"/>
             <MenuItem mnemonicParsing="false" onAction="#onGameStatusLobby" text="%chat.filter.gameStatus.lobby"/>
@@ -40,7 +41,7 @@
     </AnchorPane>
     <AnchorPane GridPane.columnIndex="1" GridPane.rowIndex="3">
       <children>
-        <Button mnemonicParsing="false" onAction="#onClearAllSearchFields" styleClass="fontawesome" text=""
+        <Button mnemonicParsing="false" onAction="#onClearGameStatus" styleClass="fontawesome" text=""
                 AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                 AnchorPane.topAnchor="0.0"/>
       </children>
