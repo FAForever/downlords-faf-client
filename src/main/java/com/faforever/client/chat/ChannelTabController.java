@@ -224,7 +224,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private void addUserFilterPopup() {
     filterUserPopup = new Popup();
     filterUserPopup.setAutoFix(false);
-    filterUserPopup.setAutoHide(false);
+    filterUserPopup.setAutoHide(true);
     filterUserPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
     filterUserPopup.getContent().setAll(filterUserController.getRoot());
     filterUserController.setChannelController(this);
@@ -515,7 +515,6 @@ public class ChannelTabController extends AbstractChatTabController {
 
   @FXML
   void onAdvancedUserFilter(ActionEvent actionEvent) {
-    //FIXME isn't showing when initialized in postconstruct
     if (filterUserPopup.isShowing()) {
       filterUserPopup.hide();
       return;

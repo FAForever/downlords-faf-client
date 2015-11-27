@@ -132,8 +132,15 @@ public class FilterUserController {
     filterUsers();
   }
 
+  @FXML
+  void onClearAllSearchFields(ActionEvent actionEvent) {
+    clanFilterField.clear();
+    minRatingFilterField.clear();
+    maxRatingFilterField.clear();
+    gameStatusFilter = null;
+  }
+
   public Node getRoot() {
     return filterUserRoot;
   }
-
 }

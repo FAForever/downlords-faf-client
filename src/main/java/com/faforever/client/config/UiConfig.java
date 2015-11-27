@@ -198,6 +198,7 @@ public class UiConfig {
   }
 
   @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   FilterUserController filterUserController() {
     return loadController("filter_user.fxml");
   }
