@@ -13,8 +13,10 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.SetChangeListener;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
@@ -27,6 +29,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
+import javafx.stage.Popup;
+import javafx.stage.PopupWindow;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
@@ -50,6 +54,8 @@ public class ChannelTabController extends AbstractChatTabController {
    * Keeps track of which ChatUserControl in which pane belongs to which user.
    */
   private final Map<String, Map<Pane, ChatUserControl>> userToChatUserControls;
+  @FXML
+  Button advancedUserFilter;
   @FXML
   HBox searchFieldContainer;
   @FXML
@@ -87,13 +93,20 @@ public class ChannelTabController extends AbstractChatTabController {
   @FXML
   TextField messageTextField;
   @Resource
+  FilterUserController filterUserController;
+  @Resource
   ApplicationContext applicationContext;
   @Resource
   I18n i18n;
   private String channelName;
+  private Popup filterUserPopup;
 
   public ChannelTabController() {
     userToChatUserControls = FXCollections.observableMap(new ConcurrentHashMap<>());
+  }
+
+  public Map<String, Map<Pane, ChatUserControl>> getUserToChatUserControls() {
+    return userToChatUserControls;
   }
 
   public void setChannelName(String channelName) {
@@ -176,18 +189,18 @@ public class ChannelTabController extends AbstractChatTabController {
       for (Map<Pane, ChatUserControl> chatUserControlMap : userToChatUserControls.values()) {
         for (Map.Entry<Pane, ChatUserControl> chatUserControlEntry : chatUserControlMap.entrySet()) {
           ChatUserControl chatUserControl = chatUserControlEntry.getValue();
-
-          applyUserSearchFilter(chatUserControl);
+          boolean display = isUsernameMatch(chatUserControl);
+          chatUserControl.setVisible(display);
+          chatUserControl.setManaged(display);
         }
       }
     }
   }
 
-  private void applyUserSearchFilter(ChatUserControl chatUserControl) {
+  //TODO: I don't like how this is public
+  public boolean isUsernameMatch(ChatUserControl chatUserControl) {
     String lowerCaseSearchString = chatUserControl.getPlayerInfoBean().getUsername().toLowerCase();
-    boolean display = lowerCaseSearchString.contains(userSearchTextField.getText().toLowerCase());
-    chatUserControl.setVisible(display);
-    chatUserControl.setManaged(display);
+    return lowerCaseSearchString.contains(userSearchTextField.getText().toLowerCase());
   }
 
   @PostConstruct
@@ -195,6 +208,7 @@ public class ChannelTabController extends AbstractChatTabController {
     channelTabScrollPaneVBox.setMinWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
     channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
     addChatColorListener();
+    addUserFilterPopup();
   }
 
   private void addChatColorListener() {
@@ -205,6 +219,15 @@ public class ChannelTabController extends AbstractChatTabController {
         removeAllMessageColors();
       }
     });
+  }
+
+  private void addUserFilterPopup() {
+    filterUserPopup = new Popup();
+    filterUserPopup.setAutoFix(false);
+    filterUserPopup.setAutoHide(false);
+    filterUserPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
+    filterUserPopup.getContent().setAll(filterUserController.getRoot());
+    filterUserController.setChannelController(this);
   }
 
   private void setAllMessageColors() {
@@ -408,7 +431,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
     Platform.runLater(() -> {
       addChatUserControlSorted(pane, chatUserControl);
-      applyUserSearchFilter(chatUserControl);
+      isUsernameMatch(chatUserControl);
     });
 
     return chatUserControl;
@@ -488,5 +511,19 @@ public class ChannelTabController extends AbstractChatTabController {
         getJsObject().call("highlightText", newValue);
       }
     });
+  }
+
+  @FXML
+  void onAdvancedUserFilter(ActionEvent actionEvent) {
+    //FIXME isn't showing when initialized in postconstruct
+    if (filterUserPopup.isShowing()) {
+      filterUserPopup.hide();
+      return;
+    }
+
+    Button button = (Button) actionEvent.getSource();
+
+    Bounds screenBounds = advancedUserFilter.localToScreen(advancedUserFilter.getBoundsInLocal());
+    filterUserPopup.show(button.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());
   }
 }
