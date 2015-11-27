@@ -1,9 +1,9 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.achievements.AchievementDefinition;
-import com.faforever.client.achievements.PlayerAchievement;
+import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.Mod;
+import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.mod.ModInfoBean;
 
 import java.time.LocalDateTime;

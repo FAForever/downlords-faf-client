@@ -1,7 +1,5 @@
 package com.faforever.client.api;
 
-import com.faforever.client.achievements.AchievementDefinition;
-import com.faforever.client.achievements.PlayerAchievement;
 import com.faforever.client.mod.ModInfoBean;
 
 import java.util.List;

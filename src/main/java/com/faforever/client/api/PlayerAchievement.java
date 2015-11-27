@@ -1,15 +1,24 @@
-package com.faforever.client.achievements;
+package com.faforever.client.api;
 
-import java.util.Date;
+import com.google.api.client.util.Key;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class PlayerAchievement {
 
+  @Key
   private String id;
+  @Key
   private AchievementState state;
+  @Key("achievement_id")
   private String achievementId;
+  @Key("current_steps")
   private Integer currentSteps;
-  private long createTime;
-  private long updateTime;
+  @Key("create_time")
+  private String createTime;
+  @Key("update_time")
+  private String updateTime;
 
   public String getId() {
     return id;
@@ -21,14 +30,6 @@ public class PlayerAchievement {
 
   public void setCurrentSteps(Integer currentSteps) {
     this.currentSteps = currentSteps;
-  }
-
-  public void setCreateTime(long createTime) {
-    this.createTime = createTime;
-  }
-
-  public void setUpdateTime(long updateTime) {
-    this.updateTime = updateTime;
   }
 
   public AchievementState getState() {
@@ -55,20 +56,20 @@ public class PlayerAchievement {
     this.currentSteps = currentSteps;
   }
 
-  public Date getCreateTime() {
-    return new Date(createTime * 1000);
+  public LocalDateTime getCreateTime() {
+    return LocalDateTime.from(DateTimeFormatter.ISO_DATE_TIME.parse(createTime));
   }
 
-  public void setCreateTime(Date createTime) {
-    this.createTime = createTime.getTime() / 1000;
+  public void setCreateTime(LocalDateTime createTime) {
+    this.createTime = DateTimeFormatter.ISO_DATE_TIME.format(createTime);
   }
 
-  public Date getUpdateTime() {
-    return new Date(updateTime * 1000);
+  public LocalDateTime getUpdateTime() {
+    return LocalDateTime.from(DateTimeFormatter.ISO_DATE_TIME.parse(updateTime));
   }
 
-  public void setUpdateTime(Date updateTime) {
-    this.updateTime = updateTime.getTime() / 1000;
+  public void setUpdateTime(LocalDateTime updateTime) {
+    this.updateTime = DateTimeFormatter.ISO_DATE_TIME.format(updateTime);
   }
 
   @Override

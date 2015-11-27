@@ -1,5 +1,7 @@
 package com.faforever.client.achievements;
 
+import com.faforever.client.api.AchievementDefinition;
+import com.faforever.client.api.PlayerAchievement;
 import javafx.collections.ObservableList;
 
 import java.util.List;

@@ -1,9 +1,9 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.achievements.AchievementDefinition;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
-import com.faforever.client.achievements.PlayerAchievement;
+import com.faforever.client.api.AchievementDefinition;
+import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.preferences.PreferencesService;
@@ -15,6 +15,7 @@ import com.faforever.client.util.RatingUtil;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -23,7 +24,7 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -48,13 +49,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import static com.faforever.client.achievements.AchievementState.UNLOCKED;
+import static com.faforever.client.api.AchievementState.UNLOCKED;
 
 public class UserInfoWindowController {
 
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM");
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  @FXML
+  Pane unlockedAchievementsHeader;
+  @FXML
+  Pane lockedAchievementsHeader;
+  @FXML
+  ScrollPane achievementsPane;
   @FXML
   Label unlockedOfTotalLabel;
   @FXML
@@ -64,17 +71,15 @@ public class UserInfoWindowController {
   @FXML
   Label mostRecentAchievementDescriptionLabel;
   @FXML
-  ProgressIndicator loadingProgressIndicator;
-  @FXML
   Label loadingProgressLabel;
   @FXML
   Pane mostRecentAchievementPane;
   @FXML
   Label mostRecentAchievementNameLabel;
   @FXML
-  Pane availableAchievementsContainer;
+  Pane lockedAchievementsContainer;
   @FXML
-  Pane achievedAchievementsContainer;
+  Pane unlockedAchievementsContainer;
   @FXML
   ToggleButton ratingOver365DaysButton;
   @FXML
@@ -120,13 +125,20 @@ public class UserInfoWindowController {
   @FXML
   void initialize() {
     loadingProgressLabel.managedProperty().bind(loadingProgressLabel.visibleProperty());
-    loadingProgressIndicator.managedProperty().bind(loadingProgressIndicator.visibleProperty());
-    loadingProgressIndicator.visibleProperty().bind(loadingProgressLabel.visibleProperty());
+    achievementsPane.managedProperty().bind(achievementsPane.visibleProperty());
     mostRecentAchievementPane.managedProperty().bind(mostRecentAchievementPane.visibleProperty());
-    achievedAchievementsContainer.managedProperty().bind(achievedAchievementsContainer.visibleProperty());
-    availableAchievementsContainer.managedProperty().bind(availableAchievementsContainer.visibleProperty());
 
-    enterAchievementsLoadedState();
+    unlockedAchievementsHeader.managedProperty().bind(unlockedAchievementsHeader.visibleProperty());
+    unlockedAchievementsHeader.visibleProperty().bind(unlockedAchievementsContainer.visibleProperty());
+    unlockedAchievementsContainer.managedProperty().bind(unlockedAchievementsContainer.visibleProperty());
+    unlockedAchievementsContainer.visibleProperty().bind(Bindings.createBooleanBinding(
+        () -> !unlockedAchievementsContainer.getChildren().isEmpty(), unlockedAchievementsContainer.getChildren()));
+
+    lockedAchievementsHeader.managedProperty().bind(lockedAchievementsHeader.visibleProperty());
+    lockedAchievementsHeader.visibleProperty().bind(lockedAchievementsContainer.visibleProperty());
+    lockedAchievementsContainer.managedProperty().bind(lockedAchievementsContainer.visibleProperty());
+    lockedAchievementsContainer.visibleProperty().bind(Bindings.createBooleanBinding(
+        () -> !lockedAchievementsContainer.getChildren().isEmpty(), lockedAchievementsContainer.getChildren()));
 
     rating90DaysXAxis.setTickLabelFormatter(new StringConverter<Number>() {
       @Override
@@ -142,15 +154,8 @@ public class UserInfoWindowController {
     });
   }
 
-  private void enterAchievementsLoadedState() {
-    loadingProgressLabel.setVisible(false);
-    mostRecentAchievementPane.setVisible(true);
-    achievedAchievementsContainer.setVisible(true);
-    availableAchievementsContainer.setVisible(true);
-  }
-
   private void displayAvailableAchievements(List<AchievementDefinition> achievementDefinitions) {
-    ObservableList<Node> children = availableAchievementsContainer.getChildren();
+    ObservableList<Node> children = lockedAchievementsContainer.getChildren();
     Platform.runLater(children::clear);
 
     achievementDefinitions.forEach(achievementDefinition -> {
@@ -197,21 +202,24 @@ public class UserInfoWindowController {
           });
           updatePlayerAchievements(playerAchievements);
           enterAchievementsLoadedState();
+        })
+        .exceptionally(throwable -> {
+          // TODO tell the user
+          logger.warn("Player achievements could not be loaded", throwable);
+          return null;
         });
   }
 
   private void enterAchievementsLoadingState() {
     loadingProgressLabel.setVisible(true);
-    mostRecentAchievementPane.setVisible(false);
-    achievedAchievementsContainer.setVisible(false);
-    availableAchievementsContainer.setVisible(false);
+    achievementsPane.setVisible(false);
   }
 
   private void updatePlayerAchievements(List<? extends PlayerAchievement> playerAchievements) {
     PlayerAchievement mostRecentPlayerAchievement = null;
     int unlockedAchievements = 0;
 
-    ObservableList<Node> children = achievedAchievementsContainer.getChildren();
+    ObservableList<Node> children = unlockedAchievementsContainer.getChildren();
     Platform.runLater(children::clear);
 
     for (PlayerAchievement playerAchievement : playerAchievements) {
@@ -229,7 +237,6 @@ public class UserInfoWindowController {
       }
     }
 
-    int numberOfAchievements = achievementDefinitionById.size();
     if (mostRecentPlayerAchievement == null) {
       mostRecentAchievementPane.setVisible(false);
     } else {
@@ -261,6 +268,11 @@ public class UserInfoWindowController {
       pointsOfTotalLabel.setText(i18n.get("achievements.earnedOfTotal",
           earnedExperiencePoints, finalTotalExperiencePoints));
     });
+  }
+
+  private void enterAchievementsLoadedState() {
+    loadingProgressLabel.setVisible(false);
+    achievementsPane.setVisible(true);
   }
 
   private static boolean isUnlocked(PlayerAchievement playerAchievement) {

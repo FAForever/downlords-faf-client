@@ -1,4 +1,4 @@
-package com.faforever.client.achievements;
+package com.faforever.client.api;
 
 import com.google.api.client.util.Value;
 

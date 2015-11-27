@@ -1,6 +1,9 @@
 package com.faforever.client.achievements;
 
-import java.util.Date;
+import com.faforever.client.api.AchievementState;
+import com.faforever.client.api.PlayerAchievement;
+
+import java.time.LocalDateTime;
 
 public class PlayerAchievementBuilder {
 
@@ -13,8 +16,8 @@ public class PlayerAchievementBuilder {
   public PlayerAchievementBuilder defaultValues() {
     playerAchievement.setAchievementId("1-2-3");
     playerAchievement.setState(AchievementState.REVEALED);
-    playerAchievement.setCreateTime(new Date());
-    playerAchievement.setUpdateTime(new Date());
+    playerAchievement.setCreateTime(LocalDateTime.now());
+    playerAchievement.setUpdateTime(LocalDateTime.now());
     return this;
   }
 

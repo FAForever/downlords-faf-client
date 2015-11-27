@@ -1,7 +1,5 @@
 package com.faforever.client.api;
 
-import com.faforever.client.achievements.AchievementDefinition;
-import com.faforever.client.achievements.PlayerAchievement;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.mod.ModInfoBean;
@@ -100,7 +98,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Cacheable(CacheNames.ACHIEVEMENTS)
   public List<AchievementDefinition> getAchievementDefinitions() {
     logger.debug("Loading achievement definitions");
-    return getMany("/achievements", AchievementDefinition.class);
+    return getMany("/achievements?sort=order", AchievementDefinition.class);
   }
 
   @Override

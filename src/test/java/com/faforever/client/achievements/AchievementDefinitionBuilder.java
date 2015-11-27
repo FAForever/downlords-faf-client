@@ -1,5 +1,9 @@
 package com.faforever.client.achievements;
 
+import com.faforever.client.api.AchievementDefinition;
+import com.faforever.client.api.AchievementState;
+import com.faforever.client.api.AchievementType;
+
 public class AchievementDefinitionBuilder {
 
   private final AchievementDefinition achievementDefinition;

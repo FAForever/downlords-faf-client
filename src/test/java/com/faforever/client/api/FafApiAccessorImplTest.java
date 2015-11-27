@@ -1,7 +1,5 @@
 package com.faforever.client.api;
 
-import com.faforever.client.achievements.AchievementDefinition;
-import com.faforever.client.achievements.PlayerAchievement;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.api.client.auth.oauth2.Credential;
@@ -148,7 +146,7 @@ public class FafApiAccessorImplTest {
     List<AchievementDefinition> result = Arrays.asList(achievementDefinition1, achievementDefinition2);
 
     assertThat(instance.getAchievementDefinitions(), is(result));
-    verify(httpTransport).buildRequest("GET", "http://api.example.com/achievements");
+    verify(httpTransport).buildRequest("GET", "http://api.example.com/achievements?sort=order");
   }
 
   @Test
