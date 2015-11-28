@@ -50,6 +50,11 @@ a {
   color: #808080;
 }
 
+/*This needs to be at the bottom to guarantee username highlighting */
+.own-username {
+  color: #800000 !important;
+}
+
 /***************** Chat (WebView) *****************/
 
 #chat-table {
