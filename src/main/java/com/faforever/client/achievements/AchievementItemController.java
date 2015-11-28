@@ -1,5 +1,9 @@
 package com.faforever.client.achievements;
 
+import com.faforever.client.api.AchievementDefinition;
+import com.faforever.client.api.AchievementState;
+import com.faforever.client.api.AchievementType;
+import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.AchievementUtil;

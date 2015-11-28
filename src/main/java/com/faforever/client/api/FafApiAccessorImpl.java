@@ -1,7 +1,5 @@
 package com.faforever.client.api;
 
-import com.faforever.client.achievements.AchievementDefinition;
-import com.faforever.client.achievements.PlayerAchievement;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.mod.ModInfoBean;
@@ -50,8 +48,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private static final String ENCODED_HTTP_LOCALHOST = HTTP_LOCALHOST.replace(":", "%3A").replace("/", "%2F");
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String SCOPE_READ_ACHIEVEMENTS = "read_achievements";
-  private static final String SCOPE_WRITE_ACHIEVEMENTS = "write_achievements";
-  private static final String SCOPE_WRITE_EVENTS = "write_events";
+  private static final String SCOPE_READ_EVENTS = "read_events";
 
   @Resource
   JsonFactory jsonFactory;
@@ -97,10 +94,17 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   @SuppressWarnings("unchecked")
+  public List<PlayerEvent> getPlayerEvents(int playerId) {
+    logger.debug("Loading events for player: {}", playerId);
+    return getMany("/players/" + playerId + "/events", PlayerEvent.class);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
   @Cacheable(CacheNames.ACHIEVEMENTS)
   public List<AchievementDefinition> getAchievementDefinitions() {
     logger.debug("Loading achievement definitions");
-    return getMany("/achievements", AchievementDefinition.class);
+    return getMany("/achievements?sort=order", AchievementDefinition.class);
   }
 
   @Override
@@ -122,7 +126,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
           oAuthClientId,
           oAuthAuthorizationServerUrl)
           .setDataStoreFactory(dataStoreFactory)
-          .setScopes(Arrays.asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_WRITE_ACHIEVEMENTS, SCOPE_WRITE_EVENTS))
+          .setScopes(Arrays.asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_READ_EVENTS))
           .build();
 
       credential = authorize(flow, String.valueOf(playerId));

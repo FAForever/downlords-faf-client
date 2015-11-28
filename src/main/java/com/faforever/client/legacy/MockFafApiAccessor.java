@@ -1,9 +1,10 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.achievements.AchievementDefinition;
-import com.faforever.client.achievements.PlayerAchievement;
+import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.Mod;
+import com.faforever.client.api.PlayerAchievement;
+import com.faforever.client.api.PlayerEvent;
 import com.faforever.client.mod.ModInfoBean;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   @Override
   public List<PlayerAchievement> getPlayerAchievements(int playerId) {
     return Collections.emptyList();
+  }
+
+  @Override
+  public List<PlayerEvent> getPlayerEvents(int playerId) {
+    return null;
   }
 
   @Override

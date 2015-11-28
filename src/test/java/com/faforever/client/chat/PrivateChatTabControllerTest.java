@@ -8,6 +8,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.sun.javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.control.TabPane;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -57,8 +58,11 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
 
     TabPane tabPane = new TabPane();
-    WaitForAsyncUtils.waitForAsyncFx(5000, () -> getRoot().getChildren().add(tabPane));
-    tabPane.getTabs().add(instance.getRoot());
+    tabPane.setSkin(new TabPaneSkin(tabPane));
+    WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+      getRoot().getChildren().setAll(tabPane);
+      tabPane.getTabs().add(instance.getRoot());
+    });
   }
 
   @Test

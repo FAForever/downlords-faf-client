@@ -1,6 +1,5 @@
 package com.faforever.client.main;
 
-import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.UserInfoWindowController;
@@ -9,6 +8,8 @@ import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.IdenticonUtil;
+import com.faforever.client.util.JavaFxUtil;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.beans.binding.ObjectBinding;
 import javafx.fxml.FXML;
@@ -55,8 +56,6 @@ public class UserMenuController {
   ApplicationContext applicationContext;
   @Resource
   SceneFactory sceneFactory;
-  @Resource
-  ChatService chatService;
 
   public Node getRoot() {
     return userMenuRoot;
@@ -69,6 +68,9 @@ public class UserMenuController {
       usernameLabel.textProperty().bind(newValue.usernameProperty());
       countryImageView.imageProperty().bind(countryImageBinding(newValue));
     });
+
+    JavaFxUtil.bindOnApplicationThread(userImageView.imageProperty(),
+        () -> IdenticonUtil.createIdenticon(usernameLabel.getText()), usernameLabel.textProperty());
   }
 
   @NotNull

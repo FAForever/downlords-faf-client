@@ -1,6 +1,8 @@
 package com.faforever.client.achievements;
 
+import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.UpdatedAchievement;
@@ -48,6 +50,9 @@ public class AchievementServiceImpl implements AchievementService {
   @Override
   public ObservableList<PlayerAchievement> getPlayerAchievements(String username) {
     if (userService.getUsername().equals(username)) {
+      if (readOnlyPlayerAchievements.isEmpty()) {
+        updatePlayerAchievementsFromServer();
+      }
       return readOnlyPlayerAchievements;
     }
 
@@ -66,6 +71,10 @@ public class AchievementServiceImpl implements AchievementService {
     return CompletableFuture.completedFuture(fafApiAccessor.getAchievementDefinition(achievementId));
   }
 
+  private void updatePlayerAchievementsFromServer() {
+    playerAchievements.setAll(fafApiAccessor.getPlayerAchievements(userService.getUid()));
+  }
+
   @PostConstruct
   void postConstruct() {
     lobbyServerAccessor.addOnUpdatedAchievementsInfoListener(this::onUpdatedAchievements);
@@ -81,7 +90,7 @@ public class AchievementServiceImpl implements AchievementService {
               return null;
             })
         );
-    playerAchievements.setAll(fafApiAccessor.getPlayerAchievements(userService.getUid()));
+    updatePlayerAchievementsFromServer();
   }
 
   private void notifyAboutUnlockedAchievement(AchievementDefinition achievementDefinition) {

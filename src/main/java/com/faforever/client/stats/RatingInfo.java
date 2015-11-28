@@ -10,6 +10,16 @@ public class RatingInfo {
   private float dev;
   private LocalTime time;
 
+  public RatingInfo() {
+  }
+
+  public RatingInfo(LocalDate date, float mean, float dev, LocalTime time) {
+    this.date = date;
+    this.mean = mean;
+    this.dev = dev;
+    this.time = time;
+  }
+
   public LocalDate getDate() {
     return date;
   }

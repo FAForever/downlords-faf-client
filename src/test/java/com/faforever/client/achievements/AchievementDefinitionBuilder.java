@@ -1,5 +1,9 @@
 package com.faforever.client.achievements;
 
+import com.faforever.client.api.AchievementDefinition;
+import com.faforever.client.api.AchievementState;
+import com.faforever.client.api.AchievementType;
+
 public class AchievementDefinitionBuilder {
 
   private final AchievementDefinition achievementDefinition;
@@ -18,6 +22,11 @@ public class AchievementDefinitionBuilder {
     achievementDefinition.setExperiencePoints(10);
     achievementDefinition.setTotalSteps(100);
     achievementDefinition.setType(AchievementType.INCREMENTAL);
+    return this;
+  }
+
+  public AchievementDefinitionBuilder id(String id) {
+    achievementDefinition.setId(id);
     return this;
   }
 

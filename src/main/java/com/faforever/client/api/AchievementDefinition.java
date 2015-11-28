@@ -1,4 +1,4 @@
-package com.faforever.client.achievements;
+package com.faforever.client.api;
 
 import com.google.api.client.util.Key;
 
@@ -22,6 +22,8 @@ public class AchievementDefinition {
   private AchievementType type;
   @Key("unlocked_icon_url")
   private String unlockedIconUrl;
+  @Key
+  private int order;
 
   public String getDescription() {
     return description;
@@ -113,5 +115,13 @@ public class AchievementDefinition {
 
     return !(id != null ? !id.equals(that.id) : that.id != null);
 
+  }
+
+  public int getOrder() {
+    return order;
+  }
+
+  public void setOrder(int order) {
+    this.order = order;
   }
 }

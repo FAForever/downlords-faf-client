@@ -9,6 +9,7 @@ import com.faforever.client.util.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
@@ -170,6 +171,14 @@ public class CreateGameController {
       preferencesService.getPreferences().setLastGameTitle(newValue);
       preferencesService.storeInBackground();
     });
+
+    createGameButton.textProperty().bind(Bindings.createStringBinding(() -> {
+      if (titleTextField.getText().isEmpty()) {
+        return i18n.get("game.create.titleMissing");
+      }
+      return i18n.get("game.create.create");
+    }, titleTextField.textProperty()));
+
     createGameButton.disableProperty().bind(titleTextField.textProperty().isEmpty());
   }
 
@@ -183,6 +192,7 @@ public class CreateGameController {
     ObservableList<MapInfoBean> localMaps = mapService.getLocalMaps();
 
     filteredMaps = new FilteredList<>(localMaps);
+
 
     mapListView.setItems(filteredMaps);
     mapListView.setCellFactory(mapListCellFactory());
@@ -242,10 +252,13 @@ public class CreateGameController {
   private void selectLastMap() {
     String lastMap = preferencesService.getPreferences().getLastMap();
     for (MapInfoBean mapInfoBean : mapListView.getItems()) {
-      if (mapInfoBean.getDisplayName().equals(lastMap)) {
+      if (mapInfoBean.getTechnicalName().equals(lastMap)) {
         mapListView.getSelectionModel().select(mapInfoBean);
-        break;
+        return;
       }
+    }
+    if (mapListView.getSelectionModel().isEmpty()) {
+      mapListView.getSelectionModel().selectFirst();
     }
   }
 

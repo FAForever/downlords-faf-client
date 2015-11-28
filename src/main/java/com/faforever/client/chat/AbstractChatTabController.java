@@ -622,7 +622,7 @@ public abstract class AbstractChatTabController {
     Scene scene = tabPane.getScene();
     final Window window = scene.getWindow();
 
-    if (!window.isFocused()) {
+    if (!window.isFocused() || !window.isShowing()) {
       notificationService.addNotification(new TransientNotification(
           chatMessage.getUsername(),
           chatMessage.getMessage(),
