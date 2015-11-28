@@ -252,6 +252,10 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void removeUserMessageClass(PlayerInfoBean playerInfoBean, String cssClass) {
+    //TODO: DOM Exception 12 when cssClass string is empty string, not sure why cause .remove in the js should be able to handle it
+    if (cssClass.isEmpty()) {
+      return;
+    }
     Platform.runLater(() -> getJsObject().call("removeUserMessageClass", String.format("user-%s", playerInfoBean.getUsername()), cssClass));
 
   }
