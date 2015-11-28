@@ -28,14 +28,20 @@
                   <Button fx:id="closeSearchFieldButton" contentDisplay="RIGHT" focusTraversable="false"
                           mnemonicParsing="false" onMouseClicked="#onSearchFieldClose"
                           styleClass="close-search-text-button" visible="false"/>
-                  <TextField fx:id="searchField" promptText="%chat.search" visible="false"/>
+                  <TextField fx:id="searchField" promptText="%chat.filter.prompt" visible="false"/>
                 </children>
               </HBox>
             </children>
           </AnchorPane>
           <VBox fx:id="channelTabScrollPaneVBox" maxHeight="1.7976931348623157E308" SplitPane.resizableWithParent="false">
             <children>
-              <TextField fx:id="userSearchTextField" />
+              <AnchorPane>
+                <children>
+                  <TextField fx:id="userSearchTextField" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"/>
+                  <Button fx:id="advancedUserFilter" mnemonicParsing="false" onAction="#onAdvancedUserFilter"
+                          styleClass="fontawesome" text="" AnchorPane.rightAnchor="0.0"/>
+                </children>
+              </AnchorPane>
               <ScrollPane fitToWidth="true" focusTraversable="false" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
                 <content>
                   <VBox fx:id="usersVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">

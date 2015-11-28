@@ -207,6 +207,14 @@
 .chat-user-context-menu-colorPicker {
 }
 
+/***************** Filter User Menu *****************/
+.filter-user-root {
+  -fx-hgap: 5;
+  -fx-vgap: 5;
+  -fx-padding: 5;
+}
+
+
 /***************** Headings *****************/
 
 .h1 {
@@ -1033,6 +1041,9 @@
 .create-game-root {
   -fx-background-color: -fx-background;
   -fx-border-color: -fx-box-border;
+  -fx-hgap: 5;
+  -fx-vgap: 5;
+  -fx-padding: 10;
 }
 
 .game-title-input {

@@ -143,6 +143,7 @@ public class ChatUserControl extends HBox {
         color = chatPrefs.getUserToColor().get(playerInfoBean.getUsername());
       }
 
+      //FIXME: something here returned NPE when starting chat and users starting messaging aeolus on non-dev server
       chatPrefs.getUserToColor().addListener((MapChangeListener<? super String, ? super Color>) change -> {
         if (playerInfoBean.getUsername().equals(change.getKey())) {
           Color newColor = chatPrefs.getUserToColor().get(playerInfoBean.getUsername());
