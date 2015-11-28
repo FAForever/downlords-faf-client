@@ -6,6 +6,7 @@ import java.util.Collections;
 public class ClientMessage implements SerializableMessage {
 
   private ClientMessageType command;
+  private MessageTarget target;
 
   protected ClientMessage(ClientMessageType command) {
     this.command = command;
@@ -19,7 +20,15 @@ public class ClientMessage implements SerializableMessage {
     return command;
   }
 
-  public void setCommand(ClientMessageType command) {
+  protected void setCommand(ClientMessageType command) {
     this.command = command;
+  }
+
+  public MessageTarget getTarget() {
+    return target;
+  }
+
+  protected void setTarget(MessageTarget target) {
+    this.target = target;
   }
 }

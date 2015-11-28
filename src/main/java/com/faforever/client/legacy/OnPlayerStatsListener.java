@@ -1,8 +1,8 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.stats.PlayerStatistics;
+import com.faforever.client.stats.PlayerStatisticsMessageLobby;
 
 public interface OnPlayerStatsListener {
 
-  void onPlayerStats(PlayerStatistics playerStatistics);
+  void onPlayerStats(PlayerStatisticsMessageLobby playerStatisticsMessage);
 }

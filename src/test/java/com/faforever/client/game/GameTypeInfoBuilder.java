@@ -1,28 +1,28 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.domain.GameTypeInfo;
+import com.faforever.client.legacy.domain.GameTypeMessage;
 
 public class GameTypeInfoBuilder {
 
-  private final GameTypeInfo gameTypeInfo;
+  private final GameTypeMessage gameTypeMessage;
 
   public GameTypeInfoBuilder() {
-    gameTypeInfo = new GameTypeInfo();
+    gameTypeMessage = new GameTypeMessage();
   }
 
   public GameTypeInfoBuilder defaultValues() {
-    gameTypeInfo.setDesc("Description");
-    gameTypeInfo.setFullname("Full name");
-    gameTypeInfo.setHost(true);
-    gameTypeInfo.setIcon("icon");
-    gameTypeInfo.setJoin(true);
-    gameTypeInfo.setLive(true);
-    gameTypeInfo.setOptions(new Boolean[0]);
+    gameTypeMessage.setDesc("Description");
+    gameTypeMessage.setFullname("Full name");
+    gameTypeMessage.setHost(true);
+    gameTypeMessage.setIcon("icon");
+    gameTypeMessage.setJoin(true);
+    gameTypeMessage.setLive(true);
+    gameTypeMessage.setOptions(new Boolean[0]);
     return this;
   }
 
-  public GameTypeInfo get() {
-    return gameTypeInfo;
+  public GameTypeMessage get() {
+    return gameTypeMessage;
   }
 
   public static GameTypeInfoBuilder create() {

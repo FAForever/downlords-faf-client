@@ -3,12 +3,12 @@ package com.faforever.client.rankedmatch;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.ClientMessageType;
 
-public class MatchMakerMessage extends ClientMessage {
+public class MatchMakerClientMessage extends ClientMessage {
 
   public String mod;
   public String state;
 
-  public MatchMakerMessage(ClientMessageType command) {
+  public MatchMakerClientMessage(ClientMessageType command) {
     super(command);
   }
 

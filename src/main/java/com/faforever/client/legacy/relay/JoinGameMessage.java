@@ -7,7 +7,7 @@ public class JoinGameMessage extends GpgServerMessage {
   private static final int PEER_UID_INDEX = 2;
 
   public JoinGameMessage() {
-    super(GpgServerCommandServerCommand.JOIN_GAME);
+    super(GpgServerMessageType.JOIN_GAME, 3);
   }
 
   public String getPeerAddress() {

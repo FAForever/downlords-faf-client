@@ -22,6 +22,7 @@
   <logger name="com.faforever.client.game" level="debug"/>
   <logger name="com.faforever.client.task" level="info"/>
   <logger name="com.faforever.client.preferences" level="info"/>
+  <logger name="com.faforever.client.portcheck" level="debug"/>
 
   <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
     <resetJUL>true</resetJUL>

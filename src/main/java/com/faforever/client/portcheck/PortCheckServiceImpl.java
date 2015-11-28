@@ -45,15 +45,20 @@ public class PortCheckServiceImpl implements PortCheckService {
   ApplicationContext applicationContext;
 
   @Override
-  public CompletableFuture<Boolean> checkGamePortInBackground() {
+  public CompletableFuture<ConnectivityState> checkGamePortInBackground() {
     int port = preferencesService.getPreferences().getForgedAlliance().getPort();
 
     PortCheckTask task = applicationContext.getBean(PortCheckTask.class);
     task.setPort(port);
 
     return taskService.submitTask(task).thenApply(result -> {
-      if (!result) {
-        notifyPortUnreachable(port);
+      switch (result) {
+        case PROXY:
+          logger.info("Port is not reachable");
+          notifyPortUnreachable(port);
+          break;
+        default:
+          logger.info("Port check successful, state: {}", result);
       }
       return result;
     }).exceptionally(throwable -> {

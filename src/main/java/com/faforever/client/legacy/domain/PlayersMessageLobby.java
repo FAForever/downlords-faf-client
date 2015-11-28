@@ -2,12 +2,12 @@ package com.faforever.client.legacy.domain;
 
 import java.util.List;
 
-public class PlayersInfo extends ServerMessage {
+public class PlayersMessageLobby extends FafServerMessage {
 
   private List<Player> players;
 
-  public PlayersInfo() {
-    super(ServerMessageType.PLAYER_INFO);
+  public PlayersMessageLobby() {
+    super(FafServerMessageType.PLAYER_INFO);
   }
 
   public List<Player> getPlayers() {

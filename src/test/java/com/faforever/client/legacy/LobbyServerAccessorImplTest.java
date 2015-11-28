@@ -2,15 +2,17 @@ package com.faforever.client.legacy;
 
 import com.faforever.client.game.Faction;
 import com.faforever.client.legacy.domain.ClientMessageType;
-import com.faforever.client.legacy.domain.GameLaunchInfo;
-import com.faforever.client.legacy.domain.GameTypeInfo;
+import com.faforever.client.legacy.domain.FafServerMessage;
+import com.faforever.client.legacy.domain.FafServerMessageType;
+import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
+import com.faforever.client.legacy.domain.GameTypeMessage;
 import com.faforever.client.legacy.domain.InitSessionMessage;
-import com.faforever.client.legacy.domain.LoginInfo;
-import com.faforever.client.legacy.domain.LoginMessage;
-import com.faforever.client.legacy.domain.ServerMessage;
-import com.faforever.client.legacy.domain.ServerMessageType;
-import com.faforever.client.legacy.domain.SessionInfo;
+import com.faforever.client.legacy.domain.LoginClientMessage;
+import com.faforever.client.legacy.domain.LoginLobbyServerMessage;
+import com.faforever.client.legacy.domain.MessageTarget;
+import com.faforever.client.legacy.domain.SessionMessageLobby;
 import com.faforever.client.legacy.gson.ClientMessageTypeTypeAdapter;
+import com.faforever.client.legacy.gson.MessageTargetTypeAdapter;
 import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.io.QDataInputStream;
 import com.faforever.client.legacy.writer.ServerWriter;
@@ -18,9 +20,9 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.rankedmatch.RankedMatchNotification;
-import com.faforever.client.rankedmatch.SearchRanked1v1Message;
-import com.faforever.client.rankedmatch.StopSearchRanked1v1Message;
+import com.faforever.client.rankedmatch.MatchmakerLobbyServerMessage;
+import com.faforever.client.rankedmatch.SearchRanked1V1ClientMessage;
+import com.faforever.client.rankedmatch.StopSearchRanked1V1ClientMessage;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -63,14 +65,15 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private static final long TIMEOUT = 500000;
+  private static final long TIMEOUT = 5000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final int GAME_PORT = 6112;
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final Gson gson = new GsonBuilder()
       .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
       .registerTypeAdapter(ClientMessageType.class, ClientMessageTypeTypeAdapter.INSTANCE)
-      .registerTypeAdapter(ServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
+      .registerTypeAdapter(FafServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
+      .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
       .registerTypeAdapter(Faction.class, new FactionDeserializer())
       .create();
 
@@ -135,7 +138,7 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
         localToServerSocket = socket;
         QDataInputStream qDataInputStream = new QDataInputStream(new DataInputStream(socket.getInputStream()));
         serverToClientWriter = new ServerWriter(socket.getOutputStream());
-        serverToClientWriter.registerMessageSerializer(new ServerMessageSerializer(), ServerMessage.class);
+        serverToClientWriter.registerMessageSerializer(new ServerMessageSerializer(), FafServerMessage.class);
 
         serverToClientReadyLatch.countDown();
 
@@ -172,37 +175,37 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     String password = "JunitPassword";
     long sessionId = 456;
 
-    CompletableFuture<LoginInfo> loginFuture = instance.connectAndLogIn(username, password);
+    CompletableFuture<LoginLobbyServerMessage> loginFuture = instance.connectAndLogIn(username, password);
 
     String json = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     InitSessionMessage initSessionMessage = gson.fromJson(json, InitSessionMessage.class);
 
     assertThat(initSessionMessage.getCommand(), is(ClientMessageType.ASK_SESSION));
 
-    SessionInfo sessionInfo = new SessionInfo();
-    sessionInfo.setSession(sessionId);
-    sendFromServer(sessionInfo);
+    SessionMessageLobby sessionMessage = new SessionMessageLobby();
+    sessionMessage.setSession(sessionId);
+    sendFromServer(sessionMessage);
 
     json = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    LoginMessage loginMessage = gson.fromJson(json, LoginMessage.class);
+    LoginClientMessage loginClientMessage = gson.fromJson(json, LoginClientMessage.class);
 
-    assertThat(loginMessage.getCommand(), is(ClientMessageType.LOGIN));
-    assertThat(loginMessage.getLogin(), is(username));
-    assertThat(loginMessage.getPassword(), is(password));
-    assertThat(loginMessage.getSession(), is(sessionId));
-    assertThat(loginMessage.getUniqueId(), is("encrypteduidstring"));
-    assertThat(loginMessage.getVersion(), is("0"));
-    assertThat(loginMessage.getUserAgent(), is("downlords-faf-client"));
+    assertThat(loginClientMessage.getCommand(), is(ClientMessageType.LOGIN));
+    assertThat(loginClientMessage.getLogin(), is(username));
+    assertThat(loginClientMessage.getPassword(), is(password));
+    assertThat(loginClientMessage.getSession(), is(sessionId));
+    assertThat(loginClientMessage.getUniqueId(), is("encrypteduidstring"));
+    assertThat(loginClientMessage.getVersion(), is("0"));
+    assertThat(loginClientMessage.getUserAgent(), is("downlords-faf-client"));
 
-    LoginInfo loginInfo = new LoginInfo();
-    loginInfo.setId(playerUid);
-    loginInfo.setLogin(username);
+    LoginLobbyServerMessage loginServerMessage = new LoginLobbyServerMessage();
+    loginServerMessage.setId(playerUid);
+    loginServerMessage.setLogin(username);
 
-    sendFromServer(loginInfo);
+    sendFromServer(loginServerMessage);
 
-    LoginInfo result = loginFuture.get(TIMEOUT, TIMEOUT_UNIT);
+    LoginLobbyServerMessage result = loginFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(result.getServerMessageType(), is(ServerMessageType.WELCOME));
+    assertThat(result.getMessageType(), is(FafServerMessageType.WELCOME));
     assertThat(result.getId(), is(playerUid));
     assertThat(result.getLogin(), is(username));
   }
@@ -210,20 +213,20 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
   /**
    * Writes the specified message to the client as if it was sent by the FAF server.
    */
-  private void sendFromServer(ServerMessage serverMessage) throws InterruptedException {
+  private void sendFromServer(FafServerMessage fafServerMessage) throws InterruptedException {
     serverToClientReadyLatch.await();
-    serverToClientWriter.write(serverMessage);
+    serverToClientWriter.write(fafServerMessage);
   }
 
   @Test
   public void testAddOnGameTypeInfoListener() throws Exception {
     connectAndLogIn();
 
-    CompletableFuture<GameTypeInfo> gameTypeInfoFuture = new CompletableFuture<>();
+    CompletableFuture<GameTypeMessage> gameTypeInfoFuture = new CompletableFuture<>();
     @SuppressWarnings("unchecked")
     OnGameTypeInfoListener listener = mock(OnGameTypeInfoListener.class);
     doAnswer(invocation -> {
-      gameTypeInfoFuture.complete(invocation.getArgumentAt(0, GameTypeInfo.class));
+      gameTypeInfoFuture.complete(invocation.getArgumentAt(0, GameTypeMessage.class));
       return null;
     }).when(listener).onGameTypeInfo(any());
 
@@ -235,40 +238,40 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     String icon = "what";
     Boolean[] options = new Boolean[]{TRUE, FALSE, TRUE};
 
-    GameTypeInfo gameTypeInfo = new GameTypeInfo();
-    gameTypeInfo.setName(name);
-    gameTypeInfo.setFullname(fullname);
-    gameTypeInfo.setDesc(description);
-    gameTypeInfo.setIcon(icon);
-    gameTypeInfo.setOptions(options);
+    GameTypeMessage gameTypeMessage = new GameTypeMessage();
+    gameTypeMessage.setName(name);
+    gameTypeMessage.setFullname(fullname);
+    gameTypeMessage.setDesc(description);
+    gameTypeMessage.setIcon(icon);
+    gameTypeMessage.setOptions(options);
 
-    sendFromServer(gameTypeInfo);
+    sendFromServer(gameTypeMessage);
 
-    GameTypeInfo result = gameTypeInfoFuture.get(TIMEOUT, TIMEOUT_UNIT);
+    GameTypeMessage result = gameTypeInfoFuture.get(TIMEOUT, TIMEOUT_UNIT);
     assertThat(result.getName(), is(name));
     assertThat(result.getFullname(), is(fullname));
-    assertThat(result.getServerMessageType(), is(ServerMessageType.GAME_TYPE_INFO));
+    assertThat(result.getMessageType(), is(FafServerMessageType.GAME_TYPE_INFO));
     assertThat(result.getDesc(), is(description));
     assertThat(result.getIcon(), is(icon));
     assertThat(result.getOptions(), is(options));
   }
 
   private void connectAndLogIn() throws Exception {
-    CompletableFuture<LoginInfo> loginFuture = instance.connectAndLogIn("JUnit", "JUnitPassword");
+    CompletableFuture<LoginLobbyServerMessage> loginFuture = instance.connectAndLogIn("JUnit", "JUnitPassword");
 
     assertNotNull(messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT));
 
-    SessionInfo sessionInfo = new SessionInfo();
-    sessionInfo.setSession(5678);
-    sendFromServer(sessionInfo);
+    SessionMessageLobby sessionMessage = new SessionMessageLobby();
+    sessionMessage.setSession(5678);
+    sendFromServer(sessionMessage);
 
     assertNotNull(messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT));
 
-    LoginInfo loginInfo = new LoginInfo();
-    loginInfo.setId(123);
-    loginInfo.setLogin("JUnitUser");
+    LoginLobbyServerMessage loginServerMessage = new LoginLobbyServerMessage();
+    loginServerMessage.setId(123);
+    loginServerMessage.setLogin("JUnitUser");
 
-    sendFromServer(loginInfo);
+    sendFromServer(loginServerMessage);
 
     assertNotNull(loginFuture.get(TIMEOUT, TIMEOUT_UNIT));
   }
@@ -277,9 +280,10 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
   public void testRankedMatchNotification() throws Exception {
     connectAndLogIn();
 
-    RankedMatchNotification message = new RankedMatchNotification(true);
+    MatchmakerLobbyServerMessage message = new MatchmakerLobbyServerMessage();
+    message.setPotential(true);
 
-    CompletableFuture<RankedMatchNotification> serviceStateDoneFuture = new CompletableFuture<>();
+    CompletableFuture<MatchmakerLobbyServerMessage> serviceStateDoneFuture = new CompletableFuture<>();
 
     WaitForAsyncUtils.waitForAsyncFx(200, () -> instance.addOnRankedMatchNotificationListener(
         serviceStateDoneFuture::complete
@@ -287,29 +291,29 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
     sendFromServer(message);
 
-    RankedMatchNotification rankedMatchNotification = serviceStateDoneFuture.get();
+    MatchmakerLobbyServerMessage matchmakerServerMessage = serviceStateDoneFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(rankedMatchNotification.potential, is(true));
+    assertThat(matchmakerServerMessage.potential, is(true));
   }
 
   @Test
   public void startSearchRanked1v1WithAeon() throws Exception {
     connectAndLogIn();
 
-    CompletableFuture<GameLaunchInfo> future = instance.startSearchRanked1v1(Faction.AEON, GAME_PORT);
+    CompletableFuture<GameLaunchMessageLobby> future = instance.startSearchRanked1v1(Faction.AEON, GAME_PORT);
 
     String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    SearchRanked1v1Message searchRanked1v1Message = gson.fromJson(clientMessage, SearchRanked1v1Message.class);
+    SearchRanked1V1ClientMessage searchRanked1v1Message = gson.fromJson(clientMessage, SearchRanked1V1ClientMessage.class);
 
-    assertThat(searchRanked1v1Message, instanceOf(SearchRanked1v1Message.class));
+    assertThat(searchRanked1v1Message, instanceOf(SearchRanked1V1ClientMessage.class));
     assertThat(searchRanked1v1Message.getFaction(), is(Faction.AEON));
     assertThat(searchRanked1v1Message.getGameport(), is(GAME_PORT));
 
-    GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
-    gameLaunchInfo.setUid(1234);
-    sendFromServer(gameLaunchInfo);
+    GameLaunchMessageLobby gameLaunchMessage = new GameLaunchMessageLobby();
+    gameLaunchMessage.setUid(1234);
+    sendFromServer(gameLaunchMessage);
 
-    assertThat(future.get(TIMEOUT, TIMEOUT_UNIT).getUid(), is(gameLaunchInfo.getUid()));
+    assertThat(future.get(TIMEOUT, TIMEOUT_UNIT).getUid(), is(gameLaunchMessage.getUid()));
   }
 
   @Test
@@ -319,8 +323,8 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     instance.stopSearchingRanked();
 
     String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    StopSearchRanked1v1Message stopSearchRanked1v1Message = gson.fromJson(clientMessage, StopSearchRanked1v1Message.class);
-    assertThat(stopSearchRanked1v1Message, instanceOf(StopSearchRanked1v1Message.class));
+    StopSearchRanked1V1ClientMessage stopSearchRanked1v1Message = gson.fromJson(clientMessage, StopSearchRanked1V1ClientMessage.class);
+    assertThat(stopSearchRanked1v1Message, instanceOf(StopSearchRanked1V1ClientMessage.class));
     assertThat(stopSearchRanked1v1Message.getCommand(), is(ClientMessageType.GAME_MATCH_MAKING));
   }
 }

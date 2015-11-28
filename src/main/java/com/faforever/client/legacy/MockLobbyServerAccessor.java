@@ -6,19 +6,22 @@ import com.faforever.client.game.GameType;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
+import com.faforever.client.legacy.domain.FafServerMessage;
 import com.faforever.client.legacy.domain.GameAccess;
-import com.faforever.client.legacy.domain.GameInfo;
-import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.GameInfoMessage;
+import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
 import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.GameTypeInfo;
-import com.faforever.client.legacy.domain.LoginInfo;
+import com.faforever.client.legacy.domain.GameTypeMessage;
+import com.faforever.client.legacy.domain.LoginLobbyServerMessage;
 import com.faforever.client.legacy.domain.Player;
+import com.faforever.client.legacy.relay.GpgClientMessage;
+import com.faforever.client.legacy.relay.GpgServerMessage;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.rankedmatch.MatchmakerLobbyServerMessage;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
-import com.faforever.client.rankedmatch.RankedMatchNotification;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
@@ -60,7 +63,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   private OnPlayerInfoListener onPlayerInfoListener;
   private Collection<OnGameInfoListener> onGameInfoListeners;
   private Collection<OnRankedMatchNotificationListener> onRankedMatchNotificationListeners;
-  private List<Consumer<LoginInfo>> loggedInListeners;
+  private List<Consumer<LoginLobbyServerMessage>> loggedInListeners;
 
   public MockLobbyServerAccessor() {
     onModInfoMessageListeners = new ArrayList<>();
@@ -71,21 +74,21 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public CompletableFuture<LoginInfo> connectAndLogIn(String username, String password) {
-    return taskService.submitTask(new AbstractPrioritizedTask<LoginInfo>(HIGH) {
+  public CompletableFuture<LoginLobbyServerMessage> connectAndLogIn(String username, String password) {
+    return taskService.submitTask(new AbstractPrioritizedTask<LoginLobbyServerMessage>(HIGH) {
       @Override
-      protected LoginInfo call() throws Exception {
+      protected LoginLobbyServerMessage call() throws Exception {
         updateTitle(i18n.get("login.progress.message"));
 
         for (OnGameTypeInfoListener onModInfoMessageListener : onModInfoMessageListeners) {
-          GameTypeInfo gameTypeInfo = new GameTypeInfo();
-          gameTypeInfo.setFullname("Forged Alliance Forever");
-          gameTypeInfo.setName("faf");
-          gameTypeInfo.setLive(true);
-          gameTypeInfo.setHost(true);
-          gameTypeInfo.setDesc("Description");
+          GameTypeMessage gameTypeMessage = new GameTypeMessage();
+          gameTypeMessage.setFullname("Forged Alliance Forever");
+          gameTypeMessage.setName("faf");
+          gameTypeMessage.setLive(true);
+          gameTypeMessage.setHost(true);
+          gameTypeMessage.setDesc("Description");
 
-          onModInfoMessageListener.onGameTypeInfo(gameTypeInfo);
+          onModInfoMessageListener.onGameTypeInfo(gameTypeMessage);
         }
 
         if (onPlayerInfoListener != null) {
@@ -104,8 +107,9 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
         timer.schedule(new TimerTask() {
           @Override
           public void run() {
-            RankedMatchNotification rankedMatchNotification = new RankedMatchNotification(true);
-            onRankedMatchNotificationListeners.forEach(listener -> listener.onRankedMatchInfo(rankedMatchNotification));
+            MatchmakerLobbyServerMessage matchmakerServerMessage = new MatchmakerLobbyServerMessage();
+            matchmakerServerMessage.setPotential(true);
+            onRankedMatchNotificationListeners.forEach(listener -> listener.onRankedMatchInfo(matchmakerServerMessage));
           }
         }, 7000);
 
@@ -143,7 +147,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
             )
         );
 
-        LoginInfo sessionInfo = new LoginInfo();
+        LoginLobbyServerMessage sessionInfo = new LoginLobbyServerMessage();
         sessionInfo.setId(123);
         sessionInfo.setLogin("MockUser");
         return sessionInfo;
@@ -152,7 +156,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void addOnUpdatedAchievementsInfoListener(Consumer<UpdatedAchievementsInfo> listener) {
+  public void addOnUpdatedAchievementsInfoListener(Consumer<UpdatedAchievementsMessageLobby> listener) {
 
   }
 
@@ -167,7 +171,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void addOnLoggedInListener(Consumer<LoginInfo> listener) {
+  public void addOnLoggedInListener(Consumer<LoginLobbyServerMessage> listener) {
     loggedInListeners.add(listener);
   }
 
@@ -177,33 +181,33 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public CompletionStage<GameLaunchInfo> requestNewGame(NewGameInfo newGameInfo) {
-    return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchInfo>(HIGH) {
+  public CompletionStage<GameLaunchMessageLobby> requestNewGame(NewGameInfo newGameInfo) {
+    return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchMessageLobby>(HIGH) {
       @Override
-      protected GameLaunchInfo call() throws Exception {
+      protected GameLaunchMessageLobby call() throws Exception {
         updateTitle(i18n.get("requestNewGameTask.title"));
 
-        GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
-        gameLaunchInfo.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));
-        gameLaunchInfo.setMod("faf");
-        gameLaunchInfo.setUid(1234);
-        return gameLaunchInfo;
+        GameLaunchMessageLobby gameLaunchMessage = new GameLaunchMessageLobby();
+        gameLaunchMessage.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));
+        gameLaunchMessage.setMod("faf");
+        gameLaunchMessage.setUid(1234);
+        return gameLaunchMessage;
       }
     });
   }
 
   @Override
-  public CompletionStage<GameLaunchInfo> requestJoinGame(GameInfoBean gameInfoBean, String password) {
-    return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchInfo>(HIGH) {
+  public CompletionStage<GameLaunchMessageLobby> requestJoinGame(GameInfoBean gameInfoBean, String password) {
+    return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchMessageLobby>(HIGH) {
       @Override
-      protected GameLaunchInfo call() throws Exception {
+      protected GameLaunchMessageLobby call() throws Exception {
         updateTitle(i18n.get("requestJoinGameTask.title"));
 
-        GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
-        gameLaunchInfo.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));
-        gameLaunchInfo.setMod("faf");
-        gameLaunchInfo.setUid(1234);
-        return gameLaunchInfo;
+        GameLaunchMessageLobby gameLaunchMessage = new GameLaunchMessageLobby();
+        gameLaunchMessage.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));
+        gameLaunchMessage.setMod("faf");
+        gameLaunchMessage.setUid(1234);
+        return gameLaunchMessage;
       }
     });
   }
@@ -270,12 +274,12 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public CompletableFuture<GameLaunchInfo> startSearchRanked1v1(Faction faction, int gamePort) {
+  public CompletableFuture<GameLaunchMessageLobby> startSearchRanked1v1(Faction faction, int gamePort) {
     logger.debug("Searching 1v1 match with faction: {}", faction);
-    GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
-    gameLaunchInfo.setUid(123);
-    gameLaunchInfo.setMod(GameType.DEFAULT.getString());
-    return CompletableFuture.completedFuture(gameLaunchInfo);
+    GameLaunchMessageLobby gameLaunchMessage = new GameLaunchMessageLobby();
+    gameLaunchMessage.setUid(123);
+    gameLaunchMessage.setMod(GameType.DEFAULT.getString());
+    return CompletableFuture.completedFuture(gameLaunchMessage);
   }
 
   @Override
@@ -292,21 +296,50 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
     return null;
   }
 
-  private GameInfo createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
-    GameInfo gameInfo = new GameInfo();
-    gameInfo.setUid(uid);
-    gameInfo.setTitle(title);
-    gameInfo.setFeaturedMod(featuredMod);
-    gameInfo.setMapname(mapName);
-    gameInfo.setNumPlayers(numPlayers);
-    gameInfo.setMaxPlayers(maxPlayers);
-    gameInfo.setHost(host);
-    gameInfo.setState(GameState.OPEN);
-    gameInfo.setOptions(new Boolean[0]);
-    gameInfo.setSimMods(Collections.emptyMap());
-    gameInfo.setTeams(Collections.emptyMap());
-    gameInfo.setFeaturedModVersions(Collections.emptyMap());
+  @Override
+  public void addOnGpgServerMessageListener(Consumer<GpgServerMessage> listener) {
 
-    return gameInfo;
+  }
+
+  @Override
+  public void sendGpgMessage(GpgClientMessage message) {
+
+  }
+
+  @Override
+  public void initConnectivityTest() {
+
+  }
+
+  @Override
+  public void removeOnGpgServerMessageListener(Consumer<GpgServerMessage> listener) {
+
+  }
+
+  @Override
+  public void addOnConnectivityStateMessageListener(Consumer<FafServerMessage> listener) {
+
+  }
+
+  @Override
+  public void removeOnFafServerMessageListener(Consumer<FafServerMessage> listener) {
+
+  }
+
+  private GameInfoMessage createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
+    GameInfoMessage gameInfoMessage = new GameInfoMessage();
+    gameInfoMessage.setUid(uid);
+    gameInfoMessage.setTitle(title);
+    gameInfoMessage.setFeaturedMod(featuredMod);
+    gameInfoMessage.setMapname(mapName);
+    gameInfoMessage.setNumPlayers(numPlayers);
+    gameInfoMessage.setMaxPlayers(maxPlayers);
+    gameInfoMessage.setHost(host);
+    gameInfoMessage.setState(GameState.OPEN);
+    gameInfoMessage.setSimMods(Collections.emptyMap());
+    gameInfoMessage.setTeams(Collections.emptyMap());
+    gameInfoMessage.setFeaturedModVersions(Collections.emptyMap());
+
+    return gameInfoMessage;
   }
 }

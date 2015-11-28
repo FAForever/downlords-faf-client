@@ -6,7 +6,6 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.util.SocketAddressUtil;
 import org.apache.commons.compress.utils.IOUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -167,32 +166,6 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testUpdateConnectedStateTrue() throws Exception {
-    instance.registerP2pPeerIfNecessary("64.1.1.1:6112");
-    instance.setUidForPeer("64.1.1.1:6112", OTHER_UID_1);
-    instance.updateConnectedState(OTHER_UID_1, true);
-
-    assertThat(instance.peersByUid.values(), hasSize(1));
-
-    Peer peer = instance.peersByUid.values().iterator().next();
-    assertThat(peer.isConnected(), is(true));
-  }
-
-  @Test
-  public void testUpdateConnectedStateFalse() throws Exception {
-    instance.registerP2pPeerIfNecessary("64.1.1.1:6112");
-    instance.setUidForPeer("64.1.1.1:6112", OTHER_UID_1);
-
-    assertThat(instance.peersByUid.values(), hasSize(1));
-    Peer peer = instance.peersByUid.values().iterator().next();
-
-    instance.updateConnectedState(OTHER_UID_1, false);
-
-    assertThat(instance.peersByUid.values(), hasSize(0));
-    assertThat(peer.isConnected(), is(false));
-  }
-
-  @Test
   public void testSetGameLaunchedTrue() throws Exception {
     instance.setGameLaunched(true);
     assertThat(instance.gameLaunched, is(true));
@@ -215,46 +188,6 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
     instance.setBottleneck(false);
     assertThat(instance.gameLaunched, is(false));
     assertThat(instance.bottleneck, is(false));
-  }
-
-  @Test
-  public void testTranslate() throws Exception {
-    instance.registerP2pPeerIfNecessary("64.1.1.1:6112");
-    String localAddress = instance.translateToLocal("64.1.1.1:6112");
-    String publicAddress = instance.translateToPublic(localAddress);
-    assertThat(publicAddress, is("64.1.1.1:6112"));
-  }
-
-  @Test
-  public void testRegisterPeerIfNecessary() throws Exception {
-    assertNull(instance.peersByAddress.get("64.1.1.1:6112"));
-    instance.registerP2pPeerIfNecessary("64.1.1.1:6112");
-    assertNotNull(instance.peersByAddress.get("64.1.1.1:6112"));
-
-    // TODO check if forwarding works
-  }
-
-  @Test
-  public void testInitializeP2pProxy() throws Exception {
-    CountDownLatch countDownLatch = new CountDownLatch(1);
-    instance.addOnP2pProxyInitializedListener(countDownLatch::countDown);
-
-    instance.initializeP2pProxy();
-    countDownLatch.await(1, TimeUnit.SECONDS);
-
-    assertThat("P2P proxy has not initialized within timeout", countDownLatch.getCount(), is(0L));
-
-    // TODO test that game port has been opened
-  }
-
-  @Test
-  public void testSetUidForPeer() throws Exception {
-    instance.registerP2pPeerIfNecessary("64.1.1.1:6112");
-    instance.setUidForPeer("64.1.1.1:6112", 1);
-
-    assertThat(instance.peersByUid.values(), hasSize(1));
-    assertThat(instance.peersByUid.get(1).getUid(), is(1));
-    assertThat(SocketAddressUtil.toString(instance.peersByUid.get(1).getInetSocketAddress()), is("64.1.1.1:6112"));
   }
 
   @Test
@@ -341,25 +274,5 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
     DatagramPacket datagramPacket = new DatagramPacket(data, data.length, localProxySocket.getLocalSocketAddress());
 
     gameDatagramSocket.send(datagramPacket);
-  }
-
-  @Test
-  public void testIsReconnectionSequenceYes() throws Exception {
-    assertTrue(ProxyImpl.isReconnectionSequence(new byte[]{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}));
-  }
-
-  @Test(expected = NullPointerException.class)
-  public void testIsReconnectionSequenceNullThrowsException() throws Exception {
-    ProxyImpl.isReconnectionSequence(null);
-  }
-
-  @Test
-  public void testIsReconnectionSequenceNoButSameLength() throws Exception {
-    assertFalse(ProxyImpl.isReconnectionSequence(new byte[]{0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}));
-  }
-
-  @Test
-  public void testIsReconnectionSequenceNoShorterLength() throws Exception {
-    assertFalse(ProxyImpl.isReconnectionSequence(new byte[]{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}));
   }
 }

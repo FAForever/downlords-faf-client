@@ -1,16 +1,16 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.legacy.domain.ServerMessage;
-import com.faforever.client.legacy.domain.ServerMessageType;
+import com.faforever.client.legacy.domain.FafServerMessage;
+import com.faforever.client.legacy.domain.FafServerMessageType;
 
 import java.util.List;
 
-public class UpdatedAchievementsInfo extends ServerMessage {
+public class UpdatedAchievementsMessageLobby extends FafServerMessage {
 
   private List<UpdatedAchievement> updatedAchievements;
 
-  public UpdatedAchievementsInfo() {
-    super(ServerMessageType.UPDATED_ACHIEVEMENTS);
+  public UpdatedAchievementsMessageLobby() {
+    super(FafServerMessageType.UPDATED_ACHIEVEMENTS);
   }
 
   public List<UpdatedAchievement> getUpdatedAchievements() {

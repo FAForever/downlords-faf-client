@@ -4,8 +4,11 @@ import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
-import com.faforever.client.legacy.domain.GameLaunchInfo;
-import com.faforever.client.legacy.domain.LoginInfo;
+import com.faforever.client.legacy.domain.FafServerMessage;
+import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
+import com.faforever.client.legacy.domain.LoginLobbyServerMessage;
+import com.faforever.client.legacy.relay.GpgClientMessage;
+import com.faforever.client.legacy.relay.GpgServerMessage;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 import org.jetbrains.annotations.Nullable;
@@ -25,21 +28,21 @@ public interface LobbyServerAccessor {
   /**
    * Connects to the FAF server and logs in using the credentials from {@link PreferencesService}.
    */
-  CompletableFuture<LoginInfo> connectAndLogIn(String username, String password);
+  CompletableFuture<LoginLobbyServerMessage> connectAndLogIn(String username, String password);
 
-  void addOnUpdatedAchievementsInfoListener(Consumer<UpdatedAchievementsInfo> listener);
+  void addOnUpdatedAchievementsInfoListener(Consumer<UpdatedAchievementsMessageLobby> listener);
 
   void addOnGameTypeInfoListener(OnGameTypeInfoListener listener);
 
   void addOnGameInfoListener(OnGameInfoListener listener);
 
-  void addOnLoggedInListener(Consumer<LoginInfo> listener);
+  void addOnLoggedInListener(Consumer<LoginLobbyServerMessage> listener);
 
   void setOnPlayerInfoMessageListener(OnPlayerInfoListener listener);
 
-  CompletionStage<GameLaunchInfo> requestNewGame(NewGameInfo newGameInfo);
+  CompletionStage<GameLaunchMessageLobby> requestNewGame(NewGameInfo newGameInfo);
 
-  CompletionStage<GameLaunchInfo> requestJoinGame(GameInfoBean gameInfoBean, String password);
+  CompletionStage<GameLaunchMessageLobby> requestJoinGame(GameInfoBean gameInfoBean, String password);
 
   void setOnFafConnectingListener(OnLobbyConnectingListener onLobbyConnectingListener);
 
@@ -65,7 +68,7 @@ public interface LobbyServerAccessor {
 
   void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener);
 
-  CompletableFuture<GameLaunchInfo> startSearchRanked1v1(Faction faction, int gamePort);
+  CompletableFuture<GameLaunchMessageLobby> startSearchRanked1v1(Faction faction, int gamePort);
 
   void stopSearchingRanked();
 
@@ -73,4 +76,16 @@ public interface LobbyServerAccessor {
 
   @Nullable
   Long getSessionId();
+
+  void addOnGpgServerMessageListener(Consumer<GpgServerMessage> listener);
+
+  void sendGpgMessage(GpgClientMessage message);
+
+  void initConnectivityTest();
+
+  void removeOnGpgServerMessageListener(Consumer<GpgServerMessage> listener);
+
+  void addOnConnectivityStateMessageListener(Consumer<FafServerMessage> listener);
+
+  void removeOnFafServerMessageListener(Consumer<FafServerMessage> listener);
 }

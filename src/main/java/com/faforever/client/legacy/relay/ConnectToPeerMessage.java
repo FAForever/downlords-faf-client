@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.relay;
 
-import static com.faforever.client.legacy.relay.GpgServerCommandServerCommand.CONNECT_TO_PEER;
+import static com.faforever.client.legacy.relay.GpgServerMessageType.CONNECT_TO_PEER;
 
 public class ConnectToPeerMessage extends GpgServerMessage {
 
@@ -9,7 +9,7 @@ public class ConnectToPeerMessage extends GpgServerMessage {
   private static final int PEER_UID_INDEX = 2;
 
   public ConnectToPeerMessage() {
-    super(CONNECT_TO_PEER);
+    super(CONNECT_TO_PEER, 3);
   }
 
   public void setUsername(String username) {

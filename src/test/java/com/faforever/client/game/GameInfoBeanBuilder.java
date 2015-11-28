@@ -20,7 +20,6 @@ public class GameInfoBeanBuilder {
     gameInfoBean.setMapTechnicalName("mapName");
     gameInfoBean.setNumPlayers(1);
     gameInfoBean.setNumPlayers(2);
-    gameInfoBean.setOptions(FXCollections.emptyObservableList());
     gameInfoBean.setSimMods(FXCollections.emptyObservableMap());
     gameInfoBean.setStatus(GameState.OPEN);
     gameInfoBean.setTitle("Title");

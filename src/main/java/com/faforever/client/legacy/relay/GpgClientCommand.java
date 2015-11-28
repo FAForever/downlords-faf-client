@@ -21,13 +21,11 @@ public enum GpgClientCommand {
   CHAT("Chat"),
   GAME_RESULT("GameResult"),
   STATS("Stats"),
-  AUTHENTICATE("Authenticate"),
   CLEAR_SLOT("ClearSlot"),
   AI_OPTION("AIOption"),
   JSON_STATS("JsonStats"),
   // Yes, these are the only lower-cased in the protocol. Because fuck you.
-  CONNECTED_TO_HOST("connectedToHost"),
-  PONG("pong");
+  CONNECTED_TO_HOST("connectedToHost");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

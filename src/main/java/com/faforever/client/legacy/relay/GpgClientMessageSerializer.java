@@ -9,6 +9,6 @@ public class GpgClientMessageSerializer extends JsonMessageSerializer<GpgClientM
   @Override
   protected void addTypeAdapters(GsonBuilder gsonBuilder) {
     gsonBuilder.registerTypeAdapter(GpgClientCommand.class, GpgClientCommandTypeAdapter.INSTANCE);
-    gsonBuilder.registerTypeAdapter(GpgServerCommandServerCommand.class, GpgServerCommandTypeAdapter.INSTANCE);
+    gsonBuilder.registerTypeAdapter(GpgServerMessageType.class, GpgServerCommandTypeAdapter.INSTANCE);
   }
 }

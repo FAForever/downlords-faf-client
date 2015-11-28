@@ -3,7 +3,7 @@ package com.faforever.client.legacy.domain;
 import java.util.Collection;
 import java.util.Collections;
 
-public class LoginMessage extends ClientMessage {
+public class LoginClientMessage extends ClientMessage {
 
   private String login;
   private String password;
@@ -13,7 +13,7 @@ public class LoginMessage extends ClientMessage {
   private String version;
   private String userAgent;
 
-  public LoginMessage(String username, String password, long session, String uniqueId, String localIp, String version) {
+  public LoginClientMessage(String username, String password, long session, String uniqueId, String localIp, String version) {
     super(ClientMessageType.LOGIN);
     this.setLogin(username);
     this.setPassword(password);

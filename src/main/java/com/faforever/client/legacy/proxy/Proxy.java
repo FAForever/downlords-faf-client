@@ -2,14 +2,8 @@ package com.faforever.client.legacy.proxy;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
 
 public interface Proxy {
-
-  interface OnP2pProxyInitializedListener {
-
-    void onP2pProxyInitialized();
-  }
 
   /**
    * Closes all proxy connections.
@@ -21,22 +15,6 @@ public interface Proxy {
   void setGameLaunched(boolean gameLaunched);
 
   void setBottleneck(boolean bottleneck);
-
-  /**
-   * Translates a local socket address of a player (e.g. 127.0.0.1:51234) to its public socket address (e.g.
-   * 84.53.132.41:6112).
-   */
-  String translateToPublic(String localAddress);
-
-  /**
-   * Translates a public socket address of a player (e.g. 84.53.132.41:6112) to its local socket address (e.g.
-   * 127.0.0.1:51234).
-   */
-  String translateToLocal(String publicAddress);
-
-  void registerP2pPeerIfNecessary(String publicAddress);
-
-  void initializeP2pProxy() throws SocketException;
 
   void setUidForPeer(String peerAddress, int peerUid);
 
@@ -53,5 +31,4 @@ public interface Proxy {
    */
   InetSocketAddress bindAndGetProxySocketAddress(int playerNumber, int uid) throws IOException;
 
-  void addOnP2pProxyInitializedListener(OnP2pProxyInitializedListener listener);
 }

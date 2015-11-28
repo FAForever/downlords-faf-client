@@ -3,7 +3,6 @@ package com.faforever.client.replay;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.VictoryCondition;
-import javafx.collections.ObservableList;
 
 import java.util.List;
 import java.util.Map;
@@ -46,9 +45,6 @@ public class LocalReplayInfo {
     simMods = gameInfoBean.getSimMods();
     teams = gameInfoBean.getTeams();
     featuredModVersions = gameInfoBean.getFeaturedModVersions();
-
-    ObservableList<Boolean> options = gameInfoBean.getOptions();
-    this.setOptions(options.toArray(new Boolean[options.size()]));
   }
 
   public String getHost() {

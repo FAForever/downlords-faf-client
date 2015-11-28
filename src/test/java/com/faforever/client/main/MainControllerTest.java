@@ -20,6 +20,7 @@ import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.portcheck.ConnectivityState;
 import com.faforever.client.portcheck.PortCheckService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
@@ -47,6 +48,8 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.concurrent.CompletableFuture;
 
+import static com.faforever.client.portcheck.ConnectivityState.PROXY;
+import static com.faforever.client.portcheck.ConnectivityState.PUBLIC;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -185,7 +188,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testDisplay() throws Exception {
     attachToRoot();
-    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(true));
+    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(PUBLIC));
     when(communityHubController.getRoot()).thenReturn(new Pane());
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
     when(mainWindowPrefs.getLastView()).thenReturn(instance.communityButton.getId());
@@ -259,7 +262,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnPortCheckRetryClicked() throws Exception {
-    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(true));
+    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(PUBLIC));
 
     instance.onPortCheckRetryClicked();
 
@@ -293,7 +296,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> instance.portCheckStatusButton.setText(disconnected));
 
-    CompletableFuture<Boolean> future = new CompletableFuture<>();
+    CompletableFuture<ConnectivityState> future = new CompletableFuture<>();
     future.completeExceptionally(new Exception("test exception"));
 
     when(portCheckService.checkGamePortInBackground()).thenReturn(future);
@@ -310,7 +313,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     String disconnected = "foobar";
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> instance.portCheckStatusButton.setText(disconnected));
 
-    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(true));
+    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(PUBLIC));
 
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
 
@@ -325,7 +328,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     String disconnected = "foobar";
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> instance.portCheckStatusButton.setText(disconnected));
 
-    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(false));
+    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(PROXY));
 
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
 

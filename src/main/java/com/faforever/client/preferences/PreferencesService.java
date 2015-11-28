@@ -112,7 +112,7 @@ public class PreferencesService {
         .setPrettyPrinting()
         .registerTypeHierarchyAdapter(Property.class, PropertyTypeAdapter.INSTANCE)
         .registerTypeHierarchyAdapter(Path.class, PathTypeAdapter.INSTANCE)
-        .registerTypeHierarchyAdapter(Color.class, new ColorTypeAdapter())
+        .registerTypeAdapter(Color.class, new ColorTypeAdapter())
         .registerTypeAdapter(Faction.class, FactionTypeAdapter.INSTANCE)
         .create();
   }

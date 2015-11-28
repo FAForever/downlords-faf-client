@@ -1,6 +1,7 @@
 package com.faforever.client.legacy.writer;
 
 import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.legacy.domain.SerializableMessage;
 import com.faforever.client.legacy.io.QDataWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,10 +40,10 @@ public class ServerWriter implements Closeable {
   }
 
   @SuppressWarnings("unchecked")
-  public void write(Object object) {
+  public void write(SerializableMessage object) {
     Class<?> clazz = object.getClass();
 
-    Serializer<Object> serializer = (Serializer<Object>) findSerializerForClass(clazz);
+    Serializer<SerializableMessage> serializer = (Serializer<SerializableMessage>) findSerializerForClass(clazz);
 
     if (serializer == null) {
       throw new IllegalStateException("No object writer registered for type: " + clazz);

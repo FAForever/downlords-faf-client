@@ -3,7 +3,7 @@ package com.faforever.client.legacy.domain;
 import java.util.List;
 import java.util.Map;
 
-public class GameInfo extends ServerMessage {
+public class GameInfoMessage extends FafServerMessage {
 
   private String host;
   private Boolean passwordProtected;
@@ -11,7 +11,6 @@ public class GameInfo extends ServerMessage {
   private String visibility;
   private GameState state;
   private Integer numPlayers;
-  private Boolean[] options;
   private Map<String, List<String>> teams;
   private Map<String, Integer> featuredModVersions;
   private String featuredMod;
@@ -22,6 +21,10 @@ public class GameInfo extends ServerMessage {
   private VictoryCondition gameType;
   private Map<String, String> simMods;
   private String mapname;
+
+  public GameInfoMessage() {
+    super(FafServerMessageType.GAME_INFO);
+  }
 
   @Override
   public String toString() {
@@ -70,14 +73,6 @@ public class GameInfo extends ServerMessage {
 
   public void setMapname(String mapname) {
     this.mapname = mapname;
-  }
-
-  public Boolean[] getOptions() {
-    return options;
-  }
-
-  public void setOptions(Boolean[] options) {
-    this.options = options;
   }
 
   public VictoryCondition getGameType() {

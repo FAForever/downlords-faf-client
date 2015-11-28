@@ -1,10 +1,20 @@
 package com.faforever.client.legacy;
 
-public class PongMessage {
+import com.faforever.client.legacy.domain.SerializableMessage;
+
+import java.util.Collection;
+import java.util.Collections;
+
+public class PongMessage implements SerializableMessage {
 
   private static final String PONG = "PONG";
 
   public String getString() {
     return PONG;
+  }
+
+  @Override
+  public Collection<String> getStringsToMask() {
+    return Collections.emptyList();
   }
 }

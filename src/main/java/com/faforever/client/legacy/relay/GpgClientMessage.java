@@ -7,36 +7,30 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.faforever.client.legacy.relay.GpgClientCommand.PONG;
 
 public class GpgClientMessage implements SerializableMessage {
 
-  private String action;
-  private List<Object> chunks;
+  private String command;
+  private List<Object> args;
 
-  public GpgClientMessage(GpgClientCommand action, List<Object> chunks) {
-    this(action.getString(), chunks);
+  public GpgClientMessage(GpgClientCommand command, List<Object> args) {
+    this(command.getString(), args);
   }
 
-  public GpgClientMessage(String action, List<Object> chunks) {
-    this.action = action;
-    this.chunks = chunks;
+  public GpgClientMessage(String command, List<Object> args) {
+    this.command = command;
+    this.args = args;
   }
 
-  public List<Object> getChunks() {
-    return chunks;
+  public List<Object> getArgs() {
+    return args;
   }
 
-  public GpgClientCommand getAction() {
-    return GpgClientCommand.fromString(action);
+  public GpgClientCommand getCommand() {
+    return GpgClientCommand.fromString(command);
   }
 
   public Collection<String> getStringsToMask() {
     return Collections.emptyList();
   }
-
-  public static GpgClientMessage pong() {
-    return new GpgClientMessage(PONG, Collections.emptyList());
-  }
-
 }

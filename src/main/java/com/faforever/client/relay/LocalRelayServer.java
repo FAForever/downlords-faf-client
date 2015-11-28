@@ -10,7 +10,7 @@ public interface LocalRelayServer {
 
   void addOnReadyListener(OnReadyListener listener);
 
-  void addOnConnectionAcceptedListener(OnConnectionAcceptedListener listener);
+  void addOnConnectionAcceptedListener(Runnable listener);
 
   int getPort();
 

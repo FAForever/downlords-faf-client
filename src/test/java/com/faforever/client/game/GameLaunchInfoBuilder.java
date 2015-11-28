@@ -1,26 +1,26 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
 
 import java.util.Arrays;
 
 public class GameLaunchInfoBuilder {
 
-  private final GameLaunchInfo gameLaunchInfo;
+  private final GameLaunchMessageLobby gameLaunchMessage;
 
   public GameLaunchInfoBuilder() {
-    gameLaunchInfo = new GameLaunchInfo();
+    gameLaunchMessage = new GameLaunchMessageLobby();
   }
 
   public GameLaunchInfoBuilder defaultValues() {
-    gameLaunchInfo.setUid(1);
-    gameLaunchInfo.setMod("mod");
-    gameLaunchInfo.setArgs(Arrays.asList("/ratingcolor red", "/clan foo"));
+    gameLaunchMessage.setUid(1);
+    gameLaunchMessage.setMod("mod");
+    gameLaunchMessage.setArgs(Arrays.asList("/ratingcolor red", "/clan foo"));
     return this;
   }
 
-  public GameLaunchInfo get() {
-    return gameLaunchInfo;
+  public GameLaunchMessageLobby get() {
+    return gameLaunchMessage;
   }
 
   public static GameLaunchInfoBuilder create() {

@@ -11,7 +11,7 @@ public class CreateLobbyServerMessage extends GpgServerMessage {
   private static final int UNKNOWN_FLAG_INDEX = 4;
 
   public CreateLobbyServerMessage(LobbyMode lobbyMode, int port, String username, int uid, int unknownFlag) {
-    super(GpgServerCommandServerCommand.CREATE_LOBBY);
+    super(GpgServerMessageType.CREATE_LOBBY, 5);
     Validator.notNull(lobbyMode, "lobbyMode must not be null");
     Validator.notNull(username, "username must not be null");
 

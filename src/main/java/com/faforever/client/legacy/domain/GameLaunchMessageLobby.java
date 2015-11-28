@@ -2,14 +2,14 @@ package com.faforever.client.legacy.domain;
 
 import java.util.List;
 
-public class GameLaunchInfo extends ServerMessage {
+public class GameLaunchMessageLobby extends FafServerMessage {
 
   private List<String> args;
   private int uid;
   private String mod;
 
-  public GameLaunchInfo() {
-    super(ServerMessageType.GAME_LAUNCH);
+  public GameLaunchMessageLobby() {
+    super(FafServerMessageType.GAME_LAUNCH);
   }
 
   /**

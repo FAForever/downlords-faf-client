@@ -6,10 +6,10 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
-import com.faforever.client.legacy.domain.GameInfo;
-import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.GameInfoMessage;
+import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
 import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.GameTypeInfo;
+import com.faforever.client.legacy.domain.GameTypeMessage;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
@@ -102,6 +102,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   LocalRelayServer localRelayServer;
   @VisibleForTesting
   RatingMode ratingMode;
+
   private Process process;
   private BooleanProperty searching1v1;
   private Instant gameStartedTime;
@@ -133,14 +134,10 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     stopSearchRanked1v1();
 
     return updateGameIfNecessary(newGameInfo.getGameType(), newGameInfo.getVersion(), emptyMap(), newGameInfo.getSimModUidsToVersions())
-        .thenRun(() -> lobbyServerAccessor.requestNewGame(newGameInfo)
-            .thenAccept((gameLaunchInfo) -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL))
-            .exceptionally(throwable -> {
-              logger.warn("Could request new game", throwable);
-              return null;
-            }))
+        .thenCompose(aVoid -> lobbyServerAccessor.requestNewGame(newGameInfo))
+        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL))
         .exceptionally(throwable -> {
-          logger.warn("Game could not be updated", throwable);
+          logger.warn("Hosting game failed", throwable);
           return null;
         });
   }
@@ -160,9 +157,9 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     Set<String> simModUIds = gameInfoBean.getSimMods().keySet();
 
     return updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
-        .thenRun(() -> downloadMapIfNecessary(gameInfoBean.getMapTechnicalName())
-            .thenRun(() -> lobbyServerAccessor.requestJoinGame(gameInfoBean, password)
-                .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL))))
+        .thenCompose(aVoid -> downloadMapIfNecessary(gameInfoBean.getMapTechnicalName()))
+        .thenCompose(aVoid -> lobbyServerAccessor.requestJoinGame(gameInfoBean, password))
+        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL))
         .exceptionally(throwable -> {
           logger.warn("Game could not be started", throwable);
           return null;
@@ -217,10 +214,10 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
     notificationService.addNotification(new ImmediateNotification(
-            i18n.get("replayCouldNotBeStarted.title"),
-            i18n.get("replayCouldNotBeStarted.text", replayId),
-            Severity.ERROR, throwable,
-            singletonList(new Action(i18n.get("report"))))
+        i18n.get("replayCouldNotBeStarted.title"),
+        i18n.get("replayCouldNotBeStarted.text", replayId),
+        Severity.ERROR, throwable,
+        singletonList(new Action(i18n.get("report"))))
     );
   }
 
@@ -322,12 +319,16 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     return gameUpdateService.updateInBackground(gameType, version, modVersions, simModUIds);
   }
 
-  private void startGame(GameLaunchInfo gameLaunchInfo, Faction faction, RatingMode ratingMode) {
+  /**
+   * Actually starts the game. Call this method when everything else is prepared (mod/map download, connectivity check
+   * etc.)
+   */
+  private void startGame(GameLaunchMessageLobby gameLaunchMessage, Faction faction, RatingMode ratingMode) {
     stopSearchRanked1v1();
-    List<String> args = fixMalformedArgs(gameLaunchInfo.getArgs());
+    List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
     try {
-      process = forgedAllianceService.startGame(gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), faction, args, ratingMode);
-      onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(gameLaunchInfo.getUid()));
+      process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), faction, args, ratingMode);
+      onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(gameLaunchMessage.getUid()));
 
       this.ratingMode = ratingMode;
       spawnTerminationListener(process);
@@ -379,29 +380,28 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
-  public void onGameTypeInfo(GameTypeInfo gameTypeInfo) {
-    // FIXME for testing purposes only
-//    if (!gameTypeInfo.isHost() || !gameTypeInfo.isLive() || gameTypeBeans.containsKey(gameTypeInfo.getName())) {
-//      return;
-//    }
-
-    gameTypeBeans.put(gameTypeInfo.getName(), new GameTypeBean(gameTypeInfo));
-  }
-
-  @Override
-  public void onGameInfo(GameInfo gameInfo) {
-    if (GameState.CLOSED.equals(gameInfo.getState())) {
-      gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfo.getUid()));
+  public void onGameTypeInfo(GameTypeMessage gameTypeMessage) {
+    if (!gameTypeMessage.isHost() || !gameTypeMessage.isLive() || gameTypeBeans.containsKey(gameTypeMessage.getName())) {
       return;
     }
 
-    if (!uidToGameInfoBean.containsKey(gameInfo.getUid())) {
-      GameInfoBean gameInfoBean = new GameInfoBean(gameInfo);
+    gameTypeBeans.put(gameTypeMessage.getName(), new GameTypeBean(gameTypeMessage));
+  }
+
+  @Override
+  public void onGameInfo(GameInfoMessage gameInfoMessage) {
+    if (GameState.CLOSED.equals(gameInfoMessage.getState())) {
+      gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfoMessage.getUid()));
+      return;
+    }
+
+    if (!uidToGameInfoBean.containsKey(gameInfoMessage.getUid())) {
+      GameInfoBean gameInfoBean = new GameInfoBean(gameInfoMessage);
 
       gameInfoBeans.add(gameInfoBean);
-      uidToGameInfoBean.put(gameInfo.getUid(), gameInfoBean);
+      uidToGameInfoBean.put(gameInfoMessage.getUid(), gameInfoBean);
     } else {
-      uidToGameInfoBean.get(gameInfo.getUid()).updateFromGameInfo(gameInfo);
+      uidToGameInfoBean.get(gameInfoMessage.getUid()).updateFromGameInfo(gameInfoMessage);
     }
   }
 }

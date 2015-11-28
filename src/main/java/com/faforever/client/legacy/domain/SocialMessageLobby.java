@@ -6,7 +6,7 @@ import java.util.List;
  * Other than other server objects, the "social" command is a category of different objects like friend list, foe list
  * and a list of channels to join. Only one field is filled at a time.
  */
-public class SocialInfo extends ServerMessage {
+public class SocialMessageLobby extends FafServerMessage {
 
   private List<String> friends;
   private List<String> foes;

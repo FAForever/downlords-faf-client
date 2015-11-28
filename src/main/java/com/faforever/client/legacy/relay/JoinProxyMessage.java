@@ -6,6 +6,10 @@ public class JoinProxyMessage extends GpgServerMessage {
   public static final int USERNAME_INDEX = 2;
   public static final int PEER_UID_INDEX = 3;
 
+  public JoinProxyMessage() {
+    super(GpgServerMessageType.JOIN_PROXY, 4);
+  }
+
   public int getPeerUid() {
     return getInt(PEER_UID_INDEX);
   }

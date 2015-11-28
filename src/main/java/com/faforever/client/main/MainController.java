@@ -31,9 +31,9 @@ import com.faforever.client.preferences.OnChoseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.preferences.WindowPrefs;
+import com.faforever.client.rankedmatch.MatchmakerLobbyServerMessage;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 import com.faforever.client.rankedmatch.Ranked1v1Controller;
-import com.faforever.client.rankedmatch.RankedMatchNotification;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
@@ -467,10 +467,14 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   private void checkGamePortInBackground() {
     portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
     portCheckService.checkGamePortInBackground().thenAccept(result -> {
-      if (result) {
-        portCheckStatusButton.setText(i18n.get("statusBar.portReachable"));
-      } else {
-        portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
+      switch (result) {
+        case PUBLIC:
+        case STUN:
+          portCheckStatusButton.setText(i18n.get("statusBar.portReachable"));
+          break;
+        case PROXY:
+          portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
+          break;
       }
     }).exceptionally(throwable -> {
       portCheckStatusButton.setText(i18n.get("statusBar.portCheckFailed"));
@@ -726,8 +730,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   @Override
-  public void onRankedMatchInfo(RankedMatchNotification rankedMatchNotification) {
-    rankedMatchNotificationPane.setVisible(rankedMatchNotification.potential);
+  public void onRankedMatchInfo(MatchmakerLobbyServerMessage matchmakerServerMessage) {
+    rankedMatchNotificationPane.setVisible(matchmakerServerMessage.potential);
   }
 
   @FXML

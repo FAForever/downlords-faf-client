@@ -6,7 +6,7 @@ import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 
-public class GpgServerCommandTypeAdapter extends TypeAdapter<GpgServerCommandServerCommand> {
+public class GpgServerCommandTypeAdapter extends TypeAdapter<GpgServerMessageType> {
 
   public static final GpgServerCommandTypeAdapter INSTANCE = new GpgServerCommandTypeAdapter();
 
@@ -15,12 +15,12 @@ public class GpgServerCommandTypeAdapter extends TypeAdapter<GpgServerCommandSer
   }
 
   @Override
-  public void write(JsonWriter out, GpgServerCommandServerCommand value) throws IOException {
+  public void write(JsonWriter out, GpgServerMessageType value) throws IOException {
     out.value(value.getString());
   }
 
   @Override
-  public GpgServerCommandServerCommand read(JsonReader in) throws IOException {
-    return GpgServerCommandServerCommand.fromString(in.nextString());
+  public GpgServerMessageType read(JsonReader in) throws IOException {
+    return GpgServerMessageType.fromString(in.nextString());
   }
 }

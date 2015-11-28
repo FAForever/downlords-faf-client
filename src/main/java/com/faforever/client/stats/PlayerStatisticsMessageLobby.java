@@ -2,7 +2,7 @@ package com.faforever.client.stats;
 
 import java.util.List;
 
-public class PlayerStatistics extends StatisticsMessage {
+public class PlayerStatisticsMessageLobby extends StatisticsMessageLobby {
 
   private List<RatingInfo> values;
   private String player;

@@ -1,7 +1,7 @@
 package com.faforever.client.legacy;
 
 import com.faforever.client.legacy.domain.StatisticsType;
-import com.faforever.client.stats.PlayerStatistics;
+import com.faforever.client.stats.PlayerStatisticsMessageLobby;
 import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
@@ -19,10 +19,10 @@ public class MockStatisticsServerAccessor implements StatisticsServerAccessor {
   TaskService taskService;
 
   @Override
-  public CompletableFuture<PlayerStatistics> requestPlayerStatistics(StatisticsType type, String username) {
-    return taskService.submitTask(new AbstractPrioritizedTask<PlayerStatistics>(MEDIUM) {
+  public CompletableFuture<PlayerStatisticsMessageLobby> requestPlayerStatistics(StatisticsType type, String username) {
+    return taskService.submitTask(new AbstractPrioritizedTask<PlayerStatisticsMessageLobby>(MEDIUM) {
       @Override
-      protected PlayerStatistics call() throws Exception {
+      protected PlayerStatisticsMessageLobby call() throws Exception {
         updateTitle("Fetching player statistics");
 
         ArrayList<RatingInfo> ratings = new ArrayList<>();
@@ -33,10 +33,10 @@ public class MockStatisticsServerAccessor implements StatisticsServerAccessor {
           ratings.add(createRatingInfo(localDateTime, mean, dev));
         }
 
-        PlayerStatistics playerStatistics = new PlayerStatistics();
-        playerStatistics.setStatisticsType(StatisticsType.STATS);
-        playerStatistics.setValues(ratings);
-        return playerStatistics;
+        PlayerStatisticsMessageLobby playerStatisticsMessage = new PlayerStatisticsMessageLobby();
+        playerStatisticsMessage.setStatisticsType(StatisticsType.STATS);
+        playerStatisticsMessage.setValues(ratings);
+        return playerStatisticsMessage;
       }
     });
   }

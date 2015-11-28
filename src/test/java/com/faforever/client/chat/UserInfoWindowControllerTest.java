@@ -11,7 +11,7 @@ import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.stats.PlayerStatistics;
+import com.faforever.client.stats.PlayerStatisticsMessageLobby;
 import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -74,16 +74,16 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getTheme()).thenReturn("default");
 
-    PlayerStatistics playerStatistics = new PlayerStatistics();
-    playerStatistics.setPlayer(PLAYER_NAME);
-    playerStatistics.setValues(asList(
+    PlayerStatisticsMessageLobby playerStatisticsMessage = new PlayerStatisticsMessageLobby();
+    playerStatisticsMessage.setPlayer(PLAYER_NAME);
+    playerStatisticsMessage.setValues(asList(
         new RatingInfo(LocalDate.now(), 1500, 200, LocalTime.now()),
         new RatingInfo(LocalDate.now(), 1500, 200, LocalTime.now()))
     );
     when(statisticsService.getStatisticsForPlayer(StatisticsType.GLOBAL_90_DAYS, PLAYER_NAME))
-        .thenReturn(CompletableFuture.completedFuture(playerStatistics));
+        .thenReturn(CompletableFuture.completedFuture(playerStatisticsMessage));
     when(statisticsService.getStatisticsForPlayer(StatisticsType.GLOBAL_365_DAYS, PLAYER_NAME))
-        .thenReturn(CompletableFuture.completedFuture(playerStatistics));
+        .thenReturn(CompletableFuture.completedFuture(playerStatisticsMessage));
   }
 
   @Test

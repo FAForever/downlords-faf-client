@@ -1,8 +1,8 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.legacy.domain.SessionInfo;
+import com.faforever.client.legacy.domain.SessionMessageLobby;
 
 public interface OnSessionInfoListener {
 
-  void onSessionInitiated(SessionInfo message);
+  void onSessionInitiated(SessionMessageLobby message);
 }

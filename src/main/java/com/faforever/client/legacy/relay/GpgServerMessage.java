@@ -1,6 +1,8 @@
 package com.faforever.client.legacy.relay;
 
+import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.legacy.domain.SerializableMessage;
+import com.faforever.client.legacy.domain.ServerMessage;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
@@ -11,60 +13,72 @@ import java.util.List;
 /**
  * Represents a message received from the relay server (deserialized from JSON).
  */
-class GpgServerMessage implements SerializableMessage {
+public class GpgServerMessage implements SerializableMessage, ServerMessage {
 
-  /**
-   * Contains the command to execute, but the server sends it as "key".
-   */
-  private GpgServerCommandServerCommand key;
-
-  /**
-   * Contains the arguments, but the server thinks it's cool to confuse us by calling it "commands".
-   */
-  private List<Object> commands;
+  private GpgServerMessageType command;
+  private List<Object> args;
+  private String jsonString;
 
   public GpgServerMessage() {
   }
 
-  public GpgServerMessage(GpgServerCommandServerCommand command) {
-    this.key = command;
-    this.commands = new ArrayList<>(Collections.nCopies(command.getNumberOfArgs(), null));
+  protected GpgServerMessage(GpgServerMessageType command, int numberOfArgs) {
+    this.command = command;
+    this.args = new ArrayList<>(Collections.nCopies(numberOfArgs, null));
   }
 
-  /**
-   * Returns what the server sends as "key" but with a sane naming (command).
-   */
-  public GpgServerCommandServerCommand getCommand() {
-    return key;
+  public GpgServerMessage(GpgServerMessageType command, List<Object> args) {
+    this.command = command;
+    this.args = args;
   }
 
   /**
    * Returns what the server sends as "commands" but with a sane naming (args).
    */
   public List<Object> getArgs() {
-    return Collections.unmodifiableList(commands);
+    return Collections.unmodifiableList(args);
   }
 
   @VisibleForTesting
   void setArgs(List<Object> args) {
-    this.commands = args;
+    this.args = args;
   }
 
   protected void setValue(int index, Object value) {
-    commands.set(index, value);
+    args.set(index, value);
   }
 
   protected int getInt(int index) {
-    return ((Number) commands.get(index)).intValue();
+    return ((Number) args.get(index)).intValue();
   }
 
   protected String getString(int index) {
-    return ((String) commands.get(index));
+    return ((String) args.get(index));
   }
 
   @Override
   public Collection<String> getStringsToMask() {
     return Collections.emptyList();
+  }
+
+  @Override
+  public GpgServerMessageType getMessageType() {
+    return command;
+  }
+
+  @Override
+  public MessageTarget getTarget() {
+    return null;
+  }
+
+  @Override
+  public String getJsonString() {
+    return jsonString;
+  }
+
+  @Override
+  public void setJsonString(String jsonString) {
+    this.jsonString = jsonString;
   }
 
   protected static int asInt(Object object) {

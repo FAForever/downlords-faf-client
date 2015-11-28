@@ -13,7 +13,8 @@ public enum ClientMessageType {
   LOGIN("hello"),
   GAME_MATCH_MAKING("game_matchmaking"),
   MOD_VAULT("modvault"),
-  MOD_VAULT_SEARCH("modvault_search");
+  MOD_VAULT_SEARCH("modvault_search"),
+  INIT_CONNECTIVITY_TEST("InitiateTest");
 
   private static Map<String, ClientMessageType> fromString;
 

@@ -12,6 +12,7 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.OnChoseGameDirectoryListener;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.RatingUtil;
@@ -27,7 +28,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -96,6 +96,8 @@ public class GamesController {
   SceneFactory sceneFactory;
   @Resource
   NotificationService notificationService;
+  @Resource
+  OnChoseGameDirectoryListener onChoseGameDirectoryListener;
 
   private Popup createGamePopup;
   private Popup passwordPopup;
@@ -120,18 +122,6 @@ public class GamesController {
     createGamePopup.getContent().setAll(createGameController.getRoot());
 
     enterPasswordController.setOnPasswordEnteredListener(this::doJoinGame);
-
-    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
-      createGameButton.setDisable(true);
-      createGameButton.setTooltip(new Tooltip(i18n.get("missingGamePath.notification")));
-    }
-
-    preferencesService.addUpdateListener(preferences -> {
-      if (preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
-        createGameButton.setDisable(false);
-        createGameButton.setTooltip(null);
-      }
-    });
 
     ObservableList<GameInfoBean> gameInfoBeans = gameService.getGameInfoBeans();
 
@@ -270,7 +260,10 @@ public class GamesController {
   }
 
   private void doJoinGame(GameInfoBean gameInfoBean, String password, double screenX, double screenY) {
-    // FIXME check if game path is set
+    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
+      onChoseGameDirectoryListener.onChoseGameDirectory();
+      return;
+    }
 
     if (gameInfoBean.getPasswordProtected() && password == null) {
       enterPasswordController.setGameInfoBean(gameInfoBean);
@@ -283,6 +276,11 @@ public class GamesController {
   @FXML
   void onCreateGameButtonClicked(ActionEvent actionEvent) {
     Button button = (Button) actionEvent.getSource();
+
+    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
+      onChoseGameDirectoryListener.onChoseGameDirectory();
+      return;
+    }
 
     Bounds screenBounds = createGameButton.localToScreen(createGameButton.getBoundsInLocal());
     createGamePopup.show(button.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());

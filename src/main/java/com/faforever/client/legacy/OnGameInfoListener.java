@@ -1,8 +1,8 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.legacy.domain.GameInfo;
+import com.faforever.client.legacy.domain.GameInfoMessage;
 
 public interface OnGameInfoListener {
 
-  void onGameInfo(GameInfo gameInfo);
+  void onGameInfo(GameInfoMessage gameInfoMessage);
 }

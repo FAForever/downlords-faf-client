@@ -7,7 +7,7 @@ import com.faforever.client.mod.InstallModTask;
 import com.faforever.client.mod.UninstallModTask;
 import com.faforever.client.patch.GitCheckGameUpdateTask;
 import com.faforever.client.patch.UpdateGameFilesTask;
-import com.faforever.client.portcheck.DownlordsPortCheckTask;
+import com.faforever.client.portcheck.FafPortCheckTask;
 import com.faforever.client.portcheck.PortCheckTask;
 import com.faforever.client.replay.LoadLocalReplaysTask;
 import com.faforever.client.replay.ReplayDownloadTask;
@@ -38,7 +38,7 @@ public class TaskConfig {
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   PortCheckTask portCheckTask() {
-    return new DownlordsPortCheckTask();
+    return new FafPortCheckTask();
   }
 
   @Bean

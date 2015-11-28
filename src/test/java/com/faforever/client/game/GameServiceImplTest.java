@@ -4,10 +4,10 @@ import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
-import com.faforever.client.legacy.domain.GameInfo;
-import com.faforever.client.legacy.domain.GameLaunchInfo;
+import com.faforever.client.legacy.domain.GameInfoMessage;
+import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
 import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.GameTypeInfo;
+import com.faforever.client.legacy.domain.GameTypeMessage;
 import com.faforever.client.legacy.domain.VictoryCondition;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.map.MapService;
@@ -175,9 +175,9 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGameTypeIsOnlyAddedOnce() throws Exception {
-    GameTypeInfo gameTypeInfo = GameTypeInfoBuilder.create().defaultValues().get();
-    instance.onGameTypeInfo(gameTypeInfo);
-    instance.onGameTypeInfo(gameTypeInfo);
+    GameTypeMessage gameTypeMessage = GameTypeInfoBuilder.create().defaultValues().get();
+    instance.onGameTypeInfo(gameTypeMessage);
+    instance.onGameTypeInfo(gameTypeMessage);
 
     List<GameTypeBean> gameTypes = instance.getGameTypes();
 
@@ -186,14 +186,14 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testDifferentGameTypes() throws Exception {
-    GameTypeInfo gameTypeInfo1 = GameTypeInfoBuilder.create().defaultValues().get();
-    GameTypeInfo gameTypeInfo2 = GameTypeInfoBuilder.create().defaultValues().get();
+    GameTypeMessage gameTypeMessage1 = GameTypeInfoBuilder.create().defaultValues().get();
+    GameTypeMessage gameTypeMessage2 = GameTypeInfoBuilder.create().defaultValues().get();
 
-    gameTypeInfo1.setName("number1");
-    gameTypeInfo2.setName("number2");
+    gameTypeMessage1.setName("number1");
+    gameTypeMessage2.setName("number2");
 
-    instance.onGameTypeInfo(gameTypeInfo1);
-    instance.onGameTypeInfo(gameTypeInfo2);
+    instance.onGameTypeInfo(gameTypeMessage1);
+    instance.onGameTypeInfo(gameTypeMessage2);
 
     List<GameTypeBean> gameTypes = instance.getGameTypes();
 
@@ -216,21 +216,21 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     Process process = mock(Process.class);
 
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
-    GameLaunchInfo gameLaunchInfo = GameLaunchInfoBuilder.create().defaultValues().get();
-    gameLaunchInfo.setArgs(Arrays.asList("/foo bar", "/bar foo"));
+    GameLaunchMessageLobby gameLaunchMessage = GameLaunchInfoBuilder.create().defaultValues().get();
+    gameLaunchMessage.setArgs(Arrays.asList("/foo bar", "/bar foo"));
 
     when(forgedAllianceService.startGame(
-        gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL)
+        gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL)
     ).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(lobbyServerAccessor.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchInfo));
+    when(lobbyServerAccessor.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
 
     instance.addOnGameStartedListener(listener);
     instance.hostGame(newGameInfo);
 
-    verify(listener).onGameStarted(gameLaunchInfo.getUid());
+    verify(listener).onGameStarted(gameLaunchMessage.getUid());
     verify(forgedAllianceService).startGame(
-        gameLaunchInfo.getUid(), gameLaunchInfo.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL
+        gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL
     );
   }
 
@@ -257,20 +257,20 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   public void testOnGameInfoAdd() {
     assertThat(instance.getGameInfoBeans(), empty());
 
-    GameInfo gameInfo1 = new GameInfo();
-    gameInfo1.setUid(1);
-    gameInfo1.setTitle("Game 1");
-    gameInfo1.setState(GameState.OPEN);
-    instance.onGameInfo(gameInfo1);
+    GameInfoMessage gameInfoMessage1 = new GameInfoMessage();
+    gameInfoMessage1.setUid(1);
+    gameInfoMessage1.setTitle("Game 1");
+    gameInfoMessage1.setState(GameState.OPEN);
+    instance.onGameInfo(gameInfoMessage1);
 
-    GameInfo gameInfo2 = new GameInfo();
-    gameInfo2.setUid(2);
-    gameInfo2.setTitle("Game 2");
-    gameInfo2.setState(GameState.OPEN);
-    instance.onGameInfo(gameInfo2);
+    GameInfoMessage gameInfoMessage2 = new GameInfoMessage();
+    gameInfoMessage2.setUid(2);
+    gameInfoMessage2.setTitle("Game 2");
+    gameInfoMessage2.setState(GameState.OPEN);
+    instance.onGameInfo(gameInfoMessage2);
 
-    GameInfoBean gameInfoBean1 = new GameInfoBean(gameInfo1);
-    GameInfoBean gameInfoBean2 = new GameInfoBean(gameInfo2);
+    GameInfoBean gameInfoBean1 = new GameInfoBean(gameInfoMessage1);
+    GameInfoBean gameInfoBean2 = new GameInfoBean(gameInfoMessage2);
 
     assertThat(instance.getGameInfoBeans(), containsInAnyOrder(gameInfoBean1, gameInfoBean2));
   }
@@ -279,46 +279,46 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   public void testOnGameInfoModify() {
     assertThat(instance.getGameInfoBeans(), empty());
 
-    GameInfo gameInfo = new GameInfo();
-    gameInfo.setUid(1);
-    gameInfo.setTitle("Game 1");
-    gameInfo.setState(GameState.OPEN);
-    instance.onGameInfo(gameInfo);
+    GameInfoMessage gameInfoMessage = new GameInfoMessage();
+    gameInfoMessage.setUid(1);
+    gameInfoMessage.setTitle("Game 1");
+    gameInfoMessage.setState(GameState.OPEN);
+    instance.onGameInfo(gameInfoMessage);
 
-    gameInfo = new GameInfo();
-    gameInfo.setUid(1);
-    gameInfo.setTitle("Game 1 modified");
-    gameInfo.setState(GameState.OPEN);
-    instance.onGameInfo(gameInfo);
+    gameInfoMessage = new GameInfoMessage();
+    gameInfoMessage.setUid(1);
+    gameInfoMessage.setTitle("Game 1 modified");
+    gameInfoMessage.setState(GameState.OPEN);
+    instance.onGameInfo(gameInfoMessage);
 
-    assertEquals(gameInfo.getTitle(), instance.getGameInfoBeans().iterator().next().getTitle());
+    assertEquals(gameInfoMessage.getTitle(), instance.getGameInfoBeans().iterator().next().getTitle());
   }
 
   @Test
   public void testOnGameInfoRemove() {
     assertThat(instance.getGameInfoBeans(), empty());
 
-    GameInfo gameInfo = new GameInfo();
-    gameInfo.setUid(1);
-    gameInfo.setTitle("Game 1");
-    gameInfo.setState(GameState.OPEN);
-    instance.onGameInfo(gameInfo);
+    GameInfoMessage gameInfoMessage = new GameInfoMessage();
+    gameInfoMessage.setUid(1);
+    gameInfoMessage.setTitle("Game 1");
+    gameInfoMessage.setState(GameState.OPEN);
+    instance.onGameInfo(gameInfoMessage);
 
-    gameInfo = new GameInfo();
-    gameInfo.setUid(1);
-    gameInfo.setTitle("Game 1 modified");
-    gameInfo.setState(GameState.CLOSED);
-    instance.onGameInfo(gameInfo);
+    gameInfoMessage = new GameInfoMessage();
+    gameInfoMessage.setUid(1);
+    gameInfoMessage.setTitle("Game 1 modified");
+    gameInfoMessage.setState(GameState.CLOSED);
+    instance.onGameInfo(gameInfoMessage);
 
     assertThat(instance.getGameInfoBeans(), empty());
   }
 
   @Test
   public void testStartSearchRanked1v1() throws Exception {
-    GameLaunchInfo gameLaunchInfo = new GameLaunchInfo();
-    gameLaunchInfo.setUid(123);
-    gameLaunchInfo.setArgs(Collections.<String>emptyList());
-    when(lobbyServerAccessor.startSearchRanked1v1(Faction.CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchInfo));
+    GameLaunchMessageLobby gameLaunchMessage = new GameLaunchMessageLobby();
+    gameLaunchMessage.setUid(123);
+    gameLaunchMessage.setArgs(Collections.<String>emptyList());
+    when(lobbyServerAccessor.startSearchRanked1v1(Faction.CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
     when(gameUpdateService.updateInBackground(GameType.LADDER_1V1.getString(), null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
     when(applicationContext.getBean(SearchExpansionTask.class)).thenReturn(searchExpansionTask);
     when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
@@ -338,10 +338,10 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(process.isAlive()).thenReturn(true);
 
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
-    GameLaunchInfo gameLaunchInfo = GameLaunchInfoBuilder.create().defaultValues().get();
+    GameLaunchMessageLobby gameLaunchMessage = GameLaunchInfoBuilder.create().defaultValues().get();
     when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), any())).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(lobbyServerAccessor.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchInfo));
+    when(lobbyServerAccessor.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
 
     instance.hostGame(newGameInfo);
 
@@ -372,18 +372,18 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     ListChangeListener<GameInfoBean> listener = mock(ListChangeListener.class);
     instance.addOnGameInfoBeanListener(listener);
 
-    GameInfo gameInfo = new GameInfo();
-    gameInfo.setUid(1);
-    gameInfo.setHost("host");
-    gameInfo.setTitle("title");
-    gameInfo.setMapname("mapName");
-    gameInfo.setFeaturedMod("mod");
-    gameInfo.setNumPlayers(2);
-    gameInfo.setMaxPlayers(4);
-    gameInfo.setGameType(VictoryCondition.DOMINATION);
-    gameInfo.setState(GameState.PLAYING);
+    GameInfoMessage gameInfoMessage = new GameInfoMessage();
+    gameInfoMessage.setUid(1);
+    gameInfoMessage.setHost("host");
+    gameInfoMessage.setTitle("title");
+    gameInfoMessage.setMapname("mapName");
+    gameInfoMessage.setFeaturedMod("mod");
+    gameInfoMessage.setNumPlayers(2);
+    gameInfoMessage.setMaxPlayers(4);
+    gameInfoMessage.setGameType(VictoryCondition.DOMINATION);
+    gameInfoMessage.setState(GameState.PLAYING);
 
-    instance.onGameInfo(gameInfo);
+    instance.onGameInfo(gameInfoMessage);
 
     verify(listener).onChanged(gameInfoBeanChangeListenerCaptor.capture());
 

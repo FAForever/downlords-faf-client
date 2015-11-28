@@ -4,7 +4,7 @@ package com.faforever.client.legacy.domain;
  * The server sends this as "featured mod", however this is confusing with other mods which is why it's called game type
  * here.
  */
-public class GameTypeInfo extends ServerMessage {
+public class GameTypeMessage extends FafServerMessage {
 
   private boolean join;
   private String name;
@@ -15,8 +15,8 @@ public class GameTypeInfo extends ServerMessage {
   private Boolean[] options;
   private String icon;
 
-  public GameTypeInfo() {
-    super(ServerMessageType.GAME_TYPE_INFO);
+  public GameTypeMessage() {
+    super(FafServerMessageType.GAME_TYPE_INFO);
   }
 
   public boolean isJoin() {

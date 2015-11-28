@@ -4,6 +4,6 @@ import java.util.concurrent.CompletableFuture;
 
 public interface PortCheckService {
 
-  CompletableFuture<Boolean> checkGamePortInBackground();
+  CompletableFuture<ConnectivityState> checkGamePortInBackground();
 
 }

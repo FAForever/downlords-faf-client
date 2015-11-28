@@ -1,11 +1,11 @@
 package com.faforever.client.legacy.domain;
 
-public class SessionInfo extends ServerMessage {
+public class SessionMessageLobby extends FafServerMessage {
 
   private long session;
 
-  public SessionInfo() {
-    super(ServerMessageType.SESSION);
+  public SessionMessageLobby() {
+    super(FafServerMessageType.SESSION);
   }
 
   public long getSession() {

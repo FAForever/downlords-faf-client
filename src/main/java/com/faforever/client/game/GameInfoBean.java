@@ -1,22 +1,19 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.domain.GameInfo;
+import com.faforever.client.legacy.domain.GameInfoMessage;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.VictoryCondition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import org.apache.commons.lang3.StringEscapeUtils;
 
@@ -46,7 +43,6 @@ public class GameInfoBean {
   private final ObjectProperty<GameVisibility> visibility;
   private final ObjectProperty<GameState> status;
   private final ObjectProperty<VictoryCondition> victoryCondition;
-  private final ListProperty<Boolean> options;
   /**
    * Maps a sim mod's UID to its name.
    */
@@ -57,9 +53,9 @@ public class GameInfoBean {
    */
   private final MapProperty<String, Integer> featuredModVersions;
 
-  public GameInfoBean(GameInfo gameInfo) {
+  public GameInfoBean(GameInfoMessage gameInfoMessage) {
     this();
-    updateFromGameInfo(gameInfo);
+    updateFromGameInfo(gameInfoMessage);
   }
 
   public GameInfoBean() {
@@ -75,41 +71,36 @@ public class GameInfoBean {
     passwordProtected = new SimpleBooleanProperty();
     victoryCondition = new SimpleObjectProperty<>();
     visibility = new SimpleObjectProperty<>();
-    options = new SimpleListProperty<>(FXCollections.observableArrayList());
     simMods = new SimpleMapProperty<>(FXCollections.observableHashMap());
     teams = new SimpleMapProperty<>(FXCollections.observableHashMap());
     featuredModVersions = new SimpleMapProperty<>(FXCollections.observableHashMap());
     status = new SimpleObjectProperty<>();
   }
 
-  public void updateFromGameInfo(GameInfo gameInfo) {
-    uid.set(gameInfo.getUid());
-    host.set(gameInfo.getHost());
-    title.set(StringEscapeUtils.unescapeHtml4(gameInfo.getTitle()));
-    mapTechnicalName.set(gameInfo.getMapname());
-    featuredMod.set(gameInfo.getFeaturedMod());
-    numPlayers.setValue(gameInfo.getNumPlayers());
-    maxPlayers.setValue(gameInfo.getMaxPlayers());
-    victoryCondition.set(gameInfo.getGameType());
-    status.set(gameInfo.getState());
-
-    if (gameInfo.getOptions() != null) {
-      options.setAll(gameInfo.getOptions());
-    }
+  public void updateFromGameInfo(GameInfoMessage gameInfoMessage) {
+    uid.set(gameInfoMessage.getUid());
+    host.set(gameInfoMessage.getHost());
+    title.set(StringEscapeUtils.unescapeHtml4(gameInfoMessage.getTitle()));
+    mapTechnicalName.set(gameInfoMessage.getMapname());
+    featuredMod.set(gameInfoMessage.getFeaturedMod());
+    numPlayers.setValue(gameInfoMessage.getNumPlayers());
+    maxPlayers.setValue(gameInfoMessage.getMaxPlayers());
+    victoryCondition.set(gameInfoMessage.getGameType());
+    status.set(gameInfoMessage.getState());
 
     simMods.clear();
-    if (gameInfo.getSimMods() != null) {
-      simMods.putAll(gameInfo.getSimMods());
+    if (gameInfoMessage.getSimMods() != null) {
+      simMods.putAll(gameInfoMessage.getSimMods());
     }
 
     teams.clear();
-    if (gameInfo.getTeams() != null) {
-      teams.putAll(gameInfo.getTeams());
+    if (gameInfoMessage.getTeams() != null) {
+      teams.putAll(gameInfoMessage.getTeams());
     }
 
     featuredModVersions.clear();
-    if (gameInfo.getFeaturedModVersions() != null) {
-      featuredModVersions.putAll(gameInfo.getFeaturedModVersions());
+    if (gameInfoMessage.getFeaturedModVersions() != null) {
+      featuredModVersions.putAll(gameInfoMessage.getFeaturedModVersions());
     }
 
     // TODO this can be removed as soon as we get server side support. Until then, let's be hacky
@@ -290,18 +281,6 @@ public class GameInfoBean {
 
   public ObjectProperty<VictoryCondition> victoryConditionProperty() {
     return victoryCondition;
-  }
-
-  public ObservableList<Boolean> getOptions() {
-    return options.get();
-  }
-
-  public void setOptions(ObservableList<Boolean> options) {
-    this.options.set(options);
-  }
-
-  public ListProperty<Boolean> optionsProperty() {
-    return options;
   }
 
   public ObservableMap<String, String> getSimMods() {
