@@ -1,8 +1,7 @@
 package com.faforever.client.news;
 
+import com.faforever.client.ThemeService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.util.ThemeUtil;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -20,34 +19,27 @@ public class NewsListItemController {
     void onSelected(NewsItem newsItem);
   }
 
-
   @FXML
   Pane newsItemRoot;
-
   @FXML
   ImageView imageView;
-
   @FXML
   Label titleLabel;
-
   @FXML
   Label authoredLabel;
 
   @Resource
   I18n i18n;
-
   @Resource
-  PreferencesService preferencesService;
+  ThemeService themeService;
 
   private NewsItem newsItem;
   private OnItemSelectedListener onItemSelectedListener;
 
   @PostConstruct
   void postConstruct() {
-    String theme = preferencesService.getPreferences().getTheme();
-
     // TODO only use this if there's no thumbnail. However, there's never a thumbnail ATM.
-    imageView.setImage(new Image(ThemeUtil.themeFile(theme, "images/news_fallback.jpg")));
+    imageView.setImage(new Image(themeService.getThemeFile("images/news_fallback.jpg")));
   }
 
   public Node getRoot() {

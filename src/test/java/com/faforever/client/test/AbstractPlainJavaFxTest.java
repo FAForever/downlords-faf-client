@@ -1,6 +1,5 @@
 package com.faforever.client.test;
 
-import com.faforever.client.util.ThemeUtil;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -10,12 +9,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.core.io.ClassPathResource;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
@@ -55,22 +52,22 @@ public class AbstractPlainJavaFxTest extends ApplicationTest {
     return stage;
   }
 
-  private static void uncaughtException(Thread t, Throwable e) {
-    Assert.fail(e.getMessage());
-  }
-
-  protected static <T> T loadController(String fileName) throws IOException {
+  protected <T> T loadController(String fileName) throws IOException {
     ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
     messageSource.setBasename("i18n.Messages");
 
     FXMLLoader loader = new FXMLLoader();
-    loader.setLocation(buildResourceUrl(fileName));
+    loader.setLocation(getClass().getResource(getThemeFile(fileName)));
     loader.setResources(new MessageSourceResourceBundle(messageSource, Locale.US));
     WaitForAsyncUtils.waitForAsyncFx(5000, (Callable<Object>) loader::load);
     return loader.getController();
   }
 
-  private static URL buildResourceUrl(String file) throws IOException {
-    return new ClassPathResource(ThemeUtil.themeFile("default", file)).getURL();
+  protected String getThemeFile(String file) {
+    return String.format("/themes/default/%s", file);
+  }
+
+  private static void uncaughtException(Thread t, Throwable e) {
+    Assert.fail(e.getMessage());
   }
 }

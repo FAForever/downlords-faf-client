@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.ThemeService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModInfoBean;
@@ -22,6 +23,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
@@ -89,6 +91,8 @@ public class CreateGameController {
   Locale locale;
   @VisibleForTesting
   FilteredList<MapInfoBean> filteredMaps;
+  @Resource
+  ThemeService themeService;
 
   @FXML
   void initialize() {
@@ -173,7 +177,7 @@ public class CreateGameController {
     });
 
     createGameButton.textProperty().bind(Bindings.createStringBinding(() -> {
-      if (titleTextField.getText().isEmpty()) {
+      if (Strings.isNullOrEmpty(titleTextField.getText())) {
         return i18n.get("game.create.titleMissing");
       }
       return i18n.get("game.create.create");
@@ -205,9 +209,14 @@ public class CreateGameController {
       preferencesService.getPreferences().setLastMap(newValue.getTechnicalName());
       preferencesService.storeInBackground();
 
-      String mapDisplayName = newValue.getDisplayName();
+      Image largePreview = mapService.loadLargePreview(newValue.getTechnicalName());
+      if (largePreview == null) {
+        new Image(themeService.getThemeFile(ThemeService.UNKNOWN_MAP_IMAGE), true);
+      }
+
+      mapImageView.setImage(largePreview);
+
       mapNameLabel.setText(newValue.getDisplayName());
-      mapImageView.setImage(mapService.loadLargePreview(mapDisplayName));
       mapSizeLabel.setText(i18n.get("mapPreview.size", newValue.getSize()));
       mapPlayersLabel.setText(i18n.get("mapPreview.maxPlayers", newValue.getPlayers()));
       mapDescriptionLabel.setText(newValue.getDescription());
@@ -263,7 +272,7 @@ public class CreateGameController {
   }
 
   private void setLastGameTitle() {
-    titleTextField.setText(preferencesService.getPreferences().getLastGameTitle());
+    titleTextField.setText(Strings.nullToEmpty(preferencesService.getPreferences().getLastGameTitle()));
   }
 
   @NotNull

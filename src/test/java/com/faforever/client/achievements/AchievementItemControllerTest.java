@@ -9,10 +9,12 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.scene.effect.ColorAdjust;
+import javafx.scene.image.Image;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.faforever.client.ThemeService.DEFAULT_ACHIEVEMENT_IMAGE;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -30,15 +32,15 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
   private Preferences preferences;
   @Mock
   private I18n i18n;
+  @Mock
+  private AchievementService achievementService;
 
   @Before
   public void setUp() throws Exception {
     instance = loadController("achievement_item.fxml");
     instance.preferencesService = preferencesService;
     instance.i18n = i18n;
-
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getTheme()).thenReturn("default");
+    instance.achievementService = achievementService;
   }
 
   @Test
@@ -50,6 +52,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testSetAchievementDefinition() throws Exception {
     AchievementDefinition achievementDefinition = AchievementDefinitionBuilder.create().defaultValues().get();
+    when(achievementService.getRevealedIcon(achievementDefinition)).thenReturn(new Image(getThemeFile(DEFAULT_ACHIEVEMENT_IMAGE)));
 
     instance.setAchievementDefinition(achievementDefinition);
 

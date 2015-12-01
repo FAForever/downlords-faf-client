@@ -1,9 +1,9 @@
 package com.faforever.client.audio;
 
+import com.faforever.client.ThemeService;
 import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.util.ThemeUtil;
 import javafx.scene.media.AudioClip;
 import org.springframework.core.io.ClassPathResource;
 
@@ -19,12 +19,12 @@ public class AudioControllerImpl implements AudioController {
 
   @Resource
   PreferencesService preferencesService;
-
   @Resource
   MainController mainController;
-
   @Resource
   AudioClipPlayer audioClipPlayer;
+  @Resource
+  ThemeService themeService;
 
   private AudioClip chatMentionSound;
   private AudioClip errorNotificationSound;
@@ -50,17 +50,15 @@ public class AudioControllerImpl implements AudioController {
   }
 
   private void loadSounds() throws IOException {
-    String theme = preferencesService.getPreferences().getTheme();
-
-    infoNotificationSound = loadSound(theme, INFO_SOUND);
-    errorNotificationSound = loadSound(theme, INFO_SOUND);
-    warnNotificationSound = loadSound(theme, INFO_SOUND);
-    chatMentionSound = loadSound(theme, MENTION_SOUND);
-    privateMessageSound = loadSound(theme, PRIVATE_MESSAGE_SOUND);
+    infoNotificationSound = loadSound(INFO_SOUND);
+    errorNotificationSound = loadSound(INFO_SOUND);
+    warnNotificationSound = loadSound(INFO_SOUND);
+    chatMentionSound = loadSound(MENTION_SOUND);
+    privateMessageSound = loadSound(PRIVATE_MESSAGE_SOUND);
   }
 
-  private AudioClip loadSound(String theme, String sound) throws IOException {
-    return new AudioClip(new ClassPathResource(ThemeUtil.themeFile(theme, sound)).getURL().toString());
+  private AudioClip loadSound(String sound) throws IOException {
+    return new AudioClip(new ClassPathResource(themeService.getThemeFile(sound)).getURL().toString());
   }
 
   @Override

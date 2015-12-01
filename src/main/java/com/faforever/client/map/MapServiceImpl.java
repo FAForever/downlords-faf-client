@@ -7,7 +7,6 @@ import com.faforever.client.legacy.map.Comment;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.ThemeUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -81,34 +80,23 @@ public class MapServiceImpl implements MapService {
   ApplicationContext applicationContext;
 
   @Override
-  @Cacheable(CacheNames.SMALL_MAP_PREVIEW)
+  @Cacheable(value = CacheNames.SMALL_MAP_PREVIEW, unless = "#result == null")
   public Image loadSmallPreview(String mapName) {
     String url = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.small"));
 
     logger.debug("Fetching small preview for map {} from {}", mapName, url);
 
-    return new Image(url, true);
+    return fetchImageOrNull(url);
   }
 
   @Override
-  @Cacheable(CacheNames.LARGE_MAP_PREVIEW)
+  @Cacheable(value = CacheNames.LARGE_MAP_PREVIEW, unless = "#result == null")
   public Image loadLargePreview(String mapName) {
     String urlString = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.large"));
 
     logger.debug("Fetching large preview for map {} from {}", mapName, urlString);
 
-    try {
-      HttpURLConnection connection = (HttpURLConnection) new URL(urlString).openConnection();
-      if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-        return new Image(urlString, true);
-      }
-
-      String theme = preferencesService.getPreferences().getTheme();
-      return new Image(ThemeUtil.themeFile(theme, "images/map_background.png"));
-    } catch (IOException e) {
-      logger.warn("Could not fetch map preview", e);
-      return null;
-    }
+    return fetchImageOrNull(urlString);
   }
 
   @Override
@@ -220,7 +208,6 @@ public class MapServiceImpl implements MapService {
     return OfficialMap.fromMapName(mapName) != null;
   }
 
-
   @Override
   public boolean isAvailable(String mapName) {
     logger.debug("Trying to find map {} mapName locally", mapName);
@@ -262,5 +249,20 @@ public class MapServiceImpl implements MapService {
 
   private static String getMapUrl(String mapName, String baseUrl) {
     return String.format(baseUrl, mapName.toLowerCase(Locale.US));
+  }
+
+  @Nullable
+  private Image fetchImageOrNull(String urlString) {
+    try {
+      HttpURLConnection connection = (HttpURLConnection) new URL(urlString).openConnection();
+      if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+        return new Image(urlString, true);
+      }
+      logger.debug("Map preview is not available: " + urlString);
+      return null;
+    } catch (IOException e) {
+      logger.warn("Could not fetch map preview", e);
+      return null;
+    }
   }
 }

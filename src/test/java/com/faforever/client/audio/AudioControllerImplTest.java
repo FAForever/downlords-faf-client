@@ -1,5 +1,6 @@
 package com.faforever.client.audio;
 
+import com.faforever.client.ThemeService;
 import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
@@ -28,6 +29,7 @@ public class AudioControllerImplTest extends AbstractPlainJavaFxTest {
     instance.mainController = mock(MainController.class);
     instance.preferencesService = mock(PreferencesService.class);
     instance.audioClipPlayer = mock(AudioClipPlayer.class);
+    instance.themeService = mock(ThemeService.class);
 
     Preferences preferences = mock(Preferences.class);
     ChatPrefs chatPrefs = mock(ChatPrefs.class);
@@ -40,6 +42,7 @@ public class AudioControllerImplTest extends AbstractPlainJavaFxTest {
     when(preferences.getChat()).thenReturn(chatPrefs);
     when(preferences.getTheme()).thenReturn("default");
     when(instance.preferencesService.getPreferences()).thenReturn(preferences);
+    when(instance.themeService.getThemeFile(any())).thenReturn(getThemeFile(ThemeService.MENTION_SOUND));
 
     instance.postConstruct();
 

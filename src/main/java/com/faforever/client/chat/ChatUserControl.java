@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.ThemeService;
 import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
@@ -12,7 +13,6 @@ import com.faforever.client.replay.ReplayService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.util.RatingUtil;
-import com.faforever.client.util.ThemeUtil;
 import javafx.application.Platform;
 import javafx.beans.property.FloatProperty;
 import javafx.collections.MapChangeListener;
@@ -27,16 +27,12 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.chat.SocialStatus.SELF;
@@ -44,21 +40,28 @@ import static com.faforever.client.chat.SocialStatus.SELF;
 public class ChatUserControl extends HBox {
 
   private static final String CLAN_TAG_FORMAT = "[%s]";
+  // TODO @Aulex I thought this changed, please review and clean up if necessary
   private static final String CSS_CLASS_SELF = "self";
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  @FXML
+  ImageView countryImageView;
+  @FXML
+  ImageView avatarImageView;
+  @FXML
+  Label usernameLabel;
+  @FXML
+  Label clanLabel;
+  @FXML
+  ImageView statusImageView;
 
   @Resource
   ApplicationContext applicationContext;
-
   @Resource
   FxmlLoader fxmlLoader;
-
   @Resource
   AvatarService avatarService;
-
   @Resource
   CountryFlagService countryFlagService;
-
   @Resource
   ChatController chatController;
   @Resource
@@ -74,19 +77,10 @@ public class ChatUserControl extends HBox {
   @Resource
   ReplayService replayService;
   @Resource
-  Environment environment;
-  @Resource
   I18n i18n;
-  @FXML
-  ImageView countryImageView;
-  @FXML
-  ImageView avatarImageView;
-  @FXML
-  Label usernameLabel;
-  @FXML
-  Label clanLabel;
-  @FXML
-  ImageView statusImageView;
+  @Resource
+  ThemeService themeService;
+
   private PlayerInfoBean playerInfoBean;
   private boolean colorsAllowedInPane;
 
@@ -255,20 +249,18 @@ public class ChatUserControl extends HBox {
   }
 
   public void setGameStatus(GameStatus gameStatus) {
-    String theme = preferencesService.getPreferences().getTheme();
     switch (gameStatus) {
       case PLAYING:
-        statusImageView.setImage(new Image(ThemeUtil.themeFile(theme, "images/chat/playing.png")));
+        statusImageView.setImage(new Image(themeService.getThemeFile(ThemeService.PLAYING_STATUS_IMAGE)));
         break;
       case HOST:
-        statusImageView.setImage(new Image(ThemeUtil.themeFile(theme, "images/chat/host.png")));
+        statusImageView.setImage(new Image(themeService.getThemeFile(ThemeService.HOSTING_STATUS_IMAGE)));
         break;
       case LOBBY:
-        statusImageView.setImage(new Image(ThemeUtil.themeFile(theme, "images/chat/lobby.png")));
+        statusImageView.setImage(new Image(themeService.getThemeFile(ThemeService.LOBBY_STATUS_IMAGE)));
         break;
-      // None case
       default:
-        statusImageView.setImage(new Image(ThemeUtil.themeFile(theme, "images/chat/none.png")));
+        statusImageView.setImage(null);
     }
     statusImageView.setVisible(true);
   }

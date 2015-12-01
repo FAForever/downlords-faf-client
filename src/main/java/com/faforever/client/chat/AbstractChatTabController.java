@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.ThemeService;
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.HostService;
@@ -138,6 +139,8 @@ public abstract class AbstractChatTabController {
   Stage stage;
   @Resource
   MainController mainController;
+  @Resource
+  ThemeService themeService;
 
   private boolean isChatReady;
   private WebEngine engine;
@@ -257,7 +260,7 @@ public abstract class AbstractChatTabController {
 
   private void initChatView() {
     WebView messagesWebView = getMessagesWebView();
-    JavaFxUtil.configureWebView(messagesWebView, preferencesService);
+    JavaFxUtil.configureWebView(messagesWebView, preferencesService, themeService);
 
     messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
     messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {

@@ -1,7 +1,6 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.util.ThemeUtil;
+import com.faforever.client.ThemeService;
 import javafx.fxml.FXMLLoader;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceResourceBundle;
@@ -17,12 +16,10 @@ public class FxmlLoaderImpl implements FxmlLoader {
 
   @Resource
   MessageSource messageSource;
-
   @Resource
   Locale locale;
-
   @Resource
-  PreferencesService preferencesService;
+  ThemeService themeService;
 
   private MessageSourceResourceBundle resources;
 
@@ -66,7 +63,6 @@ public class FxmlLoaderImpl implements FxmlLoader {
   }
 
   private URL buildResourceUrl(String file) throws IOException {
-    String theme = preferencesService.getPreferences().getTheme();
-    return new ClassPathResource(ThemeUtil.themeFile(theme, file)).getURL();
+    return new ClassPathResource(themeService.getThemeFile(file)).getURL();
   }
 }

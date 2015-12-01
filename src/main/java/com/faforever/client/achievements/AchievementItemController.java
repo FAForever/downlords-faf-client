@@ -6,7 +6,6 @@ import com.faforever.client.api.AchievementType;
 import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.util.AchievementUtil;
 import com.google.common.base.MoreObjects;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -14,7 +13,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.effect.ColorAdjust;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 
@@ -46,6 +44,8 @@ public class AchievementItemController {
   I18n i18n;
   @Resource
   PreferencesService preferencesService;
+  @Resource
+  AchievementService achievementService;
 
   private AchievementDefinition achievementDefinition;
 
@@ -62,13 +62,10 @@ public class AchievementItemController {
   public void setAchievementDefinition(AchievementDefinition achievementDefinition) {
     this.achievementDefinition = achievementDefinition;
 
-    String imageUrl = AchievementUtil.defaultIcon(preferencesService.getPreferences().getTheme(),
-        achievementDefinition.getRevealedIconUrl());
-
     nameLabel.setText(achievementDefinition.getName());
     descriptionLabel.setText(achievementDefinition.getDescription());
     pointsLabel.setText(String.format(locale, "%d", achievementDefinition.getExperiencePoints()));
-    imageView.setImage(new Image(imageUrl, true));
+    imageView.setImage(achievementService.getRevealedIcon(achievementDefinition));
     progressLabel.setText(i18n.get("achievement.stepsFormat", 0, achievementDefinition.getTotalSteps()));
     progressBar.setProgress(0);
 
@@ -91,11 +88,8 @@ public class AchievementItemController {
       throw new IllegalStateException("Achievement ID does not match");
     }
 
-    // TODO cache it?
     if (AchievementState.UNLOCKED.equals(playerAchievement.getState())) {
-      String imageUrl = AchievementUtil.defaultIcon(preferencesService.getPreferences().getTheme(),
-          achievementDefinition.getRevealedIconUrl());
-      imageView.setImage(new Image(imageUrl, true));
+      imageView.setImage(achievementService.getUnlockedIcon(achievementDefinition));
       imageView.setOpacity(1);
       imageView.setEffect(null);
     }

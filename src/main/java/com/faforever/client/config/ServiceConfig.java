@@ -1,5 +1,7 @@
 package com.faforever.client.config;
 
+import com.faforever.client.ThemeService;
+import com.faforever.client.ThemeServiceImpl;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.achievements.AchievementServiceImpl;
 import com.faforever.client.api.FafApiAccessor;
@@ -358,4 +360,10 @@ public class ServiceConfig {
   Directory directory() {
     return new RAMDirectory();
   }
+
+  @Bean
+  ThemeService themeService() {
+    return new ThemeServiceImpl();
+  }
+
 }

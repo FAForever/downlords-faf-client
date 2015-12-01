@@ -1,5 +1,6 @@
 package com.faforever.client.news;
 
+import com.faforever.client.ThemeService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.JavaFxUtil;
@@ -9,7 +10,6 @@ import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebView;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.Resource;
@@ -24,27 +24,21 @@ public class NewsController {
 
   @FXML
   Pane newsRoot;
-
   @FXML
   Pane newsListPane;
-
   @FXML
   WebView newsDetailWebView;
 
   @Resource
-  Environment environment;
-
-  @Resource
   ApplicationContext applicationContext;
-
   @Resource
   PreferencesService preferencesService;
-
   @Resource
   I18n i18n;
-
   @Resource
   NewsService newsService;
+  @Resource
+  ThemeService themeService;
 
   public void setUpIfNecessary() {
     if (!newsListPane.getChildren().isEmpty()) {
@@ -52,7 +46,7 @@ public class NewsController {
     }
 
     newsDetailWebView.setContextMenuEnabled(false);
-    JavaFxUtil.configureWebView(newsDetailWebView, preferencesService);
+    JavaFxUtil.configureWebView(newsDetailWebView, preferencesService, themeService);
 
     boolean firstItemSelected = false;
 

@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.ThemeService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModInfoBean;
@@ -29,6 +30,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,6 +59,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   private Environment environment;
   @Mock
   private I18n i18n;
+  @Mock
+  private ThemeService themeService;
 
   private CreateGameController instance;
   private ObservableList<MapInfoBean> mapList;
@@ -70,6 +74,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     instance.modService = modService;
     instance.environment = environment;
     instance.i18n = i18n;
+    instance.themeService = themeService;
 
     mapList = FXCollections.observableArrayList();
 
@@ -77,6 +82,9 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPath()).thenReturn(Paths.get(""));
     when(mapService.getLocalMaps()).thenReturn(mapList);
+
+    doAnswer(invocation -> getThemeFile(invocation.getArgumentAt(0, String.class)))
+        .when(themeService).getThemeFile(ThemeService.UNKNOWN_MAP_IMAGE);
 
     instance.postConstruct();
   }

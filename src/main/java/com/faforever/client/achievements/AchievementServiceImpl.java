@@ -1,8 +1,10 @@
 package com.faforever.client.achievements;
 
+import com.faforever.client.ThemeService;
 import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.PlayerAchievement;
+import com.faforever.client.config.CacheNames;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.UpdatedAchievement;
@@ -16,6 +18,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -41,6 +44,8 @@ public class AchievementServiceImpl implements AchievementService {
   I18n i18n;
   @Resource
   PlayerService playerService;
+  @Resource
+  ThemeService themeService;
 
   public AchievementServiceImpl() {
     playerAchievements = FXCollections.observableArrayList();
@@ -69,6 +74,24 @@ public class AchievementServiceImpl implements AchievementService {
   @Override
   public CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId) {
     return CompletableFuture.completedFuture(fafApiAccessor.getAchievementDefinition(achievementId));
+  }
+
+  @Override
+  @Cacheable(CacheNames.ACHIEVEMENTS)
+  public Image getRevealedIcon(AchievementDefinition achievementDefinition) {
+    if (achievementDefinition.getRevealedIconUrl() == null) {
+      return new Image(themeService.getThemeFile(ThemeService.DEFAULT_ACHIEVEMENT_IMAGE), true);
+    }
+    return new Image(achievementDefinition.getRevealedIconUrl(), true);
+  }
+
+  @Override
+  @Cacheable(CacheNames.ACHIEVEMENTS)
+  public Image getUnlockedIcon(AchievementDefinition achievementDefinition) {
+    if (achievementDefinition.getUnlockedIconUrl() == null) {
+      return new Image(themeService.getThemeFile(ThemeService.DEFAULT_ACHIEVEMENT_IMAGE), true);
+    }
+    return new Image(achievementDefinition.getUnlockedIconUrl(), true);
   }
 
   private void updatePlayerAchievementsFromServer() {

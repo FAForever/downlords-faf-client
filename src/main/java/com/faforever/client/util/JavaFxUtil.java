@@ -1,5 +1,6 @@
 package com.faforever.client.util;
 
+import com.faforever.client.ThemeService;
 import com.faforever.client.preferences.PreferencesService;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -41,6 +42,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import static com.faforever.client.ThemeService.WEBVIEW_CSS_FILE;
 
 /**
  * Utility class to fix some annoying JavaFX shortcomings.
@@ -213,7 +216,7 @@ public class JavaFxUtil {
     }
   }
 
-  public static void configureWebView(WebView webView, PreferencesService preferencesService) {
+  public static void configureWebView(WebView webView, PreferencesService preferencesService, ThemeService themeService) {
     webView.setContextMenuEnabled(false);
     webView.setOnScroll(event -> {
       if (event.isControlDown()) {
@@ -230,12 +233,10 @@ public class JavaFxUtil {
       }
     });
 
-    String theme = preferencesService.getPreferences().getTheme();
-
     WebEngine engine = webView.getEngine();
     engine.setUserDataDirectory(preferencesService.getCacheDirectory().toFile());
     try {
-      engine.setUserStyleSheetLocation(new ClassPathResource(ThemeUtil.themeFile(theme, "style-webview.css")).getURL().toString());
+      engine.setUserStyleSheetLocation(new ClassPathResource(themeService.getThemeFile(WEBVIEW_CSS_FILE)).getURL().toString());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

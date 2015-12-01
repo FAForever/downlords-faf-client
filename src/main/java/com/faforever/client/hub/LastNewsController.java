@@ -1,10 +1,9 @@
 package com.faforever.client.hub;
 
+import com.faforever.client.ThemeService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.news.NewsItem;
 import com.faforever.client.news.NewsService;
-import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.util.ThemeUtil;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -32,9 +31,9 @@ public class LastNewsController {
   @Resource
   NewsService newsService;
   @Resource
-  PreferencesService preferencesService;
-  @Resource
   I18n i18n;
+  @Resource
+  ThemeService themeService;
 
   public Node getRoot() {
     return lastNewsRoot;
@@ -42,8 +41,6 @@ public class LastNewsController {
 
   @PostConstruct
   void postConstruct() {
-    String theme = preferencesService.getPreferences().getTheme();
-
     List<NewsItem> newsItems = newsService.fetchNews();
     if (!newsItems.isEmpty()) {
       NewsItem newsItem = newsItems.get(0);
@@ -56,6 +53,6 @@ public class LastNewsController {
     }
 
     // TODO only use this if there's no thumbnail. However, there's never a thumbnail ATM.
-    imageView.setImage(new Image(ThemeUtil.themeFile(theme, "images/news_fallback.jpg")));
+    imageView.setImage(new Image(themeService.getThemeFile(ThemeService.DEFAULT_NEWS_IMAGE)));
   }
 }
