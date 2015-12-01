@@ -1,6 +1,7 @@
 package com.faforever.client.api;
 
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
+import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.mod.ModInfoBean;
 
 import java.io.InputStream;
@@ -62,6 +63,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public Ranked1v1EntryBean getRanked1v1EntryForPlayer(int playerId) {
+    return null;
+  }
+
+  @Override
+  public MapInfoBean findMapByName(String mapId) {
     return null;
   }
 

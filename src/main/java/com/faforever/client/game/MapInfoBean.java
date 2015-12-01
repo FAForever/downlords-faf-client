@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.api.Map;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -9,6 +10,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 
 public class MapInfoBean implements Comparable<MapInfoBean> {
@@ -21,27 +23,21 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
   private final IntegerProperty downloads;
   private final IntegerProperty players;
   private final ObjectProperty<MapSize> size;
-  private final IntegerProperty version;
-  private final IntegerProperty id;
+  private final ObjectProperty<ComparableVersion> version;
+  private final StringProperty id;
   private final BooleanProperty hasAiMarkers;
 
   public MapInfoBean() {
-    this(null);
-  }
-
-  public MapInfoBean(String technicalName) {
-    this.id = new SimpleIntegerProperty();
-
-    // FIXME use display name as soon as mod vault is available
-    this.displayName = new SimpleStringProperty(technicalName);
-    this.technicalName = new SimpleStringProperty(technicalName);
+    this.id = new SimpleStringProperty();
+    this.displayName = new SimpleStringProperty();
+    this.technicalName = new SimpleStringProperty();
     this.description = new SimpleStringProperty();
     this.plays = new SimpleIntegerProperty();
     this.downloads = new SimpleIntegerProperty();
     this.rating = new SimpleFloatProperty();
     this.players = new SimpleIntegerProperty();
     this.size = new SimpleObjectProperty<>();
-    this.version = new SimpleIntegerProperty();
+    this.version = new SimpleObjectProperty<>();
     this.hasAiMarkers = new SimpleBooleanProperty();
   }
 
@@ -133,15 +129,15 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
     return players;
   }
 
-  public int getVersion() {
+  public ComparableVersion getVersion() {
     return version.get();
   }
 
-  public void setVersion(int version) {
+  public void setVersion(ComparableVersion version) {
     this.version.set(version);
   }
 
-  public IntegerProperty versionProperty() {
+  public ObjectProperty<ComparableVersion> versionProperty() {
     return version;
   }
 
@@ -158,15 +154,15 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
     this.displayName.set(displayName);
   }
 
-  public IntegerProperty idProperty() {
+  public StringProperty idProperty() {
     return id;
   }
 
-  public int getId() {
+  public String getId() {
     return id.get();
   }
 
-  public void setId(int id) {
+  public void setId(String id) {
     this.id.set(id);
   }
 
@@ -180,5 +176,19 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
 
   public StringProperty technicalNameProperty() {
     return technicalName;
+  }
+
+  public static MapInfoBean fromMap(Map map) {
+    MapInfoBean mapInfoBean = new MapInfoBean();
+    mapInfoBean.setDescription(map.getDescription());
+    mapInfoBean.setDisplayName(map.getDisplayName());
+    mapInfoBean.setTechnicalName(map.getTechnicalName());
+    mapInfoBean.setSize(new MapSize(map.getSizeX(), map.getSizeY()));
+    mapInfoBean.setDownloads(map.getDownloads());
+    mapInfoBean.setId(map.getId());
+    mapInfoBean.setPlayers(map.getMaxPlayers());
+    mapInfoBean.setRating(map.getRating());
+    mapInfoBean.setVersion(new ComparableVersion(map.getVersion()));
+    return mapInfoBean;
   }
 }
