@@ -3,7 +3,6 @@ package com.faforever.client.main;
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.fx.SceneFactory;
-import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
@@ -393,10 +392,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     lobbyService.setOnLobbyConnectingListener(this);
     lobbyService.setOnFafDisconnectedListener(this);
 
-    final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
-
     sceneFactory.createScene(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
 
+    final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
     stage.setTitle(environment.getProperty("mainWindowTitle"));
     restoreState(mainWindowPrefs, stage);
     stage.show();
@@ -414,20 +412,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   }
 
   private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {
-    stage.setWidth(mainWindowPrefs.getWidth());
-    stage.setHeight(mainWindowPrefs.getHeight());
-
-    if (mainWindowPrefs.getMaximized()) {
-      WindowDecorator.maximize(stage);
-    } else {
-      if (mainWindowPrefs.getX() < 0 && mainWindowPrefs.getY() < 0) {
-        JavaFxUtil.centerOnScreen(stage);
-      } else {
-        stage.setX(mainWindowPrefs.getX());
-        stage.setY(mainWindowPrefs.getY());
-      }
-    }
-
     String lastView = mainWindowPrefs.getLastView();
     if (lastView != null) {
       mainNavigation.getChildren().stream()

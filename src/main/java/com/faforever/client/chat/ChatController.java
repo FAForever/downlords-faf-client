@@ -32,6 +32,7 @@ public class ChatController implements
   ApplicationContext applicationContext;
   @Resource
   UserService userService;
+
   @FXML
   Node chatRoot;
   @FXML
@@ -44,7 +45,7 @@ public class ChatController implements
   }
 
   @PostConstruct
-  void init() {
+  void postConstrut() {
     chatService.addOnMessageListener(this);
     chatService.addOnChatDisconnectedListener(this);
     chatService.addOnPrivateChatMessageListener(this);
@@ -52,6 +53,12 @@ public class ChatController implements
     chatService.addOnChatUserLeftChannelListener(this);
     chatService.addOnJoinChannelsRequestListener(this);
     chatService.addOnChatDisconnectedListener(this::onDisconnected);
+
+    userService.addOnLogoutListener(this::onLoggedOut);
+  }
+
+  private void onLoggedOut() {
+    chatsTabPane.getTabs().clear();
   }
 
   @FXML

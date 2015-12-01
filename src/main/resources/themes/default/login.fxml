@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="loginRoot" alignment="TOP_CENTER" prefWidth="360.0" styleClass="login"
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="loginRoot" alignment="CENTER" fillWidth="false" styleClass="login"
       AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0"
       xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.login.LoginController">
   <children>
@@ -25,7 +25,7 @@
         <Insets bottom="50.0" top="70.0"/>
       </VBox.margin>
     </ImageView>
-    <AnchorPane>
+    <AnchorPane maxHeight="1.7976931348623157E308" prefWidth="400.0">
       <children>
         <VBox fx:id="loginProgressPane" alignment="CENTER" layoutY="104.0" AnchorPane.bottomAnchor="0.0"
               AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
