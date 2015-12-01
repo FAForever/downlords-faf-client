@@ -69,8 +69,17 @@ public class TransientNotificationController {
         new KeyFrame(millis(300), new KeyValue(transientNotificationRoot.maxHeightProperty(), height, Interpolator.LINEAR)),
         new KeyFrame(millis(300 + toastDisplayTime), new KeyValue(transientNotificationRoot.maxHeightProperty(), height))
     );
-    timeline.setOnFinished(event -> ((Pane) transientNotificationRoot.getParent()).getChildren().remove(transientNotificationRoot));
+    timeline.setOnFinished(event -> dismiss());
     timeline.playFromStart();
+  }
+
+  private void dismiss() {
+    timeline.stop();
+    Pane parent = (Pane) transientNotificationRoot.getParent();
+    if (parent == null) {
+      return;
+    }
+    parent.getChildren().remove(transientNotificationRoot);
   }
 
   @PostConstruct
@@ -92,11 +101,6 @@ public class TransientNotificationController {
   @FXML
   void onCloseButtonClicked() {
     dismiss();
-  }
-
-  private void dismiss() {
-    timeline.stop();
-    ((Pane) transientNotificationRoot.getParent()).getChildren().remove(this.getRoot());
   }
 
   public Region getRoot() {

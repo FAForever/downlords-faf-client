@@ -47,6 +47,9 @@ public class PrivateChatTabController extends AbstractChatTabController {
       return;
     }
     TabPaneSkin skin = (TabPaneSkin) tabPane.getSkin();
+    if (skin == null) {
+      return;
+    }
     int tabIndex = tabPane.getTabs().indexOf(privateChatTabRoot);
     if (tabIndex == -1) {
       // Tab has been closed
@@ -76,7 +79,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getUsername());
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
-    if (playerInfoBean.getSocialStatus() == FOE && chatPrefs.getHideFoeMessages()) {
+    if (playerInfoBean != null && playerInfoBean.getSocialStatus() == FOE && chatPrefs.getHideFoeMessages()) {
       return;
     }
 
@@ -85,7 +88,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
     if (!hasFocus()) {
       audioController.playPrivateMessageSound();
       showNotificationIfNecessary(chatMessage);
-      setUnread(true);
+      setUnread(!getRoot().isSelected());
     }
   }
 }

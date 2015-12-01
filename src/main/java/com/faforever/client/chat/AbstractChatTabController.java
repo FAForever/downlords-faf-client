@@ -31,7 +31,6 @@ import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -48,7 +47,6 @@ import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import netscape.javascript.JSObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -549,10 +547,6 @@ public abstract class AbstractChatTabController {
   }
 
   private void scrollToBottomIfDesired() {
-    if (getMessagesWebView().getParent() == null) {
-      return;
-    }
-
     engine.executeScript("scrollToBottomIfDesired()");
   }
 
@@ -627,11 +621,7 @@ public abstract class AbstractChatTabController {
   }
 
   protected void showNotificationIfNecessary(ChatMessage chatMessage) {
-    final TabPane tabPane = getRoot().getTabPane();
-    Scene scene = tabPane.getScene();
-    final Window window = scene.getWindow();
-
-    if (!window.isFocused() || !window.isShowing()) {
+    if (!stage.isFocused() || !stage.isShowing()) {
       notificationService.addNotification(new TransientNotification(
           chatMessage.getUsername(),
           chatMessage.getMessage(),
@@ -639,7 +629,7 @@ public abstract class AbstractChatTabController {
           new Action(event -> {
             mainController.selectChatTab();
             stage.toFront();
-            tabPane.getSelectionModel().select(getRoot());
+            getRoot().getTabPane().getSelectionModel().select(getRoot());
           }))
       );
     }

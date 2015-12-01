@@ -270,6 +270,9 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
 
   @PostConstruct
   void postConstruct() {
+    // We need to initialize all skins, so initially add the chat root to the scene graph.
+    setContent(chatController.getRoot());
+
     persistentNotificationsPopup = new Popup();
     persistentNotificationsPopup.getContent().setAll(persistentNotificationsController.getRoot());
     persistentNotificationsPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
@@ -333,6 +336,23 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     preferencesService.setOnChoseGameDirectoryListener(this);
     gameService.addOnRankedMatchNotificationListener(this);
     userService.addOnLoginListener(this::onLoggedIn);
+  }
+
+  private void setContent(Node node) {
+    ObservableList<Node> children = contentPane.getChildren();
+
+    if (!children.contains(node)) {
+      children.add(node);
+
+      AnchorPane.setTopAnchor(node, 0d);
+      AnchorPane.setRightAnchor(node, 0d);
+      AnchorPane.setBottomAnchor(node, 0d);
+      AnchorPane.setLeftAnchor(node, 0d);
+    }
+
+    for (Node child : children) {
+      child.setVisible(child == node);
+    }
   }
 
   private Rectangle2D getTransientNotificationAreaBounds() {
@@ -560,7 +580,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     CompletableFuture<Path> future = new CompletableFuture<>();
     Platform.runLater(() -> {
       DirectoryChooser directoryChooser = new DirectoryChooser();
-      directoryChooser.setTitle(i18n.get("missingGamePath.locate"));
+      directoryChooser.setTitle(i18n.get("missingGamePath.chooserTitle"));
       File result = directoryChooser.showDialog(getRoot().getScene().getWindow());
 
       if (result == null) {
@@ -634,23 +654,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   void onChatSelected(ActionEvent event) {
     setActiveNavigationButton((ButtonBase) event.getSource());
     setContent(chatController.getRoot());
-  }
-
-  private void setContent(Node node) {
-    ObservableList<Node> children = contentPane.getChildren();
-
-    if (!children.contains(node)) {
-      children.add(node);
-
-      AnchorPane.setTopAnchor(node, 0d);
-      AnchorPane.setRightAnchor(node, 0d);
-      AnchorPane.setBottomAnchor(node, 0d);
-      AnchorPane.setLeftAnchor(node, 0d);
-    }
-
-    for (Node child : children) {
-      child.setVisible(child == node);
-    }
   }
 
   @FXML

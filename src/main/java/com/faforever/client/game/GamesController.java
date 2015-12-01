@@ -261,7 +261,12 @@ public class GamesController {
 
   private void doJoinGame(GameInfoBean gameInfoBean, String password, double screenX, double screenY) {
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
-      onChoseGameDirectoryListener.onChoseGameDirectory();
+      preferencesService.letUserChoseGameDirectory()
+          .thenAccept(isPathValid -> {
+            if (isPathValid != null && !isPathValid) {
+              doJoinGame(gameInfoBean, password, screenX, screenY);
+            }
+          });
       return;
     }
 
@@ -278,7 +283,12 @@ public class GamesController {
     Button button = (Button) actionEvent.getSource();
 
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
-      onChoseGameDirectoryListener.onChoseGameDirectory();
+      preferencesService.letUserChoseGameDirectory()
+          .thenAccept(isPathValid -> {
+            if (isPathValid != null && !isPathValid) {
+              onCreateGameButtonClicked(actionEvent);
+            }
+          });
       return;
     }
 

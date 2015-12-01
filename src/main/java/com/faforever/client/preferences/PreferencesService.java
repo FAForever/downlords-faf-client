@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
@@ -163,24 +164,27 @@ public class PreferencesService {
 
   private void notifyMissingGamePath() {
     List<Action> actions = Collections.singletonList(
-        new Action(i18n.get("missingGamePath.chooserTitle"), event -> letUserChoseGameDirectory())
+        new Action(i18n.get("missingGamePath.locate"), event -> letUserChoseGameDirectory())
     );
 
     notificationService.addNotification(new PersistentNotification(i18n.get("missingGamePath.notification"), Severity.WARN, actions));
   }
 
-  private void letUserChoseGameDirectory() {
+  public CompletableFuture<Boolean> letUserChoseGameDirectory() {
     if (onChoseGameDirectoryListener == null) {
       throw new IllegalStateException("No listener has been specified");
     }
 
-    onChoseGameDirectoryListener.onChoseGameDirectory().thenAccept(path -> {
+    return onChoseGameDirectoryListener.onChoseGameDirectory().thenApply(path -> {
+      if (path == null) {
+        return null;
+      }
       boolean isPathValid = storeGamePathIfValid(path);
 
       if (!isPathValid) {
         logger.info("User specified game path does not seem to be valid: {}", path);
-        notifyMissingGamePath();
       }
+      return isPathValid;
     }).exceptionally(throwable -> {
       logger.warn("Unexpected exception", throwable);
       return null;
