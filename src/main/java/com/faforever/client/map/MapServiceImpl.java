@@ -1,5 +1,6 @@
 package com.faforever.client.map;
 
+import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.game.MapSize;
@@ -26,11 +27,9 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -72,6 +71,8 @@ public class MapServiceImpl implements MapService {
   TaskService taskService;
   @Resource
   ApplicationContext applicationContext;
+  @Resource
+  FafApiAccessor fafApiAccessor;
 
   @Value("${vault.mapDownloadUrl}")
   String mapDownloadUrl;
@@ -102,7 +103,10 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public CompletableFuture<List<MapInfoBean>> readMapVaultInBackground(int page, int maxEntries) {
-    return CompletableFuture.completedFuture(Collections.emptyList());
+    MapVaultParseTask task = applicationContext.getBean(MapVaultParseTask.class);
+    task.setMaxEntries(maxEntries);
+    task.setPage(page);
+    return taskService.submitTask(task);
   }
 
   @Override
@@ -171,7 +175,8 @@ public class MapServiceImpl implements MapService {
         Properties properties = new Properties();
         properties.load(inputStream);
 
-        MapInfoBean mapInfoBean = new MapInfoBean(mapPath.getFileName().toString());
+        MapInfoBean mapInfoBean = new MapInfoBean();
+        mapInfoBean.setTechnicalName(mapPath.getFileName().toString());
         mapInfoBean.setDisplayName(stripQuotes(properties.getProperty("name")));
         mapInfoBean.setDescription(stripQuotes(properties.getProperty("description")));
 
@@ -191,7 +196,7 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public MapInfoBean getMapInfoBeanFromVaultByName(String mapName) {
-    return null;
+    return fafApiAccessor.findMapByName(mapName);
   }
 
   @Override

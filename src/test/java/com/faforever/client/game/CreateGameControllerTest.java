@@ -2,7 +2,9 @@ package com.faforever.client.game;
 
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.connectivity.ConnectivityState;
+import com.faforever.client.ThemeService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapInfoBeanBuilder;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
@@ -96,6 +98,9 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> getThemeFile(invocation.getArgumentAt(0, String.class)))
         .when(themeService).getThemeFile(any());
 
+    doAnswer(invocation -> getThemeFile(invocation.getArgumentAt(0, String.class)))
+        .when(themeService).getThemeFile(ThemeService.UNKNOWN_MAP_IMAGE);
+
     instance.postConstruct();
   }
 
@@ -108,9 +113,9 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testMapSearchTextFieldFilteringPopulated() throws Exception {
-    mapList.add(new MapInfoBean("Test1"));
-    mapList.add(new MapInfoBean("test2"));
-    mapList.add(new MapInfoBean("foo"));
+    mapList.add(MapInfoBeanBuilder.create().displayName("Test1").get());
+    mapList.add(MapInfoBeanBuilder.create().displayName("Test1").get());
+    mapList.add(MapInfoBeanBuilder.create().displayName("foo").get());
 
     instance.mapSearchTextField.setText("Test");
 
@@ -140,8 +145,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testMapSearchTextFieldKeyPressedUpForPopulated() throws Exception {
-    mapList.add(new MapInfoBean("Test1"));
-    mapList.add(new MapInfoBean("Test2"));
+    mapList.add(MapInfoBeanBuilder.create().displayName("Test1").get());
+    mapList.add(MapInfoBeanBuilder.create().displayName("Test1").get());
     instance.mapSearchTextField.setText("Test");
 
     instance.mapSearchTextField.getOnKeyPressed().handle(keyDownPressed);
@@ -154,8 +159,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testMapSearchTextFieldKeyPressedDownForPopulated() throws Exception {
-    mapList.add(new MapInfoBean("Test1"));
-    mapList.add(new MapInfoBean("Test2"));
+    mapList.add(MapInfoBeanBuilder.create().displayName("Test1").get());
+    mapList.add(MapInfoBeanBuilder.create().displayName("Test1").get());
     instance.mapSearchTextField.setText("Test");
 
     instance.mapSearchTextField.getOnKeyPressed().handle(keyDownPressed);
@@ -175,10 +180,10 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSelectLastMap() throws Exception {
-    MapInfoBean lastMap = new MapInfoBean("foo");
+    MapInfoBean lastMap = MapInfoBeanBuilder.create().displayName("foo").get();
     when(preferences.getLastMap()).thenReturn("foo");
 
-    mapList.add(new MapInfoBean("Test1"));
+    mapList.add(MapInfoBeanBuilder.create().displayName("Test1").get());
     mapList.add(lastMap);
     instance.postConstruct();
 

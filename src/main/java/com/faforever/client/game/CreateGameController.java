@@ -242,20 +242,18 @@ public class CreateGameController {
         new Image(themeService.getThemeFile(ThemeService.UNKNOWN_MAP_IMAGE), true);
       }
 
-      Platform.runLater(() -> {
-        mapImageView.setImage(largePreview);
+      mapImageView.setImage(largePreview);
 
-        mapNameLabel.setText(newValue.getDisplayName());
-        mapSizeLabel.setText(i18n.get("mapPreview.size", newValue.getSize()));
-        mapPlayersLabel.setText(i18n.get("mapPreview.maxPlayers", newValue.getPlayers()));
-        mapDescriptionLabel.setText(newValue.getDescription());
+      mapNameLabel.setText(newValue.getDisplayName());
+      mapSizeLabel.setText(i18n.get("mapPreview.size", newValue.getSize()));
+      mapPlayersLabel.setText(i18n.get("mapPreview.maxPlayers", newValue.getPlayers()));
+      mapDescriptionLabel.setText(newValue.getDescription());
 
-        if (newValue.getHasAiMarkers()) {
-          mapAiMarkersLabel.setText(i18n.get("yes"));
-        } else {
-          mapAiMarkersLabel.setText(i18n.get("no"));
-        }
-      });
+      if (newValue.getHasAiMarkers()) {
+        mapAiMarkersLabel.setText(i18n.get("yes"));
+      } else {
+        mapAiMarkersLabel.setText(i18n.get("no"));
+      }
     });
   }
 

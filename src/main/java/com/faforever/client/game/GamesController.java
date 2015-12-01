@@ -174,7 +174,7 @@ public class GamesController {
     }
     mapDetailPopup = getMapDetailPopup();
     MapDetailController mapDetailController = applicationContext.getBean(MapDetailController.class);
-    MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultByName(currentGameInfoBean.getMapTechnicalName());
+    MapInfoBean mapInfoBean = mapService.findMapByName(currentGameInfoBean.getMapTechnicalName());
     if (mapInfoBean == null) {
       mapDetailPopup.hide();
       String title = i18n.get("errorTitle");

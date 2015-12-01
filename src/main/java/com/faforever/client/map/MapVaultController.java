@@ -7,6 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.Pane;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +49,7 @@ public class MapVaultController {
   TableColumn<MapInfoBean, Number> playersColumn;
 
   @FXML
-  TableColumn<MapInfoBean, Number> versionColumn;
+  TableColumn<MapInfoBean, ComparableVersion> versionColumn;
 
   @Resource
   MapService mapService;

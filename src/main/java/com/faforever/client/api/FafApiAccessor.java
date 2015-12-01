@@ -1,5 +1,6 @@
 package com.faforever.client.api;
 
+import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.mod.ModInfoBean;
 
@@ -24,6 +25,8 @@ public interface FafApiAccessor {
   void authorize(int playerId);
 
   List<ModInfoBean> getMods();
+
+  MapInfoBean findMapByName(String mapId);
 
   List<Ranked1v1EntryBean> getRanked1v1Entries();
 

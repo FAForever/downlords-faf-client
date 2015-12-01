@@ -1,6 +1,7 @@
 package com.faforever.client.api;
 
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.UriUtil;
@@ -226,6 +227,12 @@ public class FafApiAccessorImpl implements FafApiAccessor {
       result.addAll(current);
     }
     return result;
+  }
+
+  @Override
+  public MapInfoBean findMapByName(String mapId) {
+    logger.debug("Searching map: {}", mapId);
+    return MapInfoBean.fromMap(getSingle("/maps/" + mapId, Map.class));
   }
 
   private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {

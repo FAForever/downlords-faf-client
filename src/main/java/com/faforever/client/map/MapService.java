@@ -4,7 +4,6 @@ import com.faforever.client.game.MapInfoBean;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface MapService {
@@ -13,13 +12,11 @@ public interface MapService {
 
   Image loadLargePreview(String mapName);
 
-  CompletableFuture<List<MapInfoBean>> readMapVaultInBackground(int page, int maxEntries);
-
   ObservableList<MapInfoBean> getLocalMaps();
 
   MapInfoBean getMapInfoBeanLocallyFromName(String mapName);
 
-  MapInfoBean getMapInfoBeanFromVaultByName(String mapName);
+  MapInfoBean findMapByName(String mapId);
 
   boolean isOfficialMap(String mapName);
 
