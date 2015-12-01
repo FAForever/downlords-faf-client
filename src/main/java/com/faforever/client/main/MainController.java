@@ -490,6 +490,23 @@ public class MainController implements OnChooseGameDirectoryListener {
     }
   }
 
+  private void setContent(Node node) {
+    ObservableList<Node> children = contentPane.getChildren();
+
+    if (!children.contains(node)) {
+      children.add(node);
+
+      AnchorPane.setTopAnchor(node, 0d);
+      AnchorPane.setRightAnchor(node, 0d);
+      AnchorPane.setBottomAnchor(node, 0d);
+      AnchorPane.setLeftAnchor(node, 0d);
+    }
+
+    for (Node child : children) {
+      child.setVisible(child == node);
+    }
+  }
+
   private Rectangle2D getTransientNotificationAreaBounds() {
     ObservableList<Screen> screens = Screen.getScreens();
 
