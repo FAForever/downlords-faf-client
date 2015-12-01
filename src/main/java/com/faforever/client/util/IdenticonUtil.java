@@ -19,9 +19,9 @@ public final class IdenticonUtil {
     throw new AssertionError("Not instantiatable");
   }
 
-  public static Image createIdenticon(String string) {
+  public static Image createIdenticon(Object object) {
     try {
-      byte[] hash = MessageDigest.getInstance("MD5").digest(string.getBytes());
+      byte[] hash = MessageDigest.getInstance("MD5").digest(object.toString().getBytes());
 
       BufferedImage bufferedImage = new BufferedImage(IMAGE_SIZE, IMAGE_SIZE, BufferedImage.TYPE_4BYTE_ABGR);
       int pixelSize = IMAGE_SIZE / PIXEL_COUNT;

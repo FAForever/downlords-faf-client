@@ -54,22 +54,12 @@ public class PlayerServiceImpl implements PlayerService, OnPlayerInfoListener, O
   private List<String> foeList;
   private List<String> friendList;
   private ObjectProperty<PlayerInfoBean> currentPlayer;
-  private GameStatus gameStatus;
 
   public PlayerServiceImpl() {
     players = FXCollections.observableHashMap();
     friendList = new ArrayList<>();
     foeList = new ArrayList<>();
-    gameStatus = GameStatus.NONE;
     currentPlayer = new SimpleObjectProperty<>();
-  }
-
-  public GameStatus getGameStatus() {
-    return gameStatus;
-  }
-
-  public void setGameStatus(GameStatus gameStatus) {
-    this.gameStatus = gameStatus;
   }
 
   @PostConstruct

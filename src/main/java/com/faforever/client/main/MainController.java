@@ -40,6 +40,7 @@ import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
@@ -405,6 +406,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     usernameButton.setText(userService.getUsername());
     // TODO no more e-mail address :(
 //    userImageView.setImage(gravatarService.getGravatar(userService.getEmail()));
+    userImageView.setImage(IdenticonUtil.createIdenticon(userService.getUid()));
 
     checkGamePortInBackground();
     gameUpdateService.checkForUpdateInBackground();

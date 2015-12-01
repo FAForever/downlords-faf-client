@@ -219,7 +219,7 @@ public class UserInfoWindowController {
 
     usernameLabel.textProperty().bind(playerInfoBean.usernameProperty());
     countryImageView.setImage(countryFlagService.loadCountryFlag(playerInfoBean.getCountry()));
-    avatarImageView.setImage(IdenticonUtil.createIdenticon(playerInfoBean.getUsername()));
+    avatarImageView.setImage(IdenticonUtil.createIdenticon(playerInfoBean.getId()));
     gamesPlayedLabel.setText(String.format(locale, "%d", playerInfoBean.getNumberOfGames()));
     ratingLabelGlobal.setText(String.format(locale, "%d", RatingUtil.getGlobalRating(playerInfoBean)));
     ratingLabel1v1.setText(String.format(locale, "%d", RatingUtil.getGlobalRating(playerInfoBean)));

@@ -8,7 +8,6 @@ import com.faforever.client.fx.SceneFactory;
 import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.JavaFxUtil;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.beans.binding.ObjectBinding;
@@ -28,6 +27,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
+import static com.faforever.client.util.IdenticonUtil.createIdenticon;
 
 public class UserMenuController {
 
@@ -67,10 +67,9 @@ public class UserMenuController {
       countryLabel.textProperty().bind(countryLabelBinding(newValue));
       usernameLabel.textProperty().bind(newValue.usernameProperty());
       countryImageView.imageProperty().bind(countryImageBinding(newValue));
+      JavaFxUtil.bindOnApplicationThread(userImageView.imageProperty(),
+          () -> createIdenticon(newValue.getId()), newValue.idProperty());
     });
-
-    JavaFxUtil.bindOnApplicationThread(userImageView.imageProperty(),
-        () -> IdenticonUtil.createIdenticon(usernameLabel.getText()), usernameLabel.textProperty());
   }
 
   @NotNull
