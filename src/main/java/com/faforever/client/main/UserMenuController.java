@@ -4,7 +4,7 @@ import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.HostService;
-import com.faforever.client.fx.SceneFactory;
+import com.faforever.client.fx.StageConfigurator;
 import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.user.UserService;
@@ -55,7 +55,7 @@ public class UserMenuController {
   @Resource
   ApplicationContext applicationContext;
   @Resource
-  SceneFactory sceneFactory;
+  StageConfigurator stageConfigurator;
 
   public Node getRoot() {
     return userMenuRoot;
@@ -124,7 +124,7 @@ public class UserMenuController {
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(((Popup) userMenuRoot.getScene().getWindow()).getOwnerWindow());
 
-    sceneFactory.createScene(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
+    stageConfigurator.configureScene(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
 
     userInfoWindow.show();
   }

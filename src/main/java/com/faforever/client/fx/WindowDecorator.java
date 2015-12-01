@@ -343,6 +343,6 @@ public class WindowDecorator {
   }
 
   public static void maximize(Stage stage) {
-    ((WindowDecorator) stage.getProperties().get("windowDecorator")).maximize();
+    ((WindowDecorator) stage.getProperties().get(PROPERTY_WINDOW_DECORATOR)).maximize();
   }
 }

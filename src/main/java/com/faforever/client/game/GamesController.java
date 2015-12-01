@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.fx.SceneFactory;
+import com.faforever.client.fx.StageConfigurator;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameState;
@@ -93,7 +93,7 @@ public class GamesController {
   @Resource
   PreferencesService preferencesService;
   @Resource
-  SceneFactory sceneFactory;
+  StageConfigurator stageConfigurator;
   @Resource
   NotificationService notificationService;
 
@@ -303,7 +303,7 @@ public class GamesController {
       notificationService.addNotification(new ImmediateNotification(title, message, Severity.WARN));
     } else {
       mapDetailController.createPreview(mapInfoBean);
-      sceneFactory.createScene(mapDetailPopup, mapDetailController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
+      stageConfigurator.configureScene(mapDetailPopup, mapDetailController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
       mapDetailPopup.centerOnScreen();
       mapDetailPopup.show();
     }

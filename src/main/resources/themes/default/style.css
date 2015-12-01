@@ -992,6 +992,10 @@
   -fx-effect: -fx-drop-shadow;
 }
 
+.login * {
+  -fx-spacing: 15;
+}
+
 /***************** Web view *****************/
 
 .web-view {

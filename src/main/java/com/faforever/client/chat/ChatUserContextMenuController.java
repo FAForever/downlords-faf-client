@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.fx.SceneFactory;
+import com.faforever.client.fx.StageConfigurator;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -104,7 +104,7 @@ public class ChatUserContextMenuController {
   ApplicationContext applicationContext;
 
   @Resource
-  SceneFactory sceneFactory;
+  StageConfigurator stageConfigurator;
 
   @Resource
   PlayerService playerService;
@@ -185,7 +185,7 @@ public class ChatUserContextMenuController {
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(contextMenu.getOwnerWindow());
 
-    sceneFactory.createScene(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
+    stageConfigurator.configureScene(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
 
     userInfoWindow.show();
   }
