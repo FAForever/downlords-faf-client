@@ -2,7 +2,8 @@ package com.faforever.client.main;
 
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
-import com.faforever.client.fx.SceneFactory;
+import com.faforever.client.fx.StageConfigurator;
+import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
@@ -14,6 +15,7 @@ import com.faforever.client.legacy.OnFafDisconnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectedListener;
 import com.faforever.client.legacy.OnLobbyConnectingListener;
 import com.faforever.client.lobby.LobbyService;
+import com.faforever.client.login.LoginController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
@@ -157,7 +159,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Resource
   PreferencesService preferencesService;
   @Resource
-  SceneFactory sceneFactory;
+  StageConfigurator stageConfigurator;
   @Resource
   LobbyService lobbyService;
   @Resource
@@ -198,6 +200,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   Stage stage;
   @Resource
   Locale locale;
+  @Resource
+  LoginController loginController;
 
   @VisibleForTesting
   Popup persistentNotificationsPopup;
@@ -273,6 +277,10 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     // We need to initialize all skins, so initially add the chat root to the scene graph.
     setContent(chatController.getRoot());
 
+    lobbyService.setOnFafConnectedListener(this);
+    lobbyService.setOnLobbyConnectingListener(this);
+    lobbyService.setOnFafDisconnectedListener(this);
+
     persistentNotificationsPopup = new Popup();
     persistentNotificationsPopup.getContent().setAll(persistentNotificationsController.getRoot());
     persistentNotificationsPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
@@ -336,6 +344,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     preferencesService.setOnChoseGameDirectoryListener(this);
     gameService.addOnRankedMatchNotificationListener(this);
     userService.addOnLoginListener(this::onLoggedIn);
+    userService.addOnLogoutListener(this::onLoggedOut);
   }
 
   private void setContent(Node node) {
@@ -398,52 +407,47 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(mainRoot.getScene().getWindow());
 
-    sceneFactory.createScene(userInfoWindow, controller.getRoot(), false, CLOSE);
+    stageConfigurator.configureScene(userInfoWindow, controller.getRoot(), false, CLOSE);
 
     userInfoWindow.show();
   }
 
   private void onLoggedIn() {
-    Platform.runLater(this::display);
+    Platform.runLater(this::enterLoggedInState);
+  }
+
+  private void onLoggedOut() {
+    Platform.runLater(this::enterLoggedOutState);
   }
 
   public void display() {
-    lobbyService.setOnFafConnectedListener(this);
-    lobbyService.setOnLobbyConnectingListener(this);
-    lobbyService.setOnFafDisconnectedListener(this);
-
-    sceneFactory.createScene(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
-
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
+    stage.setWidth(mainWindowPrefs.getWidth());
+    stage.setHeight(mainWindowPrefs.getHeight());
+
     stage.setTitle(environment.getProperty("mainWindowTitle"));
-    restoreState(mainWindowPrefs, stage);
     stage.show();
 
-    registerWindowListeners(stage, mainWindowPrefs);
+    enterLoggedOutState();
 
-    usernameButton.setText(userService.getUsername());
-    // TODO no more e-mail address :(
-//    userImageView.setImage(gravatarService.getGravatar(userService.getEmail()));
-    userImageView.setImage(IdenticonUtil.createIdenticon(userService.getUid()));
-
-    checkGamePortInBackground();
-    gameUpdateService.checkForUpdateInBackground();
-    clientUpdateService.checkForUpdateInBackground();
-  }
-
-  private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {
-    String lastView = mainWindowPrefs.getLastView();
-    if (lastView != null) {
-      mainNavigation.getChildren().stream()
-          .filter(button -> button instanceof ButtonBase)
-          .filter(button -> lastView.equals(button.getId()))
-          .forEach(button -> ((ButtonBase) button).fire());
+    if (mainWindowPrefs.getX() < 0 && mainWindowPrefs.getY() < 0) {
+      JavaFxUtil.centerOnScreen(stage);
     } else {
-      communityButton.fire();
+      stage.setX(mainWindowPrefs.getX());
+      stage.setY(mainWindowPrefs.getY());
     }
+    if (mainWindowPrefs.getMaximized()) {
+      WindowDecorator.maximize(stage);
+    }
+    registerWindowListeners();
   }
 
-  private void registerWindowListeners(final Stage stage, final WindowPrefs mainWindowPrefs) {
+  private void enterLoggedOutState() {
+    loginController.display();
+  }
+
+  private void registerWindowListeners() {
+    final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
     stage.maximizedProperty().addListener((observable, oldValue, newValue) -> {
       if (!newValue) {
         stage.setWidth(mainWindowPrefs.getWidth());
@@ -482,6 +486,35 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     ReadOnlyBooleanProperty focusedProperty = stage.focusedProperty();
     focusedProperty.removeListener(windowFocusListener);
     focusedProperty.addListener(windowFocusListener);
+  }
+
+  private void enterLoggedInState() {
+    stageConfigurator.configureScene(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
+    stage.show();
+
+    final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
+    restoreLastView(mainWindowPrefs);
+
+    usernameButton.setText(userService.getUsername());
+    // TODO no more e-mail address :(
+//    userImageView.setImage(gravatarService.getGravatar(userService.getEmail()));
+    userImageView.setImage(IdenticonUtil.createIdenticon(userService.getUid()));
+
+    checkGamePortInBackground();
+    gameUpdateService.checkForUpdateInBackground();
+    clientUpdateService.checkForUpdateInBackground();
+  }
+
+  private void restoreLastView(WindowPrefs mainWindowPrefs) {
+    String lastView = mainWindowPrefs.getLastView();
+    if (lastView != null) {
+      mainNavigation.getChildren().stream()
+          .filter(button -> button instanceof ButtonBase)
+          .filter(button -> lastView.equals(button.getId()))
+          .forEach(button -> ((ButtonBase) button).fire());
+    } else {
+      communityButton.fire();
+    }
   }
 
   private void checkGamePortInBackground() {
@@ -564,7 +597,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     stage.initOwner(mainRoot.getScene().getWindow());
 
     Region root = settingsController.getRoot();
-    sceneFactory.createScene(stage, root, true, CLOSE);
+    stageConfigurator.configureScene(stage, root, true, CLOSE);
 
     stage.setTitle(i18n.get("settings.windowTitle"));
     stage.show();

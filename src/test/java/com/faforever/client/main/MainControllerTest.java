@@ -3,7 +3,7 @@ package com.faforever.client.main;
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.UserInfoWindowController;
-import com.faforever.client.fx.SceneFactory;
+import com.faforever.client.fx.StageConfigurator;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
@@ -12,6 +12,7 @@ import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.lobby.LobbyService;
+import com.faforever.client.login.LoginController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
@@ -41,12 +42,16 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static com.faforever.client.portcheck.ConnectivityState.PROXY;
 import static com.faforever.client.portcheck.ConnectivityState.PUBLIC;
@@ -56,6 +61,7 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,7 +74,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private LeaderboardController leaderboardController;
   @Mock
-  private SceneFactory sceneFactory;
+  private StageConfigurator stageConfigurator;
   @Mock
   private PortCheckService portCheckService;
   @Mock
@@ -127,8 +133,13 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private TransientNotificationsController transientNotificationsController;
   @Mock
   private NotificationsPrefs notificationPrefs;
+  @Mock
+  private LoginController loginController;
+  @Captor
+  private ArgumentCaptor<Runnable> loginListenerCaptor;
 
   private MainController instance;
+  private CountDownLatch mainControllerInitializedLatch;
 
   @Before
   public void setUp() throws Exception {
@@ -138,7 +149,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.environment = environment;
     instance.applicationContext = applicationContext;
     instance.playerService = playerService;
-    instance.sceneFactory = sceneFactory;
+    instance.stageConfigurator = stageConfigurator;
     instance.preferencesService = preferencesService;
     instance.portCheckService = portCheckService;
     instance.gameUpdateService = gameUpdateService;
@@ -162,6 +173,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.userMenuController = userMenuController;
     instance.gravatarService = gravatarService;
     instance.transientNotificationsController = transientNotificationsController;
+    instance.loginController = loginController;
 
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(leaderboardController.getRoot()).thenReturn(new Pane());
@@ -172,6 +184,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(userMenuController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(taskService.getActiveTasks()).thenReturn(FXCollections.emptyObservableList());
+    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(PUBLIC));
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(applicationContext.getBean(UserInfoWindowController.class)).thenReturn(userInfoWindowController);
@@ -183,12 +196,22 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(notificationPrefs.getToastPosition()).thenReturn(ToastPosition.BOTTOM_RIGHT);
 
     instance.postConstruct();
+
+    verify(userService).addOnLoginListener(loginListenerCaptor.capture());
+
+    mainControllerInitializedLatch = new CountDownLatch(1);
+    // As the login check is executed AFTER the main controller has been switched to logged in state, we hook to it
+    doAnswer(invocation -> {
+      mainControllerInitializedLatch.countDown();
+      return null;
+    }).when(clientUpdateService).checkForUpdateInBackground();
   }
 
   @Test
   public void testDisplay() throws Exception {
     attachToRoot();
-    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(PUBLIC));
+    fakeLogin();
+
     when(communityHubController.getRoot()).thenReturn(new Pane());
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
     when(mainWindowPrefs.getLastView()).thenReturn(instance.communityButton.getId());
@@ -207,6 +230,11 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private void attachToRoot() {
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> getRoot().getChildren().add(instance.mainRoot));
     WaitForAsyncUtils.waitForFxEvents();
+  }
+
+  private void fakeLogin() throws InterruptedException {
+    loginListenerCaptor.getValue().run();
+    assertTrue(mainControllerInitializedLatch.await(3000, TimeUnit.MILLISECONDS));
   }
 
   @Test
@@ -262,8 +290,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnPortCheckRetryClicked() throws Exception {
-    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(PUBLIC));
-
     instance.onPortCheckRetryClicked();
 
     verify(portCheckService).checkGamePortInBackground();
@@ -291,15 +317,16 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnGamePortCheckFailed() throws Exception {
-    attachToRoot();
     String disconnected = "foobar";
 
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> instance.portCheckStatusButton.setText(disconnected));
 
     CompletableFuture<ConnectivityState> future = new CompletableFuture<>();
     future.completeExceptionally(new Exception("test exception"));
-
     when(portCheckService.checkGamePortInBackground()).thenReturn(future);
+
+    attachToRoot();
+    fakeLogin();
 
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
 
@@ -309,11 +336,11 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnGamePortCheckResultReachable() throws Exception {
-    attachToRoot();
     String disconnected = "foobar";
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> instance.portCheckStatusButton.setText(disconnected));
 
-    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(PUBLIC));
+    attachToRoot();
+    fakeLogin();
 
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
 
@@ -323,8 +350,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnGamePortCheckResultUnreachable() throws Exception {
-    attachToRoot();
-
     String disconnected = "foobar";
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> instance.portCheckStatusButton.setText(disconnected));
 
@@ -349,7 +374,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(settingsController.getRoot()).thenReturn(root);
     WaitForAsyncUtils.waitForAsyncFx(1000, instance::onSettingsItemSelected);
 
-    verify(sceneFactory).createScene(
+    verify(stageConfigurator).configureScene(
         any(), eq(root), eq(true), eq(WindowDecorator.WindowButtonType.CLOSE)
     );
   }

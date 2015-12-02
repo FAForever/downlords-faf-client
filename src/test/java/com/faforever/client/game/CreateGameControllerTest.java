@@ -29,6 +29,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -84,7 +85,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(mapService.getLocalMaps()).thenReturn(mapList);
 
     doAnswer(invocation -> getThemeFile(invocation.getArgumentAt(0, String.class)))
-        .when(themeService).getThemeFile(ThemeService.UNKNOWN_MAP_IMAGE);
+        .when(themeService).getThemeFile(any());
 
     instance.postConstruct();
   }

@@ -1,13 +1,10 @@
 package com.faforever.client.login;
 
-import com.faforever.client.fx.SceneFactory;
-import com.faforever.client.fx.WindowDecorator;
+import com.faforever.client.fx.StageConfigurator;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Strings;
 import com.google.common.hash.Hashing;
 import javafx.application.Platform;
@@ -17,7 +14,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +47,7 @@ public class LoginController {
   @FXML
   Label loginErrorLabel;
   @FXML
-  Region loginRoot;
+  Pane loginRoot;
 
   @Resource
   I18n i18n;
@@ -60,7 +56,7 @@ public class LoginController {
   @Resource
   PreferencesService preferencesService;
   @Resource
-  SceneFactory sceneFactory;
+  StageConfigurator stageConfigurator;
   @Resource
   Stage stage;
   private boolean loggedOut;
@@ -82,7 +78,7 @@ public class LoginController {
   }
 
   public void display() {
-    sceneFactory.createScene(stage, loginRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
+    stageConfigurator.configureScene(stage, loginRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
 
     stage.setTitle(i18n.get("login.title"));
     stage.setResizable(false);
@@ -96,14 +92,6 @@ public class LoginController {
     // Fill the form even if autoLogin is true, since user may cancel the login
     usernameInput.setText(Strings.nullToEmpty(username));
     autoLoginCheckBox.setSelected(isAutoLogin);
-
-    if (!loggedOut) {
-      // Only init the stage if the user just opened the window, not after he logged out
-      final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
-      restoreState(mainWindowPrefs, stage);
-      stage.show();
-      JavaFxUtil.centerOnScreen(stage);
-    }
 
     if (loginPrefs.getAutoLogin() && !isNullOrEmpty(username) && !isNullOrEmpty(password) && !loggedOut) {
       login(username, password, true);
@@ -119,22 +107,6 @@ public class LoginController {
     loginProgressPane.setVisible(show);
     loginButton.setDisable(show);
     loginErrorLabel.setVisible(false);
-  }
-
-  private void restoreState(WindowPrefs mainWindowPrefs, Stage stage) {
-    stage.setWidth(mainWindowPrefs.getWidth());
-    stage.setHeight(mainWindowPrefs.getHeight());
-
-    if (mainWindowPrefs.getMaximized()) {
-      WindowDecorator.maximize(stage);
-    } else {
-      if (mainWindowPrefs.getX() < 0 && mainWindowPrefs.getY() < 0) {
-        JavaFxUtil.centerOnScreen(stage);
-      } else {
-        stage.setX(mainWindowPrefs.getX());
-        stage.setY(mainWindowPrefs.getY());
-      }
-    }
   }
 
   private void login(String username, String password, boolean autoLogin) {
@@ -183,5 +155,9 @@ public class LoginController {
   public void onCancelLoginButtonClicked() {
     userService.cancelLogin();
     setShowLoginProgress(false);
+  }
+
+  public Pane getRoot() {
+    return loginRoot;
   }
 }

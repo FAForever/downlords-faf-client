@@ -7,7 +7,7 @@ import com.faforever.client.config.ServiceConfig;
 import com.faforever.client.config.TaskConfig;
 import com.faforever.client.config.UiConfig;
 import com.faforever.client.fx.JavaFxHostService;
-import com.faforever.client.login.LoginController;
+import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Application;
@@ -15,7 +15,6 @@ import javafx.scene.image.Image;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 public class Main extends Application {
@@ -37,18 +36,14 @@ public class Main extends Application {
     stage.getIcons().add(new Image("/images/tray_icon.png"));
     stage.initStyle(StageStyle.TRANSPARENT);
 
-    showLoginWindow(context);
+    MainController mainController = context.getBean(MainController.class);
+    mainController.display();
   }
 
   @Override
   public void stop() throws Exception {
     context.close();
     super.stop();
-  }
-
-  private void showLoginWindow(ApplicationContext context) {
-    LoginController loginController = context.getBean(LoginController.class);
-    loginController.display();
   }
 
   public static void main(String[] args) {
