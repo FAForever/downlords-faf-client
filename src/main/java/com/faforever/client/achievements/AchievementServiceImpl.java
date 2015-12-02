@@ -13,6 +13,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.user.UserService;
+import com.google.common.base.Strings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -79,7 +80,7 @@ public class AchievementServiceImpl implements AchievementService {
   @Override
   @Cacheable(CacheNames.ACHIEVEMENTS)
   public Image getRevealedIcon(AchievementDefinition achievementDefinition) {
-    if (achievementDefinition.getRevealedIconUrl() == null) {
+    if (Strings.isNullOrEmpty(achievementDefinition.getRevealedIconUrl())) {
       return new Image(themeService.getThemeFile(ThemeService.DEFAULT_ACHIEVEMENT_IMAGE), true);
     }
     return new Image(achievementDefinition.getRevealedIconUrl(), true);
@@ -88,7 +89,7 @@ public class AchievementServiceImpl implements AchievementService {
   @Override
   @Cacheable(CacheNames.ACHIEVEMENTS)
   public Image getUnlockedIcon(AchievementDefinition achievementDefinition) {
-    if (achievementDefinition.getUnlockedIconUrl() == null) {
+    if (Strings.isNullOrEmpty(achievementDefinition.getUnlockedIconUrl())) {
       return new Image(themeService.getThemeFile(ThemeService.DEFAULT_ACHIEVEMENT_IMAGE), true);
     }
     return new Image(achievementDefinition.getUnlockedIconUrl(), true);
