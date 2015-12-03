@@ -11,13 +11,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class GpgClientCommandTypeAdapterTest {
+public class GpgClientMessageTypeAdapterTest {
 
-  private GpgClientCommandTypeAdapter instance;
+  private GpgClientMessageTypeAdapter instance;
 
   @Before
   public void setUp() throws Exception {
-    instance = GpgClientCommandTypeAdapter.INSTANCE;
+    instance = GpgClientMessageTypeAdapter.INSTANCE;
   }
 
   @Test

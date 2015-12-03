@@ -1,7 +1,6 @@
 package com.faforever.client.legacy.domain;
 
 import com.faforever.client.legacy.UpdatedAchievementsMessageLobby;
-import com.faforever.client.legacy.relay.ConnectivityStateMessage;
 import com.faforever.client.rankedmatch.MatchmakerLobbyServerMessage;
 import com.faforever.client.stats.StatisticsMessageLobby;
 
@@ -19,8 +18,7 @@ public enum FafServerMessageType implements ServerMessageType {
   SOCIAL("social", SocialMessageLobby.class),
   AUTHENTICATION_FAILED("authentication_failed", AuthenticationFailedMessageLobby.class),
   STATS("stats", StatisticsMessageLobby.class),
-  UPDATED_ACHIEVEMENTS("updated_achievements", UpdatedAchievementsMessageLobby.class),
-  CONNECTIVITY_STATE("ConnectivityState", ConnectivityStateMessage.class);
+  UPDATED_ACHIEVEMENTS("updated_achievements", UpdatedAchievementsMessageLobby.class);
 
   private static final Map<String, FafServerMessageType> fromString;
 

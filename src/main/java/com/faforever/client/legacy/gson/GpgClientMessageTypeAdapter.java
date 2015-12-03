@@ -7,11 +7,11 @@ import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 
-public class GpgClientCommandTypeAdapter extends TypeAdapter<GpgClientCommand> {
+public class GpgClientMessageTypeAdapter extends TypeAdapter<GpgClientCommand> {
 
-  public static final GpgClientCommandTypeAdapter INSTANCE = new GpgClientCommandTypeAdapter();
+  public static final GpgClientMessageTypeAdapter INSTANCE = new GpgClientMessageTypeAdapter();
 
-  private GpgClientCommandTypeAdapter() {
+  private GpgClientMessageTypeAdapter() {
 
   }
 

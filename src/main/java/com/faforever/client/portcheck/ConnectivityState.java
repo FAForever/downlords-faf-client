@@ -14,7 +14,7 @@ public enum ConnectivityState {
   /**
    * The client is incapable of sending/receiving UDP messages.
    */
-  PROXY("PROXY");
+  BLOCKED("BLOCKED");
 
   private static final HashMap<String, ConnectivityState> fromString;
 

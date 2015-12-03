@@ -4,7 +4,6 @@ import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
-import com.faforever.client.legacy.domain.FafServerMessage;
 import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
 import com.faforever.client.legacy.domain.LoginLobbyServerMessage;
 import com.faforever.client.legacy.relay.GpgClientMessage;
@@ -77,15 +76,11 @@ public interface LobbyServerAccessor {
   @Nullable
   Long getSessionId();
 
-  void addOnGpgServerMessageListener(Consumer<GpgServerMessage> listener);
-
   void sendGpgMessage(GpgClientMessage message);
 
   void initConnectivityTest();
 
+  void addOnGpgServerMessageListener(Consumer<GpgServerMessage> listener);
   void removeOnGpgServerMessageListener(Consumer<GpgServerMessage> listener);
 
-  void addOnConnectivityStateMessageListener(Consumer<FafServerMessage> listener);
-
-  void removeOnFafServerMessageListener(Consumer<FafServerMessage> listener);
 }

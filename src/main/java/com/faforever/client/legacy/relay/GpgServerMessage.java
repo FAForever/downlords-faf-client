@@ -16,6 +16,7 @@ import java.util.List;
 public class GpgServerMessage implements SerializableMessage, ServerMessage {
 
   private GpgServerMessageType command;
+  private MessageTarget target;
   private List<Object> args;
   private String jsonString;
 
@@ -68,7 +69,7 @@ public class GpgServerMessage implements SerializableMessage, ServerMessage {
 
   @Override
   public MessageTarget getTarget() {
-    return null;
+    return target;
   }
 
   @Override
@@ -81,7 +82,7 @@ public class GpgServerMessage implements SerializableMessage, ServerMessage {
     this.jsonString = jsonString;
   }
 
-  protected static int asInt(Object object) {
-    return ((Double) object).intValue();
+  public void setTarget(MessageTarget target) {
+    this.target = target;
   }
 }

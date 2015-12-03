@@ -17,7 +17,9 @@ public enum GpgServerMessageType implements ServerMessageType {
   CONNECT_TO_PEER("ConnectToPeer", ConnectToPeerMessage.class),
   CREATE_LOBBY("CreateLobby", CreateLobbyServerMessage.class),
   DISCONNECT_FROM_PEER("DisconnectFromPeer", DisconnectFromPeerMessage.class),
-  JOIN_PROXY("JoinProxy", JoinProxyMessage.class);
+  JOIN_PROXY("JoinProxy", JoinProxyMessage.class),
+  CONNECTIVITY_STATE("ConnectivityState", ConnectivityStateMessage.class);
+
 
   private static final Map<String, GpgServerMessageType> fromString;
 

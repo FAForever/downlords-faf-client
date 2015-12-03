@@ -53,7 +53,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.faforever.client.portcheck.ConnectivityState.PROXY;
+import static com.faforever.client.portcheck.ConnectivityState.BLOCKED;
 import static com.faforever.client.portcheck.ConnectivityState.PUBLIC;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
@@ -353,7 +353,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     String disconnected = "foobar";
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> instance.portCheckStatusButton.setText(disconnected));
 
-    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(PROXY));
+    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(BLOCKED));
 
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
 

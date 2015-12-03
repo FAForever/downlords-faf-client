@@ -6,6 +6,7 @@ import com.faforever.client.legacy.OnGameLaunchInfoListener;
 import com.faforever.client.legacy.domain.FafServerMessageType;
 import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
 import com.faforever.client.legacy.domain.MessageTarget;
+import com.faforever.client.legacy.gson.GpgServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.MessageTargetTypeAdapter;
 import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.proxy.Proxy;
@@ -69,7 +70,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     gson = new GsonBuilder()
         .registerTypeHierarchyAdapter(FafServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
         .registerTypeHierarchyAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
-        .registerTypeAdapter(GpgServerMessageType.class, GpgServerCommandTypeAdapter.INSTANCE)
+        .registerTypeAdapter(GpgServerMessageType.class, GpgServerMessageTypeTypeAdapter.INSTANCE)
         .create();
   }
 

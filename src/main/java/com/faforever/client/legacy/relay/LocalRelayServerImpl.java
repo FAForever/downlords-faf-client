@@ -3,6 +3,8 @@ package com.faforever.client.legacy.relay;
 import com.faforever.client.game.GameType;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
+import com.faforever.client.legacy.domain.MessageTarget;
+import com.faforever.client.legacy.gson.GpgServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.proxy.Proxy;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.relay.FaDataInputStream;
@@ -75,7 +77,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   public LocalRelayServerImpl() {
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-        .registerTypeAdapter(GpgServerMessageType.class, GpgServerCommandTypeAdapter.INSTANCE)
+        .registerTypeAdapter(GpgServerMessageType.class, GpgServerMessageTypeTypeAdapter.INSTANCE)
         .create();
     onReadyListeners = new ArrayList<>();
     onConnectionAcceptedListeners = new ArrayList<>();
@@ -246,6 +248,9 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   }
 
   private void onGpgServerMessage(GpgServerMessage message) {
+    if (message.getTarget() != MessageTarget.GAME) {
+      return;
+    }
     try {
       dispatchServerCommand(message.getMessageType(), message.getJsonString());
     } catch (IOException e) {

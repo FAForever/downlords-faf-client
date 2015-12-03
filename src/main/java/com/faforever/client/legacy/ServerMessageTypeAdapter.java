@@ -34,10 +34,10 @@ public class ServerMessageTypeAdapter implements JsonDeserializer<ServerMessage>
     ServerMessageType serverMessageType;
     switch (messageTarget) {
       case GAME:
+      case CONNECTIVITY:
         serverMessageType = GpgServerMessageType.fromString(command);
         break;
 
-      case CONNECTIVITY:
       case CLIENT:
         serverMessageType = FafServerMessageType.fromString(command);
         break;

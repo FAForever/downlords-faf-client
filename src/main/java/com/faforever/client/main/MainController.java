@@ -525,7 +525,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
         case STUN:
           portCheckStatusButton.setText(i18n.get("statusBar.portReachable"));
           break;
-        case PROXY:
+        case BLOCKED:
           portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
           break;
       }

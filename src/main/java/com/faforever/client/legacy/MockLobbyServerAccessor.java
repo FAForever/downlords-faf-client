@@ -6,7 +6,6 @@ import com.faforever.client.game.GameType;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
-import com.faforever.client.legacy.domain.FafServerMessage;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfoMessage;
 import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
@@ -297,11 +296,6 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void addOnGpgServerMessageListener(Consumer<GpgServerMessage> listener) {
-
-  }
-
-  @Override
   public void sendGpgMessage(GpgClientMessage message) {
 
   }
@@ -312,17 +306,12 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
+  public void addOnGpgServerMessageListener(Consumer<GpgServerMessage> listener) {
+
+  }
+
+  @Override
   public void removeOnGpgServerMessageListener(Consumer<GpgServerMessage> listener) {
-
-  }
-
-  @Override
-  public void addOnConnectivityStateMessageListener(Consumer<FafServerMessage> listener) {
-
-  }
-
-  @Override
-  public void removeOnFafServerMessageListener(Consumer<FafServerMessage> listener) {
 
   }
 

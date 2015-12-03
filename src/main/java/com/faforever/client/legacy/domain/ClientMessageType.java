@@ -11,10 +11,7 @@ public enum ClientMessageType {
   SOCIAL("social"),
   STATISTICS("stats"),
   LOGIN("hello"),
-  GAME_MATCH_MAKING("game_matchmaking"),
-  MOD_VAULT("modvault"),
-  MOD_VAULT_SEARCH("modvault_search"),
-  INIT_CONNECTIVITY_TEST("InitiateTest");
+  GAME_MATCH_MAKING("game_matchmaking");
 
   private static Map<String, ClientMessageType> fromString;
 

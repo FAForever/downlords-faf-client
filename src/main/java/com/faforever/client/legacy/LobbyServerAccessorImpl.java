@@ -34,8 +34,10 @@ import com.faforever.client.legacy.domain.SocialMessageLobby;
 import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.legacy.domain.VictoryCondition;
 import com.faforever.client.legacy.gson.ClientMessageTypeTypeAdapter;
+import com.faforever.client.legacy.gson.ConnectivityStateTypeAdapter;
 import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
+import com.faforever.client.legacy.gson.GpgServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.InitConnectivityTestMessage;
 import com.faforever.client.legacy.gson.MessageTargetTypeAdapter;
 import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
@@ -44,8 +46,10 @@ import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.relay.GpgClientMessage;
 import com.faforever.client.legacy.relay.GpgClientMessageSerializer;
 import com.faforever.client.legacy.relay.GpgServerMessage;
+import com.faforever.client.legacy.relay.GpgServerMessageType;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.login.LoginFailedException;
+import com.faforever.client.portcheck.ConnectivityState;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerLobbyServerMessage;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
@@ -128,7 +132,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private String username;
   private String password;
   private Collection<Consumer<GpgServerMessage>> gpgServerMessageListeners;
-  private Collection<Consumer<FafServerMessage>> connectivityStateMessageListener;
 
   public LobbyServerAccessorImpl() {
     onGameInfoListeners = new ArrayList<>();
@@ -138,10 +141,10 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     onRankedMatchNotificationListeners = new ArrayList<>();
     onUpdatedAchievementsListeners = new ArrayList<>();
     gpgServerMessageListeners = new ArrayList<>();
-    connectivityStateMessageListener = new ArrayList<>();
     onLoggedInListeners = new ArrayList<>();
     sessionId = new SimpleObjectProperty<>();
     login = new SimpleStringProperty();
+    // TODO note to myself; seriously, create a single gson instance (or builder) and put it all there
     gson = new GsonBuilder()
         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .registerTypeAdapter(VictoryCondition.class, VictoryConditionTypeAdapter.INSTANCE)
@@ -150,8 +153,10 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
         .registerTypeAdapter(ClientMessageType.class, ClientMessageTypeTypeAdapter.INSTANCE)
         .registerTypeAdapter(StatisticsType.class, StatisticsTypeTypeAdapter.INSTANCE)
         .registerTypeAdapter(FafServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
+        .registerTypeAdapter(GpgServerMessageType.class, GpgServerMessageTypeTypeAdapter.INSTANCE)
         .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
         .registerTypeAdapter(ServerMessage.class, ServerMessageTypeAdapter.INSTANCE)
+        .registerTypeAdapter(ConnectivityState.class, ConnectivityStateTypeAdapter.INSTANCE)
         .create();
   }
 
@@ -366,35 +371,25 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void addOnGpgServerMessageListener(Consumer<GpgServerMessage> listener) {
-    gpgServerMessageListeners.add(listener);
-  }
-
-  @Override
   public void sendGpgMessage(GpgClientMessage message) {
     writeToServer(message);
   }
 
   @Override
   public void initConnectivityTest() {
-    InitConnectivityTestMessage connectivityTestMessage = new InitConnectivityTestMessage();
-    connectivityTestMessage.setPort(preferencesService.getPreferences().getForgedAlliance().getPort());
+    int port = preferencesService.getPreferences().getForgedAlliance().getPort();
+    InitConnectivityTestMessage connectivityTestMessage = new InitConnectivityTestMessage(port);
     writeToServer(connectivityTestMessage);
+  }
+
+  @Override
+  public void addOnGpgServerMessageListener(Consumer<GpgServerMessage> listener) {
+    gpgServerMessageListeners.add(listener);
   }
 
   @Override
   public void removeOnGpgServerMessageListener(Consumer<GpgServerMessage> listener) {
     gpgServerMessageListeners.remove(listener);
-  }
-
-  @Override
-  public void addOnConnectivityStateMessageListener(Consumer<FafServerMessage> listener) {
-    connectivityStateMessageListener.add(listener);
-  }
-
-  @Override
-  public void removeOnFafServerMessageListener(Consumer<FafServerMessage> listener) {
-    connectivityStateMessageListener.remove(listener);
   }
 
   private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
@@ -438,10 +433,10 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
       switch (serverMessage.getTarget()) {
         case GAME:
+        case CONNECTIVITY:
           gpgServerMessageListeners.forEach(listener -> listener.accept((GpgServerMessage) serverMessage));
           break;
 
-        case CONNECTIVITY:
         case CLIENT:
           dispatchServerToClientMessage((FafServerMessage) serverMessage);
           break;
@@ -498,10 +493,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
       case UPDATED_ACHIEVEMENTS:
         onUpdatedAchievementsListeners.forEach(listener -> listener.accept((UpdatedAchievementsMessageLobby) fafServerMessage));
-        break;
-
-      case CONNECTIVITY_STATE:
-        connectivityStateMessageListener.forEach(listener -> listener.accept(fafServerMessage));
         break;
 
       default:

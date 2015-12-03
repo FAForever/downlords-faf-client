@@ -1,23 +1,16 @@
 package com.faforever.client.legacy.gson;
 
-import com.faforever.client.legacy.domain.ClientMessage;
-import com.faforever.client.legacy.domain.ClientMessageType;
 import com.faforever.client.legacy.domain.MessageTarget;
+import com.faforever.client.legacy.relay.GpgClientCommand;
+import com.faforever.client.legacy.relay.GpgClientMessage;
 
-public class InitConnectivityTestMessage extends ClientMessage {
+import java.util.Collections;
 
-  private int port;
+public class InitConnectivityTestMessage extends GpgClientMessage {
 
-  public InitConnectivityTestMessage() {
-    super(ClientMessageType.INIT_CONNECTIVITY_TEST);
-    setTarget(MessageTarget.CONNECTIVITY);
-  }
+  private MessageTarget target = MessageTarget.CONNECTIVITY;
 
-  public int getPort() {
-    return port;
-  }
-
-  public void setPort(int port) {
-    this.port = port;
+  public InitConnectivityTestMessage(int port) {
+    super(GpgClientCommand.INIT_CONNECTIVITY_TEST, Collections.singletonList(port));
   }
 }

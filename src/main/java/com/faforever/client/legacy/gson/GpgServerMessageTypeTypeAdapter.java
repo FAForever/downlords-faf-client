@@ -1,16 +1,17 @@
-package com.faforever.client.legacy.relay;
+package com.faforever.client.legacy.gson;
 
+import com.faforever.client.legacy.relay.GpgServerMessageType;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 
-public class GpgServerCommandTypeAdapter extends TypeAdapter<GpgServerMessageType> {
+public class GpgServerMessageTypeTypeAdapter extends TypeAdapter<GpgServerMessageType> {
 
-  public static final GpgServerCommandTypeAdapter INSTANCE = new GpgServerCommandTypeAdapter();
+  public static final GpgServerMessageTypeTypeAdapter INSTANCE = new GpgServerMessageTypeTypeAdapter();
 
-  private GpgServerCommandTypeAdapter() {
+  private GpgServerMessageTypeTypeAdapter() {
 
   }
 

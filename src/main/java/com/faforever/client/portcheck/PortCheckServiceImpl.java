@@ -53,7 +53,7 @@ public class PortCheckServiceImpl implements PortCheckService {
 
     return taskService.submitTask(task).thenApply(result -> {
       switch (result) {
-        case PROXY:
+        case BLOCKED:
           logger.info("Port is not reachable");
           notifyPortUnreachable(port);
           break;
