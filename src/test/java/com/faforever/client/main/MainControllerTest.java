@@ -3,6 +3,8 @@ package com.faforever.client.main;
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.UserInfoWindowController;
+import com.faforever.client.connectivity.ConnectivityService;
+import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.fx.StageConfigurator;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.GameService;
@@ -21,8 +23,6 @@ import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.portcheck.ConnectivityState;
-import com.faforever.client.portcheck.PortCheckService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -53,8 +53,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.faforever.client.portcheck.ConnectivityState.BLOCKED;
-import static com.faforever.client.portcheck.ConnectivityState.PUBLIC;
+import static com.faforever.client.connectivity.ConnectivityState.BLOCKED;
+import static com.faforever.client.connectivity.ConnectivityState.PUBLIC;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -76,7 +76,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private StageConfigurator stageConfigurator;
   @Mock
-  private PortCheckService portCheckService;
+  private ConnectivityService connectivityService;
   @Mock
   private GameUpdateService gameUpdateService;
   @Mock
@@ -151,7 +151,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.playerService = playerService;
     instance.stageConfigurator = stageConfigurator;
     instance.preferencesService = preferencesService;
-    instance.portCheckService = portCheckService;
+    instance.connectivityService = connectivityService;
     instance.gameUpdateService = gameUpdateService;
     instance.lobbyService = lobbyService;
     instance.userService = userService;
@@ -184,7 +184,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(userMenuController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(taskService.getActiveTasks()).thenReturn(FXCollections.emptyObservableList());
-    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(PUBLIC));
+    when(connectivityService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(PUBLIC));
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(applicationContext.getBean(UserInfoWindowController.class)).thenReturn(userInfoWindowController);
@@ -216,7 +216,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
     when(mainWindowPrefs.getLastView()).thenReturn(instance.communityButton.getId());
 
-    verify(portCheckService).checkGamePortInBackground();
+    verify(connectivityService).checkGamePortInBackground();
     verify(gameUpdateService).checkForUpdateInBackground();
     verify(lobbyService).setOnFafConnectedListener(instance);
     verify(lobbyService).setOnLobbyConnectingListener(instance);
@@ -292,7 +292,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   public void testOnPortCheckRetryClicked() throws Exception {
     instance.onPortCheckRetryClicked();
 
-    verify(portCheckService).checkGamePortInBackground();
+    verify(connectivityService).checkGamePortInBackground();
   }
 
   @Test
@@ -323,7 +323,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     CompletableFuture<ConnectivityState> future = new CompletableFuture<>();
     future.completeExceptionally(new Exception("test exception"));
-    when(portCheckService.checkGamePortInBackground()).thenReturn(future);
+    when(connectivityService.checkGamePortInBackground()).thenReturn(future);
 
     attachToRoot();
     fakeLogin();
@@ -353,7 +353,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     String disconnected = "foobar";
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> instance.portCheckStatusButton.setText(disconnected));
 
-    when(portCheckService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(BLOCKED));
+    when(connectivityService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(BLOCKED));
 
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
 

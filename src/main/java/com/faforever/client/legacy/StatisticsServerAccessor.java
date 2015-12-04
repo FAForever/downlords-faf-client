@@ -1,12 +1,12 @@
 package com.faforever.client.legacy;
 
 import com.faforever.client.legacy.domain.StatisticsType;
-import com.faforever.client.stats.PlayerStatisticsMessageLobby;
+import com.faforever.client.stats.PlayerStatisticsMessage;
 
 import java.util.concurrent.CompletableFuture;
 
 public interface StatisticsServerAccessor {
 
-  CompletableFuture<PlayerStatisticsMessageLobby> requestPlayerStatistics(StatisticsType type, String username);
+  CompletableFuture<PlayerStatisticsMessage> requestPlayerStatistics(StatisticsType type, String username);
 
 }

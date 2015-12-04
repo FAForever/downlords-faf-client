@@ -4,7 +4,7 @@ import com.faforever.client.legacy.domain.FafServerMessageType;
 import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.domain.ServerMessageType;
-import com.faforever.client.legacy.relay.GpgServerMessageType;
+import com.faforever.client.relay.GpgServerMessageType;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;

@@ -11,8 +11,8 @@ import com.faforever.client.legacy.gson.LocalTimeDeserializer;
 import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.legacy.writer.ServerWriter;
-import com.faforever.client.stats.PlayerStatisticsMessageLobby;
-import com.faforever.client.stats.StatisticsMessageLobby;
+import com.faforever.client.stats.PlayerStatisticsMessage;
+import com.faforever.client.stats.StatisticsMessage;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -42,7 +42,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   private final Gson gson;
   @Resource
   Environment environment;
-  private CompletableFuture<PlayerStatisticsMessageLobby> playerStatisticsFuture;
+  private CompletableFuture<PlayerStatisticsMessage> playerStatisticsFuture;
   private ServerWriter serverWriter;
   private Task<Void> connectionTask;
 
@@ -57,7 +57,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   }
 
   @Override
-  public CompletableFuture<PlayerStatisticsMessageLobby> requestPlayerStatistics(StatisticsType type, String username) {
+  public CompletableFuture<PlayerStatisticsMessage> requestPlayerStatistics(StatisticsType type, String username) {
     // FIXME this is not safe (as well aren't similar implementations in other accessors)
     playerStatisticsFuture = new CompletableFuture<>();
 
@@ -129,14 +129,14 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
         throw new IllegalStateException("Unexpected object type: " + fafServerMessageType);
       }
 
-      StatisticsMessageLobby statisticsMessage = gson.fromJson(message, StatisticsMessageLobby.class);
+      StatisticsMessage statisticsMessage = gson.fromJson(message, StatisticsMessage.class);
       dispatchStatisticsObject(message, statisticsMessage);
     } catch (JsonSyntaxException e) {
       logger.warn("Could not deserialize message: " + message, e);
     }
   }
 
-  private void dispatchStatisticsObject(String jsonString, StatisticsMessageLobby statisticsMessage) {
+  private void dispatchStatisticsObject(String jsonString, StatisticsMessage statisticsMessage) {
     switch (statisticsMessage.getStatisticsType()) {
       case LEAGUE_TABLE:
         // TODO remove it it's never going to be implemented
@@ -145,7 +145,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
 
       case GLOBAL_90_DAYS:
       case GLOBAL_365_DAYS:
-        PlayerStatisticsMessageLobby playerStatisticsMessage = gson.fromJson(jsonString, PlayerStatisticsMessageLobby.class);
+        PlayerStatisticsMessage playerStatisticsMessage = gson.fromJson(jsonString, PlayerStatisticsMessage.class);
         onPlayerStats(playerStatisticsMessage);
         break;
 
@@ -154,7 +154,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
     }
   }
 
-  private void onPlayerStats(PlayerStatisticsMessageLobby playerStatisticsMessage) {
+  private void onPlayerStats(PlayerStatisticsMessage playerStatisticsMessage) {
     if (playerStatisticsFuture != null) {
       playerStatisticsFuture.complete(playerStatisticsMessage);
       playerStatisticsFuture = null;

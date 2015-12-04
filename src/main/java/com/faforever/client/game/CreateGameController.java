@@ -5,7 +5,12 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -29,10 +34,14 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.lang.invoke.MethodHandles;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -41,7 +50,7 @@ import java.util.stream.Collectors;
 public class CreateGameController {
 
   public static final int MAX_RATING_LENGTH = 4;
-
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @FXML
   Label mapSizeLabel;
   @FXML
@@ -93,6 +102,10 @@ public class CreateGameController {
   FilteredList<MapInfoBean> filteredMaps;
   @Resource
   ThemeService themeService;
+  @Resource
+  NotificationService notificationService;
+  @Resource
+  ReportingService reportingService;
 
   @FXML
   void initialize() {
@@ -365,7 +378,17 @@ public class CreateGameController {
         null,
         simMods);
 
-    gameService.hostGame(newGameInfo);
+    gameService.hostGame(newGameInfo).exceptionally(throwable -> {
+      logger.warn("Game could not be hosted", throwable);
+      notificationService.addNotification(
+          new ImmediateNotification(
+              i18n.get("errorTitle"),
+              i18n.get("game.create.failed"),
+              Severity.WARN,
+              throwable,
+              Collections.singletonList(new ReportAction(i18n, reportingService, throwable))));
+      return null;
+    });
   }
 
   public Node getRoot() {

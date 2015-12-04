@@ -4,13 +4,13 @@ import com.faforever.client.game.Faction;
 import com.faforever.client.legacy.domain.ClientMessageType;
 import com.faforever.client.legacy.domain.FafServerMessage;
 import com.faforever.client.legacy.domain.FafServerMessageType;
-import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
+import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.GameTypeMessage;
 import com.faforever.client.legacy.domain.InitSessionMessage;
 import com.faforever.client.legacy.domain.LoginClientMessage;
 import com.faforever.client.legacy.domain.LoginLobbyServerMessage;
 import com.faforever.client.legacy.domain.MessageTarget;
-import com.faforever.client.legacy.domain.SessionMessageLobby;
+import com.faforever.client.legacy.domain.SessionMessage;
 import com.faforever.client.legacy.gson.ClientMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.MessageTargetTypeAdapter;
 import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
@@ -182,7 +182,7 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
     assertThat(initSessionMessage.getCommand(), is(ClientMessageType.ASK_SESSION));
 
-    SessionMessageLobby sessionMessage = new SessionMessageLobby();
+    SessionMessage sessionMessage = new SessionMessage();
     sessionMessage.setSession(sessionId);
     sendFromServer(sessionMessage);
 
@@ -261,7 +261,7 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
     assertNotNull(messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT));
 
-    SessionMessageLobby sessionMessage = new SessionMessageLobby();
+    SessionMessage sessionMessage = new SessionMessage();
     sessionMessage.setSession(5678);
     sendFromServer(sessionMessage);
 
@@ -300,7 +300,7 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
   public void startSearchRanked1v1WithAeon() throws Exception {
     connectAndLogIn();
 
-    CompletableFuture<GameLaunchMessageLobby> future = instance.startSearchRanked1v1(Faction.AEON, GAME_PORT);
+    CompletableFuture<GameLaunchMessage> future = instance.startSearchRanked1v1(Faction.AEON, GAME_PORT);
 
     String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     SearchRanked1V1ClientMessage searchRanked1v1Message = gson.fromJson(clientMessage, SearchRanked1V1ClientMessage.class);
@@ -309,7 +309,7 @@ public class LobbyServerAccessorImplTest extends AbstractPlainJavaFxTest {
     assertThat(searchRanked1v1Message.getFaction(), is(Faction.AEON));
     assertThat(searchRanked1v1Message.getGameport(), is(GAME_PORT));
 
-    GameLaunchMessageLobby gameLaunchMessage = new GameLaunchMessageLobby();
+    GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(1234);
     sendFromServer(gameLaunchMessage);
 

@@ -9,9 +9,9 @@ import com.faforever.client.legacy.gson.ClientMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.io.QDataInputStream;
 import com.faforever.client.legacy.writer.ServerWriter;
-import com.faforever.client.stats.PlayerStatisticsMessageLobby;
+import com.faforever.client.stats.PlayerStatisticsMessage;
 import com.faforever.client.stats.RatingInfo;
-import com.faforever.client.stats.StatisticsMessageLobby;
+import com.faforever.client.stats.StatisticsMessage;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -123,18 +123,18 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testRequestPlayerStatistics() throws Exception {
     String username = "junit";
-    CompletableFuture<PlayerStatisticsMessageLobby> future = instance.requestPlayerStatistics(StatisticsType.GLOBAL_90_DAYS, username);
+    CompletableFuture<PlayerStatisticsMessage> future = instance.requestPlayerStatistics(StatisticsType.GLOBAL_90_DAYS, username);
 
     ClientMessage clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(clientMessage.getCommand(), is(ClientMessageType.STATISTICS));
 
-    PlayerStatisticsMessageLobby playerStatisticsMessage = new PlayerStatisticsMessageLobby();
+    PlayerStatisticsMessage playerStatisticsMessage = new PlayerStatisticsMessage();
     playerStatisticsMessage.setPlayer(username);
     playerStatisticsMessage.setStatisticsType(StatisticsType.GLOBAL_90_DAYS);
     playerStatisticsMessage.setValues(Arrays.asList(new RatingInfo(), new RatingInfo()));
     sendFromServer(playerStatisticsMessage);
 
-    PlayerStatisticsMessageLobby result = future.get(TIMEOUT, TIMEOUT_UNIT);
+    PlayerStatisticsMessage result = future.get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(result.getValues(), hasSize(2));
     assertThat(result.getStatisticsType(), is(StatisticsType.GLOBAL_90_DAYS));
@@ -145,7 +145,7 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
   /**
    * Writes the specified message to the client if it was sent by the FAF server.
    */
-  private void sendFromServer(StatisticsMessageLobby statisticsMessage) throws InterruptedException {
+  private void sendFromServer(StatisticsMessage statisticsMessage) throws InterruptedException {
     serverWriterReadyLatch.await();
     serverToClientWriter.write(statisticsMessage);
   }

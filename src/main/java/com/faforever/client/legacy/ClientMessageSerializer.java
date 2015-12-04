@@ -1,5 +1,6 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameVisibility;
 import com.faforever.client.legacy.domain.ClientMessage;
@@ -18,7 +19,6 @@ import com.faforever.client.legacy.gson.MessageTargetTypeAdapter;
 import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.io.QDataWriter;
 import com.faforever.client.legacy.writer.JsonMessageSerializer;
-import com.faforever.client.portcheck.ConnectivityState;
 import com.google.gson.GsonBuilder;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;

@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.i18n.I18n;
@@ -7,10 +8,9 @@ import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
 import com.faforever.client.legacy.domain.GameInfoMessage;
-import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
+import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeMessage;
-import com.faforever.client.legacy.proxy.TurnClient;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
@@ -42,18 +42,17 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.net.SocketAddress;
 import java.net.URI;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
@@ -66,7 +65,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private final Collection<OnGameStartedListener> onGameLaunchingListeners;
   private final ObservableMap<String, GameTypeBean> gameTypeBeans;
   // It is indeed ugly to keep references in both, a list and a map, however I don't see how I can populate the map
   // values as an observable list (in order to display it in the games table)
@@ -79,8 +77,6 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   ForgedAllianceService forgedAllianceService;
   @Resource
   MapService mapService;
-  @Resource
-  TurnClient turnClient;
   @Resource
   PreferencesService preferencesService;
   @Resource
@@ -98,24 +94,31 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   @Resource
   PlayerService playerService;
   @Resource
+  ConnectivityService connectivityService;
+  @Resource
   LocalRelayServer localRelayServer;
+
   @VisibleForTesting
   RatingMode ratingMode;
-
   private Process process;
   private BooleanProperty searching1v1;
-  private Instant gameStartedTime;
   private ScheduledFuture<?> searchExpansionFuture;
+  private BooleanProperty gameRunning;
 
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
-    onGameLaunchingListeners = new HashSet<>();
     uidToGameInfoBean = new HashMap<>();
     searching1v1 = new SimpleBooleanProperty();
+    gameRunning = new SimpleBooleanProperty();
 
     gameInfoBeans = FXCollections.observableArrayList(
         item -> new Observable[]{item.statusProperty()}
     );
+  }
+
+  @Override
+  public BooleanProperty gameRunningProperty() {
+    return gameRunning;
   }
 
   @Override
@@ -132,16 +135,11 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
     stopSearchRanked1v1();
 
-
     return CompletableFuture.allOf(
-        allocateTurnAddress(),
+        ensureReachability(),
         updateGameIfNecessary(newGameInfo.getGameType(), newGameInfo.getVersion(), emptyMap(), newGameInfo.getSimModUidsToVersions())
-    ).thenRun(() -> lobbyServerAccessor.requestNewGame(newGameInfo)
-        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL))
-        .exceptionally(throwable -> {
-          logger.warn("Hosting game failed", throwable);
-          return null;
-        }));
+    ).thenCompose(aVoid -> lobbyServerAccessor.requestNewGame(newGameInfo))
+        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL));
   }
 
   @Override
@@ -159,7 +157,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     Set<String> simModUIds = gameInfoBean.getSimMods().keySet();
 
     return CompletableFuture.allOf(
-        allocateTurnAddress(),
+        ensureReachability(),
         updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds),
         downloadMapIfNecessary(gameInfoBean.getMapTechnicalName())
     ).thenRun(
@@ -194,17 +192,12 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
-  public void addOnGameStartedListener(OnGameStartedListener listener) {
-    onGameLaunchingListeners.add(listener);
-  }
-
-  @Override
   public void runWithReplay(Path path, @Nullable Integer replayId, String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simMods) {
     updateGameIfNecessary(gameType, version, modVersions, simMods)
         .thenRun(() -> {
           try {
             Process process = forgedAllianceService.startReplay(path, replayId, gameType);
-            onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
+            gameRunning.set(true);
             this.ratingMode = RatingMode.NONE;
             spawnTerminationListener(process);
           } catch (IOException e) {
@@ -231,7 +224,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     //FIXME needs to update
     //downloadMapIfNecessary(map);
     Process process = forgedAllianceService.startReplay(replayUrl, replayId);
-    onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(null));
+    gameRunning.set(true);
 
     this.ratingMode = RatingMode.NONE;
     spawnTerminationListener(process);
@@ -320,8 +313,8 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     return process != null && process.isAlive();
   }
 
-  private CompletableFuture<Void> allocateTurnAddress() {
-    return CompletableFuture.runAsync(() -> turnClient.connect());
+  private CompletableFuture<SocketAddress> ensureReachability() {
+    return connectivityService.ensureReachability();
   }
 
   private CompletableFuture<Void> updateGameIfNecessary(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUIds) {
@@ -332,16 +325,17 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
    * Actually starts the game. Call this method when everything else is prepared (mod/map download, connectivity check
    * etc.)
    */
-  private void startGame(GameLaunchMessageLobby gameLaunchMessage, Faction faction, RatingMode ratingMode) {
+  private void startGame(GameLaunchMessage gameLaunchMessage, Faction faction, RatingMode ratingMode) {
     stopSearchRanked1v1();
     List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
     try {
-      process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), faction, args, ratingMode);
-      onGameLaunchingListeners.forEach(onGameStartedListener -> onGameStartedListener.onGameStarted(gameLaunchMessage.getUid()));
+      Integer relayPort = localRelayServer.startInBackground().get();
+      process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), faction, args, ratingMode, relayPort);
+      gameRunning.set(true);
 
       this.ratingMode = ratingMode;
       spawnTerminationListener(process);
-    } catch (IOException e) {
+    } catch (IOException | InterruptedException | ExecutionException e) {
       logger.warn("Game could not be started", e);
       notificationService.addNotification(
           new PersistentNotification(i18n.get("gameCouldNotBeStarted", e.getLocalizedMessage()), Severity.ERROR)
@@ -369,10 +363,9 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     CompletableFuture.runAsync(() -> {
       try {
         int exitCode = process.waitFor();
+        gameRunning.set(false);
         logger.info("Forged Alliance terminated with exit code {}", exitCode);
-
-        turnClient.close();
-      } catch (InterruptedException | IOException e) {
+      } catch (InterruptedException e) {
         logger.warn("Error during post-game processing", e);
       }
     }, scheduledExecutorService);
@@ -382,17 +375,14 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   void postConstruct() {
     lobbyServerAccessor.addOnGameTypeInfoListener(this);
     lobbyServerAccessor.addOnGameInfoListener(this);
-    localRelayServer.setGameLaunchedListener(aVoid -> {
-      gameStartedTime = Instant.now();
-      logger.debug("Game started at: {}", gameStartedTime);
-    });
   }
 
   @Override
   public void onGameTypeInfo(GameTypeMessage gameTypeMessage) {
-    if (!gameTypeMessage.isHost() || !gameTypeMessage.isLive() || gameTypeBeans.containsKey(gameTypeMessage.getName())) {
-      return;
-    }
+    // TODO only removed while on dev
+//    if (!gameTypeMessage.isHost() || !gameTypeMessage.isLive() || gameTypeBeans.containsKey(gameTypeMessage.getName())) {
+//      return;
+//    }
 
     gameTypeBeans.put(gameTypeMessage.getName(), new GameTypeBean(gameTypeMessage));
   }

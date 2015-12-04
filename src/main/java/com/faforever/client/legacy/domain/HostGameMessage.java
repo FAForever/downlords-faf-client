@@ -24,6 +24,7 @@ public class HostGameMessage extends ClientMessage {
     this.setMapname(mapName);
     this.setGameport(port);
     this.setOptions(options);
+    this.setVisibility(GameVisibility.PUBLIC);
   }
 
   public int getGameport() {

@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.gson;
 
-import com.faforever.client.legacy.relay.GpgClientCommand;
+import com.faforever.client.relay.GpgClientCommand;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.junit.Before;

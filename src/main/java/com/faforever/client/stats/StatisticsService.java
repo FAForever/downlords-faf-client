@@ -6,6 +6,6 @@ import java.util.concurrent.CompletableFuture;
 
 public interface StatisticsService {
 
-  CompletableFuture<PlayerStatisticsMessageLobby> getStatisticsForPlayer(StatisticsType type, String username);
+  CompletableFuture<PlayerStatisticsMessage> getStatisticsForPlayer(StatisticsType type, String username);
 
 }

@@ -4,12 +4,12 @@ import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
-import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
+import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.LoginLobbyServerMessage;
-import com.faforever.client.legacy.relay.GpgClientMessage;
-import com.faforever.client.legacy.relay.GpgServerMessage;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
+import com.faforever.client.relay.GpgClientMessage;
+import com.faforever.client.relay.GpgServerMessage;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -29,7 +29,7 @@ public interface LobbyServerAccessor {
    */
   CompletableFuture<LoginLobbyServerMessage> connectAndLogIn(String username, String password);
 
-  void addOnUpdatedAchievementsInfoListener(Consumer<UpdatedAchievementsMessageLobby> listener);
+  void addOnUpdatedAchievementsInfoListener(Consumer<UpdatedAchievementsMessage> listener);
 
   void addOnGameTypeInfoListener(OnGameTypeInfoListener listener);
 
@@ -39,9 +39,9 @@ public interface LobbyServerAccessor {
 
   void setOnPlayerInfoMessageListener(OnPlayerInfoListener listener);
 
-  CompletionStage<GameLaunchMessageLobby> requestNewGame(NewGameInfo newGameInfo);
+  CompletionStage<GameLaunchMessage> requestNewGame(NewGameInfo newGameInfo);
 
-  CompletionStage<GameLaunchMessageLobby> requestJoinGame(GameInfoBean gameInfoBean, String password);
+  CompletionStage<GameLaunchMessage> requestJoinGame(GameInfoBean gameInfoBean, String password);
 
   void setOnFafConnectingListener(OnLobbyConnectingListener onLobbyConnectingListener);
 
@@ -67,7 +67,7 @@ public interface LobbyServerAccessor {
 
   void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener);
 
-  CompletableFuture<GameLaunchMessageLobby> startSearchRanked1v1(Faction faction, int gamePort);
+  CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort);
 
   void stopSearchingRanked();
 
@@ -78,7 +78,7 @@ public interface LobbyServerAccessor {
 
   void sendGpgMessage(GpgClientMessage message);
 
-  void initConnectivityTest();
+  void initConnectivityTest(int port);
 
   void addOnGameMessageListener(Consumer<GpgServerMessage> listener);
 

@@ -1,6 +1,6 @@
 package com.faforever.client.relay;
 
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * A local relay server to which Forged Alliance can connect to. All data received from FA is transformed and forwarded
@@ -8,15 +8,10 @@ import java.util.function.Consumer;
  */
 public interface LocalRelayServer {
 
-  void addOnReadyListener(OnReadyListener listener);
-
   void addOnConnectionAcceptedListener(Runnable listener);
 
-  int getPort();
-
-  void startInBackground();
+  CompletableFuture<Integer> startInBackground();
 
   void close();
 
-  void setGameLaunchedListener(Consumer<Void> gameLaunchedListener);
 }

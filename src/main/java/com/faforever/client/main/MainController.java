@@ -2,6 +2,7 @@ package com.faforever.client.main;
 
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
+import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fx.StageConfigurator;
 import com.faforever.client.fx.WindowDecorator;
 import com.faforever.client.game.Faction;
@@ -28,7 +29,6 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.portcheck.PortCheckService;
 import com.faforever.client.preferences.OnChoseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.SettingsController;
@@ -163,7 +163,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Resource
   LobbyService lobbyService;
   @Resource
-  PortCheckService portCheckService;
+  ConnectivityService connectivityService;
   @Resource
   I18n i18n;
   @Resource
@@ -492,6 +492,10 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     stageConfigurator.configureScene(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
     stage.show();
 
+    checkGamePortInBackground();
+    gameUpdateService.checkForUpdateInBackground();
+    clientUpdateService.checkForUpdateInBackground();
+
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
     restoreLastView(mainWindowPrefs);
 
@@ -499,27 +503,11 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     // TODO no more e-mail address :(
 //    userImageView.setImage(gravatarService.getGravatar(userService.getEmail()));
     userImageView.setImage(IdenticonUtil.createIdenticon(userService.getUid()));
-
-    checkGamePortInBackground();
-    gameUpdateService.checkForUpdateInBackground();
-    clientUpdateService.checkForUpdateInBackground();
-  }
-
-  private void restoreLastView(WindowPrefs mainWindowPrefs) {
-    String lastView = mainWindowPrefs.getLastView();
-    if (lastView != null) {
-      mainNavigation.getChildren().stream()
-          .filter(button -> button instanceof ButtonBase)
-          .filter(button -> lastView.equals(button.getId()))
-          .forEach(button -> ((ButtonBase) button).fire());
-    } else {
-      communityButton.fire();
-    }
   }
 
   private void checkGamePortInBackground() {
     portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
-    portCheckService.checkGamePortInBackground().thenAccept(result -> {
+    connectivityService.checkGamePortInBackground().thenAccept(result -> {
       switch (result) {
         case PUBLIC:
         case STUN:
@@ -533,6 +521,18 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
       portCheckStatusButton.setText(i18n.get("statusBar.portCheckFailed"));
       return null;
     });
+  }
+
+  private void restoreLastView(WindowPrefs mainWindowPrefs) {
+    String lastView = mainWindowPrefs.getLastView();
+    if (lastView != null) {
+      mainNavigation.getChildren().stream()
+          .filter(button -> button instanceof ButtonBase)
+          .filter(button -> lastView.equals(button.getId()))
+          .forEach(button -> ((ButtonBase) button).fire());
+    } else {
+      communityButton.fire();
+    }
   }
 
   @Override

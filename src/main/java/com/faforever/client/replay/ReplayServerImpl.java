@@ -2,7 +2,6 @@ package com.faforever.client.replay;
 
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
-import com.faforever.client.game.OnGameStartedListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.notification.Action;
@@ -11,15 +10,12 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.ConcurrentUtil;
 import com.google.common.primitives.Bytes;
 import javafx.concurrent.Task;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.io.BufferedOutputStream;
@@ -32,8 +28,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
-public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
+public class ReplayServerImpl implements ReplayServer {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -46,72 +44,67 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
 
   @Resource
   Environment environment;
-
   @Resource
   NotificationService notificationService;
-
   @Resource
   I18n i18n;
-
   @Resource
   GameService gameService;
-
   @Resource
   UserService userService;
-
   @Resource
   ReplayFileWriter replayFileWriter;
-
   @Resource
   ClientUpdateService clientUpdateService;
+  @Resource
+  Executor executor;
 
   private LocalReplayInfo replayInfo;
   private Task<Void> task;
-
-  @PostConstruct
-  void postConstruct() {
-    gameService.addOnGameStartedListener(this);
-    startInBackground();
-  }
 
   @PreDestroy
   public void close() {
     task.cancel(true);
   }
 
-  void startInBackground() {
-    task = new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        Integer localReplayServerPort = environment.getProperty("localReplayServer.port", Integer.class);
-        String fafReplayServerHost = environment.getProperty("fafReplayServer.host");
-        Integer fafReplayServerPort = environment.getProperty("fafReplayServer.port", Integer.class);
+  CompletableFuture<Void> start(int uid) {
+    return CompletableFuture.runAsync(() -> {
+      Integer localReplayServerPort = environment.getProperty("localReplayServer.port", Integer.class);
+      String fafReplayServerHost = environment.getProperty("fafReplayServer.host");
+      Integer fafReplayServerPort = environment.getProperty("fafReplayServer.port", Integer.class);
 
-        logger.debug("Opening local replay server on port {}", localReplayServerPort);
+      logger.debug("Opening local replay server on port {}", localReplayServerPort);
 
-        try (ServerSocket serverSocket = new ServerSocket(localReplayServerPort);
-             Socket fafReplayServerSocket = new Socket(fafReplayServerHost, fafReplayServerPort)) {
-          while (!serverSocket.isClosed() && !fafReplayServerSocket.isClosed()) {
-            recordAndRelay(serverSocket, new BufferedOutputStream(fafReplayServerSocket.getOutputStream()));
-          }
-        } catch (IOException e) {
-          logger.warn("Error in replay server", e);
-          notificationService.addNotification(new PersistentNotification(
-                  i18n.get("replayServer.listeningFailed", localReplayServerPort),
-                  Severity.WARN,
-                  Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> startInBackground()))
-              )
-          );
-        }
-        return null;
+      try (ServerSocket serverSocket = new ServerSocket(localReplayServerPort);
+           Socket fafReplayServerSocket = new Socket(fafReplayServerHost, fafReplayServerPort)) {
+        recordAndRelay(uid, serverSocket, new BufferedOutputStream(fafReplayServerSocket.getOutputStream()));
+      } catch (IOException e) {
+        logger.warn("Error in replay server", e);
+        notificationService.addNotification(new PersistentNotification(
+                i18n.get("replayServer.listeningFailed", localReplayServerPort),
+                Severity.WARN,
+                Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(uid)))
+            )
+        );
       }
-    };
-    ConcurrentUtil.executeInBackground(task);
+    }, executor);
   }
 
-  private void recordAndRelay(ServerSocket serverSocket, OutputStream fafReplayOutputStream) throws IOException {
+  private void initReplayInfo(int uid) {
+    replayInfo = new LocalReplayInfo();
+    replayInfo.setUid(uid);
+    replayInfo.setGameTime(pythonTime());
+    replayInfo.setVersionInfo(new HashMap<>());
+    replayInfo.getVersionInfo().put("lobby",
+        String.format("dfaf-%s", clientUpdateService.getCurrentVersion().getCanonical())
+    );
+  }
+
+  private void recordAndRelay(int uid, ServerSocket serverSocket, OutputStream fafReplayOutputStream) throws IOException {
     Socket socket = serverSocket.accept();
     logger.debug("Accepted connection from {}", socket.getRemoteSocketAddress());
+
+    initReplayInfo(uid);
 
     ByteArrayOutputStream replayData = new ByteArrayOutputStream();
 
@@ -144,29 +137,6 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
     replayFileWriter.writeReplayDataToFile(replayData, replayInfo);
   }
 
-  @Override
-  public void onGameStarted(@Nullable Integer uid) {
-    if (uid == null) {
-      // If there's no UID, the game is either a replay or running offline
-      return;
-    }
-
-    replayInfo = new LocalReplayInfo();
-    replayInfo.setUid(uid);
-    replayInfo.setGameTime(pythonTime());
-    replayInfo.setVersionInfo(new HashMap<>());
-    replayInfo.getVersionInfo().put("lobby",
-        String.format("dfaf-%s", clientUpdateService.getCurrentVersion().getCanonical())
-    );
-  }
-
-  /**
-   * Returns the current millis the same way as python does since this is what's stored in the replay files *yay*.
-   */
-  private static double pythonTime() {
-    return System.currentTimeMillis() / 1000;
-  }
-
   private void finishReplayInfo() {
     GameInfoBean gameInfoBean = gameService.getByUid(replayInfo.getUid());
 
@@ -175,5 +145,12 @@ public class ReplayServerImpl implements ReplayServer, OnGameStartedListener {
     replayInfo.setComplete(true);
     replayInfo.setState(GameState.CLOSED);
     replayInfo.updateFromGameInfoBean(gameInfoBean);
+  }
+
+  /**
+   * Returns the current millis the same way as python does since this is what's stored in the replay files *yay*.
+   */
+  private static double pythonTime() {
+    return System.currentTimeMillis() / 1000;
   }
 }

@@ -1,5 +1,7 @@
 package com.faforever.client.config;
 
+import com.faforever.client.connectivity.FafConnectivityCheckTask;
+import com.faforever.client.connectivity.PortCheckTask;
 import com.faforever.client.game.SearchExpansionTask;
 import com.faforever.client.map.DownloadMapTask;
 import com.faforever.client.map.MapVaultParseTask;
@@ -7,8 +9,6 @@ import com.faforever.client.mod.InstallModTask;
 import com.faforever.client.mod.UninstallModTask;
 import com.faforever.client.patch.GitCheckGameUpdateTask;
 import com.faforever.client.patch.UpdateGameFilesTask;
-import com.faforever.client.portcheck.FafPortCheckTask;
-import com.faforever.client.portcheck.PortCheckTask;
 import com.faforever.client.replay.LoadLocalReplaysTask;
 import com.faforever.client.replay.ReplayDownloadTask;
 import com.faforever.client.update.CheckForUpdateTask;
@@ -38,7 +38,7 @@ public class TaskConfig {
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   PortCheckTask portCheckTask() {
-    return new FafPortCheckTask();
+    return new FafConnectivityCheckTask();
   }
 
   @Bean

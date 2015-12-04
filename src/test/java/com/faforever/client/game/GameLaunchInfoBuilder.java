@@ -1,15 +1,15 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
+import com.faforever.client.legacy.domain.GameLaunchMessage;
 
 import java.util.Arrays;
 
 public class GameLaunchInfoBuilder {
 
-  private final GameLaunchMessageLobby gameLaunchMessage;
+  private final GameLaunchMessage gameLaunchMessage;
 
   public GameLaunchInfoBuilder() {
-    gameLaunchMessage = new GameLaunchMessageLobby();
+    gameLaunchMessage = new GameLaunchMessage();
   }
 
   public GameLaunchInfoBuilder defaultValues() {
@@ -19,7 +19,7 @@ public class GameLaunchInfoBuilder {
     return this;
   }
 
-  public GameLaunchMessageLobby get() {
+  public GameLaunchMessage get() {
     return gameLaunchMessage;
   }
 

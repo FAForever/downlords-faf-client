@@ -12,6 +12,10 @@ import com.faforever.client.chat.MockChatService;
 import com.faforever.client.chat.PircBotXChatService;
 import com.faforever.client.chat.PircBotXFactory;
 import com.faforever.client.chat.PircBotXFactoryImpl;
+import com.faforever.client.connectivity.ConnectivityService;
+import com.faforever.client.connectivity.ConnectivityServiceImpl;
+import com.faforever.client.connectivity.TurnClient;
+import com.faforever.client.connectivity.TurnClientImpl;
 import com.faforever.client.events.EventService;
 import com.faforever.client.events.EventServiceImpl;
 import com.faforever.client.fa.ForgedAllianceService;
@@ -39,9 +43,6 @@ import com.faforever.client.legacy.WindowsUidService;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
 import com.faforever.client.legacy.map.LegacyMapVaultParser;
 import com.faforever.client.legacy.map.MapVaultParser;
-import com.faforever.client.legacy.proxy.TurnClient;
-import com.faforever.client.legacy.proxy.TurnClientImpl;
-import com.faforever.client.legacy.relay.LocalRelayServerImpl;
 import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.lobby.LobbyServiceImpl;
 import com.faforever.client.map.MapService;
@@ -60,10 +61,9 @@ import com.faforever.client.patch.UpdateServerAccessor;
 import com.faforever.client.patch.UpdateServerAccessorImpl;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
-import com.faforever.client.portcheck.PortCheckService;
-import com.faforever.client.portcheck.PortCheckServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.relay.LocalRelayServer;
+import com.faforever.client.relay.LocalRelayServerImpl;
 import com.faforever.client.replay.ReplayFileReader;
 import com.faforever.client.replay.ReplayFileReaderImpl;
 import com.faforever.client.replay.ReplayFileWriter;
@@ -199,8 +199,8 @@ public class ServiceConfig {
   }
 
   @Bean
-  PortCheckService portCheckService() {
-    return new PortCheckServiceImpl();
+  ConnectivityService portCheckService() {
+    return new ConnectivityServiceImpl();
   }
 
   @Bean
@@ -247,7 +247,7 @@ public class ServiceConfig {
   }
 
   @Bean
-  TurnClient proxy() {
+  TurnClient turnClient() {
     return new TurnClientImpl();
   }
 
@@ -365,5 +365,4 @@ public class ServiceConfig {
   ThemeService themeService() {
     return new ThemeServiceImpl();
   }
-
 }

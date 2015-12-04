@@ -14,7 +14,7 @@ import java.util.List;
  */
 public interface ForgedAllianceService {
 
-  Process startGame(int uid, String gameType, Faction faction, List<String> additionalArgs, RatingMode ratingMode) throws IOException;
+  Process startGame(int uid, String gameType, Faction faction, List<String> additionalArgs, RatingMode ratingMode, int gpgPort) throws IOException;
 
   Process startReplay(Path path, @Nullable Integer replayId, String gameType) throws IOException;
 

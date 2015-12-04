@@ -11,7 +11,7 @@ import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.stats.PlayerStatisticsMessageLobby;
+import com.faforever.client.stats.PlayerStatisticsMessage;
 import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -74,7 +74,7 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getTheme()).thenReturn("default");
 
-    PlayerStatisticsMessageLobby playerStatisticsMessage = new PlayerStatisticsMessageLobby();
+    PlayerStatisticsMessage playerStatisticsMessage = new PlayerStatisticsMessage();
     playerStatisticsMessage.setPlayer(PLAYER_NAME);
     playerStatisticsMessage.setValues(asList(
         new RatingInfo(LocalDate.now(), 1500, 200, LocalTime.now()),

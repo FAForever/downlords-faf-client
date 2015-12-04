@@ -5,6 +5,7 @@ import org.bitlet.weupnp.GatewayDiscover;
 import org.bitlet.weupnp.PortMappingEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -16,8 +17,11 @@ import java.util.Objects;
 public class WeUpnpServiceImpl implements UpnpService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   private static final String UDP = "UDP";
+
+  @Value("${upnp.timeout}")
+  int upnpTimeout;
+
 
   @Override
   public void forwardPort(int port) {
@@ -26,6 +30,7 @@ public class WeUpnpServiceImpl implements UpnpService {
     logger.debug("Looking for UPnP capable gateway");
 
     try {
+      discover.setTimeout(upnpTimeout);
       discover.discover();
       GatewayDevice validGateway = discover.getValidGateway();
 

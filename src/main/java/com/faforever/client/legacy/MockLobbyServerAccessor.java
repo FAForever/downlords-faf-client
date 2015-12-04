@@ -8,19 +8,19 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfoMessage;
-import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
+import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeMessage;
 import com.faforever.client.legacy.domain.LoginLobbyServerMessage;
 import com.faforever.client.legacy.domain.Player;
-import com.faforever.client.legacy.relay.GpgClientMessage;
-import com.faforever.client.legacy.relay.GpgServerMessage;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.rankedmatch.MatchmakerLobbyServerMessage;
 import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
+import com.faforever.client.relay.GpgClientMessage;
+import com.faforever.client.relay.GpgServerMessage;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
@@ -155,7 +155,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void addOnUpdatedAchievementsInfoListener(Consumer<UpdatedAchievementsMessageLobby> listener) {
+  public void addOnUpdatedAchievementsInfoListener(Consumer<UpdatedAchievementsMessage> listener) {
 
   }
 
@@ -180,13 +180,13 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public CompletionStage<GameLaunchMessageLobby> requestNewGame(NewGameInfo newGameInfo) {
-    return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchMessageLobby>(HIGH) {
+  public CompletionStage<GameLaunchMessage> requestNewGame(NewGameInfo newGameInfo) {
+    return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchMessage>(HIGH) {
       @Override
-      protected GameLaunchMessageLobby call() throws Exception {
+      protected GameLaunchMessage call() throws Exception {
         updateTitle(i18n.get("requestNewGameTask.title"));
 
-        GameLaunchMessageLobby gameLaunchMessage = new GameLaunchMessageLobby();
+        GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
         gameLaunchMessage.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));
         gameLaunchMessage.setMod("faf");
         gameLaunchMessage.setUid(1234);
@@ -196,13 +196,13 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public CompletionStage<GameLaunchMessageLobby> requestJoinGame(GameInfoBean gameInfoBean, String password) {
-    return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchMessageLobby>(HIGH) {
+  public CompletionStage<GameLaunchMessage> requestJoinGame(GameInfoBean gameInfoBean, String password) {
+    return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchMessage>(HIGH) {
       @Override
-      protected GameLaunchMessageLobby call() throws Exception {
+      protected GameLaunchMessage call() throws Exception {
         updateTitle(i18n.get("requestJoinGameTask.title"));
 
-        GameLaunchMessageLobby gameLaunchMessage = new GameLaunchMessageLobby();
+        GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
         gameLaunchMessage.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));
         gameLaunchMessage.setMod("faf");
         gameLaunchMessage.setUid(1234);
@@ -273,9 +273,9 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessageLobby> startSearchRanked1v1(Faction faction, int gamePort) {
+  public CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort) {
     logger.debug("Searching 1v1 match with faction: {}", faction);
-    GameLaunchMessageLobby gameLaunchMessage = new GameLaunchMessageLobby();
+    GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);
     gameLaunchMessage.setMod(GameType.DEFAULT.getString());
     return CompletableFuture.completedFuture(gameLaunchMessage);
@@ -301,7 +301,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void initConnectivityTest() {
+  public void initConnectivityTest(int port) {
 
   }
 

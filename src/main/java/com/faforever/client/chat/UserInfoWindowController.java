@@ -9,7 +9,7 @@ import com.faforever.client.events.EventService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.stats.PlayerStatisticsMessageLobby;
+import com.faforever.client.stats.PlayerStatisticsMessage;
 import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.util.IdenticonUtil;
@@ -417,7 +417,7 @@ public class UserInfoWindowController {
   }
 
   @SuppressWarnings("unchecked")
-  private void plotPlayerRatingGraph(PlayerStatisticsMessageLobby result) {
+  private void plotPlayerRatingGraph(PlayerStatisticsMessage result) {
     XYChart.Series<Long, Integer> series = new XYChart.Series<>();
     series.setName(i18n.get("Player rating"));
 

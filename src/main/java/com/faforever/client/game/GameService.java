@@ -20,6 +20,8 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface GameService {
 
+  BooleanProperty gameRunningProperty();
+
   void addOnGameInfoBeanListener(ListChangeListener<GameInfoBean> listener);
 
   CompletableFuture<Void> hostGame(NewGameInfo name);
@@ -29,8 +31,6 @@ public interface GameService {
   List<GameTypeBean> getGameTypes();
 
   void addOnGameTypeInfoListener(MapChangeListener<String, GameTypeBean> changeListener);
-
-  void addOnGameStartedListener(OnGameStartedListener listener);
 
   /**
    * @param path a replay file that is readable by the game without any further conversion
@@ -53,4 +53,5 @@ public interface GameService {
   void stopSearchRanked1v1();
 
   BooleanProperty searching1v1Property();
+
 }

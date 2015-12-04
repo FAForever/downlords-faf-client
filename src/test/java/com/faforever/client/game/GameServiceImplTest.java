@@ -1,15 +1,15 @@
 package com.faforever.client.game;
 
+import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.OnGameInfoListener;
 import com.faforever.client.legacy.OnGameTypeInfoListener;
 import com.faforever.client.legacy.domain.GameInfoMessage;
-import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
+import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeMessage;
 import com.faforever.client.legacy.domain.VictoryCondition;
-import com.faforever.client.legacy.proxy.TurnClient;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
@@ -78,8 +78,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private ForgedAllianceService forgedAllianceService;
   @Mock
-  private TurnClient turnClient;
-  @Mock
   private GameUpdateService gameUpdateService;
   @Mock
   private Preferences preferences;
@@ -96,6 +94,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private PlayerService playerService;
   @Mock
+  private ConnectivityService connectivityService;
+  @Mock
   private ScheduledExecutorService scheduledExecutorService;
   @Captor
   private ArgumentCaptor<Consumer<Void>> gameLaunchedListenerCaptor;
@@ -108,12 +108,11 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.lobbyServerAccessor = lobbyServerAccessor;
     instance.mapService = mapService;
     instance.forgedAllianceService = forgedAllianceService;
-    instance.turnClient = turnClient;
+    instance.connectivityService = connectivityService;
     instance.gameUpdateService = gameUpdateService;
     instance.preferencesService = preferencesService;
     instance.applicationContext = applicationContext;
     instance.environment = environment;
-    instance.localRelayServer = localRelayServer;
     instance.playerService = playerService;
     instance.scheduledExecutorService = scheduledExecutorService;
 
@@ -135,8 +134,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     }).when(scheduledExecutorService).execute(any());
 
     instance.postConstruct();
-
-    verify(localRelayServer).setGameLaunchedListener(gameLaunchedListenerCaptor.capture());
   }
 
   @Test
@@ -212,45 +209,45 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testAddOnGameStartedListener() throws Exception {
-    OnGameStartedListener listener = mock(OnGameStartedListener.class);
     Process process = mock(Process.class);
+    int gamePort = 51111;
 
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
-    GameLaunchMessageLobby gameLaunchMessage = GameLaunchInfoBuilder.create().defaultValues().get();
+    GameLaunchMessage gameLaunchMessage = GameLaunchInfoBuilder.create().defaultValues().get();
     gameLaunchMessage.setArgs(Arrays.asList("/foo bar", "/bar foo"));
 
+    when(localRelayServer.startInBackground()).thenReturn(CompletableFuture.completedFuture(gamePort));
     when(forgedAllianceService.startGame(
-        gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL)
+        gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL, gamePort)
     ).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(lobbyServerAccessor.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
 
-    instance.addOnGameStartedListener(listener);
     instance.hostGame(newGameInfo);
 
-    verify(listener).onGameStarted(gameLaunchMessage.getUid());
+    assertThat(instance.gameRunningProperty(), is(true));
     verify(forgedAllianceService).startGame(
-        gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL
-    );
+        gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL,
+        gamePort);
   }
 
   @Test
   public void testWaitForProcessTerminationInBackground() throws Exception {
-    CompletableFuture<Void> serviceStateDoneFuture = new CompletableFuture<>();
+    CompletableFuture<Void> disconnectedFuture = new CompletableFuture<>();
 
     doAnswer(invocation -> {
-      serviceStateDoneFuture.complete(null);
+      disconnectedFuture.complete(null);
       return null;
-    }).when(turnClient).close();
+    }).when(connectivityService).disconnect();
 
     Process process = mock(Process.class);
 
     instance.spawnTerminationListener(process);
 
-    serviceStateDoneFuture.get(5000, TimeUnit.MILLISECONDS);
+    disconnectedFuture.get(5000, TimeUnit.MILLISECONDS);
 
     verify(process).waitFor();
-    verify(turnClient).close();
+    verify(connectivityService).disconnect();
   }
 
   @Test
@@ -315,7 +312,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testStartSearchRanked1v1() throws Exception {
-    GameLaunchMessageLobby gameLaunchMessage = new GameLaunchMessageLobby();
+    GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);
     gameLaunchMessage.setArgs(Collections.<String>emptyList());
     when(lobbyServerAccessor.startSearchRanked1v1(Faction.CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
@@ -338,8 +335,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(process.isAlive()).thenReturn(true);
 
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
-    GameLaunchMessageLobby gameLaunchMessage = GameLaunchInfoBuilder.create().defaultValues().get();
-    when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), any())).thenReturn(process);
+    GameLaunchMessage gameLaunchMessage = GameLaunchInfoBuilder.create().defaultValues().get();
+    when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), any(), any())).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(lobbyServerAccessor.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
 

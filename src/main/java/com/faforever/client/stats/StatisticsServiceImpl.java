@@ -15,7 +15,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
   @Override
   @Cacheable(value = CacheNames.STATISTICS, key = "#type + #username")
-  public CompletableFuture<PlayerStatisticsMessageLobby> getStatisticsForPlayer(StatisticsType type, String username) {
+  public CompletableFuture<PlayerStatisticsMessage> getStatisticsForPlayer(StatisticsType type, String username) {
     return statisticsServerAccessor.requestPlayerStatistics(type, username);
   }
 }

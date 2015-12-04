@@ -1,8 +1,8 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
+import com.faforever.client.legacy.domain.GameLaunchMessage;
 
 public interface OnGameLaunchInfoListener {
 
-  void onGameLaunchInfo(GameLaunchMessageLobby gameLaunchMessage);
+  void onGameLaunchInfo(GameLaunchMessage gameLaunchMessage);
 }
