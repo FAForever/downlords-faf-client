@@ -6,6 +6,7 @@ import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.legacy.relay.ConnectivityStateMessage;
 import com.faforever.client.legacy.relay.GpgServerMessage;
 import com.faforever.client.legacy.relay.ProcessNatPacketMessage;
+import com.faforever.client.legacy.relay.SendNatPacketMessage;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.upnp.UpnpService;
 import com.faforever.client.util.SocketAddressUtil;
@@ -31,7 +32,7 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 public class FafPortCheckTask extends AbstractPrioritizedTask<ConnectivityState> implements PortCheckTask {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final int TIMEOUT = 10000;
+  private static final int TIMEOUT = 5000;
   private static final int UDP_PACKET_REPEATS = 3;
 
   @Resource
@@ -52,18 +53,20 @@ public class FafPortCheckTask extends AbstractPrioritizedTask<ConnectivityState>
     super(Priority.LOW);
   }
 
-  private void onConnectivityStateMessage(GpgServerMessage message) {
-    if (message.getTarget() != MessageTarget.CONNECTIVITY) {
-      return;
-    }
-
-    switch (message.getMessageType()) {
+  private void onConnectivityStateMessage(GpgServerMessage serverMessage) {
+    switch (serverMessage.getMessageType()) {
       case SEND_NAT_PACKET:
         // The server did not receive the expected response and wants us to send a UDP packet in order hole punch the NAT.
         try {
+          SendNatPacketMessage sendNatPacketMessage = (SendNatPacketMessage) serverMessage;
+          InetSocketAddress publicAddress = sendNatPacketMessage.getPublicAddress();
+          String message = sendNatPacketMessage.getMessage();
+
           byte[] bytes = (Byte.toString((byte) 0x08) + message).getBytes(US_ASCII);
           for (int i = 0; i < UDP_PACKET_REPEATS; i++) {
-            datagramSocket.send(new DatagramPacket(bytes, bytes.length));
+            DatagramPacket datagramPacket = new DatagramPacket(bytes, bytes.length);
+            datagramPacket.setSocketAddress(publicAddress);
+            datagramSocket.send(datagramPacket);
           }
         } catch (IOException e) {
           throw new RuntimeException(e);
@@ -72,7 +75,7 @@ public class FafPortCheckTask extends AbstractPrioritizedTask<ConnectivityState>
 
       case CONNECTIVITY_STATE:
         // The server tells us what our connectivity state is, we're done
-        connectivityStateFuture.complete(((ConnectivityStateMessage) message).getState());
+        connectivityStateFuture.complete(((ConnectivityStateMessage) serverMessage).getState());
         break;
     }
   }
@@ -97,11 +100,11 @@ public class FafPortCheckTask extends AbstractPrioritizedTask<ConnectivityState>
       datagramSocket.setSoTimeout(TIMEOUT);
       udpPacketFuture = listenForPackage(datagramSocket);
 
-      lobbyServerAccessor.addOnGameMessageListener(connectivityStateMessageListener);
+      lobbyServerAccessor.addOnConnectivityMessageListener(connectivityStateMessageListener);
       lobbyServerAccessor.initConnectivityTest();
       try {
         DatagramPacket udpPacket = udpPacketFuture.get(TIMEOUT, TimeUnit.MILLISECONDS);
-        logger.debug("Received UPD package from server on port {}", port);
+        logger.debug("Received UPD package from server on port {}: ", port, udpPacket.getData());
 
         byte[] data = udpPacket.getData();
         String message = new String(data, 1, udpPacket.getLength() - 1, US_ASCII);
