@@ -14,19 +14,19 @@ import org.ice4j.stunclient.BlockingRequestSender;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 public class TurnClient {
 
   private static final int STUN_PORT = 3478;
   private static final TransportAddress TURN_SERVER = new TransportAddress("dev.faforever.com", STUN_PORT, Transport.UDP);
-  private static final int GAME_PORT = 6112;
 
   public static void main(String[] args) throws IOException, StunException {
-    TransportAddress localAddress = new TransportAddress(InetAddress.getLocalHost(), GAME_PORT, Transport.UDP);
-    DatagramSocket datagramSocket = new DatagramSocket(GAME_PORT, localAddress.getAddress());
+    DatagramSocket datagramSocket = new DatagramSocket(0, InetAddress.getLocalHost());
+    TransportAddress localAddress = new TransportAddress((InetSocketAddress) datagramSocket.getLocalSocketAddress(), Transport.UDP);
 
     StunStack stunStack = new StunStack();
-    stunStack.addSocket(new IceUdpSocketWrapper(datagramSocket));
+    stunStack.addSocket(new IceUdpSocketWrapper(datagramSocket), TURN_SERVER);
 
     Request allocateRequest = MessageFactory.createAllocateRequest(RequestedTransportAttribute.UDP, false);
 
@@ -34,5 +34,6 @@ public class TurnClient {
     StunMessageEvent response = blockingRequestSender.sendRequestAndWaitForResponse(
         allocateRequest, TURN_SERVER
     );
+    System.out.println(response);
   }
 }

@@ -80,7 +80,12 @@ public interface LobbyServerAccessor {
 
   void initConnectivityTest();
 
-  void addOnGpgServerMessageListener(Consumer<GpgServerMessage> listener);
-  void removeOnGpgServerMessageListener(Consumer<GpgServerMessage> listener);
+  void addOnGameMessageListener(Consumer<GpgServerMessage> listener);
+
+  void removeOnGameMessageListener(Consumer<GpgServerMessage> listener);
+
+  void addOnConnectivityMessageListener(Consumer<GpgServerMessage> listener);
+
+  void removeOnConnectivityMessageListener(Consumer<GpgServerMessage> listener);
 
 }

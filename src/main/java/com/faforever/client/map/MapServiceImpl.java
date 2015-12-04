@@ -36,7 +36,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -224,7 +223,7 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public CompletionStage<Void> download(String technicalMapName) {
+  public CompletableFuture<Void> download(String technicalMapName) {
     String mapUrl = getMapUrl(technicalMapName, environment.getProperty("vault.mapDownloadUrl"));
 
     DownloadMapTask task = applicationContext.getBean(DownloadMapTask.class);

@@ -79,8 +79,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -131,17 +131,19 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private StringProperty login;
   private String username;
   private String password;
-  private Collection<Consumer<GpgServerMessage>> gpgServerMessageListeners;
+  private Collection<Consumer<GpgServerMessage>> onGameMessageListeners;
+  private Collection<Consumer<GpgServerMessage>> onConnectivityMessageListeners;
 
   public LobbyServerAccessorImpl() {
-    onGameInfoListeners = new ArrayList<>();
-    onGameTypeInfoListeners = new ArrayList<>();
-    onJoinChannelsRequestListeners = new ArrayList<>();
-    onGameLaunchListeners = new ArrayList<>();
-    onRankedMatchNotificationListeners = new ArrayList<>();
-    onUpdatedAchievementsListeners = new ArrayList<>();
-    gpgServerMessageListeners = new ArrayList<>();
-    onLoggedInListeners = new ArrayList<>();
+    onGameInfoListeners = new LinkedList<>();
+    onGameTypeInfoListeners = new LinkedList<>();
+    onJoinChannelsRequestListeners = new LinkedList<>();
+    onGameLaunchListeners = new LinkedList<>();
+    onRankedMatchNotificationListeners = new LinkedList<>();
+    onUpdatedAchievementsListeners = new LinkedList<>();
+    onGameMessageListeners = new LinkedList<>();
+    onConnectivityMessageListeners = new LinkedList<>();
+    onLoggedInListeners = new LinkedList<>();
     sessionId = new SimpleObjectProperty<>();
     login = new SimpleStringProperty();
     // TODO note to myself; seriously, create a single gson instance (or builder) and put it all there
@@ -383,13 +385,23 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void addOnGpgServerMessageListener(Consumer<GpgServerMessage> listener) {
-    gpgServerMessageListeners.add(listener);
+  public void addOnGameMessageListener(Consumer<GpgServerMessage> listener) {
+    onGameMessageListeners.add(listener);
   }
 
   @Override
-  public void removeOnGpgServerMessageListener(Consumer<GpgServerMessage> listener) {
-    gpgServerMessageListeners.remove(listener);
+  public void removeOnGameMessageListener(Consumer<GpgServerMessage> listener) {
+    onGameMessageListeners.remove(listener);
+  }
+
+  @Override
+  public void addOnConnectivityMessageListener(Consumer<GpgServerMessage> listener) {
+    onConnectivityMessageListeners.add(listener);
+  }
+
+  @Override
+  public void removeOnConnectivityMessageListener(Consumer<GpgServerMessage> listener) {
+    onConnectivityMessageListeners.remove(listener);
   }
 
   private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
@@ -433,8 +445,11 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
       switch (serverMessage.getTarget()) {
         case GAME:
+          onGameMessageListeners.forEach(listener -> listener.accept((GpgServerMessage) serverMessage));
+          break;
+
         case CONNECTIVITY:
-          gpgServerMessageListeners.forEach(listener -> listener.accept((GpgServerMessage) serverMessage));
+          onConnectivityMessageListeners.forEach(listener -> listener.accept((GpgServerMessage) serverMessage));
           break;
 
         case CLIENT:

@@ -5,7 +5,7 @@ import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
 import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.legacy.gson.GpgServerMessageTypeTypeAdapter;
-import com.faforever.client.legacy.proxy.Proxy;
+import com.faforever.client.legacy.proxy.TurnClient;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.relay.FaDataInputStream;
 import com.faforever.client.relay.FaDataOutputStream;
@@ -53,7 +53,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   private final Collection<Runnable> onConnectionAcceptedListeners;
 
   @Resource
-  Proxy proxy;
+  TurnClient turnClient;
   @Resource
   Environment environment;
   @Resource
@@ -126,7 +126,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   void postConstruct() {
     startInBackground();
     lobbyServerAccessor.addOnGameLaunchListener(this::updateLobbyModeFromGameInfo);
-    lobbyServerAccessor.addOnGpgServerMessageListener(this::onGpgServerMessage);
+    lobbyServerAccessor.addOnGameMessageListener(this::onGpgServerMessage);
   }
 
   private void updateLobbyModeFromGameInfo(GameLaunchMessageLobby gameLaunchMessage) {
@@ -223,8 +223,6 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   }
 
   private void handleCreateLobby(CreateLobbyServerMessage createLobbyServerMessage) throws IOException {
-    int peerUid = createLobbyServerMessage.getUid();
-    proxy.setUid(peerUid);
 
     writeToFa(createLobbyServerMessage);
   }
@@ -321,7 +319,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     int playerNumber = joinProxyMessage.getPlayerNumber();
     int peerUid = joinProxyMessage.getPeerUid();
 
-    InetSocketAddress proxySocket = proxy.bindAndGetProxySocketAddress(playerNumber, peerUid);
+    InetSocketAddress proxySocket = turnClient.bindAndGetProxySocketAddress(playerNumber, peerUid);
 
     // Ask FA to join the game via the local proxy port
     JoinGameMessage joinGameMessage = new JoinGameMessage();

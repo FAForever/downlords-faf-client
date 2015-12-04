@@ -2,25 +2,13 @@ package com.faforever.client.legacy.proxy;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.CompletableFuture;
 
-public interface Proxy {
+public interface TurnClient {
 
-  /**
-   * Closes all proxy connections.
-   */
+  CompletableFuture<Void> connect();
+
   void close() throws IOException;
-
-  void updateConnectedState(int uid, boolean connected);
-
-  void setGameLaunched(boolean gameLaunched);
-
-  void setBottleneck(boolean bottleneck);
-
-  void setUidForPeer(String peerAddress, int peerUid);
-
-  void setUid(int uid);
-
-  int getPort();
 
   /**
    * Opens a local UDP socket that serves as a proxy for a player to FA. In other words, instead of connecting to player

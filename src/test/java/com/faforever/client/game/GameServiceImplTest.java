@@ -9,7 +9,7 @@ import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeMessage;
 import com.faforever.client.legacy.domain.VictoryCondition;
-import com.faforever.client.legacy.proxy.Proxy;
+import com.faforever.client.legacy.proxy.TurnClient;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
@@ -78,7 +78,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private ForgedAllianceService forgedAllianceService;
   @Mock
-  private Proxy proxy;
+  private TurnClient turnClient;
   @Mock
   private GameUpdateService gameUpdateService;
   @Mock
@@ -108,7 +108,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.lobbyServerAccessor = lobbyServerAccessor;
     instance.mapService = mapService;
     instance.forgedAllianceService = forgedAllianceService;
-    instance.proxy = proxy;
+    instance.turnClient = turnClient;
     instance.gameUpdateService = gameUpdateService;
     instance.preferencesService = preferencesService;
     instance.applicationContext = applicationContext;
@@ -241,7 +241,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> {
       serviceStateDoneFuture.complete(null);
       return null;
-    }).when(proxy).close();
+    }).when(turnClient).close();
 
     Process process = mock(Process.class);
 
@@ -250,7 +250,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     serviceStateDoneFuture.get(5000, TimeUnit.MILLISECONDS);
 
     verify(process).waitFor();
-    verify(proxy).close();
+    verify(turnClient).close();
   }
 
   @Test

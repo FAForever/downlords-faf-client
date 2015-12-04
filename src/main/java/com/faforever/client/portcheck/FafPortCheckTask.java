@@ -97,7 +97,7 @@ public class FafPortCheckTask extends AbstractPrioritizedTask<ConnectivityState>
       datagramSocket.setSoTimeout(TIMEOUT);
       udpPacketFuture = listenForPackage(datagramSocket);
 
-      lobbyServerAccessor.addOnGpgServerMessageListener(connectivityStateMessageListener);
+      lobbyServerAccessor.addOnGameMessageListener(connectivityStateMessageListener);
       lobbyServerAccessor.initConnectivityTest();
       try {
         DatagramPacket udpPacket = udpPacketFuture.get(TIMEOUT, TimeUnit.MILLISECONDS);
@@ -116,7 +116,7 @@ public class FafPortCheckTask extends AbstractPrioritizedTask<ConnectivityState>
         logger.debug("Timed out while waiting for answer from server");
         return ConnectivityState.BLOCKED;
       } finally {
-        lobbyServerAccessor.removeOnGpgServerMessageListener(connectivityStateMessageListener);
+        lobbyServerAccessor.removeOnConnectivityMessageListener(connectivityStateMessageListener);
       }
     } catch (IOException e) {
       throw new RuntimeException(e);

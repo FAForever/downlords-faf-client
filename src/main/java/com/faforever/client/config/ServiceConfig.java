@@ -39,8 +39,8 @@ import com.faforever.client.legacy.WindowsUidService;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
 import com.faforever.client.legacy.map.LegacyMapVaultParser;
 import com.faforever.client.legacy.map.MapVaultParser;
-import com.faforever.client.legacy.proxy.Proxy;
-import com.faforever.client.legacy.proxy.ProxyImpl;
+import com.faforever.client.legacy.proxy.TurnClient;
+import com.faforever.client.legacy.proxy.TurnClientImpl;
 import com.faforever.client.legacy.relay.LocalRelayServerImpl;
 import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.lobby.LobbyServiceImpl;
@@ -247,8 +247,8 @@ public class ServiceConfig {
   }
 
   @Bean
-  Proxy proxy() {
-    return new ProxyImpl();
+  TurnClient proxy() {
+    return new TurnClientImpl();
   }
 
   @Bean

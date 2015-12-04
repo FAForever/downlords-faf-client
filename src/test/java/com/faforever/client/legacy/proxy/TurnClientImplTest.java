@@ -35,7 +35,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ProxyImplTest extends AbstractPlainJavaFxTest {
+public class TurnClientImplTest extends AbstractPlainJavaFxTest {
 
   private class ProxyPackage {
 
@@ -57,7 +57,7 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
   private static final int OTHER_UID_1 = 111;
   private static final int GAME_PORT = 61112;
 
-  private ProxyImpl instance;
+  private TurnClientImpl instance;
   private ServerSocket fafProxyServerSocket;
   private QDataOutputStream serverToLocalOutputStream;
   private boolean stopped;
@@ -71,7 +71,7 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new ProxyImpl();
+    instance = new TurnClientImpl();
     instance.environment = mock(Environment.class);
     instance.preferencesService = mock(PreferencesService.class);
     Preferences preferences = mock(Preferences.class);
@@ -155,51 +155,6 @@ public class ProxyImplTest extends AbstractPlainJavaFxTest {
     assertThat(instance.proxySocketsByPlayerNumber.values(), empty());
     assertThat(peerSocket.isClosed(), is(true));
     assertThat(gameToLocalProxySocket.isClosed(), is(true));
-  }
-
-  @Test
-  public void testUpdateConnectedStateUnknownPeer() throws Exception {
-    instance.setUidForPeer("64.1.1.1:6112", OTHER_UID_1);
-    instance.updateConnectedState(OTHER_UID_1, true);
-
-    assertThat(instance.peersByUid.values(), empty());
-  }
-
-  @Test
-  public void testSetGameLaunchedTrue() throws Exception {
-    instance.setGameLaunched(true);
-    assertThat(instance.gameLaunched, is(true));
-  }
-
-  @Test
-  public void testSetGameLaunchedFalse() throws Exception {
-    instance.setGameLaunched(false);
-    assertThat(instance.gameLaunched, is(false));
-  }
-
-  @Test
-  public void testSetBottleneckTrue() throws Exception {
-    instance.setBottleneck(true);
-    assertThat(instance.bottleneck, is(true));
-  }
-
-  @Test
-  public void testSetBottleneckFalse() throws Exception {
-    instance.setBottleneck(false);
-    assertThat(instance.gameLaunched, is(false));
-    assertThat(instance.bottleneck, is(false));
-  }
-
-  @Test
-  public void testSetUid() throws Exception {
-    assertThat(instance.uid, is(0));
-    instance.setUid(123);
-    assertThat(instance.uid, is(123));
-  }
-
-  @Test(expected = UnsupportedOperationException.class)
-  public void testGetPort() throws Exception {
-    instance.getPort();
   }
 
   @Test

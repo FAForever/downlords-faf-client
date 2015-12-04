@@ -10,7 +10,7 @@ import com.faforever.client.legacy.domain.GameInfoMessage;
 import com.faforever.client.legacy.domain.GameLaunchMessageLobby;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeMessage;
-import com.faforever.client.legacy.proxy.Proxy;
+import com.faforever.client.legacy.proxy.TurnClient;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
@@ -54,7 +54,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
@@ -81,7 +80,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   @Resource
   MapService mapService;
   @Resource
-  Proxy proxy;
+  TurnClient turnClient;
   @Resource
   PreferencesService preferencesService;
   @Resource
@@ -133,13 +132,16 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
     stopSearchRanked1v1();
 
-    return updateGameIfNecessary(newGameInfo.getGameType(), newGameInfo.getVersion(), emptyMap(), newGameInfo.getSimModUidsToVersions())
-        .thenCompose(aVoid -> lobbyServerAccessor.requestNewGame(newGameInfo))
+
+    return CompletableFuture.allOf(
+        allocateTurnAddress(),
+        updateGameIfNecessary(newGameInfo.getGameType(), newGameInfo.getVersion(), emptyMap(), newGameInfo.getSimModUidsToVersions())
+    ).thenRun(() -> lobbyServerAccessor.requestNewGame(newGameInfo)
         .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL))
         .exceptionally(throwable -> {
           logger.warn("Hosting game failed", throwable);
           return null;
-        });
+        }));
   }
 
   @Override
@@ -156,17 +158,20 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     Map<String, Integer> simModVersions = gameInfoBean.getFeaturedModVersions();
     Set<String> simModUIds = gameInfoBean.getSimMods().keySet();
 
-    return updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
-        .thenCompose(aVoid -> downloadMapIfNecessary(gameInfoBean.getMapTechnicalName()))
-        .thenCompose(aVoid -> lobbyServerAccessor.requestJoinGame(gameInfoBean, password))
-        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL))
-        .exceptionally(throwable -> {
-          logger.warn("Game could not be started", throwable);
-          return null;
-        });
+    return CompletableFuture.allOf(
+        allocateTurnAddress(),
+        updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds),
+        downloadMapIfNecessary(gameInfoBean.getMapTechnicalName())
+    ).thenRun(
+        () -> lobbyServerAccessor.requestJoinGame(gameInfoBean, password)
+            .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL))
+            .exceptionally(throwable -> {
+              logger.warn("Game could not be started", throwable);
+              return null;
+            }));
   }
 
-  private CompletionStage<Void> downloadMapIfNecessary(String mapName) {
+  private CompletableFuture<Void> downloadMapIfNecessary(String mapName) {
     CompletableFuture<Void> future = new CompletableFuture<>();
 
     if (mapService.isAvailable(mapName)) {
@@ -315,6 +320,10 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     return process != null && process.isAlive();
   }
 
+  private CompletableFuture<Void> allocateTurnAddress() {
+    return CompletableFuture.runAsync(() -> turnClient.connect());
+  }
+
   private CompletableFuture<Void> updateGameIfNecessary(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUIds) {
     return gameUpdateService.updateInBackground(gameType, version, modVersions, simModUIds);
   }
@@ -362,7 +371,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
         int exitCode = process.waitFor();
         logger.info("Forged Alliance terminated with exit code {}", exitCode);
 
-        proxy.close();
+        turnClient.close();
       } catch (InterruptedException | IOException e) {
         logger.warn("Error during post-game processing", e);
       }

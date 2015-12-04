@@ -9,7 +9,7 @@ import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.legacy.gson.GpgServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.gson.MessageTargetTypeAdapter;
 import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
-import com.faforever.client.legacy.proxy.Proxy;
+import com.faforever.client.legacy.proxy.TurnClient;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -84,7 +84,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private Socket gameToRelaySocket;
   private boolean stopped;
   @Mock
-  private Proxy proxy;
+  private TurnClient turnClient;
   @Mock
   private Environment environment;
   @Mock
@@ -110,7 +110,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     CountDownLatch gameConnectedLatch = new CountDownLatch(1);
 
     instance = new LocalRelayServerImpl();
-    instance.proxy = proxy;
+    instance.turnClient = turnClient;
     instance.environment = environment;
     instance.userService = userService;
     instance.preferencesService = preferencesService;
@@ -134,7 +134,6 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
     when(userService.getUid()).thenReturn((int) USER_ID);
     when(userService.getUsername()).thenReturn("junit");
-    when(proxy.getPort()).thenReturn(GAME_PORT);
     when(lobbyServerAccessor.getSessionId()).thenReturn(SESSION_ID);
     doAnswer(invocation -> {
       messagesReceivedByFafServer.put(invocation.getArgumentAt(0, GpgClientMessage.class));
@@ -143,7 +142,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     instance.postConstruct();
 
-    verify(lobbyServerAccessor).addOnGpgServerMessageListener(onGpgServerMessageListenerCaptor.capture());
+    verify(lobbyServerAccessor).addOnGameMessageListener(onGpgServerMessageListenerCaptor.capture());
     verify(lobbyServerAccessor).addOnGameLaunchListener(onGameLaunchInfoListener.capture());
 
     GameLaunchMessageLobby gameLaunchMessage = new GameLaunchMessageLobby();
@@ -286,7 +285,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     int peerUid = 1234;
     InetSocketAddress inetSocketAddress = new InetSocketAddress(0);
 
-    when(proxy.bindAndGetProxySocketAddress(playerNumber, peerUid)).thenReturn(
+    when(turnClient.bindAndGetProxySocketAddress(playerNumber, peerUid)).thenReturn(
         inetSocketAddress
     );
 

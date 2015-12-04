@@ -306,12 +306,22 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public void addOnGpgServerMessageListener(Consumer<GpgServerMessage> listener) {
+  public void addOnGameMessageListener(Consumer<GpgServerMessage> listener) {
 
   }
 
   @Override
-  public void removeOnGpgServerMessageListener(Consumer<GpgServerMessage> listener) {
+  public void removeOnGameMessageListener(Consumer<GpgServerMessage> listener) {
+
+  }
+
+  @Override
+  public void addOnConnectivityMessageListener(Consumer<GpgServerMessage> listener) {
+
+  }
+
+  @Override
+  public void removeOnConnectivityMessageListener(Consumer<GpgServerMessage> listener) {
 
   }
 

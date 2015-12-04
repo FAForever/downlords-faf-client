@@ -7,6 +7,18 @@ import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.SocketAddressUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.concurrent.Task;
+import org.ice4j.StunException;
+import org.ice4j.StunMessageEvent;
+import org.ice4j.StunResponseEvent;
+import org.ice4j.Transport;
+import org.ice4j.TransportAddress;
+import org.ice4j.attribute.RequestedTransportAttribute;
+import org.ice4j.message.MessageFactory;
+import org.ice4j.message.Request;
+import org.ice4j.message.Response;
+import org.ice4j.socket.IceUdpSocketWrapper;
+import org.ice4j.stack.StunStack;
+import org.ice4j.stunclient.BlockingRequestSender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -28,9 +40,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 
-public class ProxyImpl implements Proxy {
+public class TurnClientImpl implements TurnClient {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -61,8 +75,8 @@ public class ProxyImpl implements Proxy {
   Environment environment;
   @Resource
   PreferencesService preferencesService;
-  @VisibleForTesting
-  boolean gameLaunched;
+  @Resource
+  Executor executor;
   boolean bottleneck;
   int uid;
   /**
@@ -71,13 +85,43 @@ public class ProxyImpl implements Proxy {
   private Socket fafProxySocket;
   private QDataOutputStream fafProxyOutputStream;
   private QDataInputStream fafProxyReader;
+  private DatagramSocket socket;
 
-  public ProxyImpl() {
+  public TurnClientImpl() {
     proxyLock = new Object();
     peersByUid = new HashMap<>();
     peersByAddress = new HashMap<>();
     localInetAddr = InetAddress.getLoopbackAddress();
     proxySocketsByPlayerNumber = new ConcurrentHashMap<>();
+  }
+
+  @Override
+  public CompletableFuture<Void> connect() {
+    String turnHost = environment.getProperty("turn.host");
+    int turnPort = environment.getProperty("turn.port", int.class);
+
+    TransportAddress turnServerAddress = new TransportAddress(turnHost, turnPort, Transport.UDP);
+
+    return CompletableFuture.runAsync(() -> {
+      try {
+        DatagramSocket datagramSocket = new DatagramSocket(0, InetAddress.getLocalHost());
+        TransportAddress localAddress = new TransportAddress((InetSocketAddress) datagramSocket.getLocalSocketAddress(), Transport.UDP);
+
+        StunStack stunStack = new StunStack();
+        stunStack.addSocket(new IceUdpSocketWrapper(datagramSocket), turnServerAddress);
+
+        Request allocateRequest = MessageFactory.createAllocateRequest(RequestedTransportAttribute.UDP, false);
+
+        BlockingRequestSender blockingRequestSender = new BlockingRequestSender(stunStack, localAddress);
+        StunMessageEvent stunMessageEvent = blockingRequestSender.sendRequestAndWaitForResponse(
+            allocateRequest, turnServerAddress
+        );
+        Response response = ((StunResponseEvent) stunMessageEvent).getResponse();
+        System.out.println(response);
+      } catch (StunException | IOException e) {
+        throw new RuntimeException(e);
+      }
+    }, executor);
   }
 
   @Override
@@ -99,53 +143,6 @@ public class ProxyImpl implements Proxy {
       logger.info("Closing connection FAF proxy");
       fafProxySocket.close();
     }
-  }
-
-  @Override
-  public void updateConnectedState(int uid, boolean connected) {
-    Peer peer = peersByUid.get(uid);
-    if (peer == null) {
-      logger.warn("Can't update connected state for unknown peer: {}", uid);
-      return;
-    }
-    if (!connected) {
-      peersByUid.remove(uid);
-    }
-    peer.setConnected(connected);
-  }
-
-  @Override
-  public void setGameLaunched(boolean gameLaunched) {
-    this.gameLaunched = gameLaunched;
-  }
-
-  @Override
-  public void setBottleneck(boolean bottleneck) {
-    this.bottleneck = bottleneck;
-  }
-
-  @Override
-  public void setUidForPeer(String publicAddress, int peerUid) {
-    Peer peer = peersByAddress.get(publicAddress);
-
-    if (peer == null) {
-      logger.warn("Got UID for unknown peer: {}", publicAddress);
-      return;
-    }
-
-    peer.setUid(peerUid);
-    peersByUid.put(peerUid, peer);
-  }
-
-  @Override
-  public void setUid(int uid) {
-    logger.debug("UID has been set to {}", uid);
-    this.uid = uid;
-  }
-
-  @Override
-  public int getPort() {
-    throw new UnsupportedOperationException("Not yet implemented");
   }
 
   @Override

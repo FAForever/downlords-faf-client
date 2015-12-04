@@ -7,7 +7,6 @@ import javafx.scene.image.Image;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 public interface MapService {
 
@@ -30,7 +29,7 @@ public interface MapService {
    */
   boolean isAvailable(String mapName);
 
-  CompletionStage<Void> download(String technicalMapName);
+  CompletableFuture<Void> download(String technicalMapName);
 
   List<Comment> getComments(int mapId);
 }
