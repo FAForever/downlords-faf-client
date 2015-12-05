@@ -58,8 +58,6 @@ public class CreateGameController {
   @FXML
   Label mapPlayersLabel;
   @FXML
-  Label mapAiMarkersLabel;
-  @FXML
   Label mapDescriptionLabel;
   @FXML
   Label mapNameLabel;
@@ -242,18 +240,13 @@ public class CreateGameController {
         new Image(themeService.getThemeFile(ThemeService.UNKNOWN_MAP_IMAGE), true);
       }
 
-      mapImageView.setImage(largePreview);
+      MapSize mapSize = newValue.getSize();
 
+      mapImageView.setImage(largePreview);
       mapNameLabel.setText(newValue.getDisplayName());
-      mapSizeLabel.setText(i18n.get("mapPreview.size", newValue.getSize()));
+      mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidth(), mapSize.getHeight()));
       mapPlayersLabel.setText(i18n.get("mapPreview.maxPlayers", newValue.getPlayers()));
       mapDescriptionLabel.setText(newValue.getDescription());
-
-      if (newValue.getHasAiMarkers()) {
-        mapAiMarkersLabel.setText(i18n.get("yes"));
-      } else {
-        mapAiMarkersLabel.setText(i18n.get("no"));
-      }
     });
   }
 

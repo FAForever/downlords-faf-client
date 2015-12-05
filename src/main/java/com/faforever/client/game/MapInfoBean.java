@@ -1,10 +1,8 @@
 package com.faforever.client.game;
 
 import com.faforever.client.api.Map;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -25,7 +23,6 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
   private final ObjectProperty<MapSize> size;
   private final ObjectProperty<ComparableVersion> version;
   private final StringProperty id;
-  private final BooleanProperty hasAiMarkers;
 
   public MapInfoBean() {
     this.id = new SimpleStringProperty();
@@ -38,19 +35,6 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
     this.players = new SimpleIntegerProperty();
     this.size = new SimpleObjectProperty<>();
     this.version = new SimpleObjectProperty<>();
-    this.hasAiMarkers = new SimpleBooleanProperty();
-  }
-
-  public boolean getHasAiMarkers() {
-    return hasAiMarkers.get();
-  }
-
-  public void setHasAiMarkers(boolean hasAiMarkers) {
-    this.hasAiMarkers.set(hasAiMarkers);
-  }
-
-  public BooleanProperty hasAiMarkersProperty() {
-    return hasAiMarkers;
   }
 
   public StringProperty displayNameProperty() {
