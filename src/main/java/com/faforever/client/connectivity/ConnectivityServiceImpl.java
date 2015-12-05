@@ -43,7 +43,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
   I18n i18n;
   @Resource
   ApplicationContext applicationContext;
-  @Value("${portCheck.helpUrl}")
+  @Value("${connectivity.helpUrl}")
   String connectivityHelpUrl;
   private ConnectivityState connectivityState;
   private TurnClient turnClient;
@@ -57,7 +57,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
   public CompletableFuture<ConnectivityState> checkGamePortInBackground() {
     int port = preferencesService.getPreferences().getForgedAlliance().getPort();
 
-    PortCheckTask task = applicationContext.getBean(PortCheckTask.class);
+    ConnectivityCheckTask task = applicationContext.getBean(ConnectivityCheckTask.class);
     task.setPort(port);
 
     return taskService.submitTask(task).thenApply(result -> {

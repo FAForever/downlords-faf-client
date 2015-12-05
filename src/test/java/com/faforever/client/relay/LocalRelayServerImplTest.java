@@ -26,7 +26,6 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
@@ -82,8 +81,6 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private TurnClient turnClient;
   @Mock
-  private Environment environment;
-  @Mock
   private UserService userService;
   @Mock
   private PreferencesService preferencesService;
@@ -107,7 +104,6 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     instance = new LocalRelayServerImpl();
     instance.turnClient = turnClient;
-    instance.environment = environment;
     instance.userService = userService;
     instance.preferencesService = preferencesService;
     instance.lobbyServerAccessor = lobbyServerAccessor;
