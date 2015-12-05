@@ -1,5 +1,9 @@
 package com.faforever.client.relay;
 
+import com.faforever.client.util.SocketAddressUtil;
+
+import java.net.InetSocketAddress;
+
 import static com.faforever.client.relay.GpgServerMessageType.CONNECT_TO_PEER;
 
 public class ConnectToPeerMessage extends GpgServerMessage {
@@ -16,12 +20,12 @@ public class ConnectToPeerMessage extends GpgServerMessage {
     setValue(USERNAME_INDEX, username);
   }
 
-  public String getPeerAddress() {
-    return getString(PEER_ADDRESS_INDEX);
+  public InetSocketAddress getPeerAddress() {
+    return SocketAddressUtil.fromString(getString(PEER_ADDRESS_INDEX));
   }
 
-  public void setPeerAddress(String peerAddress) {
-    setValue(PEER_ADDRESS_INDEX, peerAddress);
+  public void setPeerAddress(InetSocketAddress peerAddress) {
+    setValue(PEER_ADDRESS_INDEX, SocketAddressUtil.toString(peerAddress));
   }
 
   public int getPeerUid() {

@@ -1,11 +1,11 @@
 package com.faforever.client.legacy.domain;
 
-public class LoginLobbyServerMessage extends FafServerMessage {
+public class LoginMessage extends FafServerMessage {
 
   private int id;
   private String login;
 
-  public LoginLobbyServerMessage() {
+  public LoginMessage() {
     super(FafServerMessageType.WELCOME);
   }
 

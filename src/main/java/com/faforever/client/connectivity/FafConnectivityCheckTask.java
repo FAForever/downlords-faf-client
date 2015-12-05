@@ -102,7 +102,7 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
     connectivityStateFuture = new CompletableFuture<>();
 
     Consumer<GpgServerMessage> connectivityStateMessageListener = this::onConnectivityStateMessage;
-    lobbyServerAccessor.addOnConnectivityMessageListener(connectivityStateMessageListener);
+    lobbyServerAccessor.addOnMessageListener(ConnectivityStateMessage.class, this::onConnectivityStateMessage);
 
     try (DatagramSocket datagramSocket = new DatagramSocket(port)) {
       this.publicSocket = datagramSocket;
@@ -115,7 +115,7 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
       } catch (TimeoutException e) {
         throw new RuntimeException(e);
       } finally {
-        lobbyServerAccessor.removeOnConnectivityMessageListener(connectivityStateMessageListener);
+        lobbyServerAccessor.removeOnMessageListener(ConnectivityStateMessage.class, this::onConnectivityStateMessage);
       }
     }
   }

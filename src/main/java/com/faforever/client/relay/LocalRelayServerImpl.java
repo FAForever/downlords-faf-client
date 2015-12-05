@@ -10,7 +10,6 @@ import com.faforever.client.legacy.gson.GpgServerMessageTypeTypeAdapter;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
-import com.faforever.client.util.SocketAddressUtil;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -120,8 +119,8 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   @PostConstruct
   void postConstruct() {
     startInBackground();
-    lobbyServerAccessor.addOnGameLaunchListener(this::updateLobbyModeFromGameInfo);
-    lobbyServerAccessor.addOnGameMessageListener(this::onGpgServerMessage);
+    lobbyServerAccessor.addOnMessageListener(GameLaunchMessage.class, this::updateLobbyModeFromGameInfo);
+    lobbyServerAccessor.addOnMessageListener(GpgServerMessage.class, this::onGpgServerMessage);
   }
 
   private void start() throws IOException {
@@ -327,16 +326,10 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   }
 
   private void handleConnectToPeer(ConnectToPeerMessage connectToPeerMessage) throws IOException {
-    if (useTurn) {
-      String[] oldAddressString = connectToPeerMessage.getPeerAddress().split(":");
-      InetSocketAddress oldAddress = new InetSocketAddress(oldAddressString[0], Integer.parseInt(oldAddressString[1]));
-      turnClient.addPeer(oldAddress);
-    }
-
     int peerUid = connectToPeerMessage.getPeerUid();
     SocketAddress peerSocketAddress = getSocketForPeer(peerUid).getLocalSocketAddress();
 
-    connectToPeerMessage.setPeerAddress(SocketAddressUtil.toString((InetSocketAddress) peerSocketAddress));
+    connectToPeerMessage.setPeerAddress((InetSocketAddress) peerSocketAddress);
 
     writeToFa(connectToPeerMessage);
   }
@@ -358,16 +351,10 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   }
 
   private void handleJoinGame(JoinGameMessage joinGameMessage) throws IOException {
-    if (useTurn) {
-      String[] oldAddressString = joinGameMessage.getPeerAddress().split(":");
-      InetSocketAddress oldAddress = new InetSocketAddress(oldAddressString[0], Integer.parseInt(oldAddressString[1]));
-      turnClient.addPeer(oldAddress);
-    }
-
     int peerUid = joinGameMessage.getPeerUid();
     SocketAddress peerSocketAddress = getSocketForPeer(peerUid).getLocalSocketAddress();
 
-    joinGameMessage.setPeerAddress(SocketAddressUtil.toString((InetSocketAddress) peerSocketAddress));
+    joinGameMessage.setPeerAddress((InetSocketAddress) peerSocketAddress);
 
     writeToFa(joinGameMessage);
   }

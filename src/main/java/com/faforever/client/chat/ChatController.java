@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.legacy.OnJoinChannelsRequestListener;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
@@ -19,11 +18,9 @@ import java.util.Map;
 
 public class ChatController implements
     OnChatMessageListener,
-    OnChatDisconnectedListener,
     OnPrivateChatMessageListener,
     OnChatUserJoinedChannelListener,
-    OnChatUserLeftChannelListener,
-    OnJoinChannelsRequestListener {
+    OnChatUserLeftChannelListener {
 
   private final Map<String, AbstractChatTabController> nameToChatTabController;
   @Resource
@@ -47,14 +44,27 @@ public class ChatController implements
   @PostConstruct
   void postConstrut() {
     chatService.addOnMessageListener(this);
-    chatService.addOnChatDisconnectedListener(this);
     chatService.addOnPrivateChatMessageListener(this);
     chatService.addOnChatUserJoinedChannelListener(this);
     chatService.addOnChatUserLeftChannelListener(this);
-    chatService.addOnJoinChannelsRequestListener(this);
-    chatService.addOnChatDisconnectedListener(this::onDisconnected);
+    chatService.addOnJoinChannelsRequestListener(this::onJoinChannelsRequest);
+
+    chatService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+      switch (newValue) {
+        case DISCONNECTED:
+          onDisconnected();
+          break;
+      }
+    });
 
     userService.addOnLogoutListener(this::onLoggedOut);
+  }
+
+  private void onDisconnected() {
+    connectingProgressPane.setVisible(true);
+    chatsTabPane.setVisible(false);
+    nameToChatTabController.clear();
+    chatsTabPane.getTabs().removeAll();
   }
 
   private void onLoggedOut() {
@@ -64,14 +74,6 @@ public class ChatController implements
   @FXML
   private void initialize() {
     onDisconnected();
-  }
-
-  @Override
-  public void onDisconnected() {
-    connectingProgressPane.setVisible(true);
-    chatsTabPane.setVisible(false);
-    nameToChatTabController.clear();
-    chatsTabPane.getTabs().removeAll();
   }
 
   @Override
@@ -160,8 +162,7 @@ public class ChatController implements
     }
   }
 
-  @Override
-  public void onJoinChannelsRequest(List<String> channelNames) {
+  private void onJoinChannelsRequest(List<String> channelNames) {
     channelNames.forEach(chatService::joinChannel);
   }
 }

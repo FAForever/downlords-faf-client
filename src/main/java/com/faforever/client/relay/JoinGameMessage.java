@@ -1,5 +1,9 @@
 package com.faforever.client.relay;
 
+import com.faforever.client.util.SocketAddressUtil;
+
+import java.net.InetSocketAddress;
+
 public class JoinGameMessage extends GpgServerMessage {
 
   private static final int PEER_ADDRESS_INDEX = 0;
@@ -10,12 +14,12 @@ public class JoinGameMessage extends GpgServerMessage {
     super(GpgServerMessageType.JOIN_GAME, 3);
   }
 
-  public String getPeerAddress() {
-    return getString(PEER_ADDRESS_INDEX);
+  public InetSocketAddress getPeerAddress() {
+    return SocketAddressUtil.fromString(getString(PEER_ADDRESS_INDEX));
   }
 
-  public void setPeerAddress(String peerAddress) {
-    setValue(PEER_ADDRESS_INDEX, peerAddress);
+  public void setPeerAddress(InetSocketAddress peerAddress) {
+    setValue(PEER_ADDRESS_INDEX, SocketAddressUtil.toString(peerAddress));
   }
 
   public int getPeerUid() {

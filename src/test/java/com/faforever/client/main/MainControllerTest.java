@@ -13,6 +13,7 @@ import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardController;
+import com.faforever.client.legacy.ConnectionState;
 import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.map.MapVaultController;
@@ -36,6 +37,7 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
 import org.hamcrest.CoreMatchers;
@@ -140,6 +142,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   private MainController instance;
   private CountDownLatch mainControllerInitializedLatch;
+  private SimpleObjectProperty<ConnectionState> connectionStateProperty;
 
   @Before
   public void setUp() throws Exception {
@@ -185,7 +188,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(taskService.getActiveTasks()).thenReturn(FXCollections.emptyObservableList());
     when(connectivityService.checkGamePortInBackground()).thenReturn(CompletableFuture.completedFuture(PUBLIC));
-
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(applicationContext.getBean(UserInfoWindowController.class)).thenReturn(userInfoWindowController);
     when(preferences.getMainWindow()).thenReturn(mainWindowPrefs);
@@ -194,7 +196,9 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getNotification()).thenReturn(notificationPrefs);
     when(notificationPrefs.toastPositionProperty()).thenReturn(new SimpleObjectProperty<>(ToastPosition.BOTTOM_RIGHT));
     when(notificationPrefs.getToastPosition()).thenReturn(ToastPosition.BOTTOM_RIGHT);
+    when(lobbyService.connectionStateProperty()).thenReturn(connectionStateProperty);
 
+    connectionStateProperty = new SimpleObjectProperty<>();
     instance.postConstruct();
 
     verify(userService).addOnLoginListener(loginListenerCaptor.capture());
@@ -208,6 +212,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testDisplay() throws Exception {
     attachToRoot();
     fakeLogin();
@@ -218,9 +223,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     verify(connectivityService).checkGamePortInBackground();
     verify(gameUpdateService).checkForUpdateInBackground();
-    verify(lobbyService).setOnFafConnectedListener(instance);
-    verify(lobbyService).setOnLobbyConnectingListener(instance);
-    verify(lobbyService).setOnFafDisconnectedListener(instance);
+    verify(lobbyService).connectionStateProperty().addListener((ChangeListener<? super ConnectionState>) any());
   }
 
   /**
@@ -242,7 +245,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     String disconnected = "foobar";
     instance.fafConnectionButton.setText(disconnected);
 
-    instance.onFaConnected();
+    connectionStateProperty.set(ConnectionState.CONNECTED);
 
     String textAfterConnection = instance.fafConnectionButton.getText();
     assertThat(textAfterConnection, not(disconnected));
@@ -253,7 +256,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     String disconnected = "foobar";
     instance.fafConnectionButton.setText(disconnected);
 
-    instance.onFaConnecting();
+    connectionStateProperty.set(ConnectionState.CONNECTING);
 
     String textAfterConnection = instance.fafConnectionButton.getText();
     assertThat(textAfterConnection, not(disconnected));
@@ -264,7 +267,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     String disconnected = "foobar";
     instance.fafConnectionButton.setText(disconnected);
 
-    instance.onFafDisconnected();
+    connectionStateProperty.set(ConnectionState.DISCONNECTED);
 
     String textAfterConnection = instance.fafConnectionButton.getText();
     assertThat(textAfterConnection, not(disconnected));

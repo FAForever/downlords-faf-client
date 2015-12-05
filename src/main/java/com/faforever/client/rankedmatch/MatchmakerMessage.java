@@ -3,14 +3,14 @@ package com.faforever.client.rankedmatch;
 import com.faforever.client.legacy.domain.FafServerMessage;
 import com.faforever.client.legacy.domain.FafServerMessageType;
 
-public class MatchmakerLobbyServerMessage extends FafServerMessage {
+public class MatchmakerMessage extends FafServerMessage {
 
   /**
    * Flag indicating whether a potential opponent is available or not.
    */
   public boolean potential;
 
-  public MatchmakerLobbyServerMessage() {
+  public MatchmakerMessage() {
     super(FafServerMessageType.MATCHMAKER_INFO);
   }
 

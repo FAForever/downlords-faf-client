@@ -18,7 +18,11 @@ public enum GpgServerMessageType implements ServerMessageType {
   CREATE_LOBBY("CreateLobby", CreateLobbyServerMessage.class),
   DISCONNECT_FROM_PEER("DisconnectFromPeer", DisconnectFromPeerMessage.class),
   JOIN_PROXY("JoinProxy", null),
-  CONNECTIVITY_STATE("ConnectivityState", ConnectivityStateMessage.class);
+  CONNECTIVITY_STATE("ConnectivityState", ConnectivityStateMessage.class),
+  /**
+   * Requests the creation of a TURN permission.
+   */
+  CREATE_PERMISSION("CreatePermission", CreatePermissionMessage.class);
 
 
   private static final Map<String, GpgServerMessageType> fromString;

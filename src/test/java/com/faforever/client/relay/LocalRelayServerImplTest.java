@@ -3,7 +3,6 @@ package com.faforever.client.relay;
 import com.faforever.client.connectivity.TurnClient;
 import com.faforever.client.game.GameType;
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.legacy.OnGameLaunchInfoListener;
 import com.faforever.client.legacy.domain.FafServerMessageType;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.MessageTarget;
@@ -92,7 +91,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   @Captor
   private ArgumentCaptor<Consumer<GpgServerMessage>> onGpgServerMessageListenerCaptor;
   @Captor
-  private ArgumentCaptor<OnGameLaunchInfoListener> onGameLaunchInfoListener;
+  private ArgumentCaptor<Consumer<GameLaunchMessage>> onGameLaunchInfoListener;
   private Integer relayPort;
 
   @Before
@@ -133,12 +132,12 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     instance.postConstruct();
 
-    verify(lobbyServerAccessor).addOnGameMessageListener(onGpgServerMessageListenerCaptor.capture());
-    verify(lobbyServerAccessor).addOnGameLaunchListener(onGameLaunchInfoListener.capture());
+    verify(lobbyServerAccessor).addOnMessageListener(GpgServerMessage.class, onGpgServerMessageListenerCaptor.capture());
+    verify(lobbyServerAccessor).addOnMessageListener(GameLaunchMessage.class, onGameLaunchInfoListener.capture());
 
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setMod(GameType.DEFAULT.getString());
-    onGameLaunchInfoListener.getValue().onGameLaunchInfo(gameLaunchMessage);
+    onGameLaunchInfoListener.getValue().accept(gameLaunchMessage);
 
     relayPort = instance.startInBackground().get(TIMEOUT, TIMEOUT_UNIT);
 

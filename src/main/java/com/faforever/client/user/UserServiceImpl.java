@@ -2,6 +2,7 @@ package com.faforever.client.user;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.preferences.PreferencesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,7 @@ public class UserServiceImpl implements UserService {
 
   @PostConstruct
   void postConstruct() {
-    lobbyServerAccessor.addOnLoggedInListener(loginInfo -> uid = loginInfo.getId());
+    lobbyServerAccessor.addOnMessageListener(LoginMessage.class, loginInfo -> uid = loginInfo.getId());
   }
 
   @Override

@@ -1,22 +1,20 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.legacy.OnJoinChannelsRequestListener;
+import com.faforever.client.legacy.ConnectionState;
+import javafx.beans.property.ObjectProperty;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import org.pircbotx.User;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public interface ChatService {
 
   void addOnMessageListener(OnChatMessageListener listener);
 
-  void addOnChatConnectedListener(OnChatConnectedListener listener);
-
   void addOnUserListListener(OnChatUserListListener listener);
-
-  void addOnChatDisconnectedListener(OnChatDisconnectedListener listener);
 
   void addOnPrivateChatMessageListener(OnPrivateChatMessageListener listener);
 
@@ -50,10 +48,7 @@ public interface ChatService {
 
   void joinChannel(String channelName);
 
-  /**
-   * @see OnJoinChannelsRequestListener#onJoinChannelsRequest(List)
-   */
-  void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener);
+  void addOnJoinChannelsRequestListener(Consumer<List<String>> listener);
 
   boolean isDefaultChannel(String channelName);
 
@@ -62,4 +57,6 @@ public interface ChatService {
   ChatUser createOrGetChatUser(User user);
 
   void addUserToColorListener();
+
+  ObjectProperty<ConnectionState> connectionStateProperty();
 }

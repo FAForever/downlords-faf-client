@@ -2,14 +2,12 @@ package com.faforever.client.game;
 
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fa.ForgedAllianceService;
-import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.legacy.OnGameInfoListener;
-import com.faforever.client.legacy.OnGameTypeInfoListener;
 import com.faforever.client.legacy.domain.GameInfoMessage;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeMessage;
 import com.faforever.client.legacy.domain.VictoryCondition;
+import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
@@ -72,7 +70,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private LobbyServerAccessor lobbyServerAccessor;
+  private LobbyService lobbyService;
   @Mock
   private MapService mapService;
   @Mock
@@ -101,11 +99,15 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   private ArgumentCaptor<Consumer<Void>> gameLaunchedListenerCaptor;
   @Captor
   private ArgumentCaptor<ListChangeListener.Change<? extends GameInfoBean>> gameInfoBeanChangeListenerCaptor;
+  @Captor
+  private ArgumentCaptor<Consumer<GameTypeMessage>> gameTypeMessageListenerCaptor;
+  @Captor
+  private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
 
   @Before
   public void setUp() throws Exception {
     instance = new GameServiceImpl();
-    instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.lobbyService = lobbyService;
     instance.mapService = mapService;
     instance.forgedAllianceService = forgedAllianceService;
     instance.connectivityService = connectivityService;
@@ -134,12 +136,16 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     }).when(scheduledExecutorService).execute(any());
 
     instance.postConstruct();
+
+    verify(lobbyService).addOnMessageListener(GameTypeMessage.class, gameTypeMessageListenerCaptor.capture());
+    verify(lobbyService).addOnMessageListener(GameInfoMessage.class, gameInfoMessageListenerCaptor.capture());
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void postConstruct() {
-    verify(lobbyServerAccessor).addOnGameTypeInfoListener(any(OnGameTypeInfoListener.class));
-    verify(lobbyServerAccessor).addOnGameInfoListener(any(OnGameInfoListener.class));
+    verify(lobbyService).addOnMessageListener(GameTypeMessage.class, any(Consumer.class));
+    verify(lobbyService).addOnMessageListener(GameInfoMessage.class, any(Consumer.class));
   }
 
   @Test
@@ -154,7 +160,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(gameInfoBean.getMapTechnicalName()).thenReturn("map");
 
     when(mapService.isAvailable("map")).thenReturn(true);
-    when(lobbyServerAccessor.requestJoinGame(gameInfoBean, null)).thenReturn(completedFuture(null));
+    when(lobbyService.requestJoinGame(gameInfoBean, null)).thenReturn(completedFuture(null));
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
 
     CompletableFuture<Void> future = instance.joinGame(gameInfoBean, null);
@@ -173,8 +179,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGameTypeIsOnlyAddedOnce() throws Exception {
     GameTypeMessage gameTypeMessage = GameTypeInfoBuilder.create().defaultValues().get();
-    instance.onGameTypeInfo(gameTypeMessage);
-    instance.onGameTypeInfo(gameTypeMessage);
+    gameTypeMessageListenerCaptor.getValue().accept(gameTypeMessage);
+    gameTypeMessageListenerCaptor.getValue().accept(gameTypeMessage);
 
     List<GameTypeBean> gameTypes = instance.getGameTypes();
 
@@ -189,8 +195,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameTypeMessage1.setName("number1");
     gameTypeMessage2.setName("number2");
 
-    instance.onGameTypeInfo(gameTypeMessage1);
-    instance.onGameTypeInfo(gameTypeMessage2);
+    gameTypeMessageListenerCaptor.getValue().accept(gameTypeMessage1);
+    gameTypeMessageListenerCaptor.getValue().accept(gameTypeMessage2);
 
     List<GameTypeBean> gameTypes = instance.getGameTypes();
 
@@ -203,7 +209,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     MapChangeListener<String, GameTypeBean> listener = mock(MapChangeListener.class);
     instance.addOnGameTypeInfoListener(listener);
 
-    instance.onGameTypeInfo(GameTypeInfoBuilder.create().defaultValues().get());
+    gameTypeMessageListenerCaptor.getValue().accept(GameTypeInfoBuilder.create().defaultValues().get());
   }
 
   @Test
@@ -221,7 +227,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
         gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL, gamePort)
     ).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(lobbyServerAccessor.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
+    when(lobbyService.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
 
     instance.hostGame(newGameInfo);
 
@@ -258,13 +264,13 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfoMessage1.setUid(1);
     gameInfoMessage1.setTitle("Game 1");
     gameInfoMessage1.setState(GameState.OPEN);
-    instance.onGameInfo(gameInfoMessage1);
+    gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage1);
 
     GameInfoMessage gameInfoMessage2 = new GameInfoMessage();
     gameInfoMessage2.setUid(2);
     gameInfoMessage2.setTitle("Game 2");
     gameInfoMessage2.setState(GameState.OPEN);
-    instance.onGameInfo(gameInfoMessage2);
+    gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage2);
 
     GameInfoBean gameInfoBean1 = new GameInfoBean(gameInfoMessage1);
     GameInfoBean gameInfoBean2 = new GameInfoBean(gameInfoMessage2);
@@ -280,13 +286,13 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfoMessage.setUid(1);
     gameInfoMessage.setTitle("Game 1");
     gameInfoMessage.setState(GameState.OPEN);
-    instance.onGameInfo(gameInfoMessage);
+    gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
     gameInfoMessage = new GameInfoMessage();
     gameInfoMessage.setUid(1);
     gameInfoMessage.setTitle("Game 1 modified");
     gameInfoMessage.setState(GameState.OPEN);
-    instance.onGameInfo(gameInfoMessage);
+    gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
     assertEquals(gameInfoMessage.getTitle(), instance.getGameInfoBeans().iterator().next().getTitle());
   }
@@ -299,13 +305,13 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfoMessage.setUid(1);
     gameInfoMessage.setTitle("Game 1");
     gameInfoMessage.setState(GameState.OPEN);
-    instance.onGameInfo(gameInfoMessage);
+    gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
     gameInfoMessage = new GameInfoMessage();
     gameInfoMessage.setUid(1);
     gameInfoMessage.setTitle("Game 1 modified");
     gameInfoMessage.setState(GameState.CLOSED);
-    instance.onGameInfo(gameInfoMessage);
+    gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
     assertThat(instance.getGameInfoBeans(), empty());
   }
@@ -315,7 +321,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);
     gameLaunchMessage.setArgs(Collections.<String>emptyList());
-    when(lobbyServerAccessor.startSearchRanked1v1(Faction.CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
+    when(lobbyService.startSearchRanked1v1(Faction.CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
     when(gameUpdateService.updateInBackground(GameType.LADDER_1V1.getString(), null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
     when(applicationContext.getBean(SearchExpansionTask.class)).thenReturn(searchExpansionTask);
     when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
@@ -325,7 +331,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     verify(searchExpansionTask).setMaxRadius(SEARCH_MAX_RADIUS);
     verify(searchExpansionTask).setRadiusIncrement(SEARCH_RADIUS_INCREMENT);
     verify(scheduledExecutorService).scheduleWithFixedDelay(searchExpansionTask, SEARCH_EXPANSION_DELAY, SEARCH_EXPANSION_DELAY, TimeUnit.MILLISECONDS);
-    verify(lobbyServerAccessor).startSearchRanked1v1(Faction.CYBRAN, GAME_PORT);
+    verify(lobbyService).startSearchRanked1v1(Faction.CYBRAN, GAME_PORT);
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
   }
 
@@ -338,7 +344,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     GameLaunchMessage gameLaunchMessage = GameLaunchInfoBuilder.create().defaultValues().get();
     when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), any(), any())).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(lobbyServerAccessor.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
+    when(lobbyService.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
 
     instance.hostGame(newGameInfo);
 
@@ -352,7 +358,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.searching1v1Property().set(true);
     instance.stopSearchRanked1v1();
     assertThat(instance.searching1v1Property().get(), is(false));
-    verify(lobbyServerAccessor).stopSearchingRanked();
+    verify(lobbyService).stopSearchingRanked();
   }
 
   @Test
@@ -360,7 +366,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.searching1v1Property().set(false);
     instance.stopSearchRanked1v1();
     assertThat(instance.searching1v1Property().get(), is(false));
-    verify(lobbyServerAccessor, never()).stopSearchingRanked();
+    verify(lobbyService, never()).stopSearchingRanked();
   }
 
   @Test
@@ -380,7 +386,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfoMessage.setGameType(VictoryCondition.DOMINATION);
     gameInfoMessage.setState(GameState.PLAYING);
 
-    instance.onGameInfo(gameInfoMessage);
+    gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
     verify(listener).onChanged(gameInfoBeanChangeListenerCaptor.capture());
 

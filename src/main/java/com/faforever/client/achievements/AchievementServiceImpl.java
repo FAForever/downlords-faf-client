@@ -101,7 +101,7 @@ public class AchievementServiceImpl implements AchievementService {
 
   @PostConstruct
   void postConstruct() {
-    lobbyServerAccessor.addOnUpdatedAchievementsInfoListener(this::onUpdatedAchievements);
+    lobbyServerAccessor.addOnMessageListener(UpdatedAchievementsMessage.class, this::onUpdatedAchievements);
   }
 
   private void onUpdatedAchievements(UpdatedAchievementsMessage updatedAchievementsMessage) {

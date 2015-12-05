@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
+import com.faforever.client.rankedmatch.MatchmakerMessage;
 import javafx.beans.property.BooleanProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * Downloads necessary maps, mods and updates before starting
@@ -46,7 +47,7 @@ public interface GameService {
 
   GameInfoBean getByUid(int uid);
 
-  void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener);
+  void addOnRankedMatchNotificationListener(Consumer<MatchmakerMessage> listener);
 
   CompletableFuture<Void> startSearchRanked1v1(Faction faction);
 

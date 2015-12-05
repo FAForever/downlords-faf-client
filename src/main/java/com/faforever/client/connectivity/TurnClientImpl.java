@@ -1,6 +1,8 @@
 package com.faforever.client.connectivity;
 
+import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.relay.CreatePermissionMessage;
 import org.apache.commons.compress.utils.IOUtils;
 import org.ice4j.StunException;
 import org.ice4j.StunMessageEvent;
@@ -62,6 +64,8 @@ public class TurnClientImpl implements TurnClient {
   Executor executor;
   @Resource
   ScheduledExecutorService scheduledExecutorService;
+  @Resource
+  LobbyServerAccessor lobbyServerAccessor;
 
   private TransportAddress relayedAddress;
   private TransportAddress mappedAddress;
@@ -84,6 +88,38 @@ public class TurnClientImpl implements TurnClient {
     int turnPort = environment.getProperty("turn.port", int.class);
 
     serverAddress = new TransportAddress(turnHost, turnPort, Transport.UDP);
+    lobbyServerAccessor.addOnMessageListener(CreatePermissionMessage.class, message -> addPeer(message.getAddress()));
+  }
+
+  private void addPeer(InetSocketAddress address) {
+    Request createPermissionRequest = MessageFactory.createCreatePermissionRequest(
+        new TransportAddress(address, Transport.UDP),
+        TransactionID.createNewTransactionID().getBytes()
+    );
+    sendRequest(createPermissionRequest);
+    bindChannel(address);
+  }
+
+  private void sendRequest(Request request) {
+    try {
+      StunMessageEvent stunMessageEvent = blockingRequestSender.sendRequestAndWaitForResponse(request, serverAddress);
+      Response response = ((StunResponseEvent) stunMessageEvent).getResponse();
+      if (response.isErrorResponse()) {
+        throw new StunException(((ErrorCodeAttribute) request.getAttribute(Attribute.ERROR_CODE)).getReasonPhrase());
+      }
+    } catch (StunException | IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void bindChannel(InetSocketAddress address) {
+    char channelNumber = (char) CHANNEL_NUMBER.getAndIncrement();
+    Request request = MessageFactory.createChannelBindRequest(
+        channelNumber,
+        new TransportAddress(address, Transport.UDP),
+        TransactionID.createNewTransactionID().getBytes()
+    );
+    sendRequest(request);
   }
 
   @Override
@@ -125,38 +161,6 @@ public class TurnClientImpl implements TurnClient {
     } catch (StunException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  @Override
-  public void addPeer(InetSocketAddress address) {
-    Request createPermissionRequest = MessageFactory.createCreatePermissionRequest(
-        new TransportAddress(address, Transport.UDP),
-        TransactionID.createNewTransactionID().getBytes()
-    );
-    sendRequest(createPermissionRequest);
-    bindChannel(address);
-  }
-
-  private void sendRequest(Request request) {
-    try {
-      StunMessageEvent stunMessageEvent = blockingRequestSender.sendRequestAndWaitForResponse(request, serverAddress);
-      Response response = ((StunResponseEvent) stunMessageEvent).getResponse();
-      if (response.isErrorResponse()) {
-        throw new StunException(((ErrorCodeAttribute) request.getAttribute(Attribute.ERROR_CODE)).getReasonPhrase());
-      }
-    } catch (StunException | IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private void bindChannel(InetSocketAddress address) {
-    char channelNumber = (char) CHANNEL_NUMBER.getAndIncrement();
-    Request request = MessageFactory.createChannelBindRequest(
-        channelNumber,
-        new TransportAddress(address, Transport.UDP),
-        TransactionID.createNewTransactionID().getBytes()
-    );
-    sendRequest(request);
   }
 
   private void allocateAddress(TransportAddress turnServerAddress) throws StunException, IOException {

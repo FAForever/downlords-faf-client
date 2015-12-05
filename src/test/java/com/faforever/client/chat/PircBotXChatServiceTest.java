@@ -1,8 +1,9 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.legacy.ConnectionState;
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.legacy.OnJoinChannelsRequestListener;
+import com.faforever.client.legacy.domain.SocialMessage;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -58,12 +59,14 @@ import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static org.hamcrest.Matchers.contains;
@@ -358,7 +361,14 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAddOnChatConnectedListener() throws Exception {
     CompletableFuture<Boolean> onChatConnectedFuture = new CompletableFuture<>();
-    instance.addOnChatConnectedListener(() -> onChatConnectedFuture.complete(null));
+
+    instance.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+      switch (newValue) {
+        case CONNECTED:
+          onChatConnectedFuture.complete(null);
+          break;
+      }
+    });
 
     String password = "123";
     when(userService.getPassword()).thenReturn(password);
@@ -404,7 +414,13 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAddOnChatDisconnectedListener() throws Exception {
     CompletableFuture<Void> onChatDisconnectedFuture = new CompletableFuture<>();
-    instance.addOnChatDisconnectedListener(() -> onChatDisconnectedFuture.complete(null));
+    instance.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+      switch (newValue) {
+        case DISCONNECTED:
+          onChatDisconnectedFuture.complete(null);
+          break;
+      }
+    });
 
     instance.onEvent(new DisconnectEvent<>(pircBotX, daoSnapshot, null));
 
@@ -616,7 +632,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(taskService.submitTask(any())).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.connect();
-    instance.onConnected();
+    instance.connectionStateProperty().set(ConnectionState.CONNECTED);
 
     assertTrue(connectedLatch.await(TIMEOUT, TIMEOUT_UNIT));
 
@@ -627,12 +643,13 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testAddOnJoinChannelsRequestListener() throws Exception {
-    OnJoinChannelsRequestListener listener = mock(OnJoinChannelsRequestListener.class);
+    Consumer<List<String>> listener = mock(Consumer.class);
 
     instance.addOnJoinChannelsRequestListener(listener);
 
-    verify(lobbyServerAccessor).addOnJoinChannelsRequestListener(listener);
+    verify(lobbyServerAccessor).addOnMessageListener(SocialMessage.class, any());
   }
 
   @Test
@@ -656,7 +673,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     }).when(outputIrc).joinChannel(DEFAULT_CHANNEL_NAME);
 
     mockTaskService();
-    instance.onConnected();
+    instance.connectionStateProperty().set(ConnectionState.CONNECTED);
 
     String md5Password = Hashing.md5().hashString(password, StandardCharsets.UTF_8).toString();
     verify(outputIrc).message("NICKSERV", String.format("IDENTIFY %s", md5Password));
@@ -673,7 +690,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.onUserJoinedChannel(DEFAULT_CHANNEL_NAME, chatUser1);
     assertThat(instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME).values(), hasSize(1));
 
-    instance.onDisconnected();
+    instance.connectionStateProperty().set(ConnectionState.DISCONNECTED);
 
     assertThat(instance.getChatUsersForChannel(DEFAULT_CHANNEL_NAME).values(), empty());
   }

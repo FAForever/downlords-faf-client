@@ -17,5 +17,4 @@ public interface TurnClient extends Closeable {
 
   void send(DatagramPacket datagramPacket);
 
-  void addPeer(InetSocketAddress address);
 }

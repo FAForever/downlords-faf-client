@@ -1,20 +1,20 @@
 package com.faforever.client.legacy.domain;
 
 import com.faforever.client.legacy.UpdatedAchievementsMessage;
-import com.faforever.client.rankedmatch.MatchmakerLobbyServerMessage;
+import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.stats.StatisticsMessage;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public enum FafServerMessageType implements ServerMessageType {
-  WELCOME("welcome", LoginLobbyServerMessage.class),
+  WELCOME("welcome", LoginMessage.class),
   SESSION("session", SessionMessage.class),
   GAME_INFO("game_info", GameInfoMessage.class),
   PLAYER_INFO("player_info", PlayersMessage.class),
   GAME_LAUNCH("game_launch", GameLaunchMessage.class),
   GAME_TYPE_INFO("mod_info", GameTypeMessage.class),
-  MATCHMAKER_INFO("matchmaker_info", MatchmakerLobbyServerMessage.class),
+  MATCHMAKER_INFO("matchmaker_info", MatchmakerMessage.class),
   SOCIAL("social", SocialMessage.class),
   AUTHENTICATION_FAILED("authentication_failed", AuthenticationFailedMessage.class),
   STATS("stats", StatisticsMessage.class),

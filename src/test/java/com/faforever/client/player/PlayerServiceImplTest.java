@@ -3,9 +3,8 @@ package com.faforever.client.player;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.legacy.OnFoeListListener;
-import com.faforever.client.legacy.OnFriendListListener;
-import com.faforever.client.legacy.OnPlayerInfoListener;
+import com.faforever.client.legacy.domain.PlayersMessage;
+import com.faforever.client.legacy.domain.SocialMessage;
 import com.faforever.client.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,6 +13,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
@@ -52,9 +52,8 @@ public class PlayerServiceImplTest {
   public void testInit() throws Exception {
     instance.init();
 
-    verify(lobbyServerAccessor).setOnPlayerInfoMessageListener(any(OnPlayerInfoListener.class));
-    verify(lobbyServerAccessor).setOnFoeListListener(any(OnFoeListListener.class));
-    verify(lobbyServerAccessor).setOnFriendListListener(any(OnFriendListListener.class));
+    verify(lobbyServerAccessor).addOnMessageListener(PlayersMessage.class, any(Consumer.class));
+    verify(lobbyServerAccessor).addOnMessageListener(SocialMessage.class, any(Consumer.class));
   }
 
   @Test

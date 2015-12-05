@@ -12,9 +12,6 @@ import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardController;
-import com.faforever.client.legacy.OnFafDisconnectedListener;
-import com.faforever.client.legacy.OnLobbyConnectedListener;
-import com.faforever.client.legacy.OnLobbyConnectingListener;
 import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.map.MapVaultController;
@@ -33,8 +30,7 @@ import com.faforever.client.preferences.OnChoseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.preferences.WindowPrefs;
-import com.faforever.client.rankedmatch.MatchmakerLobbyServerMessage;
-import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
+import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.rankedmatch.Ranked1v1Controller;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.PrioritizedTask;
@@ -92,7 +88,7 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 
-public class MainController implements OnLobbyConnectedListener, OnLobbyConnectingListener, OnFafDisconnectedListener, OnChoseGameDirectoryListener, OnRankedMatchNotificationListener {
+public class MainController implements OnChoseGameDirectoryListener {
 
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_CLASS = PseudoClass.getPseudoClass("info");
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_CLASS = PseudoClass.getPseudoClass("warn");
@@ -161,8 +157,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   @Resource
   StageConfigurator stageConfigurator;
   @Resource
-  LobbyService lobbyService;
-  @Resource
   ConnectivityService connectivityService;
   @Resource
   I18n i18n;
@@ -202,6 +196,8 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
   Locale locale;
   @Resource
   LoginController loginController;
+  @Resource
+  LobbyService lobbyService;
 
   @VisibleForTesting
   Popup persistentNotificationsPopup;
@@ -277,9 +273,19 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     // We need to initialize all skins, so initially add the chat root to the scene graph.
     setContent(chatController.getRoot());
 
-    lobbyService.setOnFafConnectedListener(this);
-    lobbyService.setOnLobbyConnectingListener(this);
-    lobbyService.setOnFafDisconnectedListener(this);
+    lobbyService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+      switch (newValue) {
+        case DISCONNECTED:
+          MainController.this.onFafDisconnected();
+          break;
+        case CONNECTING:
+          MainController.this.onFaConnecting();
+          break;
+        case CONNECTED:
+          MainController.this.onFaConnected();
+          break;
+      }
+    });
 
     persistentNotificationsPopup = new Popup();
     persistentNotificationsPopup.getContent().setAll(persistentNotificationsController.getRoot());
@@ -342,7 +348,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     );
 
     preferencesService.setOnChoseGameDirectoryListener(this);
-    gameService.addOnRankedMatchNotificationListener(this);
+    gameService.addOnRankedMatchNotificationListener(this::onRankedMatchInfo);
     userService.addOnLoginListener(this::onLoggedIn);
     userService.addOnLogoutListener(this::onLoggedOut);
   }
@@ -362,6 +368,18 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     for (Node child : children) {
       child.setVisible(child == node);
     }
+  }
+
+  private void onFafDisconnected() {
+    fafConnectionButton.setText(i18n.get("statusBar.fafDisconnected"));
+  }
+
+  private void onFaConnecting() {
+    fafConnectionButton.setText(i18n.get("statusBar.fafConnecting"));
+  }
+
+  private void onFaConnected() {
+    fafConnectionButton.setText(i18n.get("statusBar.fafConnected"));
   }
 
   private Rectangle2D getTransientNotificationAreaBounds() {
@@ -533,21 +551,6 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     } else {
       communityButton.fire();
     }
-  }
-
-  @Override
-  public void onFaConnected() {
-    fafConnectionButton.setText(i18n.get("statusBar.fafConnected"));
-  }
-
-  @Override
-  public void onFaConnecting() {
-    fafConnectionButton.setText(i18n.get("statusBar.fafConnecting"));
-  }
-
-  @Override
-  public void onFafDisconnected() {
-    fafConnectionButton.setText(i18n.get("statusBar.fafDisconnected"));
   }
 
   @FXML
@@ -765,8 +768,7 @@ public class MainController implements OnLobbyConnectedListener, OnLobbyConnecti
     setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
 
-  @Override
-  public void onRankedMatchInfo(MatchmakerLobbyServerMessage matchmakerServerMessage) {
+  private void onRankedMatchInfo(MatchmakerMessage matchmakerServerMessage) {
     rankedMatchNotificationPane.setVisible(matchmakerServerMessage.potential);
   }
 

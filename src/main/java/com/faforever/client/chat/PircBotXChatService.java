@@ -1,8 +1,9 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.legacy.ConnectionState;
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.legacy.OnJoinChannelsRequestListener;
+import com.faforever.client.legacy.domain.SocialMessage;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
@@ -14,6 +15,8 @@ import com.faforever.client.user.UserService;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.hash.Hashing;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
@@ -45,11 +48,13 @@ import java.lang.invoke.MethodHandles;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
@@ -58,8 +63,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.synchronizedObservableMap;
 
-public class PircBotXChatService implements ChatService, Listener, OnChatConnectedListener,
-    OnChatUserListListener, OnChatUserJoinedChannelListener, OnChatUserQuitListener, OnChatDisconnectedListener,
+public class PircBotXChatService implements ChatService, Listener,
+    OnChatUserListListener, OnChatUserJoinedChannelListener, OnChatUserQuitListener,
     OnChatUserLeftChannelListener, OnModeratorSetListener {
 
   interface ChatEventListener<T> {
@@ -101,9 +106,11 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   private CountDownLatch ircConnectedLatch;
   private Map<String, ChatUser> chatUsersByName;
   private Task<Void> connectionTask;
+  private ObjectProperty<ConnectionState> connectionState;
 
 
   public PircBotXChatService() {
+    connectionState = new SimpleObjectProperty<>();
     eventListeners = new ConcurrentHashMap<>();
     chatUserLists = observableHashMap();
     chatUsersByName = new HashMap<>();
@@ -144,12 +151,25 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
 
   @PostConstruct
   void postConstruct() {
+    addEventListener(ConnectEvent.class, event -> connectionState.set(ConnectionState.CONNECTED));
+    addEventListener(DisconnectEvent.class, event -> connectionState.set(ConnectionState.DISCONNECTED));
+
+    connectionState.addListener((observable, oldValue, newValue) -> {
+      switch (newValue) {
+        case DISCONNECTED:
+        case CONNECTING:
+          onDisconnected();
+          break;
+        case CONNECTED:
+          onConnected();
+          break;
+      }
+    });
+
     addOnUserListListener(this);
     addOnChatUserJoinedChannelListener(this);
     addOnChatUserQuitListener(this);
-    addOnChatDisconnectedListener(this);
     addOnModeratorSetListener(this);
-    addOnChatConnectedListener(this);
     addUserToColorListener();
 
     defaultChannelName = environment.getProperty("irc.defaultChannel");
@@ -181,6 +201,27 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
       eventListeners.put(eventClass, new ArrayList<>());
     }
     eventListeners.get(eventClass).add(listener);
+  }
+
+  private void onDisconnected() {
+    synchronized (chatUserLists) {
+      chatUserLists.values().forEach(ObservableMap::clear);
+      chatUserLists.clear();
+    }
+  }
+
+  private void onConnected() {
+    sendMessageInBackground("NICKSERV", "IDENTIFY " + Hashing.md5().hashString(userService.getPassword(), UTF_8))
+        .thenAccept(s1 -> {
+          ircConnectedLatch.countDown();
+          pircBotX.sendIRC().joinChannel(defaultChannelName);
+        })
+        .exceptionally(throwable -> {
+          notificationService.addNotification(
+              new PersistentNotification(i18n.get("irc.identificationFailed", throwable.getLocalizedMessage()), Severity.WARN)
+          );
+          return null;
+        });
   }
 
   private Map<String, ChatUser> chatUsers(ImmutableSortedSet<User> users) {
@@ -226,21 +267,10 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  public void addOnChatConnectedListener(final OnChatConnectedListener listener) {
-    addEventListener(ConnectEvent.class, event -> listener.onConnected());
-  }
-
-  @Override
   @SuppressWarnings("unchecked")
   public void addOnUserListListener(final OnChatUserListListener listener) {
     addEventListener(UserListEvent.class,
         event -> listener.onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers())));
-  }
-
-  @Override
-  public void addOnChatDisconnectedListener(final OnChatDisconnectedListener listener) {
-    addEventListener(DisconnectEvent.class,
-        event -> listener.onDisconnected());
   }
 
   @Override
@@ -398,8 +428,8 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  public void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener) {
-    lobbyServerAccessor.addOnJoinChannelsRequestListener(listener);
+  public void addOnJoinChannelsRequestListener(Consumer<List<String>> listener) {
+    lobbyServerAccessor.addOnMessageListener(SocialMessage.class, socialMessage -> listener.accept(socialMessage.getAutoJoin()));
   }
 
   @Override
@@ -442,6 +472,11 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     });
   }
 
+  @Override
+  public ObjectProperty<ConnectionState> connectionStateProperty() {
+    return connectionState;
+  }
+
   @SuppressWarnings("unchecked")
   private void init() {
     String username = userService.getUsername();
@@ -463,29 +498,6 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
   }
 
   @Override
-  public void onConnected() {
-    sendMessageInBackground("NICKSERV", "IDENTIFY " + Hashing.md5().hashString(userService.getPassword(), UTF_8))
-        .thenAccept(s1 -> {
-          ircConnectedLatch.countDown();
-          pircBotX.sendIRC().joinChannel(defaultChannelName);
-        })
-        .exceptionally(throwable -> {
-          notificationService.addNotification(
-              new PersistentNotification(i18n.get("irc.identificationFailed", throwable.getLocalizedMessage()), Severity.WARN)
-          );
-          return null;
-        });
-  }
-
-  @Override
-  public void onDisconnected() {
-    synchronized (chatUserLists) {
-      chatUserLists.values().forEach(ObservableMap::clear);
-      chatUserLists.clear();
-    }
-  }
-
-  @Override
   public void onModeratorSet(String channelName, String username) {
     ChatUser chatUser = getChatUsersForChannel(channelName).get(username);
     if (chatUser == null) {
@@ -493,5 +505,4 @@ public class PircBotXChatService implements ChatService, Listener, OnChatConnect
     }
     chatUser.getModeratorInChannels().add(channelName);
   }
-
 }

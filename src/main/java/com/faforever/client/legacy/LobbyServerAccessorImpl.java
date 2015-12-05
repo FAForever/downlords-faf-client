@@ -10,28 +10,23 @@ import com.faforever.client.leaderboard.LeaderboardParser;
 import com.faforever.client.legacy.domain.AuthenticationFailedMessage;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.ClientMessageType;
-import com.faforever.client.legacy.domain.FafServerMessage;
 import com.faforever.client.legacy.domain.FafServerMessageType;
 import com.faforever.client.legacy.domain.FoesMessage;
 import com.faforever.client.legacy.domain.FriendsMessage;
 import com.faforever.client.legacy.domain.GameAccess;
-import com.faforever.client.legacy.domain.GameInfoMessage;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.GameTypeMessage;
 import com.faforever.client.legacy.domain.HostGameMessage;
 import com.faforever.client.legacy.domain.InitSessionMessage;
 import com.faforever.client.legacy.domain.JoinGameMessage;
 import com.faforever.client.legacy.domain.LoginClientMessage;
-import com.faforever.client.legacy.domain.LoginLobbyServerMessage;
+import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.legacy.domain.MessageTarget;
-import com.faforever.client.legacy.domain.PlayersMessage;
 import com.faforever.client.legacy.domain.Ranked1v1SearchExpansionMessage;
 import com.faforever.client.legacy.domain.SerializableMessage;
 import com.faforever.client.legacy.domain.ServerCommand;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.domain.SessionMessage;
-import com.faforever.client.legacy.domain.SocialMessage;
 import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.legacy.domain.VictoryCondition;
 import com.faforever.client.legacy.gson.ClientMessageTypeTypeAdapter;
@@ -47,13 +42,10 @@ import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.login.LoginFailedException;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.rankedmatch.MatchmakerLobbyServerMessage;
-import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
 import com.faforever.client.rankedmatch.SearchRanked1V1ClientMessage;
 import com.faforever.client.rankedmatch.StopSearchRanked1V1ClientMessage;
 import com.faforever.client.relay.GpgClientMessage;
 import com.faforever.client.relay.GpgClientMessageSerializer;
-import com.faforever.client.relay.GpgServerMessage;
 import com.faforever.client.relay.GpgServerMessageType;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
@@ -61,7 +53,6 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -70,7 +61,9 @@ import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PreDestroy;
@@ -80,10 +73,11 @@ import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
 import static com.faforever.client.task.AbstractPrioritizedTask.Priority.MEDIUM;
@@ -95,11 +89,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private static final String VERSION = "0";
   private static final long RECONNECT_DELAY = 3000;
   private final Gson gson;
-  private final Collection<OnGameInfoListener> onGameInfoListeners;
-  private final Collection<OnGameTypeInfoListener> onGameTypeInfoListeners;
-  private final Collection<OnJoinChannelsRequestListener> onJoinChannelsRequestListeners;
-  private final Collection<OnGameLaunchInfoListener> onGameLaunchListeners;
-  private final List<Consumer<UpdatedAchievementsMessage>> onUpdatedAchievementsListeners;
+  private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners;
   @Resource
   Environment environment;
   @Resource
@@ -112,38 +102,25 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   I18n i18n;
   @Resource
   UidService uidService;
+  @Value("${lobby.host}")
+  String lobbyHost;
+  @Value("${lobby.port}")
+  int lobbyPort;
   private Task<Void> fafConnectionTask;
   private String localIp;
   private ServerWriter serverWriter;
-  private CompletableFuture<LoginLobbyServerMessage> loginFuture;
+  private CompletableFuture<LoginMessage> loginFuture;
   private CompletableFuture<SessionMessage> sessionFuture;
   private CompletableFuture<GameLaunchMessage> gameLaunchFuture;
-  private Collection<OnRankedMatchNotificationListener> onRankedMatchNotificationListeners;
-  // Yes I know, those aren't lists. They will become if it's necessary
-  private OnLobbyConnectingListener onLobbyConnectingListener;
-  private OnFafDisconnectedListener onFafDisconnectedListener;
-  private OnLobbyConnectedListener onLobbyConnectedListener;
-  private OnPlayerInfoListener onPlayerInfoListener;
-  private OnFriendListListener onFriendListListener;
-  private OnFoeListListener onFoeListListener;
-  private Collection<Consumer<LoginLobbyServerMessage>> onLoggedInListeners;
   private ObjectProperty<Long> sessionId;
   private StringProperty login;
   private String username;
   private String password;
-  private Collection<Consumer<GpgServerMessage>> onGameMessageListeners;
-  private Collection<Consumer<GpgServerMessage>> onConnectivityMessageListeners;
+  private ObjectProperty<ConnectionState> connectionState;
 
   public LobbyServerAccessorImpl() {
-    onGameInfoListeners = new LinkedList<>();
-    onGameTypeInfoListeners = new LinkedList<>();
-    onJoinChannelsRequestListeners = new LinkedList<>();
-    onGameLaunchListeners = new LinkedList<>();
-    onRankedMatchNotificationListeners = new LinkedList<>();
-    onUpdatedAchievementsListeners = new LinkedList<>();
-    onGameMessageListeners = new LinkedList<>();
-    onConnectivityMessageListeners = new LinkedList<>();
-    onLoggedInListeners = new LinkedList<>();
+    messageListeners = new HashMap<>();
+    connectionState = new SimpleObjectProperty<>();
     sessionId = new SimpleObjectProperty<>();
     login = new SimpleStringProperty();
     // TODO note to myself; seriously, create a single gson instance (or builder) and put it all there
@@ -160,10 +137,36 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
         .registerTypeAdapter(ServerMessage.class, ServerMessageTypeAdapter.INSTANCE)
         .registerTypeAdapter(ConnectivityState.class, ConnectivityStateTypeAdapter.INSTANCE)
         .create();
+
+    addOnMessageListener(SessionMessage.class, this::onSessionInitiated);
+    addOnMessageListener(LoginMessage.class, this::onFafLoginSucceeded);
+    addOnMessageListener(GameLaunchMessage.class, this::onGameLaunchInfo);
+    addOnMessageListener(AuthenticationFailedMessage.class, this::dispatchAuthenticationFailed);
+    addOnMessageListener(SessionMessage.class, this::onSessionInitiated);
   }
 
   @Override
-  public CompletableFuture<LoginLobbyServerMessage> connectAndLogIn(String username, String password) {
+  @SuppressWarnings("unchecked")
+  public <T extends ServerMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
+    if (!messageListeners.containsKey(type)) {
+      messageListeners.put(type, new LinkedList<>());
+    }
+    messageListeners.get(type).add((Consumer<ServerMessage>) listener);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T extends ServerMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener) {
+    messageListeners.get(type).remove(listener);
+  }
+
+  @Override
+  public ObjectProperty<ConnectionState> connectionStateProperty() {
+    return connectionState;
+  }
+
+  @Override
+  public CompletableFuture<LoginMessage> connectAndLogIn(String username, String password) {
     sessionFuture = new CompletableFuture<>();
     loginFuture = new CompletableFuture<>();
     this.username = username;
@@ -175,13 +178,8 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
       @Override
       protected Void call() throws Exception {
         while (!isCancelled()) {
-          String lobbyHost = environment.getProperty("lobby.host");
-          Integer lobbyPort = environment.getProperty("lobby.port", int.class);
-
           logger.info("Trying to connect to FAF server at {}:{}", lobbyHost, lobbyPort);
-          if (onLobbyConnectingListener != null) {
-            Platform.runLater(onLobbyConnectingListener::onFaConnecting);
-          }
+          connectionState.set(ConnectionState.CONNECTING);
 
           try (Socket fafServerSocket = new Socket(lobbyHost, lobbyPort);
                OutputStream outputStream = fafServerSocket.getOutputStream()) {
@@ -196,9 +194,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
             writeToServer(new InitSessionMessage());
 
             logger.info("FAF server connection established");
-            if (onLobbyConnectedListener != null) {
-              Platform.runLater(onLobbyConnectedListener::onFaConnected);
-            }
+            connectionState.set(ConnectionState.CONNECTED);
 
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
@@ -206,9 +202,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
               logger.debug("Connection to FAF server has been closed");
             } else {
               logger.warn("Lost connection to FAF server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
-              if (onFafDisconnectedListener != null) {
-                Platform.runLater(onFafDisconnectedListener::onFafDisconnected);
-              }
+              connectionState.set(ConnectionState.CONNECTING);
               Thread.sleep(RECONNECT_DELAY);
             }
           }
@@ -228,32 +222,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void addOnUpdatedAchievementsInfoListener(Consumer<UpdatedAchievementsMessage> listener) {
-    onUpdatedAchievementsListeners.add(listener);
-  }
-
-  @Override
-  public void addOnGameTypeInfoListener(OnGameTypeInfoListener listener) {
-    onGameTypeInfoListeners.add(listener);
-  }
-
-  @Override
-  public void addOnGameInfoListener(OnGameInfoListener listener) {
-    onGameInfoListeners.add(listener);
-  }
-
-  @Override
-  public void addOnLoggedInListener(Consumer<LoginLobbyServerMessage> listener) {
-    onLoggedInListeners.add(listener);
-  }
-
-  @Override
-  public void setOnPlayerInfoMessageListener(OnPlayerInfoListener listener) {
-    onPlayerInfoListener = listener;
-  }
-
-  @Override
-  public CompletionStage<GameLaunchMessage> requestNewGame(NewGameInfo newGameInfo) {
+  public CompletableFuture<GameLaunchMessage> requestNewGame(NewGameInfo newGameInfo) {
     HostGameMessage hostGameMessage = new HostGameMessage(
         StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
         newGameInfo.getMap(),
@@ -271,7 +240,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> requestJoinGame(GameInfoBean gameInfoBean, String password) {
+  public CompletableFuture<GameLaunchMessage> requestJoinGame(GameInfoBean gameInfoBean, String password) {
     JoinGameMessage joinGameMessage = new JoinGameMessage(
         gameInfoBean.getUid(),
         preferencesService.getPreferences().getForgedAlliance().getPort(),
@@ -283,34 +252,9 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void setOnFafConnectingListener(OnLobbyConnectingListener onLobbyConnectingListener) {
-    this.onLobbyConnectingListener = onLobbyConnectingListener;
-  }
-
-  @Override
-  public void setOnFafDisconnectedListener(OnFafDisconnectedListener onFafDisconnectedListener) {
-    this.onFafDisconnectedListener = onFafDisconnectedListener;
-  }
-
-  @Override
-  public void setOnFriendListListener(OnFriendListListener onFriendListListener) {
-    this.onFriendListListener = onFriendListListener;
-  }
-
-  @Override
-  public void setOnFoeListListener(OnFoeListListener onFoeListListener) {
-    this.onFoeListListener = onFoeListListener;
-  }
-
-  @Override
   @PreDestroy
   public void disconnect() {
     fafConnectionTask.cancel(true);
-  }
-
-  @Override
-  public void setOnLobbyConnectedListener(OnLobbyConnectedListener onLobbyConnectedListener) {
-    this.onLobbyConnectedListener = onLobbyConnectedListener;
   }
 
   @Override
@@ -326,11 +270,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener) {
-    onJoinChannelsRequestListeners.add(listener);
-  }
-
-  @Override
   public void setFriends(Collection<String> friends) {
     writeToServer(new FriendsMessage(friends));
   }
@@ -340,15 +279,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     writeToServer(new FoesMessage(foes));
   }
 
-  @Override
-  public void addOnGameLaunchListener(OnGameLaunchInfoListener listener) {
-    onGameLaunchListeners.add(listener);
-  }
-
-  @Override
-  public void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener) {
-    onRankedMatchNotificationListeners.add(listener);
-  }
 
   @Override
   public CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort) {
@@ -380,26 +310,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   @Override
   public void initConnectivityTest(int port) {
     writeToServer(new InitConnectivityTestMessage(port));
-  }
-
-  @Override
-  public void addOnGameMessageListener(Consumer<GpgServerMessage> listener) {
-    onGameMessageListeners.add(listener);
-  }
-
-  @Override
-  public void removeOnGameMessageListener(Consumer<GpgServerMessage> listener) {
-    onGameMessageListeners.remove(listener);
-  }
-
-  @Override
-  public void addOnConnectivityMessageListener(Consumer<GpgServerMessage> listener) {
-    onConnectivityMessageListeners.add(listener);
-  }
-
-  @Override
-  public void removeOnConnectivityMessageListener(Consumer<GpgServerMessage> listener) {
-    onConnectivityMessageListeners.remove(listener);
   }
 
   private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
@@ -441,21 +351,15 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
       ServerMessage serverMessage = gson.fromJson(jsonString, ServerMessage.class);
       serverMessage.setJsonString(jsonString);
 
-      switch (serverMessage.getTarget()) {
-        case GAME:
-          onGameMessageListeners.forEach(listener -> listener.accept((GpgServerMessage) serverMessage));
-          break;
-
-        case CONNECTIVITY:
-          onConnectivityMessageListeners.forEach(listener -> listener.accept((GpgServerMessage) serverMessage));
-          break;
-
-        case CLIENT:
-          dispatchServerToClientMessage((FafServerMessage) serverMessage);
-          break;
-
-        default:
-          throw new AssertionError("Uncovered target: " + serverMessage.getTarget());
+      Class<?> messageClass = serverMessage.getClass();
+      while (messageClass != Object.class) {
+        messageListeners.getOrDefault(messageClass, Collections.emptyList())
+            .forEach(consumer -> consumer.accept(serverMessage));
+        messageClass = messageClass.getSuperclass();
+      }
+      for (Class<?> type : ClassUtils.getAllInterfacesForClassAsSet(messageClass)) {
+        messageListeners.getOrDefault(messageClass, Collections.emptyList())
+            .forEach(consumer -> consumer.accept(serverMessage));
       }
     } catch (JsonSyntaxException e) {
       logger.warn("Could not deserialize message: " + jsonString, e);
@@ -466,50 +370,17 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     writeToServer(new PongMessage());
   }
 
-  private void dispatchServerToClientMessage(FafServerMessage fafServerMessage) {
-    switch (fafServerMessage.getMessageType()) {
-      case SESSION:
-        onSessionInitiated((SessionMessage) fafServerMessage);
-        break;
+  private void dispatchAuthenticationFailed(AuthenticationFailedMessage message) {
+    loginFuture.completeExceptionally(new LoginFailedException(message.getText()));
+    loginFuture = null;
+  }
 
-      case WELCOME:
-        onFafLoginSucceeded((LoginLobbyServerMessage) fafServerMessage);
-        break;
+  private void onFafLoginSucceeded(LoginMessage loginServerMessage) {
+    logger.info("FAF login succeeded");
 
-      case GAME_INFO:
-        onGameInfo((GameInfoMessage) fafServerMessage);
-        break;
-
-      case PLAYER_INFO:
-        ((PlayersMessage) fafServerMessage).getPlayers().forEach(onPlayerInfoListener::onPlayerInfo);
-        break;
-
-      case GAME_LAUNCH:
-        onGameLaunchInfo((GameLaunchMessage) fafServerMessage);
-        break;
-
-      case GAME_TYPE_INFO:
-        onGameTypeInfo((GameTypeMessage) fafServerMessage);
-        break;
-
-      case MATCHMAKER_INFO:
-        onRankedMatchInfo((MatchmakerLobbyServerMessage) fafServerMessage);
-        break;
-
-      case SOCIAL:
-        dispatchSocialInfo((SocialMessage) fafServerMessage);
-        break;
-
-      case AUTHENTICATION_FAILED:
-        dispatchAuthenticationFailed((AuthenticationFailedMessage) fafServerMessage);
-        break;
-
-      case UPDATED_ACHIEVEMENTS:
-        onUpdatedAchievementsListeners.forEach(listener -> listener.accept((UpdatedAchievementsMessage) fafServerMessage));
-        break;
-
-      default:
-        logger.warn("Missing case for server object type: " + fafServerMessage.getMessageType());
+    if (loginFuture != null) {
+      loginFuture.complete(loginServerMessage);
+      loginFuture = null;
     }
   }
 
@@ -520,48 +391,15 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     logIn(username, password);
   }
 
-  private void onFafLoginSucceeded(LoginLobbyServerMessage loginServerMessage) {
-    logger.info("FAF login succeeded");
-
-    if (loginFuture != null) {
-      loginFuture.complete(loginServerMessage);
-      loginFuture = null;
-    }
-  }
-
-  private void onGameInfo(GameInfoMessage gameInfoMessage) {
-    onGameInfoListeners.forEach(listener -> listener.onGameInfo(gameInfoMessage));
-  }
-
-  private void onGameLaunchInfo(GameLaunchMessage gameLaunchMessage) {
-    onGameLaunchListeners.forEach(listener -> listener.onGameLaunchInfo(gameLaunchMessage));
-    gameLaunchFuture.complete(gameLaunchMessage);
-    gameLaunchFuture = null;
-  }
-
-  private void onGameTypeInfo(GameTypeMessage gameTypeMessage) {
-    onGameTypeInfoListeners.forEach(listener -> listener.onGameTypeInfo(gameTypeMessage));
-  }
-
-  private void onRankedMatchInfo(MatchmakerLobbyServerMessage gameTypeInfo) {
-    onRankedMatchNotificationListeners.forEach(listener -> listener.onRankedMatchInfo(gameTypeInfo));
-  }
-
-  private void dispatchSocialInfo(SocialMessage socialMessage) {
-    onFriendListListener.onFriendList(socialMessage.getFriends());
-    onFoeListListener.onFoeList(socialMessage.getFoes());
-    onJoinChannelsRequestListeners.forEach(listener -> listener.onJoinChannelsRequest(socialMessage.getAutoJoin()));
-  }
-
-  private void dispatchAuthenticationFailed(AuthenticationFailedMessage message) {
-    loginFuture.completeExceptionally(new LoginFailedException(message.getText()));
-    loginFuture = null;
-  }
-
-  private CompletableFuture<LoginLobbyServerMessage> logIn(String username, String password) {
+  private CompletableFuture<LoginMessage> logIn(String username, String password) {
     String uniqueId = uidService.generate(String.valueOf(sessionId.get()), preferencesService.getFafDataDirectory().resolve("uid.log"));
     writeToServer(new LoginClientMessage(username, password, sessionId.get(), uniqueId, localIp, VERSION));
 
     return loginFuture;
+  }
+
+  private void onGameLaunchInfo(GameLaunchMessage gameLaunchMessage) {
+    gameLaunchFuture.complete(gameLaunchMessage);
+    gameLaunchFuture = null;
   }
 }

@@ -1,11 +1,13 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.OnJoinChannelsRequestListener;
+import com.faforever.client.legacy.ConnectionState;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -20,10 +22,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
 
@@ -34,13 +38,14 @@ public class MockChatService implements ChatService {
   private static final long CONNECTION_DELAY = 1000;
   private final Timer timer;
   private final Collection<OnChatMessageListener> onChatMessageListeners;
-  private final Collection<OnChatConnectedListener> onChatConnectedListeners;
   private final Collection<OnChatUserListListener> onUserListListeners;
-  private final Collection<OnChatDisconnectedListener> onDisconnectedListeners;
   private final Collection<OnPrivateChatMessageListener> onPrivateChatMessageListeners;
   private final Collection<OnChatUserJoinedChannelListener> onChannelJoinedListeners;
   private final Collection<OnChatUserQuitListener> onChatUserQuitListeners;
   private final Map<String, ObservableMap<String, ChatUser>> channelUserListListeners;
+
+  private final ObjectProperty<ConnectionState> connectionState;
+
   @Resource
   UserService userService;
   @Resource
@@ -49,10 +54,10 @@ public class MockChatService implements ChatService {
   I18n i18n;
 
   public MockChatService() {
+    connectionState = new SimpleObjectProperty<>();
+
     onChatMessageListeners = new ArrayList<>();
-    onChatConnectedListeners = new ArrayList<>();
     onUserListListeners = new ArrayList<>();
-    onDisconnectedListeners = new ArrayList<>();
     onPrivateChatMessageListeners = new ArrayList<>();
     onChannelJoinedListeners = new ArrayList<>();
     onChatUserQuitListeners = new ArrayList<>();
@@ -72,18 +77,8 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public void addOnChatConnectedListener(OnChatConnectedListener listener) {
-    onChatConnectedListeners.add(listener);
-  }
-
-  @Override
   public void addOnUserListListener(OnChatUserListListener listener) {
     onUserListListeners.add(listener);
-  }
-
-  @Override
-  public void addOnChatDisconnectedListener(OnChatDisconnectedListener listener) {
-    onDisconnectedListeners.add(listener);
   }
 
   @Override
@@ -122,7 +117,7 @@ public class MockChatService implements ChatService {
   }
 
   private void simulateConnectionEstablished() {
-    onChatConnectedListeners.forEach(OnChatConnectedListener::onConnected);
+    connectionState.set(ConnectionState.CONNECTED);
     joinChannel("#mockChannel");
   }
 
@@ -220,9 +215,10 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public void addOnJoinChannelsRequestListener(OnJoinChannelsRequestListener listener) {
+  public void addOnJoinChannelsRequestListener(Consumer<List<String>> listener) {
 
   }
+
 
   @Override
   public boolean isDefaultChannel(String channelName) {
@@ -244,5 +240,10 @@ public class MockChatService implements ChatService {
   @Override
   public void addUserToColorListener() {
 
+  }
+
+  @Override
+  public ObjectProperty<ConnectionState> connectionStateProperty() {
+    return connectionState;
   }
 }

@@ -4,13 +4,11 @@ import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.legacy.OnGameInfoListener;
-import com.faforever.client.legacy.OnGameTypeInfoListener;
 import com.faforever.client.legacy.domain.GameInfoMessage;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeMessage;
+import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
@@ -20,7 +18,7 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.rankedmatch.OnRankedMatchNotificationListener;
+import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.relay.LocalRelayServer;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
@@ -55,13 +53,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.function.Consumer;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnGameInfoListener {
+public class GameServiceImpl implements GameService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -72,7 +71,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   private final Map<Integer, GameInfoBean> uidToGameInfoBean;
 
   @Resource
-  LobbyServerAccessor lobbyServerAccessor;
+  LobbyService lobbyService;
   @Resource
   ForgedAllianceService forgedAllianceService;
   @Resource
@@ -138,7 +137,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     return CompletableFuture.allOf(
         ensureReachability(),
         updateGameIfNecessary(newGameInfo.getGameType(), newGameInfo.getVersion(), emptyMap(), newGameInfo.getSimModUidsToVersions())
-    ).thenCompose(aVoid -> lobbyServerAccessor.requestNewGame(newGameInfo))
+    ).thenCompose(aVoid -> lobbyService.requestNewGame(newGameInfo))
         .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL));
   }
 
@@ -161,7 +160,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
         updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds),
         downloadMapIfNecessary(gameInfoBean.getMapTechnicalName())
     ).thenRun(
-        () -> lobbyServerAccessor.requestJoinGame(gameInfoBean, password)
+        () -> lobbyService.requestJoinGame(gameInfoBean, password)
             .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL))
             .exceptionally(throwable -> {
               logger.warn("Game could not be started", throwable);
@@ -250,8 +249,8 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
   }
 
   @Override
-  public void addOnRankedMatchNotificationListener(OnRankedMatchNotificationListener listener) {
-    lobbyServerAccessor.addOnRankedMatchNotificationListener(listener);
+  public void addOnRankedMatchNotificationListener(Consumer<MatchmakerMessage> listener) {
+    lobbyService.addOnMessageListener(MatchmakerMessage.class, listener);
   }
 
   @Override
@@ -266,7 +265,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     searchExpansionFuture = scheduleSearchExpansionTask();
 
     return updateGameIfNecessary(GameType.LADDER_1V1.getString(), null, emptyMap(), emptySet())
-        .thenRun(() -> lobbyServerAccessor.startSearchRanked1v1(faction, preferencesService.getPreferences().getForgedAlliance().getPort())
+        .thenRun(() -> lobbyService.startSearchRanked1v1(faction, preferencesService.getPreferences().getForgedAlliance().getPort())
             .thenAccept((gameLaunchInfo) -> {
               searchExpansionFuture.cancel(true);
               startGame(gameLaunchInfo, faction, RatingMode.RANKED_1V1);
@@ -299,7 +298,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
       searchExpansionFuture.cancel(true);
     }
     if (searching1v1.get()) {
-      lobbyServerAccessor.stopSearchingRanked();
+      lobbyService.stopSearchingRanked();
       searching1v1.set(false);
     }
   }
@@ -373,12 +372,11 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
 
   @PostConstruct
   void postConstruct() {
-    lobbyServerAccessor.addOnGameTypeInfoListener(this);
-    lobbyServerAccessor.addOnGameInfoListener(this);
+    lobbyService.addOnMessageListener(GameTypeMessage.class, this::onGameTypeInfo);
+    lobbyService.addOnMessageListener(GameInfoMessage.class, this::onGameInfo);
   }
 
-  @Override
-  public void onGameTypeInfo(GameTypeMessage gameTypeMessage) {
+  private void onGameTypeInfo(GameTypeMessage gameTypeMessage) {
     // TODO only removed while on dev
 //    if (!gameTypeMessage.isHost() || !gameTypeMessage.isLive() || gameTypeBeans.containsKey(gameTypeMessage.getName())) {
 //      return;
@@ -387,8 +385,7 @@ public class GameServiceImpl implements GameService, OnGameTypeInfoListener, OnG
     gameTypeBeans.put(gameTypeMessage.getName(), new GameTypeBean(gameTypeMessage));
   }
 
-  @Override
-  public void onGameInfo(GameInfoMessage gameInfoMessage) {
+  private void onGameInfo(GameInfoMessage gameInfoMessage) {
     if (GameState.CLOSED.equals(gameInfoMessage.getState())) {
       gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfoMessage.getUid()));
       return;

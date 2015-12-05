@@ -95,7 +95,7 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnUpdatedAchievementsNewlyUnlockedTriggersNotification() {
-    verify(lobbyServerAccessor).addOnUpdatedAchievementsInfoListener(onUpdatedAchievementsCaptor.capture());
+    verify(lobbyServerAccessor).addOnMessageListener(UpdatedAchievementsMessage.class, onUpdatedAchievementsCaptor.capture());
     Consumer<UpdatedAchievementsMessage> listener = onUpdatedAchievementsCaptor.getValue();
 
     AchievementDefinition achievementDefinition = new AchievementDefinition();
@@ -115,7 +115,7 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnUpdatedAchievementsAlreadyUnlockedDoesntTriggerNotification() {
-    verify(lobbyServerAccessor).addOnUpdatedAchievementsInfoListener(onUpdatedAchievementsCaptor.capture());
+    verify(lobbyServerAccessor).addOnMessageListener(UpdatedAchievementsMessage.class, onUpdatedAchievementsCaptor.capture());
     Consumer<UpdatedAchievementsMessage> listener = onUpdatedAchievementsCaptor.getValue();
 
     UpdatedAchievementsMessage updatedAchievementsMessage = new UpdatedAchievementsMessage();
