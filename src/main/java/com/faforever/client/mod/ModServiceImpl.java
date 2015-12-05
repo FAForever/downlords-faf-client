@@ -5,6 +5,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ConcurrentUtil;
+import com.faforever.client.util.LuaUtil;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -15,6 +16,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.Directory;
 import org.jetbrains.annotations.Nullable;
+import org.luaj.vm2.LuaValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -22,7 +24,6 @@ import org.springframework.context.ApplicationContext;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
@@ -37,7 +38,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -419,15 +419,36 @@ public class ModServiceImpl implements ModService {
     }
   }
 
-  private static Path extractIconPath(Path path, Properties properties) {
-    String icon = properties.getProperty("icon");
-    if (icon == null) {
+  private ModInfoBean extractModInfo(Path path) throws IOException {
+    ModInfoBean modInfoBean = new ModInfoBean();
+
+    Path modInfoLua = path.resolve("mod_info.lua");
+    if (Files.notExists(modInfoLua)) {
       return null;
     }
 
-    icon = stripQuotes(icon);
+    logger.debug("Reading mod {}", path);
 
-    if (StringUtils.isEmpty(icon)) {
+    LuaValue luaValue = LuaUtil.loadFile(modInfoLua);
+
+    modInfoBean.setId(luaValue.get("uid").toString());
+    modInfoBean.setName(luaValue.get("name").toString());
+    modInfoBean.setDescription(luaValue.get("description").toString());
+    modInfoBean.setAuthor(luaValue.get("author").toString());
+    modInfoBean.setVersion(luaValue.get("version").toString());
+    modInfoBean.setSelectable(luaValue.get("selectable").toboolean());
+    modInfoBean.setUiOnly(luaValue.get("ui_only").toboolean());
+    modInfoBean.setImagePath(extractIconPath(path, luaValue));
+
+    return modInfoBean;
+  }
+
+    return modInfoBean;
+  }
+
+  private static Path extractIconPath(Path path, LuaValue luaValue) {
+    String icon = luaValue.get("icon").toString();
+    if ("nil".equals(icon) || StringUtils.isEmpty(icon)) {
       return null;
     }
 
