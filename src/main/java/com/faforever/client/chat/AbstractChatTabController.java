@@ -679,7 +679,7 @@ public abstract class AbstractChatTabController {
     // TODO outsource in html file
     return text.replaceAll(
         mentionPattern.pattern(),
-        "<span class='own-username'>" + userService.getUsername() + "</span>"
+        "<span class='self'>" + userService.getUsername() + "</span>"
     );
   }
 
