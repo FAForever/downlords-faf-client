@@ -36,7 +36,6 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.DataInputStream;
@@ -86,8 +85,6 @@ public class LobbyServiceServerAccessorImplTest extends AbstractPlainJavaFxTest 
   @Mock
   private Preferences preferences;
   @Mock
-  private Environment environment;
-  @Mock
   private UidService uidService;
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
@@ -110,8 +107,9 @@ public class LobbyServiceServerAccessorImplTest extends AbstractPlainJavaFxTest 
 
     instance = new LobbyServerAccessorImpl();
     instance.preferencesService = preferencesService;
-    instance.environment = environment;
     instance.uidService = uidService;
+    instance.lobbyHost = LOOPBACK_ADDRESS.getHostAddress();
+    instance.lobbyPort = fafLobbyServerSocket.getLocalPort();
 
     loginPrefs = new LoginPrefs();
     loginPrefs.setUsername("junit");
@@ -122,8 +120,6 @@ public class LobbyServiceServerAccessorImplTest extends AbstractPlainJavaFxTest 
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
     when(preferences.getLogin()).thenReturn(loginPrefs);
-    when(environment.getProperty("lobby.host")).thenReturn(LOOPBACK_ADDRESS.getHostAddress());
-    when(environment.getProperty("lobby.port", int.class)).thenReturn(fafLobbyServerSocket.getLocalPort());
     when(uidService.generate(any(), any())).thenReturn("encrypteduidstring");
 
     preferencesService.getPreferences().getLogin();

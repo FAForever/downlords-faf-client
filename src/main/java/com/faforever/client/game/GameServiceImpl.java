@@ -33,14 +33,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.SocketAddress;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -85,8 +84,6 @@ public class GameServiceImpl implements GameService {
   @Resource
   I18n i18n;
   @Resource
-  Environment environment;
-  @Resource
   ApplicationContext applicationContext;
   @Resource
   ScheduledExecutorService scheduledExecutorService;
@@ -96,6 +93,12 @@ public class GameServiceImpl implements GameService {
   ConnectivityService connectivityService;
   @Resource
   LocalRelayServer localRelayServer;
+  @Value("${ranked1v1.search.maxRadius}")
+  float ranked1v1SearchMaxRadius;
+  @Value("${ranked1v1.search.radiusIncrement}")
+  float ranked1v1SearchRadiusIncrement;
+  @Value("${ranked1v1.search.expansionDelay}")
+  int ranked1v1SearchExpansionDelay;
 
   @VisibleForTesting
   RatingMode ratingMode;
@@ -134,9 +137,10 @@ public class GameServiceImpl implements GameService {
 
     stopSearchRanked1v1();
 
-    return CompletableFuture.allOf(
-        ensureReachability(),
-        updateGameIfNecessary(newGameInfo.getGameType(), newGameInfo.getVersion(), emptyMap(), newGameInfo.getSimModUidsToVersions())
+    return updateGameIfNecessary(
+        newGameInfo.getGameType(),
+        newGameInfo.getVersion(), emptyMap(),
+        newGameInfo.getSimModUidsToVersions()
     ).thenCompose(aVoid -> lobbyService.requestNewGame(newGameInfo))
         .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL));
   }
@@ -155,17 +159,10 @@ public class GameServiceImpl implements GameService {
     Map<String, Integer> simModVersions = gameInfoBean.getFeaturedModVersions();
     Set<String> simModUIds = gameInfoBean.getSimMods().keySet();
 
-    return CompletableFuture.allOf(
-        ensureReachability(),
-        updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds),
-        downloadMapIfNecessary(gameInfoBean.getMapTechnicalName())
-    ).thenRun(
-        () -> lobbyService.requestJoinGame(gameInfoBean, password)
-            .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL))
-            .exceptionally(throwable -> {
-              logger.warn("Game could not be started", throwable);
-              return null;
-            }));
+    return updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
+        .thenRun(() -> downloadMapIfNecessary(gameInfoBean.getMapTechnicalName()))
+        .thenCompose(aVoid -> lobbyService.requestJoinGame(gameInfoBean, password))
+        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL));
   }
 
   private CompletableFuture<Void> downloadMapIfNecessary(String mapName) {
@@ -285,10 +282,10 @@ public class GameServiceImpl implements GameService {
   @NotNull
   private ScheduledFuture<?> scheduleSearchExpansionTask() {
     SearchExpansionTask expansionTask = applicationContext.getBean(SearchExpansionTask.class);
-    expansionTask.setMaxRadius(environment.getProperty("ranked1v1.search.maxRadius", float.class));
-    expansionTask.setRadiusIncrement(environment.getProperty("ranked1v1.search.radiusIncrement", float.class));
+    expansionTask.setMaxRadius(ranked1v1SearchMaxRadius);
+    expansionTask.setRadiusIncrement(ranked1v1SearchRadiusIncrement);
 
-    Integer delay = environment.getProperty("ranked1v1.search.expansionDelay", int.class);
+    Integer delay = ranked1v1SearchExpansionDelay;
     return scheduledExecutorService.scheduleWithFixedDelay(expansionTask, delay, delay, MILLISECONDS);
   }
 
@@ -310,10 +307,6 @@ public class GameServiceImpl implements GameService {
 
   private boolean isRunning() {
     return process != null && process.isAlive();
-  }
-
-  private CompletableFuture<SocketAddress> ensureReachability() {
-    return connectivityService.ensureReachability();
   }
 
   private CompletableFuture<Void> updateGameIfNecessary(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUIds) {

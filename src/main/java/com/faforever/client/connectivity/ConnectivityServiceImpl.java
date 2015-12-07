@@ -8,7 +8,6 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
-import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +15,6 @@ import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
-import java.net.SocketAddress;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -46,7 +44,6 @@ public class ConnectivityServiceImpl implements ConnectivityService {
   @Value("${connectivity.helpUrl}")
   String connectivityHelpUrl;
   private ConnectivityState connectivityState;
-  private TurnClient turnClient;
 
   @Override
   public ConnectivityState getConnectivityState() {
@@ -83,22 +80,6 @@ public class ConnectivityServiceImpl implements ConnectivityService {
           ));
       return null;
     });
-  }
-
-  @Override
-  public CompletableFuture<SocketAddress> ensureReachability() {
-    if (connectivityState == ConnectivityState.PUBLIC) {
-      return CompletableFuture.completedFuture(null);
-    }
-    if (turnClient == null) {
-      turnClient = applicationContext.getBean(TurnClient.class);
-    }
-    return turnClient.connect();
-  }
-
-  @Override
-  public void disconnect() {
-    IOUtils.closeQuietly(turnClient);
   }
 
   /**

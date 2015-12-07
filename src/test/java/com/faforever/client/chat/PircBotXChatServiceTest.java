@@ -79,6 +79,7 @@ import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -649,7 +650,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     instance.addOnJoinChannelsRequestListener(listener);
 
-    verify(lobbyServerAccessor).addOnMessageListener(SocialMessage.class, any());
+    verify(lobbyServerAccessor).addOnMessageListener(eq(SocialMessage.class), any());
   }
 
   @Test

@@ -12,6 +12,5 @@ public interface LocalRelayServer {
 
   CompletableFuture<Integer> startInBackground();
 
-  void close();
 
 }

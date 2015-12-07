@@ -10,6 +10,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.sun.javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.control.TabPane;
+import javafx.stage.Stage;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -49,6 +50,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.playerService = playerService;
     instance.audioController = audioController;
     instance.notificationService = notificationService;
+    WaitForAsyncUtils.waitForAsyncFx(3000, () -> instance.stage = new Stage());
 
     playerName = "testUser";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);

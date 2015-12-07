@@ -1,5 +1,6 @@
 package com.faforever.client.relay;
 
+import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.util.SocketAddressUtil;
 
 import java.net.InetSocketAddress;
@@ -12,6 +13,7 @@ public class JoinGameMessage extends GpgServerMessage {
 
   public JoinGameMessage() {
     super(GpgServerMessageType.JOIN_GAME, 3);
+    setTarget(MessageTarget.GAME);
   }
 
   public InetSocketAddress getPeerAddress() {

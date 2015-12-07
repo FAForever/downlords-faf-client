@@ -4,17 +4,17 @@ import com.faforever.client.legacy.domain.GameLaunchMessage;
 
 import java.util.Arrays;
 
-public class GameLaunchInfoBuilder {
+public class GameLaunchMessageBuilder {
 
   private final GameLaunchMessage gameLaunchMessage;
 
-  public GameLaunchInfoBuilder() {
+  public GameLaunchMessageBuilder() {
     gameLaunchMessage = new GameLaunchMessage();
   }
 
-  public GameLaunchInfoBuilder defaultValues() {
+  public GameLaunchMessageBuilder defaultValues() {
     gameLaunchMessage.setUid(1);
-    gameLaunchMessage.setMod("mod");
+    gameLaunchMessage.setMod(GameType.DEFAULT.getString());
     gameLaunchMessage.setArgs(Arrays.asList("/ratingcolor red", "/clan foo"));
     return this;
   }
@@ -23,7 +23,7 @@ public class GameLaunchInfoBuilder {
     return gameLaunchMessage;
   }
 
-  public static GameLaunchInfoBuilder create() {
-    return new GameLaunchInfoBuilder();
+  public static GameLaunchMessageBuilder create() {
+    return new GameLaunchMessageBuilder();
   }
 }

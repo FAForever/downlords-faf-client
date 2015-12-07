@@ -1,5 +1,6 @@
 package com.faforever.client.relay;
 
+import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.util.Validator;
 
 public class CreateLobbyServerMessage extends GpgServerMessage {
@@ -20,6 +21,7 @@ public class CreateLobbyServerMessage extends GpgServerMessage {
     setUid(uid);
     setUsername(username);
     setUnknownFlag(unknownFlag);
+    setTarget(MessageTarget.GAME);
   }
 
   public void setLobbyMode(LobbyMode lobbyMode) {

@@ -73,8 +73,8 @@ import javafx.stage.PopupWindow;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -134,8 +134,6 @@ public class MainController implements OnChoseGameDirectoryListener {
   @FXML
   Pane rankedMatchNotificationPane;
 
-  @Resource
-  Environment environment;
   @Resource
   NewsController newsController;
   @Resource
@@ -198,6 +196,9 @@ public class MainController implements OnChoseGameDirectoryListener {
   LoginController loginController;
   @Resource
   LobbyService lobbyService;
+
+  @Value("${mainWindowTitle}")
+  String mainWindowTitle;
 
   @VisibleForTesting
   Popup persistentNotificationsPopup;
@@ -443,7 +444,7 @@ public class MainController implements OnChoseGameDirectoryListener {
     stage.setWidth(mainWindowPrefs.getWidth());
     stage.setHeight(mainWindowPrefs.getHeight());
 
-    stage.setTitle(environment.getProperty("mainWindowTitle"));
+    stage.setTitle(mainWindowTitle);
     stage.show();
 
     enterLoggedOutState();

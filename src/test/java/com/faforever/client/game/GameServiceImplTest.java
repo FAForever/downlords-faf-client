@@ -26,12 +26,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +50,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -86,8 +87,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private SearchExpansionTask searchExpansionTask;
   @Mock
-  private Environment environment;
-  @Mock
   private LocalRelayServer localRelayServer;
   @Mock
   private PlayerService playerService;
@@ -114,17 +113,17 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.gameUpdateService = gameUpdateService;
     instance.preferencesService = preferencesService;
     instance.applicationContext = applicationContext;
-    instance.environment = environment;
     instance.playerService = playerService;
     instance.scheduledExecutorService = scheduledExecutorService;
+    instance.localRelayServer = localRelayServer;
+
+    instance.ranked1v1SearchExpansionDelay = SEARCH_EXPANSION_DELAY;
+    instance.ranked1v1SearchMaxRadius = SEARCH_MAX_RADIUS;
+    instance.ranked1v1SearchRadiusIncrement = SEARCH_RADIUS_INCREMENT;
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
-    when(environment.getProperty("ranked1v1.search.expansionDelay", int.class)).thenReturn(SEARCH_EXPANSION_DELAY);
-    when(environment.getProperty("ranked1v1.search.maxRadius", float.class)).thenReturn(SEARCH_MAX_RADIUS);
-    when(environment.getProperty("ranked1v1.search.radiusIncrement", float.class)).thenReturn(SEARCH_RADIUS_INCREMENT);
-    when(environment.getProperty("playServices.minGameTime", int.class)).thenReturn(0);
 
     doAnswer(invocation -> {
       try {
@@ -137,15 +136,15 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.postConstruct();
 
-    verify(lobbyService).addOnMessageListener(GameTypeMessage.class, gameTypeMessageListenerCaptor.capture());
-    verify(lobbyService).addOnMessageListener(GameInfoMessage.class, gameInfoMessageListenerCaptor.capture());
+    verify(lobbyService).addOnMessageListener(eq(GameTypeMessage.class), gameTypeMessageListenerCaptor.capture());
+    verify(lobbyService).addOnMessageListener(eq(GameInfoMessage.class), gameInfoMessageListenerCaptor.capture());
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void postConstruct() {
-    verify(lobbyService).addOnMessageListener(GameTypeMessage.class, any(Consumer.class));
-    verify(lobbyService).addOnMessageListener(GameInfoMessage.class, any(Consumer.class));
+    verify(lobbyService).addOnMessageListener(eq(GameTypeMessage.class), any(Consumer.class));
+    verify(lobbyService).addOnMessageListener(eq(GameInfoMessage.class), any(Consumer.class));
   }
 
   @Test
@@ -159,13 +158,16 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(gameInfoBean.getSimMods()).thenReturn(simMods);
     when(gameInfoBean.getMapTechnicalName()).thenReturn("map");
 
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     when(mapService.isAvailable("map")).thenReturn(true);
-    when(lobbyService.requestJoinGame(gameInfoBean, null)).thenReturn(completedFuture(null));
+    when(lobbyService.requestJoinGame(gameInfoBean, null)).thenReturn(completedFuture(gameLaunchMessage));
+    when(localRelayServer.startInBackground()).thenReturn(CompletableFuture.completedFuture(111));
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
 
     CompletableFuture<Void> future = instance.joinGame(gameInfoBean, null);
 
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
+    verify(mapService, never()).download(any());
   }
 
   @Test
@@ -219,7 +221,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     int gamePort = 51111;
 
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
-    GameLaunchMessage gameLaunchMessage = GameLaunchInfoBuilder.create().defaultValues().get();
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     gameLaunchMessage.setArgs(Arrays.asList("/foo bar", "/bar foo"));
 
     when(localRelayServer.startInBackground()).thenReturn(CompletableFuture.completedFuture(gamePort));
@@ -229,9 +231,29 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(lobbyService.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
 
-    instance.hostGame(newGameInfo);
+    CountDownLatch gameStartedLatch = new CountDownLatch(1);
+    CountDownLatch gameTerminatedLatch = new CountDownLatch(1);
+    instance.gameRunningProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        gameStartedLatch.countDown();
+      } else {
+        gameTerminatedLatch.countDown();
+      }
+    });
 
-    assertThat(instance.gameRunningProperty(), is(true));
+    CountDownLatch processLatch = new CountDownLatch(1);
+
+    process = mock(Process.class);
+    doAnswer(invocation -> {
+      processLatch.await();
+      return null;
+    }).when(process).waitFor();
+
+    instance.hostGame(newGameInfo).get(TIMEOUT, TIME_UNIT);
+    gameStartedLatch.await(TIMEOUT, TIME_UNIT);
+    processLatch.countDown();
+
+    gameTerminatedLatch.await(TIMEOUT, TIME_UNIT);
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL,
         gamePort);
@@ -239,12 +261,15 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testWaitForProcessTerminationInBackground() throws Exception {
+    instance.gameRunningProperty().set(true);
+
     CompletableFuture<Void> disconnectedFuture = new CompletableFuture<>();
 
-    doAnswer(invocation -> {
-      disconnectedFuture.complete(null);
-      return null;
-    }).when(connectivityService).disconnect();
+    instance.gameRunningProperty().addListener((observable, oldValue, newValue) -> {
+      if (!newValue) {
+        disconnectedFuture.complete(null);
+      }
+    });
 
     Process process = mock(Process.class);
 
@@ -253,7 +278,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     disconnectedFuture.get(5000, TimeUnit.MILLISECONDS);
 
     verify(process).waitFor();
-    verify(connectivityService).disconnect();
   }
 
   @Test
@@ -341,12 +365,21 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(process.isAlive()).thenReturn(true);
 
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
-    GameLaunchMessage gameLaunchMessage = GameLaunchInfoBuilder.create().defaultValues().get();
-    when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), any(), any())).thenReturn(process);
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+    when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), any(), anyInt())).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(lobbyService.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
+    when(localRelayServer.startInBackground()).thenReturn(CompletableFuture.completedFuture(111));
+
+    CountDownLatch gameRunningLatch = new CountDownLatch(1);
+    instance.gameRunningProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        gameRunningLatch.countDown();
+      }
+    });
 
     instance.hostGame(newGameInfo);
+    gameRunningLatch.await(TIMEOUT, TIME_UNIT);
 
     instance.startSearchRanked1v1(Faction.AEON);
 

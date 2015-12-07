@@ -1,5 +1,6 @@
 package com.faforever.client.relay;
 
+import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.util.SocketAddressUtil;
 
 import java.net.InetSocketAddress;
@@ -14,6 +15,7 @@ public class ConnectToPeerMessage extends GpgServerMessage {
 
   public ConnectToPeerMessage() {
     super(CONNECT_TO_PEER, 3);
+    setTarget(MessageTarget.GAME);
   }
 
   public void setUsername(String username) {

@@ -1,5 +1,6 @@
 package com.faforever.client.relay;
 
+import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.util.SocketAddressUtil;
 
 import java.net.InetSocketAddress;
@@ -11,6 +12,7 @@ public class SendNatPacketMessage extends GpgServerMessage {
 
   public SendNatPacketMessage() {
     super(GpgServerMessageType.SEND_NAT_PACKET, 1);
+    setTarget(MessageTarget.GAME);
   }
 
   public InetSocketAddress getPublicAddress() {

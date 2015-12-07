@@ -8,6 +8,7 @@ import javafx.scene.control.Tab;
 import javafx.stage.Stage;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
@@ -34,18 +35,20 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   private static final long TIMEOUT = 1000;
   private static final TimeUnit TIMEOUT_UNITS = TimeUnit.MILLISECONDS;
   @Mock
-  ChannelTabController channelTabController;
+  private ChannelTabController channelTabController;
   @Mock
-  PrivateChatTabController privateChatTabController;
+  private PrivateChatTabController privateChatTabController;
   @Mock
-  UserService userService;
+  private UserService userService;
   @Mock
-  ApplicationContext applicationContext;
+  private ApplicationContext applicationContext;
   @Mock
-  ChatService chatService;
+  private ChatService chatService;
+  @Captor
+  private ArgumentCaptor<Consumer<List<String>>> joinChannelsRequestListenerCaptor;
+
   private ChatController instance;
   private SimpleObjectProperty<ConnectionState> connectionState;
-  private ArgumentCaptor<Consumer<List<String>>> joinChannelsRequestListenerCaptor;
 
   @Override
   public void start(Stage stage) throws Exception {

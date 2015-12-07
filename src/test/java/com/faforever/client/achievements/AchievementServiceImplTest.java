@@ -35,6 +35,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -95,7 +96,7 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnUpdatedAchievementsNewlyUnlockedTriggersNotification() {
-    verify(lobbyServerAccessor).addOnMessageListener(UpdatedAchievementsMessage.class, onUpdatedAchievementsCaptor.capture());
+    verify(lobbyServerAccessor).addOnMessageListener(eq(UpdatedAchievementsMessage.class), onUpdatedAchievementsCaptor.capture());
     Consumer<UpdatedAchievementsMessage> listener = onUpdatedAchievementsCaptor.getValue();
 
     AchievementDefinition achievementDefinition = new AchievementDefinition();
@@ -115,7 +116,7 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnUpdatedAchievementsAlreadyUnlockedDoesntTriggerNotification() {
-    verify(lobbyServerAccessor).addOnMessageListener(UpdatedAchievementsMessage.class, onUpdatedAchievementsCaptor.capture());
+    verify(lobbyServerAccessor).addOnMessageListener(eq(UpdatedAchievementsMessage.class), onUpdatedAchievementsCaptor.capture());
     Consumer<UpdatedAchievementsMessage> listener = onUpdatedAchievementsCaptor.getValue();
 
     UpdatedAchievementsMessage updatedAchievementsMessage = new UpdatedAchievementsMessage();

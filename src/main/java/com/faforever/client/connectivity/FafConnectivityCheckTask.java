@@ -68,6 +68,7 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
         ConnectivityState state = ((ConnectivityStateMessage) serverMessage).getState();
         logger.debug("Received connectivity state from server: " + state);
         connectivityStateFuture.complete(state);
+        gamePortPacketFuture.cancel(true);
         break;
     }
   }
@@ -76,7 +77,7 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
     InetSocketAddress publicAddress = sendNatPacketMessage.getPublicAddress();
     String message = sendNatPacketMessage.getMessage();
 
-    logger.debug("Sending NAT packet to {}: ", publicAddress, message);
+    logger.debug("Sending NAT packet to {}: {}", publicAddress, message);
 
     byte[] bytes = Bytes.concat(new byte[]{(byte) 0x08}, message.getBytes(US_ASCII));
     DatagramPacket datagramPacket = new DatagramPacket(bytes, bytes.length);
@@ -102,7 +103,7 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
     connectivityStateFuture = new CompletableFuture<>();
 
     Consumer<GpgServerMessage> connectivityStateMessageListener = this::onConnectivityStateMessage;
-    lobbyServerAccessor.addOnMessageListener(ConnectivityStateMessage.class, this::onConnectivityStateMessage);
+    lobbyServerAccessor.addOnMessageListener(GpgServerMessage.class, connectivityStateMessageListener);
 
     try (DatagramSocket datagramSocket = new DatagramSocket(port)) {
       this.publicSocket = datagramSocket;
@@ -115,13 +116,13 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
       } catch (TimeoutException e) {
         throw new RuntimeException(e);
       } finally {
-        lobbyServerAccessor.removeOnMessageListener(ConnectivityStateMessage.class, this::onConnectivityStateMessage);
+        lobbyServerAccessor.removeOnMessageListener(GpgServerMessage.class, connectivityStateMessageListener);
       }
     }
   }
 
   private boolean isGamePortPublic(int port) {
-    logger.info("Testing connectivity of game port: {}", publicSocket.getPort());
+    logger.info("Testing connectivity of game port: {}", port);
     gamePortPacketFuture = listenForPackage(publicSocket);
 
     lobbyServerAccessor.initConnectivityTest(port);

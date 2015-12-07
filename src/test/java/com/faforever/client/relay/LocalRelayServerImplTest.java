@@ -1,6 +1,9 @@
 package com.faforever.client.relay;
 
+import com.faforever.client.connectivity.ConnectivityService;
+import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.connectivity.TurnClient;
+import com.faforever.client.game.GameLaunchMessageBuilder;
 import com.faforever.client.game.GameType;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.FafServerMessageType;
@@ -40,15 +43,23 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.lessThan;
+import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.util.SocketUtils.PORT_RANGE_MAX;
+import static org.springframework.util.SocketUtils.PORT_RANGE_MIN;
 
 public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
@@ -87,6 +98,8 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private LobbyServerAccessor lobbyServerAccessor;
   @Mock
   private ExecutorService executorService;
+  @Mock
+  private ConnectivityService connectivityService;
 
   @Captor
   private ArgumentCaptor<Consumer<GpgServerMessage>> onGpgServerMessageListenerCaptor;
@@ -107,6 +120,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     instance.preferencesService = preferencesService;
     instance.lobbyServerAccessor = lobbyServerAccessor;
     instance.executorService = executorService;
+    instance.connectivityService = connectivityService;
 
     ForgedAlliancePrefs forgedAlliancePrefs = mock(ForgedAlliancePrefs.class);
     Preferences preferences = mock(Preferences.class);
@@ -125,6 +139,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     when(userService.getUid()).thenReturn((int) USER_ID);
     when(userService.getUsername()).thenReturn("junit");
     when(lobbyServerAccessor.getSessionId()).thenReturn(SESSION_ID);
+    when(connectivityService.getConnectivityState()).thenReturn(ConnectivityState.PUBLIC);
     doAnswer(invocation -> {
       messagesReceivedByFafServer.put(invocation.getArgumentAt(0, GpgClientMessage.class));
       return null;
@@ -132,10 +147,10 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     instance.postConstruct();
 
-    verify(lobbyServerAccessor).addOnMessageListener(GpgServerMessage.class, onGpgServerMessageListenerCaptor.capture());
-    verify(lobbyServerAccessor).addOnMessageListener(GameLaunchMessage.class, onGameLaunchInfoListener.capture());
+    verify(lobbyServerAccessor).addOnMessageListener(eq(GpgServerMessage.class), onGpgServerMessageListenerCaptor.capture());
+    verify(lobbyServerAccessor).addOnMessageListener(eq(GameLaunchMessage.class), onGameLaunchInfoListener.capture());
 
-    GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     gameLaunchMessage.setMod(GameType.DEFAULT.getString());
     onGameLaunchInfoListener.getValue().accept(gameLaunchMessage);
 
@@ -203,7 +218,14 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     GpgServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(relayMessage.getMessageType(), is(GpgServerMessageType.CREATE_LOBBY));
-    assertThat(relayMessage.getArgs(), contains(LobbyMode.DEFAULT_LOBBY.getMode(), GAME_PORT, "junit", (int) USER_ID, 1));
+
+
+    List<Object> args = relayMessage.getArgs();
+    assertThat(args.get(0), is(LobbyMode.DEFAULT_LOBBY.getMode()));
+    assertThat((Integer) args.get(1), is(both(greaterThan(PORT_RANGE_MIN)).and(lessThan(PORT_RANGE_MAX))));
+    assertThat(args.get(2), is("junit"));
+    assertThat(args.get(3), is((int) USER_ID));
+    assertThat(args.get(4), is(1));
   }
 
   @Test
@@ -242,7 +264,12 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     gpgServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(gpgServerMessage.getMessageType(), is(GpgServerMessageType.JOIN_GAME));
-    assertThat(gpgServerMessage.getArgs(), contains("86.128.102.173:6112", "TechMonkey", 81655));
+
+    List<Object> args = gpgServerMessage.getArgs();
+    assertThat(args, hasSize(3));
+    assertThat((String) args.get(0), startsWith("127.0.0.1:"));
+    assertThat(args.get(1), is("TechMonkey"));
+    assertThat(args.get(2), is(81655));
   }
 
   @Test
@@ -253,17 +280,21 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     gpgServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(gpgServerMessage.getMessageType(), is(GpgServerMessageType.CONNECT_TO_PEER));
-    assertThat(gpgServerMessage.getArgs(), contains("80.2.69.214:6112", "Cadet", 79359));
+
+    List<Object> args = gpgServerMessage.getArgs();
+    assertThat(args, hasSize(3));
+    assertThat((String) args.get(0), startsWith("127.0.0.1:"));
+    assertThat(args.get(1), is("Cadet"));
+    assertThat(args.get(2), is(79359));
   }
 
   @Test
   public void testDisconnectFromPeer() throws Exception {
-    GpgServerMessage gpgServerMessage = new DisconnectFromPeerMessage();
-    // TODO fill with actual arguments
-    gpgServerMessage.setArgs(singletonList(79359));
-    sendFromServer(gpgServerMessage);
+    DisconnectFromPeerMessage disconnectFromPeerMessage = new DisconnectFromPeerMessage();
+    disconnectFromPeerMessage.setUid(79359);
+    sendFromServer(disconnectFromPeerMessage);
 
-    gpgServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
+    GpgServerMessage gpgServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(gpgServerMessage.getMessageType(), is(GpgServerMessageType.DISCONNECT_FROM_PEER));
     assertThat(gpgServerMessage.getArgs(), contains(79359));
   }

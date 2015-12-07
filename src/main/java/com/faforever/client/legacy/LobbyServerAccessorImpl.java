@@ -62,7 +62,6 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -90,8 +89,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private static final long RECONNECT_DELAY = 3000;
   private final Gson gson;
   private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners;
-  @Resource
-  Environment environment;
   @Resource
   PreferencesService preferencesService;
   @Resource
@@ -142,7 +139,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
     addOnMessageListener(LoginMessage.class, this::onFafLoginSucceeded);
     addOnMessageListener(GameLaunchMessage.class, this::onGameLaunchInfo);
     addOnMessageListener(AuthenticationFailedMessage.class, this::dispatchAuthenticationFailed);
-    addOnMessageListener(SessionMessage.class, this::onSessionInitiated);
   }
 
   @Override

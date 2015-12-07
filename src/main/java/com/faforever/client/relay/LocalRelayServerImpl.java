@@ -17,6 +17,7 @@ import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.SocketUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -33,6 +34,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -68,11 +70,15 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   private ServerSocket serverSocket;
   private boolean stopped;
   private Socket gameSocket;
-  private Map<Integer, DatagramSocket> peerRelaySockets;
+  /**
+   * Maps peer UIDs to relay sockets.
+   */
+  private Map<SocketAddress, DatagramSocket> peerRelaySockets;
   private DatagramSocket publicSocket;
   private Consumer<DatagramPacket> forwarder;
   private boolean useTurn;
   private CompletableFuture<Integer> portFuture;
+  private Map<Integer, DatagramSocket> peerSocketsByUid;
 
   public LocalRelayServerImpl() {
     gson = new GsonBuilder()
@@ -80,6 +86,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
         .registerTypeAdapter(GpgServerMessageType.class, GpgServerMessageTypeTypeAdapter.INSTANCE)
         .create();
     peerRelaySockets = new HashMap<>();
+    peerSocketsByUid = new HashMap<>();
     onConnectionAcceptedListeners = new ArrayList<>();
     lobbyMode = LobbyMode.DEFAULT_LOBBY;
   }
@@ -106,28 +113,10 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     return portFuture;
   }
 
-  @Override
-  @PreDestroy
-  public void close() {
-    logger.info("Closing relay server");
-    stopped = true;
-    IOUtils.closeQuietly(serverSocket);
-    IOUtils.closeQuietly(gameSocket);
-    IOUtils.closeQuietly(turnClient);
-  }
-
-  @PostConstruct
-  void postConstruct() {
-    startInBackground();
-    lobbyServerAccessor.addOnMessageListener(GameLaunchMessage.class, this::updateLobbyModeFromGameInfo);
-    lobbyServerAccessor.addOnMessageListener(GpgServerMessage.class, this::onGpgServerMessage);
-  }
-
   private void start() throws IOException {
     switch (connectivityService.getConnectivityState()) {
       case BLOCKED:
         forwarder = turnForwarder();
-        useTurn = true;
         break;
 
       default:
@@ -139,7 +128,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
       int localPort = serverSocket.getLocalPort();
       portFuture.complete(localPort);
 
-      logger.info("Relay server listening on port {}, using turn: {}", localPort, useTurn);
+      logger.info("Relay server listening on port {}", localPort, useTurn);
 
       while (!stopped) {
         try (Socket faSocket = serverSocket.accept()) {
@@ -152,26 +141,31 @@ public class LocalRelayServerImpl implements LocalRelayServer {
           this.gameOutputStream = createFaOutputStream(faSocket.getOutputStream());
 
           redirectGameToServer();
+          redirectPublicPort();
         }
       }
     }
   }
 
   /**
-   * Creates a forwarder that forwards datagrams through a TURN server.
+   * Creates a forwarder that forwards datagrams through to a TURN server.
    */
   private Consumer<DatagramPacket> turnForwarder() {
+    logger.info("Using TURN server");
+    turnClient.connect();
     return datagramPacket -> turnClient.send(datagramPacket);
   }
 
   /**
-   * Creates a forwarder that forwards datagrams directly from an UDP socket.
+   * Creates a forwarder that sends datagrams directly from a public UDP socket.
    */
-  private Consumer<DatagramPacket> publicForwarder() {
+  private Consumer<DatagramPacket> publicForwarder() throws SocketException, UnknownHostException {
+    logger.info("Using direct connection");
+    int port = preferencesService.getPreferences().getForgedAlliance().getPort();
+    publicSocket = new DatagramSocket(new InetSocketAddress(InetAddress.getLocalHost(), port));
+    logger.info("Opened public UDP socket: {}", publicSocket);
     return datagramPacket -> {
       try {
-        int port = preferencesService.getPreferences().getForgedAlliance().getPort();
-        publicSocket = new DatagramSocket(port);
         publicSocket.send(datagramPacket);
       } catch (IOException e) {
         throw new RuntimeException(e);
@@ -205,9 +199,18 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     } catch (IOException e) {
       logger.info("Forged Alliance disconnected from local relay server (" + e.getMessage() + ")");
     } finally {
-      logger.debug("No longer redirecting from game to server");
-      disconnect();
+      close();
     }
+  }
+
+  private void redirectPublicPort() {
+    forwardSocket(publicSocket, datagramPacket -> {
+      try {
+        peerRelaySockets.get(datagramPacket.getSocketAddress()).send(datagramPacket);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   private void handleDataFromFa(GpgClientMessage gpgClientMessage) throws IOException {
@@ -217,15 +220,38 @@ public class LocalRelayServerImpl implements LocalRelayServer {
         throw new IllegalStateException("lobbyMode has not been set");
       }
 
-      int gamePort = preferencesService.getPreferences().getForgedAlliance().getPort();
+      int gamePort = SocketUtils.findAvailableUdpPort();
       handleCreateLobby(new CreateLobbyServerMessage(lobbyMode, gamePort, username, userService.getUid(), 1));
     }
 
     lobbyServerAccessor.sendGpgMessage(gpgClientMessage);
   }
 
-  private void disconnect() {
+  @PreDestroy
+  void close() {
+    logger.info("Closing relay server");
+    stopped = true;
+    IOUtils.closeQuietly(serverSocket);
     IOUtils.closeQuietly(gameSocket);
+    IOUtils.closeQuietly(turnClient);
+    IOUtils.closeQuietly(publicSocket);
+  }
+
+  private void forwardSocket(final DatagramSocket socket, Consumer<DatagramPacket> forwarder) {
+    ConcurrentUtil.executeInBackground(new Task<Void>() {
+      @Override
+      protected Void call() throws Exception {
+        byte[] buffer = new byte[8092];
+        DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
+
+        while (!isCancelled()) {
+          socket.receive(datagramPacket);
+          forwarder.accept(datagramPacket);
+        }
+
+        return null;
+      }
+    });
   }
 
   private boolean isHostGameMessage(GpgClientMessage gpgClientMessage) {
@@ -234,7 +260,6 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   }
 
   private void handleCreateLobby(CreateLobbyServerMessage createLobbyServerMessage) throws IOException {
-
     writeToFa(createLobbyServerMessage);
   }
 
@@ -254,6 +279,12 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
     gameOutputStream.writeInt(headerSize);
     gameOutputStream.writeString(headerField);
+  }
+
+  @PostConstruct
+  void postConstruct() {
+    lobbyServerAccessor.addOnMessageListener(GameLaunchMessage.class, this::updateLobbyModeFromGameInfo);
+    lobbyServerAccessor.addOnMessageListener(GpgServerMessage.class, this::onGpgServerMessage);
   }
 
   private void updateLobbyModeFromGameInfo(GameLaunchMessage gameLaunchMessage) {
@@ -314,6 +345,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   }
 
   private void handleDisconnectFromPeer(DisconnectFromPeerMessage disconnectFromPeerMessage) throws IOException {
+    IOUtils.closeQuietly(peerSocketsByUid.get(disconnectFromPeerMessage.getUid()));
     writeToFa(disconnectFromPeerMessage);
   }
 
@@ -326,9 +358,12 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   }
 
   private void handleConnectToPeer(ConnectToPeerMessage connectToPeerMessage) throws IOException {
-    int peerUid = connectToPeerMessage.getPeerUid();
-    SocketAddress peerSocketAddress = getSocketForPeer(peerUid).getLocalSocketAddress();
+    InetSocketAddress peerAddress = connectToPeerMessage.getPeerAddress();
 
+    DatagramSocket peerSocket = createOrGetPeerSocket(peerAddress);
+    peerSocketsByUid.put(connectToPeerMessage.getPeerUid(), peerSocket);
+
+    SocketAddress peerSocketAddress = peerSocket.getLocalSocketAddress();
     connectToPeerMessage.setPeerAddress((InetSocketAddress) peerSocketAddress);
 
     writeToFa(connectToPeerMessage);
@@ -341,19 +376,22 @@ public class LocalRelayServerImpl implements LocalRelayServer {
    *
    * @return the UDP socket the peer has been bound to
    */
-  private DatagramSocket getSocketForPeer(int peerUid) throws SocketException {
-    if (!peerRelaySockets.containsKey(peerUid)) {
-      peerRelaySockets.put(peerUid, new DatagramSocket(0));
+  private DatagramSocket createOrGetPeerSocket(SocketAddress socketAddress) throws SocketException {
+    if (!peerRelaySockets.containsKey(socketAddress)) {
+      peerRelaySockets.put(socketAddress, new DatagramSocket(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0)));
     }
-    DatagramSocket datagramSocket = peerRelaySockets.get(peerUid);
-    forwardSocket(datagramSocket, forwarder);
-    return datagramSocket;
+    DatagramSocket peerSocket = peerRelaySockets.get(socketAddress);
+    forwardSocket(peerSocket, forwarder);
+    return peerSocket;
   }
 
   private void handleJoinGame(JoinGameMessage joinGameMessage) throws IOException {
-    int peerUid = joinGameMessage.getPeerUid();
-    SocketAddress peerSocketAddress = getSocketForPeer(peerUid).getLocalSocketAddress();
+    InetSocketAddress socketAddress = joinGameMessage.getPeerAddress();
 
+    DatagramSocket peerSocket = createOrGetPeerSocket(socketAddress);
+    peerSocketsByUid.put(joinGameMessage.getPeerUid(), peerSocket);
+
+    SocketAddress peerSocketAddress = peerSocket.getLocalSocketAddress();
     joinGameMessage.setPeerAddress((InetSocketAddress) peerSocketAddress);
 
     writeToFa(joinGameMessage);
@@ -363,22 +401,5 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     writeHeader(gpgServerMessage);
     gameOutputStream.writeUdpArgs(gpgServerMessage.getArgs());
     gameOutputStream.flush();
-  }
-
-  private void forwardSocket(final DatagramSocket socket, Consumer<DatagramPacket> forwarder) {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        byte[] buffer = new byte[8092];
-        DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
-
-        while (!isCancelled()) {
-          socket.receive(datagramPacket);
-          forwarder.accept(datagramPacket);
-        }
-
-        return null;
-      }
-    });
   }
 }

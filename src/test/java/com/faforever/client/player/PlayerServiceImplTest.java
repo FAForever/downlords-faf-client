@@ -49,11 +49,12 @@ public class PlayerServiceImplTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testInit() throws Exception {
     instance.init();
 
-    verify(lobbyServerAccessor).addOnMessageListener(PlayersMessage.class, any(Consumer.class));
-    verify(lobbyServerAccessor).addOnMessageListener(SocialMessage.class, any(Consumer.class));
+    verify(lobbyServerAccessor).addOnMessageListener(eq(PlayersMessage.class), any(Consumer.class));
+    verify(lobbyServerAccessor).addOnMessageListener(eq(SocialMessage.class), any(Consumer.class));
   }
 
   @Test
