@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.xml.sax.SAXException;
 
+import javax.annotation.PreDestroy;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -21,7 +22,8 @@ public class WeUpnpServiceImpl implements UpnpService {
 
   @Value("${upnp.timeout}")
   int upnpTimeout;
-
+  private GatewayDevice validGateway;
+  private int mappedPort;
 
   @Override
   public void forwardPort(int port) {
@@ -32,7 +34,7 @@ public class WeUpnpServiceImpl implements UpnpService {
     try {
       discover.setTimeout(upnpTimeout);
       discover.discover();
-      GatewayDevice validGateway = discover.getValidGateway();
+      validGateway = discover.getValidGateway();
 
       if (validGateway == null) {
         logger.info("Could not find a UPnP capable gateway");
@@ -46,31 +48,45 @@ public class WeUpnpServiceImpl implements UpnpService {
       logger.debug("Looking for existing port mapping for {}:{}", localAddress, port);
 
       PortMappingEntry portMappingEntry = new PortMappingEntry();
-      boolean found = validGateway.getSpecificPortMappingEntry(port, UDP, portMappingEntry);
+      boolean mappingExists = validGateway.getSpecificPortMappingEntry(port, UDP, portMappingEntry);
 
-      if (found) {
+      if (mappingExists) {
         String mappedIp = portMappingEntry.getInternalClient();
         int mappedPort = portMappingEntry.getInternalPort();
         if (Objects.equals(mappedIp, localAddress) && Objects.equals(mappedPort, port)) {
           logger.info("Port {} is already mapped to {}:{}, not changing anything", port, localAddress, port);
+          return;
         } else {
           logger.info("Port {} is mapped to {}:{}. Replacing entry.", port, localAddress, port);
-          if (!validGateway.deletePortMapping(port, UDP)) {
-            logger.warn("Mapping for port {} could not be removed", port);
-          }
-          boolean added = validGateway.addPortMapping(port, port, localAddress, UDP, "FAF Client");
-          if (!added) {
-            logger.warn("Port {} could not be mapped to {}:{}", port, localAddress, port);
-            return;
-          }
+          deletePortMapping(port);
         }
       }
 
-
+      addPortMapping(port, localAddress);
       logger.info("Port {} has been mapped to {}:{}", port, localAddress, port);
-
     } catch (IOException | SAXException | ParserConfigurationException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private void deletePortMapping(int port) throws IOException, SAXException {
+    if (!validGateway.deletePortMapping(port, UDP)) {
+      logger.warn("Mapping for port {} could not be removed", port);
+    }
+  }
+
+  private boolean addPortMapping(int port, String localAddress) throws IOException, SAXException {
+    boolean added = validGateway.addPortMapping(port, port, localAddress, UDP, "Downlord's FAF Client");
+    if (!added) {
+      logger.warn("Port {} could not be mapped to {}:{}", port, localAddress, port);
+    } else {
+      mappedPort = port;
+    }
+    return added;
+  }
+
+  @PreDestroy
+  void close() throws IOException, SAXException {
+    deletePortMapping(mappedPort);
   }
 }
