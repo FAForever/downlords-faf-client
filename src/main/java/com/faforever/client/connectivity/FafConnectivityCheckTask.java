@@ -9,8 +9,7 @@ import com.faforever.client.relay.ProcessNatPacketMessage;
 import com.faforever.client.relay.SendNatPacketMessage;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.upnp.UpnpService;
-import com.faforever.client.util.SocketAddressUtil;
-import com.google.common.primitives.Bytes;
+import com.faforever.client.util.Assert;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +44,7 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
   @Resource
   ExecutorService executorService;
 
-  private int port;
+  private Integer port;
   private CompletableFuture<DatagramPacket> gamePortPacketFuture;
   private CompletableFuture<ConnectivityState> connectivityStateFuture;
   private DatagramSocket publicSocket;
@@ -55,6 +54,10 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
   }
 
   private void onConnectivityStateMessage(GpgServerMessage serverMessage) {
+    if (serverMessage.getTarget() != MessageTarget.CONNECTIVITY) {
+      return;
+    }
+
     switch (serverMessage.getMessageType()) {
       case SEND_NAT_PACKET:
         // The server did not receive the expected response and wants us to send a UDP packet in order hole punch the NAT.
@@ -79,7 +82,7 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
 
     logger.debug("Sending NAT packet to {}: {}", publicAddress, message);
 
-    byte[] bytes = Bytes.concat(new byte[]{(byte) 0x08}, message.getBytes(US_ASCII));
+    byte[] bytes = ('\u0008' + message).getBytes(US_ASCII);
     DatagramPacket datagramPacket = new DatagramPacket(bytes, bytes.length);
     datagramPacket.setSocketAddress(publicAddress);
     try {
@@ -91,6 +94,8 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
 
   @Override
   protected ConnectivityState call() throws Exception {
+    Assert.checkNullIllegalState(port, "port has not been set");
+
     updateTitle(i18n.get("portCheckTask.tryingUpnp"));
     upnpService.forwardPort(port);
     return checkConnectivity();
@@ -132,7 +137,7 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
 
       byte[] data = udpPacket.getData();
       String message = new String(data, 0, udpPacket.getLength(), US_ASCII);
-      String address = SocketAddressUtil.toString((InetSocketAddress) udpPacket.getSocketAddress());
+      InetSocketAddress address = (InetSocketAddress) udpPacket.getSocketAddress();
 
       ProcessNatPacketMessage processNatPacketMessage = new ProcessNatPacketMessage(address, message);
       processNatPacketMessage.setTarget(MessageTarget.CONNECTIVITY);
@@ -152,9 +157,9 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
   }
 
   private CompletableFuture<DatagramPacket> listenForPackage(DatagramSocket datagramSocket) {
+    byte[] buffer = new byte[64];
+    DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
     return CompletableFuture.supplyAsync(() -> {
-      byte[] buffer = new byte[64];
-      DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
 
       try {
         datagramSocket.receive(datagramPacket);

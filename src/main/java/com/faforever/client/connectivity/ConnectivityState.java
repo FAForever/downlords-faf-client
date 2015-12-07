@@ -14,7 +14,11 @@ public enum ConnectivityState {
   /**
    * The client is incapable of sending/receiving UDP messages.
    */
-  BLOCKED("BLOCKED");
+  BLOCKED("BLOCKED"),
+  /**
+   * The connection has not yet been tested, or the test failed.
+   */
+  UNKNOWN(null);
 
   private static final HashMap<String, ConnectivityState> fromString;
 

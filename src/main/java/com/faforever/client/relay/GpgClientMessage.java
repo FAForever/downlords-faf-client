@@ -43,4 +43,12 @@ public class GpgClientMessage implements SerializableMessage {
   public void setTarget(MessageTarget target) {
     this.target = target;
   }
+
+  protected int getInt(int index) {
+    return ((Number) args.get(index)).intValue();
+  }
+
+  protected String getString(int index) {
+    return ((String) args.get(index));
+  }
 }

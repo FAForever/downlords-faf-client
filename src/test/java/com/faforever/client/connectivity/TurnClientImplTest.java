@@ -1,156 +1,204 @@
 package com.faforever.client.connectivity;
 
-import com.faforever.client.legacy.io.QDataInputStream;
-import com.faforever.client.legacy.io.QDataOutputStream;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.relay.CreatePermissionMessage;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.apache.commons.compress.utils.IOUtils;
+import org.ice4j.StunException;
+import org.ice4j.StunMessageEvent;
+import org.ice4j.TransportAddress;
+import org.ice4j.message.Message;
+import org.ice4j.message.MessageFactory;
+import org.ice4j.message.Request;
+import org.ice4j.message.Response;
+import org.ice4j.socket.IceUdpSocketWrapper;
+import org.ice4j.stack.StunStack;
 import org.junit.After;
 import org.junit.Before;
-import org.springframework.core.env.Environment;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.Arrays;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.net.InetSocketAddress;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.ice4j.Transport.UDP;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 
 public class TurnClientImplTest extends AbstractPlainJavaFxTest {
 
-  private class ProxyPackage {
-
-    final int length;
-    final int playerNumber;
-    final int uid;
-    final int dataLength;
-
-    ProxyPackage(int length, int playerNumber, int uid, int dataLength) {
-      this.length = length;
-      this.playerNumber = playerNumber;
-      this.uid = uid;
-      this.dataLength = dataLength;
-    }
-  }
-  public static final int TIMEOUT = 1000;
-  public static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
-  private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
-  private static final int OTHER_UID_1 = 111;
-  private static final int GAME_PORT = 61112;
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private TurnClientImpl instance;
-  private ServerSocket fafProxyServerSocket;
-  private QDataOutputStream serverToLocalOutputStream;
-  private boolean stopped;
-  private BlockingQueue<ProxyPackage> packagesReceivedByFafProxyServer;
-  private BlockingQueue<byte[]> dataReceivedByGame;
-  private Socket gameToLocalProxySocket;
-  private CountDownLatch fafProxyConnectedLatch;
-  private CountDownLatch fakeGameTerminatedLatch;
-  private CountDownLatch fakeFafProxyTerminatedLatch;
-  private DatagramSocket gameDatagramSocket;
+  private DatagramSocket turnServerSocket;
+
+  @Mock
+  private LobbyServerAccessor lobbyServerAccessor;
+  @Mock
+  private ScheduledExecutorService scheduledExecutorService;
+  @Captor
+  private ArgumentCaptor<Consumer<CreatePermissionMessage>> createPermissionListenerCaptor;
+
+  private BlockingQueue<StunMessageEvent> eventsReceivedByTurnServer;
+  private StunStack stunStack;
 
   @Before
   public void setUp() throws Exception {
+    DatagramSocket serverSocket = startFakeTurnServer();
+
     instance = new TurnClientImpl();
-    instance.environment = mock(Environment.class);
-    instance.preferencesService = mock(PreferencesService.class);
-    Preferences preferences = mock(Preferences.class);
-    ForgedAlliancePrefs forgedAlliancePrefs = mock(ForgedAlliancePrefs.class);
+    instance.scheduledExecutorService = scheduledExecutorService;
+    instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.turnHost = serverSocket.getLocalAddress().getHostAddress();
+    instance.turnPort = serverSocket.getLocalPort();
 
-    startFakeFafProxyServer();
+    eventsReceivedByTurnServer = new LinkedBlockingQueue<>();
 
-    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
-    when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
-    when(instance.preferencesService.getPreferences()).thenReturn(preferences);
-    when(instance.environment.getProperty("proxy.host")).thenReturn(LOOPBACK_ADDRESS.getHostAddress());
-    when(instance.environment.getProperty("proxy.port", int.class)).thenReturn(fafProxyServerSocket.getLocalPort());
+    Mockito.doAnswer(invocation -> {
+      invocation.getArgumentAt(0, Runnable.class).run();
+      return null;
+    }).when(scheduledExecutorService).execute(any());
+
+    instance.postConstruct();
   }
 
-  private void startFakeFafProxyServer() throws IOException {
-    packagesReceivedByFafProxyServer = new ArrayBlockingQueue<>(10);
-    fafProxyConnectedLatch = new CountDownLatch(1);
-    fakeFafProxyTerminatedLatch = new CountDownLatch(1);
+  private DatagramSocket startFakeTurnServer() throws Exception {
+    turnServerSocket = new DatagramSocket(0, InetAddress.getLocalHost());
+    logger.info("Fake server listening on " + turnServerSocket.getLocalSocketAddress());
 
-    fafProxyServerSocket = new ServerSocket(0);
+    stunStack = new StunStack();
+    stunStack.addSocket(new IceUdpSocketWrapper(turnServerSocket));
+    stunStack.addRequestListener(evt -> eventsReceivedByTurnServer.add(evt));
 
-    WaitForAsyncUtils.async(() -> {
-      try (Socket socket = fafProxyServerSocket.accept()) {
-        this.gameToLocalProxySocket = socket;
-        QDataInputStream qDataInputStream = new QDataInputStream(new DataInputStream(socket.getInputStream()));
-        serverToLocalOutputStream = new QDataOutputStream(new DataOutputStream(socket.getOutputStream()));
-
-        fafProxyConnectedLatch.countDown();
-
-        qDataInputStream.skipBlockSize();
-        int uidOfConnectedPlayer = qDataInputStream.readShort();
-
-        while (!stopped) {
-          // Number of bytes for port, uid and QByteArray (prefix stuff plus data length)
-          int length = qDataInputStream.readInt();
-          int playerNumber = qDataInputStream.readShort();
-          int uidOfTargetPlayer = qDataInputStream.readShort();
-
-          byte[] buffer = new byte[1024];
-          int dataLength = qDataInputStream.readQByteArray(buffer);
-
-          packagesReceivedByFafProxyServer.add(new ProxyPackage(length, playerNumber, uidOfTargetPlayer, dataLength));
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      } finally {
-        fakeFafProxyTerminatedLatch.countDown();
-      }
-    });
+    return turnServerSocket;
   }
 
   @After
   public void tearDown() throws Exception {
-    stopped = true;
-    IOUtils.closeQuietly(fafProxyServerSocket);
-    IOUtils.closeQuietly(gameToLocalProxySocket);
-    IOUtils.closeQuietly(gameDatagramSocket);
-    if (fakeGameTerminatedLatch != null) {
-      fakeGameTerminatedLatch.await();
-    }
-    if (fakeFafProxyTerminatedLatch != null) {
-      fakeFafProxyTerminatedLatch.await();
-    }
+    IOUtils.closeQuietly(turnServerSocket);
   }
 
-  private void startFakeGameProcess() {
-    dataReceivedByGame = new ArrayBlockingQueue<>(10);
-    fakeGameTerminatedLatch = new CountDownLatch(1);
+  @Test
+  public void testConnect() throws Exception {
+    WaitForAsyncUtils.async(() -> {
+      handleAllocationRequest();
+      return null;
+    });
+
+    InetSocketAddress socketAddress = (InetSocketAddress) instance.connect().get();
+    assertThat(socketAddress.getAddress().getHostAddress(), is(turnServerSocket.getLocalAddress().getHostAddress()));
+    assertThat(socketAddress.getPort(), is(2222));
+
+    verify(scheduledExecutorService).scheduleWithFixedDelay(any(), anyLong(), anyLong(), any());
+  }
+
+  private void handleAllocationRequest() throws StunException, IOException, InterruptedException {
+    StunMessageEvent event = eventsReceivedByTurnServer.poll(5, TimeUnit.SECONDS);
+    TransportAddress localAddress = event.getLocalAddress();
+    TransportAddress remoteAddress = event.getRemoteAddress();
+
+    Request request = (Request) event.getMessage();
+    assertThat(request.getMessageType(), is(Message.ALLOCATE_REQUEST));
+    Response allocationResponse = MessageFactory.createAllocationResponse(request, remoteAddress, new TransportAddress(localAddress.getHostAddress(), 2222, UDP), 100);
+
+    sendResponse(remoteAddress, request, allocationResponse);
+  }
+
+  private void sendResponse(TransportAddress remoteAddress, Request request, Response channelBindResponse) throws StunException, IOException {
+    TransportAddress sendThrough = new TransportAddress((InetSocketAddress) turnServerSocket.getLocalSocketAddress(), UDP);
+    stunStack.sendResponse(request.getTransactionID(), channelBindResponse, sendThrough, remoteAddress);
+  }
+
+  @Test
+  public void testClose() throws Exception {
+    instance.close();
+  }
+
+  @Test
+  public void testGetRelayAddress() throws Exception {
+    assertThat(instance.getRelayAddress(), nullValue());
 
     WaitForAsyncUtils.async(() -> {
-      byte[] datagramBuffer = new byte[1024];
-      DatagramPacket datagramPacket = new DatagramPacket(datagramBuffer, datagramBuffer.length);
+      handleAllocationRequest();
+      handleCreatePermissionRequest();
+      handleChannelBindRequest();
 
-      try (DatagramSocket datagramSocket = new DatagramSocket(GAME_PORT)) {
-        this.gameDatagramSocket = datagramSocket;
-        while (!stopped) {
-          datagramSocket.receive(datagramPacket);
-
-          dataReceivedByGame.add(Arrays.copyOfRange(datagramBuffer, datagramPacket.getOffset(), datagramPacket.getLength()));
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      } finally {
-        fakeGameTerminatedLatch.countDown();
-      }
+      return null;
     });
+
+    instance.connect().get(5, TimeUnit.SECONDS);
+
+    InetSocketAddress relayAddress = instance.getRelayAddress();
+    assertThat(relayAddress.getAddress().getHostAddress(), is(turnServerSocket.getLocalAddress().getHostAddress()));
+    assertThat(relayAddress.getPort(), is(2222));
+  }
+
+  private void handleCreatePermissionRequest() throws StunException, IOException, InterruptedException {
+    StunMessageEvent event = eventsReceivedByTurnServer.poll(5, TimeUnit.SECONDS);
+    TransportAddress remoteAddress = event.getRemoteAddress();
+
+    Request request = (Request) event.getMessage();
+    assertThat(request.getMessageType(), is(Message.CREATEPERMISSION_REQUEST));
+    Response createPermissionResponse = MessageFactory.createCreatePermissionResponse();
+
+    sendResponse(remoteAddress, request, createPermissionResponse);
+  }
+
+  private void handleChannelBindRequest() throws InterruptedException, IOException, StunException {
+    StunMessageEvent event = eventsReceivedByTurnServer.poll(5, TimeUnit.SECONDS);
+    TransportAddress remoteAddress = event.getRemoteAddress();
+
+    Request request = (Request) event.getMessage();
+    assertThat(request.getMessageType(), is(Message.CHANNELBIND_REQUEST));
+    Response channelBindResponse = MessageFactory.createChannelBindResponse();
+
+    sendResponse(remoteAddress, request, channelBindResponse);
+  }
+
+  @Test
+  public void testSend() throws Exception {
+    WaitForAsyncUtils.async(() -> {
+      handleAllocationRequest();
+      handleCreatePermissionRequest();
+      handleChannelBindRequest();
+
+      return null;
+    });
+
+    instance.connect().get(5, TimeUnit.SECONDS);
+
+    InetSocketAddress remotePeerAddress = new InetSocketAddress("93.184.216.34", 1234);
+
+    CreatePermissionMessage createPermissionMessage = new CreatePermissionMessage();
+    createPermissionMessage.setAddress(remotePeerAddress);
+
+    verify(lobbyServerAccessor).addOnMessageListener(eq(CreatePermissionMessage.class), createPermissionListenerCaptor.capture());
+    createPermissionListenerCaptor.getValue().accept(createPermissionMessage);
+
+    byte[] bytes = new byte[1024];
+    DatagramPacket datagramPacket = new DatagramPacket(bytes, bytes.length);
+    datagramPacket.setSocketAddress(remotePeerAddress);
+
+    instance.send(datagramPacket);
   }
 }

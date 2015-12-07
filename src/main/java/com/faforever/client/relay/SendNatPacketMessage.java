@@ -11,7 +11,7 @@ public class SendNatPacketMessage extends GpgServerMessage {
   public static final int MESSAGE_INDEX = 1;
 
   public SendNatPacketMessage() {
-    super(GpgServerMessageType.SEND_NAT_PACKET, 1);
+    super(GpgServerMessageType.SEND_NAT_PACKET, 2);
     setTarget(MessageTarget.GAME);
   }
 
@@ -19,11 +19,15 @@ public class SendNatPacketMessage extends GpgServerMessage {
     return SocketAddressUtil.fromString(getString(PUBLIC_ADDRESS_INDEX));
   }
 
-  public void setPublicAddress(String addressString) {
-    setValue(PUBLIC_ADDRESS_INDEX, addressString);
+  public void setPublicAddress(InetSocketAddress addressString) {
+    setValue(PUBLIC_ADDRESS_INDEX, SocketAddressUtil.toString(addressString));
   }
 
   public String getMessage() {
     return (String) getArgs().get(MESSAGE_INDEX);
+  }
+
+  public void setMessage(String message) {
+    setValue(MESSAGE_INDEX, message);
   }
 }

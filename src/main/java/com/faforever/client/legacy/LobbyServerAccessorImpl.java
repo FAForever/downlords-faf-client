@@ -49,6 +49,7 @@ import com.faforever.client.relay.GpgClientMessageSerializer;
 import com.faforever.client.relay.GpgServerMessageType;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.update.ClientUpdateService;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -85,10 +86,10 @@ import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 public class LobbyServerAccessorImpl extends AbstractServerAccessor implements LobbyServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final String VERSION = "0";
   private static final long RECONNECT_DELAY = 3000;
   private final Gson gson;
   private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners;
+
   @Resource
   PreferencesService preferencesService;
   @Resource
@@ -99,10 +100,14 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   I18n i18n;
   @Resource
   UidService uidService;
+  @Resource
+  ClientUpdateService clientUpdateService;
+
   @Value("${lobby.host}")
   String lobbyHost;
   @Value("${lobby.port}")
   int lobbyPort;
+
   private Task<Void> fafConnectionTask;
   private String localIp;
   private ServerWriter serverWriter;
@@ -389,7 +394,8 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   private CompletableFuture<LoginMessage> logIn(String username, String password) {
     String uniqueId = uidService.generate(String.valueOf(sessionId.get()), preferencesService.getFafDataDirectory().resolve("uid.log"));
-    writeToServer(new LoginClientMessage(username, password, sessionId.get(), uniqueId, localIp, VERSION));
+    String version = clientUpdateService.getCurrentVersion().toString();
+    writeToServer(new LoginClientMessage(username, password, sessionId.get(), uniqueId, localIp, version));
 
     return loginFuture;
   }

@@ -1,8 +1,8 @@
 package com.faforever.client.connectivity;
 
 import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.relay.CreatePermissionMessage;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.compress.utils.IOUtils;
 import org.ice4j.StunException;
 import org.ice4j.StunMessageEvent;
@@ -25,9 +25,10 @@ import org.ice4j.stunclient.BlockingRequestSender;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -39,7 +40,6 @@ import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -53,20 +53,21 @@ public class TurnClientImpl implements TurnClient {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final AtomicInteger CHANNEL_NUMBER = new AtomicInteger(0x4000);
-  private final StunStack stunStack;
   private final ChannelData channelData;
 
-  @Resource
-  Environment environment;
-  @Resource
-  PreferencesService preferencesService;
-  @Resource
-  Executor executor;
   @Resource
   ScheduledExecutorService scheduledExecutorService;
   @Resource
   LobbyServerAccessor lobbyServerAccessor;
 
+  @Value("${turn.host}")
+  String turnHost;
+  @Value("${turn.port}")
+  int turnPort;
+
+  @VisibleForTesting
+  StunStack stunStack;
+  private BlockingRequestSender blockingRequestSender;
   private TransportAddress relayedAddress;
   private TransportAddress mappedAddress;
   private ScheduledFuture<?> refreshTask;
@@ -74,7 +75,6 @@ public class TurnClientImpl implements TurnClient {
   private TransportAddress localAddress;
   private Map<SocketAddress, Character> socketsToChannels;
   private DatagramSocket localSocket;
-  private BlockingRequestSender blockingRequestSender;
 
   public TurnClientImpl() {
     stunStack = new StunStack();
@@ -84,9 +84,6 @@ public class TurnClientImpl implements TurnClient {
 
   @PostConstruct
   void postConstruct() {
-    String turnHost = environment.getProperty("turn.host");
-    int turnPort = environment.getProperty("turn.port", int.class);
-
     serverAddress = new TransportAddress(turnHost, turnPort, Transport.UDP);
     lobbyServerAccessor.addOnMessageListener(CreatePermissionMessage.class, message -> addPeer(message.getAddress()));
   }
@@ -100,13 +97,14 @@ public class TurnClientImpl implements TurnClient {
     bindChannel(address);
   }
 
-  private void sendRequest(Request request) {
+  private Response sendRequest(Request request) {
     try {
       StunMessageEvent stunMessageEvent = blockingRequestSender.sendRequestAndWaitForResponse(request, serverAddress);
       Response response = ((StunResponseEvent) stunMessageEvent).getResponse();
       if (response.isErrorResponse()) {
         throw new StunException(((ErrorCodeAttribute) request.getAttribute(Attribute.ERROR_CODE)).getReasonPhrase());
       }
+      return response;
     } catch (StunException | IOException e) {
       throw new RuntimeException(e);
     }
@@ -120,6 +118,7 @@ public class TurnClientImpl implements TurnClient {
         TransactionID.createNewTransactionID().getBytes()
     );
     sendRequest(request);
+    socketsToChannels.put(address, channelNumber);
   }
 
   @Override
@@ -136,14 +135,19 @@ public class TurnClientImpl implements TurnClient {
       } catch (StunException | IOException e) {
         throw new RuntimeException(e);
       }
-    }, executor);
+    }, scheduledExecutorService);
   }
 
   @Override
+  @PreDestroy
   public void close() throws IOException {
     IOUtils.closeQuietly(localSocket);
-    stunStack.removeSocket(localAddress);
-    refreshTask.cancel(true);
+    if (localAddress != null) {
+      stunStack.removeSocket(localAddress);
+    }
+    if (refreshTask != null) {
+      refreshTask.cancel(true);
+    }
   }
 
   @Override
@@ -165,10 +169,8 @@ public class TurnClientImpl implements TurnClient {
 
   private void allocateAddress(TransportAddress turnServerAddress) throws StunException, IOException {
     logger.info("Requesting address allocation at {}", serverAddress);
-    StunMessageEvent stunMessageEvent = blockingRequestSender.sendRequestAndWaitForResponse(
-        MessageFactory.createAllocateRequest(UDP, false), turnServerAddress
-    );
-    Response response = ((StunResponseEvent) stunMessageEvent).getResponse();
+    Response response = sendRequest(MessageFactory.createAllocateRequest(UDP, false));
+
     byte[] transactionID = response.getTransactionID();
     relayedAddress = ((XorRelayedAddressAttribute) response.getAttribute(XOR_RELAYED_ADDRESS)).getAddress(transactionID);
     mappedAddress = ((XorMappedAddressAttribute) response.getAttribute(XOR_MAPPED_ADDRESS)).getAddress(transactionID);

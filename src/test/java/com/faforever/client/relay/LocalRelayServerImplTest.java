@@ -219,7 +219,6 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     GpgServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(relayMessage.getMessageType(), is(GpgServerMessageType.CREATE_LOBBY));
 
-
     List<Object> args = relayMessage.getArgs();
     assertThat(args.get(0), is(LobbyMode.DEFAULT_LOBBY.getMode()));
     assertThat((Integer) args.get(1), is(both(greaterThan(PORT_RANGE_MIN)).and(lessThan(PORT_RANGE_MAX))));

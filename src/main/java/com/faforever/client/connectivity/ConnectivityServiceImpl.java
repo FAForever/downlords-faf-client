@@ -41,9 +41,15 @@ public class ConnectivityServiceImpl implements ConnectivityService {
   I18n i18n;
   @Resource
   ApplicationContext applicationContext;
+
   @Value("${connectivity.helpUrl}")
   String connectivityHelpUrl;
+
   private ConnectivityState connectivityState;
+
+  public ConnectivityServiceImpl() {
+    connectivityState = ConnectivityState.UNKNOWN;
+  }
 
   @Override
   public ConnectivityState getConnectivityState() {
@@ -70,6 +76,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
       return result;
     }).exceptionally(throwable -> {
       logger.info("Port check failed", throwable);
+      connectivityState = null;
       notificationService.addNotification(
           new PersistentNotification(i18n.get("portCheckTask.serverUnreachable"), Severity.WARN,
               Collections.singletonList(

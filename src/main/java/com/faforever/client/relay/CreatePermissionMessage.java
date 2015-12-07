@@ -15,4 +15,8 @@ public class CreatePermissionMessage extends GpgServerMessage {
   public InetSocketAddress getAddress() {
     return SocketAddressUtil.fromString(getString(ADDRESS_INDEX));
   }
+
+  public void setAddress(InetSocketAddress address) {
+    setValue(ADDRESS_INDEX, SocketAddressUtil.toString(address));
+  }
 }

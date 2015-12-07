@@ -24,10 +24,12 @@ import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.rankedmatch.SearchRanked1V1ClientMessage;
 import com.faforever.client.rankedmatch.StopSearchRanked1V1ClientMessage;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.update.ClientUpdateService;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.compress.utils.IOUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -88,6 +90,8 @@ public class LobbyServiceServerAccessorImplTest extends AbstractPlainJavaFxTest 
   private UidService uidService;
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
+  @Mock
+  private ClientUpdateService clientUpdateService;
 
   private LobbyServerAccessorImpl instance;
   private LoginPrefs loginPrefs;
@@ -110,6 +114,7 @@ public class LobbyServiceServerAccessorImplTest extends AbstractPlainJavaFxTest 
     instance.uidService = uidService;
     instance.lobbyHost = LOOPBACK_ADDRESS.getHostAddress();
     instance.lobbyPort = fafLobbyServerSocket.getLocalPort();
+    instance.clientUpdateService = clientUpdateService;
 
     loginPrefs = new LoginPrefs();
     loginPrefs.setUsername("junit");
@@ -121,6 +126,7 @@ public class LobbyServiceServerAccessorImplTest extends AbstractPlainJavaFxTest 
     when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
     when(preferences.getLogin()).thenReturn(loginPrefs);
     when(uidService.generate(any(), any())).thenReturn("encrypteduidstring");
+    when(clientUpdateService.getCurrentVersion()).thenReturn(new ComparableVersion("1.0"));
 
     preferencesService.getPreferences().getLogin();
   }
@@ -191,7 +197,7 @@ public class LobbyServiceServerAccessorImplTest extends AbstractPlainJavaFxTest 
     assertThat(loginClientMessage.getPassword(), is(password));
     assertThat(loginClientMessage.getSession(), is(sessionId));
     assertThat(loginClientMessage.getUniqueId(), is("encrypteduidstring"));
-    assertThat(loginClientMessage.getVersion(), is("0"));
+    assertThat(loginClientMessage.getVersion(), is("1.0"));
     assertThat(loginClientMessage.getUserAgent(), is("downlords-faf-client"));
 
     LoginMessage loginServerMessage = new LoginMessage();

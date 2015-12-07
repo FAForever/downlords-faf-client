@@ -10,6 +10,7 @@ import com.faforever.client.fx.JavaFxHostService;
 import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.JavaFxUtil;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Application;
 import javafx.scene.image.Image;
 import javafx.scene.text.Font;
@@ -19,14 +20,18 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 public class Main extends Application {
 
-  private AnnotationConfigApplicationContext context;
+  @VisibleForTesting
+  AnnotationConfigApplicationContext context;
+
+  public Main() {
+    context = new AnnotationConfigApplicationContext();
+  }
 
   @Override
-  public void start(Stage stage) throws Exception {
+  public void start(Stage stage) {
     Font.loadFont(getClass().getResourceAsStream("/font/fontawesome-webfont.ttf"), 0);
     JavaFxUtil.fixTooltipDuration();
 
-    context = new AnnotationConfigApplicationContext();
     context.getBeanFactory().registerSingleton("hostService", new JavaFxHostService(getHostServices()));
     context.getBeanFactory().registerSingleton("stage", stage);
     context.register(BaseConfig.class, UiConfig.class, ServiceConfig.class, TaskConfig.class, CacheConfig.class, LuceneConfig.class);
