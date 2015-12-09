@@ -3,7 +3,6 @@ package com.faforever.client.legacy;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
-import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.legacy.domain.ServerMessage;
@@ -13,7 +12,6 @@ import javafx.beans.property.ObjectProperty;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -41,8 +39,6 @@ public interface LobbyServerAccessor {
   CompletableFuture<GameLaunchMessage> requestJoinGame(GameInfoBean gameInfoBean, String password);
 
   void disconnect();
-
-  CompletableFuture<List<LeaderboardEntryBean>> requestLeaderboardEntries();
 
   void setFriends(Collection<String> friends);
 

@@ -1,11 +1,11 @@
 package com.faforever.client.rankedmatch;
 
+import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
-import com.faforever.client.leaderboard.RatingDistribution;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.RatingUtil;
@@ -38,6 +38,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
+
+import static java.lang.Integer.parseInt;
 
 public class Ranked1v1Controller {
 
@@ -210,13 +212,13 @@ public class Ranked1v1Controller {
     initialized = true;
   }
 
-  private void setCurrentPlayer(PlayerInfoBean newValue) {
-    playerRatingListener = ratingObservable -> Platform.runLater(() -> updateRating(newValue));
+  private void setCurrentPlayer(PlayerInfoBean player) {
+    playerRatingListener = ratingObservable -> Platform.runLater(() -> updateRating(player));
 
-    newValue.leaderboardRatingDeviationProperty().addListener(playerRatingListener);
-    newValue.leaderboardRatingMeanProperty().addListener(playerRatingListener);
-    updateRating(newValue);
-    updateOtherValues(newValue);
+    player.leaderboardRatingDeviationProperty().addListener(playerRatingListener);
+    player.leaderboardRatingMeanProperty().addListener(playerRatingListener);
+    updateRating(player);
+    updateOtherValues(player);
   }
 
   private void updateRating(PlayerInfoBean player) {
@@ -238,13 +240,13 @@ public class Ranked1v1Controller {
       updateRatingHint(rating);
     }
 
-    leaderboardService.getRatingDistributions()
-        .thenAccept(ratingDistributions -> {
+    leaderboardService.getRanked1v1Stats()
+        .thenAccept(ranked1v1Stats -> {
           int totalPlayers = 0;
-          for (RatingDistribution ratingDistribution : ratingDistributions) {
-            totalPlayers += ratingDistribution.getPlayers();
+          for (Map.Entry<String, Integer> entry : ranked1v1Stats.getRatingDistribution().entrySet()) {
+            totalPlayers += entry.getValue();
           }
-          plotRatingDistributions(ratingDistributions, player);
+          plotRatingDistributions(ranked1v1Stats, player);
           String rankingOutOfText = i18n.get("ranked1v1.rankingOutOf", totalPlayers);
           Platform.runLater(() -> rankingOutOfLabel.setText(rankingOutOfText));
         })
@@ -255,7 +257,7 @@ public class Ranked1v1Controller {
   }
 
   private void updateOtherValues(PlayerInfoBean currentPlayer) {
-    leaderboardService.getEntryForPlayer(currentPlayer.getUsername()).thenAccept(leaderboardEntryBean -> {
+    leaderboardService.getEntryForPlayer(currentPlayer.getId()).thenAccept(leaderboardEntryBean -> {
       rankingLabel.setText(i18n.get("ranked1v1.rankingFormat", leaderboardEntryBean.getRating()));
       gamesPlayedLabel.setText(String.format("%d", leaderboardEntryBean.getGamesPlayed()));
       winLossRationLabel.setText(i18n.get("percentage", leaderboardEntryBean.getWinLossRatio()));
@@ -280,14 +282,16 @@ public class Ranked1v1Controller {
   }
 
   @SuppressWarnings("unchecked")
-  private void plotRatingDistributions(List<RatingDistribution> ratingDistributionMap, PlayerInfoBean player) {
+  private void plotRatingDistributions(Ranked1v1Stats ranked1v1Stats, PlayerInfoBean player) {
     XYChart.Series<String, Integer> series = new XYChart.Series<>();
     series.setName(i18n.get("ranked1v1.players"));
-    series.getData().addAll(ratingDistributionMap.stream()
+    series.getData().addAll(ranked1v1Stats.getRatingDistribution().entrySet().stream()
+        .sorted((o1, o2) -> Integer.compare(parseInt(o1.getKey()), parseInt(o2.getKey())))
         .map(item -> {
-          int maxRating = item.getMaxRating();
-          XYChart.Data<String, Integer> data = new XYChart.Data<>(String.format(locale, "%d", maxRating), item.getPlayers());
-          if (maxRating == RatingUtil.getRoundedLeaderboardRating(player)) {
+          int rating = parseInt(item.getKey());
+          XYChart.Data<String, Integer> data = new XYChart.Data<>(String.format(locale, "%d", rating), item.getValue());
+          int currentPlayerRating = RatingUtil.getRoundedLeaderboardRating(player);
+          if (rating == currentPlayerRating) {
             data.nodeProperty().addListener((observable, oldValue, newValue) -> {
               newValue.pseudoClassStateChanged(NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS, true);
             });

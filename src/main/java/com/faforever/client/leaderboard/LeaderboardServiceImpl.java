@@ -1,59 +1,35 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.util.RatingUtil;
-import org.jetbrains.annotations.NotNull;
+import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.api.Ranked1v1Stats;
+import com.faforever.client.config.CacheNames;
+import org.springframework.cache.annotation.Cacheable;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 public class LeaderboardServiceImpl implements LeaderboardService {
 
   @Resource
-  LobbyServerAccessor lobbyServerAccessor;
+  FafApiAccessor fafApiAccessor;
+  @Resource
+  Executor executor;
 
-  @NotNull
-  private List<RatingDistribution> calculateRatingDistributions(List<LeaderboardEntryBean> leaderboardEntryBeans) {
-    Map<Integer, RatingDistribution> result = new HashMap<>();
-    for (LeaderboardEntryBean leaderboardEntryBean : leaderboardEntryBeans) {
-      int roundedRating = RatingUtil.getRoundedRating(leaderboardEntryBean.getRating());
-      if (!result.containsKey(roundedRating)) {
-        result.put(roundedRating, new RatingDistribution(roundedRating));
-      }
-      result.get(roundedRating).incrementPlayers();
-    }
-    ArrayList<RatingDistribution> ratingDistributions = new ArrayList<>(result.values());
-    Collections.sort(ratingDistributions);
-    return ratingDistributions;
+  @Override
+  @Cacheable(CacheNames.LEADERBOARD)
+  public CompletableFuture<List<Ranked1v1EntryBean>> getLeaderboardEntries() {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getRanked1v1Entries(), executor);
   }
 
   @Override
-  public CompletableFuture<List<LeaderboardEntryBean>> getLeaderboardEntries() {
-    return lobbyServerAccessor.requestLeaderboardEntries();
+  public CompletableFuture<Ranked1v1Stats> getRanked1v1Stats() {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getRanked1v1Stats(), executor);
   }
 
   @Override
-  public CompletableFuture<List<RatingDistribution>> getRatingDistributions() {
-    return getLeaderboardEntries().thenApply(this::calculateRatingDistributions);
+  public CompletableFuture<Ranked1v1EntryBean> getEntryForPlayer(int playerId) {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getRanked1v1EntryForPlayer(playerId), executor);
   }
-
-  @Override
-  public CompletableFuture<LeaderboardEntryBean> getEntryForPlayer(String username) {
-    // TODO server side support would be nice
-    return getLeaderboardEntries().thenApply(leaderboardEntryBeans -> {
-      for (LeaderboardEntryBean leaderboardEntryBean : leaderboardEntryBeans) {
-        if (username.equals(leaderboardEntryBean.getUsername())) {
-          return leaderboardEntryBean;
-        }
-      }
-      return null;
-    });
-  }
-
-
 }

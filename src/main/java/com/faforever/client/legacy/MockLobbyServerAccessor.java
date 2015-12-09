@@ -5,7 +5,6 @@ import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameType;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfoMessage;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
@@ -207,12 +206,6 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   @Override
   public void disconnect() {
 
-  }
-
-  @Override
-  public CompletableFuture<List<LeaderboardEntryBean>> requestLeaderboardEntries() {
-
-    return null;
   }
 
   @Override

@@ -11,11 +11,10 @@ import com.faforever.client.util.Validator;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Pane;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
@@ -27,25 +26,19 @@ import static javafx.collections.FXCollections.observableArrayList;
 public class LeaderboardController {
 
   @FXML
-  TabPane ladderRoot;
+  Pane leaderboardRoot;
   @FXML
-  Tab ladderByRatingTab;
+  TableColumn<Ranked1v1EntryBean, Number> rankColumn;
   @FXML
-  Tab ladderByMapTab;
+  TableColumn<Ranked1v1EntryBean, String> nameColumn;
   @FXML
-  Tab ladderByRankTab;
+  TableColumn<Ranked1v1EntryBean, Number> winLossColumn;
   @FXML
-  TableColumn<LeaderboardEntryBean, Number> rankColumn;
+  TableColumn<Ranked1v1EntryBean, Number> gamesPlayedColumn;
   @FXML
-  TableColumn<LeaderboardEntryBean, String> nameColumn;
+  TableColumn<Ranked1v1EntryBean, Number> ratingColumn;
   @FXML
-  TableColumn<LeaderboardEntryBean, Number> winLossColumn;
-  @FXML
-  TableColumn<LeaderboardEntryBean, Number> gamesPlayedColumn;
-  @FXML
-  TableColumn<LeaderboardEntryBean, Number> ratingColumn;
-  @FXML
-  TableView<LeaderboardEntryBean> ratingTable;
+  TableView<Ranked1v1EntryBean> ratingTable;
   @FXML
   TextField searchTextField;
 
@@ -58,9 +51,8 @@ public class LeaderboardController {
   @Resource
   ReportingService reportingService;
 
-  private List<LeaderboardEntryBean> leaderboardEntryBeans;
-
-  private FilteredList<LeaderboardEntryBean> filteredList;
+  private List<Ranked1v1EntryBean> ranked1v1EntryBeans;
+  private FilteredList<Ranked1v1EntryBean> filteredList;
 
   @FXML
   public void initialize() {
@@ -74,17 +66,17 @@ public class LeaderboardController {
       if (Validator.isInt(newValue)) {
         ratingTable.scrollTo(Integer.parseInt(newValue) - 1);
       } else {
-        LeaderboardEntryBean foundPlayer = null;
-        for (LeaderboardEntryBean leaderboardEntryBean : leaderboardEntryBeans) {
-          if (leaderboardEntryBean.getUsername().toLowerCase().startsWith(newValue.toLowerCase())) {
-            foundPlayer = leaderboardEntryBean;
+        Ranked1v1EntryBean foundPlayer = null;
+        for (Ranked1v1EntryBean ranked1v1EntryBean : ranked1v1EntryBeans) {
+          if (ranked1v1EntryBean.getUsername().toLowerCase().startsWith(newValue.toLowerCase())) {
+            foundPlayer = ranked1v1EntryBean;
             break;
           }
         }
         if (foundPlayer == null) {
-          for (LeaderboardEntryBean leaderboardEntryBean : leaderboardEntryBeans) {
-            if (leaderboardEntryBean.getUsername().toLowerCase().contains(newValue.toLowerCase())) {
-              foundPlayer = leaderboardEntryBean;
+          for (Ranked1v1EntryBean ranked1v1EntryBean : ranked1v1EntryBeans) {
+            if (ranked1v1EntryBean.getUsername().toLowerCase().contains(newValue.toLowerCase())) {
+              foundPlayer = ranked1v1EntryBean;
               break;
             }
           }
@@ -100,13 +92,9 @@ public class LeaderboardController {
   }
 
   public void setUpIfNecessary() {
-    if (leaderboardEntryBeans != null) {
-      return;
-    }
-
-    leaderboardService.getLeaderboardEntries().thenAccept(leaderboardEntryBeans1 -> {
-      LeaderboardController.this.leaderboardEntryBeans = leaderboardEntryBeans1;
-      filteredList = new FilteredList<>(observableArrayList(leaderboardEntryBeans1));
+    leaderboardService.getLeaderboardEntries().thenAccept(leaderboardEntryBeans -> {
+      LeaderboardController.this.ranked1v1EntryBeans = leaderboardEntryBeans;
+      filteredList = new FilteredList<>(observableArrayList(leaderboardEntryBeans));
       ratingTable.setItems(filteredList);
     }).exceptionally(throwable -> {
       notificationService.addNotification(new ImmediateNotification(
@@ -122,6 +110,6 @@ public class LeaderboardController {
   }
 
   public Node getRoot() {
-    return ladderRoot;
+    return leaderboardRoot;
   }
 }

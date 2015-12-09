@@ -5,8 +5,6 @@ import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.LeaderboardEntryBean;
-import com.faforever.client.leaderboard.LeaderboardParser;
 import com.faforever.client.legacy.domain.AuthenticationFailedMessage;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.ClientMessageType;
@@ -47,7 +45,6 @@ import com.faforever.client.rankedmatch.StopSearchRanked1V1ClientMessage;
 import com.faforever.client.relay.GpgClientMessage;
 import com.faforever.client.relay.GpgClientMessageSerializer;
 import com.faforever.client.relay.GpgServerMessageType;
-import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.ClientUpdateService;
 import com.google.gson.FieldNamingPolicy;
@@ -76,11 +73,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import static com.faforever.client.task.AbstractPrioritizedTask.Priority.MEDIUM;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
 public class LobbyServerAccessorImpl extends AbstractServerAccessor implements LobbyServerAccessor {
@@ -92,8 +87,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
 
   @Resource
   PreferencesService preferencesService;
-  @Resource
-  LeaderboardParser leaderboardParser;
   @Resource
   TaskService taskService;
   @Resource
@@ -256,18 +249,6 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   @PreDestroy
   public void disconnect() {
     fafConnectionTask.cancel(true);
-  }
-
-  @Override
-  public CompletableFuture<List<LeaderboardEntryBean>> requestLeaderboardEntries() {
-    return taskService.submitTask(new AbstractPrioritizedTask<List<LeaderboardEntryBean>>(MEDIUM) {
-      @Override
-      protected List<LeaderboardEntryBean> call() throws Exception {
-        updateTitle(i18n.get("readLadderTask.title"));
-        // TODO move this to leaderboard service
-        return leaderboardParser.parseLeaderboard();
-      }
-    });
   }
 
   @Override

@@ -25,10 +25,8 @@ import com.faforever.client.game.GameServiceImpl;
 import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.gravatar.GravatarServiceImpl;
 import com.faforever.client.gravatar.MockGravatarService;
-import com.faforever.client.leaderboard.LeaderboardParser;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.LeaderboardServiceImpl;
-import com.faforever.client.leaderboard.LegacyLeaderboardParser;
 import com.faforever.client.leaderboard.MockLeaderboardService;
 import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.LobbyServerAccessorImpl;
@@ -211,11 +209,6 @@ public class ServiceConfig {
   @Bean
   ModService modService() {
     return new ModServiceImpl();
-  }
-
-  @Bean
-  LeaderboardParser ladderParser() {
-    return new LegacyLeaderboardParser();
   }
 
   @Bean

@@ -1,5 +1,6 @@
 package com.faforever.client.leaderboard;
 
+import com.faforever.client.api.LeaderboardEntry;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleFloatProperty;
@@ -7,7 +8,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class LeaderboardEntryBean {
+public class Ranked1v1EntryBean {
 
   private StringProperty username;
   private IntegerProperty rank;
@@ -15,7 +16,7 @@ public class LeaderboardEntryBean {
   private IntegerProperty gamesPlayed;
   private FloatProperty winLossRatio;
 
-  public LeaderboardEntryBean() {
+  public Ranked1v1EntryBean() {
     username = new SimpleStringProperty();
     rank = new SimpleIntegerProperty();
     rating = new SimpleIntegerProperty();
@@ -83,5 +84,40 @@ public class LeaderboardEntryBean {
     return winLossRatio;
   }
 
+  @Override
+  public int hashCode() {
+    return username.get() != null ? username.get().hashCode() : 0;
+  }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Ranked1v1EntryBean that = (Ranked1v1EntryBean) o;
+
+    return !(username.get() != null ? !username.get().equals(that.username.get()) : that.username.get() != null);
+
+  }
+
+  @Override
+  public String toString() {
+    return "Ranked1v1EntryBean{" +
+        "username=" + username.get() +
+        '}';
+  }
+
+  public static Ranked1v1EntryBean fromLeaderboardEntry(LeaderboardEntry leaderboardEntry) {
+    Ranked1v1EntryBean ranked1v1EntryBean = new Ranked1v1EntryBean();
+    ranked1v1EntryBean.setUsername(leaderboardEntry.getLogin());
+    ranked1v1EntryBean.setGamesPlayed(leaderboardEntry.getNumGames());
+    ranked1v1EntryBean.setRank(leaderboardEntry.getRanking());
+    ranked1v1EntryBean.setRating(leaderboardEntry.getRating());
+    ranked1v1EntryBean.setWinLossRatio(leaderboardEntry.getWonGames() / leaderboardEntry.getNumGames());
+    return ranked1v1EntryBean;
+  }
 }

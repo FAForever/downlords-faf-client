@@ -2,6 +2,7 @@ package com.faforever.client.api;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.HostService;
+import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
@@ -37,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.regex.Pattern;
@@ -89,14 +91,14 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @SuppressWarnings("unchecked")
   public List<PlayerAchievement> getPlayerAchievements(int playerId) {
     logger.debug("Loading achievements for player: {}", playerId);
-    return getMany("/players/" + playerId + "/achievements", PlayerAchievement.class);
+    return getMany("/players/" + playerId + "/achievements", PlayerAchievement.class, 1);
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public List<PlayerEvent> getPlayerEvents(int playerId) {
     logger.debug("Loading events for player: {}", playerId);
-    return getMany("/players/" + playerId + "/events", PlayerEvent.class);
+    return getMany("/players/" + playerId + "/events", PlayerEvent.class, 1);
   }
 
   @Override
@@ -104,7 +106,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Cacheable(CacheNames.ACHIEVEMENTS)
   public List<AchievementDefinition> getAchievementDefinitions() {
     logger.debug("Loading achievement definitions");
-    return getMany("/achievements?sort=order", AchievementDefinition.class);
+    return getMany("/achievements?sort=order", AchievementDefinition.class, 1);
   }
 
   @Override
@@ -143,6 +145,34 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     return getMany("/mods", Mod.class).stream()
         .map(ModInfoBean::fromModInfo)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Ranked1v1EntryBean> getRanked1v1Entries() {
+    return getMany("/ranked1v1", LeaderboardEntry.class).stream()
+        .map(Ranked1v1EntryBean::fromLeaderboardEntry)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public Ranked1v1Stats getRanked1v1Stats() {
+    return getSingle("/ranked1v1/stats", Ranked1v1Stats.class);
+  }
+
+  @Override
+  public Ranked1v1EntryBean getRanked1v1EntryForPlayer(int playerId) {
+    return Ranked1v1EntryBean.fromLeaderboardEntry(getSingle("/ranked1v1/" + playerId, LeaderboardEntry.class));
+  }
+
+  private <T> List<T> getMany(String endpointPath, Class<T> type) {
+    List<T> result = new LinkedList<>();
+    List<T> current = null;
+    int page = 1;
+    while (current == null || !current.isEmpty()) {
+      current = getMany(endpointPath, type, page++);
+      result.addAll(current);
+    }
+    return result;
   }
 
   private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {
@@ -189,7 +219,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> List<T> getMany(String endpointPath, Class<T> type) {
+  private <T> List<T> getMany(String endpointPath, Class<T> type, int page) {
     ArrayList<T> result = new ArrayList<>();
     try (InputStream inputStream = executeGet(endpointPath)) {
       JsonParser jsonParser = jsonFactory.createJsonParser(inputStream, StandardCharsets.UTF_8);
@@ -210,7 +240,9 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     if (requestFactory == null) {
       throw new IllegalStateException("authorize() must be called first");
     }
-    HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(baseUrl + endpointPath));
+    String url = baseUrl + endpointPath;
+    logger.trace("Calling: {}", url);
+    HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(url));
     credential.initialize(request);
     return request.execute().getContent();
   }

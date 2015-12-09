@@ -1,12 +1,12 @@
 package com.faforever.client.rankedmatch;
 
+import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.leaderboard.LeaderboardService;
-import com.faforever.client.leaderboard.RatingDistribution;
+import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
@@ -25,7 +25,7 @@ import org.mockito.Mock;
 import org.springframework.core.env.Environment;
 
 import java.nio.file.Paths;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -41,7 +41,8 @@ import static org.mockito.Mockito.when;
 
 public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
 
-  public static final String USERNAME = "junit";
+  private static final String USERNAME = "junit";
+  private static final int PLAYER_ID = 123;
   @Mock
   private Ranked1v1Controller instance;
   @Mock
@@ -78,16 +79,22 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     instance.leaderboardService = leaderboardService;
     instance.i18n = i18n;
 
-    currentPlayerProperty = new SimpleObjectProperty<>(new PlayerInfoBean(USERNAME));
+    PlayerInfoBean playerInfoBean = new PlayerInfoBean(USERNAME);
+    playerInfoBean.setId(PLAYER_ID);
+    currentPlayerProperty = new SimpleObjectProperty<>(playerInfoBean);
     factionList = FXCollections.observableArrayList();
-    currentPlayerProperty = new SimpleObjectProperty<>(new PlayerInfoBean(USERNAME));
-    LeaderboardEntryBean leaderboardEntryBean = new LeaderboardEntryBean();
-    leaderboardEntryBean.setRating(500);
-    leaderboardEntryBean.setWinLossRatio(12.23f);
-    leaderboardEntryBean.setRank(100);
-    leaderboardEntryBean.setGamesPlayed(412);
-    leaderboardEntryBean.setUsername(USERNAME);
+    Ranked1v1EntryBean ranked1v1EntryBean = new Ranked1v1EntryBean();
+    ranked1v1EntryBean.setRating(500);
+    ranked1v1EntryBean.setWinLossRatio(12.23f);
+    ranked1v1EntryBean.setRank(100);
+    ranked1v1EntryBean.setGamesPlayed(412);
+    ranked1v1EntryBean.setUsername(USERNAME);
 
+    Ranked1v1Stats ranked1v1Stats = new Ranked1v1Stats();
+    ranked1v1Stats.setRatingDistribution(new HashMap<>());
+
+    when(leaderboardService.getRanked1v1Stats()).thenReturn(CompletableFuture.completedFuture(ranked1v1Stats));
+    when(leaderboardService.getEntryForPlayer(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(ranked1v1EntryBean));
     when(gameService.searching1v1Property()).thenReturn(searching1v1Property);
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getRanked1v1()).thenReturn(ranked1v1Prefs);
@@ -101,8 +108,6 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     when(environment.getProperty("rating.high", int.class)).thenReturn(400);
     when(environment.getProperty("rating.top", int.class)).thenReturn(500);
     when(environment.getProperty("rating.beta", int.class)).thenReturn(10);
-    when(leaderboardService.getRatingDistributions()).thenReturn(CompletableFuture.completedFuture(Collections.<RatingDistribution>emptyList()));
-    when(leaderboardService.getEntryForPlayer(USERNAME)).thenReturn(CompletableFuture.completedFuture(leaderboardEntryBean));
 
     instance.postConstruct();
   }
