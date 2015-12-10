@@ -178,20 +178,14 @@ public class TurnClientImpl implements TurnClient {
     logger.info("Relayed address: {}, mapped address: {}", relayedAddress, mappedAddress);
 
     int lifetime = ((LifetimeAttribute) response.getAttribute(Attribute.LIFETIME)).getLifetime();
-    refreshTask = scheduleRefresh(turnServerAddress, lifetime / 3);
+    refreshTask = scheduleRefresh(lifetime / 3);
   }
 
   @NotNull
-  private ScheduledFuture<?> scheduleRefresh(TransportAddress turnServerAddress, int interval) {
+  private ScheduledFuture<?> scheduleRefresh(int interval) {
     return scheduledExecutorService.scheduleWithFixedDelay((Runnable) () -> {
       logger.trace("Refreshing TURN allocation");
-      Request refreshRequest = MessageFactory.createRefreshRequest(interval);
-      try {
-        blockingRequestSender.sendRequestAndWaitForResponse(refreshRequest, turnServerAddress);
-      } catch (StunException | IOException e) {
-        logger.warn("Could not refresh TURN allocation", e);
-        throw new RuntimeException(e);
-      }
+      sendRequest(MessageFactory.createRefreshRequest(interval));
     }, interval, interval, TimeUnit.SECONDS);
   }
 }

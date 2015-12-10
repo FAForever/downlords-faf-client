@@ -7,6 +7,8 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.ice4j.StunException;
 import org.ice4j.StunMessageEvent;
 import org.ice4j.TransportAddress;
+import org.ice4j.attribute.Attribute;
+import org.ice4j.attribute.LifetimeAttribute;
 import org.ice4j.message.Message;
 import org.ice4j.message.MessageFactory;
 import org.ice4j.message.Request;
@@ -31,6 +33,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +46,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
 public class TurnClientImplTest extends AbstractPlainJavaFxTest {
@@ -102,14 +106,23 @@ public class TurnClientImplTest extends AbstractPlainJavaFxTest {
   public void testConnect() throws Exception {
     WaitForAsyncUtils.async(() -> {
       handleAllocationRequest();
+      handleRefreshRequest();
       return null;
     });
+
+    CountDownLatch refreshRequestLatch = new CountDownLatch(1);
+    doAnswer(invocation -> {
+      invocation.getArgumentAt(0, Runnable.class).run();
+      refreshRequestLatch.countDown();
+      return null;
+    }).when(scheduledExecutorService).scheduleWithFixedDelay(any(), anyLong(), anyLong(), any());
 
     InetSocketAddress socketAddress = (InetSocketAddress) instance.connect().get();
     assertThat(socketAddress.getAddress().getHostAddress(), is(turnServerSocket.getLocalAddress().getHostAddress()));
     assertThat(socketAddress.getPort(), is(2222));
 
     verify(scheduledExecutorService).scheduleWithFixedDelay(any(), anyLong(), anyLong(), any());
+    assertTrue(refreshRequestLatch.await(3, TimeUnit.SECONDS));
   }
 
   private void handleAllocationRequest() throws StunException, IOException, InterruptedException {
@@ -122,6 +135,18 @@ public class TurnClientImplTest extends AbstractPlainJavaFxTest {
     Response allocationResponse = MessageFactory.createAllocationResponse(request, remoteAddress, new TransportAddress(localAddress.getHostAddress(), 2222, UDP), 100);
 
     sendResponse(remoteAddress, request, allocationResponse);
+  }
+
+  private void handleRefreshRequest() throws StunException, IOException, InterruptedException {
+    StunMessageEvent event = eventsReceivedByTurnServer.poll(5, TimeUnit.SECONDS);
+    TransportAddress remoteAddress = event.getRemoteAddress();
+
+    Request request = (Request) event.getMessage();
+    assertThat(request.getMessageType(), is(Message.REFRESH_REQUEST));
+    assertThat(((LifetimeAttribute) request.getAttribute(Attribute.LIFETIME)).getLifetime(), is(33));
+    Response refreshResponse = MessageFactory.createRefreshResponse(33);
+
+    sendResponse(remoteAddress, request, refreshResponse);
   }
 
   private void sendResponse(TransportAddress remoteAddress, Request request, Response channelBindResponse) throws StunException, IOException {
