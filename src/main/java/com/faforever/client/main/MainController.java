@@ -372,15 +372,15 @@ public class MainController implements OnChoseGameDirectoryListener {
   }
 
   private void onFafDisconnected() {
-    fafConnectionButton.setText(i18n.get("statusBar.fafDisconnected"));
+    Platform.runLater(() -> fafConnectionButton.setText(i18n.get("statusBar.fafDisconnected")));
   }
 
   private void onFaConnecting() {
-    fafConnectionButton.setText(i18n.get("statusBar.fafConnecting"));
+    Platform.runLater(() -> fafConnectionButton.setText(i18n.get("statusBar.fafConnecting")));
   }
 
   private void onFaConnected() {
-    fafConnectionButton.setText(i18n.get("statusBar.fafConnected"));
+    Platform.runLater(() -> fafConnectionButton.setText(i18n.get("statusBar.fafConnected")));
   }
 
   private Rectangle2D getTransientNotificationAreaBounds() {
