@@ -1,7 +1,7 @@
 package com.faforever.client.connectivity;
 
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.relay.CreatePermissionMessage;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.apache.commons.compress.utils.IOUtils;
 import org.ice4j.StunException;
@@ -57,7 +57,7 @@ public class TurnClientImplTest extends AbstractPlainJavaFxTest {
   private DatagramSocket turnServerSocket;
 
   @Mock
-  private LobbyServerAccessor lobbyServerAccessor;
+  private FafService fafService;
   @Mock
   private ScheduledExecutorService scheduledExecutorService;
   @Captor
@@ -72,7 +72,7 @@ public class TurnClientImplTest extends AbstractPlainJavaFxTest {
 
     instance = new TurnClientImpl();
     instance.scheduledExecutorService = scheduledExecutorService;
-    instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.fafService = fafService;
     instance.turnHost = serverSocket.getLocalAddress().getHostAddress();
     instance.turnPort = serverSocket.getLocalPort();
 
@@ -117,7 +117,7 @@ public class TurnClientImplTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(scheduledExecutorService).scheduleWithFixedDelay(any(), anyLong(), anyLong(), any());
 
-    InetSocketAddress socketAddress = (InetSocketAddress) instance.connect().get();
+    InetSocketAddress socketAddress = instance.connect().get();
     assertThat(socketAddress.getAddress().getHostAddress(), is(turnServerSocket.getLocalAddress().getHostAddress()));
     assertThat(socketAddress.getPort(), is(2222));
 
@@ -217,7 +217,7 @@ public class TurnClientImplTest extends AbstractPlainJavaFxTest {
     CreatePermissionMessage createPermissionMessage = new CreatePermissionMessage();
     createPermissionMessage.setAddress(remotePeerAddress);
 
-    verify(lobbyServerAccessor).addOnMessageListener(eq(CreatePermissionMessage.class), createPermissionListenerCaptor.capture());
+    verify(fafService).addOnMessageListener(eq(CreatePermissionMessage.class), createPermissionListenerCaptor.capture());
     createPermissionListenerCaptor.getValue().accept(createPermissionMessage);
 
     byte[] bytes = new byte[1024];

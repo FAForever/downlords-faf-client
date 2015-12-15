@@ -5,7 +5,6 @@ import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.connectivity.TurnClient;
 import com.faforever.client.game.GameLaunchMessageBuilder;
 import com.faforever.client.game.GameType;
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.FafServerMessageType;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.MessageTarget;
@@ -15,6 +14,7 @@ import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
 import com.google.gson.Gson;
@@ -95,7 +95,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private LobbyServerAccessor lobbyServerAccessor;
+  private FafService fafService;
   @Mock
   private ExecutorService executorService;
   @Mock
@@ -115,10 +115,9 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     CountDownLatch gameConnectedLatch = new CountDownLatch(1);
 
     instance = new LocalRelayServerImpl();
-    instance.turnClient = turnClient;
     instance.userService = userService;
     instance.preferencesService = preferencesService;
-    instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.fafService = fafService;
     instance.executorService = executorService;
     instance.connectivityService = connectivityService;
 
@@ -138,23 +137,23 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
     when(userService.getUid()).thenReturn((int) USER_ID);
     when(userService.getUsername()).thenReturn("junit");
-    when(lobbyServerAccessor.getSessionId()).thenReturn(SESSION_ID);
+    when(fafService.getSessionId()).thenReturn(SESSION_ID);
     when(connectivityService.getConnectivityState()).thenReturn(ConnectivityState.PUBLIC);
     doAnswer(invocation -> {
       messagesReceivedByFafServer.put(invocation.getArgumentAt(0, GpgClientMessage.class));
       return null;
-    }).when(lobbyServerAccessor).sendGpgMessage(any());
+    }).when(fafService).sendGpgMessage(any());
 
     instance.postConstruct();
 
-    verify(lobbyServerAccessor).addOnMessageListener(eq(GpgServerMessage.class), onGpgServerMessageListenerCaptor.capture());
-    verify(lobbyServerAccessor).addOnMessageListener(eq(GameLaunchMessage.class), onGameLaunchInfoListener.capture());
+    verify(fafService).addOnMessageListener(eq(GpgServerMessage.class), onGpgServerMessageListenerCaptor.capture());
+    verify(fafService).addOnMessageListener(eq(GameLaunchMessage.class), onGameLaunchInfoListener.capture());
 
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     gameLaunchMessage.setMod(GameType.DEFAULT.getString());
     onGameLaunchInfoListener.getValue().accept(gameLaunchMessage);
 
-    relayPort = instance.startInBackground().get(TIMEOUT, TIMEOUT_UNIT);
+    relayPort = instance.startAsync().get(TIMEOUT, TIMEOUT_UNIT);
 
     startFakeGameProcess();
     gameConnectedLatch.await(TIMEOUT, TIMEOUT_UNIT);

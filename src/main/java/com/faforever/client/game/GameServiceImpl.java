@@ -8,7 +8,6 @@ import com.faforever.client.legacy.domain.GameInfoMessage;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeMessage;
-import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
@@ -20,6 +19,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.relay.LocalRelayServer;
+import com.faforever.client.remote.FafService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
@@ -49,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.Consumer;
@@ -70,7 +69,7 @@ public class GameServiceImpl implements GameService {
   private final Map<Integer, GameInfoBean> uidToGameInfoBean;
 
   @Resource
-  LobbyService lobbyService;
+  FafService fafService;
   @Resource
   ForgedAllianceService forgedAllianceService;
   @Resource
@@ -93,6 +92,7 @@ public class GameServiceImpl implements GameService {
   ConnectivityService connectivityService;
   @Resource
   LocalRelayServer localRelayServer;
+
   @Value("${ranked1v1.search.maxRadius}")
   float ranked1v1SearchMaxRadius;
   @Value("${ranked1v1.search.radiusIncrement}")
@@ -137,12 +137,15 @@ public class GameServiceImpl implements GameService {
 
     stopSearchRanked1v1();
 
-    return updateGameIfNecessary(
-        newGameInfo.getGameType(),
-        newGameInfo.getVersion(), emptyMap(),
-        newGameInfo.getSimModUidsToVersions()
-    ).thenCompose(aVoid -> lobbyService.requestNewGame(newGameInfo))
-        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL));
+    return localRelayServer.startAsync()
+        .thenAccept(localRelayPort -> updateGameIfNecessary(
+            newGameInfo.getGameType(),
+            newGameInfo.getVersion(), emptyMap(),
+            newGameInfo.getSimModUidsToVersions()
+        )
+            .thenCompose(aVoid -> connectivityService.setUpConnection())
+            .thenCompose(relayAddress -> fafService.requestHostGame(newGameInfo, relayAddress, connectivityService.getExternalPort()))
+            .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayPort)));
   }
 
   @Override
@@ -159,10 +162,13 @@ public class GameServiceImpl implements GameService {
     Map<String, Integer> simModVersions = gameInfoBean.getFeaturedModVersions();
     Set<String> simModUIds = gameInfoBean.getSimMods().keySet();
 
-    return updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
-        .thenRun(() -> downloadMapIfNecessary(gameInfoBean.getMapTechnicalName()))
-        .thenCompose(aVoid -> lobbyService.requestJoinGame(gameInfoBean, password))
-        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL));
+    return localRelayServer.startAsync()
+        .thenAccept(localRelayPort -> updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
+            .thenCompose(aVoid -> downloadMapIfNecessary(gameInfoBean.getMapTechnicalName()))
+            .thenCompose(aVoid -> connectivityService.setUpConnection())
+            .thenCompose(relayAddress -> fafService.requestJoinGame(gameInfoBean.getUid(), password, relayAddress, connectivityService.getExternalPort()))
+            .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayPort))
+        );
   }
 
   private CompletableFuture<Void> downloadMapIfNecessary(String mapName) {
@@ -247,7 +253,7 @@ public class GameServiceImpl implements GameService {
 
   @Override
   public void addOnRankedMatchNotificationListener(Consumer<MatchmakerMessage> listener) {
-    lobbyService.addOnMessageListener(MatchmakerMessage.class, listener);
+    fafService.addOnMessageListener(MatchmakerMessage.class, listener);
   }
 
   @Override
@@ -261,22 +267,20 @@ public class GameServiceImpl implements GameService {
 
     searchExpansionFuture = scheduleSearchExpansionTask();
 
-    return updateGameIfNecessary(GameType.LADDER_1V1.getString(), null, emptyMap(), emptySet())
-        .thenRun(() -> lobbyService.startSearchRanked1v1(faction, preferencesService.getPreferences().getForgedAlliance().getPort())
+    int port = preferencesService.getPreferences().getForgedAlliance().getPort();
+
+    return localRelayServer.startAsync()
+        .thenAccept(localRelayPort -> updateGameIfNecessary(GameType.LADDER_1V1.getString(), null, emptyMap(), emptySet())
+            .thenCompose(aVoid -> fafService.startSearchRanked1v1(faction, port))
             .thenAccept((gameLaunchInfo) -> {
               searchExpansionFuture.cancel(true);
-              startGame(gameLaunchInfo, faction, RatingMode.RANKED_1V1);
+              startGame(gameLaunchInfo, faction, RatingMode.RANKED_1V1, localRelayPort);
             })
             .exceptionally(throwable -> {
-              logger.warn("Could not start game", throwable);
+              logger.warn("Ranked1v1 could not be started", throwable);
               searchExpansionFuture.cancel(true);
               return null;
-            }))
-        .exceptionally(throwable -> {
-          logger.warn("Game could not be updated", throwable);
-          searchExpansionFuture.cancel(true);
-          return null;
-        });
+            }));
   }
 
   @NotNull
@@ -295,7 +299,7 @@ public class GameServiceImpl implements GameService {
       searchExpansionFuture.cancel(true);
     }
     if (searching1v1.get()) {
-      lobbyService.stopSearchingRanked();
+      fafService.stopSearchingRanked();
       searching1v1.set(false);
     }
   }
@@ -317,17 +321,17 @@ public class GameServiceImpl implements GameService {
    * Actually starts the game. Call this method when everything else is prepared (mod/map download, connectivity check
    * etc.)
    */
-  private void startGame(GameLaunchMessage gameLaunchMessage, Faction faction, RatingMode ratingMode) {
+  private void startGame(GameLaunchMessage gameLaunchMessage, Faction faction, RatingMode ratingMode, Integer localRelayPort) {
     stopSearchRanked1v1();
     List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
     try {
-      Integer relayPort = localRelayServer.startInBackground().get();
-      process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), faction, args, ratingMode, relayPort);
+      localRelayServer.getPort();
+      process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), faction, args, ratingMode, localRelayPort);
       gameRunning.set(true);
 
       this.ratingMode = ratingMode;
       spawnTerminationListener(process);
-    } catch (IOException | InterruptedException | ExecutionException e) {
+    } catch (IOException e) {
       logger.warn("Game could not be started", e);
       notificationService.addNotification(
           new PersistentNotification(i18n.get("gameCouldNotBeStarted", e.getLocalizedMessage()), Severity.ERROR)
@@ -365,8 +369,8 @@ public class GameServiceImpl implements GameService {
 
   @PostConstruct
   void postConstruct() {
-    lobbyService.addOnMessageListener(GameTypeMessage.class, this::onGameTypeInfo);
-    lobbyService.addOnMessageListener(GameInfoMessage.class, this::onGameInfo);
+    fafService.addOnMessageListener(GameTypeMessage.class, this::onGameTypeInfo);
+    fafService.addOnMessageListener(GameInfoMessage.class, this::onGameInfo);
   }
 
   private void onGameTypeInfo(GameTypeMessage gameTypeMessage) {

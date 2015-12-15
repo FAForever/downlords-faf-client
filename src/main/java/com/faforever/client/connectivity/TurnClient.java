@@ -4,12 +4,14 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.concurrent.CompletableFuture;
 
 public interface TurnClient extends Closeable {
 
-  CompletableFuture<SocketAddress> connect();
+  /**
+   * Connects to the TURN server and returns the allocated relay address.
+   */
+  CompletableFuture<InetSocketAddress> connect();
 
   void close() throws IOException;
 
@@ -17,4 +19,5 @@ public interface TurnClient extends Closeable {
 
   void send(DatagramPacket datagramPacket);
 
+  InetSocketAddress getMappedAddress();
 }

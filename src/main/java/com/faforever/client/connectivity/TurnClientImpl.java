@@ -1,7 +1,7 @@
 package com.faforever.client.connectivity;
 
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.relay.CreatePermissionMessage;
+import com.faforever.client.remote.FafService;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.compress.utils.IOUtils;
 import org.ice4j.StunException;
@@ -58,7 +58,7 @@ public class TurnClientImpl implements TurnClient {
   @Resource
   ScheduledExecutorService scheduledExecutorService;
   @Resource
-  LobbyServerAccessor lobbyServerAccessor;
+  FafService fafService;
 
   @Value("${turn.host}")
   String turnHost;
@@ -85,7 +85,7 @@ public class TurnClientImpl implements TurnClient {
   @PostConstruct
   void postConstruct() {
     serverAddress = new TransportAddress(turnHost, turnPort, Transport.UDP);
-    lobbyServerAccessor.addOnMessageListener(CreatePermissionMessage.class, message -> addPeer(message.getAddress()));
+    fafService.addOnMessageListener(CreatePermissionMessage.class, message -> addPeer(message.getAddress()));
   }
 
   private void addPeer(InetSocketAddress address) {
@@ -118,11 +118,12 @@ public class TurnClientImpl implements TurnClient {
         TransactionID.createNewTransactionID().getBytes()
     );
     sendRequest(request);
+    logger.info("Bound {} to channel {}", address, channelNumber);
     socketsToChannels.put(address, channelNumber);
   }
 
   @Override
-  public CompletableFuture<SocketAddress> connect() {
+  public CompletableFuture<InetSocketAddress> connect() {
     return CompletableFuture.supplyAsync(() -> {
       try {
         localSocket = new DatagramSocket(0, InetAddress.getLocalHost());
@@ -165,6 +166,11 @@ public class TurnClientImpl implements TurnClient {
     } catch (StunException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public InetSocketAddress getMappedAddress() {
+    return mappedAddress;
   }
 
   private void allocateAddress(TransportAddress turnServerAddress) throws StunException, IOException {

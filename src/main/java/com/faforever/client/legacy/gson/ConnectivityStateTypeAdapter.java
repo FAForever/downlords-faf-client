@@ -24,6 +24,4 @@ public class ConnectivityStateTypeAdapter extends TypeAdapter<ConnectivityState>
   public ConnectivityState read(JsonReader in) throws IOException {
     return ConnectivityState.fromString(in.nextString());
   }
-
-
 }

@@ -1,11 +1,11 @@
-package com.faforever.client.legacy;
+package com.faforever.client.remote;
 
 import com.faforever.client.game.Faction;
-import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameType;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
+import com.faforever.client.legacy.ConnectionState;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfoMessage;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
@@ -25,12 +25,14 @@ import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,7 +48,7 @@ import static com.faforever.client.legacy.domain.GameAccess.PASSWORD;
 import static com.faforever.client.legacy.domain.GameAccess.PUBLIC;
 import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
 
-public class MockLobbyServerAccessor implements LobbyServerAccessor {
+public class MockFafClient implements FafClient {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final Timer timer;
@@ -61,7 +63,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   I18n i18n;
   private ObjectProperty<ConnectionState> connectionState;
 
-  public MockLobbyServerAccessor() {
+  public MockFafClient() {
     timer = new Timer("LobbyServerAccessorTimer", true);
     messageListeners = new HashMap<>();
     connectionState = new SimpleObjectProperty<>();
@@ -82,7 +84,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public ObjectProperty<ConnectionState> connectionStateProperty() {
+  public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
     return connectionState;
   }
 
@@ -173,7 +175,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestNewGame(NewGameInfo newGameInfo) {
+  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, InetSocketAddress relayAddress, int externalPort) {
     return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchMessage>(HIGH) {
       @Override
       protected GameLaunchMessage call() throws Exception {
@@ -189,7 +191,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestJoinGame(GameInfoBean gameInfoBean, String password) {
+  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password, InetSocketAddress relayAddress, int externalPort) {
     return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchMessage>(HIGH) {
       @Override
       protected GameLaunchMessage call() throws Exception {

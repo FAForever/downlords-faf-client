@@ -1,9 +1,9 @@
 package com.faforever.client.user;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +19,7 @@ public class UserServiceImpl implements UserService {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Resource
-  LobbyServerAccessor lobbyServerAccessor;
+  FafService fafService;
   @Resource
   PreferencesService preferencesService;
   @Resource
@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
 
   @PostConstruct
   void postConstruct() {
-    lobbyServerAccessor.addOnMessageListener(LoginMessage.class, loginInfo -> uid = loginInfo.getId());
+    fafService.addOnMessageListener(LoginMessage.class, loginInfo -> uid = loginInfo.getId());
   }
 
   @Override
@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
     this.username = username;
     this.password = password;
 
-    return lobbyServerAccessor.connectAndLogIn(username, password)
+    return fafService.connectAndLogIn(username, password)
         .thenAccept(loginInfo -> {
           uid = loginInfo.getId();
 
@@ -78,13 +78,13 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public void cancelLogin() {
-    lobbyServerAccessor.disconnect();
+    fafService.disconnect();
   }
 
   @Override
   public void logOut() {
     logger.info("Logging out");
-    lobbyServerAccessor.disconnect();
+    fafService.disconnect();
     onLogoutListeners.forEach(Runnable::run);
   }
 

@@ -1,6 +1,6 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.remote.FafService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
 public class LeaderboardServiceImplTest {
 
   @Mock
-  private LobbyServerAccessor lobbyServerAccessor;
+  private FafService fafService;
 
   private LeaderboardServiceImpl instance;
 
@@ -28,17 +28,17 @@ public class LeaderboardServiceImplTest {
     MockitoAnnotations.initMocks(this);
 
     instance = new LeaderboardServiceImpl();
-    instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.fafService = fafService;
   }
 
   @Test
   public void testGetLadderInfo() throws Exception {
     List<LeaderboardEntryBean> entries = Collections.emptyList();
-    when(lobbyServerAccessor.requestLeaderboardEntries()).thenReturn(CompletableFuture.completedFuture(entries));
+    when(fafService.requestLeaderboardEntries()).thenReturn(CompletableFuture.completedFuture(entries));
 
     CompletableFuture<List<LeaderboardEntryBean>> future = instance.getLeaderboardEntries();
 
-    verify(lobbyServerAccessor).requestLeaderboardEntries();
+    verify(fafService).requestLeaderboardEntries();
     assertThat(future, is(notNullValue()));
   }
 }

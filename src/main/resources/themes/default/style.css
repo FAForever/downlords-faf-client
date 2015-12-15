@@ -531,7 +531,7 @@
 }
 
 .status-bar .tooltip {
-  -fx-font-size: 1.2em;
+  -fx-font-size: 1em;
 }
 
 .status-bar-menu-button {
@@ -545,6 +545,30 @@
 
 .status-bar-menu-button:openvertically > .arrow-button > .arrow {
   -fx-shape: "M0 1 L1 1 L.5 0 Z";
+}
+
+.port-check-status:public {
+  -fx-text-fill: -fx-accent;
+}
+
+.port-check-status:stun {
+  -fx-text-fill: #e2932c;
+}
+
+.port-check-status:blocked {
+  -fx-text-fill: #cb3d3d;
+}
+
+.port-check-status:unknown {
+  -fx-text-fill: #e2932c;
+}
+
+.connection-status:connected {
+  -fx-text-fill: -fx-accent;
+}
+
+.connection-status:disconnected {
+  -fx-text-fill: #cb3d3d;
 }
 
 /***************** 1v1 match buttons *****************/
@@ -851,7 +875,6 @@
   -fx-pref-width: 360;
   -fx-max-width: 360;
   -fx-padding: 10;
-  -fx-cursor: hand;
 }
 
 .game-tile-root .lock-icon {

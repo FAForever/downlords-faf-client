@@ -4,12 +4,12 @@ import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.legacy.GameStatus;
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.Player;
 import com.faforever.client.legacy.domain.PlayersMessage;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.legacy.domain.SocialMessage;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
 import javafx.beans.property.ObjectProperty;
@@ -44,7 +44,7 @@ public class PlayerServiceImpl implements PlayerService {
   private final ObservableMap<String, PlayerInfoBean> players;
 
   @Resource
-  LobbyServerAccessor lobbyServerAccessor;
+  FafService fafService;
   @Resource
   UserService userService;
 
@@ -65,8 +65,8 @@ public class PlayerServiceImpl implements PlayerService {
   @PostConstruct
   <T extends ServerMessage>
   void init() {
-    lobbyServerAccessor.addOnMessageListener(PlayersMessage.class, this::onPlayersInfo);
-    lobbyServerAccessor.addOnMessageListener(SocialMessage.class, this::onFoeList);
+    fafService.addOnMessageListener(PlayersMessage.class, this::onPlayersInfo);
+    fafService.addOnMessageListener(SocialMessage.class, this::onFoeList);
     gameService.addOnGameInfoBeanListener(change -> {
       while (change.next()) {
         for (GameInfoBean gameInfoBean : change.getRemoved()) {
@@ -138,7 +138,7 @@ public class PlayerServiceImpl implements PlayerService {
     friendList.add(username);
     foeList.remove(username);
 
-    lobbyServerAccessor.setFriends(friendList);
+    fafService.setFriends(friendList);
   }
 
   @Override
@@ -146,7 +146,7 @@ public class PlayerServiceImpl implements PlayerService {
     players.get(username).setSocialStatus(OTHER);
     friendList.remove(username);
 
-    lobbyServerAccessor.setFriends(friendList);
+    fafService.setFriends(friendList);
   }
 
   @Override
@@ -155,7 +155,7 @@ public class PlayerServiceImpl implements PlayerService {
     foeList.add(username);
     friendList.remove(username);
 
-    lobbyServerAccessor.setFoes(foeList);
+    fafService.setFoes(foeList);
   }
 
   @Override
@@ -163,7 +163,7 @@ public class PlayerServiceImpl implements PlayerService {
     players.get(username).setSocialStatus(OTHER);
     foeList.remove(username);
 
-    lobbyServerAccessor.setFoes(foeList);
+    fafService.setFoes(foeList);
   }
 
   @Override

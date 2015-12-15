@@ -2,6 +2,7 @@ package com.faforever.client.config;
 
 import com.faforever.client.connectivity.ConnectivityCheckTask;
 import com.faforever.client.connectivity.FafConnectivityCheckTask;
+import com.faforever.client.connectivity.UpnpPortForwardingTask;
 import com.faforever.client.game.SearchExpansionTask;
 import com.faforever.client.map.DownloadMapTask;
 import com.faforever.client.map.MapVaultParseTask;
@@ -101,4 +102,9 @@ public class TaskConfig {
     return new UninstallModTask();
   }
 
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  UpnpPortForwardingTask upnpPortForwardingTask() {
+    return new UpnpPortForwardingTask();
+  }
 }

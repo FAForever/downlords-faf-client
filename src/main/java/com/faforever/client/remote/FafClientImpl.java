@@ -1,12 +1,19 @@
-package com.faforever.client.legacy;
+package com.faforever.client.remote;
 
 import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.game.Faction;
-import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.leaderboard.LeaderboardParser;
+import com.faforever.client.legacy.AbstractServerAccessor;
+import com.faforever.client.legacy.ClientMessageSerializer;
+import com.faforever.client.legacy.ConnectionState;
+import com.faforever.client.legacy.PongMessage;
+import com.faforever.client.legacy.PongMessageSerializer;
+import com.faforever.client.legacy.ServerMessageTypeAdapter;
+import com.faforever.client.legacy.StringSerializer;
+import com.faforever.client.legacy.UidService;
 import com.faforever.client.legacy.domain.AuthenticationFailedMessage;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.ClientMessageType;
@@ -55,11 +62,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,6 +80,7 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Collection;
 import java.util.Collections;
@@ -83,7 +93,7 @@ import java.util.function.Consumer;
 import static com.faforever.client.task.AbstractPrioritizedTask.Priority.MEDIUM;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
-public class LobbyServerAccessorImpl extends AbstractServerAccessor implements LobbyServerAccessor {
+public class FafClientImpl extends AbstractServerAccessor implements FafClient {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final long RECONNECT_DELAY = 3000;
@@ -120,7 +130,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   private String password;
   private ObjectProperty<ConnectionState> connectionState;
 
-  public LobbyServerAccessorImpl() {
+  public FafClientImpl() {
     messageListeners = new HashMap<>();
     connectionState = new SimpleObjectProperty<>();
     sessionId = new SimpleObjectProperty<>();
@@ -162,7 +172,7 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public ObjectProperty<ConnectionState> connectionStateProperty() {
+  public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
     return connectionState;
   }
 
@@ -201,9 +211,10 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
           } catch (IOException e) {
             if (isCancelled()) {
               logger.debug("Connection to FAF server has been closed");
+              connectionState.set(ConnectionState.DISCONNECTED);
             } else {
               logger.warn("Lost connection to FAF server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
-              connectionState.set(ConnectionState.CONNECTING);
+              connectionState.set(ConnectionState.DISCONNECTED);
               Thread.sleep(RECONNECT_DELAY);
             }
           }
@@ -223,16 +234,17 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestNewGame(NewGameInfo newGameInfo) {
+  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, @Nullable InetSocketAddress relayAddress, int externalPort) {
     HostGameMessage hostGameMessage = new HostGameMessage(
         StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
         newGameInfo.getMap(),
         newGameInfo.getTitle(),
-        preferencesService.getPreferences().getForgedAlliance().getPort(),
+        externalPort,
         new boolean[0],
         newGameInfo.getGameType(),
         newGameInfo.getPassword(),
-        newGameInfo.getVersion()
+        newGameInfo.getVersion(),
+        relayAddress
     );
 
     gameLaunchFuture = new CompletableFuture<>();
@@ -241,11 +253,12 @@ public class LobbyServerAccessorImpl extends AbstractServerAccessor implements L
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestJoinGame(GameInfoBean gameInfoBean, String password) {
+  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password, @Nullable InetSocketAddress relayAddress, int externalPort) {
     JoinGameMessage joinGameMessage = new JoinGameMessage(
-        gameInfoBean.getUid(),
-        preferencesService.getPreferences().getForgedAlliance().getPort(),
-        password);
+        gameId,
+        externalPort,
+        password,
+        relayAddress);
 
     gameLaunchFuture = new CompletableFuture<>();
     writeToServer(joinGameMessage);

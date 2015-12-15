@@ -1,6 +1,8 @@
 package com.faforever.client.game;
 
 import com.faforever.client.ThemeService;
+import com.faforever.client.connectivity.ConnectivityService;
+import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModInfoBean;
@@ -9,6 +11,8 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.MapChangeListener.Change;
@@ -62,9 +66,12 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private ThemeService themeService;
+  @Mock
+  private ConnectivityService connectivityService;
 
   private CreateGameController instance;
   private ObservableList<MapInfoBean> mapList;
+  private ReadOnlyObjectProperty<ConnectivityState> connectivityStateProperty;
 
   @Before
   public void setUp() throws Exception {
@@ -76,13 +83,16 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     instance.environment = environment;
     instance.i18n = i18n;
     instance.themeService = themeService;
+    instance.connectivityService = connectivityService;
 
     mapList = FXCollections.observableArrayList();
+    connectivityStateProperty = new SimpleObjectProperty<>();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPath()).thenReturn(Paths.get(""));
     when(mapService.getLocalMaps()).thenReturn(mapList);
+    when(connectivityService.connectivityStateProperty()).thenReturn(connectivityStateProperty);
 
     doAnswer(invocation -> getThemeFile(invocation.getArgumentAt(0, String.class)))
         .when(themeService).getThemeFile(any());

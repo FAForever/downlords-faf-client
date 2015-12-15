@@ -1,19 +1,16 @@
 package com.faforever.client.relay;
 
 import com.faforever.client.connectivity.ConnectivityService;
-import com.faforever.client.connectivity.TurnClient;
 import com.faforever.client.game.GameType;
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.legacy.gson.GpgServerMessageTypeTypeAdapter;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.ConcurrentUtil;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,13 +31,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
@@ -52,13 +49,11 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   private final Collection<Runnable> onConnectionAcceptedListeners;
 
   @Resource
-  TurnClient turnClient;
-  @Resource
   UserService userService;
   @Resource
   PreferencesService preferencesService;
   @Resource
-  LobbyServerAccessor lobbyServerAccessor;
+  FafService fafService;
   @Resource
   ExecutorService executorService;
   @Resource
@@ -76,7 +71,6 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   private Map<SocketAddress, DatagramSocket> peerRelaySockets;
   private DatagramSocket publicSocket;
   private Consumer<DatagramPacket> forwarder;
-  private boolean useTurn;
   private CompletableFuture<Integer> portFuture;
   private Map<Integer, DatagramSocket> peerSocketsByUid;
 
@@ -101,34 +95,29 @@ public class LocalRelayServerImpl implements LocalRelayServer {
    * and vice-versa.
    */
   @Override
-  public CompletableFuture<Integer> startInBackground() {
+  public CompletableFuture<Integer> startAsync() {
     portFuture = new CompletableFuture<>();
-    CompletableFuture.runAsync(() -> {
-      try {
-        start();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }, executorService);
+    CompletableFuture.runAsync(this::start, executorService);
     return portFuture;
   }
 
-  private void start() throws IOException {
-    switch (connectivityService.getConnectivityState()) {
-      case BLOCKED:
-        forwarder = turnForwarder();
-        break;
-
-      default:
-        forwarder = publicForwarder();
+  @Override
+  public void getPort() {
+    try {
+      portFuture.get();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new RuntimeException(e);
     }
+  }
 
+  private void start() {
     try (ServerSocket serverSocket = new ServerSocket(0, 0, InetAddress.getLoopbackAddress())) {
       this.serverSocket = serverSocket;
+
       int localPort = serverSocket.getLocalPort();
       portFuture.complete(localPort);
 
-      logger.info("Relay server listening on port {}", localPort, useTurn);
+      logger.info("Relay server listening on port {}", localPort);
 
       while (!stopped) {
         try (Socket faSocket = serverSocket.accept()) {
@@ -144,33 +133,9 @@ public class LocalRelayServerImpl implements LocalRelayServer {
           redirectPublicPort();
         }
       }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
-  }
-
-  /**
-   * Creates a forwarder that forwards datagrams through to a TURN server.
-   */
-  private Consumer<DatagramPacket> turnForwarder() {
-    logger.info("Using TURN server");
-    turnClient.connect();
-    return datagramPacket -> turnClient.send(datagramPacket);
-  }
-
-  /**
-   * Creates a forwarder that sends datagrams directly from a public UDP socket.
-   */
-  private Consumer<DatagramPacket> publicForwarder() throws SocketException, UnknownHostException {
-    logger.info("Using direct connection");
-    int port = preferencesService.getPreferences().getForgedAlliance().getPort();
-    publicSocket = new DatagramSocket(new InetSocketAddress(InetAddress.getLocalHost(), port));
-    logger.info("Opened public UDP socket: {}", publicSocket);
-    return datagramPacket -> {
-      try {
-        publicSocket.send(datagramPacket);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    };
   }
 
   private FaDataInputStream createFaInputStream(InputStream inputStream) {
@@ -224,34 +189,35 @@ public class LocalRelayServerImpl implements LocalRelayServer {
       handleCreateLobby(new CreateLobbyServerMessage(lobbyMode, gamePort, username, userService.getUid(), 1));
     }
 
-    lobbyServerAccessor.sendGpgMessage(gpgClientMessage);
+    fafService.sendGpgMessage(gpgClientMessage);
   }
 
   @PreDestroy
   void close() {
     logger.info("Closing relay server");
     stopped = true;
+    connectivityService.closeRelayConnection();
     IOUtils.closeQuietly(serverSocket);
     IOUtils.closeQuietly(gameSocket);
-    IOUtils.closeQuietly(turnClient);
     IOUtils.closeQuietly(publicSocket);
   }
 
   private void forwardSocket(final DatagramSocket socket, Consumer<DatagramPacket> forwarder) {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        byte[] buffer = new byte[8092];
-        DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
+    CompletableFuture.runAsync(() -> {
+      byte[] buffer = new byte[8092];
+      DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
 
-        while (!isCancelled()) {
+      try {
+        while (!socket.isClosed()) {
           socket.receive(datagramPacket);
           forwarder.accept(datagramPacket);
         }
-
-        return null;
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      } finally {
+        IOUtils.closeQuietly(socket);
       }
-    });
+    }, executorService);
   }
 
   private boolean isHostGameMessage(GpgClientMessage gpgClientMessage) {
@@ -283,8 +249,8 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
   @PostConstruct
   void postConstruct() {
-    lobbyServerAccessor.addOnMessageListener(GameLaunchMessage.class, this::updateLobbyModeFromGameInfo);
-    lobbyServerAccessor.addOnMessageListener(GpgServerMessage.class, this::onGpgServerMessage);
+    fafService.addOnMessageListener(GameLaunchMessage.class, this::updateLobbyModeFromGameInfo);
+    fafService.addOnMessageListener(GpgServerMessage.class, this::onGpgServerMessage);
   }
 
   private void updateLobbyModeFromGameInfo(GameLaunchMessage gameLaunchMessage) {

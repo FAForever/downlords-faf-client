@@ -1,19 +1,21 @@
 package com.faforever.client.connectivity;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.relay.ConnectivityStateMessage;
 import com.faforever.client.relay.GpgServerMessage;
 import com.faforever.client.relay.ProcessNatPacketMessage;
 import com.faforever.client.relay.SendNatPacketMessage;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.upnp.UpnpService;
+import org.apache.commons.compress.utils.IOUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.springframework.util.SocketUtils;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -38,7 +40,6 @@ import static org.springframework.util.SocketUtils.PORT_RANGE_MIN;
 
 public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
 
-  public static final int GAME_PORT = 6112;
   private FafConnectivityCheckTask instance;
 
   @Mock
@@ -46,24 +47,31 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
   @Mock
   private I18n i18n;
   @Mock
-  private LobbyServerAccessor lobbyServerAccessor;
-  @Mock
-  private UpnpService upnpService;
+  private FafService fafService;
   @Captor
   private ArgumentCaptor<Consumer<GpgServerMessage>> connectivityMessageListenerCaptor;
+  private DatagramSocket publicSocket;
+  private int gamePort;
 
   @Before
   public void setUp() throws Exception {
     instance = new FafConnectivityCheckTask();
     instance.executorService = executorService;
     instance.i18n = i18n;
-    instance.lobbyServerAccessor = lobbyServerAccessor;
-    instance.upnpService = upnpService;
+    instance.fafService = fafService;
+
+    gamePort = SocketUtils.findAvailableUdpPort();
+    publicSocket = new DatagramSocket(gamePort);
 
     doAnswer(invocation -> {
       CompletableFuture.runAsync(invocation.getArgumentAt(0, Runnable.class));
       return null;
     }).when(executorService).execute(any(Runnable.class));
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    IOUtils.closeQuietly(publicSocket);
   }
 
   @Test(expected = IllegalStateException.class)
@@ -86,7 +94,7 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
         socket.send(datagramPacket);
       }
       return null;
-    }).when(lobbyServerAccessor).initConnectivityTest(GAME_PORT);
+    }).when(fafService).initConnectivityTest(gamePort);
 
     doAnswer(invocation -> {
       ProcessNatPacketMessage processNatPacketMessage = invocation.getArgumentAt(0, ProcessNatPacketMessage.class);
@@ -100,17 +108,16 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
       assertThat(actualPort, is(both(greaterThan(PORT_RANGE_MIN)).and(lessThan(PORT_RANGE_MAX))));
       assertThat(processNatPacketMessage.getMessage(), is("Are you public? " + playerId));
 
-      verify(lobbyServerAccessor).addOnMessageListener(eq(GpgServerMessage.class), connectivityMessageListenerCaptor.capture());
+      verify(fafService).addOnMessageListener(eq(GpgServerMessage.class), connectivityMessageListenerCaptor.capture());
       connectivityMessageListenerCaptor.getValue().accept(new ConnectivityStateMessage(ConnectivityState.PUBLIC));
 
       return null;
-    }).when(lobbyServerAccessor).sendGpgMessage(any());
+    }).when(fafService).sendGpgMessage(any());
 
-    instance.setPort(GAME_PORT);
+    instance.setPublicSocket(publicSocket);
 
     assertThat(instance.call(), is(ConnectivityState.PUBLIC));
-    verify(upnpService).forwardPort(GAME_PORT);
-    verify(lobbyServerAccessor).initConnectivityTest(GAME_PORT);
+    verify(fafService).initConnectivityTest(gamePort);
   }
 
   @Test
@@ -118,7 +125,7 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
     int playerId = 1234;
 
     doAnswer(invocation -> {
-      verify(lobbyServerAccessor).addOnMessageListener(eq(GpgServerMessage.class), connectivityMessageListenerCaptor.capture());
+      verify(fafService).addOnMessageListener(eq(GpgServerMessage.class), connectivityMessageListenerCaptor.capture());
 
       SendNatPacketMessage sendNatPacketMessage = new SendNatPacketMessage();
       sendNatPacketMessage.setTarget(MessageTarget.CONNECTIVITY);
@@ -127,22 +134,14 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
       try (DatagramSocket datagramSocket = new DatagramSocket(new InetSocketAddress(InetAddress.getLocalHost(), 0))) {
         sendNatPacketMessage.setPublicAddress((InetSocketAddress) datagramSocket.getLocalSocketAddress());
         connectivityMessageListenerCaptor.getValue().accept(sendNatPacketMessage);
-
-        byte[] bytes = new byte[64];
-        DatagramPacket datagramPacket = new DatagramPacket(bytes, bytes.length);
-        datagramSocket.receive(datagramPacket);
-
-        assertThat(new String(datagramPacket.getData(), 0, datagramPacket.getLength(), UTF_8), is("\u0008Hello " + playerId));
-
         connectivityMessageListenerCaptor.getValue().accept(new ConnectivityStateMessage(ConnectivityState.STUN));
       }
       return null;
-    }).when(lobbyServerAccessor).initConnectivityTest(GAME_PORT);
+    }).when(fafService).initConnectivityTest(gamePort);
 
-    instance.setPort(GAME_PORT);
+    instance.setPublicSocket(publicSocket);
 
     assertThat(instance.call(), is(ConnectivityState.STUN));
-    verify(upnpService).forwardPort(GAME_PORT);
-    verify(lobbyServerAccessor).initConnectivityTest(GAME_PORT);
+    verify(fafService).initConnectivityTest(gamePort);
   }
 }

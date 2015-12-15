@@ -30,10 +30,7 @@ import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.LeaderboardServiceImpl;
 import com.faforever.client.leaderboard.LegacyLeaderboardParser;
 import com.faforever.client.leaderboard.MockLeaderboardService;
-import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.legacy.LobbyServerAccessorImpl;
 import com.faforever.client.legacy.MockFafApiAccessor;
-import com.faforever.client.legacy.MockLobbyServerAccessor;
 import com.faforever.client.legacy.MockStatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessorImpl;
@@ -43,8 +40,6 @@ import com.faforever.client.legacy.WindowsUidService;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
 import com.faforever.client.legacy.map.LegacyMapVaultParser;
 import com.faforever.client.legacy.map.MapVaultParser;
-import com.faforever.client.lobby.LobbyService;
-import com.faforever.client.lobby.LobbyServiceImpl;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl;
 import com.faforever.client.mod.ModService;
@@ -64,6 +59,11 @@ import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.relay.LocalRelayServerImpl;
+import com.faforever.client.remote.FafClient;
+import com.faforever.client.remote.FafClientImpl;
+import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.FafServiceImpl;
+import com.faforever.client.remote.MockFafClient;
 import com.faforever.client.replay.ReplayFileReader;
 import com.faforever.client.replay.ReplayFileReaderImpl;
 import com.faforever.client.replay.ReplayFileWriter;
@@ -122,11 +122,11 @@ public class ServiceConfig {
   }
 
   @Bean
-  LobbyServerAccessor lobbyServerAccessor() {
+  FafClient fafClient() {
     if (environment.containsProperty("faf.testing")) {
-      return new MockLobbyServerAccessor();
+      return new MockFafClient();
     }
-    return new LobbyServerAccessorImpl();
+    return new FafClientImpl();
   }
 
   @Bean
@@ -204,8 +204,8 @@ public class ServiceConfig {
   }
 
   @Bean
-  LobbyService lobbyService() {
-    return new LobbyServiceImpl();
+  FafService lobbyService() {
+    return new FafServiceImpl();
   }
 
   @Bean

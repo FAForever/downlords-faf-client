@@ -2,6 +2,7 @@ package com.faforever.client.main;
 
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
+import com.faforever.client.chat.ChatService;
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fx.StageConfigurator;
 import com.faforever.client.fx.WindowDecorator;
@@ -12,7 +13,6 @@ import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardController;
-import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
@@ -32,6 +32,7 @@ import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.rankedmatch.Ranked1v1Controller;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
@@ -46,6 +47,7 @@ import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
@@ -55,6 +57,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuButton;
@@ -94,7 +97,19 @@ public class MainController implements OnChoseGameDirectoryListener {
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_CLASS = PseudoClass.getPseudoClass("warn");
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_CLASS = PseudoClass.getPseudoClass("error");
   private static final PseudoClass NAVIGATION_ACTIVE_PSEUDO_CLASS = PseudoClass.getPseudoClass("active");
+  private static final PseudoClass CONNECTIVITY_PUBLIC_PSEUDO_CLASS = PseudoClass.getPseudoClass("public");
+  private static final PseudoClass CONNECTIVITY_STUN_PSEUDO_CLASS = PseudoClass.getPseudoClass("stun");
+  private static final PseudoClass CONNECTIVITY_BLOCKED_PSEUDO_CLASS = PseudoClass.getPseudoClass("blocked");
+  private static final PseudoClass CONNECTIVITY_UNKNOWN_PSEUDO_CLASS = PseudoClass.getPseudoClass("unknown");
+  private static final PseudoClass CONNECTIVITY_CONNECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("connected");
+  private static final PseudoClass CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("disconnected");
 
+  @FXML
+  Label chatConnectionStatusIcon;
+  @FXML
+  Label fafConnectionStatusIcon;
+  @FXML
+  Label portCheckStatusIcon;
   @FXML
   ImageView userImageView;
   @FXML
@@ -128,7 +143,7 @@ public class MainController implements OnChoseGameDirectoryListener {
   @FXML
   MenuButton fafConnectionButton;
   @FXML
-  MenuButton ircConnectionButton;
+  MenuButton chatConnectionButton;
   @FXML
   Label taskProgressLabel;
   @FXML
@@ -195,7 +210,9 @@ public class MainController implements OnChoseGameDirectoryListener {
   @Resource
   LoginController loginController;
   @Resource
-  LobbyService lobbyService;
+  FafService fafService;
+  @Resource
+  ChatService chatService;
 
   @Value("${mainWindowTitle}")
   String mainWindowTitle;
@@ -274,17 +291,75 @@ public class MainController implements OnChoseGameDirectoryListener {
     // We need to initialize all skins, so initially add the chat root to the scene graph.
     setContent(chatController.getRoot());
 
-    lobbyService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+    fafService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+      Platform.runLater(() -> {
+        switch (newValue) {
+          case DISCONNECTED:
+            fafConnectionButton.setText(i18n.get("statusBar.fafDisconnected"));
+            fafConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_CONNECTED_PSEUDO_CLASS, false);
+            fafConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS, true);
+            break;
+          case CONNECTING:
+            fafConnectionButton.setText(i18n.get("statusBar.fafConnecting"));
+            fafConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_CONNECTED_PSEUDO_CLASS, false);
+            fafConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS, false);
+            break;
+          case CONNECTED:
+            fafConnectionButton.setText(i18n.get("statusBar.fafConnected"));
+            fafConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_CONNECTED_PSEUDO_CLASS, true);
+            fafConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS, false);
+            break;
+        }
+      });
+    });
+
+    chatService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+      Platform.runLater(() -> {
+        chatConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_CONNECTED_PSEUDO_CLASS, false);
+        chatConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS, false);
+        switch (newValue) {
+          case DISCONNECTED:
+            chatConnectionButton.setText(i18n.get("statusBar.chatDisconnected"));
+            chatConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS, true);
+            break;
+          case CONNECTING:
+            chatConnectionButton.setText(i18n.get("statusBar.chatConnecting"));
+            break;
+          case CONNECTED:
+            chatConnectionButton.setText(i18n.get("statusBar.chatConnected"));
+            chatConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_CONNECTED_PSEUDO_CLASS, true);
+            break;
+        }
+      });
+    });
+
+    connectivityService.connectivityStateProperty().addListener((observable, oldValue, newValue) -> {
+      portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_PUBLIC_PSEUDO_CLASS, false);
+      portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_STUN_PSEUDO_CLASS, false);
+      portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_BLOCKED_PSEUDO_CLASS, false);
+      portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_UNKNOWN_PSEUDO_CLASS, false);
       switch (newValue) {
-        case DISCONNECTED:
-          MainController.this.onFafDisconnected();
+        case PUBLIC:
+          portCheckStatusIcon.setText("\uF111");
+          portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_PUBLIC_PSEUDO_CLASS, true);
+          portCheckStatusButton.setText(i18n.get("statusBar.connectivityPublic"));
+        case STUN:
+          portCheckStatusIcon.setText("\uF06A");
+          portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_STUN_PSEUDO_CLASS, true);
+          portCheckStatusButton.setText(i18n.get("statusBar.connectivityStun"));
           break;
-        case CONNECTING:
-          MainController.this.onFaConnecting();
+        case BLOCKED:
+          portCheckStatusIcon.setText("\uF056");
+          portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_BLOCKED_PSEUDO_CLASS, true);
+          portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
           break;
-        case CONNECTED:
-          MainController.this.onFaConnected();
+        case UNKNOWN:
+          portCheckStatusIcon.setText("\uF059");
+          portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_UNKNOWN_PSEUDO_CLASS, true);
+          portCheckStatusButton.setText(i18n.get("statusBar.connectivityUnknown"));
           break;
+        default:
+          throw new AssertionError("Uncovered value: " + newValue);
       }
     });
 
@@ -371,18 +446,6 @@ public class MainController implements OnChoseGameDirectoryListener {
     }
   }
 
-  private void onFafDisconnected() {
-    Platform.runLater(() -> fafConnectionButton.setText(i18n.get("statusBar.fafDisconnected")));
-  }
-
-  private void onFaConnecting() {
-    Platform.runLater(() -> fafConnectionButton.setText(i18n.get("statusBar.fafConnecting")));
-  }
-
-  private void onFaConnected() {
-    Platform.runLater(() -> fafConnectionButton.setText(i18n.get("statusBar.fafConnected")));
-  }
-
   private Rectangle2D getTransientNotificationAreaBounds() {
     ObservableList<Screen> screens = Screen.getScreens();
 
@@ -443,8 +506,6 @@ public class MainController implements OnChoseGameDirectoryListener {
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
     stage.setWidth(mainWindowPrefs.getWidth());
     stage.setHeight(mainWindowPrefs.getHeight());
-
-    stage.setTitle(mainWindowTitle);
     stage.show();
 
     enterLoggedOutState();
@@ -463,6 +524,7 @@ public class MainController implements OnChoseGameDirectoryListener {
 
   private void enterLoggedOutState() {
     loginController.display();
+    stage.setTitle(i18n.get("login.title"));
   }
 
   private void registerWindowListeners() {
@@ -509,9 +571,9 @@ public class MainController implements OnChoseGameDirectoryListener {
 
   private void enterLoggedInState() {
     stageConfigurator.configureScene(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
-    stage.show();
+    stage.setTitle(mainWindowTitle);
 
-    checkGamePortInBackground();
+    runConnectivityCheck();
     gameUpdateService.checkForUpdateInBackground();
     clientUpdateService.checkForUpdateInBackground();
 
@@ -524,22 +586,12 @@ public class MainController implements OnChoseGameDirectoryListener {
     userImageView.setImage(IdenticonUtil.createIdenticon(userService.getUid()));
   }
 
-  private void checkGamePortInBackground() {
+  private void runConnectivityCheck() {
+    // TODO bind to a property in connectivity service
+    portCheckStatusIcon.setText("\uF059");
+    portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_UNKNOWN_PSEUDO_CLASS, true);
     portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
-    connectivityService.checkGamePortInBackground().thenAccept(result -> {
-      switch (result) {
-        case PUBLIC:
-        case STUN:
-          portCheckStatusButton.setText(i18n.get("statusBar.portReachable"));
-          break;
-        case BLOCKED:
-          portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
-          break;
-      }
-    }).exceptionally(throwable -> {
-      portCheckStatusButton.setText(i18n.get("statusBar.portCheckFailed"));
-      return null;
-    });
+    connectivityService.checkConnectivity();
   }
 
   private void restoreLastView(WindowPrefs mainWindowPrefs) {
@@ -571,7 +623,7 @@ public class MainController implements OnChoseGameDirectoryListener {
 
   @FXML
   void onPortCheckRetryClicked() {
-    checkGamePortInBackground();
+    runConnectivityCheck();
   }
 
   @FXML
@@ -580,7 +632,7 @@ public class MainController implements OnChoseGameDirectoryListener {
   }
 
   @FXML
-  void onIrcReconnectClicked() {
+  void onChatReconnectClicked() {
     // FIXME implement
   }
 
@@ -700,17 +752,27 @@ public class MainController implements OnChoseGameDirectoryListener {
   }
 
   /**
-   * Sets the parent navigation button of the specified menu item as active. This only works of the child item was
-   * selected manually by the user using the dropdown menu.
+   * Sets the parent navigation button of the specified menu item as active.
    */
   private void setActiveNavigationButtonFromChild(MenuItem menuItem) {
-    ButtonBase navigationButton = (ButtonBase) menuItem.getParentPopup().getOwnerNode();
-    if (navigationButton == null) {
-      return;
-    }
-    setActiveNavigationButton((ButtonBase) menuItem.getParentPopup().getOwnerNode());
-    preferencesService.getPreferences().getMainWindow().getLastChildViews().put(navigationButton.getId(), menuItem.getId());
-    preferencesService.storeInBackground();
+    ChangeListener<Node> ownerNodeChangeListener = new ChangeListener<Node>() {
+      @Override
+      public void changed(ObservableValue<? extends Node> observable, Node oldValue, Node newValue) {
+        setActiveNavigationButton((ButtonBase) newValue);
+        preferencesService.getPreferences().getMainWindow().getLastChildViews().put(newValue.getId(), menuItem.getId());
+        preferencesService.storeInBackground();
+        observable.removeListener(this);
+      }
+    };
+
+    ChangeListener<ContextMenu> parentPopupChangeListener = new ChangeListener<ContextMenu>() {
+      @Override
+      public void changed(ObservableValue<? extends ContextMenu> observable, ContextMenu oldValue, ContextMenu newValue) {
+        newValue.ownerNodeProperty().addListener(ownerNodeChangeListener);
+        observable.removeListener(this);
+      }
+    };
+    menuItem.parentPopupProperty().addListener(parentPopupChangeListener);
   }
 
   @FXML

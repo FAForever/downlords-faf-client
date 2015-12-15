@@ -6,12 +6,12 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.UpdatedAchievement;
 import com.faforever.client.legacy.UpdatedAchievementsMessage;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.user.UserService;
 import com.google.common.base.Strings;
 import javafx.collections.FXCollections;
@@ -38,7 +38,7 @@ public class AchievementServiceImpl implements AchievementService {
   @Resource
   FafApiAccessor fafApiAccessor;
   @Resource
-  LobbyServerAccessor lobbyServerAccessor;
+  FafService fafService;
   @Resource
   NotificationService notificationService;
   @Resource
@@ -101,7 +101,7 @@ public class AchievementServiceImpl implements AchievementService {
 
   @PostConstruct
   void postConstruct() {
-    lobbyServerAccessor.addOnMessageListener(UpdatedAchievementsMessage.class, this::onUpdatedAchievements);
+    fafService.addOnMessageListener(UpdatedAchievementsMessage.class, this::onUpdatedAchievements);
   }
 
   private void onUpdatedAchievements(UpdatedAchievementsMessage updatedAchievementsMessage) {

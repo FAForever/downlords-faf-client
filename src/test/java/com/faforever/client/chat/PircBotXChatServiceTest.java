@@ -2,11 +2,11 @@ package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.ConnectionState;
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.SocialMessage;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -51,7 +51,6 @@ import org.pircbotx.output.OutputIRC;
 import org.pircbotx.snapshot.ChannelSnapshot;
 import org.pircbotx.snapshot.UserChannelDaoSnapshot;
 import org.pircbotx.snapshot.UserSnapshot;
-import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
@@ -91,7 +90,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   public static final String CHAT_USER_NAME = "junit";
   public static final String CHAT_PASSWORD = "123";
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
-  private static final long TIMEOUT = 500000;
+  private static final long TIMEOUT = 3000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final String DEFAULT_CHANNEL_NAME = "#defaultChannel";
   private static final String OTHER_CHANNEL_NAME = "#otherChannel";
@@ -111,8 +110,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   private ShutdownablePircBotX pircBotX;
   @Mock
   private Configuration<PircBotX> configuration;
-  @Mock
-  private Environment environment;
   @Mock
   private ListenerManager<PircBotX> listenerManager;
   @Mock
@@ -144,7 +141,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private ObjectProperty<ChatColorMode> chatColorMode;
   @Mock
-  private LobbyServerAccessor lobbyServerAccessor;
+  private FafService fafService;
   @Mock
   private ExecutorService executorService;
 
@@ -154,8 +151,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = new PircBotXChatService();
-    instance.lobbyServerAccessor = lobbyServerAccessor;
-    instance.environment = environment;
+    instance.fafService = fafService;
     instance.userService = userService;
     instance.taskService = taskService;
     instance.i18n = i18n;
@@ -207,10 +203,10 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     when(configuration.getListenerManager()).thenReturn(listenerManager);
 
-    when(environment.getProperty("irc.defaultChannel")).thenReturn(DEFAULT_CHANNEL_NAME);
-    when(environment.getProperty("irc.host")).thenReturn(LOOPBACK_ADDRESS.getHostAddress());
-    when(environment.getProperty("irc.port", int.class)).thenReturn(IRC_SERVER_PORT);
-    when(environment.getProperty("irc.reconnectDelay", int.class)).thenReturn(100);
+    instance.ircHost = LOOPBACK_ADDRESS.getHostAddress();
+    instance.ircPort = IRC_SERVER_PORT;
+    instance.defaultChannelName = DEFAULT_CHANNEL_NAME;
+    instance.reconnectDelay = 100;
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getChat()).thenReturn(chatPrefs);
@@ -650,7 +646,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     instance.addOnJoinChannelsRequestListener(listener);
 
-    verify(lobbyServerAccessor).addOnMessageListener(eq(SocialMessage.class), any());
+    verify(fafService).addOnMessageListener(eq(SocialMessage.class), any());
   }
 
   @Test

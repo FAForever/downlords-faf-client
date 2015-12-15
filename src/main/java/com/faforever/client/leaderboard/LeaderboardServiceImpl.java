@@ -1,6 +1,6 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.util.RatingUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 public class LeaderboardServiceImpl implements LeaderboardService {
 
   @Resource
-  LobbyServerAccessor lobbyServerAccessor;
+  FafService fafService;
 
   @NotNull
   private List<RatingDistribution> calculateRatingDistributions(List<LeaderboardEntryBean> leaderboardEntryBeans) {
@@ -34,7 +34,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
   @Override
   public CompletableFuture<List<LeaderboardEntryBean>> getLeaderboardEntries() {
-    return lobbyServerAccessor.requestLeaderboardEntries();
+    return fafService.requestLeaderboardEntries();
   }
 
   @Override

@@ -2,13 +2,13 @@ package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.ConnectionState;
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.SocialMessage;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
@@ -39,7 +39,7 @@ import org.pircbotx.hooks.events.QuitEvent;
 import org.pircbotx.hooks.events.UserListEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -84,13 +84,11 @@ public class PircBotXChatService implements ChatService, Listener,
   @Resource
   PreferencesService preferencesService;
   @Resource
-  Environment environment;
-  @Resource
   UserService userService;
   @Resource
   TaskService taskService;
   @Resource
-  LobbyServerAccessor lobbyServerAccessor;
+  FafService fafService;
   @Resource
   I18n i18n;
   @Resource
@@ -100,10 +98,18 @@ public class PircBotXChatService implements ChatService, Listener,
   @Resource
   ExecutorService executorService;
 
+  @Value("${irc.host}")
+  String ircHost;
+  @Value("${irc.port}")
+  int ircPort;
+  @Value("${irc.defaultChannel}")
+  String defaultChannelName;
+  @Value("${irc.reconnectDelay}")
+  int reconnectDelay;
+
   private Configuration configuration;
   private ShutdownablePircBotX pircBotX;
-  private String defaultChannelName;
-  private CountDownLatch ircConnectedLatch;
+  private CountDownLatch chatConnectedLatch;
   private Map<String, ChatUser> chatUsersByName;
   private Task<Void> connectionTask;
   private ObjectProperty<ConnectionState> connectionState;
@@ -172,8 +178,6 @@ public class PircBotXChatService implements ChatService, Listener,
     addOnModeratorSetListener(this);
     addUserToColorListener();
 
-    defaultChannelName = environment.getProperty("irc.defaultChannel");
-
     userService.addOnLogoutListener(this::disconnect);
     userService.addOnLoginListener(this::connect);
 
@@ -213,12 +217,12 @@ public class PircBotXChatService implements ChatService, Listener,
   private void onConnected() {
     sendMessageInBackground("NICKSERV", "IDENTIFY " + Hashing.md5().hashString(userService.getPassword(), UTF_8))
         .thenAccept(s1 -> {
-          ircConnectedLatch.countDown();
+          chatConnectedLatch.countDown();
           pircBotX.sendIRC().joinChannel(defaultChannelName);
         })
         .exceptionally(throwable -> {
           notificationService.addNotification(
-              new PersistentNotification(i18n.get("irc.identificationFailed", throwable.getLocalizedMessage()), Severity.WARN)
+              new PersistentNotification(i18n.get("chat.identificationFailed", throwable.getLocalizedMessage()), Severity.WARN)
           );
           return null;
         });
@@ -325,12 +329,13 @@ public class PircBotXChatService implements ChatService, Listener,
       protected Void call() throws Exception {
         while (!isCancelled()) {
           try {
-            ircConnectedLatch = new CountDownLatch(1);
+            connectionState.set(ConnectionState.CONNECTING);
+            chatConnectedLatch = new CountDownLatch(1);
             logger.info("Connecting to IRC at {}:{}", configuration.getServerHostname(), configuration.getServerPort());
             pircBotX.startBot();
           } catch (IOException | IrcException e) {
-            int reconnectDelay = environment.getProperty("irc.reconnectDelay", int.class);
             logger.warn("Lost connection to IRC server, trying to reconnect in " + reconnectDelay / 1000 + "s");
+            connectionState.set(ConnectionState.DISCONNECTED);
             Thread.sleep(reconnectDelay);
           }
         }
@@ -420,7 +425,7 @@ public class PircBotXChatService implements ChatService, Listener,
   @Override
   public void joinChannel(String channelName) {
     try {
-      ircConnectedLatch.await();
+      chatConnectedLatch.await();
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
@@ -429,7 +434,7 @@ public class PircBotXChatService implements ChatService, Listener,
 
   @Override
   public void addOnJoinChannelsRequestListener(Consumer<List<String>> listener) {
-    lobbyServerAccessor.addOnMessageListener(SocialMessage.class, socialMessage -> listener.accept(socialMessage.getAutoJoin()));
+    fafService.addOnMessageListener(SocialMessage.class, socialMessage -> listener.accept(socialMessage.getAutoJoin()));
   }
 
   @Override
@@ -458,7 +463,7 @@ public class PircBotXChatService implements ChatService, Listener,
           color = ColorGeneratorUtil.generateRandomHexColor();
         }
 
-        chatUsersByName.put(username, ChatUser.fromIrcUser(user, color));
+        chatUsersByName.put(username, ChatUser.fromChatUser(user, color));
       }
       return chatUsersByName.get(username);
     }
@@ -485,7 +490,7 @@ public class PircBotXChatService implements ChatService, Listener,
         .setName(username)
         .setLogin(username)
         .setRealName(username)
-        .setServer(environment.getProperty("irc.host"), environment.getProperty("irc.port", int.class))
+        .setServer(ircHost, ircPort)
         .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
         .setAutoSplitMessage(true)
         .setEncoding(UTF_8)
