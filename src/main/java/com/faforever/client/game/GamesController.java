@@ -38,10 +38,13 @@ import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +53,7 @@ import java.util.function.Predicate;
 public class GamesController {
 
   private static final Predicate<GameInfoBean> OPEN_GAMES_PREDICATE = gameInfoBean -> gameInfoBean.getStatus() == GameState.OPEN;
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
   VBox teamListPane;
@@ -274,7 +278,12 @@ public class GamesController {
       enterPasswordController.setGameInfoBean(gameInfoBean);
       passwordPopup.show(gamesRoot.getScene().getWindow(), screenX, screenY);
     } else {
-      gameService.joinGame(gameInfoBean, password);
+      gameService.joinGame(gameInfoBean, password)
+          .exceptionally(throwable -> {
+            // FIXME implement
+            logger.warn("Game could not be joined", throwable);
+            return null;
+          });
     }
   }
 

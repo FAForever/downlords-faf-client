@@ -92,7 +92,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
 
     try {
       publicSocket = new DatagramSocket(new InetSocketAddress(InetAddress.getLocalHost(), port));
-      logger.info("Opened public UDP socket: {}", SocketAddressUtil.toString((InetSocketAddress) publicSocket.getLocalSocketAddress());
+      logger.info("Opened public UDP socket: {}", SocketAddressUtil.toString((InetSocketAddress) publicSocket.getLocalSocketAddress()));
     } catch (SocketException | UnknownHostException e) {
       throw new RuntimeException(e);
     }
