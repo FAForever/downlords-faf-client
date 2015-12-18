@@ -1,5 +1,7 @@
 package com.faforever.client.util;
 
+import com.google.common.base.Strings;
+
 import java.net.InetSocketAddress;
 
 public final class SocketAddressUtil {
@@ -18,6 +20,9 @@ public final class SocketAddressUtil {
   }
 
   public static InetSocketAddress fromString(String string) {
+    if (Strings.isNullOrEmpty(string)) {
+      return null;
+    }
     String[] split = string.split(":");
     return new InetSocketAddress(split[0], Integer.parseInt(split[1]));
   }

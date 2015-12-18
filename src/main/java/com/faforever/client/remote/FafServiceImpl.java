@@ -1,5 +1,6 @@
 package com.faforever.client.remote;
 
+import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.LeaderboardEntryBean;
@@ -9,10 +10,8 @@ import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.relay.GpgClientMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Resource;
-import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -21,6 +20,8 @@ public class FafServiceImpl implements FafService {
 
   @Resource
   FafClient fafClient;
+  @Resource
+  ConnectivityService connectivityService;
 
   @Override
   public <T extends ServerMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
@@ -34,8 +35,11 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, @Nullable InetSocketAddress relayAddress, int externalPort) {
-    return fafClient.requestHostGame(newGameInfo, relayAddress, externalPort);
+  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
+    return fafClient.requestHostGame(newGameInfo,
+        connectivityService.getRelayAddress(),
+        connectivityService.getExternalSocketAddress().getPort()
+    );
   }
 
   @Override
@@ -44,8 +48,10 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password, @Nullable InetSocketAddress relayAddress, int externalPort) {
-    return fafClient.requestJoinGame(gameId, password, relayAddress, externalPort);
+  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password) {
+    return fafClient.requestJoinGame(gameId, password,
+        connectivityService.getRelayAddress(),
+        connectivityService.getExternalSocketAddress().getPort());
   }
 
   @Override

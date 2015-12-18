@@ -161,14 +161,12 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfoBean.setMapTechnicalName("map");
 
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
-    InetSocketAddress relayAddress = new InetSocketAddress(123);
-    int externalPort = 51123;
+    InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
     when(mapService.isAvailable("map")).thenReturn(true);
-    when(connectivityService.setUpConnection()).thenReturn(CompletableFuture.completedFuture(relayAddress));
-    when(connectivityService.getExternalPort()).thenReturn(externalPort);
-    when(fafService.requestJoinGame(gameInfoBean.getUid(), null, relayAddress, externalPort)).thenReturn(completedFuture(gameLaunchMessage));
-    when(localRelayServer.startAsync()).thenReturn(CompletableFuture.completedFuture(111));
+    when(connectivityService.getExternalSocketAddress()).thenReturn(externalSocketAddress);
+    when(fafService.requestJoinGame(gameInfoBean.getUid(), null)).thenReturn(completedFuture(gameLaunchMessage));
+    when(localRelayServer.getGpgRelayPort()).thenReturn(111);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
 
     CompletableFuture<Void> future = instance.joinGame(gameInfoBean, null);
@@ -230,17 +228,15 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     gameLaunchMessage.setArgs(Arrays.asList("/foo bar", "/bar foo"));
-    int externalPort = 51123;
-    InetSocketAddress relayAddress = new InetSocketAddress(123);
+    InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
-    when(localRelayServer.startAsync()).thenReturn(CompletableFuture.completedFuture(gamePort));
+    when(localRelayServer.getGpgRelayPort()).thenReturn(111);
     when(forgedAllianceService.startGame(
         gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL, gamePort)
     ).thenReturn(process);
-    when(connectivityService.setUpConnection()).thenReturn(CompletableFuture.completedFuture(relayAddress));
-    when(connectivityService.getExternalPort()).thenReturn(externalPort);
+    when(connectivityService.getExternalSocketAddress()).thenReturn(externalSocketAddress);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(fafService.requestHostGame(newGameInfo, relayAddress, externalPort)).thenReturn(completedFuture(gameLaunchMessage));
+    when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
 
     CountDownLatch gameStartedLatch = new CountDownLatch(1);
     CountDownLatch gameTerminatedLatch = new CountDownLatch(1);
@@ -360,7 +356,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(gameUpdateService.updateInBackground(GameType.LADDER_1V1.getString(), null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
     when(applicationContext.getBean(SearchExpansionTask.class)).thenReturn(searchExpansionTask);
     when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
-    when(localRelayServer.startAsync()).thenReturn(CompletableFuture.completedFuture(111));
+    when(localRelayServer.getGpgRelayPort()).thenReturn(111);
 
     CompletableFuture<Void> future = instance.startSearchRanked1v1(Faction.CYBRAN);
 
@@ -378,16 +374,14 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
-    InetSocketAddress relayAddress = new InetSocketAddress(123);
-    int externalPort = 51231;
+    InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
-    when(connectivityService.getExternalPort()).thenReturn(externalPort);
+    when(connectivityService.getExternalSocketAddress()).thenReturn(externalSocketAddress);
     when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), any(), anyInt())).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(fafService.requestHostGame(newGameInfo, relayAddress, externalPort)).thenReturn(completedFuture(gameLaunchMessage));
-    when(localRelayServer.startAsync()).thenReturn(CompletableFuture.completedFuture(111));
+    when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
+    when(localRelayServer.getGpgRelayPort()).thenReturn(111);
     when(applicationContext.getBean(SearchExpansionTask.class)).thenReturn(searchExpansionTask);
-    when(connectivityService.setUpConnection()).thenReturn(CompletableFuture.completedFuture(relayAddress));
 
 
     CountDownLatch gameRunningLatch = new CountDownLatch(1);

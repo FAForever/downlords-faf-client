@@ -19,6 +19,8 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import org.apache.commons.compress.utils.IOUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -106,11 +108,13 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   @Captor
   private ArgumentCaptor<Consumer<GameLaunchMessage>> onGameLaunchInfoListener;
   private Integer relayPort;
+  private IntegerProperty portProperty;
 
   @Before
   public void setUp() throws Exception {
     messagesReceivedByFafServer = new ArrayBlockingQueue<>(10);
     messagesReceivedByGame = new ArrayBlockingQueue<>(10);
+    portProperty = new SimpleIntegerProperty(6112);
 
     CountDownLatch gameConnectedLatch = new CountDownLatch(1);
 
@@ -135,6 +139,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
+    when(forgedAlliancePrefs.portProperty()).thenReturn(portProperty);
     when(userService.getUid()).thenReturn((int) USER_ID);
     when(userService.getUsername()).thenReturn("junit");
     when(fafService.getSessionId()).thenReturn(SESSION_ID);
@@ -153,7 +158,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     gameLaunchMessage.setMod(GameType.DEFAULT.getString());
     onGameLaunchInfoListener.getValue().accept(gameLaunchMessage);
 
-    relayPort = instance.startAsync().get(TIMEOUT, TIMEOUT_UNIT);
+    relayPort = instance.getGpgRelayPort();
 
     startFakeGameProcess();
     gameConnectedLatch.await(TIMEOUT, TIMEOUT_UNIT);
@@ -257,7 +262,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testJoinGame() throws Exception {
     GpgServerMessage gpgServerMessage = new JoinGameMessage();
-    gpgServerMessage.setArgs(Arrays.asList("86.128.102.173:6112", "TechMonkey", 81655));
+    gpgServerMessage.setArgs(Arrays.asList(Arrays.asList("86.128.102.173", 6112), "TechMonkey", 81655));
     sendFromServer(gpgServerMessage);
 
     gpgServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
@@ -273,7 +278,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testConnectToPeer() throws Exception {
     GpgServerMessage gpgServerMessage = new ConnectToPeerMessage();
-    gpgServerMessage.setArgs(Arrays.asList("80.2.69.214:6112", "Cadet", 79359));
+    gpgServerMessage.setArgs(Arrays.asList(Arrays.asList("86.128.102.173", 6112), "Cadet", 79359));
     sendFromServer(gpgServerMessage);
 
     gpgServerMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);

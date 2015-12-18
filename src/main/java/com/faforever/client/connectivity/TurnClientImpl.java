@@ -39,7 +39,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -123,20 +122,17 @@ public class TurnClientImpl implements TurnClient {
   }
 
   @Override
-  public CompletableFuture<InetSocketAddress> connect() {
-    return CompletableFuture.supplyAsync(() -> {
-      try {
-        localSocket = new DatagramSocket(0, InetAddress.getLocalHost());
-        localAddress = new TransportAddress((InetSocketAddress) localSocket.getLocalSocketAddress(), Transport.UDP);
-        stunStack.addSocket(new IceUdpSocketWrapper(localSocket), serverAddress);
-        blockingRequestSender = new BlockingRequestSender(stunStack, localAddress);
+  public void connect() {
+    try {
+      localSocket = new DatagramSocket(0, InetAddress.getLocalHost());
+      localAddress = new TransportAddress((InetSocketAddress) localSocket.getLocalSocketAddress(), Transport.UDP);
+      stunStack.addSocket(new IceUdpSocketWrapper(localSocket), serverAddress);
+      blockingRequestSender = new BlockingRequestSender(stunStack, localAddress);
 
-        allocateAddress(serverAddress);
-        return new InetSocketAddress(relayedAddress.getHostAddress(), relayedAddress.getPort());
-      } catch (StunException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }, scheduledExecutorService);
+      allocateAddress(serverAddress);
+    } catch (StunException | IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override

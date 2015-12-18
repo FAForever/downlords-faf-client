@@ -113,7 +113,7 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(fafService).sendGpgMessage(any());
 
-    instance.setPublicSocket(publicSocket);
+    instance.setPublicPort(publicSocket.getLocalPort());
 
     assertThat(instance.call(), is(ConnectivityState.PUBLIC));
     verify(fafService).initConnectivityTest(gamePort);
@@ -138,7 +138,7 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(fafService).initConnectivityTest(gamePort);
 
-    instance.setPublicSocket(publicSocket);
+    instance.setPublicPort(publicSocket.getLocalPort());
 
     assertThat(instance.call(), is(ConnectivityState.STUN));
     verify(fafService).initConnectivityTest(gamePort);

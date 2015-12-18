@@ -1,12 +1,11 @@
 package com.faforever.client.connectivity;
 
+import com.faforever.client.relay.ConnectivityStateMessage;
 import com.faforever.client.task.PrioritizedTask;
 
-import java.net.DatagramSocket;
+public interface ConnectivityCheckTask extends PrioritizedTask<ConnectivityStateMessage> {
 
-public interface ConnectivityCheckTask extends PrioritizedTask<ConnectivityState> {
+  int getPublicPort();
 
-  DatagramSocket getPublicSocket();
-
-  void setPublicSocket(DatagramSocket publicSocket);
+  void setPublicPort(int publicPort);
 }

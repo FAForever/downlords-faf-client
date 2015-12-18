@@ -8,12 +8,12 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.relay.ConnectivityStateMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -75,13 +75,6 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPort()).thenReturn(portProperty.get());
     when(forgedAlliancePrefs.portProperty()).thenReturn(portProperty);
-
-    instance.postConstruct();
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    instance.preDestroy();
   }
 
   @Test
@@ -93,7 +86,9 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   public void testCheckGamePortInBackgroundBlockedTriggersNotification() throws Exception {
     ConnectivityCheckTask connectivityCheckTask = mock(ConnectivityCheckTask.class);
     when(applicationContext.getBean(ConnectivityCheckTask.class)).thenReturn(connectivityCheckTask);
-    when(taskService.submitTask(connectivityCheckTask)).thenReturn(CompletableFuture.completedFuture(ConnectivityState.BLOCKED));
+    when(taskService.submitTask(connectivityCheckTask)).thenReturn(
+        CompletableFuture.completedFuture(new ConnectivityStateMessage(ConnectivityState.BLOCKED))
+    );
 
     UpnpPortForwardingTask upnpPortForwardingTask = mockUpnpPortForwardingTask();
 
@@ -101,7 +96,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getConnectivityState(), is(ConnectivityState.BLOCKED));
 
     verify(taskService).submitTask(connectivityCheckTask);
-    verify(connectivityCheckTask).setPublicSocket(any());
+    verify(connectivityCheckTask).setPublicPort(any());
     verify(taskService).submitTask(upnpPortForwardingTask);
     verify(upnpPortForwardingTask).setPort(anyInt());
     verify(notificationService).addNotification(any(PersistentNotification.class));
@@ -119,7 +114,9 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   public void testCheckGamePortInBackgroundStunDoesntTriggerNotification() throws Exception {
     ConnectivityCheckTask connectivityCheckTask = mock(ConnectivityCheckTask.class);
     when(applicationContext.getBean(ConnectivityCheckTask.class)).thenReturn(connectivityCheckTask);
-    when(taskService.submitTask(connectivityCheckTask)).thenReturn(CompletableFuture.completedFuture(ConnectivityState.STUN));
+    when(taskService.submitTask(connectivityCheckTask)).thenReturn(
+        CompletableFuture.completedFuture(new ConnectivityStateMessage(ConnectivityState.STUN))
+    );
 
     UpnpPortForwardingTask upnpPortForwardingTask = mockUpnpPortForwardingTask();
 
@@ -137,7 +134,9 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   public void testCheckGamePortInBackgroundPublicDoesntTriggerNotification() throws Exception {
     ConnectivityCheckTask connectivityCheckTask = mock(ConnectivityCheckTask.class);
     when(applicationContext.getBean(ConnectivityCheckTask.class)).thenReturn(connectivityCheckTask);
-    when(taskService.submitTask(connectivityCheckTask)).thenReturn(CompletableFuture.completedFuture(ConnectivityState.PUBLIC));
+    when(taskService.submitTask(connectivityCheckTask)).thenReturn(
+        CompletableFuture.completedFuture(new ConnectivityStateMessage(ConnectivityState.PUBLIC))
+    );
 
     UpnpPortForwardingTask upnpPortForwardingTask = mockUpnpPortForwardingTask();
 
@@ -153,7 +152,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testCheckGamePortInBackgroundFailsTriggersNotification() throws Exception {
     ArgumentCaptor<PersistentNotification> persistentNotificationCaptor = ArgumentCaptor.forClass(PersistentNotification.class);
-    CompletableFuture<ConnectivityState> completableFuture = new CompletableFuture<>();
+    CompletableFuture<ConnectivityStateMessage> completableFuture = new CompletableFuture<>();
     completableFuture.completeExceptionally(new Exception("junit test exception"));
 
     ConnectivityCheckTask connectivityCheckTask = mock(ConnectivityCheckTask.class);

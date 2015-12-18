@@ -1,6 +1,8 @@
 package com.faforever.client.relay;
 
-import java.util.concurrent.CompletableFuture;
+import java.net.DatagramPacket;
+import java.net.InetSocketAddress;
+import java.util.function.Consumer;
 
 /**
  * A local relay server to which Forged Alliance can connect to. All GPG commands received from FA are forwarded to the
@@ -8,14 +10,16 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface LocalRelayServer {
 
+  void addOnPacketFromOutsideListener(Consumer<DatagramPacket> listener);
+
   void addOnConnectionAcceptedListener(Runnable listener);
 
-  /**
-   * Starts the relay server asynchronous.
-   *
-   * @return the port that has been opened
-   */
-  CompletableFuture<Integer> startAsync();
+  Integer getGpgRelayPort();
 
-  void getPort();
+  Integer getPublicPort();
+
+  InetSocketAddress getRelayAddress();
+
+  void removeOnPackedFromOutsideListener(Consumer<DatagramPacket> listener);
+
 }

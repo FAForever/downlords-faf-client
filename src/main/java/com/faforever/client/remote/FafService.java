@@ -9,9 +9,7 @@ import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.relay.GpgClientMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import org.jetbrains.annotations.Nullable;
 
-import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -24,11 +22,11 @@ public interface FafService {
   @SuppressWarnings("unchecked")
   <T extends ServerMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener);
 
-  CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, @Nullable InetSocketAddress relayAddress, int externalPort);
+  CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo);
 
   ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
 
-  CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password, @Nullable InetSocketAddress relayAddress, int externalPort);
+  CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password);
 
   CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int port);
 

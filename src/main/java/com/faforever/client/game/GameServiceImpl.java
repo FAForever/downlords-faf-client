@@ -137,15 +137,13 @@ public class GameServiceImpl implements GameService {
 
     stopSearchRanked1v1();
 
-    return localRelayServer.startAsync()
-        .thenAccept(localRelayPort -> updateGameIfNecessary(
-            newGameInfo.getGameType(),
-            newGameInfo.getVersion(), emptyMap(),
-            newGameInfo.getSimModUidsToVersions()
-        )
-            .thenCompose(aVoid -> connectivityService.setUpConnection())
-            .thenCompose(relayAddress -> fafService.requestHostGame(newGameInfo, relayAddress, connectivityService.getExternalPort()))
-            .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayPort)));
+    return updateGameIfNecessary(
+        newGameInfo.getGameType(),
+        newGameInfo.getVersion(), emptyMap(),
+        newGameInfo.getSimModUidsToVersions()
+    )
+        .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
+        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayServer.getGpgRelayPort()));
   }
 
   @Override
@@ -162,13 +160,10 @@ public class GameServiceImpl implements GameService {
     Map<String, Integer> simModVersions = gameInfoBean.getFeaturedModVersions();
     Set<String> simModUIds = gameInfoBean.getSimMods().keySet();
 
-    return localRelayServer.startAsync()
-        .thenAccept(localRelayPort -> updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
-            .thenCompose(aVoid -> downloadMapIfNecessary(gameInfoBean.getMapTechnicalName()))
-            .thenCompose(aVoid -> connectivityService.setUpConnection())
-            .thenCompose(relayAddress -> fafService.requestJoinGame(gameInfoBean.getUid(), password, relayAddress, connectivityService.getExternalPort()))
-            .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayPort))
-        );
+    return updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
+        .thenCompose(aVoid -> downloadMapIfNecessary(gameInfoBean.getMapTechnicalName()))
+        .thenCompose(aVoid -> fafService.requestJoinGame(gameInfoBean.getUid(), password))
+        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayServer.getGpgRelayPort()));
   }
 
   private CompletableFuture<Void> downloadMapIfNecessary(String mapName) {
@@ -269,18 +264,17 @@ public class GameServiceImpl implements GameService {
 
     int port = preferencesService.getPreferences().getForgedAlliance().getPort();
 
-    return localRelayServer.startAsync()
-        .thenAccept(localRelayPort -> updateGameIfNecessary(GameType.LADDER_1V1.getString(), null, emptyMap(), emptySet())
-            .thenCompose(aVoid -> fafService.startSearchRanked1v1(faction, port))
-            .thenAccept((gameLaunchInfo) -> {
-              searchExpansionFuture.cancel(true);
-              startGame(gameLaunchInfo, faction, RatingMode.RANKED_1V1, localRelayPort);
-            })
-            .exceptionally(throwable -> {
-              logger.warn("Ranked1v1 could not be started", throwable);
-              searchExpansionFuture.cancel(true);
-              return null;
-            }));
+    return updateGameIfNecessary(GameType.LADDER_1V1.getString(), null, emptyMap(), emptySet())
+        .thenCompose(aVoid -> fafService.startSearchRanked1v1(faction, port))
+        .thenAccept((gameLaunchInfo) -> {
+          searchExpansionFuture.cancel(true);
+          startGame(gameLaunchInfo, faction, RatingMode.RANKED_1V1, localRelayServer.getGpgRelayPort());
+        })
+        .exceptionally(throwable -> {
+          logger.warn("Ranked1v1 could not be started", throwable);
+          searchExpansionFuture.cancel(true);
+          return null;
+        });
   }
 
   @NotNull
@@ -325,7 +319,7 @@ public class GameServiceImpl implements GameService {
     stopSearchRanked1v1();
     List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
     try {
-      localRelayServer.getPort();
+      localRelayServer.getGpgRelayPort();
       process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), faction, args, ratingMode, localRelayPort);
       gameRunning.set(true);
 
