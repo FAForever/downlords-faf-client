@@ -5,6 +5,7 @@ import com.faforever.client.legacy.domain.SerializableMessage;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.google.common.annotations.VisibleForTesting;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -55,6 +56,12 @@ public class GpgServerMessage implements SerializableMessage, ServerMessage {
 
   protected String getString(int index) {
     return ((String) args.get(index));
+  }
+
+  protected InetSocketAddress getSocketAddress(int index) {
+    @SuppressWarnings("unchecked")
+    List<Object> addressArray = (List<Object>) args.get(index);
+    return new InetSocketAddress((String) addressArray.get(0), ((Number) addressArray.get(1)).intValue());
   }
 
   @Override
