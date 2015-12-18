@@ -68,8 +68,8 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
         // The server tells us what our connectivity state is, we're done
         ConnectivityState state = ((ConnectivityStateMessage) serverMessage).getState();
         logger.debug("Received connectivity state from server: " + state);
-        connectivityStateFuture.complete(state);
         gamePortPacketFuture.cancel(true);
+        connectivityStateFuture.complete(state);
         break;
     }
   }

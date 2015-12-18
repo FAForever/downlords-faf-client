@@ -17,6 +17,10 @@ public class InetSocketAddressTypeAdapter extends TypeAdapter<InetSocketAddress>
 
   @Override
   public void write(JsonWriter out, InetSocketAddress value) throws IOException {
+    if (value == null) {
+      out.nullValue();
+      return;
+    }
     out.beginArray()
         .value(value.getHostString())
         .value(value.getPort())

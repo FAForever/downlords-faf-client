@@ -343,6 +343,7 @@ public class MainController implements OnChoseGameDirectoryListener {
           portCheckStatusIcon.setText("\uF111");
           portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_PUBLIC_PSEUDO_CLASS, true);
           portCheckStatusButton.setText(i18n.get("statusBar.connectivityPublic"));
+          break;
         case STUN:
           portCheckStatusIcon.setText("\uF06A");
           portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_STUN_PSEUDO_CLASS, true);
