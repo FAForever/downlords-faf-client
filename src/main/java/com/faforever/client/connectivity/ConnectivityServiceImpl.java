@@ -11,6 +11,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.relay.SendNatPacketMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.util.SocketAddressUtil;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -91,7 +92,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
 
     try {
       publicSocket = new DatagramSocket(new InetSocketAddress(InetAddress.getLocalHost(), port));
-      logger.info("Opened public UDP socket: {}", publicSocket);
+      logger.info("Opened public UDP socket: {}", SocketAddressUtil.toString((InetSocketAddress) publicSocket.getLocalSocketAddress());
     } catch (SocketException | UnknownHostException e) {
       throw new RuntimeException(e);
     }

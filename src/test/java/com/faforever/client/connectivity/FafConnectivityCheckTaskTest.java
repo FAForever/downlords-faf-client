@@ -100,13 +100,12 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
       ProcessNatPacketMessage processNatPacketMessage = invocation.getArgumentAt(0, ProcessNatPacketMessage.class);
 
       InetAddress expectedAddress = InetAddress.getLocalHost();
-      InetAddress actualAddress = processNatPacketMessage.getAddress().getAddress();
-      int actualPort = processNatPacketMessage.getAddress().getPort();
+      InetAddress actualAddress = processNatPacketMessage.getAddress();
+      int actualPort = processNatPacketMessage.getPort();
 
       assertThat(processNatPacketMessage.getTarget(), is(MessageTarget.CONNECTIVITY));
       assertThat(actualAddress, is(expectedAddress));
       assertThat(actualPort, is(both(greaterThan(PORT_RANGE_MIN)).and(lessThan(PORT_RANGE_MAX))));
-      assertThat(processNatPacketMessage.getMessage(), is("Are you public? " + playerId));
 
       verify(fafService).addOnMessageListener(eq(GpgServerMessage.class), connectivityMessageListenerCaptor.capture());
       connectivityMessageListenerCaptor.getValue().accept(new ConnectivityStateMessage(ConnectivityState.PUBLIC));

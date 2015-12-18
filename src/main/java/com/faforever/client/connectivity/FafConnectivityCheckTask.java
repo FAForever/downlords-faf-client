@@ -8,6 +8,7 @@ import com.faforever.client.relay.ProcessNatPacketMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.util.Assert;
+import com.faforever.client.util.SocketAddressUtil;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,16 +103,16 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
   }
 
   private boolean isGamePortPublic(int port) {
-    logger.info("Testing connectivity of game port: {}", port);
+    logger.info("Testing public connectivity of game port: {}", port);
     gamePortPacketFuture = listenForPackage(publicSocket);
 
     fafService.initConnectivityTest(port);
     try {
       DatagramPacket udpPacket = gamePortPacketFuture.get(TIMEOUT, TimeUnit.MILLISECONDS);
-      logger.debug("Received UPD package from server on {}", publicSocket);
+      logger.info("Received UPD package from server on public socket ({}:{})", SocketAddressUtil.toString((InetSocketAddress) publicSocket.getLocalSocketAddress()));
 
       byte[] data = udpPacket.getData();
-      String message = new String(data, 0, udpPacket.getLength(), US_ASCII);
+      String message = new String(data, 1, udpPacket.getLength() - 1, US_ASCII);
       InetSocketAddress address = (InetSocketAddress) udpPacket.getSocketAddress();
 
       ProcessNatPacketMessage processNatPacketMessage = new ProcessNatPacketMessage(address, message);
@@ -146,12 +147,12 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
   }
 
   @Override
-  public void setPublicSocket(DatagramSocket publicSocket) {
-    this.publicSocket = publicSocket;
+  public DatagramSocket getPublicSocket() {
+    return publicSocket;
   }
 
   @Override
-  public DatagramSocket getPublicSocket() {
-    return publicSocket;
+  public void setPublicSocket(DatagramSocket publicSocket) {
+    this.publicSocket = publicSocket;
   }
 }
