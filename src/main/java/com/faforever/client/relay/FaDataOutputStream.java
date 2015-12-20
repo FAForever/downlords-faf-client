@@ -66,35 +66,4 @@ public class FaDataOutputStream extends OutputStream {
   public void writeString(String string) throws IOException {
     outputStream.write(string.getBytes(charset));
   }
-
-  public void writeUdpArgs(List<Object> args) throws IOException {
-    writeInt(args.size());
-
-    boolean isFollowingString = false;
-
-    for (Object arg : args) {
-      if (arg instanceof Double) {
-        int value = ((Double) arg).intValue();
-        writeByte(FIELD_TYPE_INT);
-        writeInt(value);
-      } else if (arg instanceof Integer) {
-        writeByte(FIELD_TYPE_INT);
-        writeInt((int) arg);
-      } else {
-        String value = ((String) arg).replace("\t", "/t").replace("\n", "/n");
-
-        if (isFollowingString) {
-          value = DELIMITER + value;
-          writeByte(FIELD_TYPE_FOLLOWING_STRING);
-        } else {
-          writeByte(FIELD_TYPE_STRING);
-        }
-
-        writeInt(value.length());
-        writeString(value);
-      }
-
-      isFollowingString = true;
-    }
-  }
 }

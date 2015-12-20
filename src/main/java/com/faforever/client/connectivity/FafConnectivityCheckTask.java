@@ -105,10 +105,10 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
 
       fafService.initConnectivityTest(port);
       DatagramPacket udpPacket = gamePortPacketFuture.get(TIMEOUT, TimeUnit.MILLISECONDS);
-      logger.info("Received UDP package on port {}", port);
+      String message = new String(udpPacket.getData(), 1, udpPacket.getLength() - 1, US_ASCII);
 
-      byte[] data = udpPacket.getData();
-      String message = new String(data, 1, udpPacket.getLength() - 1, US_ASCII);
+      logger.info("Received UDP package on port {}: ", port, message);
+
       InetSocketAddress address = (InetSocketAddress) udpPacket.getSocketAddress();
 
       ProcessNatPacketMessage processNatPacketMessage = new ProcessNatPacketMessage(address, message);

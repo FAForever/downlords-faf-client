@@ -245,16 +245,12 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   }
 
   private void onSendNatPacket(SendNatPacketMessage sendNatPacketMessage) {
-    if (sendNatPacketMessage.getTarget() != MessageTarget.CONNECTIVITY) {
-      return;
-    }
-
     InetSocketAddress received = sendNatPacketMessage.getPublicAddress();
     String message = sendNatPacketMessage.getMessage();
 
     logger.debug("Sending NAT packet to {}: {}", received, message);
 
-    byte[] bytes = ('\u0008' + message).getBytes(US_ASCII);
+    byte[] bytes = (message).getBytes(US_ASCII);
     DatagramPacket datagramPacket = new DatagramPacket(bytes, bytes.length);
     datagramPacket.setSocketAddress(received);
     try {
@@ -398,7 +394,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
         break;
       case SEND_NAT_PACKET:
         SendNatPacketMessage sendNatPacketMessage = gson.fromJson(jsonString, SendNatPacketMessage.class);
-        handleSendNatPacket(sendNatPacketMessage);
+        onSendNatPacket(sendNatPacketMessage);
         break;
       case P2P_RECONNECT:
         logger.warn("P2P Reconnect has not been implemented");
@@ -435,10 +431,6 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
   private void handleHostGame(HostGameMessage hostGameMessage) throws IOException {
     writeToFa(hostGameMessage);
-  }
-
-  private void handleSendNatPacket(SendNatPacketMessage sendNatPacketMessage) throws IOException {
-    writeToFaUdp(sendNatPacketMessage);
   }
 
   private void handleConnectToPeer(ConnectToPeerMessage connectToPeerMessage) throws IOException {
@@ -497,11 +489,5 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     joinGameMessage.setPeerAddress((InetSocketAddress) peerSocketAddress);
 
     writeToFa(joinGameMessage);
-  }
-
-  private void writeToFaUdp(GpgServerMessage gpgServerMessage) throws IOException {
-    writeHeader(gpgServerMessage);
-    gameOutputStream.writeUdpArgs(gpgServerMessage.getArgs());
-    gameOutputStream.flush();
   }
 }
