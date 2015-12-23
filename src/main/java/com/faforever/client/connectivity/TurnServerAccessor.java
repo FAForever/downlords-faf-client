@@ -5,11 +5,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 
-public interface TurnClient extends Closeable {
+public interface TurnServerAccessor extends Closeable {
 
-  /**
-   * Connects to the TURN server and returns the allocated relay address.
-   */
   void connect();
 
   void close() throws IOException;

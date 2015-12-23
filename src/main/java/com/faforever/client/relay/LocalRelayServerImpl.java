@@ -2,7 +2,7 @@ package com.faforever.client.relay;
 
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.connectivity.ConnectivityState;
-import com.faforever.client.connectivity.TurnClient;
+import com.faforever.client.connectivity.TurnServerAccessor;
 import com.faforever.client.game.GameType;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.MessageTarget;
@@ -69,7 +69,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   @Resource
   ConnectivityService connectivityService;
   @Resource
-  TurnClient turnClient;
+  TurnServerAccessor turnServerAccessor;
   private FaDataOutputStream gameOutputStream;
   private FaDataInputStream gameInputStream;
   private LobbyMode lobbyMode;
@@ -131,7 +131,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
   @Override
   public InetSocketAddress getRelayAddress() {
-    return turnClient.getRelayAddress();
+    return turnServerAccessor.getRelayAddress();
   }
 
   @Override
@@ -288,7 +288,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
         break;
       case STUN:
         gameDataForwarder = turnForwarder();
-        turnClient.connect();
+        turnServerAccessor.connect();
         break;
       case BLOCKED:
         throw new IllegalStateException("Can't connect");
@@ -332,7 +332,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
    */
   private Consumer<DatagramPacket> turnForwarder() {
     logger.info("Using TURN server");
-    return datagramPacket -> turnClient.send(datagramPacket);
+    return datagramPacket -> turnServerAccessor.send(datagramPacket);
   }
 
   private void listenForPublicGameData() {

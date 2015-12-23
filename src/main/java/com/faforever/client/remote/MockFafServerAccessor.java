@@ -48,7 +48,7 @@ import static com.faforever.client.legacy.domain.GameAccess.PASSWORD;
 import static com.faforever.client.legacy.domain.GameAccess.PUBLIC;
 import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
 
-public class MockFafClient implements FafClient {
+public class MockFafServerAccessor implements FafServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final Timer timer;
@@ -63,7 +63,7 @@ public class MockFafClient implements FafClient {
   I18n i18n;
   private ObjectProperty<ConnectionState> connectionState;
 
-  public MockFafClient() {
+  public MockFafServerAccessor() {
     timer = new Timer("LobbyServerAccessorTimer", true);
     messageListeners = new HashMap<>();
     connectionState = new SimpleObjectProperty<>();

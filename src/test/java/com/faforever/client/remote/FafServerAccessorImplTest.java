@@ -66,7 +66,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class FafClientImplTest extends AbstractPlainJavaFxTest {
+public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -96,7 +96,7 @@ public class FafClientImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private ClientUpdateService clientUpdateService;
 
-  private FafClientImpl instance;
+  private FafServerAccessorImpl instance;
   private LoginPrefs loginPrefs;
   private ServerSocket fafLobbyServerSocket;
   private Socket localToServerSocket;
@@ -112,7 +112,7 @@ public class FafClientImplTest extends AbstractPlainJavaFxTest {
 
     startFakeFafLobbyServer();
 
-    instance = new FafClientImpl();
+    instance = new FafServerAccessorImpl();
     instance.preferencesService = preferencesService;
     instance.uidService = uidService;
     instance.lobbyHost = LOOPBACK_ADDRESS.getHostAddress();

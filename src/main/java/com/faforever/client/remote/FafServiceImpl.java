@@ -19,24 +19,24 @@ import java.util.function.Consumer;
 public class FafServiceImpl implements FafService {
 
   @Resource
-  FafClient fafClient;
+  FafServerAccessor fafServerAccessor;
   @Resource
   ConnectivityService connectivityService;
 
   @Override
   public <T extends ServerMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
-    fafClient.addOnMessageListener(type, listener);
+    fafServerAccessor.addOnMessageListener(type, listener);
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public <T extends ServerMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener) {
-    fafClient.removeOnMessageListener(type, listener);
+    fafServerAccessor.removeOnMessageListener(type, listener);
   }
 
   @Override
   public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
-    return fafClient.requestHostGame(newGameInfo,
+    return fafServerAccessor.requestHostGame(newGameInfo,
         connectivityService.getRelayAddress(),
         connectivityService.getExternalSocketAddress().getPort()
     );
@@ -44,68 +44,68 @@ public class FafServiceImpl implements FafService {
 
   @Override
   public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
-    return fafClient.connectionStateProperty();
+    return fafServerAccessor.connectionStateProperty();
   }
 
   @Override
   public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password) {
-    return fafClient.requestJoinGame(gameId, password,
+    return fafServerAccessor.requestJoinGame(gameId, password,
         connectivityService.getRelayAddress(),
         connectivityService.getExternalSocketAddress().getPort());
   }
 
   @Override
   public CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int port) {
-    return fafClient.startSearchRanked1v1(faction, port);
+    return fafServerAccessor.startSearchRanked1v1(faction, port);
   }
 
   @Override
   public void stopSearchingRanked() {
-    fafClient.stopSearchingRanked();
+    fafServerAccessor.stopSearchingRanked();
   }
 
   @Override
   public void initConnectivityTest(int port) {
-    fafClient.initConnectivityTest(port);
+    fafServerAccessor.initConnectivityTest(port);
   }
 
   @Override
   public void sendGpgMessage(GpgClientMessage message) {
-    fafClient.sendGpgMessage(message);
+    fafServerAccessor.sendGpgMessage(message);
   }
 
   @Override
   public void expand1v1Search(float radius) {
-    fafClient.expand1v1Search(radius);
+    fafServerAccessor.expand1v1Search(radius);
   }
 
   @Override
   public CompletableFuture<List<LeaderboardEntryBean>> requestLeaderboardEntries() {
-    return fafClient.requestLeaderboardEntries();
+    return fafServerAccessor.requestLeaderboardEntries();
   }
 
   @Override
   public CompletableFuture<LoginMessage> connectAndLogIn(String username, String password) {
-    return fafClient.connectAndLogIn(username, password);
+    return fafServerAccessor.connectAndLogIn(username, password);
   }
 
   @Override
   public void disconnect() {
-    fafClient.disconnect();
+    fafServerAccessor.disconnect();
   }
 
   @Override
   public void setFriends(List<String> friendList) {
-    fafClient.setFriends(friendList);
+    fafServerAccessor.setFriends(friendList);
   }
 
   @Override
   public void setFoes(List<String> foeList) {
-    fafClient.setFoes(foeList);
+    fafServerAccessor.setFoes(foeList);
   }
 
   @Override
   public Long getSessionId() {
-    return fafClient.getSessionId();
+    return fafServerAccessor.getSessionId();
   }
 }

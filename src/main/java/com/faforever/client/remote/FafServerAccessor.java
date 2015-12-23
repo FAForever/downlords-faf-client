@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 /**
  * Entry class for all communication with the FAF server.
  */
-public interface FafClient {
+public interface FafServerAccessor {
 
   @SuppressWarnings("unchecked")
   <T extends ServerMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener);

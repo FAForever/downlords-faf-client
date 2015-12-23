@@ -14,8 +14,8 @@ import com.faforever.client.chat.PircBotXFactory;
 import com.faforever.client.chat.PircBotXFactoryImpl;
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.connectivity.ConnectivityServiceImpl;
-import com.faforever.client.connectivity.TurnClient;
-import com.faforever.client.connectivity.TurnClientImpl;
+import com.faforever.client.connectivity.TurnServerAccessor;
+import com.faforever.client.connectivity.TurnServerAccessorImpl;
 import com.faforever.client.events.EventService;
 import com.faforever.client.events.EventServiceImpl;
 import com.faforever.client.fa.ForgedAllianceService;
@@ -59,11 +59,11 @@ import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.relay.LocalRelayServerImpl;
-import com.faforever.client.remote.FafClient;
-import com.faforever.client.remote.FafClientImpl;
+import com.faforever.client.remote.FafServerAccessor;
+import com.faforever.client.remote.FafServerAccessorImpl;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.FafServiceImpl;
-import com.faforever.client.remote.MockFafClient;
+import com.faforever.client.remote.MockFafServerAccessor;
 import com.faforever.client.replay.ReplayFileReader;
 import com.faforever.client.replay.ReplayFileReaderImpl;
 import com.faforever.client.replay.ReplayFileWriter;
@@ -122,11 +122,11 @@ public class ServiceConfig {
   }
 
   @Bean
-  FafClient fafClient() {
+  FafServerAccessor fafClient() {
     if (environment.containsProperty("faf.testing")) {
-      return new MockFafClient();
+      return new MockFafServerAccessor();
     }
-    return new FafClientImpl();
+    return new FafServerAccessorImpl();
   }
 
   @Bean
@@ -247,8 +247,8 @@ public class ServiceConfig {
   }
 
   @Bean
-  TurnClient turnClient() {
-    return new TurnClientImpl();
+  TurnServerAccessor turnClient() {
+    return new TurnServerAccessorImpl();
   }
 
   @Bean

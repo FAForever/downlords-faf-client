@@ -93,7 +93,7 @@ import java.util.function.Consumer;
 import static com.faforever.client.task.AbstractPrioritizedTask.Priority.MEDIUM;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
-public class FafClientImpl extends AbstractServerAccessor implements FafClient {
+public class FafServerAccessorImpl extends AbstractServerAccessor implements FafServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final long RECONNECT_DELAY = 3000;
@@ -130,7 +130,7 @@ public class FafClientImpl extends AbstractServerAccessor implements FafClient {
   private String password;
   private ObjectProperty<ConnectionState> connectionState;
 
-  public FafClientImpl() {
+  public FafServerAccessorImpl() {
     messageListeners = new HashMap<>();
     connectionState = new SimpleObjectProperty<>();
     sessionId = new SimpleObjectProperty<>();

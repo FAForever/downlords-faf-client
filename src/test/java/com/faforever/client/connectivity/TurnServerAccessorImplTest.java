@@ -49,11 +49,11 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
-public class TurnClientImplTest extends AbstractPlainJavaFxTest {
+public class TurnServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private TurnClientImpl instance;
+  private TurnServerAccessorImpl instance;
   private DatagramSocket turnServerSocket;
 
   @Mock
@@ -70,7 +70,7 @@ public class TurnClientImplTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     DatagramSocket serverSocket = startFakeTurnServer();
 
-    instance = new TurnClientImpl();
+    instance = new TurnServerAccessorImpl();
     instance.scheduledExecutorService = scheduledExecutorService;
     instance.fafService = fafService;
     instance.turnHost = serverSocket.getLocalAddress().getHostAddress();

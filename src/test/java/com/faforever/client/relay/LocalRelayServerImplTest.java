@@ -2,7 +2,7 @@ package com.faforever.client.relay;
 
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.connectivity.ConnectivityState;
-import com.faforever.client.connectivity.TurnClient;
+import com.faforever.client.connectivity.TurnServerAccessor;
 import com.faforever.client.game.GameLaunchMessageBuilder;
 import com.faforever.client.game.GameType;
 import com.faforever.client.legacy.domain.FafServerMessageType;
@@ -97,7 +97,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private Socket gameToRelaySocket;
   private boolean stopped;
   @Mock
-  private TurnClient turnClient;
+  private TurnServerAccessor turnServerAccessor;
   @Mock
   private UserService userService;
   @Mock

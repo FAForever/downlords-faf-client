@@ -48,7 +48,7 @@ import static org.ice4j.attribute.Attribute.XOR_MAPPED_ADDRESS;
 import static org.ice4j.attribute.Attribute.XOR_RELAYED_ADDRESS;
 import static org.ice4j.attribute.RequestedTransportAttribute.UDP;
 
-public class TurnClientImpl implements TurnClient {
+public class TurnServerAccessorImpl implements TurnServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final AtomicInteger CHANNEL_NUMBER = new AtomicInteger(0x4000);
@@ -75,7 +75,7 @@ public class TurnClientImpl implements TurnClient {
   private Map<SocketAddress, Character> socketsToChannels;
   private DatagramSocket localSocket;
 
-  public TurnClientImpl() {
+  public TurnServerAccessorImpl() {
     stunStack = new StunStack();
     channelData = new ChannelData();
     socketsToChannels = new HashMap<>();
