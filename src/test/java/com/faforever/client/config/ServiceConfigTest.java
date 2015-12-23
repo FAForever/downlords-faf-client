@@ -14,11 +14,12 @@ public class ServiceConfigTest extends AbstractPlainJavaFxTest {
   @Test
   public void testDoesItSmoke() throws Exception {
     WaitForAsyncUtils.waitForAsyncFx(20000, () -> {
-      AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-      context.getBeanFactory().registerSingleton("hostService", mock(HostService.class));
-      context.getBeanFactory().registerSingleton("stage", new Stage());
-      context.register(BaseConfig.class, UiConfig.class, ServiceConfig.class, TaskConfig.class, CacheConfig.class, LuceneConfig.class);
-      context.refresh();
+      try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+        context.getBeanFactory().registerSingleton("hostService", mock(HostService.class));
+        context.getBeanFactory().registerSingleton("stage", new Stage());
+        context.register(BaseConfig.class, UiConfig.class, ServiceConfig.class, TaskConfig.class, CacheConfig.class, LuceneConfig.class);
+        context.refresh();
+      }
     });
   }
 }

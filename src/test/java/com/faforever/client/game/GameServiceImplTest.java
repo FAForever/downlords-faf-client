@@ -223,16 +223,16 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @SuppressWarnings("unchecked")
   public void testAddOnGameStartedListener() throws Exception {
     Process process = mock(Process.class);
-    int gamePort = 51111;
+    int gpgPort = 111;
 
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     gameLaunchMessage.setArgs(Arrays.asList("/foo bar", "/bar foo"));
     InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
-    when(localRelayServer.getGpgRelayPort()).thenReturn(111);
+    when(localRelayServer.getGpgRelayPort()).thenReturn(gpgPort);
     when(forgedAllianceService.startGame(
-        gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL, gamePort)
+        gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL, gpgPort)
     ).thenReturn(process);
     when(connectivityService.getExternalSocketAddress()).thenReturn(externalSocketAddress);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
@@ -263,7 +263,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameTerminatedLatch.await(TIMEOUT, TIME_UNIT);
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL,
-        gamePort);
+        gpgPort);
   }
 
   @Test

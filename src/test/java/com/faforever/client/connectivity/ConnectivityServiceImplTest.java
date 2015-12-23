@@ -9,6 +9,7 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.relay.ConnectivityStateMessage;
+import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -21,6 +22,7 @@ import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.SocketUtils;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -56,6 +58,8 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   private NotificationService notificationService;
   @Mock
   private FafService fafService;
+  @Mock
+  private LocalRelayServer localRelayServer;
   private IntegerProperty portProperty;
 
   @Before
@@ -68,6 +72,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     instance.applicationContext = applicationContext;
     instance.notificationService = notificationService;
     instance.fafService = fafService;
+    instance.localRelayServer = localRelayServer;
 
     portProperty = new SimpleIntegerProperty(SocketUtils.findAvailableUdpPort());
 
@@ -87,7 +92,9 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     ConnectivityCheckTask connectivityCheckTask = mock(ConnectivityCheckTask.class);
     when(applicationContext.getBean(ConnectivityCheckTask.class)).thenReturn(connectivityCheckTask);
     when(taskService.submitTask(connectivityCheckTask)).thenReturn(
-        CompletableFuture.completedFuture(new ConnectivityStateMessage(ConnectivityState.BLOCKED))
+        CompletableFuture.completedFuture(new ConnectivityStateMessage(
+            ConnectivityState.BLOCKED, new InetSocketAddress(51111)
+        ))
     );
 
     UpnpPortForwardingTask upnpPortForwardingTask = mockUpnpPortForwardingTask();
@@ -96,7 +103,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getConnectivityState(), is(ConnectivityState.BLOCKED));
 
     verify(taskService).submitTask(connectivityCheckTask);
-    verify(connectivityCheckTask).setPublicPort(any());
+    verify(connectivityCheckTask).setPublicPort(anyInt());
     verify(taskService).submitTask(upnpPortForwardingTask);
     verify(upnpPortForwardingTask).setPort(anyInt());
     verify(notificationService).addNotification(any(PersistentNotification.class));
@@ -115,7 +122,9 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     ConnectivityCheckTask connectivityCheckTask = mock(ConnectivityCheckTask.class);
     when(applicationContext.getBean(ConnectivityCheckTask.class)).thenReturn(connectivityCheckTask);
     when(taskService.submitTask(connectivityCheckTask)).thenReturn(
-        CompletableFuture.completedFuture(new ConnectivityStateMessage(ConnectivityState.STUN))
+        CompletableFuture.completedFuture(new ConnectivityStateMessage(
+            ConnectivityState.STUN, new InetSocketAddress(51111)
+        ))
     );
 
     UpnpPortForwardingTask upnpPortForwardingTask = mockUpnpPortForwardingTask();
@@ -135,9 +144,10 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     ConnectivityCheckTask connectivityCheckTask = mock(ConnectivityCheckTask.class);
     when(applicationContext.getBean(ConnectivityCheckTask.class)).thenReturn(connectivityCheckTask);
     when(taskService.submitTask(connectivityCheckTask)).thenReturn(
-        CompletableFuture.completedFuture(new ConnectivityStateMessage(ConnectivityState.PUBLIC))
+        CompletableFuture.completedFuture(new ConnectivityStateMessage(
+            ConnectivityState.PUBLIC, new InetSocketAddress(51111)
+        ))
     );
-
     UpnpPortForwardingTask upnpPortForwardingTask = mockUpnpPortForwardingTask();
 
     instance.checkConnectivity().get(1, TimeUnit.SECONDS);

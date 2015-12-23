@@ -47,7 +47,7 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
 
   private CompletableFuture<DatagramPacket> gamePortPacketFuture;
   private CompletableFuture<ConnectivityStateMessage> connectivityStateFuture;
-  private int publicPort;
+  private Integer publicPort;
 
   public FafConnectivityCheckTask() {
     super(Priority.LOW);
