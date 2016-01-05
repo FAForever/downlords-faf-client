@@ -1,5 +1,6 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.patch.domain.UpdateServerCommand;
 import com.faforever.client.patch.domain.UpdateServerRequest;
 
 public class GetFilesToUpdateMessage extends UpdateServerRequest {

@@ -1,7 +1,5 @@
 package com.faforever.client.patch.domain;
 
-import com.faforever.client.patch.UpdateServerCommand;
-
 public class SimPathRequest extends UpdateServerRequest {
 
   public SimPathRequest(String modUid) {

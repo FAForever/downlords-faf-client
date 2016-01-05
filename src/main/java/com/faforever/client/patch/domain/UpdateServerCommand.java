@@ -1,4 +1,4 @@
-package com.faforever.client.patch;
+package com.faforever.client.patch.domain;
 
 public enum UpdateServerCommand {
   REQUEST_SIM_PATH, UPDATE, REQUEST_VERSION, REQUEST_MOD_VERSION, REQUEST_PATH, PATCH_TO, MOD_PATCH_TO, ADD_DOWNLOAD_SIM_MOD, REQUEST, GET_FILES_TO_UPDATE

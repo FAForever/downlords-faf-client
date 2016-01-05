@@ -1,7 +1,5 @@
 package com.faforever.client.patch.domain;
 
-import com.faforever.client.patch.UpdateServerCommand;
-
 public class PathRequest extends UpdateServerRequest {
 
   public PathRequest(String targetDirectoryName, String filename) {

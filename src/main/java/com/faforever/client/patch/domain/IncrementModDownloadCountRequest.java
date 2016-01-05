@@ -1,7 +1,5 @@
 package com.faforever.client.patch.domain;
 
-import com.faforever.client.patch.UpdateServerCommand;
-
 public class IncrementModDownloadCountRequest extends UpdateServerRequest {
 
   public IncrementModDownloadCountRequest(String uid) {
