@@ -13,13 +13,13 @@ public class ConnectivityStateMessage extends GpgServerMessage {
 
   public ConnectivityStateMessage(ConnectivityState state, InetSocketAddress socketAddress) {
     super(GpgServerMessageType.CONNECTIVITY_STATE, Arrays.asList(
-        state, new Object[]{socketAddress.getHostName(), socketAddress.getPort()}
+        state.getString(), new Object[]{socketAddress.getHostName(), socketAddress.getPort()}
     ));
     setTarget(MessageTarget.CONNECTIVITY);
   }
 
   public ConnectivityState getState() {
-    return (ConnectivityState) getArgs().get(STATE_INDEX);
+    return ConnectivityState.fromString(getString(STATE_INDEX));
   }
 
   public InetSocketAddress getSocketAddress() {
