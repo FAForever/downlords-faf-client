@@ -401,6 +401,22 @@
   -fx-background-radius: 3, 2, 4, 0;
 }
 
+/***************** Split pane *****************/
+
+.split-pane > .split-pane-divider {
+    -fx-padding: 0 1 0 0;
+}
+/* horizontal the two nodes are placed to the left/right of each other. */
+.split-pane:horizontal > .split-pane-divider {
+   -fx-background-color: -fx-box-border;
+   -fx-background-insets: 0;
+}
+/* vertical the two nodes are placed on top of each other. */
+.split-pane:vertical > .split-pane-divider {
+   -fx-background-color: -fx-box-border;
+   -fx-background-insets: 0;
+}
+
 /***************** Progress indicator *****************/
 
 .determinate-indicator > .percentage {
