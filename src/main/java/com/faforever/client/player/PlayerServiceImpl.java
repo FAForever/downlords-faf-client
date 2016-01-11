@@ -109,11 +109,7 @@ public class PlayerServiceImpl implements PlayerService {
 
   @Override
   public PlayerInfoBean getPlayerForUsername(String username) {
-    PlayerInfoBean playerInfoBean = players.get(username);
-    if (playerInfoBean == null) {
-      logger.warn("Unknown user: {}", username);
-    }
-    return playerInfoBean;
+    return players.get(username);
   }
 
   @Override

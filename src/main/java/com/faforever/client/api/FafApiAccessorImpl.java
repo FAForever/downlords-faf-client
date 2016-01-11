@@ -5,6 +5,7 @@ import com.faforever.client.fx.HostService;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.user.UserService;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
 import com.google.api.client.auth.oauth2.BearerToken;
@@ -13,9 +14,13 @@ import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.extensions.java6.auth.oauth2.VerificationCodeReceiver;
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.HttpResponse;
+import com.google.api.client.http.HttpStatusCodes;
 import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.UrlEncodedContent;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonParser;
 import com.google.api.client.json.JsonToken;
@@ -38,8 +43,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -64,22 +71,27 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   HttpTransport httpTransport;
   @Resource
   VerificationCodeReceiver verificationCodeReceiver;
+  @Resource
+  UserService userService;
 
   @Value("${api.baseUrl}")
   String baseUrl;
   @Value("${oauth.authUri}")
-  String oAuthAuthorizationServerUrl;
+  String oAuthUrl;
   @Value("${oauth.tokenUri}")
   String oAuthTokenServerUrl;
   @Value("${oauth.clientId}")
   String oAuthClientId;
   @Value("${oauth.clientSecret}")
   String oAuthClientSecret;
+  @Value("${oauth.loginUri}")
+  String oAuthLoginUrl;
   @VisibleForTesting
   Credential credential;
   @VisibleForTesting
   HttpRequestFactory requestFactory;
   private FileDataStoreFactory dataStoreFactory;
+
 
   @PostConstruct
   void postConstruct() throws IOException {
@@ -126,7 +138,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
           new GenericUrl(oAuthTokenServerUrl),
           new ClientParametersAuthentication(oAuthClientId, oAuthClientSecret),
           oAuthClientId,
-          oAuthAuthorizationServerUrl)
+          oAuthUrl)
           .setDataStoreFactory(dataStoreFactory)
           .setScopes(Arrays.asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_READ_EVENTS))
           .build();
@@ -187,19 +199,44 @@ public class FafApiAccessorImpl implements FafApiAccessor {
       if (redirectUri == null) {
         return null;
       }
-
       AuthorizationCodeRequestUrl authorizationUrl = flow.newAuthorizationUrl().setRedirectUri(redirectUri);
 
       // Google's GenericUrl does not escape ":" and "/", but Flask (FAF's OAuth) requires it.
       String fixedAuthorizationUrl = authorizationUrl.build()
           .replaceFirst("uri=" + Pattern.quote(HTTP_LOCALHOST), "uri=" + ENCODED_HTTP_LOCALHOST);
 
-      hostServices.showDocument(fixedAuthorizationUrl);
+      Map<String, Object> data = new HashMap<>();
+      data.put("username", userService.getUsername());
+      data.put("password", userService.getPassword());
+      data.put("next", fixedAuthorizationUrl);
+
+      HttpRequestFactory requestFactory = httpTransport.createRequestFactory();
+      HttpRequest loginRequest = requestFactory.buildPostRequest(new GenericUrl(oAuthLoginUrl), new UrlEncodedContent(data));
+      HttpResponse loginResponse = loginRequest.execute();
+
+      if (!HttpStatusCodes.isRedirect(loginResponse.getStatusCode())) {
+        throw new RuntimeException("Login failed: (" + loginResponse.getStatusCode() + ") " + loginResponse.getStatusMessage());
+      }
+
+      String cookie = loginResponse.getHeaders().getCookie();
+
+      data.clear();
+      data.put("allow", "");
+
+      HttpRequest httpRequest = requestFactory.buildPostRequest(new GenericUrl(fixedAuthorizationUrl), new UrlEncodedContent(data));
+      HttpHeaders headers = new HttpHeaders();
+      headers.setCookie(cookie);
+      httpRequest.setHeaders(headers);
+      HttpResponse response = httpRequest.execute();
+
+      if (!response.isSuccessStatusCode()) {
+        throw new RuntimeException("Could not authorize: " + response.getStatusMessage() + " (" + response.getStatusCode() + ")");
+      }
 
       String code = verificationCodeReceiver.waitForCode();
-      TokenResponse response = flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
+      TokenResponse tokenResponse = flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
 
-      return flow.createAndStoreCredential(response, userId);
+      return flow.createAndStoreCredential(tokenResponse, userId);
     } finally {
       verificationCodeReceiver.stop();
     }

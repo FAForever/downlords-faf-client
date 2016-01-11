@@ -15,6 +15,7 @@ public interface PlayerService {
   /**
    * Returns the PlayerInfoBean for the specified username. Returns null if no such player is known.
    */
+  @Nullable
   PlayerInfoBean getPlayerForUsername(@Nullable String username);
 
   /**

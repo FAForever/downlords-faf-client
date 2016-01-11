@@ -78,7 +78,7 @@ public class FafApiAccessorImplTest {
     instance.oAuthTokenServerUrl = "http://api.example.com/token";
     instance.oAuthClientSecret = "123";
     instance.oAuthClientId = "456";
-    instance.oAuthAuthorizationServerUrl = "http://api.example.com/auth";
+    instance.oAuthUrl = "http://api.example.com/auth";
     instance.executorService = executorService;
     instance.hostServices = hostServices;
     instance.verificationCodeReceiver = verificationCodeReceiver;

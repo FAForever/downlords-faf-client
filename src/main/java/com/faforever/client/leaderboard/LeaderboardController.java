@@ -8,7 +8,6 @@ import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.Validator;
-import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.TableColumn;
@@ -18,9 +17,8 @@ import javafx.scene.layout.Pane;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
-import java.util.List;
 
-import static javafx.collections.FXCollections.observableArrayList;
+import static javafx.collections.FXCollections.observableList;
 
 
 public class LeaderboardController {
@@ -41,6 +39,10 @@ public class LeaderboardController {
   TableView<Ranked1v1EntryBean> ratingTable;
   @FXML
   TextField searchTextField;
+  @FXML
+  Pane connectionProgressPane;
+  @FXML
+  Pane contentPane;
 
   @Resource
   LeaderboardService leaderboardService;
@@ -51,8 +53,6 @@ public class LeaderboardController {
   @Resource
   ReportingService reportingService;
 
-  private List<Ranked1v1EntryBean> ranked1v1EntryBeans;
-  private FilteredList<Ranked1v1EntryBean> filteredList;
 
   @FXML
   public void initialize() {
@@ -62,19 +62,23 @@ public class LeaderboardController {
     gamesPlayedColumn.setCellValueFactory(param -> param.getValue().gamesPlayedProperty());
     ratingColumn.setCellValueFactory(param -> param.getValue().ratingProperty());
 
+    contentPane.managedProperty().bind(contentPane.visibleProperty());
+    connectionProgressPane.managedProperty().bind(connectionProgressPane.visibleProperty());
+    connectionProgressPane.visibleProperty().bind(contentPane.visibleProperty().not());
+
     searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       if (Validator.isInt(newValue)) {
         ratingTable.scrollTo(Integer.parseInt(newValue) - 1);
       } else {
         Ranked1v1EntryBean foundPlayer = null;
-        for (Ranked1v1EntryBean ranked1v1EntryBean : ranked1v1EntryBeans) {
+        for (Ranked1v1EntryBean ranked1v1EntryBean : ratingTable.getItems()) {
           if (ranked1v1EntryBean.getUsername().toLowerCase().startsWith(newValue.toLowerCase())) {
             foundPlayer = ranked1v1EntryBean;
             break;
           }
         }
         if (foundPlayer == null) {
-          for (Ranked1v1EntryBean ranked1v1EntryBean : ranked1v1EntryBeans) {
+          for (Ranked1v1EntryBean ranked1v1EntryBean : ratingTable.getItems()) {
             if (ranked1v1EntryBean.getUsername().toLowerCase().contains(newValue.toLowerCase())) {
               foundPlayer = ranked1v1EntryBean;
               break;
@@ -92,11 +96,12 @@ public class LeaderboardController {
   }
 
   public void setUpIfNecessary() {
+    contentPane.setVisible(false);
     leaderboardService.getLeaderboardEntries().thenAccept(leaderboardEntryBeans -> {
-      LeaderboardController.this.ranked1v1EntryBeans = leaderboardEntryBeans;
-      filteredList = new FilteredList<>(observableArrayList(leaderboardEntryBeans));
-      ratingTable.setItems(filteredList);
+      ratingTable.setItems(observableList(leaderboardEntryBeans));
+      connectionProgressPane.setVisible(false);
     }).exceptionally(throwable -> {
+      contentPane.setVisible(true);
       notificationService.addNotification(new ImmediateNotification(
           i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
           Severity.ERROR, throwable,
