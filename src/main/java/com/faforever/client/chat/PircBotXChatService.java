@@ -180,18 +180,23 @@ public class PircBotXChatService implements ChatService, Listener,
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
     chatPrefs.chatColorModeProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue.equals(CUSTOM)) {
-        chatUsersByName.values().stream().filter(chatUser -> chatPrefs.getUserToColor().containsKey(chatUser.getUsername())).forEach(chatUser -> {
-          chatUser.setColor(chatPrefs.getUserToColor().get(chatUser.getUsername()));
-        });
-      } else if (newValue.equals(RANDOM)) {
-        for (ChatUser chatUser : chatUsersByName.values()) {
-          chatUser.setColor(ColorGeneratorUtil.generateRandomHexColor());
-        }
-      } else {
-        for (ChatUser chatUser : chatUsersByName.values()) {
-          chatUser.setColor(null);
-        }
+      switch (newValue) {
+        case CUSTOM:
+          chatUsersByName.values().stream().filter(chatUser -> chatPrefs.getUserToColor().containsKey(chatUser.getUsername())).forEach(chatUser -> {
+            chatUser.setColor(chatPrefs.getUserToColor().get(chatUser.getUsername()));
+          });
+          break;
+
+        case RANDOM:
+          for (ChatUser chatUser : chatUsersByName.values()) {
+            chatUser.setColor(ColorGeneratorUtil.generateRandomHexColor());
+          }
+          break;
+
+        default:
+          for (ChatUser chatUser : chatUsersByName.values()) {
+            chatUser.setColor(null);
+          }
       }
     });
   }
@@ -214,7 +219,7 @@ public class PircBotXChatService implements ChatService, Listener,
     sendMessageInBackground("NICKSERV", "IDENTIFY " + Hashing.md5().hashString(userService.getPassword(), UTF_8))
         .thenAccept(s1 -> {
           ircConnectedLatch.countDown();
-          pircBotX.sendIRC().joinChannel(defaultChannelName);
+          joinChannel(defaultChannelName);
         })
         .exceptionally(throwable -> {
           notificationService.addNotification(
