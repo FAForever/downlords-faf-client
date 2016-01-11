@@ -2,6 +2,7 @@ package com.faforever.client.relay;
 
 import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.legacy.domain.MessageTarget;
+import com.faforever.client.util.SocketAddressUtil;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -19,10 +20,14 @@ public class ConnectivityStateMessage extends GpgServerMessage {
   }
 
   public ConnectivityState getState() {
-    return ConnectivityState.fromString(getString(STATE_INDEX));
+      return ConnectivityState.fromString(getString(STATE_INDEX));
   }
 
   public InetSocketAddress getSocketAddress() {
+    // TODO remove when sheeo finally decided how to implement it ;-)
+    if(getArgs().get(ADDRESS_INDEX) instanceof String) {
+      return SocketAddressUtil.fromString(getString(ADDRESS_INDEX));
+    }
     @SuppressWarnings("unchecked")
     Object[] hostPort = (Object[]) getArgs().get(ADDRESS_INDEX);
     return new InetSocketAddress((String) hostPort[0], (int) hostPort[1]);

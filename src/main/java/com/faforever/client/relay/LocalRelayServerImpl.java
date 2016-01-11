@@ -245,15 +245,14 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   }
 
   private void onSendNatPacket(SendNatPacketMessage sendNatPacketMessage) {
-    InetSocketAddress received = sendNatPacketMessage.getPublicAddress();
+    InetSocketAddress receiver = sendNatPacketMessage.getPublicAddress();
     String message = sendNatPacketMessage.getMessage();
 
-    logger.debug("Sending NAT packet to {}: {}", received, message);
-
-    byte[] bytes = (message).getBytes(US_ASCII);
+    byte[] bytes = ("\b" + message).getBytes(US_ASCII);
     DatagramPacket datagramPacket = new DatagramPacket(bytes, bytes.length);
-    datagramPacket.setSocketAddress(received);
+    datagramPacket.setSocketAddress(receiver);
     try {
+      logger.debug("Sending NAT packet to {}: {}", datagramPacket.getSocketAddress(), new String(datagramPacket.getData(), US_ASCII));
       publicSocket.send(datagramPacket);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -351,7 +350,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
       try {
         while (!socket.isClosed()) {
           socket.receive(datagramPacket);
-          logger.trace("Received {} bytes on {} for {}", datagramPacket.getLength(), socket.getLocalSocketAddress(), datagramPacket.getAddress());
+          logger.trace("Received {} bytes on {} from {}", datagramPacket.getLength(), socket.getLocalSocketAddress(), datagramPacket.getAddress());
           forwarder.accept(datagramPacket);
         }
       } catch (IOException e) {

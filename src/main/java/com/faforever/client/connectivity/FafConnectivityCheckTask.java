@@ -9,12 +9,10 @@ import com.faforever.client.relay.ProcessNatPacketMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.util.Assert;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
@@ -53,12 +51,12 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
     super(Priority.LOW);
   }
 
-  private void onConnectivityStateMessage(GpgServerMessage serverMessage) {
-    if (serverMessage.getTarget() != MessageTarget.CONNECTIVITY) {
+  private void onConnectivityStateMessage(GpgServerMessage message) {
+    if (message.getTarget() != MessageTarget.CONNECTIVITY) {
       return;
     }
 
-    switch (serverMessage.getMessageType()) {
+    switch (message.getMessageType()) {
       case SEND_NAT_PACKET:
         // The server did not receive the expected response and wants us to send a UDP packet in order hole punch the
         // NAT. This is done by connectivity service.
@@ -68,7 +66,7 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
       case CONNECTIVITY_STATE:
         // The server tells us what our connectivity state is, we're done
         gamePortPacketFuture.cancel(true);
-        connectivityStateFuture.complete((ConnectivityStateMessage) serverMessage);
+        connectivityStateFuture.complete((ConnectivityStateMessage) message);
         break;
     }
   }
@@ -76,11 +74,7 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
   @Override
   protected ConnectivityStateMessage call() throws Exception {
     Assert.checkNullIllegalState(publicPort, "publicPort has not been set");
-    return checkConnectivity();
-  }
 
-  @NotNull
-  private ConnectivityStateMessage checkConnectivity() throws IOException, ExecutionException, InterruptedException {
     updateTitle(i18n.get("portCheckTask.title"));
 
     connectivityStateFuture = new CompletableFuture<>();
