@@ -23,8 +23,8 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.layout.Pane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -77,7 +77,7 @@ public class Ranked1v1Controller {
   @FXML
   Button playButton;
   @FXML
-  Pane ranked1v1Root;
+  ScrollPane ranked1v1Root;
   @FXML
   Label gamesPlayedLabel;
   @FXML
@@ -257,11 +257,11 @@ public class Ranked1v1Controller {
   }
 
   private void updateOtherValues(PlayerInfoBean currentPlayer) {
-    leaderboardService.getEntryForPlayer(currentPlayer.getId()).thenAccept(leaderboardEntryBean -> {
+    leaderboardService.getEntryForPlayer(currentPlayer.getId()).thenAccept(leaderboardEntryBean -> Platform.runLater(() -> {
       rankingLabel.setText(i18n.get("ranked1v1.rankingFormat", leaderboardEntryBean.getRating()));
       gamesPlayedLabel.setText(String.format("%d", leaderboardEntryBean.getGamesPlayed()));
-      winLossRationLabel.setText(i18n.get("percentage", leaderboardEntryBean.getWinLossRatio()));
-    }).exceptionally(throwable -> {
+      winLossRationLabel.setText(i18n.get("percentage", leaderboardEntryBean.getWinLossRatio() * 100));
+    })).exceptionally(throwable -> {
       logger.warn("Leaderboard entry could not be read for current player: " + currentPlayer.getUsername());
       return null;
     });

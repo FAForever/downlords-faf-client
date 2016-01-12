@@ -1,5 +1,6 @@
 package com.faforever.client.leaderboard;
 
+import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
@@ -8,20 +9,26 @@ import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.Validator;
+import javafx.beans.property.SimpleFloatProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 
 import static javafx.collections.FXCollections.observableList;
 
 
 public class LeaderboardController {
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
   Pane leaderboardRoot;
@@ -58,7 +65,8 @@ public class LeaderboardController {
   public void initialize() {
     rankColumn.setCellValueFactory(param -> param.getValue().rankProperty());
     nameColumn.setCellValueFactory(param -> param.getValue().usernameProperty());
-    winLossColumn.setCellValueFactory(param -> param.getValue().winLossRatioProperty());
+    winLossColumn.setCellValueFactory(param -> new SimpleFloatProperty(param.getValue().getWinLossRatio()));
+    winLossColumn.setCellFactory(param -> new StringCell<>(number -> i18n.get("percentage", number.floatValue() * 100)));
     gamesPlayedColumn.setCellValueFactory(param -> param.getValue().gamesPlayedProperty());
     ratingColumn.setCellValueFactory(param -> param.getValue().ratingProperty());
 
@@ -99,9 +107,10 @@ public class LeaderboardController {
     contentPane.setVisible(false);
     leaderboardService.getLeaderboardEntries().thenAccept(leaderboardEntryBeans -> {
       ratingTable.setItems(observableList(leaderboardEntryBeans));
-      connectionProgressPane.setVisible(false);
-    }).exceptionally(throwable -> {
       contentPane.setVisible(true);
+    }).exceptionally(throwable -> {
+      contentPane.setVisible(false);
+      logger.warn("Error while loading leaderboard entries", throwable);
       notificationService.addNotification(new ImmediateNotification(
           i18n.get("errorTitle"), i18n.get("leaderboard.failedToLoad"),
           Severity.ERROR, throwable,

@@ -6,7 +6,6 @@ import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.achievements.AchievementServiceImpl;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.FafApiAccessorImpl;
-import com.faforever.client.api.LocalHttpVerificationCodeReceiver;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.MockChatService;
 import com.faforever.client.chat.PircBotXChatService;
@@ -342,11 +341,6 @@ public class ServiceConfig {
       return new MockGravatarService();
     }
     return new GravatarServiceImpl();
-  }
-
-  @Bean
-  LocalHttpVerificationCodeReceiver verificationCodeReceiver() {
-    return new LocalHttpVerificationCodeReceiver();
   }
 
   @Beta

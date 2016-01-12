@@ -56,8 +56,8 @@ public class UserServiceImpl implements UserService {
         .thenAccept(loginInfo -> {
           uid = loginInfo.getId();
 
-          onLoginListeners.forEach(Runnable::run);
           fafApiAccessor.authorize(loginInfo.getId());
+          onLoginListeners.forEach(Runnable::run);
         });
   }
 

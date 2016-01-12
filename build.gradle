@@ -87,6 +87,7 @@ task buildInstaller(type: Install4jTask) {
   projectFile = file('downlords-faf-client.install4j')
   release = version
 }
+
 task wrapper(type: Wrapper) {
   gradleVersion = '2.5'
 }

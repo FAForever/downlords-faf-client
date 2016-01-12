@@ -117,7 +117,7 @@ public class Ranked1v1EntryBean {
     ranked1v1EntryBean.setGamesPlayed(leaderboardEntry.getNumGames());
     ranked1v1EntryBean.setRank(leaderboardEntry.getRanking());
     ranked1v1EntryBean.setRating(leaderboardEntry.getRating());
-    ranked1v1EntryBean.setWinLossRatio(leaderboardEntry.getWonGames() / leaderboardEntry.getNumGames());
+    ranked1v1EntryBean.setWinLossRatio(leaderboardEntry.getWonGames() / (float) leaderboardEntry.getNumGames());
     return ranked1v1EntryBean;
   }
 }
