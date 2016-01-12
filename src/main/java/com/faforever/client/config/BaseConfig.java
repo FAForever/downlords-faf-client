@@ -12,6 +12,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.env.Environment;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import javax.annotation.PreDestroy;
@@ -70,6 +72,11 @@ public class BaseConfig {
   @PreDestroy
   void shutdown() {
     scheduledExecutorService.shutdown();
+  }
+
+  @Bean
+  ClientHttpRequestFactory clientHttpRequestFactory() {
+    return new SimpleClientHttpRequestFactory();
   }
 
   @Bean

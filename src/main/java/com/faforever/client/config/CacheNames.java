@@ -11,6 +11,7 @@ public final class CacheNames {
   public static final String GRAVATAR = "gravatar";
   public static final String ACHIEVEMENTS = "achievements";
   public static final String MODS = "mods";
+  public static final String LEADERBOARD = "leaderboard";
 
   private CacheNames() {
     throw new AssertionError("Not instantiatable");

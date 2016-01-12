@@ -1,16 +1,17 @@
 package com.faforever.client.api;
 
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.fx.HostService;
+import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.mod.ModInfoBean;
+import com.faforever.client.net.UriUtil;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.user.UserService;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponse;
-import com.google.api.client.extensions.java6.auth.oauth2.VerificationCodeReceiver;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
@@ -20,23 +21,34 @@ import com.google.api.client.json.JsonParser;
 import com.google.api.client.json.JsonToken;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.google.common.escape.Escaper;
+import com.google.common.net.UrlEscapers;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.regex.Pattern;
@@ -57,27 +69,30 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Resource
   ExecutorService executorService;
   @Resource
-  HostService hostServices;
-  @Resource
   HttpTransport httpTransport;
   @Resource
-  VerificationCodeReceiver verificationCodeReceiver;
+  UserService userService;
+  @Resource
+  ClientHttpRequestFactory clientHttpRequestFactory;
 
   @Value("${api.baseUrl}")
   String baseUrl;
   @Value("${oauth.authUri}")
-  String oAuthAuthorizationServerUrl;
+  String oAuthUrl;
   @Value("${oauth.tokenUri}")
   String oAuthTokenServerUrl;
   @Value("${oauth.clientId}")
   String oAuthClientId;
   @Value("${oauth.clientSecret}")
   String oAuthClientSecret;
+  @Value("${oauth.loginUri}")
+  URI oAuthLoginUrl;
   @VisibleForTesting
   Credential credential;
   @VisibleForTesting
   HttpRequestFactory requestFactory;
   private FileDataStoreFactory dataStoreFactory;
+
 
   @PostConstruct
   void postConstruct() throws IOException {
@@ -89,14 +104,14 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @SuppressWarnings("unchecked")
   public List<PlayerAchievement> getPlayerAchievements(int playerId) {
     logger.debug("Loading achievements for player: {}", playerId);
-    return getMany("/players/" + playerId + "/achievements", PlayerAchievement.class);
+    return getMany("/players/" + playerId + "/achievements", PlayerAchievement.class, 1);
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public List<PlayerEvent> getPlayerEvents(int playerId) {
     logger.debug("Loading events for player: {}", playerId);
-    return getMany("/players/" + playerId + "/events", PlayerEvent.class);
+    return getMany("/players/" + playerId + "/events", PlayerEvent.class, 1);
   }
 
   @Override
@@ -104,7 +119,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Cacheable(CacheNames.ACHIEVEMENTS)
   public List<AchievementDefinition> getAchievementDefinitions() {
     logger.debug("Loading achievement definitions");
-    return getMany("/achievements?sort=order", AchievementDefinition.class);
+    return getMany("/achievements?sort=order", AchievementDefinition.class, 1);
   }
 
   @Override
@@ -124,7 +139,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
           new GenericUrl(oAuthTokenServerUrl),
           new ClientParametersAuthentication(oAuthClientId, oAuthClientSecret),
           oAuthClientId,
-          oAuthAuthorizationServerUrl)
+          oAuthUrl)
           .setDataStoreFactory(dataStoreFactory)
           .setScopes(Arrays.asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_READ_EVENTS))
           .build();
@@ -145,34 +160,88 @@ public class FafApiAccessorImpl implements FafApiAccessor {
         .collect(Collectors.toList());
   }
 
-  private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {
-    try {
-      Credential credential = flow.loadCredential(userId);
-      if (credential != null
-          && (credential.getRefreshToken() != null || credential.getExpiresInSeconds() > 60)) {
-        return credential;
-      }
+  @Override
+  public List<Ranked1v1EntryBean> getRanked1v1Entries() {
+    return getMany("/ranked1v1?filter[is_active]=true", LeaderboardEntry.class).stream()
+        .map(Ranked1v1EntryBean::fromLeaderboardEntry)
+        .collect(Collectors.toList());
+  }
 
-      String redirectUri = verificationCodeReceiver.getRedirectUri();
-      if (redirectUri == null) {
-        return null;
-      }
+  @Override
+  public Ranked1v1Stats getRanked1v1Stats() {
+    return getSingle("/ranked1v1/stats", Ranked1v1Stats.class);
+  }
 
-      AuthorizationCodeRequestUrl authorizationUrl = flow.newAuthorizationUrl().setRedirectUri(redirectUri);
+  @Override
+  public Ranked1v1EntryBean getRanked1v1EntryForPlayer(int playerId) {
+    return Ranked1v1EntryBean.fromLeaderboardEntry(getSingle("/ranked1v1/" + playerId, LeaderboardEntry.class));
+  }
 
-      // Google's GenericUrl does not escape ":" and "/", but Flask (FAF's OAuth) requires it.
-      String fixedAuthorizationUrl = authorizationUrl.build()
-          .replaceFirst("uri=" + Pattern.quote(HTTP_LOCALHOST), "uri=" + ENCODED_HTTP_LOCALHOST);
-
-      hostServices.showDocument(fixedAuthorizationUrl);
-
-      String code = verificationCodeReceiver.waitForCode();
-      TokenResponse response = flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
-
-      return flow.createAndStoreCredential(response, userId);
-    } finally {
-      verificationCodeReceiver.stop();
+  private <T> List<T> getMany(String endpointPath, Class<T> type) {
+    List<T> result = new LinkedList<>();
+    List<T> current = null;
+    int page = 1;
+    while (current == null || !current.isEmpty()) {
+      current = getMany(endpointPath, type, page++);
+      result.addAll(current);
     }
+    return result;
+  }
+
+  private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {
+    Credential credential = flow.loadCredential(userId);
+    if (credential != null && (credential.getRefreshToken() != null || credential.getExpiresInSeconds() > 60)) {
+      return credential;
+    }
+
+    // The redirect URI is irrelevant to this implementation, however the server requires one
+    String redirectUri = "http://localhost:1337";
+    AuthorizationCodeRequestUrl authorizationUrl = flow.newAuthorizationUrl().setRedirectUri(redirectUri);
+
+    // Google's GenericUrl does not escape ":" and "/", but Flask (FAF's OAuth) requires it.
+    URI fixedAuthorizationUri = UriUtil.fromString(authorizationUrl.build()
+        .replaceFirst("uri=" + Pattern.quote(HTTP_LOCALHOST), "uri=" + ENCODED_HTTP_LOCALHOST));
+
+    Escaper escaper = UrlEscapers.urlFormParameterEscaper();
+    byte[] postData = ("username=" + escaper.escape(userService.getUsername()) +
+        "&password=" + escaper.escape(userService.getPassword()) +
+        "&next=" + fixedAuthorizationUri).getBytes(StandardCharsets.UTF_8);
+    int postDataLength = postData.length;
+
+    ClientHttpRequest loginRequest = clientHttpRequestFactory.createRequest(oAuthLoginUrl, HttpMethod.POST);
+    loginRequest.getHeaders().add("Content-Length", Integer.toString(postDataLength));
+    try (DataOutputStream outputStream = new DataOutputStream(loginRequest.getBody())) {
+      outputStream.write(postData);
+    }
+    ClientHttpResponse loginResponse = loginRequest.execute();
+
+    if (!loginResponse.getStatusCode().is3xxRedirection()) {
+      throw new RuntimeException("Could not log in (" + loginResponse.getStatusCode() + ")");
+    }
+
+    String cookie = Joiner.on("").join(loginResponse.getHeaders().get("set-cookie"));
+
+    postData = "allow".getBytes(StandardCharsets.UTF_8);
+    postDataLength = postData.length;
+
+    ClientHttpRequest authorizeRequest = clientHttpRequestFactory.createRequest(fixedAuthorizationUri, HttpMethod.POST);
+    authorizeRequest.getHeaders().add("Content-Length", Integer.toString(postDataLength));
+    authorizeRequest.getHeaders().add("Cookie", cookie);
+    try (DataOutputStream outputStream = new DataOutputStream(authorizeRequest.getBody())) {
+      outputStream.write(postData);
+    }
+    ClientHttpResponse authorizeResponse = authorizeRequest.execute();
+
+    if (!authorizeResponse.getStatusCode().is3xxRedirection()) {
+      throw new RuntimeException("Could not authorize (" + authorizeResponse.getStatusCode() + ")");
+    }
+
+    URI redirectLocation = authorizeResponse.getHeaders().getLocation();
+    String code = UriComponentsBuilder.fromUri(redirectLocation).build().getQueryParams().get("code").get(0);
+
+    TokenResponse tokenResponse = flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
+
+    return flow.createAndStoreCredential(tokenResponse, userId);
   }
 
   @SuppressWarnings("unchecked")
@@ -189,9 +258,15 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> List<T> getMany(String endpointPath, Class<T> type) {
+  private <T> List<T> getMany(String endpointPath, Class<T> type, int page) {
+    String innerEndpointPath = endpointPath;
+    if (page > 0) {
+      innerEndpointPath += endpointPath.contains("?") ? "&" : "?";
+      innerEndpointPath += "page[number]=" + page;
+    }
+
     ArrayList<T> result = new ArrayList<>();
-    try (InputStream inputStream = executeGet(endpointPath)) {
+    try (InputStream inputStream = executeGet(innerEndpointPath)) {
       JsonParser jsonParser = jsonFactory.createJsonParser(inputStream, StandardCharsets.UTF_8);
       jsonParser.nextToken();
       jsonParser.skipToKey("data");
@@ -210,7 +285,9 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     if (requestFactory == null) {
       throw new IllegalStateException("authorize() must be called first");
     }
-    HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(baseUrl + endpointPath));
+    String url = baseUrl + endpointPath;
+    logger.trace("Calling: {}", url);
+    HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(url));
     credential.initialize(request);
     return request.execute().getContent();
   }

@@ -212,12 +212,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<List<LeaderboardEntryBean>> requestLeaderboardEntries() {
-
-    return null;
-  }
-
-  @Override
   public void setFriends(Collection<String> friends) {
 
   }

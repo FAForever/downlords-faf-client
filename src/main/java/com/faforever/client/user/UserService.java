@@ -19,4 +19,5 @@ public interface UserService {
   void addOnLogoutListener(Runnable listener);
 
   void addOnLoginListener(Runnable listener);
+
 }

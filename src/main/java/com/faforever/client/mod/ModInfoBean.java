@@ -291,7 +291,7 @@ public class ModInfoBean {
     try {
       modInfoBean.setDownloadUrl(new URL(mod.getDownloadUrl()));
     } catch (MalformedURLException e) {
-      logger.warn("Mod '{}' has an invalid URL: {}", mod.getId(), mod.getDownloadUrl());
+      logger.warn("Mod '{}' has an invalid downloadUrl: {}", mod.getId(), mod.getDownloadUrl());
       modInfoBean.setDownloadUrl(null);
     }
     return modInfoBean;

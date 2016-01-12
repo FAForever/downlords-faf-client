@@ -54,7 +54,6 @@ import com.faforever.client.rankedmatch.StopSearchRanked1V1ClientMessage;
 import com.faforever.client.relay.GpgClientMessage;
 import com.faforever.client.relay.GpgClientMessageSerializer;
 import com.faforever.client.relay.GpgServerMessageType;
-import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.ClientUpdateService;
 import com.google.gson.FieldNamingPolicy;
@@ -86,11 +85,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import static com.faforever.client.task.AbstractPrioritizedTask.Priority.MEDIUM;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
 public class FafServerAccessorImpl extends AbstractServerAccessor implements FafServerAccessor {
@@ -102,8 +99,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   @Resource
   PreferencesService preferencesService;
-  @Resource
-  LeaderboardParser leaderboardParser;
   @Resource
   TaskService taskService;
   @Resource
@@ -269,18 +264,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   @PreDestroy
   public void disconnect() {
     fafConnectionTask.cancel(true);
-  }
-
-  @Override
-  public CompletableFuture<List<LeaderboardEntryBean>> requestLeaderboardEntries() {
-    return taskService.submitTask(new AbstractPrioritizedTask<List<LeaderboardEntryBean>>(MEDIUM) {
-      @Override
-      protected List<LeaderboardEntryBean> call() throws Exception {
-        updateTitle(i18n.get("readLadderTask.title"));
-        // TODO move this to leaderboard service
-        return leaderboardParser.parseLeaderboard();
-      }
-    });
   }
 
   @Override

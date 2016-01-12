@@ -5,6 +5,8 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.Mod;
 import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.api.PlayerEvent;
+import com.faforever.client.api.Ranked1v1Stats;
+import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.mod.ModInfoBean;
 
 import java.time.LocalDateTime;
@@ -51,5 +53,20 @@ public class MockFafApiAccessor implements FafApiAccessor {
         ModInfoBean.fromModInfo(new Mod("7-7-7", "Mod Number Seven", "Mod description Garlic", "Mock", LocalDateTime.now())),
         ModInfoBean.fromModInfo(new Mod("8-8-8", "Mod Number Eight", "Mod description Haricot bean", "Mock", LocalDateTime.now()))
     );
+  }
+
+  @Override
+  public List<Ranked1v1EntryBean> getRanked1v1Entries() {
+    return null;
+  }
+
+  @Override
+  public Ranked1v1Stats getRanked1v1Stats() {
+    return null;
+  }
+
+  @Override
+  public Ranked1v1EntryBean getRanked1v1EntryForPlayer(int playerId) {
+    return null;
   }
 }

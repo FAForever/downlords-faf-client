@@ -1,13 +1,15 @@
 package com.faforever.client.leaderboard;
 
+import com.faforever.client.api.Ranked1v1Stats;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface LeaderboardService {
 
-  CompletableFuture<List<LeaderboardEntryBean>> getLeaderboardEntries();
+  CompletableFuture<List<Ranked1v1EntryBean>> getLeaderboardEntries();
 
-  CompletableFuture<List<RatingDistribution>> getRatingDistributions();
+  CompletableFuture<Ranked1v1Stats> getRanked1v1Stats();
 
-  CompletableFuture<LeaderboardEntryBean> getEntryForPlayer(String username);
+  CompletableFuture<Ranked1v1EntryBean> getEntryForPlayer(int playerId);
 }

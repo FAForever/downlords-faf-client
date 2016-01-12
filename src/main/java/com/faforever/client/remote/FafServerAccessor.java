@@ -14,7 +14,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -41,8 +40,6 @@ public interface FafServerAccessor {
   CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password, @Nullable InetSocketAddress relayAddress, int externalPort);
 
   void disconnect();
-
-  CompletableFuture<List<LeaderboardEntryBean>> requestLeaderboardEntries();
 
   void setFriends(Collection<String> friends);
 

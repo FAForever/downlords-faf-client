@@ -1,5 +1,6 @@
 package com.faforever.client.leaderboard;
 
+import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
@@ -7,7 +8,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -22,13 +22,13 @@ public class MockLeaderboardService implements LeaderboardService {
   I18n i18n;
 
   @Override
-  public CompletableFuture<List<LeaderboardEntryBean>> getLeaderboardEntries() {
-    return taskService.submitTask(new AbstractPrioritizedTask<List<LeaderboardEntryBean>>(HIGH) {
+  public CompletableFuture<List<Ranked1v1EntryBean>> getLeaderboardEntries() {
+    return taskService.submitTask(new AbstractPrioritizedTask<List<Ranked1v1EntryBean>>(HIGH) {
       @Override
-      protected List<LeaderboardEntryBean> call() throws Exception {
+      protected List<Ranked1v1EntryBean> call() throws Exception {
         updateTitle(i18n.get("readLadderTask.title"));
 
-        List<LeaderboardEntryBean> list = new ArrayList<>();
+        List<Ranked1v1EntryBean> list = new ArrayList<>();
         for (int i = 1; i <= 10000; i++) {
           String name = RandomStringUtils.random(10);
           int rating = (int) (Math.random() * 2500);
@@ -46,24 +46,24 @@ public class MockLeaderboardService implements LeaderboardService {
   }
 
   @Override
-  public CompletableFuture<List<RatingDistribution>> getRatingDistributions() {
-    return CompletableFuture.completedFuture(Collections.<RatingDistribution>emptyList());
+  public CompletableFuture<Ranked1v1Stats> getRanked1v1Stats() {
+    return CompletableFuture.completedFuture(new Ranked1v1Stats());
   }
 
   @Override
-  public CompletableFuture<LeaderboardEntryBean> getEntryForPlayer(String username) {
-    return CompletableFuture.completedFuture(createLadderInfoBean(username, 111, 222, 333, 55.55f));
+  public CompletableFuture<Ranked1v1EntryBean> getEntryForPlayer(int playerId) {
+    return CompletableFuture.completedFuture(createLadderInfoBean("Player #" + playerId, 111, 222, 333, 55.55f));
   }
 
 
-  private LeaderboardEntryBean createLadderInfoBean(String name, int rank, int rating, int gamesPlayed, float winLossRatio) {
-    LeaderboardEntryBean leaderboardEntryBean = new LeaderboardEntryBean();
-    leaderboardEntryBean.setUsername(name);
-    leaderboardEntryBean.setRank(rank);
-    leaderboardEntryBean.setRating(rating);
-    leaderboardEntryBean.setGamesPlayed(gamesPlayed);
-    leaderboardEntryBean.setWinLossRatio(winLossRatio);
+  private Ranked1v1EntryBean createLadderInfoBean(String name, int rank, int rating, int gamesPlayed, float winLossRatio) {
+    Ranked1v1EntryBean ranked1v1EntryBean = new Ranked1v1EntryBean();
+    ranked1v1EntryBean.setUsername(name);
+    ranked1v1EntryBean.setRank(rank);
+    ranked1v1EntryBean.setRating(rating);
+    ranked1v1EntryBean.setGamesPlayed(gamesPlayed);
+    ranked1v1EntryBean.setWinLossRatio(winLossRatio);
 
-    return leaderboardEntryBean;
+    return ranked1v1EntryBean;
   }
 }

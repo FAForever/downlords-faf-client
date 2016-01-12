@@ -1,5 +1,6 @@
 package com.faforever.client.api;
 
+import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.mod.ModInfoBean;
 
 import java.util.List;
@@ -18,4 +19,10 @@ public interface FafApiAccessor {
   void authorize(int playerId);
 
   List<ModInfoBean> getMods();
+
+  List<Ranked1v1EntryBean> getRanked1v1Entries();
+
+  Ranked1v1Stats getRanked1v1Stats();
+
+  Ranked1v1EntryBean getRanked1v1EntryForPlayer(int playerId);
 }

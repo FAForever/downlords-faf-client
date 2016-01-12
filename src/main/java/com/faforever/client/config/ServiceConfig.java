@@ -6,7 +6,6 @@ import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.achievements.AchievementServiceImpl;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.FafApiAccessorImpl;
-import com.faforever.client.api.LocalHttpVerificationCodeReceiver;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.MockChatService;
 import com.faforever.client.chat.PircBotXChatService;
@@ -25,10 +24,8 @@ import com.faforever.client.game.GameServiceImpl;
 import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.gravatar.GravatarServiceImpl;
 import com.faforever.client.gravatar.MockGravatarService;
-import com.faforever.client.leaderboard.LeaderboardParser;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.LeaderboardServiceImpl;
-import com.faforever.client.leaderboard.LegacyLeaderboardParser;
 import com.faforever.client.leaderboard.MockLeaderboardService;
 import com.faforever.client.legacy.MockFafApiAccessor;
 import com.faforever.client.legacy.MockStatisticsServerAccessor;
@@ -214,11 +211,6 @@ public class ServiceConfig {
   }
 
   @Bean
-  LeaderboardParser ladderParser() {
-    return new LegacyLeaderboardParser();
-  }
-
-  @Bean
   ReplayServer replayServer() {
     return new ReplayServerImpl();
   }
@@ -349,11 +341,6 @@ public class ServiceConfig {
       return new MockGravatarService();
     }
     return new GravatarServiceImpl();
-  }
-
-  @Bean
-  LocalHttpVerificationCodeReceiver verificationCodeReceiver() {
-    return new LocalHttpVerificationCodeReceiver();
   }
 
   @Beta

@@ -56,7 +56,7 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
 
     onNotificationAdded(Severity.INFO);
 
-    future.get(100, TimeUnit.MILLISECONDS);
+    future.get(2, TimeUnit.SECONDS);
   }
 
   @SuppressWarnings("unchecked")
@@ -92,7 +92,7 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
 
     onNotificationAdded(Severity.WARN);
 
-    future.get(100, TimeUnit.MILLISECONDS);
+    future.get(2, TimeUnit.SECONDS);
   }
 
   @Test()
@@ -104,6 +104,6 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
 
     onNotificationAdded(Severity.ERROR);
 
-    future.get(100, TimeUnit.MILLISECONDS);
+    future.get(2, TimeUnit.SECONDS);
   }
 }

@@ -3,11 +3,15 @@ package com.faforever.client.chat;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
@@ -23,6 +27,7 @@ public class ChatController implements
     OnChatUserLeftChannelListener {
 
   private final Map<String, AbstractChatTabController> nameToChatTabController;
+
   @Resource
   ChatService chatService;
   @Resource
@@ -36,6 +41,10 @@ public class ChatController implements
   TabPane chatsTabPane;
   @FXML
   Pane connectingProgressPane;
+  @FXML
+  VBox noOpenTabsContainer;
+  @FXML
+  TextField channelNameTextField;
 
   public ChatController() {
     nameToChatTabController = new HashMap<>();
@@ -63,8 +72,9 @@ public class ChatController implements
   private void onDisconnected() {
     connectingProgressPane.setVisible(true);
     chatsTabPane.setVisible(false);
-    nameToChatTabController.clear();
     chatsTabPane.getTabs().removeAll();
+    nameToChatTabController.clear();
+    noOpenTabsContainer.setVisible(false);
   }
 
   private void onLoggedOut() {
@@ -74,6 +84,15 @@ public class ChatController implements
   @FXML
   private void initialize() {
     onDisconnected();
+
+    chatsTabPane.getTabs().addListener((ListChangeListener<Tab>) change -> {
+      while (change.next()) {
+        change.getRemoved().forEach(tab -> nameToChatTabController.remove(tab.getId()));
+      }
+    });
+
+    chatsTabPane.getTabs().addListener((InvalidationListener) observable ->
+        noOpenTabsContainer.setVisible(chatsTabPane.getTabs().isEmpty()));
   }
 
   @Override
@@ -95,7 +114,6 @@ public class ChatController implements
   private void addTab(String playerOrChannelName, AbstractChatTabController tabController) {
     nameToChatTabController.put(playerOrChannelName, tabController);
     Tab tab = tabController.getRoot();
-    tab.setOnClosed(event -> nameToChatTabController.remove(playerOrChannelName));
 
     if (chatService.isDefaultChannel(tab.getId())) {
       chatsTabPane.getTabs().add(0, tab);
@@ -164,5 +182,11 @@ public class ChatController implements
 
   private void onJoinChannelsRequest(List<String> channelNames) {
     channelNames.forEach(chatService::joinChannel);
+  }
+
+  @FXML
+  void onJoinChannel() {
+    chatService.joinChannel(channelNameTextField.getText());
+    channelNameTextField.clear();
   }
 }

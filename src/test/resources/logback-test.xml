@@ -1,5 +1,6 @@
 <configuration>
 
+  <logger name="com.faforever.client.api" level="trace"/>
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
