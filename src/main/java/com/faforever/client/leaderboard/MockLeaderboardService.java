@@ -22,7 +22,7 @@ public class MockLeaderboardService implements LeaderboardService {
   I18n i18n;
 
   @Override
-  public CompletableFuture<List<Ranked1v1EntryBean>> getLeaderboardEntries() {
+  public CompletableFuture<List<Ranked1v1EntryBean>> getRanked1v1Entries() {
     return taskService.submitTask(new AbstractPrioritizedTask<List<Ranked1v1EntryBean>>(HIGH) {
       @Override
       protected List<Ranked1v1EntryBean> call() throws Exception {

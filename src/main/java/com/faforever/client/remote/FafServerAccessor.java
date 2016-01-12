@@ -2,7 +2,6 @@ package com.faforever.client.remote;
 
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
-import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.ConnectionState;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.LoginMessage;

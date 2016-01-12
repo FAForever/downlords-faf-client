@@ -40,7 +40,7 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetUpIfNecessary() throws Exception {
-    when(leaderboardService.getLeaderboardEntries()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+    when(leaderboardService.getRanked1v1Entries()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         new Ranked1v1EntryBean(), new Ranked1v1EntryBean()
     )));
 
@@ -60,7 +60,7 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
     Ranked1v1EntryBean entry2 = new Ranked1v1EntryBean();
     entry2.setUsername("Ab");
 
-    when(leaderboardService.getLeaderboardEntries()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+    when(leaderboardService.getRanked1v1Entries()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         entry1, entry2
     )));
     instance.setUpIfNecessary();
@@ -79,7 +79,7 @@ public class LeaderboardControllerTest extends AbstractPlainJavaFxTest {
     Ranked1v1EntryBean entry2 = new Ranked1v1EntryBean();
     entry2.setUsername("Ab");
 
-    when(leaderboardService.getLeaderboardEntries()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+    when(leaderboardService.getRanked1v1Entries()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         entry1, entry2
     )));
     instance.setUpIfNecessary();

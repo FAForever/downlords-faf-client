@@ -4,8 +4,6 @@ import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.LeaderboardEntryBean;
-import com.faforever.client.leaderboard.LeaderboardParser;
 import com.faforever.client.legacy.AbstractServerAccessor;
 import com.faforever.client.legacy.ClientMessageSerializer;
 import com.faforever.client.legacy.ConnectionState;

@@ -254,7 +254,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     DatagramPacket packet = new DatagramPacket(bytes, 0, bytes.length);
     datagramSocket.receive(packet);
 
-    assertThat(new String(packet.getData(), 0, packet.getLength(), StandardCharsets.UTF_8), is(message));
+    assertThat(new String(packet.getData(), 1, packet.getLength() - 1, StandardCharsets.US_ASCII), is(message));
   }
 
   private void sendFromServer(GpgServerMessage gpgServerMessage) {

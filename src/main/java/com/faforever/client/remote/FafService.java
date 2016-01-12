@@ -1,8 +1,9 @@
 package com.faforever.client.remote;
 
+import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
-import com.faforever.client.leaderboard.LeaderboardEntryBean;
+import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.legacy.ConnectionState;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.LoginMessage;
@@ -38,8 +39,6 @@ public interface FafService {
 
   void expand1v1Search(float radius);
 
-  CompletableFuture<List<LeaderboardEntryBean>> requestLeaderboardEntries();
-
   CompletableFuture<LoginMessage> connectAndLogIn(String username, String password);
 
   void disconnect();
@@ -49,4 +48,10 @@ public interface FafService {
   void setFoes(List<String> foeList);
 
   Long getSessionId();
+
+  CompletableFuture<List<Ranked1v1EntryBean>> getRanked1v1Entries();
+
+  CompletableFuture<Ranked1v1Stats> getRanked1v1Stats();
+
+  CompletableFuture<Ranked1v1EntryBean> getRanked1v1EntryForPlayer(int playerId);
 }

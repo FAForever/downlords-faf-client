@@ -4,7 +4,6 @@ import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameType;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.LeaderboardEntryBean;
 import com.faforever.client.legacy.ConnectionState;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameInfoMessage;

@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface LeaderboardService {
 
-  CompletableFuture<List<Ranked1v1EntryBean>> getLeaderboardEntries();
+  CompletableFuture<List<Ranked1v1EntryBean>> getRanked1v1Entries();
 
   CompletableFuture<Ranked1v1Stats> getRanked1v1Stats();
 
