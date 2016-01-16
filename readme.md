@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/micheljung/downlords-faf-client.png?label=ready&title=Ready)](https://waffle.io/micheljung/downlords-faf-client)
 Please see the [project page](http://micheljung.github.io/downlords-faf-client/)
 
 master|
