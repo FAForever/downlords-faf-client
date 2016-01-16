@@ -239,7 +239,7 @@ public class ServiceConfig {
   }
 
   @Bean
-  TurnServerAccessor turnClient() {
+  TurnServerAccessor turnServerAccessor() {
     return new TurnServerAccessorImpl();
   }
 

@@ -61,7 +61,14 @@ public class GpgServerMessage implements SerializableMessage, ServerMessage {
   protected InetSocketAddress getSocketAddress(int index) {
     @SuppressWarnings("unchecked")
     List<Object> addressArray = (List<Object>) args.get(index);
-    return new InetSocketAddress((String) addressArray.get(0), ((Number) addressArray.get(1)).intValue());
+    // TODO remove this when fixed on server side
+    int port;
+    if (addressArray.get(1) instanceof String) {
+      port = Integer.parseInt((String) addressArray.get(1));
+    } else {
+      port = ((Number) addressArray.get(1)).intValue();
+    }
+    return new InetSocketAddress((String) addressArray.get(0), port);
   }
 
   @Override

@@ -34,7 +34,7 @@
     <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
       <children>
         <AnchorPane fx:id="gameViewContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
-        <ScrollPane maxWidth="300.0" minWidth="300.0">
+        <ScrollPane fx:id="gameDetailPane" maxWidth="300.0" minWidth="300.0">
           <HBox.margin>
             <Insets />
           </HBox.margin>

@@ -4,7 +4,6 @@ import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.game.Faction;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.relay.LocalRelayServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -26,9 +25,6 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
 
   @Resource
   PlayerService playerService;
-
-  @Resource
-  LocalRelayServer localRelayServer;
 
   @Override
   public Process startGame(int uid, @NotNull String gameType, @Nullable Faction faction, @Nullable List<String> additionalArgs, RatingMode ratingMode, int gpgPort) throws IOException {

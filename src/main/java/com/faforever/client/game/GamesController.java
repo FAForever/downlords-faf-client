@@ -28,6 +28,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -79,6 +80,8 @@ public class GamesController {
   VBox gamePreviewPanel;
   @FXML
   MenuButton switchViewButton;
+  @FXML
+  ScrollPane gameDetailPane;
 
   @Resource
   ApplicationContext applicationContext;
@@ -111,6 +114,10 @@ public class GamesController {
   private boolean firstGeneratedPane = true;
   private GameInfoBean currentGameInfoBean;
 
+  @FXML
+  void initialze() {
+    gameDetailPane.managedProperty().bind(gameDetailPane.visibleProperty());
+  }
 
   @PostConstruct
   void postConstruct() {
@@ -337,5 +344,9 @@ public class GamesController {
 
   public Node getRoot() {
     return gamesRoot;
+  }
+
+  public void hideGameDetail() {
+    gameDetailPane.setVisible(false);
   }
 }

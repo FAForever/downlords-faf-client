@@ -3,7 +3,6 @@ package com.faforever.client.remote;
 import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.AbstractServerAccessor;
 import com.faforever.client.legacy.ClientMessageSerializer;
 import com.faforever.client.legacy.ConnectionState;
@@ -52,7 +51,6 @@ import com.faforever.client.rankedmatch.StopSearchRanked1V1ClientMessage;
 import com.faforever.client.relay.GpgClientMessage;
 import com.faforever.client.relay.GpgClientMessageSerializer;
 import com.faforever.client.relay.GpgServerMessageType;
-import com.faforever.client.task.TaskService;
 import com.faforever.client.update.ClientUpdateService;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -97,10 +95,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   @Resource
   PreferencesService preferencesService;
-  @Resource
-  TaskService taskService;
-  @Resource
-  I18n i18n;
   @Resource
   UidService uidService;
   @Resource

@@ -22,7 +22,7 @@ public enum GpgServerMessageType implements ServerMessageType {
   /**
    * Requests the creation of a TURN permission.
    */
-  CREATE_PERMISSION("CreatePermission", CreatePermissionMessage.class);
+  CREATE_PERMISSION("CreatePermission", CreatePermissionMessage.class), GAME_OPTION("GameOption", GameOptionMessage.class);
 
 
   private static final Map<String, GpgServerMessageType> fromString;
