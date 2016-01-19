@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.ConnectionState;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;

@@ -40,6 +40,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.net.DatagramPacket;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -142,6 +143,7 @@ public class GameServiceImpl implements GameService {
         newGameInfo.getVersion(), emptyMap(),
         newGameInfo.getSimModUidsToVersions()
     )
+        .thenCompose(aVoid -> startLocalRelayServer())
         .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
         .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayServer.getGpgRelayPort()));
   }
@@ -309,6 +311,12 @@ public class GameServiceImpl implements GameService {
 
   private CompletableFuture<Void> updateGameIfNecessary(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUIds) {
     return gameUpdateService.updateInBackground(gameType, version, modVersions, simModUIds);
+  }
+
+  private CompletableFuture<Integer> startLocalRelayServer() {
+    connectivityService.connect();
+    Consumer<DatagramPacket> fromGameToOutsideForwarder = connectivityService.ensureConnection();
+    return localRelayServer.start(fromGameToOutsideForwarder);
   }
 
   /**

@@ -1,7 +1,7 @@
 package com.faforever.client.relay;
 
 import java.net.DatagramPacket;
-import java.net.InetSocketAddress;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 /**
@@ -10,16 +10,17 @@ import java.util.function.Consumer;
  */
 public interface LocalRelayServer {
 
-  void addOnPacketFromOutsideListener(Consumer<DatagramPacket> listener);
-
   void addOnConnectionAcceptedListener(Runnable listener);
 
   Integer getGpgRelayPort();
 
-  Integer getPublicPort();
-
-  InetSocketAddress getRelayAddress();
-
   void removeOnPackedFromOutsideListener(Consumer<DatagramPacket> listener);
 
+  /**
+   * Starts the local relay server in background and completes the returned future with the opened TCP port when
+   * started.
+   *
+   * @param packageReceiver a consumer that forwards packages sent by the game
+   */
+  CompletableFuture<Integer> start(Consumer<DatagramPacket> outgoingPackageConsumer, PackageReceiver packageReceiver);
 }

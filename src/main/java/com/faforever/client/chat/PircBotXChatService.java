@@ -1,8 +1,8 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.ConnectionState;
 import com.faforever.client.legacy.domain.SocialMessage;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;

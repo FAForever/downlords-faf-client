@@ -1,26 +1,18 @@
 package com.faforever.client.connectivity;
 
-import java.io.Closeable;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
-public interface TurnServerAccessor extends Closeable {
+public interface TurnServerAccessor {
 
-  void connect();
+  void ensureConnected();
 
-  void close();
+  void disconnect();
 
   InetSocketAddress getRelayAddress();
 
   void send(DatagramPacket datagramPacket);
 
-  InetSocketAddress getMappedAddress();
-
   void setOnDataListener(Consumer<DatagramPacket> listener);
-
-  /**
-   * Removes all peer bindings.
-   */
-  void unbind();
 }

@@ -117,7 +117,7 @@ public class TurnServerAccessorImplTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(scheduledExecutorService).scheduleWithFixedDelay(any(), anyLong(), anyLong(), any());
 
-    instance.connect();
+    instance.ensureConnected();
     InetSocketAddress relayAddress = instance.getRelayAddress();
     assertThat(relayAddress.getAddress().getHostAddress(), is(turnServerSocket.getLocalAddress().getHostAddress()));
     assertThat(relayAddress.getPort(), is(2222));
@@ -157,7 +157,7 @@ public class TurnServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testClose() throws Exception {
-    instance.close();
+    instance.disconnect();
   }
 
   @Test
@@ -172,7 +172,7 @@ public class TurnServerAccessorImplTest extends AbstractPlainJavaFxTest {
       return null;
     });
 
-    instance.connect();
+    instance.ensureConnected();
 
     InetSocketAddress relayAddress = instance.getRelayAddress();
     assertThat(relayAddress.getAddress().getHostAddress(), is(turnServerSocket.getLocalAddress().getHostAddress()));
@@ -211,7 +211,7 @@ public class TurnServerAccessorImplTest extends AbstractPlainJavaFxTest {
       return null;
     });
 
-    instance.connect();
+    instance.ensureConnected();
 
     InetSocketAddress remotePeerAddress = new InetSocketAddress("93.184.216.34", 1234);
 

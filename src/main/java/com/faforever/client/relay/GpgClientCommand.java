@@ -24,9 +24,10 @@ public enum GpgClientCommand {
   CLEAR_SLOT("ClearSlot"),
   AI_OPTION("AIOption"),
   JSON_STATS("JsonStats"),
+  REHOST("Rehost"),
+  INIT_CONNECTIVITY_TEST("InitiateTest"),
   // Yes, these are the only lower-cased in the protocol. Because fuck you.
-  CONNECTED_TO_HOST("connectedToHost"),
-  INIT_CONNECTIVITY_TEST("InitiateTest");
+  CONNECTED_TO_HOST("connectedToHost");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

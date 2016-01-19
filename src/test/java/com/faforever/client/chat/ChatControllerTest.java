@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.legacy.ConnectionState;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
 import javafx.beans.InvalidationListener;

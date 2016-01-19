@@ -11,7 +11,7 @@ public class JoinGameMessage extends ClientMessage {
 
   public JoinGameMessage(int uid, int port, String password, InetSocketAddress relayAddress) {
     super(ClientMessageType.JOIN_GAME);
-    this.relayAddress = relayAddress;
+    this.setRelayAddress(relayAddress);
     this.setUid(uid);
     this.setPassword(password);
     this.setGameport(port);

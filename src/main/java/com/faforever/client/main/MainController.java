@@ -334,34 +334,41 @@ public class MainController implements OnChoseGameDirectoryListener {
     });
 
     connectivityService.connectivityStateProperty().addListener((observable, oldValue, newValue) -> {
-      portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_PUBLIC_PSEUDO_CLASS, false);
-      portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_STUN_PSEUDO_CLASS, false);
-      portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_BLOCKED_PSEUDO_CLASS, false);
-      portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_UNKNOWN_PSEUDO_CLASS, false);
-      switch (newValue) {
-        case PUBLIC:
-          portCheckStatusIcon.setText("\uF111");
-          portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_PUBLIC_PSEUDO_CLASS, true);
-          portCheckStatusButton.setText(i18n.get("statusBar.connectivityPublic"));
-          break;
-        case STUN:
-          portCheckStatusIcon.setText("\uF06A");
-          portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_STUN_PSEUDO_CLASS, true);
-          portCheckStatusButton.setText(i18n.get("statusBar.connectivityStun"));
-          break;
-        case BLOCKED:
-          portCheckStatusIcon.setText("\uF056");
-          portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_BLOCKED_PSEUDO_CLASS, true);
-          portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
-          break;
-        case UNKNOWN:
-          portCheckStatusIcon.setText("\uF059");
-          portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_UNKNOWN_PSEUDO_CLASS, true);
-          portCheckStatusButton.setText(i18n.get("statusBar.connectivityUnknown"));
-          break;
-        default:
-          throw new AssertionError("Uncovered value: " + newValue);
-      }
+      Platform.runLater(() -> {
+        portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_PUBLIC_PSEUDO_CLASS, false);
+        portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_STUN_PSEUDO_CLASS, false);
+        portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_BLOCKED_PSEUDO_CLASS, false);
+        portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_UNKNOWN_PSEUDO_CLASS, false);
+        switch (newValue) {
+          case PUBLIC:
+            portCheckStatusIcon.setText("\uF111");
+            portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_PUBLIC_PSEUDO_CLASS, true);
+            portCheckStatusButton.setText(i18n.get("statusBar.connectivityPublic"));
+            break;
+          case STUN:
+            portCheckStatusIcon.setText("\uF06A");
+            portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_STUN_PSEUDO_CLASS, true);
+            portCheckStatusButton.setText(i18n.get("statusBar.connectivityStun"));
+            break;
+          case BLOCKED:
+            portCheckStatusIcon.setText("\uF056");
+            portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_BLOCKED_PSEUDO_CLASS, true);
+            portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
+            break;
+          case RUNNING:
+            portCheckStatusIcon.setText("\uF059");
+            portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_UNKNOWN_PSEUDO_CLASS, true);
+            portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
+            break;
+          case UNKNOWN:
+            portCheckStatusIcon.setText("\uF059");
+            portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_UNKNOWN_PSEUDO_CLASS, true);
+            portCheckStatusButton.setText(i18n.get("statusBar.connectivityUnknown"));
+            break;
+          default:
+            throw new AssertionError("Uncovered value: " + newValue);
+        }
+      });
     });
 
     persistentNotificationsPopup = new Popup();
@@ -574,7 +581,6 @@ public class MainController implements OnChoseGameDirectoryListener {
     stageConfigurator.configureScene(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
     stage.setTitle(mainWindowTitle);
 
-    runConnectivityCheck();
     gameUpdateService.checkForUpdateInBackground();
     clientUpdateService.checkForUpdateInBackground();
 
@@ -585,14 +591,6 @@ public class MainController implements OnChoseGameDirectoryListener {
     // TODO no more e-mail address :(
 //    userImageView.setImage(gravatarService.getGravatar(userService.getEmail()));
     userImageView.setImage(IdenticonUtil.createIdenticon(userService.getUid()));
-  }
-
-  private void runConnectivityCheck() {
-    // TODO bind to a property in connectivity service
-    portCheckStatusIcon.setText("\uF059");
-    portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_UNKNOWN_PSEUDO_CLASS, true);
-    portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
-    connectivityService.checkConnectivity();
   }
 
   private void restoreLastView(WindowPrefs mainWindowPrefs) {
@@ -624,7 +622,7 @@ public class MainController implements OnChoseGameDirectoryListener {
 
   @FXML
   void onPortCheckRetryClicked() {
-    runConnectivityCheck();
+    connectivityService.checkConnectivity();
   }
 
   @FXML
