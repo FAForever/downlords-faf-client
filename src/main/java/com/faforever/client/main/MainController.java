@@ -46,9 +46,7 @@ import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Worker;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -277,21 +275,6 @@ public class MainController implements OnChoseGameDirectoryListener {
     });
   }
 
-  private void updateTaskbarProgress(@Nullable Double progress) {
-    if (taskBarRelatedPointer != null) {
-      executorService.execute(() -> {
-        if (progress == null) {
-          taskBarList.SetProgressState(taskBarRelatedPointer, ITaskbarList3.TbpFlag.TBPF_NOPROGRESS);
-        } else if (progress == ProgressIndicator.INDETERMINATE_PROGRESS) {
-          taskBarList.SetProgressState(taskBarRelatedPointer, ITaskbarList3.TbpFlag.TBPF_INDETERMINATE);
-        } else {
-          taskBarList.SetProgressState(taskBarRelatedPointer, ITaskbarList3.TbpFlag.TBPF_NORMAL);
-          taskBarList.SetProgressValue(taskBarRelatedPointer, (int) (progress * 100), 100);
-        }
-      });
-    }
-  }
-
   private void hideAllMenuDropdowns() {
     mainNavigation.getChildren().forEach(item -> ((SplitMenuButton) item).hide());
   }
@@ -301,6 +284,25 @@ public class MainController implements OnChoseGameDirectoryListener {
         .filter(item -> item instanceof SplitMenuButton && item != button)
         .forEach(item -> ((SplitMenuButton) item).hide());
     button.show();
+  }
+
+  /**
+   * Updates the progress in the Windows 7+ task bar, if available.
+   */
+  private void updateTaskbarProgress(@Nullable Double progress) {
+    if (taskBarRelatedPointer == null) {
+      return;
+    }
+    executorService.execute(() -> {
+      if (progress == null) {
+        taskBarList.SetProgressState(taskBarRelatedPointer, ITaskbarList3.TbpFlag.TBPF_NOPROGRESS);
+      } else if (progress == ProgressIndicator.INDETERMINATE_PROGRESS) {
+        taskBarList.SetProgressState(taskBarRelatedPointer, ITaskbarList3.TbpFlag.TBPF_INDETERMINATE);
+      } else {
+        taskBarList.SetProgressState(taskBarRelatedPointer, ITaskbarList3.TbpFlag.TBPF_NORMAL);
+        taskBarList.SetProgressValue(taskBarRelatedPointer, (int) (progress * 100), 100);
+      }
+    });
   }
 
   @PostConstruct
@@ -481,22 +483,7 @@ public class MainController implements OnChoseGameDirectoryListener {
     stage.setTitle(mainWindowTitle);
     stage.show();
 
-    try {
-      executorService.execute(() -> {
-        try {
-          taskBarList = COMRuntime.newInstance(ITaskbarList3.class);
-        } catch (ClassNotFoundException e) {
-          e.printStackTrace();
-        }
-      });
-
-      long hwndVal = com.sun.glass.ui.Window.getWindows().get(0).getNativeWindow();
-      taskBarRelatedPointer = Pointer.pointerToAddress(hwndVal, (PointerIO) null);
-
-    } catch (NoClassDefFoundError e) {
-      taskBarRelatedPointer = null;
-    }
-
+    initWindowsTaskBar();
     enterLoggedOutState();
 
     if (mainWindowPrefs.getX() < 0 && mainWindowPrefs.getY() < 0) {
@@ -509,6 +496,28 @@ public class MainController implements OnChoseGameDirectoryListener {
       WindowDecorator.maximize(stage);
     }
     registerWindowListeners();
+  }
+
+  /**
+   * Initializes the Windows 7+ task bar.
+   */
+  private void initWindowsTaskBar() {
+    try {
+      executorService.execute(() -> {
+        try {
+          taskBarList = COMRuntime.newInstance(ITaskbarList3.class);
+
+        } catch (ClassNotFoundException e) {
+          throw new RuntimeException(e);
+        }
+      });
+
+      long hwndVal = com.sun.glass.ui.Window.getWindows().get(0).getNativeWindow();
+      taskBarRelatedPointer = Pointer.pointerToAddress(hwndVal, (PointerIO) null);
+
+    } catch (NoClassDefFoundError e) {
+      taskBarRelatedPointer = null;
+    }
   }
 
   private void enterLoggedOutState() {
