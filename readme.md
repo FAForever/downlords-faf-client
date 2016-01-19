@@ -10,4 +10,4 @@ master|
 
 -Please see the [project page](http://micheljung.github.io/downlords-faf-client/)
 
-
+-Please take a look at the [contribution guidelines](https://github.com/micheljung/downlords-faf-client/wiki/Contribution-guidelines) before creating a pull request
