@@ -69,7 +69,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
   @Override
   @SuppressWarnings("unchecked")
   public <T extends ServerMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
-    if (messageListeners.containsKey(type)) {
+    if (!messageListeners.containsKey(type)) {
       messageListeners.put(type, new LinkedList<>());
     }
     messageListeners.get(type).add((Consumer<ServerMessage>) listener);
@@ -121,7 +121,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
           public void run() {
             MatchmakerMessage matchmakerServerMessage = new MatchmakerMessage();
             matchmakerServerMessage.setPotential(true);
-            messageListeners.getOrDefault(matchmakerServerMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(playersMessage));
+            messageListeners.getOrDefault(matchmakerServerMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(matchmakerServerMessage));
           }
         }, 7000);
 
@@ -138,7 +138,7 @@ public class MockLobbyServerAccessor implements LobbyServerAccessor {
 
         gameInfoMessages.forEach(gameInfoMessage ->
             messageListeners.getOrDefault(gameInfoMessage.getClass(), Collections.emptyList())
-                .forEach(consumer -> consumer.accept(playersMessage)));
+                .forEach(consumer -> consumer.accept(gameInfoMessage)));
 
         notificationService.addNotification(
             new PersistentNotification(

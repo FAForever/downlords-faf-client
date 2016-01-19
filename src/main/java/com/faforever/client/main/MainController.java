@@ -46,7 +46,9 @@ import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Worker;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -60,6 +62,7 @@ import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SplitMenuButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -73,6 +76,11 @@ import javafx.stage.PopupWindow;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.bridj.Pointer;
+import org.bridj.PointerIO;
+import org.bridj.cpp.com.COMRuntime;
+import org.bridj.cpp.com.shell.ITaskbarList3;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 
@@ -83,6 +91,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
@@ -196,6 +205,8 @@ public class MainController implements OnChoseGameDirectoryListener {
   LoginController loginController;
   @Resource
   LobbyService lobbyService;
+  @Resource
+  ExecutorService executorService;
 
   @Value("${mainWindowTitle}")
   String mainWindowTitle;
@@ -205,7 +216,8 @@ public class MainController implements OnChoseGameDirectoryListener {
   private Popup userMenuPopup;
   private ChangeListener<Boolean> windowFocusListener;
   private Popup transientNotificationsPopup;
-
+  private ITaskbarList3 taskBarList;
+  private Pointer taskBarRelatedPointer;
 
   @FXML
   void initialize() {
@@ -247,6 +259,8 @@ public class MainController implements OnChoseGameDirectoryListener {
       if (task == null) {
         taskProgressBar.setVisible(false);
         taskProgressLabel.setVisible(false);
+
+        updateTaskbarProgress(null);
         return;
       }
 
@@ -255,7 +269,27 @@ public class MainController implements OnChoseGameDirectoryListener {
 
       taskProgressLabel.setVisible(true);
       taskProgressLabel.textProperty().bind(task.titleProperty());
+
+      updateTaskbarProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
+      task.progressProperty().addListener((observable, oldValue, newValue) -> {
+        updateTaskbarProgress(newValue.doubleValue());
+      });
     });
+  }
+
+  private void updateTaskbarProgress(@Nullable Double progress) {
+    if (taskBarRelatedPointer != null) {
+      executorService.execute(() -> {
+        if (progress == null) {
+          taskBarList.SetProgressState(taskBarRelatedPointer, ITaskbarList3.TbpFlag.TBPF_NOPROGRESS);
+        } else if (progress == ProgressIndicator.INDETERMINATE_PROGRESS) {
+          taskBarList.SetProgressState(taskBarRelatedPointer, ITaskbarList3.TbpFlag.TBPF_INDETERMINATE);
+        } else {
+          taskBarList.SetProgressState(taskBarRelatedPointer, ITaskbarList3.TbpFlag.TBPF_NORMAL);
+          taskBarList.SetProgressValue(taskBarRelatedPointer, (int) (progress * 100), 100);
+        }
+      });
+    }
   }
 
   private void hideAllMenuDropdowns() {
@@ -446,6 +480,22 @@ public class MainController implements OnChoseGameDirectoryListener {
 
     stage.setTitle(mainWindowTitle);
     stage.show();
+
+    try {
+      executorService.execute(() -> {
+        try {
+          taskBarList = COMRuntime.newInstance(ITaskbarList3.class);
+        } catch (ClassNotFoundException e) {
+          e.printStackTrace();
+        }
+      });
+
+      long hwndVal = com.sun.glass.ui.Window.getWindows().get(0).getNativeWindow();
+      taskBarRelatedPointer = Pointer.pointerToAddress(hwndVal, (PointerIO) null);
+
+    } catch (NoClassDefFoundError e) {
+      taskBarRelatedPointer = null;
+    }
 
     enterLoggedOutState();
 
