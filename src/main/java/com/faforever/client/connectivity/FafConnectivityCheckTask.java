@@ -4,7 +4,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.relay.ConnectivityStateMessage;
 import com.faforever.client.relay.GpgServerMessage;
-import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.relay.ProcessNatPacketMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.AbstractPrioritizedTask;
@@ -40,15 +39,26 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
   FafService fafService;
   @Resource
   ExecutorService executorService;
-  @Resource
-  LocalRelayServer localRelayServer;
-
+  private DatagramGateway datagramGateway;
   private CompletableFuture<DatagramPacket> gamePortPacketFuture;
   private CompletableFuture<ConnectivityStateMessage> connectivityStateFuture;
   private Integer publicPort;
-
   public FafConnectivityCheckTask() {
     super(Priority.LOW);
+  }
+
+  @Override
+  public void setDatagramGateway(DatagramGateway datagramGateway) {
+    this.datagramGateway = datagramGateway;
+  }
+
+  public int getPublicPort() {
+    return publicPort;
+  }
+
+  @Override
+  public void setPublicPort(int publicPort) {
+    this.publicPort = publicPort;
   }
 
   private void onConnectivityStateMessage(GpgServerMessage message) {
@@ -118,19 +128,11 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
   private CompletableFuture<DatagramPacket> listenForPackage() throws ExecutionException, InterruptedException {
     CompletableFuture<DatagramPacket> future = new CompletableFuture<>();
     Consumer<DatagramPacket> complete = future::complete;
-    localRelayServer.addOnPacketFromOutsideListener(complete);
+
+    datagramGateway.addOnPacketListener(complete);
     return future.thenComposeAsync(datagramPacket -> {
-      localRelayServer.removeOnPackedFromOutsideListener(complete);
+      datagramGateway.removeOnPacketListener(complete);
       return CompletableFuture.completedFuture(datagramPacket);
     });
-  }
-
-  public int getPublicPort() {
-    return publicPort;
-  }
-
-  @Override
-  public void setPublicPort(int publicPort) {
-    this.publicPort = publicPort;
   }
 }

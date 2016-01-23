@@ -40,7 +40,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.DatagramPacket;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -143,9 +142,10 @@ public class GameServiceImpl implements GameService {
         newGameInfo.getVersion(), emptyMap(),
         newGameInfo.getSimModUidsToVersions()
     )
-        .thenCompose(aVoid -> startLocalRelayServer())
+        .thenRun(() -> connectivityService.connect())
+        .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
-        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayServer.getGpgRelayPort()));
+        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayServer.getPort()));
   }
 
   @Override
@@ -164,8 +164,10 @@ public class GameServiceImpl implements GameService {
 
     return updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
         .thenCompose(aVoid -> downloadMapIfNecessary(gameInfoBean.getMapTechnicalName()))
+        .thenRun(() -> connectivityService.connect())
+        .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.requestJoinGame(gameInfoBean.getUid(), password))
-        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayServer.getGpgRelayPort()));
+        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayServer.getPort()));
   }
 
   private CompletableFuture<Void> downloadMapIfNecessary(String mapName) {
@@ -270,7 +272,7 @@ public class GameServiceImpl implements GameService {
         .thenCompose(aVoid -> fafService.startSearchRanked1v1(faction, port))
         .thenAccept((gameLaunchInfo) -> {
           searchExpansionFuture.cancel(true);
-          startGame(gameLaunchInfo, faction, RatingMode.RANKED_1V1, localRelayServer.getGpgRelayPort());
+          startGame(gameLaunchInfo, faction, RatingMode.RANKED_1V1, localRelayServer.getPort());
         })
         .exceptionally(throwable -> {
           logger.warn("Ranked1v1 could not be started", throwable);
@@ -313,12 +315,6 @@ public class GameServiceImpl implements GameService {
     return gameUpdateService.updateInBackground(gameType, version, modVersions, simModUIds);
   }
 
-  private CompletableFuture<Integer> startLocalRelayServer() {
-    connectivityService.connect();
-    Consumer<DatagramPacket> fromGameToOutsideForwarder = connectivityService.ensureConnection();
-    return localRelayServer.start(fromGameToOutsideForwarder);
-  }
-
   /**
    * Actually starts the game. Call this method when everything else is prepared (mod/map download, connectivity check
    * etc.)
@@ -327,7 +323,7 @@ public class GameServiceImpl implements GameService {
     stopSearchRanked1v1();
     List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
     try {
-      localRelayServer.getGpgRelayPort();
+      localRelayServer.getPort();
       process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), faction, args, ratingMode, localRelayPort);
       gameRunning.set(true);
 
@@ -362,6 +358,8 @@ public class GameServiceImpl implements GameService {
       try {
         int exitCode = process.waitFor();
         gameRunning.set(false);
+        localRelayServer.close();
+        fafService.notifyGameEnded();
         logger.info("Forged Alliance terminated with exit code {}", exitCode);
       } catch (InterruptedException e) {
         logger.warn("Error during post-game processing", e);

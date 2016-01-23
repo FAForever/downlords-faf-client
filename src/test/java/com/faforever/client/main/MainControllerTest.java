@@ -192,7 +192,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(userMenuController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(taskService.getActiveTasks()).thenReturn(FXCollections.emptyObservableList());
-    when(connectivityService.checkConnectivity()).thenReturn(CompletableFuture.completedFuture(null));
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(applicationContext.getBean(UserInfoWindowController.class)).thenReturn(userInfoWindowController);
     when(preferences.getMainWindow()).thenReturn(mainWindowPrefs);
@@ -202,6 +201,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(notificationPrefs.toastPositionProperty()).thenReturn(new SimpleObjectProperty<>(ToastPosition.BOTTOM_RIGHT));
     when(notificationPrefs.getToastPosition()).thenReturn(ToastPosition.BOTTOM_RIGHT);
     when(fafService.connectionStateProperty()).thenReturn(connectionStateProperty);
+    when(connectivityService.checkConnectivity()).thenReturn(CompletableFuture.completedFuture(null));
     when(connectivityService.connectivityStateProperty()).thenReturn(connectivityStateProperty);
     when(chatService.connectionStateProperty()).thenReturn(chatConnectionStateProperty);
 
@@ -227,7 +227,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
     when(mainWindowPrefs.getLastView()).thenReturn(instance.communityButton.getId());
 
-    verify(connectivityService).checkConnectivity();
     verify(gameUpdateService).checkForUpdateInBackground();
     assertTrue(getStage().isShowing());
   }
@@ -338,54 +337,38 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnGamePortCheckFailed() throws Exception {
-    String disconnected = "foobar";
+    testChangeConnectivity(ConnectivityState.PUBLIC, ConnectivityState.UNKNOWN);
+  }
 
-    WaitForAsyncUtils.waitForAsyncFx(5000, () -> instance.portCheckStatusButton.setText(disconnected));
+  private void testChangeConnectivity(ConnectivityState initialState, ConnectivityState newState) throws Exception {
+    connectivityStateProperty.setValue(initialState);
 
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    future.completeExceptionally(new Exception("test exception"));
-    when(connectivityService.checkConnectivity()).thenReturn(future);
+    String unknown = "Unknown";
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.portCheckStatusButton.setText(unknown));
 
-    attachToRoot();
-    fakeLogin();
+    CompletableFuture<String> textFuture = new CompletableFuture<>();
+    instance.portCheckStatusButton.textProperty().addListener((observable, oldValue, newValue) -> {
+      textFuture.complete(newValue);
+    });
 
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
+    connectivityStateProperty.setValue(newState);
 
-    String textAfterConnection = instance.portCheckStatusButton.getText();
-    assertThat(textAfterConnection, not(disconnected));
+    assertThat(textFuture.get(1, TimeUnit.SECONDS), not(unknown));
   }
 
   @Test
-  public void testOnGamePortCheckResultReachable() throws Exception {
-    String disconnected = "foobar";
-    WaitForAsyncUtils.waitForAsyncFx(5000, () -> instance.portCheckStatusButton.setText(disconnected));
-
-    attachToRoot();
-    fakeLogin();
-
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
-
-    String textAfterConnection = instance.portCheckStatusButton.getText();
-    assertThat(textAfterConnection, not(disconnected));
+  public void testOnGamePortCheckResultProxy() throws Exception {
+    testChangeConnectivity(ConnectivityState.UNKNOWN, ConnectivityState.STUN);
   }
 
   @Test
   public void testOnGamePortCheckResultUnreachable() throws Exception {
-    String disconnected = "foobar";
-    WaitForAsyncUtils.waitForAsyncFx(2000, () -> instance.portCheckStatusButton.setText(disconnected));
+    testChangeConnectivity(ConnectivityState.UNKNOWN, ConnectivityState.BLOCKED);
+  }
 
-    when(connectivityService.checkConnectivity()).thenReturn(CompletableFuture.completedFuture(null));
-    when(connectivityService.getConnectivityState()).thenReturn(ConnectivityState.BLOCKED);
-
-    CompletableFuture<String> completableFuture = new CompletableFuture<>();
-    instance.portCheckStatusButton.textProperty().addListener((observable, oldValue, newValue) -> {
-      completableFuture.complete(newValue);
-    });
-
-    WaitForAsyncUtils.waitForAsyncFx(2000, () -> instance.display());
-    onLoginListenerCaptor.getValue().run();
-
-    assertThat(completableFuture.get(3, TimeUnit.SECONDS), not(disconnected));
+  @Test
+  public void testOnGamePortCheckResultReachable() throws Exception {
+    testChangeConnectivity(ConnectivityState.UNKNOWN, ConnectivityState.PUBLIC);
   }
 
   @Test

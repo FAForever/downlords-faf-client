@@ -7,12 +7,15 @@ import com.faforever.client.relay.JoinGameMessage;
 import com.faforever.client.remote.FafService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.apache.commons.compress.utils.IOUtils;
 import org.ice4j.ChannelDataMessageEvent;
+import org.ice4j.ResponseCollector;
 import org.ice4j.StunException;
 import org.ice4j.StunMessageEvent;
 import org.ice4j.StunResponseEvent;
+import org.ice4j.StunTimeoutEvent;
 import org.ice4j.Transport;
 import org.ice4j.TransportAddress;
 import org.ice4j.attribute.Attribute;
@@ -32,11 +35,11 @@ import org.ice4j.socket.MultiplexingDatagramSocket;
 import org.ice4j.socket.TurnDatagramPacketFilter;
 import org.ice4j.stack.StunStack;
 import org.ice4j.stack.TransactionID;
-import org.ice4j.stunclient.BlockingRequestSender;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -47,8 +50,12 @@ import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -77,8 +84,6 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
    */
   private static final int CHANNELDATA_LENGTH_LENGTH = 2;
 
-  @VisibleForTesting
-  final StunStack stunStack;
   private final Map<TransportAddress, Character> peerAddressToChannel;
   private final Map<Character, TransportAddress> channelToPeerAddress;
   @Resource
@@ -87,13 +92,16 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
   FafService fafService;
   @Resource
   ConnectivityService connectivityService;
+  @Resource
+  ApplicationContext applicationContext;
+
   @Value("${turn.host}")
   String turnHost;
   @Value("${turn.port}")
   int turnPort;
   @Value("${turn.refreshInterval}")
   int refreshInterval;
-  private BlockingRequestSender blockingRequestSender;
+
   private TransportAddress relayedAddress;
   private TransportAddress mappedAddress;
   private ScheduledFuture<?> refreshTask;
@@ -101,19 +109,24 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
   private TransportAddress localAddress;
   private MultiplexingDatagramSocket localSocket;
   private MultiplexedDatagramSocket channelDataSocket;
-  private Consumer<DatagramPacket> onDataListener;
   private ObjectProperty<ConnectionState> connectionState;
+  private Collection<Consumer<DatagramPacket>> onPacketListeners;
+  private StunStack stunStack;
 
   public TurnServerAccessorImpl() {
-    stunStack = new StunStack();
     peerAddressToChannel = new HashMap<>();
     channelToPeerAddress = new HashMap<>();
-    connectionState = new SimpleObjectProperty<>();
+    connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
+    onPacketListeners = new LinkedHashSet<>();
+  }
+
+  @VisibleForTesting
+  public InetSocketAddress getLocalSocketAddress() {
+    return (InetSocketAddress) localSocket.getLocalSocketAddress();
   }
 
   @PostConstruct
   void postConstruct() {
-    serverAddress = new TransportAddress(turnHost, turnPort, Transport.UDP);
     fafService.addOnMessageListener(CreatePermissionMessage.class, message -> addPeer(message.getAddress()));
     fafService.addOnMessageListener(JoinGameMessage.class, message -> addPeer(message.getPeerAddress()));
     fafService.addOnMessageListener(ConnectToPeerMessage.class, message -> addPeer(message.getPeerAddress()));
@@ -135,7 +148,7 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
         new TransportAddress(address, Transport.UDP),
         TransactionID.createNewTransactionID().getBytes()
     );
-    sendRequest(createPermissionRequest);
+    sendBlockingStunRequest(createPermissionRequest);
     logger.debug("Permitted sends from {}", address);
   }
 
@@ -145,7 +158,7 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
     }
 
     logger.info("Binding '{}' to channel '{}'", address, channelNumber);
-    Response response = sendRequest(MessageFactory.createChannelBindRequest(
+    Response response = sendBlockingStunRequest(MessageFactory.createChannelBindRequest(
         (char) channelNumber, address, TransactionID.createNewTransactionID().getBytes()
     ));
     if (response.isSuccessResponse()) {
@@ -158,67 +171,22 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
     }
   }
 
-  private Response sendRequest(Request request) {
-    try {
-      StunMessageEvent stunMessageEvent = blockingRequestSender.sendRequestAndWaitForResponse(request, serverAddress);
-      Response response = ((StunResponseEvent) stunMessageEvent).getResponse();
-      if (response.isErrorResponse()) {
-        logger.warn("STUN error: {}", ((ErrorCodeAttribute) response.getAttribute(ERROR_CODE)).getReasonPhrase());
-      }
-      return response;
-    } catch (StunException | IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @Override
-  public void ensureConnected() {
-    if (connectionState.get() == ConnectionState.CONNECTED) {
-      return;
-    }
-    connectionState.set(ConnectionState.CONNECTING);
-    try {
-      localSocket = new MultiplexingDatagramSocket(0, getLocalHost());
-      channelDataSocket = localSocket.getSocket(
-          new TurnDatagramPacketFilter(serverAddress) {
-            @Override
-            public boolean accept(DatagramPacket packet) {
-              return channelDataSocketAccept(packet);
-            }
-
-            @Override
-            protected boolean acceptMethod(char method) {
-              return false;
-            }
-          });
-
-      localAddress = new TransportAddress((InetSocketAddress) localSocket.getLocalSocketAddress(), Transport.UDP);
-      stunStack.addSocket(new IceUdpSocketWrapper(localSocket), serverAddress);
-      blockingRequestSender = new BlockingRequestSender(stunStack, localAddress);
-
-      stunStack.addIndicationListener(localAddress, this::onIndication);
-
-      releaseAllocation();
-      allocateAddress(serverAddress);
-      permit(connectivityService.getExternalSocketAddress());
-
-      scheduledExecutorService.execute(this::runInReceiveChannelDataThread);
-      connectionState.set(ConnectionState.CONNECTED);
-    } catch (StunException | IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   @Override
   @PreDestroy
   public void disconnect() {
     connectionState.set(ConnectionState.DISCONNECTED);
     releaseAllocation();
+
     peerAddressToChannel.clear();
+    channelToPeerAddress.clear();
+
     if (localAddress != null) {
       stunStack.removeSocket(localAddress);
+      stunStack.shutDown();
     }
-    releaseAllocation();
+    if (refreshTask != null) {
+      refreshTask.cancel(true);
+    }
     IOUtils.closeQuietly(localSocket);
     IOUtils.closeQuietly(channelDataSocket);
   }
@@ -257,22 +225,124 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
   }
 
   @Override
-  public void setOnDataListener(Consumer<DatagramPacket> listener) {
-    this.onDataListener = listener;
+  public ConnectionState getConnectionState() {
+    return connectionState.get();
+  }
+
+  @Override
+  public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
+    return connectionState;
+  }
+
+  @Override
+  public void connect() {
+    if (connectionState.get() == ConnectionState.CONNECTED) {
+      return;
+    }
+
+    stunStack = applicationContext.getBean(StunStack.class);
+
+    serverAddress = new TransportAddress(turnHost, turnPort, Transport.UDP);
+    connectionState.set(ConnectionState.CONNECTING);
+    try {
+      localSocket = new MultiplexingDatagramSocket(0, getLocalHost());
+      channelDataSocket = localSocket.getSocket(
+          new TurnDatagramPacketFilter(serverAddress) {
+            @Override
+            public boolean accept(DatagramPacket packet) {
+              return isChannelData(packet);
+            }
+
+            @Override
+            protected boolean acceptMethod(char method) {
+              return false;
+            }
+          });
+
+      localAddress = new TransportAddress((InetSocketAddress) localSocket.getLocalSocketAddress(), Transport.UDP);
+      stunStack.addSocket(new IceUdpSocketWrapper(localSocket), serverAddress);
+
+      stunStack.addIndicationListener(localAddress, this::onIndication);
+
+      releaseAllocation();
+      allocateAddress(serverAddress);
+      permit(connectivityService.getExternalSocketAddress());
+
+      connectionState.set(ConnectionState.CONNECTED);
+      scheduledExecutorService.execute(this::runInReceiveChannelDataThread);
+    } catch (StunException | IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public boolean isBound(SocketAddress socketAddress) {
+    return peerAddressToChannel.containsKey(socketAddress);
+  }
+
+  private void releaseAllocation() {
+    if (refreshTask != null && !refreshTask.isCancelled()) {
+      logger.debug("Releasing previous allocation");
+      sendBlockingStunRequest(MessageFactory.createRefreshRequest(0));
+      refreshTask.cancel(true);
+    }
+  }
+
+  @NotNull
+  private Response sendBlockingStunRequest(Request request) {
+    try {
+      CompletableFuture<Response> responseFuture = new CompletableFuture<>();
+      stunStack.sendRequest(request, serverAddress, localAddress, blockingResponseCollector(responseFuture));
+      Response response = responseFuture.get();
+
+      if (response.isErrorResponse()) {
+        logger.warn("STUN error: {}", ((ErrorCodeAttribute) response.getAttribute(ERROR_CODE)).getReasonPhrase());
+      }
+      return response;
+    } catch (IOException | InterruptedException | ExecutionException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @NotNull
+  private ResponseCollector blockingResponseCollector(final CompletableFuture<Response> responseFuture) {
+    return new ResponseCollector() {
+      @Override
+      public void processResponse(StunResponseEvent event) {
+        responseFuture.complete(event.getResponse());
+      }
+
+      @Override
+      public void processTimeout(StunTimeoutEvent event) {
+        logger.warn("STUN request timed out: {}", event.getMessage());
+        responseFuture.completeExceptionally(new RuntimeException("STUN request " + event.getTransactionID() + " timed out"));
+      }
+    };
+  }
+
+  @Override
+  public void addOnPacketListener(Consumer<DatagramPacket> listener) {
+    onPacketListeners.add(listener);
+  }
+
+  @Override
+  public void removeOnPacketListener(Consumer<DatagramPacket> listener) {
+    onPacketListeners.remove(listener);
   }
 
   /**
-   * Determines whether a specific <tt>DatagramPacket</tt> is accepted by {@link #channelDataSocket} (i.e. whether
-   * <tt>channelDataSocket</tt> understands <tt>p</tt> and <tt>p</tt> is meant to be received by
-   * <tt>channelDataSocket</tt>).
+   * Determines whether a specific {@code DatagramPacket} is accepted by {@link #channelDataSocket} (i.e. whether {@code
+   * channelDataSocket} understands {@code packet} and {@code packet} is meant to be received by {@code
+   * channelDataSocket}).
    *
-   * @param packet the <tt>DatagramPacket</tt> which is to be checked whether it is accepted by
-   * <tt>channelDataSocket</tt>
+   * @param packet the {@code DatagramPacket} which is to be checked whether it is accepted by {@code
+   * channelDataSocket}
    *
-   * @return <tt>true</tt> if <tt>channelDataSocket</tt> accepts <tt>p</tt> (i.e. <tt>channelDataSocket</tt> understands
-   * <tt>p</tt> and <tt>p</tt> is meant to be received by <tt>channelDataSocket</tt>); otherwise, <tt>false</tt>
+   * @return {@code true} if {@code channelDataSocket} accepts {@code packet} (i.e. {@code channelDataSocket}
+   * understands {@code packet} and {@code p} is meant to be received by {@code channelDataSocket}); otherwise, {@code
+   * false}
    */
-  private boolean channelDataSocketAccept(DatagramPacket packet) {
+  private boolean isChannelData(DatagramPacket packet) {
     // Is it from our TURN server?
     if (!serverAddress.equals(packet.getSocketAddress())) {
       return false;
@@ -290,10 +360,8 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
     int pOffset = packet.getOffset();
 
     /*
-     * The first two bits should be 0b01 because of the current
-     * channel number range 0x4000 - 0x7FFE. But 0b10 and 0b11 which
-     * are currently reserved and may be used in the future to
-     * extend the range of channel numbers.
+     * The first two bits should be 0b01 because of the current channel number range 0x4000 - 0x7FFE. But 0b10 and 0b11
+     * which are currently reserved and may be used in the future to extend the range of channel numbers.
      */
     if ((pData[pOffset] & 0xC0) == 0) {
       return false;
@@ -307,26 +375,16 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
     int padding = ((length % 4) > 0) ? 4 - (length % 4) : 0;
 
     /*
-     * The Length field specifies the length in bytes of the
-     * Application Data field. The Length field does not include
-     * the padding that is sometimes present in the data of the
-     * DatagramPacket.
+     * The Length field specifies the length in bytes of the Application Data field. The Length field does not include
+     * the padding that is sometimes present in the data of the DatagramPacket.
      */
     return length == packetLength - padding - CHANNELDATA_LENGTH_LENGTH
         || length == packetLength - CHANNELDATA_LENGTH_LENGTH;
   }
 
-  private void releaseAllocation() {
-    if (refreshTask != null && !refreshTask.isCancelled()) {
-      logger.debug("Releasing previous allocation");
-      sendRequest(MessageFactory.createRefreshRequest(0));
-      refreshTask.cancel(true);
-    }
-  }
-
   private void allocateAddress(TransportAddress turnServerAddress) throws StunException, IOException {
     logger.info("Requesting address allocation at {}", serverAddress);
-    Response response = sendRequest(MessageFactory.createAllocateRequest(UDP, false));
+    Response response = sendBlockingStunRequest(MessageFactory.createAllocateRequest(UDP, false));
 
     byte[] transactionID = response.getTransactionID();
     relayedAddress = ((XorRelayedAddressAttribute) response.getAttribute(XOR_RELAYED_ADDRESS)).getAddress(transactionID);
@@ -341,7 +399,7 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
   private ScheduledFuture<?> scheduleRefresh(int interval) {
     return scheduledExecutorService.scheduleWithFixedDelay((Runnable) () -> {
       logger.debug("Refreshing TURN allocation");
-      sendRequest(MessageFactory.createRefreshRequest(interval));
+      sendBlockingStunRequest(MessageFactory.createRefreshRequest(interval));
 
       for (Map.Entry<TransportAddress, Character> entry : peerAddressToChannel.entrySet()) {
         bind(entry.getKey(), entry.getValue());
@@ -361,18 +419,27 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
 
     DatagramPacket datagramPacket = new DatagramPacket(data, data.length);
     datagramPacket.setSocketAddress(sender);
-    onDataListener.accept(datagramPacket);
+    onPacketReceived(datagramPacket);
+  }
+
+  private void onPacketReceived(DatagramPacket datagramPacket) {
+    onPacketListeners.forEach(consumer -> consumer.accept(datagramPacket));
   }
 
   private void runInReceiveChannelDataThread() {
     int receiveBufferSize = 1500;
     DatagramPacket packet = new DatagramPacket(new byte[receiveBufferSize], receiveBufferSize);
 
-    while (connectionState.get() != ConnectionState.DISCONNECTED) {
+    while (connectionState.get() == ConnectionState.CONNECTED) {
       try {
         channelDataSocket.receive(packet);
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        if (channelDataSocket.isClosed()) {
+          logger.debug("Channel data socket has been closed");
+          return;
+        } else {
+          throw new RuntimeException(e);
+        }
       }
 
       int channelDataLength = packet.getLength();
@@ -403,12 +470,18 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
       ChannelData channelData = new ChannelData();
       channelData.setChannelNumber(channelNumber);
       channelData.setData(payload);
-      onChannelData(new ChannelDataMessageEvent(stunStack,
-          channelToPeerAddress.get(channelNumber),
-          localAddress,
-          channelData
-      ));
+      try {
+        onChannelData(new ChannelDataMessageEvent(stunStack,
+            channelToPeerAddress.get(channelNumber),
+            localAddress,
+            channelData
+        ));
+      } catch (Exception e) {
+        logger.warn("Error while handling channel data", e);
+      }
     }
+
+    logger.info("Stopped reading channel data");
   }
 
   private void onChannelData(ChannelDataMessageEvent event) {
@@ -421,6 +494,6 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
 
     DatagramPacket datagramPacket = new DatagramPacket(channelData.getData(), channelData.getDataLength());
     datagramPacket.setSocketAddress(event.getRemoteAddress());
-    onDataListener.accept(datagramPacket);
+    onPacketReceived(datagramPacket);
   }
 }

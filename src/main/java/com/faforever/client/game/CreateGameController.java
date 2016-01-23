@@ -197,13 +197,15 @@ public class CreateGameController {
       if (Strings.isNullOrEmpty(titleTextField.getText())) {
         return i18n.get("game.create.titleMissing");
       }
-      if (connectivityService.getConnectivityState() == ConnectivityState.BLOCKED) {
-        return i18n.get("game.create.portUnreachable");
+      switch (connectivityService.getConnectivityState()) {
+        case BLOCKED:
+          return i18n.get("game.create.portUnreachable");
+        case RUNNING:
+        case UNKNOWN:
+          return i18n.get("game.create.connectivityCheckPending");
+        default:
+          return i18n.get("game.create.create");
       }
-      if (connectivityService.getConnectivityState() == ConnectivityState.UNKNOWN) {
-        return i18n.get("game.create.connectivityCheckPending");
-      }
-      return i18n.get("game.create.create");
     }, titleTextField.textProperty(), connectivityService.connectivityStateProperty()));
 
     createGameButton.disableProperty().bind(

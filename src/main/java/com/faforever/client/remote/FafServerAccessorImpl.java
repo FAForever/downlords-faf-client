@@ -338,7 +338,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private void parseServerObject(String jsonString) {
     try {
       ServerMessage serverMessage = gson.fromJson(jsonString, ServerMessage.class);
-      serverMessage.setJsonString(jsonString);
 
       Class<?> messageClass = serverMessage.getClass();
       while (messageClass != Object.class) {

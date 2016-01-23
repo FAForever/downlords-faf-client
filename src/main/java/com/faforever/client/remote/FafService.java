@@ -54,4 +54,6 @@ public interface FafService {
   CompletableFuture<Ranked1v1Stats> getRanked1v1Stats();
 
   CompletableFuture<Ranked1v1EntryBean> getRanked1v1EntryForPlayer(int playerId);
+
+  void notifyGameEnded();
 }

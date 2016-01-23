@@ -70,7 +70,7 @@ public class WeUpnpServiceImpl implements UpnpService {
   }
 
   private void deletePortMapping(int port) throws IOException, SAXException {
-    if (!validGateway.deletePortMapping(port, UDP)) {
+    if (validGateway != null && !validGateway.deletePortMapping(port, UDP)) {
       logger.warn("Mapping for port {} could not be removed", port);
     }
   }

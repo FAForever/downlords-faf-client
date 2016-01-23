@@ -4,7 +4,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.relay.ConnectivityStateMessage;
 import com.faforever.client.relay.GpgServerMessage;
-import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.relay.ProcessNatPacketMessage;
 import com.faforever.client.relay.SendNatPacketMessage;
 import com.faforever.client.remote.FafService;
@@ -50,7 +49,7 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
   @Mock
   private FafService fafService;
   @Mock
-  private LocalRelayServer localRelayServer;
+  private DatagramGateway datagramGateway;
   @Captor
   private ArgumentCaptor<Consumer<GpgServerMessage>> connectivityMessageListenerCaptor;
 
@@ -63,9 +62,11 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
     instance.executorService = executorService;
     instance.i18n = i18n;
     instance.fafService = fafService;
-    instance.localRelayServer = localRelayServer;
+
+    instance.setDatagramGateway(datagramGateway);
 
     gamePort = SocketUtils.findAvailableUdpPort();
+
     publicSocket = new DatagramSocket(gamePort);
 
     doAnswer(invocation -> {
@@ -99,7 +100,7 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
       Consumer<DatagramPacket> listener = invocation.getArgumentAt(0, Consumer.class);
       listener.accept(publicCheckPacket);
       return null;
-    }).when(localRelayServer).addOnPacketFromOutsideListener(any());
+    }).when(datagramGateway).addOnPacketListener(any());
 
     doAnswer(invocation -> {
       ProcessNatPacketMessage processNatPacketMessage = invocation.getArgumentAt(0, ProcessNatPacketMessage.class);
@@ -126,7 +127,7 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
     ConnectivityStateMessage result = instance.call();
     assertThat(result.getState(), is(ConnectivityState.PUBLIC));
     assertThat(result.getSocketAddress(), is(publicAddress));
-    verify(localRelayServer).removeOnPackedFromOutsideListener(any());
+    verify(datagramGateway).removeOnPacketListener(any());
     verify(fafService).initConnectivityTest(gamePort);
   }
 

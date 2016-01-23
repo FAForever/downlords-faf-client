@@ -93,8 +93,11 @@ import com.faforever.client.util.TimeServiceImpl;
 import com.google.api.client.util.Beta;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
+import org.ice4j.stack.StunStack;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
@@ -351,5 +354,11 @@ public class ServiceConfig {
   @Bean
   ThemeService themeService() {
     return new ThemeServiceImpl();
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  StunStack stunStack() {
+    return new StunStack();
   }
 }

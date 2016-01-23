@@ -64,7 +64,9 @@ public class ReplayServerImpl implements ReplayServer {
 
   @PreDestroy
   public void close() {
-    task.cancel(true);
+    if (task != null) {
+      task.cancel(true);
+    }
   }
 
   CompletableFuture<Void> start(int uid) {

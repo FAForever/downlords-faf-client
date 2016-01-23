@@ -166,7 +166,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(mapService.isAvailable("map")).thenReturn(true);
     when(connectivityService.getExternalSocketAddress()).thenReturn(externalSocketAddress);
     when(fafService.requestJoinGame(gameInfoBean.getUid(), null)).thenReturn(completedFuture(gameLaunchMessage));
-    when(localRelayServer.getGpgRelayPort()).thenReturn(111);
+    when(localRelayServer.getPort()).thenReturn(111);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
 
     CompletableFuture<Void> future = instance.joinGame(gameInfoBean, null);
@@ -230,7 +230,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameLaunchMessage.setArgs(Arrays.asList("/foo bar", "/bar foo"));
     InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
-    when(localRelayServer.getGpgRelayPort()).thenReturn(gpgPort);
+    when(localRelayServer.getPort()).thenReturn(gpgPort);
     when(forgedAllianceService.startGame(
         gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL, gpgPort)
     ).thenReturn(process);
@@ -356,7 +356,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(gameUpdateService.updateInBackground(GameType.LADDER_1V1.getString(), null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
     when(applicationContext.getBean(SearchExpansionTask.class)).thenReturn(searchExpansionTask);
     when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
-    when(localRelayServer.getGpgRelayPort()).thenReturn(111);
+    when(localRelayServer.getPort()).thenReturn(111);
 
     CompletableFuture<Void> future = instance.startSearchRanked1v1(Faction.CYBRAN);
 
@@ -380,7 +380,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), any(), anyInt())).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
-    when(localRelayServer.getGpgRelayPort()).thenReturn(111);
+    when(localRelayServer.getPort()).thenReturn(111);
     when(applicationContext.getBean(SearchExpansionTask.class)).thenReturn(searchExpansionTask);
 
 
