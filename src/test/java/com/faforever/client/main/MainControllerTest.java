@@ -53,6 +53,7 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -133,10 +134,13 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private NotificationsPrefs notificationPrefs;
   @Mock
   private LoginController loginController;
-  @Captor
-  private ArgumentCaptor<Runnable> onLoginListenerCaptor;
   @Mock
   private ChatService chatService;
+  @Mock
+  private ExecutorService executorService;
+
+  @Captor
+  private ArgumentCaptor<Runnable> onLoginListenerCaptor;
 
   private MainController instance;
   private CountDownLatch mainControllerInitializedLatch;
@@ -177,6 +181,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.transientNotificationsController = transientNotificationsController;
     instance.loginController = loginController;
     instance.chatService = chatService;
+    instance.executorService = executorService;
 
     connectionStateProperty = new SimpleObjectProperty<>();
     connectivityStateProperty = new SimpleObjectProperty<>(ConnectivityState.UNKNOWN);
