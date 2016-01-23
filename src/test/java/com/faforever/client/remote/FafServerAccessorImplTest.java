@@ -1,6 +1,9 @@
-package com.faforever.client.legacy;
+package com.faforever.client.remote;
 
 import com.faforever.client.game.Faction;
+import com.faforever.client.legacy.FactionDeserializer;
+import com.faforever.client.legacy.ServerMessageSerializer;
+import com.faforever.client.legacy.UidService;
 import com.faforever.client.legacy.domain.ClientMessageType;
 import com.faforever.client.legacy.domain.FafServerMessage;
 import com.faforever.client.legacy.domain.FafServerMessageType;
@@ -63,7 +66,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class LobbyServiceServerAccessorImplTest extends AbstractPlainJavaFxTest {
+public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -93,7 +96,7 @@ public class LobbyServiceServerAccessorImplTest extends AbstractPlainJavaFxTest 
   @Mock
   private ClientUpdateService clientUpdateService;
 
-  private LobbyServerAccessorImpl instance;
+  private FafServerAccessorImpl instance;
   private LoginPrefs loginPrefs;
   private ServerSocket fafLobbyServerSocket;
   private Socket localToServerSocket;
@@ -109,7 +112,7 @@ public class LobbyServiceServerAccessorImplTest extends AbstractPlainJavaFxTest 
 
     startFakeFafLobbyServer();
 
-    instance = new LobbyServerAccessorImpl();
+    instance = new FafServerAccessorImpl();
     instance.preferencesService = preferencesService;
     instance.uidService = uidService;
     instance.lobbyHost = LOOPBACK_ADDRESS.getHostAddress();

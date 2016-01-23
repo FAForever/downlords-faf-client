@@ -1,6 +1,7 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.api.Ranked1v1Stats;
+import com.faforever.client.remote.FafService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -23,7 +24,7 @@ public class LeaderboardServiceImplTest {
 
   private static final int PLAYER_ID = 123;
   @Mock
-  private FafApiAccessor fafApiAccessor;
+  private FafService fafService;
   @Mock
   private Executor executor;
 
@@ -34,8 +35,7 @@ public class LeaderboardServiceImplTest {
     MockitoAnnotations.initMocks(this);
 
     instance = new LeaderboardServiceImpl();
-    instance.fafApiAccessor = fafApiAccessor;
-    instance.executor = executor;
+    instance.fafService = fafService;
 
     doAnswer(invocation -> {
       invocation.getArgumentAt(0, Runnable.class).run();
@@ -44,31 +44,33 @@ public class LeaderboardServiceImplTest {
   }
 
   @Test
-  public void testGetLadderInfo() throws Exception {
+  public void testGetRanked1v1Entries() throws Exception {
     List<Ranked1v1EntryBean> ranked1v1EntryBeans = Collections.emptyList();
-    when(fafApiAccessor.getRanked1v1Entries()).thenReturn(ranked1v1EntryBeans);
+    when(fafService.getRanked1v1Entries()).thenReturn(CompletableFuture.completedFuture(ranked1v1EntryBeans));
 
-    CompletableFuture<List<Ranked1v1EntryBean>> future = instance.getLeaderboardEntries();
+    List<Ranked1v1EntryBean> result = instance.getRanked1v1Entries().get(2, TimeUnit.SECONDS);
 
-    verify(fafApiAccessor).getRanked1v1Entries();
-    assertThat(future.get(3, TimeUnit.SECONDS), is(ranked1v1EntryBeans));
-  }
-
-  @Test
-  public void testGetLeaderboardEntries() throws Exception {
-    instance.getLeaderboardEntries().get(2, TimeUnit.SECONDS);
-    verify(fafApiAccessor).getRanked1v1Entries();
+    verify(fafService).getRanked1v1Entries();
+    assertThat(result, is(ranked1v1EntryBeans));
   }
 
   @Test
   public void testGetRanked1v1Stats() throws Exception {
-    instance.getRanked1v1Stats().get(2, TimeUnit.SECONDS);
-    verify(fafApiAccessor).getRanked1v1Stats();
+    Ranked1v1Stats ranked1v1Stats = new Ranked1v1Stats();
+    when(fafService.getRanked1v1Stats()).thenReturn(CompletableFuture.completedFuture(ranked1v1Stats));
+
+    Ranked1v1Stats result = instance.getRanked1v1Stats().get(2, TimeUnit.SECONDS);
+    verify(fafService).getRanked1v1Stats();
+    assertThat(result, is(ranked1v1Stats));
   }
 
   @Test
   public void testGetEntryForPlayer() throws Exception {
-    instance.getEntryForPlayer(PLAYER_ID);
-    verify(fafApiAccessor).getRanked1v1EntryForPlayer(PLAYER_ID);
+    Ranked1v1EntryBean entry = new Ranked1v1EntryBean();
+    when(fafService.getRanked1v1EntryForPlayer(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(entry));
+
+    Ranked1v1EntryBean result = instance.getEntryForPlayer(PLAYER_ID).get(2, TimeUnit.SECONDS);
+    verify(fafService).getRanked1v1EntryForPlayer(PLAYER_ID);
+    assertThat(result, is(entry));
   }
 }

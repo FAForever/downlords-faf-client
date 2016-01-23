@@ -16,6 +16,10 @@ public enum ConnectivityState {
    */
   BLOCKED("BLOCKED"),
   /**
+   * The connectivity check is currently running.
+   */
+  RUNNING("RUNNING"),
+  /**
    * The connection has not yet been tested, or the test failed.
    */
   UNKNOWN(null);

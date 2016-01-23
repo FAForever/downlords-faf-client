@@ -18,7 +18,7 @@
           AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <children>
         <ProgressIndicator prefHeight="80.0" prefWidth="80.0"/>
-        <Label text="%irc.connecting.message">
+        <Label text="%chat.connecting.message">
           <VBox.margin>
             <Insets bottom="28.0" top="14.0"/>
           </VBox.margin>

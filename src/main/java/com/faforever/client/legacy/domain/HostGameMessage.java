@@ -2,6 +2,11 @@ package com.faforever.client.legacy.domain;
 
 import com.faforever.client.game.GameVisibility;
 
+import java.net.InetSocketAddress;
+
+/**
+ * Data sent from the client to the FAF server to tell it about a game to be hosted.
+ */
 public class HostGameMessage extends ClientMessage {
 
   private int gameport;
@@ -13,9 +18,11 @@ public class HostGameMessage extends ClientMessage {
   private Integer version;
   private String password;
   private GameVisibility visibility;
+  private InetSocketAddress relayAddress;
 
-  public HostGameMessage(GameAccess gameAccess, String mapName, String title, int port, boolean[] options, String mod, String password, Integer version) {
+  public HostGameMessage(GameAccess gameAccess, String mapName, String title, int port, boolean[] options, String mod, String password, Integer version, InetSocketAddress relayAddress) {
     super(ClientMessageType.HOST_GAME);
+    this.relayAddress = relayAddress;
     this.setAccess(gameAccess);
     this.setPassword(password);
     this.setVersion(version);
@@ -97,5 +104,13 @@ public class HostGameMessage extends ClientMessage {
 
   public void setVisibility(GameVisibility visibility) {
     this.visibility = visibility;
+  }
+
+  public InetSocketAddress getRelayAddress() {
+    return relayAddress;
+  }
+
+  public void setRelayAddress(InetSocketAddress relayAddress) {
+    this.relayAddress = relayAddress;
   }
 }

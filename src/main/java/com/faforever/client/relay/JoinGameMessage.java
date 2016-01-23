@@ -17,7 +17,7 @@ public class JoinGameMessage extends GpgServerMessage {
   }
 
   public InetSocketAddress getPeerAddress() {
-    return SocketAddressUtil.fromString(getString(PEER_ADDRESS_INDEX));
+    return getSocketAddress(PEER_ADDRESS_INDEX);
   }
 
   public void setPeerAddress(InetSocketAddress peerAddress) {

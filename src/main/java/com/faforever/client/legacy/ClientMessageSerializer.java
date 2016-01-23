@@ -15,6 +15,7 @@ import com.faforever.client.legacy.gson.FactionTypeAdapter;
 import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.GameVisibilityTypeAdapter;
+import com.faforever.client.legacy.gson.InetSocketAddressTypeAdapter;
 import com.faforever.client.legacy.gson.MessageTargetTypeAdapter;
 import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.legacy.io.QDataWriter;
@@ -27,6 +28,7 @@ import javafx.beans.property.StringProperty;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 public class ClientMessageSerializer extends JsonMessageSerializer<ClientMessage> {
 
@@ -70,6 +72,7 @@ public class ClientMessageSerializer extends JsonMessageSerializer<ClientMessage
         .registerTypeAdapter(Faction.class, FactionTypeAdapter.INSTANCE)
         .registerTypeAdapter(GameVisibility.class, GameVisibilityTypeAdapter.INSTANCE)
         .registerTypeAdapter(ConnectivityState.class, ConnectivityStateTypeAdapter.INSTANCE)
-        .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE);
+        .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
+        .registerTypeAdapter(InetSocketAddress.class, InetSocketAddressTypeAdapter.INSTANCE);
   }
 }

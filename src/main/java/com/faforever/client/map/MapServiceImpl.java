@@ -13,9 +13,9 @@ import javafx.scene.image.Image;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -68,8 +68,6 @@ public class MapServiceImpl implements MapService {
   private static final Pattern MAP_SIZE_PATTERN = Pattern.compile("(\\d+),\\s*(\\d+)");
 
   @Resource
-  Environment environment;
-  @Resource
   PreferencesService preferencesService;
   @Resource
   TaskService taskService;
@@ -78,10 +76,17 @@ public class MapServiceImpl implements MapService {
   @Resource
   ApplicationContext applicationContext;
 
+  @Value("${vault.mapDownloadUrl}")
+  String mapDownloadUrl;
+  @Value("${vault.mapPreviewUrl.small}")
+  String smallMapPreviewUrl;
+  @Value("${vault.mapPreviewUrl.large}")
+  String largeMapPreviewUrl;
+
   @Override
   @Cacheable(value = CacheNames.SMALL_MAP_PREVIEW, unless = "#result == null")
   public Image loadSmallPreview(String mapName) {
-    String url = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.small"));
+    String url = getMapUrl(mapName, smallMapPreviewUrl);
 
     logger.debug("Fetching small preview for map {} from {}", mapName, url);
 
@@ -91,7 +96,7 @@ public class MapServiceImpl implements MapService {
   @Override
   @Cacheable(value = CacheNames.LARGE_MAP_PREVIEW, unless = "#result == null")
   public Image loadLargePreview(String mapName) {
-    String urlString = getMapUrl(mapName, environment.getProperty("vault.mapPreviewUrl.large"));
+    String urlString = getMapUrl(mapName, largeMapPreviewUrl);
 
     logger.debug("Fetching large preview for map {} from {}", mapName, urlString);
 
@@ -224,7 +229,7 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public CompletableFuture<Void> download(String technicalMapName) {
-    String mapUrl = getMapUrl(technicalMapName, environment.getProperty("vault.mapDownloadUrl"));
+    String mapUrl = getMapUrl(technicalMapName, mapDownloadUrl);
 
     DownloadMapTask task = applicationContext.getBean(DownloadMapTask.class);
     task.setMapUrl(mapUrl);

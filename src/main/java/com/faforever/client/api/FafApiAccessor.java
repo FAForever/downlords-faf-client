@@ -5,6 +5,10 @@ import com.faforever.client.mod.ModInfoBean;
 
 import java.util.List;
 
+/**
+ * Provides access to the FAF REST API. Services should not access this class directly, but use {@link
+ * com.faforever.client.remote.FafService} instead.
+ */
 public interface FafApiAccessor {
 
   List<PlayerAchievement> getPlayerAchievements(int playerId);

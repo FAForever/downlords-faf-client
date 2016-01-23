@@ -125,7 +125,6 @@ public class ChatUserContextMenuController {
 
   public ContextMenu getContextMenu() {
     return contextMenu;
-
   }
 
   public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {

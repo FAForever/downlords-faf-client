@@ -4,7 +4,6 @@ import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.UpdatedAchievement;
 import com.faforever.client.legacy.UpdatedAchievementsMessage;
 import com.faforever.client.notification.NotificationService;
@@ -12,6 +11,7 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
 import com.google.api.client.json.JsonFactory;
@@ -69,7 +69,7 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private ExecutorService executorService;
   @Mock
-  private LobbyServerAccessor lobbyServerAccessor;
+  private FafService fafService;
   @Captor
   private ArgumentCaptor<Consumer<UpdatedAchievementsMessage>> onUpdatedAchievementsCaptor;
 
@@ -80,7 +80,7 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
     instance.notificationService = notificationService;
     instance.i18n = i18n;
     instance.fafApiAccessor = fafApiAccessor;
-    instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.fafService = fafService;
     instance.playerService = playerService;
 
     when(userService.getUid()).thenReturn(PLAYER_ID);
@@ -96,7 +96,7 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnUpdatedAchievementsNewlyUnlockedTriggersNotification() {
-    verify(lobbyServerAccessor).addOnMessageListener(eq(UpdatedAchievementsMessage.class), onUpdatedAchievementsCaptor.capture());
+    verify(fafService).addOnMessageListener(eq(UpdatedAchievementsMessage.class), onUpdatedAchievementsCaptor.capture());
     Consumer<UpdatedAchievementsMessage> listener = onUpdatedAchievementsCaptor.getValue();
 
     AchievementDefinition achievementDefinition = new AchievementDefinition();
@@ -116,7 +116,7 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnUpdatedAchievementsAlreadyUnlockedDoesntTriggerNotification() {
-    verify(lobbyServerAccessor).addOnMessageListener(eq(UpdatedAchievementsMessage.class), onUpdatedAchievementsCaptor.capture());
+    verify(fafService).addOnMessageListener(eq(UpdatedAchievementsMessage.class), onUpdatedAchievementsCaptor.capture());
     Consumer<UpdatedAchievementsMessage> listener = onUpdatedAchievementsCaptor.getValue();
 
     UpdatedAchievementsMessage updatedAchievementsMessage = new UpdatedAchievementsMessage();

@@ -1,9 +1,9 @@
 package com.faforever.client.user;
 
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -20,7 +20,7 @@ public class UserServiceImplTest {
   @Mock
   private Preferences preferences;
   @Mock
-  private LobbyServerAccessor lobbyServerAccessor;
+  private FafService fafService;
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -33,7 +33,7 @@ public class UserServiceImplTest {
     MockitoAnnotations.initMocks(this);
 
     instance = new UserServiceImpl();
-    instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.fafService = fafService;
     instance.preferencesService = preferencesService;
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
@@ -81,6 +81,6 @@ public class UserServiceImplTest {
   public void testCancelLogin() throws Exception {
     instance.cancelLogin();
 
-    verify(lobbyServerAccessor).disconnect();
+    verify(fafService).disconnect();
   }
 }

@@ -13,8 +13,8 @@ import com.faforever.client.chat.PircBotXFactory;
 import com.faforever.client.chat.PircBotXFactoryImpl;
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.connectivity.ConnectivityServiceImpl;
-import com.faforever.client.connectivity.TurnClient;
-import com.faforever.client.connectivity.TurnClientImpl;
+import com.faforever.client.connectivity.TurnServerAccessor;
+import com.faforever.client.connectivity.TurnServerAccessorImpl;
 import com.faforever.client.events.EventService;
 import com.faforever.client.events.EventServiceImpl;
 import com.faforever.client.fa.ForgedAllianceService;
@@ -27,10 +27,7 @@ import com.faforever.client.gravatar.MockGravatarService;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.LeaderboardServiceImpl;
 import com.faforever.client.leaderboard.MockLeaderboardService;
-import com.faforever.client.legacy.LobbyServerAccessor;
-import com.faforever.client.legacy.LobbyServerAccessorImpl;
 import com.faforever.client.legacy.MockFafApiAccessor;
-import com.faforever.client.legacy.MockLobbyServerAccessor;
 import com.faforever.client.legacy.MockStatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessorImpl;
@@ -40,8 +37,6 @@ import com.faforever.client.legacy.WindowsUidService;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
 import com.faforever.client.legacy.map.LegacyMapVaultParser;
 import com.faforever.client.legacy.map.MapVaultParser;
-import com.faforever.client.lobby.LobbyService;
-import com.faforever.client.lobby.LobbyServiceImpl;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl;
 import com.faforever.client.mod.ModService;
@@ -61,6 +56,11 @@ import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.relay.LocalRelayServerImpl;
+import com.faforever.client.remote.FafServerAccessor;
+import com.faforever.client.remote.FafServerAccessorImpl;
+import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.FafServiceImpl;
+import com.faforever.client.remote.MockFafServerAccessor;
 import com.faforever.client.replay.ReplayFileReader;
 import com.faforever.client.replay.ReplayFileReaderImpl;
 import com.faforever.client.replay.ReplayFileWriter;
@@ -93,8 +93,11 @@ import com.faforever.client.util.TimeServiceImpl;
 import com.google.api.client.util.Beta;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
+import org.ice4j.stack.StunStack;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
@@ -119,11 +122,11 @@ public class ServiceConfig {
   }
 
   @Bean
-  LobbyServerAccessor lobbyServerAccessor() {
+  FafServerAccessor fafClient() {
     if (environment.containsProperty("faf.testing")) {
-      return new MockLobbyServerAccessor();
+      return new MockFafServerAccessor();
     }
-    return new LobbyServerAccessorImpl();
+    return new FafServerAccessorImpl();
   }
 
   @Bean
@@ -201,8 +204,8 @@ public class ServiceConfig {
   }
 
   @Bean
-  LobbyService lobbyService() {
-    return new LobbyServiceImpl();
+  FafService lobbyService() {
+    return new FafServiceImpl();
   }
 
   @Bean
@@ -239,8 +242,8 @@ public class ServiceConfig {
   }
 
   @Bean
-  TurnClient turnClient() {
-    return new TurnClientImpl();
+  TurnServerAccessor turnServerAccessor() {
+    return new TurnServerAccessorImpl();
   }
 
   @Bean
@@ -351,5 +354,11 @@ public class ServiceConfig {
   @Bean
   ThemeService themeService() {
     return new ThemeServiceImpl();
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  StunStack stunStack() {
+    return new StunStack();
   }
 }

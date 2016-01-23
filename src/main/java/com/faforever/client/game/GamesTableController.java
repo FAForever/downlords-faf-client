@@ -92,6 +92,7 @@ public class GamesTableController {
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == null) {
         if (gamesTable.getItems().isEmpty()) {
+          gamesController.hideGameDetail();
           return;
         }
         gamesTable.getSelectionModel().select(gamesTable.getItems().get(0));

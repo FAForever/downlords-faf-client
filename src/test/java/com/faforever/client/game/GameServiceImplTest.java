@@ -7,7 +7,6 @@ import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeMessage;
 import com.faforever.client.legacy.domain.VictoryCondition;
-import com.faforever.client.lobby.LobbyService;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
@@ -15,6 +14,7 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.relay.LocalRelayServer;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -27,6 +27,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -71,7 +72,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private LobbyService lobbyService;
+  private FafService fafService;
   @Mock
   private MapService mapService;
   @Mock
@@ -106,7 +107,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = new GameServiceImpl();
-    instance.lobbyService = lobbyService;
+    instance.fafService = fafService;
     instance.mapService = mapService;
     instance.forgedAllianceService = forgedAllianceService;
     instance.connectivityService = connectivityService;
@@ -124,6 +125,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
+    when(connectivityService.checkConnectivity()).thenReturn(CompletableFuture.completedFuture(null));
 
     doAnswer(invocation -> {
       try {
@@ -136,32 +138,35 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.postConstruct();
 
-    verify(lobbyService).addOnMessageListener(eq(GameTypeMessage.class), gameTypeMessageListenerCaptor.capture());
-    verify(lobbyService).addOnMessageListener(eq(GameInfoMessage.class), gameInfoMessageListenerCaptor.capture());
+    verify(fafService).addOnMessageListener(eq(GameTypeMessage.class), gameTypeMessageListenerCaptor.capture());
+    verify(fafService).addOnMessageListener(eq(GameInfoMessage.class), gameInfoMessageListenerCaptor.capture());
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void postConstruct() {
-    verify(lobbyService).addOnMessageListener(eq(GameTypeMessage.class), any(Consumer.class));
-    verify(lobbyService).addOnMessageListener(eq(GameInfoMessage.class), any(Consumer.class));
+    verify(fafService).addOnMessageListener(eq(GameTypeMessage.class), any(Consumer.class));
+    verify(fafService).addOnMessageListener(eq(GameInfoMessage.class), any(Consumer.class));
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void testJoinGameMapIsAvailable() throws Exception {
-    GameInfoBean gameInfoBean = mock(GameInfoBean.class);
+    GameInfoBean gameInfoBean = GameInfoBeanBuilder.create().defaultValues().get();
 
     ObservableMap<String, String> simMods = FXCollections.observableHashMap();
     simMods.put("123-456-789", "Fake mod name");
 
-    when(gameInfoBean.getSimMods()).thenReturn(simMods);
-    when(gameInfoBean.getMapTechnicalName()).thenReturn("map");
+    gameInfoBean.setSimMods(simMods);
+    gameInfoBean.setMapTechnicalName("map");
 
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+    InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
+
     when(mapService.isAvailable("map")).thenReturn(true);
-    when(lobbyService.requestJoinGame(gameInfoBean, null)).thenReturn(completedFuture(gameLaunchMessage));
-    when(localRelayServer.startInBackground()).thenReturn(CompletableFuture.completedFuture(111));
+    when(connectivityService.getExternalSocketAddress()).thenReturn(externalSocketAddress);
+    when(fafService.requestJoinGame(gameInfoBean.getUid(), null)).thenReturn(completedFuture(gameLaunchMessage));
+    when(localRelayServer.getPort()).thenReturn(111);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
 
     CompletableFuture<Void> future = instance.joinGame(gameInfoBean, null);
@@ -218,18 +223,20 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @SuppressWarnings("unchecked")
   public void testAddOnGameStartedListener() throws Exception {
     Process process = mock(Process.class);
-    int gamePort = 51111;
+    int gpgPort = 111;
 
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     gameLaunchMessage.setArgs(Arrays.asList("/foo bar", "/bar foo"));
+    InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
-    when(localRelayServer.startInBackground()).thenReturn(CompletableFuture.completedFuture(gamePort));
+    when(localRelayServer.getPort()).thenReturn(gpgPort);
     when(forgedAllianceService.startGame(
-        gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL, gamePort)
+        gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL, gpgPort)
     ).thenReturn(process);
+    when(connectivityService.getExternalSocketAddress()).thenReturn(externalSocketAddress);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(lobbyService.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
+    when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
 
     CountDownLatch gameStartedLatch = new CountDownLatch(1);
     CountDownLatch gameTerminatedLatch = new CountDownLatch(1);
@@ -256,7 +263,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameTerminatedLatch.await(TIMEOUT, TIME_UNIT);
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL,
-        gamePort);
+        gpgPort);
   }
 
   @Test
@@ -345,17 +352,18 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);
     gameLaunchMessage.setArgs(Collections.<String>emptyList());
-    when(lobbyService.startSearchRanked1v1(Faction.CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
+    when(fafService.startSearchRanked1v1(Faction.CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
     when(gameUpdateService.updateInBackground(GameType.LADDER_1V1.getString(), null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
     when(applicationContext.getBean(SearchExpansionTask.class)).thenReturn(searchExpansionTask);
     when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
+    when(localRelayServer.getPort()).thenReturn(111);
 
     CompletableFuture<Void> future = instance.startSearchRanked1v1(Faction.CYBRAN);
 
     verify(searchExpansionTask).setMaxRadius(SEARCH_MAX_RADIUS);
     verify(searchExpansionTask).setRadiusIncrement(SEARCH_RADIUS_INCREMENT);
     verify(scheduledExecutorService).scheduleWithFixedDelay(searchExpansionTask, SEARCH_EXPANSION_DELAY, SEARCH_EXPANSION_DELAY, TimeUnit.MILLISECONDS);
-    verify(lobbyService).startSearchRanked1v1(Faction.CYBRAN, GAME_PORT);
+    verify(fafService).startSearchRanked1v1(Faction.CYBRAN, GAME_PORT);
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
   }
 
@@ -366,10 +374,15 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+    InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
+
+    when(connectivityService.getExternalSocketAddress()).thenReturn(externalSocketAddress);
     when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), any(), anyInt())).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(lobbyService.requestNewGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
-    when(localRelayServer.startInBackground()).thenReturn(CompletableFuture.completedFuture(111));
+    when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
+    when(localRelayServer.getPort()).thenReturn(111);
+    when(applicationContext.getBean(SearchExpansionTask.class)).thenReturn(searchExpansionTask);
+
 
     CountDownLatch gameRunningLatch = new CountDownLatch(1);
     instance.gameRunningProperty().addListener((observable, oldValue, newValue) -> {
@@ -391,7 +404,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.searching1v1Property().set(true);
     instance.stopSearchRanked1v1();
     assertThat(instance.searching1v1Property().get(), is(false));
-    verify(lobbyService).stopSearchingRanked();
+    verify(fafService).stopSearchingRanked();
   }
 
   @Test
@@ -399,7 +412,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.searching1v1Property().set(false);
     instance.stopSearchRanked1v1();
     assertThat(instance.searching1v1Property().get(), is(false));
-    verify(lobbyService, never()).stopSearchingRanked();
+    verify(fafService, never()).stopSearchingRanked();
   }
 
   @Test

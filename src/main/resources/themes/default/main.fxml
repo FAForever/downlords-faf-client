@@ -128,7 +128,7 @@
         </HBox>
         <Separator focusTraversable="false" orientation="VERTICAL"/>
         <MenuButton fx:id="portCheckStatusButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
-                    styleClass="status-bar-menu-button" text="%statusBar.portReachable">
+                    styleClass="status-bar-menu-button" text="%statusBar.connectivityUnknown">
           <tooltip>
             <Tooltip text="&lt;Tooltip text inserted by code&gt;"/>
           </tooltip>
@@ -137,6 +137,9 @@
             <MenuItem mnemonicParsing="false" onAction="#onChangePortClicked" text="%statusBar.changePort"/>
             <MenuItem mnemonicParsing="false" onAction="#onPortCheckRetryClicked" text="%statusBar.retry"/>
           </items>
+          <graphic>
+            <Label fx:id="portCheckStatusIcon" styleClass="fontawesome,port-check-status" text=""/>
+          </graphic>
         </MenuButton>
         <Separator focusTraversable="false" orientation="VERTICAL"/>
         <MenuButton fx:id="fafConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
@@ -144,13 +147,19 @@
           <items>
             <MenuItem mnemonicParsing="false" onAction="#onFafReconnectClicked" text="%statusBar.reconnect"/>
           </items>
+          <graphic>
+            <Label fx:id="fafConnectionStatusIcon" styleClass="fontawesome,connection-status" text=""/>
+          </graphic>
         </MenuButton>
         <Separator focusTraversable="false" orientation="VERTICAL"/>
-        <MenuButton fx:id="ircConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
-                    styleClass="status-bar-menu-button" text="%statusBar.ircConnected">
+        <MenuButton fx:id="chatConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
+                    styleClass="status-bar-menu-button" text="%statusBar.chatConnected">
           <items>
-            <MenuItem mnemonicParsing="false" onAction="#onIrcReconnectClicked" text="%statusBar.reconnect"/>
+            <MenuItem mnemonicParsing="false" onAction="#onChatReconnectClicked" text="%statusBar.reconnect"/>
           </items>
+          <graphic>
+            <Label fx:id="chatConnectionStatusIcon" styleClass="fontawesome,connection-status" text=""/>
+          </graphic>
         </MenuButton>
       </children>
       <padding>

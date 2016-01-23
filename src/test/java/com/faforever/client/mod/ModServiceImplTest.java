@@ -1,9 +1,9 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.ByteCopier;
@@ -75,7 +75,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private TaskService taskService;
   @Mock
-  private LobbyServerAccessor lobbyServerAccessor;
+  private FafService fafService;
 
   private ModServiceImpl instance;
   private Path gamePrefsPath;
@@ -86,7 +86,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     instance.preferencesService = preferencesService;
     instance.applicationContext = applicationContext;
     instance.taskService = taskService;
-    instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.fafService = fafService;
     instance.directory = new RAMDirectory();
     instance.analyzer = new SimpleAnalyzer();
 

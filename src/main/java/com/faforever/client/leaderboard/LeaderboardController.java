@@ -105,7 +105,7 @@ public class LeaderboardController {
 
   public void setUpIfNecessary() {
     contentPane.setVisible(false);
-    leaderboardService.getLeaderboardEntries().thenAccept(leaderboardEntryBeans -> {
+    leaderboardService.getRanked1v1Entries().thenAccept(leaderboardEntryBeans -> {
       ratingTable.setItems(observableList(leaderboardEntryBeans));
       contentPane.setVisible(true);
     }).exceptionally(throwable -> {

@@ -2,9 +2,9 @@ package com.faforever.client.player;
 
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.game.GameService;
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.legacy.domain.PlayersMessage;
 import com.faforever.client.legacy.domain.SocialMessage;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +32,7 @@ public class PlayerServiceImplTest {
   @Mock
   GameService gameService;
   @Mock
-  LobbyServerAccessor lobbyServerAccessor;
+  FafService fafService;
   @Mock
   UserService userService;
 
@@ -43,7 +43,7 @@ public class PlayerServiceImplTest {
     MockitoAnnotations.initMocks(this);
 
     instance = new PlayerServiceImpl();
-    instance.lobbyServerAccessor = lobbyServerAccessor;
+    instance.fafService = fafService;
     instance.userService = userService;
     instance.gameService = gameService;
   }
@@ -53,8 +53,8 @@ public class PlayerServiceImplTest {
   public void testInit() throws Exception {
     instance.init();
 
-    verify(lobbyServerAccessor).addOnMessageListener(eq(PlayersMessage.class), any(Consumer.class));
-    verify(lobbyServerAccessor).addOnMessageListener(eq(SocialMessage.class), any(Consumer.class));
+    verify(fafService).addOnMessageListener(eq(PlayersMessage.class), any(Consumer.class));
+    verify(fafService).addOnMessageListener(eq(SocialMessage.class), any(Consumer.class));
   }
 
   @Test
@@ -117,7 +117,7 @@ public class PlayerServiceImplTest {
     instance.addFriend("lisa");
     instance.addFriend("ashley");
 
-    verify(lobbyServerAccessor, times(2)).setFriends(eq(Arrays.asList("lisa", "ashley")));
+    verify(fafService, times(2)).setFriends(eq(Arrays.asList("lisa", "ashley")));
     assertTrue("Property 'friend' was not set to true", lisa.getSocialStatus() == FRIEND);
     assertTrue("Property 'friend' was not set to true", ashley.getSocialStatus() == FRIEND);
   }
@@ -138,13 +138,13 @@ public class PlayerServiceImplTest {
     PlayerInfoBean player2 = instance.registerAndGetPlayerForUsername("player2");
 
     instance.addFriend("player1");
-    verify(lobbyServerAccessor).setFriends(eq(singletonList("player1")));
+    verify(fafService).setFriends(eq(singletonList("player1")));
 
     instance.addFriend("player2");
-    verify(lobbyServerAccessor, times(2)).setFriends(eq(Arrays.asList("player1", "player2")));
+    verify(fafService, times(2)).setFriends(eq(Arrays.asList("player1", "player2")));
 
     instance.removeFriend("player1");
-    verify(lobbyServerAccessor, times(3)).setFriends(eq(singletonList("player2")));
+    verify(fafService, times(3)).setFriends(eq(singletonList("player2")));
 
     assertFalse("Property 'friend' was not set to false", player1.getSocialStatus() == FRIEND);
     assertTrue("Property 'friend' was not set to true", player2.getSocialStatus() == FRIEND);
@@ -158,7 +158,7 @@ public class PlayerServiceImplTest {
     instance.addFoe("player1");
     instance.addFoe("player2");
 
-    verify(lobbyServerAccessor, times(2)).setFoes(Arrays.asList("player1", "player2"));
+    verify(fafService, times(2)).setFoes(Arrays.asList("player1", "player2"));
     assertTrue("Property 'foe' was not set to true", player1.getSocialStatus() == FOE);
     assertTrue("Property 'foe' was not set to true", player2.getSocialStatus() == FOE);
   }

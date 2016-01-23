@@ -2,8 +2,8 @@ package com.faforever.client.mod;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.legacy.LobbyServerAccessor;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ConcurrentUtil;
 import javafx.beans.property.DoubleProperty;
@@ -62,7 +62,7 @@ public class ModServiceImpl implements ModService {
   private static final Lock LOOKUP_LOCK = new ReentrantLock();
 
   @Resource
-  LobbyServerAccessor lobbyServerAccessor;
+  FafService fafService;
   @Resource
   PreferencesService preferencesService;
   @Resource

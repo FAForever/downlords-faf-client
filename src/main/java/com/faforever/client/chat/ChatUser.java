@@ -72,7 +72,7 @@ public class ChatUser {
         && username.get().equals(((ChatUser) obj).username.get());
   }
 
-  public static ChatUser fromIrcUser(User user, Color color) {
+  public static ChatUser fromChatUser(User user, Color color) {
     String username = user.getNick() != null ? user.getNick() : user.getLogin();
 
     Set<String> moderatorInChannels = new HashSet<>();

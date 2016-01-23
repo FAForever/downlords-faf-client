@@ -1,13 +1,14 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.LobbyServerAccessor;
+import com.faforever.client.remote.FafService;
 
 import javax.annotation.Resource;
 
 public class SearchExpansionTask implements Runnable {
 
   @Resource
-  LobbyServerAccessor lobbyServerAccessor;
+  FafService fafService;
+
   private float maxRadius;
   private float radius;
   private float radiusIncrement;
@@ -18,7 +19,7 @@ public class SearchExpansionTask implements Runnable {
       radius += radiusIncrement;
     }
 
-    lobbyServerAccessor.expand1v1Search(radius);
+    fafService.expand1v1Search(radius);
   }
 
   public void setMaxRadius(float maxRadius) {

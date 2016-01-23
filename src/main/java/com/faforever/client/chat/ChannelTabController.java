@@ -31,10 +31,13 @@ import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
-import org.springframework.context.ApplicationContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -47,9 +50,9 @@ import static com.faforever.client.chat.SocialStatus.OTHER;
 import static com.faforever.client.chat.SocialStatus.SELF;
 
 public class ChannelTabController extends AbstractChatTabController {
-
   @VisibleForTesting
   static final String CSS_CLASS_MODERATOR = "moderator";
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   /**
    * Keeps track of which ChatUserControl in which pane belongs to which user.
    */
@@ -95,7 +98,7 @@ public class ChannelTabController extends AbstractChatTabController {
   @Resource
   FilterUserController filterUserController;
   @Resource
-  ApplicationContext applicationContext;
+  ConfigurableApplicationContext applicationContext;
   @Resource
   I18n i18n;
   private String channelName;
@@ -427,6 +430,9 @@ public class ChannelTabController extends AbstractChatTabController {
       return existingChatUserControl;
     }
 
+    if (!applicationContext.isActive()) {
+      logger.warn("Application context has been closed, not creating control for player {}", playerInfoBean.getUsername());
+    }
     ChatUserControl chatUserControl = applicationContext.getBean(ChatUserControl.class);
     chatUserControl.setPlayerInfoBean(playerInfoBean);
     paneToChatUserControlMap.put(pane, chatUserControl);

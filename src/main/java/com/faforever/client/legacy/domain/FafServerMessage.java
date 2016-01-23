@@ -17,7 +17,6 @@ public class FafServerMessage implements SerializableMessage, ServerMessage {
    */
   private FafServerMessageType command;
   private MessageTarget target;
-  private String jsonString;
 
   protected FafServerMessage(FafServerMessageType command) {
     this();
@@ -44,19 +43,5 @@ public class FafServerMessage implements SerializableMessage, ServerMessage {
 
   public void setTarget(MessageTarget target) {
     this.target = target;
-  }
-
-  @Override
-  public String getJsonString() {
-    return jsonString;
-  }
-
-  public void setJsonString(String jsonString) {
-    this.jsonString = jsonString;
-  }
-
-  @Override
-  public String toString() {
-    return jsonString;
   }
 }
