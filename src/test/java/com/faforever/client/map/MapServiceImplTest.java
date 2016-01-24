@@ -86,7 +86,7 @@ public class MapServiceImplTest {
     assertThat(mapInfoBean, notNullValue());
     assertThat(mapInfoBean.getTechnicalName(), is("SCMP_001"));
     assertThat(mapInfoBean.getDisplayName(), is("Burial Mounds"));
-    assertThat(mapInfoBean.getSize(), equalTo(MapSize.get(1024, 1024)));
+    assertThat(mapInfoBean.getSize(), equalTo(new MapSize(10, 10)));
   }
 
   @Test

@@ -35,8 +35,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import static com.faforever.client.util.LuaUtil.stripQuotes;
-
 public class MapServiceImpl implements MapService {
 
   public enum OfficialMap {

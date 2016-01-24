@@ -34,6 +34,7 @@ import com.faforever.client.legacy.UnixUidService;
 import com.faforever.client.legacy.WindowsUidService;
 import com.faforever.client.map.MapService;
 import com.faforever.client.legacy.htmlparser.HtmlParser;
+import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModServiceImpl;
