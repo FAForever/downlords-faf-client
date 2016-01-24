@@ -115,7 +115,8 @@ public class CreateGameController {
       if (newValue.isEmpty()) {
         filteredMaps.setPredicate(mapInfoBean -> true);
       } else {
-        filteredMaps.setPredicate(mapInfoBean -> mapInfoBean.getDisplayName().toLowerCase().contains(newValue.toLowerCase()));
+        filteredMaps.setPredicate(mapInfoBean -> mapInfoBean.getDisplayName().toLowerCase().contains(newValue.toLowerCase())
+            || mapInfoBean.getTechnicalName().toLowerCase().contains(newValue.toLowerCase()));
       }
       if (!filteredMaps.isEmpty()) {
         mapListView.getSelectionModel().select(0);
