@@ -121,7 +121,9 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     proxySocketsByOriginalAddress.clear();
     originalAddressByUid.clear();
 
-    gateway.removeOnPacketListener(datagramPacketConsumer);
+    if (gateway != null) {
+      gateway.removeOnPacketListener(datagramPacketConsumer);
+    }
     IOUtils.closeQuietly(serverSocket);
     IOUtils.closeQuietly(gameSocket);
   }

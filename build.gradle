@@ -118,7 +118,7 @@ dependencies {
   compile 'org.springframework:spring-core:4.2.2.RELEASE'
   compile 'org.springframework:spring-oxm:4.2.2.RELEASE'
   compile 'org.springframework:spring-web:4.2.2.RELEASE'
-  compile('org.pircbotx:pircbotx:2.0.1') {
+  compile('org.pircbotx:pircbotx:2.1') {
     exclude module: 'guava'
   }
   compile 'com.google.guava:guava:18.0'

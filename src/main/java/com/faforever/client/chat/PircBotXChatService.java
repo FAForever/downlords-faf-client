@@ -22,6 +22,7 @@ import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
 import org.pircbotx.Configuration;
+import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.exception.IrcException;
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -108,7 +110,7 @@ public class PircBotXChatService implements ChatService, Listener,
   int reconnectDelay;
 
   private Configuration configuration;
-  private ShutdownablePircBotX pircBotX;
+  private PircBotX pircBotX;
   private CountDownLatch chatConnectedLatch;
   private Map<String, ChatUser> chatUsersByName;
   private Task<Void> connectionTask;
@@ -336,7 +338,8 @@ public class PircBotXChatService implements ChatService, Listener,
           try {
             connectionState.set(ConnectionState.CONNECTING);
             chatConnectedLatch = new CountDownLatch(1);
-            logger.info("Connecting to IRC at {}:{}", configuration.getServerHostname(), configuration.getServerPort());
+            Configuration.ServerEntry server = configuration.getServers().get(0);
+            logger.info("Connecting to IRC at {}:{}", server.getHostname(), server.getPort());
             pircBotX.startBot();
           } catch (IOException | IrcException e) {
             logger.warn("Lost connection to IRC server, trying to reconnect in " + reconnectDelay / 1000 + "s");
@@ -356,7 +359,7 @@ public class PircBotXChatService implements ChatService, Listener,
     if (connectionTask != null) {
       connectionTask.cancel();
     }
-    pircBotX.shutdown();
+    pircBotX.sendIRC().quitServer();
   }
 
   @Override
@@ -448,9 +451,14 @@ public class PircBotXChatService implements ChatService, Listener,
   }
 
   @Override
+  @PreDestroy
   public void close() {
+    // TODO clean up disconnect() and close()
     if (connectionTask != null) {
       Platform.runLater(connectionTask::cancel);
+    }
+    if (pircBotX != null) {
+      pircBotX.sendIRC().quitServer();
     }
   }
 
@@ -495,7 +503,7 @@ public class PircBotXChatService implements ChatService, Listener,
         .setName(username)
         .setLogin(username)
         .setRealName(username)
-        .setServer(ircHost, ircPort)
+        .addServer(ircHost, ircPort)
         .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
         .setAutoSplitMessage(true)
         .setEncoding(UTF_8)
