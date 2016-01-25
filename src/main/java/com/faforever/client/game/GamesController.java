@@ -12,8 +12,6 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.OnChoseGameDirectoryListener;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.RatingUtil;
 import javafx.application.Platform;
@@ -27,8 +25,9 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuButton;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -57,6 +56,12 @@ public class GamesController {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
+  ToggleButton tableButton;
+  @FXML
+  ToggleButton tilesButton;
+  @FXML
+  ToggleGroup viewToggleGroup;
+  @FXML
   VBox teamListPane;
   @FXML
   Label mapLabel;
@@ -76,10 +81,6 @@ public class GamesController {
   Label hostLabel;
   @FXML
   Label gameTypeLabel;
-  @FXML
-  VBox gamePreviewPanel;
-  @FXML
-  MenuButton switchViewButton;
   @FXML
   ScrollPane gameDetailPane;
 
@@ -103,20 +104,18 @@ public class GamesController {
   StageConfigurator stageConfigurator;
   @Resource
   NotificationService notificationService;
-  @Resource
-  OnChoseGameDirectoryListener onChoseGameDirectoryListener;
 
   private Popup createGamePopup;
   private Popup passwordPopup;
   private FilteredList<GameInfoBean> filteredItems;
   private Stage mapDetailPopup;
 
-  private boolean firstGeneratedPane = true;
   private GameInfoBean currentGameInfoBean;
 
   @FXML
-  void initialze() {
+  void initialize() {
     gameDetailPane.managedProperty().bind(gameDetailPane.visibleProperty());
+    gameDetailPane.setVisible(false);
   }
 
   @PostConstruct
@@ -139,60 +138,26 @@ public class GamesController {
     filteredItems = new FilteredList<>(gameInfoBeans);
     filteredItems.setPredicate(OPEN_GAMES_PREDICATE);
 
-    if (preferencesService.getPreferences().getTilePaneSelected()) {
-      onTilesButtonPressed();
+    if (tilesButton.getId().equals(preferencesService.getPreferences().getGamesViewMode())) {
+      viewToggleGroup.selectToggle(tilesButton);
+      tilesButton.getOnAction().handle(null);
     } else {
-      onTableButtonPressed();
+      viewToggleGroup.selectToggle(tableButton);
+      tableButton.getOnAction().handle(null);
     }
-  }
-
-  @FXML
-  void onTilesButtonPressed() {
-    Preferences preferences = preferencesService.getPreferences();
-    if (!preferences.getTilePaneSelected() || isFirstGeneratedPane()) {
-      GamesTilesContainerController gamesTilesContainerController = applicationContext.getBean(GamesTilesContainerController.class);
-      gamesTilesContainerController.createTiledFlowPane(filteredItems);
-
-      Node root = gamesTilesContainerController.getRoot();
-      populateContainer(root);
-
-      preferences.setTilePaneSelected(true);
-      firstGeneratedPane = false;
+    viewToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+      preferencesService.getPreferences().setGamesViewMode(((ToggleButton) newValue).getId());
       preferencesService.storeInBackground();
+    });
+  }
+
+  public void setSelectedGame(GameInfoBean gameInfoBean) {
+    if (gameInfoBean == null) {
+      gameDetailPane.setVisible(false);
+      return;
     }
-  }
 
-  @FXML
-  void onTableButtonPressed() {
-    Preferences preferences = preferencesService.getPreferences();
-    if (preferences.getTilePaneSelected() || isFirstGeneratedPane()) {
-      GamesTableController gamesTableController = applicationContext.getBean(GamesTableController.class);
-      Platform.runLater(() -> {
-        gamesTableController.initializeGameTable(filteredItems);
-
-        Node root = gamesTableController.getRoot();
-        populateContainer(root);
-
-        preferences.setTilePaneSelected(false);
-        firstGeneratedPane = false;
-        preferencesService.storeInBackground();
-      });
-    }
-  }
-
-  public boolean isFirstGeneratedPane() {
-    return firstGeneratedPane;
-  }
-
-  private void populateContainer(Node root) {
-    gameViewContainer.getChildren().setAll(root);
-    AnchorPane.setBottomAnchor(root, 0d);
-    AnchorPane.setLeftAnchor(root, 0d);
-    AnchorPane.setRightAnchor(root, 0d);
-    AnchorPane.setTopAnchor(root, 0d);
-  }
-
-  public void displayGameDetail(GameInfoBean gameInfoBean) {
+    gameDetailPane.setVisible(true);
     currentGameInfoBean = gameInfoBean;
     gameTitleLabel.setText(gameInfoBean.getTitle());
     mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapTechnicalName()));
@@ -346,7 +311,31 @@ public class GamesController {
     return gamesRoot;
   }
 
-  public void hideGameDetail() {
-    gameDetailPane.setVisible(false);
+  @FXML
+  void onTableButtonClicked() {
+    GamesTableController gamesTableController = applicationContext.getBean(GamesTableController.class);
+    Platform.runLater(() -> {
+      gamesTableController.initializeGameTable(filteredItems);
+
+      Node root = gamesTableController.getRoot();
+      populateContainer(root);
+    });
+  }
+
+  private void populateContainer(Node root) {
+    gameViewContainer.getChildren().setAll(root);
+    AnchorPane.setBottomAnchor(root, 0d);
+    AnchorPane.setLeftAnchor(root, 0d);
+    AnchorPane.setRightAnchor(root, 0d);
+    AnchorPane.setTopAnchor(root, 0d);
+  }
+
+  @FXML
+  void onTilesButtonClicked() {
+    GamesTilesContainerController gamesTilesContainerController = applicationContext.getBean(GamesTilesContainerController.class);
+    gamesTilesContainerController.createTiledFlowPane(filteredItems);
+
+    Node root = gamesTilesContainerController.getRoot();
+    populateContainer(root);
   }
 }

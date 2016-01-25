@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <TableView xmlns:fx="http://javafx.com/fxml/1" fx:id="gamesTable" maxHeight="1.7976931348623157E308"
-           maxWidth="1.7976931348623157E308"
-           minHeight="0.0" minWidth="0.0" xmlns="http://javafx.com/javafx/8.0.40"
+           maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" xmlns="http://javafx.com/javafx/8.0.40"
            fx:controller="com.faforever.client.game.GamesTableController">
   <columns>
-    <TableColumn fx:id="mapPreviewColumn" minWidth="2.0" text="%game.map"/>
-    <TableColumn fx:id="gameTitleColumn" minWidth="2.0" text="%game.title"/>
-    <TableColumn fx:id="playersColumn" minWidth="2.0" text="%game.players"/>
-    <TableColumn fx:id="ratingColumn" minWidth="2.0" text="%game.rating"/>
-    <TableColumn fx:id="modsColumn" minWidth="2.0" text="%game.mods"/>
-    <TableColumn fx:id="hostColumn" minWidth="2.0" text="%game.host"/>
-    <TableColumn fx:id="passwordColumn" minWidth="2.0" text="%game.access"/>
+    <TableColumn fx:id="passwordProtectionColumn" editable="false" maxWidth="20.0" minWidth="20.0" prefWidth="20.0"
+                 resizable="false"/>
+    <TableColumn fx:id="mapPreviewColumn" maxWidth="1.7976931348623157E308" minWidth="-1.0" prefWidth="36.0"
+                 resizable="false" text="%game.map"/>
+    <TableColumn fx:id="gameTitleColumn" minWidth="20.0" prefWidth="1000.0" text="%game.title"/>
+    <TableColumn fx:id="playersColumn" minWidth="20.0" prefWidth="100.0" text="%game.players"/>
+    <TableColumn fx:id="ratingColumn" minWidth="20.0" prefWidth="100.0" text="%game.rating"/>
+    <TableColumn fx:id="modsColumn" minWidth="20.0" prefWidth="100.0" text="%game.mods"/>
+    <TableColumn fx:id="hostColumn" minWidth="20.0" prefWidth="100.0" text="%game.host"/>
   </columns>
   <columnResizePolicy>
     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>

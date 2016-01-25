@@ -86,6 +86,7 @@ public class GameTileController {
     displaySimMods(gameInfoBean.getSimMods());
     gameInfoBean.getSimMods().addListener((MapChangeListener<String, String>) change -> displaySimMods(change.getMap()));
 
+    // TODO display "unknown map" image first since loading may take a while
     Image image = mapService.loadSmallPreview(gameInfoBean.getMapTechnicalName());
     mapImageView.setImage(image);
     gameInfoBean.mapTechnicalNameProperty().addListener((observable, oldValue, newValue) -> {
@@ -93,7 +94,7 @@ public class GameTileController {
       mapImageView.setImage(newImage);
     });
 
-    lockIconLabel.setVisible(!gameInfoBean.getPasswordProtected());
+    lockIconLabel.setVisible(gameInfoBean.getPasswordProtected());
 
     // TODO move tooltip Y position down 10 pixels
     GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);
@@ -115,7 +116,7 @@ public class GameTileController {
   @FXML
   void onClick(MouseEvent mouseEvent) {
     gameTileRoot.requestFocus();
-    gamesController.displayGameDetail(gameInfoBean);
+    gamesController.setSelectedGame(gameInfoBean);
 
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
       mouseEvent.consume();

@@ -10,6 +10,7 @@ public interface ThemeService {
   String WEBVIEW_CSS_FILE = "style-webview.css";
   String DEFAULT_ACHIEVEMENT_IMAGE = "images/default_achievement.png";
   String MENTION_SOUND = "sounds/mention.mp3";
+  String CSS_CLASS_FONTAWESOME = "fontawesome";
 
   String getThemeFile(String relativeFile);
 }

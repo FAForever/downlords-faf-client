@@ -4,9 +4,9 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.MenuButton?>
-<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
@@ -21,14 +21,20 @@
         <Button fx:id="createGameButton" mnemonicParsing="false" onAction="#onCreateGameButtonClicked"
                 text="%games.create"/>
         <CheckBox mnemonicParsing="false" onAction="#onShowPrivateGames" selected="true"
-                  text="%games.showPrivateGames"/>
+                  text="%games.showPasswordProtectedGames"/>
         <Pane HBox.hgrow="ALWAYS"/>
-        <MenuButton fx:id="switchViewButton" mnemonicParsing="false" text="%games.view">
-          <items>
-            <MenuItem mnemonicParsing="false" onAction="#onTilesButtonPressed" text="%games.view.tiles"/>
-            <MenuItem mnemonicParsing="false" onAction="#onTableButtonPressed" text="%games.view.table"/>
-          </items>
-        </MenuButton>
+        <HBox alignment="BASELINE_LEFT">
+          <children>
+            <ToggleButton fx:id="tableButton" mnemonicParsing="false" onAction="#onTableButtonClicked"
+                          styleClass="fontawesome" text="">
+              <toggleGroup>
+                <ToggleGroup fx:id="viewToggleGroup"/>
+              </toggleGroup>
+            </ToggleButton>
+            <ToggleButton fx:id="tilesButton" mnemonicParsing="false" onAction="#onTilesButtonClicked" selected="true"
+                          styleClass="fontawesome" text="" toggleGroup="$viewToggleGroup"/>
+          </children>
+        </HBox>
       </children>
     </HBox>
     <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" VBox.vgrow="ALWAYS">
@@ -39,7 +45,7 @@
             <Insets />
           </HBox.margin>
           <content>
-            <VBox fx:id="gamePreviewPanel" maxHeight="1.7976931348623157E308" maxWidth="300.0" minHeight="0.0" minWidth="0.0">
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="300.0" minHeight="0.0" minWidth="0.0">
               <children>
                 <ImageView fx:id="mapImageView" fitWidth="256.0" onMouseClicked="#onMapLargePreview" pickOnBounds="true" preserveRatio="true" styleClass="map-preview" />
                 <Label fx:id="gameTitleLabel" alignment="CENTER" styleClass="game-detail-title"

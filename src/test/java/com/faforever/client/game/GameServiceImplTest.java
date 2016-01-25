@@ -295,12 +295,14 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfoMessage1.setUid(1);
     gameInfoMessage1.setTitle("Game 1");
     gameInfoMessage1.setState(GameState.OPEN);
+    gameInfoMessage1.setPasswordProtected(true);
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage1);
 
     GameInfoMessage gameInfoMessage2 = new GameInfoMessage();
     gameInfoMessage2.setUid(2);
     gameInfoMessage2.setTitle("Game 2");
     gameInfoMessage2.setState(GameState.OPEN);
+    gameInfoMessage2.setPasswordProtected(true);
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage2);
 
     GameInfoBean gameInfoBean1 = new GameInfoBean(gameInfoMessage1);
@@ -317,12 +319,14 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfoMessage.setUid(1);
     gameInfoMessage.setTitle("Game 1");
     gameInfoMessage.setState(GameState.OPEN);
+    gameInfoMessage.setPasswordProtected(true);
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
     gameInfoMessage = new GameInfoMessage();
     gameInfoMessage.setUid(1);
     gameInfoMessage.setTitle("Game 1 modified");
-    gameInfoMessage.setState(GameState.OPEN);
+    gameInfoMessage.setState(GameState.PLAYING);
+    gameInfoMessage.setPasswordProtected(true);
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
     assertEquals(gameInfoMessage.getTitle(), instance.getGameInfoBeans().iterator().next().getTitle());
@@ -336,12 +340,14 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfoMessage.setUid(1);
     gameInfoMessage.setTitle("Game 1");
     gameInfoMessage.setState(GameState.OPEN);
+    gameInfoMessage.setPasswordProtected(true);
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
     gameInfoMessage = new GameInfoMessage();
     gameInfoMessage.setUid(1);
     gameInfoMessage.setTitle("Game 1 modified");
     gameInfoMessage.setState(GameState.CLOSED);
+    gameInfoMessage.setPasswordProtected(true);
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
     assertThat(instance.getGameInfoBeans(), empty());
@@ -431,6 +437,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfoMessage.setMaxPlayers(4);
     gameInfoMessage.setGameType(VictoryCondition.DOMINATION);
     gameInfoMessage.setState(GameState.PLAYING);
+    gameInfoMessage.setPasswordProtected(false);
 
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
