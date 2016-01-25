@@ -12,10 +12,10 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 
 script:
-- ./gradlew --debug check
+- ./gradlew check
 
 after_success:
-- ./gradlew  --debug jacocoTestReport coveralls
+- ./gradlew jacocoTestReport coveralls
 
 env:
   global:
