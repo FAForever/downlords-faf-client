@@ -301,6 +301,13 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     writeToServer(new InitConnectivityTestMessage(port));
   }
 
+  @Override
+  public CompletableFuture<GameLaunchMessage> expectRehostCommand() {
+    logger.debug("Expecting rehost command from server");
+    gameLaunchFuture = new CompletableFuture<>();
+    return gameLaunchFuture;
+  }
+
   private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {
     ServerWriter serverWriter = new ServerWriter(outputStream);
     serverWriter.registerMessageSerializer(new ClientMessageSerializer(login, sessionId), ClientMessage.class);

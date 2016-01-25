@@ -134,4 +134,9 @@ public class FafServiceImpl implements FafService {
   public void notifyGameEnded() {
     fafServerAccessor.sendGpgMessage(new GameEndedMessage());
   }
+
+  @Override
+  public CompletableFuture<GameLaunchMessage> expectRehostCommand() {
+    return fafServerAccessor.expectRehostCommand();
+  }
 }

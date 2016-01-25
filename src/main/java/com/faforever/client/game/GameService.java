@@ -55,4 +55,5 @@ public interface GameService {
 
   BooleanProperty searching1v1Property();
 
+  CompletableFuture<Void> prepareForRehost();
 }

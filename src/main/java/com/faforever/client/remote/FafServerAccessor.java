@@ -56,4 +56,6 @@ public interface FafServerAccessor {
   void sendGpgMessage(GpgClientMessage message);
 
   void initConnectivityTest(int port);
+
+  CompletableFuture<GameLaunchMessage> expectRehostCommand();
 }

@@ -1,10 +1,17 @@
 package com.faforever.client.relay;
 
 import com.faforever.client.connectivity.DatagramGateway;
+import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameType;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.user.UserService;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
@@ -28,6 +35,7 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +65,15 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   FafService fafService;
   @Resource
   ExecutorService executorService;
+  @Resource
+  GameService gameService;
+  @Resource
+  NotificationService notificationService;
+  @Resource
+  I18n i18n;
+  @Resource
+  ReportingService reportingService;
+
   private FaDataOutputStream gameOutputStream;
   private FaDataInputStream gameInputStream;
   private LobbyMode lobbyMode;
@@ -69,6 +86,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
    */
   private DatagramGateway gateway;
   private CompletableFuture<InetSocketAddress> gameUdpSocketFuture;
+  private boolean started;
 
   public LocalRelayServerImpl() {
     proxySocketsByOriginalAddress = new HashMap<>();
@@ -94,6 +112,12 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
   @Override
   public CompletableFuture<Integer> start(DatagramGateway gateway) {
+    if (started) {
+      logger.warn("Local relay server was already running");
+      return gpgPortFuture;
+    }
+    logger.debug("Starting relay server");
+    started = true;
     this.gateway = gateway;
 
     gateway.addOnPacketListener(datagramPacketConsumer);
@@ -115,6 +139,11 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
   @PreDestroy
   public void close() {
+    if (!started) {
+      return;
+    }
+
+    started = false;
     logger.info("Closing relay server");
 
     proxySocketsByOriginalAddress.values().forEach(IOUtils::closeQuietly);
@@ -241,6 +270,18 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
       handleCreateLobby(new CreateLobbyServerMessage(lobbyMode, faGamePort, username, userService.getUid(), 1));
       gameUdpSocketFuture.complete(new InetSocketAddress(InetAddress.getLoopbackAddress(), faGamePort));
+    } else if (gpgClientMessage.getCommand() == GpgClientCommand.REHOST) {
+      gameService.prepareForRehost().exceptionally(throwable -> {
+        logger.warn("Game could not be rehosted", throwable);
+        notificationService.addNotification(
+            new ImmediateNotification(
+                i18n.get("errorTitle"),
+                i18n.get("game.create.failed"),
+                Severity.ERROR,
+                throwable,
+                Collections.singletonList(new ReportAction(i18n, reportingService, throwable))));
+        return null;
+      });
     }
 
     fafService.sendGpgMessage(gpgClientMessage);

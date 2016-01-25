@@ -56,4 +56,6 @@ public interface FafService {
   CompletableFuture<Ranked1v1EntryBean> getRanked1v1EntryForPlayer(int playerId);
 
   void notifyGameEnded();
+
+  CompletableFuture<GameLaunchMessage> expectRehostCommand();
 }

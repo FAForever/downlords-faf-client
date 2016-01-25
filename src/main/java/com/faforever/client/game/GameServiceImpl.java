@@ -197,7 +197,7 @@ public class GameServiceImpl implements GameService {
     updateGameIfNecessary(gameType, version, modVersions, simMods)
         .thenRun(() -> {
           try {
-            Process process = forgedAllianceService.startReplay(path, replayId, gameType);
+            process = forgedAllianceService.startReplay(path, replayId, gameType);
             gameRunning.set(true);
             this.ratingMode = RatingMode.NONE;
             spawnTerminationListener(process);
@@ -224,7 +224,7 @@ public class GameServiceImpl implements GameService {
   public void runWithReplay(URI replayUrl, Integer replayId) throws IOException {
     //FIXME needs to update
     //downloadMapIfNecessary(map);
-    Process process = forgedAllianceService.startReplay(replayUrl, replayId);
+    process = forgedAllianceService.startReplay(replayUrl, replayId);
     gameRunning.set(true);
 
     this.ratingMode = RatingMode.NONE;
@@ -305,6 +305,23 @@ public class GameServiceImpl implements GameService {
   @Override
   public BooleanProperty searching1v1Property() {
     return searching1v1;
+  }
+
+  @Override
+  public CompletableFuture<Void> prepareForRehost() {
+    return fafService.expectRehostCommand().thenAccept(gameLaunchMessage -> {
+      logger.debug("Received game launch command, waiting for FA to terminate");
+      try {
+        process.waitFor();
+        localRelayServer.close();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+
+      localRelayServer.start(connectivityService);
+      connectivityService.connect();
+      startGame(gameLaunchMessage, null, RatingMode.GLOBAL, localRelayServer.getPort());
+    });
   }
 
   private boolean isRunning() {
