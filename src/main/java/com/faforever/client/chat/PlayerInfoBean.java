@@ -293,10 +293,10 @@ public class PlayerInfoBean {
     setChatOnly(false);
     setClan(player.getClan());
     setCountry(player.getCountry());
-    setGlobalRatingMean(player.getRatingMean());
-    setGlobalRatingDeviation(player.getRatingDeviation());
-    setLeaderboardRatingDeviation(player.getLadderRatingDeviation());
-    setLeaderboardRatingMean(player.getLadderRatingMean());
+    setGlobalRatingMean(player.getGlobalRating()[0]);
+    setGlobalRatingDeviation(player.getGlobalRating()[1]);
+    setLeaderboardRatingMean(player.getLadderRating()[0]);
+    setLeaderboardRatingDeviation(player.getLadderRating()[1]);
     setNumberOfGames(player.getNumberOfGames());
     if (player.getAvatar() != null) {
       setAvatarUrl(player.getAvatar().getUrl());

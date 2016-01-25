@@ -13,12 +13,26 @@ public class Player {
   private String login;
   private Avatar avatar;
   private String country;
-  private float ratingMean;
   private Integer numberOfGames;
-  private float ratingDeviation;
-  private float ladderRatingMean;
+  private float[] globalRating;
+  private float[] ladderRating;
   private Map<String, String> league;
-  private float ladderRatingDeviation;
+
+  public float[] getLadderRating() {
+    return ladderRating;
+  }
+
+  public void setLadderRating(float[] ladderRating) {
+    this.ladderRating = ladderRating;
+  }
+
+  public float[] getGlobalRating() {
+    return globalRating;
+  }
+
+  public void setGlobalRating(float[] globalRating) {
+    this.globalRating = globalRating;
+  }
 
   public String getClan() {
     return clan;
@@ -52,14 +66,6 @@ public class Player {
     this.country = country;
   }
 
-  public float getRatingMean() {
-    return ratingMean;
-  }
-
-  public void setRatingMean(float ratingMean) {
-    this.ratingMean = ratingMean;
-  }
-
   public Integer getNumberOfGames() {
     return numberOfGames;
   }
@@ -68,36 +74,12 @@ public class Player {
     this.numberOfGames = numberOfGames;
   }
 
-  public float getRatingDeviation() {
-    return ratingDeviation;
-  }
-
-  public void setRatingDeviation(float ratingDeviation) {
-    this.ratingDeviation = ratingDeviation;
-  }
-
-  public float getLadderRatingMean() {
-    return ladderRatingMean;
-  }
-
-  public void setLadderRatingMean(float ladderRatingMean) {
-    this.ladderRatingMean = ladderRatingMean;
-  }
-
   public Map<String, String> getLeague() {
     return league;
   }
 
   public void setLeague(Map<String, String> league) {
     this.league = league;
-  }
-
-  public float getLadderRatingDeviation() {
-    return ladderRatingDeviation;
-  }
-
-  public void setLadderRatingDeviation(float ladderRatingDeviation) {
-    this.ladderRatingDeviation = ladderRatingDeviation;
   }
 
   public int getId() {

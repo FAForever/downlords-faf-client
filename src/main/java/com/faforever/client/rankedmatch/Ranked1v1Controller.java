@@ -290,7 +290,7 @@ public class Ranked1v1Controller {
         .map(item -> {
           int rating = parseInt(item.getKey());
           XYChart.Data<String, Integer> data = new XYChart.Data<>(String.format(locale, "%d", rating), item.getValue());
-          int currentPlayerRating = RatingUtil.getRoundedLeaderboardRating(player);
+          int currentPlayerRating = RatingUtil.getLeaderboardRating(player);
           if (rating == currentPlayerRating) {
             data.nodeProperty().addListener((observable, oldValue, newValue) -> {
               newValue.pseudoClassStateChanged(NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS, true);
