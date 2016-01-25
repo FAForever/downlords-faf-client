@@ -19,7 +19,6 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
 
   @Resource
   TaskService taskService;
-
   @Resource
   ApplicationContext applicationContext;
 

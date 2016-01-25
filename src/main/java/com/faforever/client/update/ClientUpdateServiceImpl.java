@@ -31,16 +31,12 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
 
   @Resource
   TaskService taskService;
-
   @Resource
   NotificationService notificationService;
-
   @Resource
   I18n i18n;
-
   @Resource
   HostService hostService;
-
   @Resource
   ApplicationContext applicationContext;
 

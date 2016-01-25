@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="6.0.3" transformSequenceNumber="5">
+<install4j version="6.0.4" transformSequenceNumber="5">
   <directoryPresets config="./build/install" />
-  <application name="Downlord's FAF Client" distributionSourceDir="" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="false" pack200Compression="false" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="false" shortName="dfaf" publisher="Michel Jung" publisherWeb="https://github.com/micheljung/downlords-faf-client" version="" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" macVolumeId="e230e730a6fc064c" javaMinVersion="1.8" javaMaxVersion="" allowBetaVM="true" jdkMode="runtimeJre" jdkName="">
+  <application name="Downlord's FAF Client" distributionSourceDir="" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="dfaf" publisher="Downlord" publisherWeb="https://github.com/micheljung/downlords-faf-client" version="" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" macVolumeId="e230e730a6fc064c" javaMinVersion="1.8" javaMaxVersion="" allowBetaVM="true" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
       <additionalLanguages />
@@ -22,7 +22,7 @@
       <mountPoint id="23" root="" location="" mode="755" />
     </mountPoints>
     <entries>
-      <dirEntry mountPoint="23" file="./build/install/downlords-faf-client" overwriteMode="1" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="downlords-faf-client" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+      <dirEntry mountPoint="23" file="./build/install/downlords-faf-client" overwriteMode="1" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="true" overrideUninstallMode="true" entryMode="direct" subDirectory="downlords-faf-client" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude />
       </dirEntry>
     </entries>
@@ -71,7 +71,7 @@
       <customAttributes />
     </autoUpdate>
     <applications>
-      <application name="" id="installer" customizedId="" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="none" fileset="" customIcnsFile="" customIcoFile="" macEntitlementsFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
+      <application name="" id="installer" customizedId="" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="elevated" fileset="" customIcnsFile="" customIcoFile="" macEntitlementsFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
         <serializedBean>
           <java class="java.beans.XMLDecoder">
             <object class="com.install4j.runtime.beans.applications.InstallerApplication" />
@@ -213,7 +213,7 @@
             <preActivation />
             <postActivation />
             <actions>
-              <action name="" id="118" customizedId="" beanClass="com.install4j.runtime.beans.actions.UninstallPreviousAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="118" customizedId="" beanClass="com.install4j.runtime.beans.actions.UninstallPreviousAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.UninstallPreviousAction" />
@@ -294,7 +294,7 @@
                     </object>
                   </java>
                 </serializedBean>
-                <condition>context.getBooleanVariable("executeLauncherAction") &amp;&amp; (!context.isUnattended())</condition>
+                <condition>context.getBooleanVariable("executeLauncherAction")</condition>
               </action>
             </actions>
             <formComponents>
@@ -435,7 +435,7 @@
     </applications>
   </installerGui>
   <mediaSets>
-    <windows name="Windows" id="26" customizedId="" mediaFileName="" installDir="${compiler:sys.fullName}" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" downloadURL="" includeAllDownloadableComponents="false" includedJRE="windows-x86-1.8.0_60" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" customInstallBaseDir="" contentFilesType="1" verifyIntegrity="true">
+    <windows name="Windows" id="26" customizedId="" mediaFileName="" installDir="${compiler:sys.fullName}" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" downloadURL="" includeAllDownloadableComponents="false" includedJRE="windows-x86-1.8.0_72" manualJREEntry="false" bundleType="1" jreURL="" jreShared="true" directDownload="true" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" verifyIntegrity="true">
       <excludedComponents />
       <includedDownloadableComponents />
       <excludedLaunchers />

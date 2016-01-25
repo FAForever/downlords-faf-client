@@ -62,7 +62,8 @@ idea {
 jar {
   manifest {
     attributes "Implementation-Title": "Downlord's FAF Client",
-        "Implementation-Version": version
+        "Implementation-Version": version,
+        "Implementation-Vendor": "Downlord"
   }
 }
 
