@@ -85,6 +85,7 @@ public class GamesTableController {
     });
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
+    gameTitleColumn.setCellFactory(param -> new StringCell<>(title -> title));
     playersColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
         (Callable<PlayerFill>) () -> new PlayerFill(param.getValue().getNumPlayers(), param.getValue().getMaxPlayers()),
         param.getValue().numPlayersProperty(), param.getValue().maxPlayersProperty())
@@ -93,6 +94,7 @@ public class GamesTableController {
     ratingColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(new RatingRange(param.getValue().getMinRating(), param.getValue().getMaxRating())));
     ratingColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
+    hostColumn.setCellFactory(param -> new StringCell<>(title -> title));
 
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       Platform.runLater(() -> gamesController.setSelectedGame(newValue));

@@ -12,7 +12,7 @@ public class StringCell<S, T> extends TableCell<S, T> {
   private String[] cssClasses;
 
   public StringCell(Function<T, String> function) {
-    this(function, Pos.TOP_LEFT);
+    this(function, Pos.CENTER_LEFT);
   }
 
   public StringCell(Function<T, String> function, Pos alignment, String... cssClasses) {

@@ -265,6 +265,8 @@ public class ConnectivityServiceImpl implements ConnectivityService {
 
   @Override
   public void connect() {
+    logger.debug("Establishing connection");
+
     ConnectivityState connectivityState = this.connectivityState.get();
     switch (connectivityState) {
       case PUBLIC:
