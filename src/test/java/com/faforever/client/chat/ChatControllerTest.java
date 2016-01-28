@@ -4,6 +4,8 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
 import javafx.beans.InvalidationListener;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Tab;
 import org.junit.Before;
@@ -54,6 +56,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   private ChatController instance;
   private SimpleObjectProperty<ConnectionState> connectionState;
+  private BooleanProperty loggedInProperty;
 
   @Before
   public void setUp() throws Exception {
@@ -63,10 +66,12 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     instance.applicationContext = applicationContext;
 
     connectionState = new SimpleObjectProperty<>();
+    loggedInProperty = new SimpleBooleanProperty();
 
     when(applicationContext.getBean(PrivateChatTabController.class)).thenReturn(privateChatTabController);
     when(applicationContext.getBean(ChannelTabController.class)).thenReturn(channelTabController);
     when(userService.getUsername()).thenReturn(TEST_USER_NAME);
+    when(userService.loggedInProperty()).thenReturn(loggedInProperty);
     when(chatService.connectionStateProperty()).thenReturn(connectionState);
 
     instance.postConstrut();

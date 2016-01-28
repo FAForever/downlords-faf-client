@@ -469,8 +469,14 @@ public class MainController implements OnChoseGameDirectoryListener {
 
     preferencesService.setOnChoseGameDirectoryListener(this);
     gameService.addOnRankedMatchNotificationListener(this::onRankedMatchInfo);
-    userService.addOnLoginListener(this::onLoggedIn);
-    userService.addOnLogoutListener(this::onLoggedOut);
+
+    userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        onLoggedIn();
+      } else {
+        onLoggedOut();
+      }
+    });
   }
 
   private void setContent(Node node) {

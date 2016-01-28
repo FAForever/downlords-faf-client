@@ -66,7 +66,11 @@ public class ChatController implements
       }
     });
 
-    userService.addOnLogoutListener(this::onLoggedOut);
+    userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
+      if (!newValue) {
+        onLoggedOut();
+      }
+    });
   }
 
   private void onDisconnected() {

@@ -14,8 +14,10 @@ import com.faforever.client.user.UserService;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.hash.Hashing;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -151,6 +153,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   private CountDownLatch botShutdownLatch;
   private CompletableFuture<Object> botStartedFuture;
+  private BooleanProperty loggedInProperty;
 
   @Before
   public void setUp() throws Exception {
@@ -165,6 +168,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     chatUser1 = new ChatUser("chatUser1", null);
     chatUser2 = new ChatUser("chatUser2", null);
+    loggedInProperty = new SimpleBooleanProperty();
 
     botShutdownLatch = new CountDownLatch(1);
 
@@ -173,6 +177,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     when(userService.getUsername()).thenReturn(CHAT_USER_NAME);
     when(userService.getPassword()).thenReturn(CHAT_PASSWORD);
+    when(userService.loggedInProperty()).thenReturn(loggedInProperty);
 
     when(user1.getNick()).thenReturn(chatUser1.getUsername());
     when(user1.getChannels()).thenReturn(ImmutableSortedSet.of(defaultChannel));
@@ -204,7 +209,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     }).when(pircBotX).startBot();
 
     when(pircBotXFactory.createPircBotX(any())).thenReturn(pircBotX);
-
     when(configuration.getListenerManager()).thenReturn(listenerManager);
 
     instance.ircHost = LOOPBACK_ADDRESS.getHostAddress();

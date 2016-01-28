@@ -37,7 +37,9 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
@@ -45,8 +47,6 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
@@ -139,14 +139,12 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ExecutorService executorService;
 
-  @Captor
-  private ArgumentCaptor<Runnable> onLoginListenerCaptor;
-
   private MainController instance;
   private CountDownLatch mainControllerInitializedLatch;
   private SimpleObjectProperty<ConnectionState> connectionStateProperty;
   private SimpleObjectProperty<ConnectivityState> connectivityStateProperty;
   private ObjectProperty<ConnectionState> chatConnectionStateProperty;
+  private BooleanProperty loggedInProperty;
 
   @Before
   public void setUp() throws Exception {
@@ -186,6 +184,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     connectionStateProperty = new SimpleObjectProperty<>();
     connectivityStateProperty = new SimpleObjectProperty<>(ConnectivityState.UNKNOWN);
     chatConnectionStateProperty = new SimpleObjectProperty<>();
+    loggedInProperty = new SimpleBooleanProperty();
 
     when(chatController.getRoot()).thenReturn(new Pane());
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
@@ -209,10 +208,11 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(connectivityService.checkConnectivity()).thenReturn(CompletableFuture.completedFuture(null));
     when(connectivityService.connectivityStateProperty()).thenReturn(connectivityStateProperty);
     when(chatService.connectionStateProperty()).thenReturn(chatConnectionStateProperty);
+    when(userService.loggedInProperty()).thenReturn(loggedInProperty);
 
     instance.postConstruct();
 
-    verify(userService).addOnLoginListener(onLoginListenerCaptor.capture());
+    verify(userService).loggedInProperty();
 
     mainControllerInitializedLatch = new CountDownLatch(1);
     // As the login check is executed AFTER the main controller has been switched to logged in state, we hook to it
@@ -246,7 +246,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   private void fakeLogin() throws InterruptedException {
-    onLoginListenerCaptor.getValue().run();
+    loggedInProperty.set(true);
     assertTrue(mainControllerInitializedLatch.await(3000, TimeUnit.SECONDS));
   }
 

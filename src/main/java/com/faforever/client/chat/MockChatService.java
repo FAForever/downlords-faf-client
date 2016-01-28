@@ -68,7 +68,16 @@ public class MockChatService implements ChatService {
 
   @PostConstruct
   void postConstruct() {
-    userService.addOnLoginListener(this::connect);
+    userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        connect();
+      }
+    });
+  }
+
+  private void simulateConnectionEstablished() {
+    connectionState.set(ConnectionState.CONNECTED);
+    joinChannel("#mockChannel");
   }
 
   @Override
@@ -114,11 +123,6 @@ public class MockChatService implements ChatService {
         simulateConnectionEstablished();
       }
     }, CONNECTION_DELAY);
-  }
-
-  private void simulateConnectionEstablished() {
-    connectionState.set(ConnectionState.CONNECTED);
-    joinChannel("#mockChannel");
   }
 
   @Override

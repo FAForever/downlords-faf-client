@@ -180,8 +180,13 @@ public class PircBotXChatService implements ChatService, Listener,
     addOnModeratorSetListener(this);
     addUserToColorListener();
 
-    userService.addOnLogoutListener(this::disconnect);
-    userService.addOnLoginListener(this::connect);
+    userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        connect();
+      } else {
+        disconnect();
+      }
+    });
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
@@ -242,6 +247,26 @@ public class PircBotXChatService implements ChatService, Listener,
       chatUsers.put(chatUser.getUsername(), chatUser);
     }
     return chatUsers;
+  }
+
+  @SuppressWarnings("unchecked")
+  private void init() {
+    String username = userService.getUsername();
+
+    configuration = new Configuration.Builder()
+        .setName(username)
+        .setLogin(username)
+        .setRealName(username)
+        .addServer(ircHost, ircPort)
+        .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+        .setAutoSplitMessage(true)
+        .setEncoding(UTF_8)
+        .setAutoReconnect(false)
+        .addListener(this)
+        .setSocketTimeout(SOCKET_TIMEOUT)
+        .buildConfiguration();
+
+    pircBotX = pircBotXFactory.createPircBotX(configuration);
   }
 
   @Override
@@ -493,26 +518,6 @@ public class PircBotXChatService implements ChatService, Listener,
   @Override
   public ObjectProperty<ConnectionState> connectionStateProperty() {
     return connectionState;
-  }
-
-  @SuppressWarnings("unchecked")
-  private void init() {
-    String username = userService.getUsername();
-
-    configuration = new Configuration.Builder()
-        .setName(username)
-        .setLogin(username)
-        .setRealName(username)
-        .addServer(ircHost, ircPort)
-        .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-        .setAutoSplitMessage(true)
-        .setEncoding(UTF_8)
-        .setAutoReconnect(false)
-        .addListener(this)
-        .setSocketTimeout(SOCKET_TIMEOUT)
-        .buildConfiguration();
-
-    pircBotX = pircBotXFactory.createPircBotX(configuration);
   }
 
   @Override

@@ -1,8 +1,12 @@
 package com.faforever.client.user;
 
+import javafx.beans.property.BooleanProperty;
+
 import java.util.concurrent.CompletableFuture;
 
 public interface UserService {
+
+  BooleanProperty loggedInProperty();
 
   CompletableFuture<Void> login(String username, String password, boolean autoLogin);
 
@@ -15,9 +19,5 @@ public interface UserService {
   void cancelLogin();
 
   void logOut();
-
-  void addOnLogoutListener(Runnable listener);
-
-  void addOnLoginListener(Runnable listener);
 
 }
