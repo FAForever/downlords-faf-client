@@ -181,11 +181,14 @@ public class MapServiceImpl implements MapService {
         mapInfoBean.setDisplayName(stripQuotes(properties.getProperty("name")));
         mapInfoBean.setDescription(stripQuotes(properties.getProperty("description")));
 
-        Matcher matcher = MAP_SIZE_PATTERN.matcher(properties.getProperty("size"));
-        if (matcher.find()) {
-          int width = Integer.parseInt(matcher.group(1));
-          int height = Integer.parseInt(matcher.group(2));
-          mapInfoBean.setSize(new MapSize(width, height));
+        String size = properties.getProperty("size");
+        if (size != null) {
+          Matcher matcher = MAP_SIZE_PATTERN.matcher(size);
+          if (matcher.find()) {
+            int width = Integer.parseInt(matcher.group(1));
+            int height = Integer.parseInt(matcher.group(2));
+            mapInfoBean.setSize(new MapSize(width, height));
+          }
         }
         return mapInfoBean;
       }
