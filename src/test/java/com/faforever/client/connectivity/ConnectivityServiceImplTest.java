@@ -16,8 +16,11 @@ import com.faforever.client.relay.SendNatPacketMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.user.UserService;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.junit.After;
@@ -84,12 +87,15 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   private Executor executor;
   @Mock
   private TurnServerAccessor turnServerAccessor;
+  @Mock
+  private UserService userService;
 
   @Captor
   private ArgumentCaptor<Consumer<SendNatPacketMessage>> sendNatPacketMessageListenerCaptor;
 
   private IntegerProperty portProperty;
   private SimpleObjectProperty<ConnectionState> fafConnectionState;
+  private BooleanProperty loggedInProperty;
 
   @Before
   public void setUp() throws Exception {
@@ -104,15 +110,18 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     instance.localRelayServer = localRelayServer;
     instance.executor = executor;
     instance.turnServerAccessor = turnServerAccessor;
+    instance.userService = userService;
 
     portProperty = new SimpleIntegerProperty(SocketUtils.findAvailableUdpPort());
     fafConnectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
+    loggedInProperty = new SimpleBooleanProperty();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPort()).thenReturn(portProperty.get());
     when(forgedAlliancePrefs.portProperty()).thenReturn(portProperty);
     when(fafService.connectionStateProperty()).thenReturn(fafConnectionState);
+    when(userService.loggedInProperty()).thenReturn(loggedInProperty);
 
     doAnswer(invocation -> {
       WaitForAsyncUtils.async(invocation.getArgumentAt(0, Runnable.class));
@@ -130,14 +139,14 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testConnectivityCheckTriggeredByFafConnectionState() throws Exception {
+  public void testConnectivityCheckTriggeredByUserLoggedInState() throws Exception {
     assertThat(instance.getConnectivityState(), is(ConnectivityState.UNKNOWN));
     verifyZeroInteractions(taskService);
 
     UpnpPortForwardingTask upnpPortForwardingTask = mockUpnpPortForwardingTask();
     ConnectivityCheckTask connectivityCheckTask = mockConnectivityCheckTask();
 
-    fafConnectionState.set(ConnectionState.CONNECTED);
+    loggedInProperty.set(true);
 
     assertThat(instance.getConnectivityState(), is(ConnectivityState.UNKNOWN));
     verify(taskService).submitTask(upnpPortForwardingTask);

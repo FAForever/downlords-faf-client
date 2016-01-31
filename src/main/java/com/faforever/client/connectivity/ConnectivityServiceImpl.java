@@ -12,6 +12,7 @@ import com.faforever.client.relay.ProcessNatPacketMessage;
 import com.faforever.client.relay.SendNatPacketMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.user.UserService;
 import com.faforever.client.util.SocketAddressUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.ObjectProperty;
@@ -76,6 +77,8 @@ public class ConnectivityServiceImpl implements ConnectivityService {
   @Resource
   FafService fafService;
   @Resource
+  UserService userService;
+  @Resource
   LocalRelayServer localRelayServer;
   @Resource
   TurnServerAccessor turnServerAccessor;
@@ -124,15 +127,11 @@ public class ConnectivityServiceImpl implements ConnectivityService {
   @PostConstruct
   void postConstruct() {
     fafService.addOnMessageListener(SendNatPacketMessage.class, this::onSendNatPacket);
-    fafService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
-      switch (newValue) {
-        case CONNECTING:
-        case DISCONNECTED:
-          connectivityState.set(ConnectivityState.UNKNOWN);
-          break;
-        case CONNECTED:
-          checkConnectivity();
-          break;
+    userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        checkConnectivity();
+      } else {
+        connectivityState.set(ConnectivityState.UNKNOWN);
       }
     });
 
