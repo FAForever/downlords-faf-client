@@ -40,84 +40,60 @@ import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 public class ChatUserContextMenuController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   @FXML
   MenuItem sendPrivateMessageItem;
-
   @FXML
   SeparatorMenuItem socialSeperator;
-
   @FXML
   MenuItem removeCustomColorItem;
-
   @FXML
   CustomMenuItem colorPickerMenuItem;
-
   @FXML
   ColorPicker colorPicker;
-
   @FXML
   MenuItem joinGameItem;
-
   @FXML
   MenuItem addFriendItem;
-
   @FXML
   MenuItem removeFriendItem;
-
   @FXML
   MenuItem addFoeItem;
-
   @FXML
   MenuItem removeFoeItem;
-
   @FXML
   MenuItem watchGameItem;
-
   @FXML
   MenuItem viewReplaysItem;
-
   @FXML
   MenuItem inviteItem;
-
   @FXML
   SeparatorMenuItem moderatorActionSeparator;
-
   @FXML
   MenuItem kickItem;
-
   @FXML
   MenuItem banItem;
-
   @FXML
   ContextMenu contextMenu;
 
   @Resource
   UserService userService;
-
   @Resource
   ChatService chatService;
-
   @Resource
   PreferencesService preferencesService;
-
   @Resource
   ApplicationContext applicationContext;
-
   @Resource
   StageConfigurator stageConfigurator;
-
   @Resource
   PlayerService playerService;
-
   @Resource
   GameService gameService;
-
   @Resource
   ReplayService replayService;
-
   @Resource
   NotificationService notificationService;
-
   @Resource
   I18n i18n;
 
@@ -196,27 +172,27 @@ public class ChatUserContextMenuController {
   @FXML
   void onAddFriend() {
     if (playerInfoBean.getSocialStatus() == FOE) {
-      playerService.removeFoe(playerInfoBean.getUsername());
+      playerService.removeFoe(playerInfoBean);
     }
-    playerService.addFriend(playerInfoBean.getUsername());
+    playerService.addFriend(playerInfoBean);
   }
 
   @FXML
   void onRemoveFriend() {
-    playerService.removeFriend(playerInfoBean.getUsername());
+    playerService.removeFriend(playerInfoBean);
   }
 
   @FXML
   void onAddFoe() {
     if (playerInfoBean.getSocialStatus() == FRIEND) {
-      playerService.removeFriend(playerInfoBean.getUsername());
+      playerService.removeFriend(playerInfoBean);
     }
-    playerService.addFoe(playerInfoBean.getUsername());
+    playerService.addFoe(playerInfoBean);
   }
 
   @FXML
   void onRemoveFoe() {
-    playerService.removeFoe(playerInfoBean.getUsername());
+    playerService.removeFoe(playerInfoBean);
   }
 
   @FXML

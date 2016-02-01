@@ -6,13 +6,11 @@ import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.relay.GpgClientMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.InetSocketAddress;
-import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -29,9 +27,6 @@ public interface FafServerAccessor {
 
   ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
 
-  /**
-   * Connects to the FAF server and logs in using the credentials from {@link PreferencesService}.
-   */
   CompletableFuture<LoginMessage> connectAndLogIn(String username, String password);
 
   CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, @Nullable InetSocketAddress relayAddress, int externalPort);
@@ -40,9 +35,9 @@ public interface FafServerAccessor {
 
   void disconnect();
 
-  void setFriends(Collection<String> friends);
+  void addFriend(int playerId);
 
-  void setFoes(Collection<String> foes);
+  void addFoe(int playerId);
 
   CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort);
 
@@ -58,4 +53,8 @@ public interface FafServerAccessor {
   void initConnectivityTest(int port);
 
   CompletableFuture<GameLaunchMessage> expectRehostCommand();
+
+  void removeFriend(int playerId);
+
+  void removeFoe(int playerId);
 }

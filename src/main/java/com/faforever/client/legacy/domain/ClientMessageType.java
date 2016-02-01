@@ -8,7 +8,8 @@ public enum ClientMessageType {
   LIST_REPLAYS("list"),
   JOIN_GAME("game_join"),
   ASK_SESSION("ask_session"),
-  SOCIAL("social"),
+  SOCIAL_ADD("social_add"),
+  SOCIAL_REMOVE("social_remove"),
   STATISTICS("stats"),
   LOGIN("hello"),
   GAME_MATCH_MAKING("game_matchmaking");

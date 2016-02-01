@@ -10,12 +10,11 @@ import com.faforever.client.legacy.PongMessageSerializer;
 import com.faforever.client.legacy.ServerMessageTypeAdapter;
 import com.faforever.client.legacy.StringSerializer;
 import com.faforever.client.legacy.UidService;
+import com.faforever.client.legacy.domain.AddFoeMessage;
 import com.faforever.client.legacy.domain.AuthenticationFailedMessage;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.ClientMessageType;
 import com.faforever.client.legacy.domain.FafServerMessageType;
-import com.faforever.client.legacy.domain.FoesMessage;
-import com.faforever.client.legacy.domain.FriendsMessage;
 import com.faforever.client.legacy.domain.GameAccess;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.GameState;
@@ -26,6 +25,8 @@ import com.faforever.client.legacy.domain.LoginClientMessage;
 import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.legacy.domain.Ranked1v1SearchExpansionMessage;
+import com.faforever.client.legacy.domain.RemoveFoeMessage;
+import com.faforever.client.legacy.domain.RemoveFriendMessage;
 import com.faforever.client.legacy.domain.SerializableMessage;
 import com.faforever.client.legacy.domain.ServerCommand;
 import com.faforever.client.legacy.domain.ServerMessage;
@@ -259,13 +260,13 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public void setFriends(Collection<String> friends) {
-    writeToServer(new FriendsMessage(friends));
+  public void addFriend(int playerId) {
+    writeToServer(new RemoveFoeMessage(playerId));
   }
 
   @Override
-  public void setFoes(Collection<String> foes) {
-    writeToServer(new FoesMessage(foes));
+  public void addFoe(int playerId) {
+    writeToServer(new AddFoeMessage(playerId));
   }
 
 
@@ -306,6 +307,16 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     logger.debug("Expecting rehost command from server");
     gameLaunchFuture = new CompletableFuture<>();
     return gameLaunchFuture;
+  }
+
+  @Override
+  public void removeFriend(int playerId) {
+    writeToServer(new RemoveFriendMessage(playerId));
+  }
+
+  @Override
+  public void removeFoe(int playerId) {
+    writeToServer(new RemoveFoeMessage(playerId));
   }
 
   private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {

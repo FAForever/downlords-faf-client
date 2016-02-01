@@ -25,13 +25,13 @@ public interface PlayerService {
 
   Set<String> getPlayerNames();
 
-  void addFriend(String username);
+  void addFriend(PlayerInfoBean player);
 
-  void removeFriend(String username);
+  void removeFriend(PlayerInfoBean user);
 
-  void addFoe(String username);
+  void addFoe(PlayerInfoBean username);
 
-  void removeFoe(String username);
+  void removeFoe(PlayerInfoBean player);
 
   PlayerInfoBean getCurrentPlayer();
 

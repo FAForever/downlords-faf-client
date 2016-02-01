@@ -11,20 +11,17 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
 import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
-import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class PlayerServiceImplTest {
@@ -114,10 +111,12 @@ public class PlayerServiceImplTest {
     PlayerInfoBean lisa = instance.registerAndGetPlayerForUsername("lisa");
     PlayerInfoBean ashley = instance.registerAndGetPlayerForUsername("ashley");
 
-    instance.addFriend("lisa");
-    instance.addFriend("ashley");
+    instance.addFriend(lisa);
+    instance.addFriend(ashley);
 
-    verify(fafService, times(2)).setFriends(eq(Arrays.asList("lisa", "ashley")));
+    verify(fafService).addFriend(lisa);
+    verify(fafService).addFriend(ashley);
+
     assertTrue("Property 'friend' was not set to true", lisa.getSocialStatus() == FRIEND);
     assertTrue("Property 'friend' was not set to true", ashley.getSocialStatus() == FRIEND);
   }
@@ -127,7 +126,7 @@ public class PlayerServiceImplTest {
     PlayerInfoBean playerInfoBean = instance.registerAndGetPlayerForUsername("player");
     playerInfoBean.setSocialStatus(FOE);
 
-    instance.addFriend("player");
+    instance.addFriend(playerInfoBean);
 
     assertFalse("Property 'foe' is still true", playerInfoBean.getSocialStatus() == FOE);
   }
@@ -137,14 +136,15 @@ public class PlayerServiceImplTest {
     PlayerInfoBean player1 = instance.registerAndGetPlayerForUsername("player1");
     PlayerInfoBean player2 = instance.registerAndGetPlayerForUsername("player2");
 
-    instance.addFriend("player1");
-    verify(fafService).setFriends(eq(singletonList("player1")));
+    instance.addFriend(player1);
+    verify(fafService).addFriend(player1);
 
-    instance.addFriend("player2");
-    verify(fafService, times(2)).setFriends(eq(Arrays.asList("player1", "player2")));
+    instance.addFriend(player2);
+    verify(fafService).addFriend(player1);
+    verify(fafService).addFriend(player2);
 
-    instance.removeFriend("player1");
-    verify(fafService, times(3)).setFriends(eq(singletonList("player2")));
+    instance.removeFriend(player1);
+    verify(fafService).removeFriend(player1);
 
     assertFalse("Property 'friend' was not set to false", player1.getSocialStatus() == FRIEND);
     assertTrue("Property 'friend' was not set to true", player2.getSocialStatus() == FRIEND);
@@ -155,10 +155,11 @@ public class PlayerServiceImplTest {
     PlayerInfoBean player1 = instance.registerAndGetPlayerForUsername("player1");
     PlayerInfoBean player2 = instance.registerAndGetPlayerForUsername("player2");
 
-    instance.addFoe("player1");
-    instance.addFoe("player2");
+    instance.addFoe(player1);
+    instance.addFoe(player2);
 
-    verify(fafService, times(2)).setFoes(Arrays.asList("player1", "player2"));
+    verify(fafService).addFoe(player1);
+    verify(fafService).addFoe(player2);
     assertTrue("Property 'foe' was not set to true", player1.getSocialStatus() == FOE);
     assertTrue("Property 'foe' was not set to true", player2.getSocialStatus() == FOE);
   }
@@ -168,7 +169,7 @@ public class PlayerServiceImplTest {
     PlayerInfoBean playerInfoBean = instance.registerAndGetPlayerForUsername("player");
     playerInfoBean.setSocialStatus(FRIEND);
 
-    instance.addFoe("player");
+    instance.addFoe(playerInfoBean);
 
     assertFalse("Property 'friend' is still true", playerInfoBean.getSocialStatus() == FRIEND);
   }
@@ -177,8 +178,8 @@ public class PlayerServiceImplTest {
   public void testRemoveFoe() throws Exception {
     PlayerInfoBean player = instance.registerAndGetPlayerForUsername("player");
 
-    instance.addFriend("player");
-    instance.removeFriend("player");
+    instance.addFriend(player);
+    instance.removeFriend(player);
 
     assertFalse("Property 'friend' was not set to false", player.getSocialStatus() == FRIEND);
   }

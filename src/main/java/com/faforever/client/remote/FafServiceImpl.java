@@ -2,6 +2,7 @@ package com.faforever.client.remote;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.Ranked1v1Stats;
+import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.game.Faction;
@@ -100,13 +101,23 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public void setFriends(List<String> friendList) {
-    fafServerAccessor.setFriends(friendList);
+  public void addFriend(PlayerInfoBean player) {
+    fafServerAccessor.addFriend(player.getId());
   }
 
   @Override
-  public void setFoes(List<String> foeList) {
-    fafServerAccessor.setFoes(foeList);
+  public void addFoe(PlayerInfoBean player) {
+    fafServerAccessor.addFoe(player.getId());
+  }
+
+  @Override
+  public void removeFriend(PlayerInfoBean player) {
+    fafServerAccessor.removeFriend(player.getId());
+  }
+
+  @Override
+  public void removeFoe(PlayerInfoBean player) {
+    fafServerAccessor.removeFoe(player.getId());
   }
 
   @Override

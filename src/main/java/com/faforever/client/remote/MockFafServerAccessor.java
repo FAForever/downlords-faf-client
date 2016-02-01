@@ -209,12 +209,12 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public void setFriends(Collection<String> friends) {
+  public void addFriend(int playerId) {
 
   }
 
   @Override
-  public void setFoes(Collection<String> foes) {
+  public void addFoe(int playerId) {
 
   }
 
@@ -254,6 +254,16 @@ public class MockFafServerAccessor implements FafServerAccessor {
   @Override
   public CompletableFuture<GameLaunchMessage> expectRehostCommand() {
     return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  public void removeFriend(int playerId) {
+
+  }
+
+  @Override
+  public void removeFoe(int playerId) {
+
   }
 
   private GameInfoMessage createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
