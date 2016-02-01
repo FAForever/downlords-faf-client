@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Joiner;
 import javafx.application.Platform;
 import javafx.collections.MapChangeListener;

@@ -1,7 +1,7 @@
 package com.faforever.client.relay;
 
 import com.faforever.client.legacy.domain.MessageTarget;
-import com.faforever.client.util.SocketAddressUtil;
+import com.faforever.client.net.SocketAddressUtil;
 
 import java.net.InetSocketAddress;
 

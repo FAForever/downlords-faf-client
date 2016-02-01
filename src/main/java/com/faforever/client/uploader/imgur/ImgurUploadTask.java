@@ -1,10 +1,10 @@
 package com.faforever.client.uploader.imgur;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.io.ByteCopier;
+import com.faforever.client.io.Bytes;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.ResourceLocks;
-import com.faforever.client.util.ByteCopier;
-import com.faforever.client.util.Bytes;
 import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

@@ -1,7 +1,7 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.io.ByteCopier;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.util.ByteCopier;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

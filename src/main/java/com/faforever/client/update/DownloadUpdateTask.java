@@ -1,10 +1,10 @@
 package com.faforever.client.update;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.io.ByteCopier;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.ResourceLocks;
-import com.faforever.client.util.ByteCopier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

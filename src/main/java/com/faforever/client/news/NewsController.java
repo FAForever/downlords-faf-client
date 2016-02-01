@@ -1,9 +1,9 @@
 package com.faforever.client.news;
 
 import com.faforever.client.ThemeService;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.util.JavaFxUtil;
 import com.google.common.io.CharStreams;
 import javafx.fxml.FXML;
 import javafx.scene.Node;

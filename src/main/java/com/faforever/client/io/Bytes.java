@@ -1,4 +1,4 @@
-package com.faforever.client.util;
+package com.faforever.client.io;
 
 public final class Bytes {
 

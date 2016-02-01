@@ -1,8 +1,8 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.io.Bytes;
 import com.faforever.client.legacy.io.QtCompress;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.util.Bytes;
 import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
 import org.slf4j.Logger;

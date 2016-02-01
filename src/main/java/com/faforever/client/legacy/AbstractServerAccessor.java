@@ -1,8 +1,8 @@
 package com.faforever.client.legacy;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.legacy.domain.FafServerMessage;
 import com.faforever.client.legacy.io.QDataInputStream;
-import com.faforever.client.util.JavaFxUtil;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

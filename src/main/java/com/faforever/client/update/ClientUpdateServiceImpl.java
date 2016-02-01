@@ -2,11 +2,11 @@ package com.faforever.client.update;
 
 import com.faforever.client.fx.HostService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.io.Bytes;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.Bytes;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;

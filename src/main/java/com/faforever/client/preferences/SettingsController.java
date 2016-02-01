@@ -1,8 +1,8 @@
 package com.faforever.client.preferences;
 
 import com.faforever.client.chat.ChatColorMode;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.util.JavaFxUtil;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;

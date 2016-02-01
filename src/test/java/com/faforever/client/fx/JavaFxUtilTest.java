@@ -1,4 +1,4 @@
-package com.faforever.client.util;
+package com.faforever.client.fx;
 
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.scene.control.TextField;

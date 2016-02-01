@@ -1,6 +1,6 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.util.JavaFxUtil;
+import com.faforever.client.fx.JavaFxUtil;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;

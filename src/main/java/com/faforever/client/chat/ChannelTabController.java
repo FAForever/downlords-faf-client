@@ -1,9 +1,9 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.util.ConcurrentUtil;
-import com.faforever.client.util.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
 import javafx.application.Platform;

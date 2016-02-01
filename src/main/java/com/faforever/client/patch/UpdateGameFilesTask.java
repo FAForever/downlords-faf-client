@@ -1,6 +1,7 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.io.ByteCopier;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -8,7 +9,6 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.ResourceLocks;
-import com.faforever.client.util.ByteCopier;
 import com.faforever.client.util.OperatingSystem;
 import com.google.common.hash.Hashing;
 import javafx.beans.Observable;

@@ -1,9 +1,9 @@
 package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.io.Unzipper;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.AbstractPrioritizedTask;
-import com.faforever.client.util.Unzipper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

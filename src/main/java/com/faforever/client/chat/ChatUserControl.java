@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.ThemeService;
 import com.faforever.client.fx.FxmlLoader;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
@@ -11,7 +12,6 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.JavaFxUtil;
 import com.faforever.client.util.RatingUtil;
 import javafx.application.Platform;
 import javafx.beans.property.FloatProperty;

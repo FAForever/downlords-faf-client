@@ -1,9 +1,9 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.io.ByteCopier;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.AbstractPrioritizedTask;
-import com.faforever.client.util.ByteCopier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;

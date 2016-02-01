@@ -1,6 +1,6 @@
 package com.faforever.client.legacy.htmlparser;
 
-import com.faforever.client.util.JavaFxUtil;
+import com.faforever.client.fx.JavaFxUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.tidy.Tidy;

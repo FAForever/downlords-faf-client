@@ -3,7 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.util.Bytes;
+import com.faforever.client.io.Bytes;
 import com.google.common.net.MediaType;
 import javafx.scene.Node;
 import javafx.scene.image.Image;

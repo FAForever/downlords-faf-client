@@ -1,4 +1,4 @@
-package com.faforever.client.util;
+package com.faforever.client.io;
 
 import java.io.IOException;
 import java.io.InputStream;

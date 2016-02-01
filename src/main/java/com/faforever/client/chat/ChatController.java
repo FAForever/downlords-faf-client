@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.JavaFxUtil;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.collections.ListChangeListener;

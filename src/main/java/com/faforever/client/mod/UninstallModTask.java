@@ -1,8 +1,8 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.io.FileUtils;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.ResourceLocks;
-import com.faforever.client.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

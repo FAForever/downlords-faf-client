@@ -1,4 +1,4 @@
-package com.faforever.client.util;
+package com.faforever.client.io;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
