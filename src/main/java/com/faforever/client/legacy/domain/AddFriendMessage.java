@@ -2,14 +2,14 @@ package com.faforever.client.legacy.domain;
 
 public class AddFriendMessage extends ClientMessage {
 
-  private int friendId;
+  private int friend;
 
-  protected AddFriendMessage(int friendId) {
+  public AddFriendMessage(int playerId) {
     super(ClientMessageType.SOCIAL_ADD);
-    this.friendId = friendId;
+    this.friend = playerId;
   }
 
-  public int getFriendId() {
-    return friendId;
+  public int getFriend() {
+    return friend;
   }
 }

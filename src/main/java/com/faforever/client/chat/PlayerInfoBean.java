@@ -24,6 +24,7 @@ import static com.faforever.client.chat.SocialStatus.OTHER;
  * Represents a player with username, clan, country, friend/foe flag and so on. Can also be a chat-only user. This
  * represents the combination of a PlayersInfo (from the FAF server) and a ChatUser (from IRC).
  */
+// TODO rename to Player
 public class PlayerInfoBean {
 
   private final IntegerProperty id;

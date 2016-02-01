@@ -122,7 +122,7 @@ public class ServiceConfig {
   }
 
   @Bean
-  FafServerAccessor fafClient() {
+  FafServerAccessor fafServerAccessor() {
     if (environment.containsProperty("faf.testing")) {
       return new MockFafServerAccessor();
     }

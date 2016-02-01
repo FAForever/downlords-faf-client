@@ -35,10 +35,10 @@ public class PlayerServiceImpl implements PlayerService {
 
   private static final Lock CURRENT_PLAYER_LOCK = new ReentrantLock();
 
-  /**
-   * Maps usernames to players.
-   */
-  private final ObservableMap<String, PlayerInfoBean> players;
+  private final ObservableMap<String, PlayerInfoBean> playersByName;
+  private final ObservableMap<Integer, PlayerInfoBean> playersById;
+  private final List<Integer> foeList;
+  private final List<Integer> friendList;
 
   @Resource
   FafService fafService;
@@ -46,13 +46,11 @@ public class PlayerServiceImpl implements PlayerService {
   UserService userService;
   @Resource
   GameService gameService;
-
-  private List<String> foeList;
-  private List<String> friendList;
   private ObjectProperty<PlayerInfoBean> currentPlayer;
 
   public PlayerServiceImpl() {
-    players = FXCollections.observableHashMap();
+    playersByName = FXCollections.observableHashMap();
+    playersById = FXCollections.observableHashMap();
     friendList = new ArrayList<>();
     foeList = new ArrayList<>();
     currentPlayer = new SimpleObjectProperty<>();
@@ -104,55 +102,62 @@ public class PlayerServiceImpl implements PlayerService {
 
   @Override
   public PlayerInfoBean getPlayerForUsername(String username) {
-    return players.get(username);
+    return playersByName.get(username);
   }
 
   @Override
-  public PlayerInfoBean registerAndGetPlayerForUsername(@NotNull String username) {
+  public PlayerInfoBean createAndGetPlayerForUsername(@NotNull String username) {
     Assert.checkNull(username, "username must not be null");
 
-    if (!players.containsKey(username)) {
-      players.put(username, new PlayerInfoBean(username));
+    synchronized (playersByName) {
+      if (!playersByName.containsKey(username)) {
+        PlayerInfoBean player = new PlayerInfoBean(username);
+        player.idProperty().addListener((observable, oldValue, newValue) -> {
+          playersById.remove(oldValue.intValue());
+          playersById.put(newValue.intValue(), player);
+        });
+        playersByName.put(username, player);
+      }
     }
 
-    return players.get(username);
+    return playersByName.get(username);
   }
 
   @Override
   public Set<String> getPlayerNames() {
-    return players.keySet();
+    return playersByName.keySet();
   }
 
   @Override
   public void addFriend(PlayerInfoBean player) {
-    players.get(player.getUsername()).setSocialStatus(FRIEND);
-    friendList.add(player.getUsername());
-    foeList.remove(player.getUsername());
+    playersByName.get(player.getUsername()).setSocialStatus(FRIEND);
+    friendList.add(player.getId());
+    foeList.remove((Integer) player.getId());
 
     fafService.addFriend(player);
   }
 
   @Override
   public void removeFriend(PlayerInfoBean player) {
-    players.get(player.getUsername()).setSocialStatus(OTHER);
-    friendList.remove(player.getUsername());
+    playersByName.get(player.getUsername()).setSocialStatus(OTHER);
+    friendList.remove((Integer) player.getId());
 
     fafService.removeFriend(player);
   }
 
   @Override
   public void addFoe(PlayerInfoBean player) {
-    players.get(player.getUsername()).setSocialStatus(FOE);
-    foeList.add(player.getUsername());
-    friendList.remove(player.getUsername());
+    playersByName.get(player.getUsername()).setSocialStatus(FOE);
+    foeList.add(player.getId());
+    friendList.remove((Integer) player.getId());
 
     fafService.addFoe(player);
   }
 
   @Override
   public void removeFoe(PlayerInfoBean player) {
-    players.get(player.getUsername()).setSocialStatus(OTHER);
-    foeList.remove(player.getUsername());
+    playersByName.get(player.getUsername()).setSocialStatus(OTHER);
+    foeList.remove((Integer) player.getId());
 
     fafService.removeFoe(player);
   }
@@ -162,7 +167,7 @@ public class PlayerServiceImpl implements PlayerService {
     CURRENT_PLAYER_LOCK.lock();
     try {
       if (currentPlayer.get() == null) {
-        currentPlayer.set(registerAndGetPlayerForUsername(userService.getUsername()));
+        currentPlayer.set(createAndGetPlayerForUsername(userService.getUsername()));
       }
     } finally {
       CURRENT_PLAYER_LOCK.unlock();
@@ -184,22 +189,24 @@ public class PlayerServiceImpl implements PlayerService {
     onFriendList(socialMessage.getFriends());
   }
 
-  private void onFoeList(List<String> foes) {
-    this.foeList = foes;
+  private void onFoeList(List<Integer> foes) {
+    foeList.clear();
+    foeList.addAll(foes);
 
-    for (String foe : foes) {
-      PlayerInfoBean playerInfoBean = players.get(foe);
+    for (Integer foeId : foes) {
+      PlayerInfoBean playerInfoBean = playersById.get(foeId);
       if (playerInfoBean != null) {
         playerInfoBean.setSocialStatus(FOE);
       }
     }
   }
 
-  private void onFriendList(List<String> friends) {
-    this.friendList = friends;
+  private void onFriendList(List<Integer> friends) {
+    friendList.clear();
+    friendList.addAll(friends);
 
-    for (String friend : friendList) {
-      PlayerInfoBean playerInfoBean = players.get(friend);
+    for (Integer friendId : friendList) {
+      PlayerInfoBean playerInfoBean = playersById.get(friendId);
       if (playerInfoBean != null) {
         playerInfoBean.setSocialStatus(FRIEND);
       }
@@ -212,11 +219,11 @@ public class PlayerServiceImpl implements PlayerService {
       playerInfoBean.updateFromPlayerInfo(player);
       playerInfoBean.setSocialStatus(SELF);
     } else {
-      PlayerInfoBean playerInfoBean = registerAndGetPlayerForUsername(player.getLogin());
+      PlayerInfoBean playerInfoBean = createAndGetPlayerForUsername(player.getLogin());
 
-      if (friendList.contains(player.getLogin())) {
+      if (friendList.contains(player.getId())) {
         playerInfoBean.setSocialStatus(FRIEND);
-      } else if (foeList.contains(player.getLogin())) {
+      } else if (foeList.contains(player.getId())) {
         playerInfoBean.setSocialStatus(FOE);
       } else {
         playerInfoBean.setSocialStatus(OTHER);

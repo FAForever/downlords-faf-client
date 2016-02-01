@@ -11,6 +11,7 @@ import com.faforever.client.legacy.ServerMessageTypeAdapter;
 import com.faforever.client.legacy.StringSerializer;
 import com.faforever.client.legacy.UidService;
 import com.faforever.client.legacy.domain.AddFoeMessage;
+import com.faforever.client.legacy.domain.AddFriendMessage;
 import com.faforever.client.legacy.domain.AuthenticationFailedMessage;
 import com.faforever.client.legacy.domain.ClientMessage;
 import com.faforever.client.legacy.domain.ClientMessageType;
@@ -256,19 +257,20 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   @Override
   @PreDestroy
   public void disconnect() {
-    fafConnectionTask.cancel(true);
+    if (fafConnectionTask != null) {
+      fafConnectionTask.cancel(true);
+    }
   }
 
   @Override
   public void addFriend(int playerId) {
-    writeToServer(new RemoveFoeMessage(playerId));
+    writeToServer(new AddFriendMessage(playerId));
   }
 
   @Override
   public void addFoe(int playerId) {
     writeToServer(new AddFoeMessage(playerId));
   }
-
 
   @Override
   public CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort) {

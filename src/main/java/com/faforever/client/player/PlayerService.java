@@ -21,7 +21,7 @@ public interface PlayerService {
   /**
    * Gets a player for the given username. A new user is created and registered if it does not yet exist.
    */
-  PlayerInfoBean registerAndGetPlayerForUsername(@NotNull String username);
+  PlayerInfoBean createAndGetPlayerForUsername(@NotNull String username);
 
   Set<String> getPlayerNames();
 

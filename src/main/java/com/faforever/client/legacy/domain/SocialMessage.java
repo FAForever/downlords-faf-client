@@ -2,32 +2,22 @@ package com.faforever.client.legacy.domain;
 
 import java.util.List;
 
-/**
- * Other than other server objects, the "social" command is a category of different objects like friend list, foe list
- * and a list of channels to join. Only one field is filled at a time.
- */
 public class SocialMessage extends FafServerMessage {
 
-  private List<String> friends;
-  private List<String> foes;
+  private List<Integer> friends;
+  private List<Integer> foes;
   private List<String> autojoin;
 
-  /**
-   * List of user names that are friends. May be {@code null}.
-   */
-  public List<String> getFriends() {
+  public List<Integer> getFriends() {
     return friends;
   }
 
-  /**
-   * List of user names that are foes. May be {@code null}.
-   */
-  public List<String> getFoes() {
+  public List<Integer> getFoes() {
     return foes;
   }
 
-  public void setFoes(List<String> foes) {
-    this.foes = foes;
+  public List<String> getAutojoin() {
+    return autojoin;
   }
 
   /**

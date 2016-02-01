@@ -62,7 +62,7 @@ public class PlayerServiceImplTest {
 
   @Test
   public void testGetPlayerForUsernameUsernameExists() throws Exception {
-    instance.registerAndGetPlayerForUsername("junit");
+    instance.createAndGetPlayerForUsername("junit");
 
     PlayerInfoBean playerInfoBean = instance.getPlayerForUsername("junit");
 
@@ -78,7 +78,7 @@ public class PlayerServiceImplTest {
 
   @Test
   public void testRegisterAndGetPlayerForUsernameDoesNotExist() throws Exception {
-    PlayerInfoBean playerInfoBean = instance.registerAndGetPlayerForUsername("junit");
+    PlayerInfoBean playerInfoBean = instance.createAndGetPlayerForUsername("junit");
 
     assertNotNull(playerInfoBean);
     assertEquals("junit", playerInfoBean.getUsername());
@@ -86,7 +86,7 @@ public class PlayerServiceImplTest {
 
   @Test(expected = NullPointerException.class)
   public void testRegisterAndGetPlayerForUsernameNull() throws Exception {
-    instance.registerAndGetPlayerForUsername(null);
+    instance.createAndGetPlayerForUsername(null);
   }
 
   @Test
@@ -97,8 +97,8 @@ public class PlayerServiceImplTest {
 
   @Test
   public void testGetPlayerNamesSomeInstances() throws Exception {
-    instance.registerAndGetPlayerForUsername("player1");
-    instance.registerAndGetPlayerForUsername("player2");
+    instance.createAndGetPlayerForUsername("player1");
+    instance.createAndGetPlayerForUsername("player2");
 
     Set<String> playerNames = instance.getPlayerNames();
 
@@ -108,8 +108,8 @@ public class PlayerServiceImplTest {
 
   @Test
   public void testAddFriend() throws Exception {
-    PlayerInfoBean lisa = instance.registerAndGetPlayerForUsername("lisa");
-    PlayerInfoBean ashley = instance.registerAndGetPlayerForUsername("ashley");
+    PlayerInfoBean lisa = instance.createAndGetPlayerForUsername("lisa");
+    PlayerInfoBean ashley = instance.createAndGetPlayerForUsername("ashley");
 
     instance.addFriend(lisa);
     instance.addFriend(ashley);
@@ -123,7 +123,7 @@ public class PlayerServiceImplTest {
 
   @Test
   public void testAddFriendIsFoe() throws Exception {
-    PlayerInfoBean playerInfoBean = instance.registerAndGetPlayerForUsername("player");
+    PlayerInfoBean playerInfoBean = instance.createAndGetPlayerForUsername("player");
     playerInfoBean.setSocialStatus(FOE);
 
     instance.addFriend(playerInfoBean);
@@ -133,8 +133,8 @@ public class PlayerServiceImplTest {
 
   @Test
   public void testRemoveFriend() throws Exception {
-    PlayerInfoBean player1 = instance.registerAndGetPlayerForUsername("player1");
-    PlayerInfoBean player2 = instance.registerAndGetPlayerForUsername("player2");
+    PlayerInfoBean player1 = instance.createAndGetPlayerForUsername("player1");
+    PlayerInfoBean player2 = instance.createAndGetPlayerForUsername("player2");
 
     instance.addFriend(player1);
     verify(fafService).addFriend(player1);
@@ -152,8 +152,8 @@ public class PlayerServiceImplTest {
 
   @Test
   public void testAddFoe() throws Exception {
-    PlayerInfoBean player1 = instance.registerAndGetPlayerForUsername("player1");
-    PlayerInfoBean player2 = instance.registerAndGetPlayerForUsername("player2");
+    PlayerInfoBean player1 = instance.createAndGetPlayerForUsername("player1");
+    PlayerInfoBean player2 = instance.createAndGetPlayerForUsername("player2");
 
     instance.addFoe(player1);
     instance.addFoe(player2);
@@ -166,7 +166,7 @@ public class PlayerServiceImplTest {
 
   @Test
   public void testAddFoeIsFriend() throws Exception {
-    PlayerInfoBean playerInfoBean = instance.registerAndGetPlayerForUsername("player");
+    PlayerInfoBean playerInfoBean = instance.createAndGetPlayerForUsername("player");
     playerInfoBean.setSocialStatus(FRIEND);
 
     instance.addFoe(playerInfoBean);
@@ -176,7 +176,7 @@ public class PlayerServiceImplTest {
 
   @Test
   public void testRemoveFoe() throws Exception {
-    PlayerInfoBean player = instance.registerAndGetPlayerForUsername("player");
+    PlayerInfoBean player = instance.createAndGetPlayerForUsername("player");
 
     instance.addFriend(player);
     instance.removeFriend(player);

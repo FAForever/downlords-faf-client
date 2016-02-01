@@ -2,14 +2,14 @@ package com.faforever.client.legacy.domain;
 
 public class RemoveFoeMessage extends ClientMessage {
 
-  private int foeId;
+  private int foe;
 
-  public RemoveFoeMessage(int foeId) {
+  public RemoveFoeMessage(int playerId) {
     super(ClientMessageType.SOCIAL_REMOVE);
-    this.foeId = foeId;
+    this.foe = playerId;
   }
 
-  public int getFoeId() {
-    return foeId;
+  public int getFoe() {
+    return foe;
   }
 }

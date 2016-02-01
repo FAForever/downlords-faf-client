@@ -1,15 +1,16 @@
 package com.faforever.client.legacy.domain;
 
-public class RemoveFriendMessage extends ClientMessage {
+public class
+RemoveFriendMessage extends ClientMessage {
 
-  private int friendId;
+  private int friend;
 
-  public RemoveFriendMessage(int friendId) {
+  public RemoveFriendMessage(int playerId) {
     super(ClientMessageType.SOCIAL_REMOVE);
-    this.friendId = friendId;
+    this.friend = playerId;
   }
 
-  public int getFriendId() {
-    return friendId;
+  public int getFriend() {
+    return friend;
   }
 }

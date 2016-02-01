@@ -2,14 +2,14 @@ package com.faforever.client.legacy.domain;
 
 public class AddFoeMessage extends ClientMessage {
 
-  private int foeId;
+  private int foe;
 
-  public AddFoeMessage(int foeId) {
+  public AddFoeMessage(int playerId) {
     super(ClientMessageType.SOCIAL_ADD);
-    this.foeId = foeId;
+    this.foe = playerId;
   }
 
-  public int getFoeId() {
-    return foeId;
+  public int getFoe() {
+    return foe;
   }
 }

@@ -133,7 +133,9 @@ public class ChatUserContextMenuController {
 
     sendPrivateMessageItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF));
 
-    addFriendItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(FRIEND).and(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF)));
+    addFriendItem.visibleProperty().bind(
+        playerInfoBean.socialStatusProperty().isNotEqualTo(FRIEND).and(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF))
+    );
     removeFriendItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isEqualTo(FRIEND));
     addFoeItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(FOE).and(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF)));
     removeFoeItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isEqualTo(FOE));
