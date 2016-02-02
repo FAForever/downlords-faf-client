@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -269,13 +270,18 @@ public class GameServiceImpl implements GameService {
     int port = preferencesService.getPreferences().getForgedAlliance().getPort();
 
     return updateGameIfNecessary(GameType.LADDER_1V1.getString(), null, emptyMap(), emptySet())
+        .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.startSearchRanked1v1(faction, port))
         .thenAccept((gameLaunchInfo) -> {
           searchExpansionFuture.cancel(true);
           startGame(gameLaunchInfo, faction, RatingMode.RANKED_1V1, localRelayServer.getPort());
         })
         .exceptionally(throwable -> {
-          logger.warn("Ranked1v1 could not be started", throwable);
+          if (throwable instanceof CancellationException) {
+            logger.info("Ranked1v1 search has been cancelled");
+          } else {
+            logger.warn("Ranked1v1 could not be started", throwable);
+          }
           searchExpansionFuture.cancel(true);
           return null;
         });

@@ -1,6 +1,6 @@
 <configuration scan="true" scanPeriod="30 seconds">
 
-  <logger name="org.pircbotx" level="info"/>
+  <logger name="org.pircbotx" level="warn"/>
   <logger name="com.faforever.client.api" level="debug"/>
   <logger name="com.faforever.client.connectivity" level="trace"/>
   <logger name="com.faforever.client.preferences" level="info"/>

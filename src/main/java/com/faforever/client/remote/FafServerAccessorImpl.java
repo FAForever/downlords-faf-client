@@ -191,7 +191,8 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
             serverWriter = createServerWriter(outputStream);
 
-            writeToServer(new InitSessionMessage());
+            String version = clientUpdateService.getCurrentVersion().toString();
+            writeToServer(new InitSessionMessage(version));
 
             logger.info("FAF server connection established");
             connectionState.set(ConnectionState.CONNECTED);
@@ -282,6 +283,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   @Override
   public void stopSearchingRanked() {
     writeToServer(new StopSearchRanked1V1ClientMessage());
+    gameLaunchFuture = null;
   }
 
   @Override
@@ -401,8 +403,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   private CompletableFuture<LoginMessage> logIn(String username, String password) {
     String uniqueId = uidService.generate(String.valueOf(sessionId.get()), preferencesService.getFafDataDirectory().resolve("uid.log"));
-    String version = clientUpdateService.getCurrentVersion().toString();
-    writeToServer(new LoginClientMessage(username, password, sessionId.get(), uniqueId, localIp, version));
+    writeToServer(new LoginClientMessage(username, password, sessionId.get(), uniqueId, localIp));
 
     return loginFuture;
   }

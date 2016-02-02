@@ -29,8 +29,6 @@ public class ModVaultController {
   private static final int MAX_SUGGESTIONS = 10;
 
   @FXML
-  Pane contentPane;
-  @FXML
   Pane searchResultGroup;
   @FXML
   Pane searchResultPane;
@@ -73,7 +71,7 @@ public class ModVaultController {
   @PostConstruct
   void postConstruct() {
     Node modDetailRoot = modDetailController.getRoot();
-    contentPane.getChildren().add(modDetailRoot);
+    modVaultRoot.getChildren().add(modDetailRoot);
     AnchorPane.setTopAnchor(modDetailRoot, 0d);
     AnchorPane.setRightAnchor(modDetailRoot, 0d);
     AnchorPane.setBottomAnchor(modDetailRoot, 0d);

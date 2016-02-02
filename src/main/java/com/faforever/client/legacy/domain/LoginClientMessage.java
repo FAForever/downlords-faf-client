@@ -10,18 +10,14 @@ public class LoginClientMessage extends ClientMessage {
   private long session;
   private String uniqueId;
   private String localIp;
-  private String version;
-  private String userAgent;
 
-  public LoginClientMessage(String username, String password, long session, String uniqueId, String localIp, String version) {
+  public LoginClientMessage(String username, String password, long session, String uniqueId, String localIp) {
     super(ClientMessageType.LOGIN);
     this.setLogin(username);
     this.setPassword(password);
     this.setSession(session);
     this.setUniqueId(uniqueId);
     this.setLocalIp(localIp);
-    this.setVersion(version);
-    setUserAgent("downlords-faf-client");
   }
 
   @Override
@@ -67,21 +63,5 @@ public class LoginClientMessage extends ClientMessage {
 
   public void setLocalIp(String localIp) {
     this.localIp = localIp;
-  }
-
-  public String getVersion() {
-    return version;
-  }
-
-  public void setVersion(String version) {
-    this.version = version;
-  }
-
-  public String getUserAgent() {
-    return userAgent;
-  }
-
-  public void setUserAgent(String userAgent) {
-    this.userAgent = userAgent;
   }
 }

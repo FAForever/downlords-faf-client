@@ -16,7 +16,7 @@
    <children>
       <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
          <content>
-            <VBox fx:id="contentPane" alignment="TOP_CENTER">
+            <VBox alignment="TOP_CENTER">
                <children>
                   <VBox maxHeight="1.7976931348623157E308" maxWidth="1470.0" spacing="5.0" styleClass="mod-vault"
                         VBox.vgrow="ALWAYS">

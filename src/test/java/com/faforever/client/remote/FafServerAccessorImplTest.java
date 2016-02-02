@@ -187,6 +187,8 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     InitSessionMessage initSessionMessage = gson.fromJson(json, InitSessionMessage.class);
 
     assertThat(initSessionMessage.getCommand(), is(ClientMessageType.ASK_SESSION));
+    assertThat(initSessionMessage.getVersion(), is("1.0"));
+    assertThat(initSessionMessage.getUserAgent(), is("downlords-faf-client"));
 
     SessionMessage sessionMessage = new SessionMessage();
     sessionMessage.setSession(sessionId);
@@ -200,8 +202,6 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     assertThat(loginClientMessage.getPassword(), is(password));
     assertThat(loginClientMessage.getSession(), is(sessionId));
     assertThat(loginClientMessage.getUniqueId(), is("encrypteduidstring"));
-    assertThat(loginClientMessage.getVersion(), is("1.0"));
-    assertThat(loginClientMessage.getUserAgent(), is("downlords-faf-client"));
 
     LoginMessage loginServerMessage = new LoginMessage();
     loginServerMessage.setId(playerUid);
