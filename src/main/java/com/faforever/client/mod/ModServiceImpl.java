@@ -1,6 +1,7 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.config.CacheNames;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
@@ -242,7 +243,7 @@ public class ModServiceImpl implements ModService {
   @Override
   public CompletableFuture<List<ModInfoBean>> getAvailableMods() {
     return CompletableFuture.supplyAsync(() -> {
-          List<ModInfoBean> availableMods = fafApiAccessor.getMods();
+          List<ModInfoBean> availableMods = fafService.getMods();
 
           try {
             ModInfoBeanIterator iterator = new ModInfoBeanIterator(availableMods.iterator());
@@ -284,7 +285,7 @@ public class ModServiceImpl implements ModService {
     return CompletableFuture.supplyAsync(() -> {
       try {
         LOOKUP_LOCK.lock();
-        ModInfoBeanIterator iterator = new ModInfoBeanIterator(fafApiAccessor.getMods().iterator());
+        ModInfoBeanIterator iterator = new ModInfoBeanIterator(fafService.getMods().iterator());
         suggester.build(iterator);
         return suggester.lookup(string, maxResults, true, false).stream()
             .map(lookupResult -> iterator.deserialize(lookupResult.payload.bytes))
@@ -439,9 +440,6 @@ public class ModServiceImpl implements ModService {
     modInfoBean.setSelectable(luaValue.get("selectable").toboolean());
     modInfoBean.setUiOnly(luaValue.get("ui_only").toboolean());
     modInfoBean.setImagePath(extractIconPath(path, luaValue));
-
-    return modInfoBean;
-  }
 
     return modInfoBean;
   }

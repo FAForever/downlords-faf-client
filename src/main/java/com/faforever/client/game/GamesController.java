@@ -33,7 +33,6 @@ import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
@@ -174,14 +173,14 @@ public class GamesController {
     }
     mapDetailPopup = getMapDetailPopup();
     MapDetailController mapDetailController = applicationContext.getBean(MapDetailController.class);
-    MapInfoBean mapInfoBean = mapService.findMapByName(currentGameInfoBean.getMapTechnicalName());
-    if (mapInfoBean == null) {
+    MapBean mapBean = mapService.findMapByName(currentGameInfoBean.getMapTechnicalName());
+    if (mapBean == null) {
       mapDetailPopup.hide();
       String title = i18n.get("errorTitle");
       String message = i18n.get("mapPreview.loadFailure.message");
       notificationService.addNotification(new ImmediateNotification(title, message, Severity.WARN));
     } else {
-      mapDetailController.createPreview(mapInfoBean);
+      mapDetailController.createPreview(mapBean);
       WindowController windowController = applicationContext.getBean(WindowController.class);
       windowController.configure(mapDetailPopup, mapDetailController.getRoot(), false, CLOSE);
       mapDetailPopup.centerOnScreen();

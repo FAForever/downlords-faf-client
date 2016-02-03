@@ -3,8 +3,13 @@ package com.faforever.client.remote;
 import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.game.Faction;
+import com.faforever.client.game.MapBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
+import com.faforever.client.legacy.domain.GameLaunchMessage;
+import com.faforever.client.legacy.domain.LoginMessage;
+import com.faforever.client.legacy.domain.ServerMessage;
+import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.relay.GpgClientMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
@@ -61,6 +66,12 @@ public interface FafService {
   CompletableFuture<Ranked1v1EntryBean> getRanked1v1EntryForPlayer(int playerId);
 
   void notifyGameEnded();
+
+  List<MapBean> getMaps();
+
+  MapBean findMapByName(String mapName);
+
+  List<ModInfoBean> getMods();
 
   CompletableFuture<GameLaunchMessage> expectRehostCommand();
 

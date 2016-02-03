@@ -1,6 +1,6 @@
 package com.faforever.client.map;
 
-import com.faforever.client.game.MapInfoBean;
+import com.faforever.client.game.MapBean;
 import com.faforever.client.i18n.I18n;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -39,21 +39,21 @@ public class MapDetailController {
   @Resource
   I18n i18n;
 
-  public void createPreview(MapInfoBean mapInfoBean) {
-    if (mapInfoBean.getTechnicalName() == null) {
+  public void createPreview(MapBean mapBean) {
+    if (mapBean.getTechnicalName() == null) {
       return;
     }
     //TODO implement official map parser to remove this
-    if (mapService.isOfficialMap(mapInfoBean.getTechnicalName())) {
+    if (mapService.isOfficialMap(mapBean.getTechnicalName())) {
       return;
     }
 
-    largeImagePreview.setImage(mapService.loadLargePreview(mapInfoBean.getTechnicalName()));
+    largeImagePreview.setImage(mapService.loadLargePreview(mapBean.getTechnicalName()));
 
-    mapNameLabel.setText(mapInfoBean.getDisplayName());
-    maxPlayerLabel.setText(i18n.get("mapPreview.maxPlayers", mapInfoBean.getPlayers()));
-    mapSizeLabel.setText(i18n.get("mapPreview.size", mapInfoBean.getSize().getWidth(), mapInfoBean.getSize().getHeight()));
-    mapDescriptionLabel.setText(mapInfoBean.getDescription());
+    mapNameLabel.setText(mapBean.getDisplayName());
+    maxPlayerLabel.setText(i18n.get("mapPreview.maxPlayers", mapBean.getPlayers()));
+    mapSizeLabel.setText(i18n.get("mapPreview.size", mapBean.getSize().getWidth(), mapBean.getSize().getHeight()));
+    mapDescriptionLabel.setText(mapBean.getDescription());
 
   }
 

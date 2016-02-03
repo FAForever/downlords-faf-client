@@ -8,6 +8,7 @@ import com.faforever.client.api.PlayerEvent;
 import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.game.MapInfoBean;
+import com.faforever.client.game.MapBean;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.mod.ModInfoBean;
 
@@ -59,7 +60,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public MapInfoBean findMapByName(String mapId) {
+  public MapBean findMapByName(String mapId) {
     return null;
   }
 
