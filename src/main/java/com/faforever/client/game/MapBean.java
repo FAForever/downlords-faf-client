@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.api.Map;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleFloatProperty;
@@ -11,7 +10,7 @@ import javafx.beans.property.StringProperty;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 
-public class MapInfoBean implements Comparable<MapInfoBean> {
+public class MapBean implements Comparable<MapBean> {
 
   private final StringProperty technicalName;
   private final StringProperty displayName;
@@ -24,7 +23,7 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
   private final ObjectProperty<ComparableVersion> version;
   private final StringProperty id;
 
-  public MapInfoBean() {
+  public MapBean() {
     this.id = new SimpleStringProperty();
     this.displayName = new SimpleStringProperty();
     this.technicalName = new SimpleStringProperty();
@@ -126,7 +125,7 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
   }
 
   @Override
-  public int compareTo(@NotNull MapInfoBean o) {
+  public int compareTo(@NotNull MapBean o) {
     return getDisplayName().compareTo(o.getDisplayName());
   }
 
@@ -162,17 +161,17 @@ public class MapInfoBean implements Comparable<MapInfoBean> {
     return technicalName;
   }
 
-  public static MapInfoBean fromMap(Map map) {
-    MapInfoBean mapInfoBean = new MapInfoBean();
-    mapInfoBean.setDescription(map.getDescription());
-    mapInfoBean.setDisplayName(map.getDisplayName());
-    mapInfoBean.setTechnicalName(map.getTechnicalName());
-    mapInfoBean.setSize(new MapSize(map.getSizeX(), map.getSizeY()));
-    mapInfoBean.setDownloads(map.getDownloads());
-    mapInfoBean.setId(map.getId());
-    mapInfoBean.setPlayers(map.getMaxPlayers());
-    mapInfoBean.setRating(map.getRating());
-    mapInfoBean.setVersion(new ComparableVersion(map.getVersion()));
-    return mapInfoBean;
+  public static MapBean fromMap(com.faforever.client.api.Map map) {
+    MapBean mapBeanInfoBean = new MapBean();
+    mapBeanInfoBean.setDescription(map.getDescription());
+    mapBeanInfoBean.setDisplayName(map.getDisplayName());
+    mapBeanInfoBean.setTechnicalName(map.getTechnicalName());
+    mapBeanInfoBean.setSize(new MapSize(map.getSizeX(), map.getSizeY()));
+    mapBeanInfoBean.setDownloads(map.getDownloads());
+    mapBeanInfoBean.setId(map.getId());
+    mapBeanInfoBean.setPlayers(map.getMaxPlayers());
+    mapBeanInfoBean.setRating(map.getRating());
+    mapBeanInfoBean.setVersion(new ComparableVersion(map.getVersion()));
+    return mapBeanInfoBean;
   }
 }

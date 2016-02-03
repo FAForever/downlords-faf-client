@@ -78,7 +78,7 @@ public class CreateGameController {
   @FXML
   ListView<GameTypeBean> gameTypeListView;
   @FXML
-  ListView<MapInfoBean> mapListView;
+  ListView<MapBean> mapListView;
   @FXML
   Node createGameRoot;
   @FXML
@@ -99,7 +99,7 @@ public class CreateGameController {
   @Resource
   Locale locale;
   @VisibleForTesting
-  FilteredList<MapInfoBean> filteredMaps;
+  FilteredList<MapBean> filteredMapBeans;
   @Resource
   ThemeService themeService;
   @Resource
@@ -113,21 +113,21 @@ public class CreateGameController {
   void initialize() {
     mapSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue.isEmpty()) {
-        filteredMaps.setPredicate(mapInfoBean -> true);
+        filteredMapBeans.setPredicate(mapInfoBean -> true);
       } else {
-        filteredMaps.setPredicate(mapInfoBean -> mapInfoBean.getDisplayName().toLowerCase().contains(newValue.toLowerCase())
+        filteredMapBeans.setPredicate(mapInfoBean -> mapInfoBean.getDisplayName().toLowerCase().contains(newValue.toLowerCase())
             || mapInfoBean.getTechnicalName().toLowerCase().contains(newValue.toLowerCase()));
       }
-      if (!filteredMaps.isEmpty()) {
+      if (!filteredMapBeans.isEmpty()) {
         mapListView.getSelectionModel().select(0);
       }
     });
     mapSearchTextField.setOnKeyPressed(event -> {
-      MultipleSelectionModel<MapInfoBean> selectionModel = mapListView.getSelectionModel();
+      MultipleSelectionModel<MapBean> selectionModel = mapListView.getSelectionModel();
       int currentMapIndex = selectionModel.getSelectedIndex();
       int newMapIndex = currentMapIndex;
       if (KeyCode.DOWN == event.getCode()) {
-        if (filteredMaps.size() > currentMapIndex + 1) {
+        if (filteredMapBeans.size() > currentMapIndex + 1) {
           newMapIndex++;
         }
         event.consume();
@@ -221,11 +221,11 @@ public class CreateGameController {
   }
 
   private void initMapSelection() {
-    ObservableList<MapInfoBean> localMaps = mapService.getLocalMaps();
+    ObservableList<MapBean> localMapBeans = mapService.getLocalMaps();
 
-    filteredMaps = new FilteredList<>(localMaps);
+    filteredMapBeans = new FilteredList<>(localMapBeans);
 
-    mapListView.setItems(filteredMaps);
+    mapListView.setItems(filteredMapBeans);
     mapListView.setCellFactory(mapListCellFactory());
     mapListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == null) {
@@ -282,9 +282,9 @@ public class CreateGameController {
 
   private void selectLastMap() {
     String lastMap = preferencesService.getPreferences().getLastMap();
-    for (MapInfoBean mapInfoBean : mapListView.getItems()) {
-      if (mapInfoBean.getTechnicalName().equalsIgnoreCase(lastMap)) {
-        mapListView.getSelectionModel().select(mapInfoBean);
+    for (MapBean mapBean : mapListView.getItems()) {
+      if (mapBean.getTechnicalName().equalsIgnoreCase(lastMap)) {
+        mapListView.getSelectionModel().select(mapBean);
         return;
       }
     }
@@ -332,10 +332,10 @@ public class CreateGameController {
   }
 
   @NotNull
-  private javafx.util.Callback<ListView<MapInfoBean>, ListCell<MapInfoBean>> mapListCellFactory() {
-    return param -> new ListCell<MapInfoBean>() {
+  private javafx.util.Callback<ListView<MapBean>, ListCell<MapBean>> mapListCellFactory() {
+    return param -> new ListCell<MapBean>() {
       @Override
-      protected void updateItem(MapInfoBean item, boolean empty) {
+      protected void updateItem(MapBean item, boolean empty) {
         super.updateItem(item, empty);
 
         if (empty || item == null) {
@@ -364,7 +364,7 @@ public class CreateGameController {
 
   @FXML
   void onRandomMapButtonClicked() {
-    int mapIndex = (int) (Math.random() * filteredMaps.size());
+    int mapIndex = (int) (Math.random() * filteredMapBeans.size());
     mapListView.getSelectionModel().select(mapIndex);
     mapListView.scrollTo(mapIndex);
   }

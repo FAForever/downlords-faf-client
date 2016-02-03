@@ -17,7 +17,7 @@ import java.nio.file.Files;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
-public class DownloadMapTaskTest extends AbstractPlainJavaFxTest {
+public class DownloadMapBeanTaskTest extends AbstractPlainJavaFxTest {
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();

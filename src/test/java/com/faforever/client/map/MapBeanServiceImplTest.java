@@ -1,6 +1,6 @@
 package com.faforever.client.map;
 
-import com.faforever.client.game.MapInfoBean;
+import com.faforever.client.game.MapBean;
 import com.faforever.client.game.MapSize;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
@@ -23,7 +23,7 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
-public class MapServiceImplTest {
+public class MapBeanServiceImplTest {
 
   @Rule
   public TemporaryFolder customMapsDirectory = new TemporaryFolder();
@@ -79,14 +79,14 @@ public class MapServiceImplTest {
     Path scmp001 = Files.createDirectory(mapsDirectory.resolve("SCMP_001"));
     Files.copy(getClass().getResourceAsStream("/maps/SCMP_001/SCMP_001_scenario.lua"), scmp001.resolve("SCMP_001_scenario.lua"));
 
-    ObservableList<MapInfoBean> localMaps = instance.getLocalMaps();
-    assertThat(localMaps, hasSize(1));
+    ObservableList<MapBean> localMapBeans = instance.getLocalMaps();
+    assertThat(localMapBeans, hasSize(1));
 
-    MapInfoBean mapInfoBean = localMaps.get(0);
-    assertThat(mapInfoBean, notNullValue());
-    assertThat(mapInfoBean.getTechnicalName(), is("SCMP_001"));
-    assertThat(mapInfoBean.getDisplayName(), is("Burial Mounds"));
-    assertThat(mapInfoBean.getSize(), equalTo(new MapSize(10, 10)));
+    MapBean mapBean = localMapBeans.get(0);
+    assertThat(mapBean, notNullValue());
+    assertThat(mapBean.getTechnicalName(), is("SCMP_001"));
+    assertThat(mapBean.getDisplayName(), is("Burial Mounds"));
+    assertThat(mapBean.getSize(), equalTo(new MapSize(10, 10)));
   }
 
   @Test

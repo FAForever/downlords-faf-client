@@ -3,7 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapInfoBeanBuilder;
+import com.faforever.client.map.MapBuilder;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
@@ -91,7 +91,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPath()).thenReturn(Paths.get(""));
-    when(mapService.getLocalMaps()).thenReturn(mapList);
+    when(mapService.getLocalMaps()).thenReturn(mapBeanList);
     when(connectivityService.connectivityStateProperty()).thenReturn(connectivityStateProperty);
 
     doAnswer(invocation -> getThemeFile(invocation.getArgumentAt(0, String.class)))
@@ -107,19 +107,19 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testMapSearchTextFieldFilteringEmpty() throws Exception {
     instance.mapSearchTextField.setText("Test");
 
-    assertThat(instance.filteredMaps.getSource(), empty());
+    assertThat(instance.filteredMapBeans.getSource(), empty());
   }
 
   @Test
   public void testMapSearchTextFieldFilteringPopulated() throws Exception {
-    mapList.add(MapInfoBeanBuilder.create().defaultValues().displayName("Test1").get());
-    mapList.add(MapInfoBeanBuilder.create().defaultValues().technicalName("test2").get());
-    mapList.add(MapInfoBeanBuilder.create().defaultValues().displayName("foo").get());
+    mapBeanList.add(MapBuilder.create().defaultValues().displayName("Test1").get());
+    mapBeanList.add(MapBuilder.create().defaultValues().technicalName("test2").get());
+    mapBeanList.add(MapBuilder.create().defaultValues().displayName("foo").get());
 
     instance.mapSearchTextField.setText("Test");
 
-    assertThat(instance.filteredMaps.get(0).getDisplayName(), is("Test1"));
-    assertThat(instance.filteredMaps.get(1).getTechnicalName(), is("test2"));
+    assertThat(instance.filteredMapBeans.get(0).getDisplayName(), is("Test1"));
+    assertThat(instance.filteredMapBeans.get(1).getTechnicalName(), is("test2"));
   }
 
   @Test
@@ -144,8 +144,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testMapSearchTextFieldKeyPressedUpForPopulated() throws Exception {
-    mapList.add(MapInfoBeanBuilder.create().defaultValues().displayName("Test1").get());
-    mapList.add(MapInfoBeanBuilder.create().defaultValues().displayName("Test1").get());
+    mapBeanList.add(MapBuilder.create().defaultValues().displayName("Test1").get());
+    mapBeanList.add(MapBuilder.create().defaultValues().displayName("Test1").get());
     instance.mapSearchTextField.setText("Test");
 
     instance.mapSearchTextField.getOnKeyPressed().handle(keyDownPressed);
@@ -158,8 +158,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testMapSearchTextFieldKeyPressedDownForPopulated() throws Exception {
-    mapList.add(MapInfoBeanBuilder.create().defaultValues().displayName("Test1").get());
-    mapList.add(MapInfoBeanBuilder.create().defaultValues().displayName("Test1").get());
+    mapBeanList.add(MapBuilder.create().defaultValues().displayName("Test1").get());
+    mapBeanList.add(MapBuilder.create().defaultValues().displayName("Test1").get());
     instance.mapSearchTextField.setText("Test");
 
     instance.mapSearchTextField.getOnKeyPressed().handle(keyDownPressed);
@@ -179,14 +179,14 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSelectLastMap() throws Exception {
-    MapInfoBean lastMap = MapInfoBeanBuilder.create().defaultValues().technicalName("foo").get();
+    MapBean lastMapBean = MapBuilder.create().defaultValues().technicalName("foo").get();
     when(preferences.getLastMap()).thenReturn("foo");
 
-    mapList.add(MapInfoBeanBuilder.create().defaultValues().technicalName("Test1").get());
-    mapList.add(lastMap);
+    mapBeanList.add(MapBuilder.create().defaultValues().technicalName("Test1").get());
+    mapBeanList.add(lastMapBean);
     instance.postConstruct();
 
-    assertThat(instance.mapListView.getSelectionModel().getSelectedItem(), is(lastMap));
+    assertThat(instance.mapListView.getSelectionModel().getSelectedItem(), is(lastMapBean));
   }
 
   @Test
