@@ -249,9 +249,9 @@ public class MapServiceImpl implements MapService {
     try {
       return mapVaultParser.parseComments(mapId);
     } catch (IOException e) {
-      logger.error("Error in parsing comment for {}", mapId);
+      logger.warn("Error in parsing comment for {}", mapId);
     }
-    return null;
+    return Collections.emptyList();
   }
 
   private static String getMapUrl(String mapName, String baseUrl) {

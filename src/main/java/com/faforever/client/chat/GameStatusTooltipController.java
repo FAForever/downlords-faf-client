@@ -3,7 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.game.MapInfoBean;
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -26,22 +25,21 @@ public class GameStatusTooltipController {
   ImageView mapPreview;
   @FXML
   VBox gameStatusTooltipRoot;
+
   @Resource
   MapService mapService;
   @Resource
   ApplicationContext applicationContext;
-  @Resource
-  I18n i18n;
 
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
     mapPreview.setImage(mapService.loadSmallPreview(gameInfoBean.getMapTechnicalName()));
     MapInfoBean mapInfoBean = mapService.getMapInfoBeanFromVaultByName(gameInfoBean.getMapTechnicalName());
 
-    gameTitleLabel.setText(i18n.get("chat.gameStatus.gameTitle", gameInfoBean.getTitle()));
-    featuredModLabel.setText(i18n.get("chat.gameStatus.featuredMod", gameInfoBean.getFeaturedMod()));
+    gameTitleLabel.setText(gameInfoBean.getTitle());
+    featuredModLabel.setText(gameInfoBean.getFeaturedMod());
 
     if (mapInfoBean != null) {
-      mapNameLabel.setText(i18n.get("chat.gameStatus.mapName", mapInfoBean.getDisplayName()));
+      mapNameLabel.setText(mapInfoBean.getDisplayName());
     }
 
     GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);

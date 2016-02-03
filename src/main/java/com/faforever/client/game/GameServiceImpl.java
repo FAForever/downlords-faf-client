@@ -397,10 +397,9 @@ public class GameServiceImpl implements GameService {
   }
 
   private void onGameTypeInfo(GameTypeMessage gameTypeMessage) {
-    // TODO only removed while on dev
-//    if (!gameTypeMessage.isHost() || !gameTypeMessage.isLive() || gameTypeBeans.containsKey(gameTypeMessage.getName())) {
-//      return;
-//    }
+    if (!gameTypeMessage.isHost() || !gameTypeMessage.isLive() || gameTypeBeans.containsKey(gameTypeMessage.getName())) {
+      return;
+    }
 
     gameTypeBeans.put(gameTypeMessage.getName(), new GameTypeBean(gameTypeMessage));
   }

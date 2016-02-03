@@ -787,29 +787,35 @@
   -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-accent;
 }
 
-/***************** Channel Tab *****************/
+/***************** Chat User Control *****************/
 
-.channel-tab-friends-title * {
+.channel-tab-friends-title .chat-user-control-clan,
+.channel-tab-friends-title .chat-user-control-username {
   -fx-text-fill: #16B7EB;
 }
 
-.channel-tab-foes-title * {
+.channel-tab-foes-title .chat-user-control-clan,
+.channel-tab-foes-title .chat-user-control-username {
   -fx-text-fill: #FF0000;
 }
 
-.channel-tab-moderators-title * {
+.channel-tab-moderators-title .chat-user-control-clan,
+.channel-tab-moderators-title .chat-user-control-username {
   -fx-text-fill: #FFFFFF;
 }
 
-.channel-tab-chat-only-title * {
+.channel-tab-chat-only-title .chat-user-control-clan,
+.channel-tab-chat-only-title .chat-user-control-username {
   -fx-text-fill: #808080;
 }
 
-.channel-tab-others-title * {
+.channel-tab-others-title .chat-user-control-clan,
+.channel-tab-others-title .chat-user-control-username {
   -fx-text-fill: #BFBEBA;
 }
 
-.self * {
+.self .chat-user-control-root .chat-user-control-clan,
+.self .chat-user-control-root .chat-user-control-username {
   -fx-text-fill: #FFA500;
 }
 
@@ -915,9 +921,8 @@
 }
 
 /***************** Game Tooltip *****************/
-/*TODO: em is nested*/
 .game-tooltip {
-  -fx-font-size: 15px;
+  -fx-font-size: 14px;
 }
 
 .game-tooltip .teams-pane {
@@ -929,17 +934,17 @@
 
 .game-status-tooltip-mapname {
   -fx-padding: 5px, 5px, 2px, 2px;
-  -fx-font-size: 1.5em;
+  -fx-font-size: 1.2em;
 }
 
 .game-status-tooltip-gametitle {
   -fx-padding: 5px, 5px, 2px, 2px;
-  -fx-font-size: 1.5em;
+  -fx-font-size: 1.2em;
 }
 
 .game-status-tooltip-featuredmod {
   -fx-padding: 5px, 5px, 2px, 2px;
-  -fx-font-size: 1.5em;
+  -fx-font-size: 1.2em;
 }
 
 /***************** Game detail *****************/

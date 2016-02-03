@@ -8,9 +8,14 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.GameStatus;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.RatingUtil;
 import javafx.application.Platform;
@@ -36,8 +41,10 @@ import java.io.IOException;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.chat.SocialStatus.SELF;
+import static java.util.Collections.singletonList;
 
 public class ChatUserControl extends HBox {
+
 
   private static final String CLAN_TAG_FORMAT = "[%s]";
   // TODO @Aulex I thought this changed, please review and clean up if necessary
@@ -80,6 +87,10 @@ public class ChatUserControl extends HBox {
   I18n i18n;
   @Resource
   ThemeService themeService;
+  @Resource
+  NotificationService notificationService;
+  @Resource
+  ReportingService reportingService;
 
   private PlayerInfoBean playerInfoBean;
   private boolean colorsAllowedInPane;
@@ -125,7 +136,8 @@ public class ChatUserControl extends HBox {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
     if (playerInfoBean.getSocialStatus() == SELF) {
-      getStyleClass().add(CSS_CLASS_SELF);
+      usernameLabel.getStyleClass().add(CSS_CLASS_SELF);
+      clanLabel.getStyleClass().add(CSS_CLASS_SELF);
       return;
     }
 
@@ -301,7 +313,10 @@ public class ChatUserControl extends HBox {
         try {
           replayService.runLiveReplay(uid, playerInfoBean.getUsername());
         } catch (IOException e) {
-          //FIXME log
+          notificationService.addNotification(new ImmediateNotification(
+              i18n.get("errorTitle"), i18n.get("replayCouldNotBeStarted.text"),
+              Severity.ERROR, e, singletonList(new ReportAction(i18n, reportingService, e))
+          ));
         }
       }
     }
