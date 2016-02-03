@@ -250,4 +250,9 @@ public class MockChatService implements ChatService {
   public ObjectProperty<ConnectionState> connectionStateProperty() {
     return connectionState;
   }
+
+  @Override
+  public void reconnect() {
+
+  }
 }

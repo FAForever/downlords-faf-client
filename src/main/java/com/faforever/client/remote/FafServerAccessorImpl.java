@@ -118,6 +118,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private String username;
   private String password;
   private ObjectProperty<ConnectionState> connectionState;
+  private Socket fafServerSocket;
 
   public FafServerAccessorImpl() {
     messageListeners = new HashMap<>();
@@ -173,7 +174,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     this.password = password;
 
     fafConnectionTask = new Task<Void>() {
-      Socket fafServerSocket;
 
       @Override
       protected Void call() throws Exception {
@@ -183,7 +183,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
           try (Socket fafServerSocket = new Socket(lobbyHost, lobbyPort);
                OutputStream outputStream = fafServerSocket.getOutputStream()) {
-            this.fafServerSocket = fafServerSocket;
+            FafServerAccessorImpl.this.fafServerSocket = fafServerSocket;
 
             fafServerSocket.setKeepAlive(true);
 
@@ -261,6 +261,11 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     if (fafConnectionTask != null) {
       fafConnectionTask.cancel(true);
     }
+  }
+
+  @Override
+  public void reconnect() {
+    IOUtils.closeQuietly(fafServerSocket);
   }
 
   @Override

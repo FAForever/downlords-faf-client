@@ -43,6 +43,7 @@ public class PlayerInfoBean {
   private final IntegerProperty gameUid;
   private final SimpleObjectProperty<GameStatus> gameStatus;
   private final IntegerProperty numberOfGames;
+
   public PlayerInfoBean(Player player) {
     this();
 
@@ -55,6 +56,7 @@ public class PlayerInfoBean {
       avatarUrl.set(player.getAvatar().getUrl());
     }
   }
+
   private PlayerInfoBean() {
     id = new SimpleIntegerProperty();
     username = new SimpleStringProperty();
@@ -73,6 +75,7 @@ public class PlayerInfoBean {
     numberOfGames = new SimpleIntegerProperty();
     socialStatus = new SimpleObjectProperty<>(OTHER);
   }
+
   public PlayerInfoBean(String username) {
     this();
     this.gameStatus.set(GameStatus.NONE);
@@ -249,7 +252,7 @@ public class PlayerInfoBean {
     return gameStatus;
   }
 
-  public void setGameStatusFromGameState(GameState gameState){
+  public void setGameStatusFromGameState(GameState gameState) {
     gameStatus.set(GameStatus.getFromGameState(gameState));
   }
 
@@ -294,10 +297,15 @@ public class PlayerInfoBean {
     setChatOnly(false);
     setClan(player.getClan());
     setCountry(player.getCountry());
-    setGlobalRatingMean(player.getGlobalRating()[0]);
-    setGlobalRatingDeviation(player.getGlobalRating()[1]);
-    setLeaderboardRatingMean(player.getLadderRating()[0]);
-    setLeaderboardRatingDeviation(player.getLadderRating()[1]);
+
+    if (player.getGlobalRating() != null) {
+      setGlobalRatingMean(player.getGlobalRating()[0]);
+      setGlobalRatingDeviation(player.getGlobalRating()[1]);
+    }
+    if (player.getLadderRating() != null) {
+      setLeaderboardRatingMean(player.getLadderRating()[0]);
+      setLeaderboardRatingDeviation(player.getLadderRating()[1]);
+    }
     setNumberOfGames(player.getNumberOfGames());
     if (player.getAvatar() != null) {
       setAvatarUrl(player.getAvatar().getUrl());

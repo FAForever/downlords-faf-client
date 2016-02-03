@@ -681,23 +681,18 @@ public class MainController implements OnChoseGameDirectoryListener {
   }
 
   @FXML
-  void onEnableUpnpClicked() {
-    // FIXME implement
-  }
-
-  @FXML
   void onPortCheckRetryClicked() {
     connectivityService.checkConnectivity();
   }
 
   @FXML
   void onFafReconnectClicked() {
-    // FIXME implement
+    fafService.reconnect();
   }
 
   @FXML
   void onChatReconnectClicked() {
-    // FIXME implement
+    chatService.reconnect();
   }
 
   @FXML

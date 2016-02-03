@@ -33,7 +33,6 @@ import java.lang.invoke.MethodHandles;
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
-import static com.faforever.client.chat.SocialStatus.OTHER;
 import static com.faforever.client.chat.SocialStatus.SELF;
 import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
 
@@ -129,7 +128,11 @@ public class ChatUserContextMenuController {
         .and(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF)));
     colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty()
         .isEqualTo(CUSTOM)
-        .and(playerInfoBean.socialStatusProperty().isEqualTo(OTHER)));
+        .and(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF)));
+
+    kickItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF));
+    banItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF));
+    moderatorActionSeparator.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF));
 
     sendPrivateMessageItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF));
 

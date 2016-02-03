@@ -308,12 +308,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  @Ignore("Not yet implemented")
-  public void testOnEnableUpnpClicked() throws Exception {
-    instance.onEnableUpnpClicked();
-  }
-
-  @Test
   public void testOnPortCheckRetryClicked() throws Exception {
     instance.onPortCheckRetryClicked();
 
@@ -321,15 +315,15 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  @Ignore("Not yet implemented")
   public void testOnFafReconnectClicked() throws Exception {
     instance.onFafReconnectClicked();
+    verify(fafService).reconnect();
   }
 
   @Test
-  @Ignore("Not yet implemented")
   public void testOnIrcReconnectClicked() throws Exception {
     instance.onChatReconnectClicked();
+    verify(chatService).reconnect();
   }
 
   @Test
@@ -415,7 +409,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnVaultSelected() throws Exception {
     attachToRoot();
-    when(mapMapVaultController.getRoot()).thenReturn(new Pane());
+    when(modVaultController.getRoot()).thenReturn(new Pane());
     WaitForAsyncUtils.waitForAsyncFx(1000, instance.vaultButton::fire);
   }
 
@@ -475,24 +469,17 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnMapsSelected() throws Exception {
-    attachToRoot();
-    when(mapMapVaultController.getRoot()).thenReturn(new Pane());
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.vaultButton.getItems().get(0).fire());
-  }
-
-  @Test
   public void testOnModsSelected() throws Exception {
     attachToRoot();
     when(modVaultController.getRoot()).thenReturn(new Pane());
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.vaultButton.getItems().get(1).fire());
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.vaultButton.getItems().get(0).fire());
   }
 
   @Test
   public void testOnReplaysSelected() throws Exception {
     attachToRoot();
     when(replayVaultController.getRoot()).thenReturn(new Pane());
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.vaultButton.getItems().get(2).fire());
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.vaultButton.getItems().get(1).fire());
   }
 
   @Test

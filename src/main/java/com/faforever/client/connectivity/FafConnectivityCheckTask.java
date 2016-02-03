@@ -39,6 +39,7 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
   FafService fafService;
   @Resource
   ExecutorService executorService;
+
   private DatagramGateway datagramGateway;
   private CompletableFuture<DatagramPacket> gamePortPacketFuture;
   private CompletableFuture<ConnectivityStateMessage> connectivityStateFuture;

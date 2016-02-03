@@ -59,8 +59,6 @@
                 <SplitMenuButton fx:id="vaultButton" focusTraversable="false" mnemonicParsing="false"
                                  onAction="#onVaultSelected" text="%main.vault">
                   <items>
-                    <MenuItem fx:id="mapVaultButton" mnemonicParsing="false" onAction="#onMapsSelected"
-                              text="%main.vault.maps"/>
                     <MenuItem fx:id="modVaultButton" mnemonicParsing="false" onAction="#onModsSelected"
                               text="%main.vault.mods"/>
                     <MenuItem fx:id="replayVaultButton" mnemonicParsing="false" onAction="#onReplaysSelected"
@@ -133,8 +131,9 @@
             <Tooltip text="&lt;Tooltip text inserted by code&gt;"/>
           </tooltip>
           <items>
-            <MenuItem mnemonicParsing="false" onAction="#onPortCheckHelpClicked" text="%statusBar.help"/>
-            <MenuItem mnemonicParsing="false" onAction="#onChangePortClicked" text="%statusBar.changePort"/>
+            <MenuItem mnemonicParsing="false" onAction="#onPortCheckHelpClicked" text="%statusBar.help" disable="true"/>
+            <MenuItem mnemonicParsing="false" onAction="#onChangePortClicked" text="%statusBar.changePort"
+                      disable="true"/>
             <MenuItem mnemonicParsing="false" onAction="#onPortCheckRetryClicked" text="%statusBar.retry"/>
           </items>
           <graphic>

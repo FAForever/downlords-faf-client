@@ -63,4 +63,6 @@ public interface FafService {
   void notifyGameEnded();
 
   CompletableFuture<GameLaunchMessage> expectRehostCommand();
+
+  void reconnect();
 }

@@ -419,7 +419,7 @@ public class UserInfoWindowController {
   @SuppressWarnings("unchecked")
   private void plotPlayerRatingGraph(PlayerStatisticsMessage result) {
     XYChart.Series<Long, Integer> series = new XYChart.Series<>();
-    series.setName(i18n.get("Player rating"));
+    series.setName(i18n.get("userInfo.ratingOverTime"));
 
     List<XYChart.Data<Long, Integer>> values = new ArrayList<>();
 

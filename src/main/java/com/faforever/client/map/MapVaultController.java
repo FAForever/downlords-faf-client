@@ -2,7 +2,6 @@ package com.faforever.client.map;
 
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.game.MapSize;
-import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.TableColumn;
@@ -72,12 +71,6 @@ public class MapVaultController {
   }
 
   public void setUpIfNecessary() {
-    // FIXME test code so far
-    mapService.readMapVaultInBackground(0, 100)
-        .thenAccept(mapInfoBeans -> mapTableView.setItems(FXCollections.observableList(mapInfoBeans)))
-        .exceptionally(throwable -> {
-          logger.warn("Failed", throwable);
-          return null;
-        });
+    // FIXME implement
   }
 }

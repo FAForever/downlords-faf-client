@@ -59,4 +59,6 @@ public interface ChatService {
   void addUserToColorListener();
 
   ObjectProperty<ConnectionState> connectionStateProperty();
+
+  void reconnect();
 }

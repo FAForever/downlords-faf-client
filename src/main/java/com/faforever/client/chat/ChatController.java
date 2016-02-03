@@ -76,8 +76,6 @@ public class ChatController implements
   private void onDisconnected() {
     connectingProgressPane.setVisible(true);
     chatsTabPane.setVisible(false);
-    chatsTabPane.getTabs().removeAll();
-    nameToChatTabController.clear();
     noOpenTabsContainer.setVisible(false);
   }
 

@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.util.SocketUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -176,6 +177,36 @@ public class ConnectivityServiceImpl implements ConnectivityService {
     onPacketListeners.forEach(listener -> listener.accept(packet));
   }
 
+  private void onSendNatPacket(SendNatPacketMessage sendNatPacketMessage) {
+    InetSocketAddress receiver = sendNatPacketMessage.getPublicAddress();
+    String message = sendNatPacketMessage.getMessage();
+
+    // If a NatPacket is received but the connectivity state is not yet determined, use a random port.
+    // This is the case when the connectivity check is running and the port is not publicly reachable. The reason we
+    // then chose a random port is because the NAT may still have a mapping from the last client session. If so, we
+    // would receive all packets send by the server and therefore end up being detected PUBLIC even though we're not.
+    if (isDefaultPortAndStateUnknown()) {
+      logger.info("Switching to random port for STUN connectivity");
+      initPublicSocket(SocketUtils.findAvailableUdpPort());
+    }
+
+    byte[] bytes = ("\b" + message).getBytes(US_ASCII);
+    DatagramPacket datagramPacket = new DatagramPacket(bytes, bytes.length);
+    datagramPacket.setSocketAddress(receiver);
+
+    logger.debug("Sending NAT packet to {}: {}", datagramPacket.getSocketAddress(), new String(datagramPacket.getData(), US_ASCII));
+    publicSendStrategy.accept(datagramPacket);
+  }
+
+  /**
+   * Returns true if the currently opened port is the default port (as set by the user, or 6112) or the connectivity
+   * state is yet unknown.
+   */
+  private boolean isDefaultPortAndStateUnknown() {
+    return publicSocket.getLocalPort() == preferencesService.getPreferences().getForgedAlliance().getPort()
+        && connectivityState.get() == ConnectivityState.UNKNOWN;
+  }
+
   private void initPublicSocket(int port) {
     IOUtils.closeQuietly(publicSocket);
 
@@ -188,21 +219,10 @@ public class ConnectivityServiceImpl implements ConnectivityService {
     }
   }
 
-  private void onSendNatPacket(SendNatPacketMessage sendNatPacketMessage) {
-    InetSocketAddress receiver = sendNatPacketMessage.getPublicAddress();
-    String message = sendNatPacketMessage.getMessage();
-
-    byte[] bytes = ("\b" + message).getBytes(US_ASCII);
-    DatagramPacket datagramPacket = new DatagramPacket(bytes, bytes.length);
-    datagramPacket.setSocketAddress(receiver);
-
-    logger.debug("Sending NAT packet to {}: {}", datagramPacket.getSocketAddress(), new String(datagramPacket.getData(), US_ASCII));
-    publicSendStrategy.accept(datagramPacket);
-  }
-
   @Override
   public CompletableFuture<Void> checkConnectivity() {
     this.connectivityState.set(ConnectivityState.UNKNOWN);
+    resetPort();
 
     UpnpPortForwardingTask upnpTask = applicationContext.getBean(UpnpPortForwardingTask.class);
     upnpTask.setPort(publicSocket.getLocalPort());
@@ -295,6 +315,13 @@ public class ConnectivityServiceImpl implements ConnectivityService {
   @Override
   public InetSocketAddress getRelayAddress() {
     return turnServerAccessor.getRelayAddress();
+  }
+
+  private void resetPort() {
+    int gamePort = preferencesService.getPreferences().getForgedAlliance().getPort();
+    if (publicSocket.getLocalPort() != gamePort) {
+      initPublicSocket(gamePort);
+    }
   }
 
   @VisibleForTesting

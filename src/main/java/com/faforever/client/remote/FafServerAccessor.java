@@ -35,6 +35,8 @@ public interface FafServerAccessor {
 
   void disconnect();
 
+  void reconnect();
+
   void addFriend(int playerId);
 
   void addFoe(int playerId);

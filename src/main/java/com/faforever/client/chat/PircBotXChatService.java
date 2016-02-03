@@ -222,7 +222,6 @@ public class PircBotXChatService implements ChatService, Listener,
   private void onDisconnected() {
     synchronized (chatUserLists) {
       chatUserLists.values().forEach(ObservableMap::clear);
-      chatUserLists.clear();
     }
   }
 
@@ -384,7 +383,9 @@ public class PircBotXChatService implements ChatService, Listener,
     if (connectionTask != null) {
       connectionTask.cancel();
     }
-    pircBotX.sendIRC().quitServer();
+    if (pircBotX.isConnected()) {
+      pircBotX.sendIRC().quitServer();
+    }
   }
 
   @Override
@@ -518,6 +519,12 @@ public class PircBotXChatService implements ChatService, Listener,
   @Override
   public ObjectProperty<ConnectionState> connectionStateProperty() {
     return connectionState;
+  }
+
+  @Override
+  public void reconnect() {
+    disconnect();
+    connect();
   }
 
   @Override

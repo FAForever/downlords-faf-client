@@ -150,4 +150,9 @@ public class FafServiceImpl implements FafService {
   public CompletableFuture<GameLaunchMessage> expectRehostCommand() {
     return fafServerAccessor.expectRehostCommand();
   }
+
+  @Override
+  public void reconnect() {
+    fafServerAccessor.reconnect();
+  }
 }

@@ -158,7 +158,7 @@
           <content>
             <ScrollPane fitToWidth="true">
               <content>
-                <FlowPane hgap="10.0" maxWidth="1.7976931348623157E308" vgap="10.0">
+                <FlowPane alignment="CENTER" hgap="10.0" maxWidth="1.7976931348623157E308" vgap="10.0">
                   <children>
                     <Pane maxWidth="1.7976931348623157E308" styleClass="tile">
                       <children>
@@ -217,7 +217,7 @@
                 <ScrollPane fx:id="achievementsPane" fitToWidth="true" maxHeight="1.7976931348623157E308"
                             maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                   <content>
-                    <VBox maxWidth="1.7976931348623157E308" spacing="10.0">
+                    <VBox alignment="TOP_CENTER" maxWidth="1.7976931348623157E308" spacing="10.0">
                       <children>
                         <GridPane VBox.vgrow="NEVER">
                           <columnConstraints>

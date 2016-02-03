@@ -209,6 +209,11 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
+  public void reconnect() {
+
+  }
+
+  @Override
   public void addFriend(int playerId) {
 
   }
