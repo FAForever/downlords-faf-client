@@ -1,5 +1,6 @@
 package com.faforever.client.main;
 
+import com.faforever.client.ThemeService;
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
@@ -18,12 +19,14 @@ import com.faforever.client.login.LoginController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
+import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.ImmediateNotificationController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
@@ -51,6 +54,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
@@ -65,6 +69,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SplitMenuButton;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
@@ -222,6 +227,8 @@ public class MainController implements OnChoseGameDirectoryListener {
   ChatService chatService;
   @Resource
   ExecutorService executorService;
+  @Resource
+  ThemeService themeService;
 
   @Value("${mainWindowTitle}")
   String mainWindowTitle;
@@ -468,7 +475,9 @@ public class MainController implements OnChoseGameDirectoryListener {
     );
 
     preferencesService.setOnChoseGameDirectoryListener(this);
-    gameService.addOnRankedMatchNotificationListener(this::onRankedMatchInfo);
+    gameService.addOnRankedMatchNotificationListener(this::onRankedMatchInfo); ///marked
+    fafService.addOnMessageListener(MatchmakerMessage.class, this::onMatchmakerMessage);
+
 
     userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue) {
@@ -477,7 +486,17 @@ public class MainController implements OnChoseGameDirectoryListener {
         onLoggedOut();
       }
     });
+
   }
+
+  private  void onMatchmakerMessage(MatchmakerMessage message) {
+    String title = i18n.get("ranked1v1.notification.title");
+    String text = i18n.get("ranked1v1.notification.message");
+    Image image = new Image(themeService.getThemeFile("images/laddernotif.png"));
+    Action action = new Action("ranked1v1", this::onPlayRanked1v1Selected);
+    notificationService.addNotification(new TransientNotification(title, text, image, action));
+  }
+
 
   private void setContent(Node node) {
     ObservableList<Node> children = contentPane.getChildren();
@@ -854,7 +873,7 @@ public class MainController implements OnChoseGameDirectoryListener {
   }
 
   @FXML
-  void onPlayRanked1v1Selected(ActionEvent event) {
+  void onPlayRanked1v1Selected(Event event) {
     ranked1v1Controller.setUpIfNecessary();
     setContent(ranked1v1Controller.getRoot());
     setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
