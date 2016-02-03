@@ -121,7 +121,9 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
       fafService.sendGpgMessage(processNatPacketMessage);
     } catch (CancellationException e) {
       logger.debug("Waiting for UDP package on public game port has been cancelled");
-    } catch (InterruptedException | TimeoutException | ExecutionException e) {
+    } catch (TimeoutException e) {
+      logger.debug("Waiting for UDP package on public game port timed out");
+    } catch (InterruptedException | ExecutionException e) {
       throw new RuntimeException(e);
     }
   }
