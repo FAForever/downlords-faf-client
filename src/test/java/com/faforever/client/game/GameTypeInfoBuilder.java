@@ -16,7 +16,7 @@ public class GameTypeInfoBuilder {
     gameTypeMessage.setHost(true);
     gameTypeMessage.setIcon("icon");
     gameTypeMessage.setJoin(true);
-    gameTypeMessage.setLive(true);
+    gameTypeMessage.setPublish(true);
     gameTypeMessage.setOptions(new Boolean[0]);
     return this;
   }

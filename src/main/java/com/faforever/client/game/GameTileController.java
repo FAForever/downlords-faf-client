@@ -19,6 +19,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class GameTileController {
 
@@ -106,8 +108,10 @@ public class GameTileController {
   }
 
   private void displaySimMods(ObservableMap<? extends String, ? extends String> simMods) {
+    // Prevent ConcurrentModificationException
+    Collection<? extends String> simModStrings = new ArrayList<>(simMods.values());
     Platform.runLater(() -> {
-      String stringSimMods = Joiner.on(i18n.get("textSeparator")).join(simMods.values());
+      String stringSimMods = Joiner.on(i18n.get("textSeparator")).join(simModStrings);
       modsLabel.setText(stringSimMods);
       modsLabel.setVisible(!modsLabel.getText().isEmpty());
     });

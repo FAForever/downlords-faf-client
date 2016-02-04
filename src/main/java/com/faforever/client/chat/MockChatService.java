@@ -255,4 +255,9 @@ public class MockChatService implements ChatService {
   public void reconnect() {
 
   }
+
+  @Override
+  public void whois(String username) {
+
+  }
 }

@@ -61,4 +61,6 @@ public interface ChatService {
   ObjectProperty<ConnectionState> connectionStateProperty();
 
   void reconnect();
+
+  void whois(String username);
 }

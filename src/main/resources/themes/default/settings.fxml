@@ -4,11 +4,13 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.Group?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -60,14 +62,27 @@
               <children>
                 <TitledPane collapsible="false" text="%settings.chat">
                   <content>
-                    <VBox prefHeight="200.0" prefWidth="100.0">
+                    <VBox prefHeight="200.0" prefWidth="100.0" spacing="10.0">
                       <children>
                         <Label text="%settings.chat.maxMessages" />
                         <TextField fx:id="maxMessagesTextField" maxWidth="100.0" />
                         <Label text="%settings.chat.previews" />
                         <CheckBox fx:id="imagePreviewCheckBox" mnemonicParsing="false" text="%settings.chat.previewImages" />
                         <Label text="%settings.chat.colors" />
-                                    <ComboBox fx:id="colorMode" prefWidth="150.0" promptText="settings.chat.colorMode" />
+                        <HBox spacing="5.0">
+                          <children>
+                            <RadioButton fx:id="customColorsToggle" mnemonicParsing="false"
+                                         text="%settings.chat.colorMode.custom">
+                              <toggleGroup>
+                                <ToggleGroup fx:id="colorModeToggleGroup"/>
+                              </toggleGroup>
+                            </RadioButton>
+                            <RadioButton fx:id="randomColorsToggle" mnemonicParsing="false"
+                                         text="%settings.chat.colorMode.random" toggleGroup="$colorModeToggleGroup"/>
+                            <RadioButton fx:id="defaultColorsToggle" mnemonicParsing="false"
+                                         text="%settings.chat.colorMode.default" toggleGroup="$colorModeToggleGroup"/>
+                          </children>
+                        </HBox>
                         <Label text="%settings.chat.miscellaneous" />
                         <CheckBox fx:id="hideFoeCheckBox" mnemonicParsing="false" text="%settings.chat.hideFoe" />
                       </children>

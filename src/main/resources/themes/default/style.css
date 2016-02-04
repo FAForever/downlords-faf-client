@@ -789,7 +789,7 @@
 
 /***************** Chat User Control *****************/
 
-.channel-tab-friends-title .chat-user-control-clan,
+.channel-tab-friends-title .chat-user-control-clan.friend,
 .channel-tab-friends-title .chat-user-control-username {
   -fx-text-fill: #16B7EB;
 }
@@ -814,8 +814,8 @@
   -fx-text-fill: #BFBEBA;
 }
 
-.self .chat-user-control-root .chat-user-control-clan,
-.self .chat-user-control-root .chat-user-control-username {
+.chat-user-control-clan.self,
+.chat-user-control-username.self {
   -fx-text-fill: #FFA500;
 }
 
@@ -915,11 +915,6 @@
   -fx-font-size: 1.2em;
 }
 
-.game-tile-root .prefix {
-  -fx-text-fill: -fx-dark-text-color;
-  -fx-font-style: italic;
-}
-
 /***************** Game Tooltip *****************/
 .game-tooltip {
   -fx-font-size: 14px;
@@ -930,20 +925,23 @@
 }
 
 /***************** Game Status Tooltip *****************/
-/*Inherits game-tooltip*/
 
-.game-status-tooltip-mapname {
-  -fx-padding: 5px, 5px, 2px, 2px;
-  -fx-font-size: 1.2em;
+.game-status-tooltip-root {
+  -fx-spacing: 10;
+  -fx-min-width: 360;
+  -fx-pref-width: 360;
+  -fx-max-width: 360;
+  -fx-padding: 10;
 }
 
-.game-status-tooltip-gametitle {
-  -fx-padding: 5px, 5px, 2px, 2px;
-  -fx-font-size: 1.2em;
+.game-status-tooltip-root .lock-icon {
+  -fx-font-size: 2em;
+  -fx-effect: dropshadow(gaussian, black, 5, 0.5, 0, 0);
+  -fx-margin: 10px;
 }
 
-.game-status-tooltip-featuredmod {
-  -fx-padding: 5px, 5px, 2px, 2px;
+.game-status-tooltip-title {
+  -fx-font-weight: bold;
   -fx-font-size: 1.2em;
 }
 

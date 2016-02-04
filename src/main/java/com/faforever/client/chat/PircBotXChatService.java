@@ -193,9 +193,9 @@ public class PircBotXChatService implements ChatService, Listener,
     chatPrefs.chatColorModeProperty().addListener((observable, oldValue, newValue) -> {
       switch (newValue) {
         case CUSTOM:
-          chatUsersByName.values().stream().filter(chatUser -> chatPrefs.getUserToColor().containsKey(chatUser.getUsername())).forEach(chatUser -> {
-            chatUser.setColor(chatPrefs.getUserToColor().get(chatUser.getUsername()));
-          });
+          chatUsersByName.values().stream()
+              .filter(chatUser -> chatPrefs.getUserToColor().containsKey(chatUser.getUsername()))
+              .forEach(chatUser -> chatUser.setColor(chatPrefs.getUserToColor().get(chatUser.getUsername())));
           break;
 
         case RANDOM:
@@ -254,7 +254,7 @@ public class PircBotXChatService implements ChatService, Listener,
 
     configuration = new Configuration.Builder()
         .setName(username)
-        .setLogin(username)
+        .setLogin(String.valueOf(userService.getUid()))
         .setRealName(username)
         .addServer(ircHost, ircPort)
         .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
@@ -502,7 +502,7 @@ public class PircBotXChatService implements ChatService, Listener,
           color = ColorGeneratorUtil.generateRandomHexColor();
         }
 
-        chatUsersByName.put(username, ChatUser.fromChatUser(user, color));
+        chatUsersByName.put(username, ChatUser.fromIrcUser(user, color));
       }
       return chatUsersByName.get(username);
     }
@@ -525,6 +525,11 @@ public class PircBotXChatService implements ChatService, Listener,
   public void reconnect() {
     disconnect();
     connect();
+  }
+
+  @Override
+  public void whois(String username) {
+    pircBotX.sendIRC().whois(username);
   }
 
   @Override

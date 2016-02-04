@@ -20,13 +20,10 @@ public class GameTooltipController {
 
   @FXML
   public TitledPane modsPane;
-
   @FXML
   public Pane teamsPane;
-
   @FXML
   public Label modsLabel;
-
   @FXML
   public VBox teamListRoot;
 

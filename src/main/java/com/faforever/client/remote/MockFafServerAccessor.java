@@ -97,7 +97,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
         GameTypeMessage gameTypeMessage = new GameTypeMessage();
         gameTypeMessage.setFullname("Forged Alliance Forever");
         gameTypeMessage.setName("faf");
-        gameTypeMessage.setLive(true);
+        gameTypeMessage.setPublish(true);
         gameTypeMessage.setHost(true);
         gameTypeMessage.setDesc("Description");
 

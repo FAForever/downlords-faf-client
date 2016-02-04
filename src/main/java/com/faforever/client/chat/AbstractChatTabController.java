@@ -70,8 +70,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.chat.ChatColorMode.CUSTOM;
-import static com.faforever.client.chat.ChatColorMode.RANDOM;
+import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 
 /**
@@ -98,6 +97,7 @@ public abstract class AbstractChatTabController {
   private static final String CHAT_TAB_REFERENCE_IN_JAVASCRIPT = "chatTab";
   private static final String ACTION_PREFIX = "/me ";
   private static final String JOIN_PREFIX = "/join ";
+  private static final String WHOIS_PREFIX = "/whois ";
   /**
    * Added if a message is what IRC calls an "action".
    */
@@ -395,6 +395,9 @@ public abstract class AbstractChatTabController {
     } else if (text.startsWith(JOIN_PREFIX)) {
       chatService.joinChannel(text.replaceFirst(Pattern.quote(JOIN_PREFIX), ""));
       messageTextField.clear();
+    } else if (text.startsWith(WHOIS_PREFIX)) {
+      chatService.whois(text.replaceFirst(Pattern.quote(JOIN_PREFIX), ""));
+      messageTextField.clear();
     } else {
       sendMessage();
     }
@@ -653,21 +656,25 @@ public abstract class AbstractChatTabController {
   @VisibleForTesting
   String getInlineStyle(String username, String messageColorClass) {
     ChatUser chatUser = chatService.createOrGetChatUser(username);
+    PlayerInfoBean player = playerService.getPlayerForUsername(username);
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    String inlineStyle = "style=\"%s%s\"";
     String color = "";
     String display = "";
 
-    if ((chatPrefs.getChatColorMode().equals(RANDOM) && (messageColorClass == null || messageColorClass.equals(CSS_CLASS_CHAT_ONLY)))) {
-      color = createInlineStyleFromHexColor(chatUser.getColor());
-    } else if (chatPrefs.getChatColorMode().equals(CUSTOM) && chatUser.getColor() != null) {
-      color = createInlineStyleFromHexColor(chatUser.getColor());
+    if (chatPrefs.getHideFoeMessages() && player != null && player.getSocialStatus() == FOE) {
+      display = "display: none;";
+    } else {
+      switch (chatPrefs.getChatColorMode()) {
+        case CUSTOM:
+        case RANDOM:
+          if (chatUser.getColor() != null) {
+            color = createInlineStyleFromHexColor(chatUser.getColor());
+          }
+          break;
+      }
     }
 
-    if (chatPrefs.getHideFoeMessages() && messageColorClass != null && messageColorClass.equals(SocialStatus.FOE.getCssClass())) {
-      display = "display: none;";
-    }
-    return String.format(inlineStyle, color, display);
+    return String.format("style=\"%s%s\"", color, display);
   }
 
   @VisibleForTesting

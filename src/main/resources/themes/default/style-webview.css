@@ -28,22 +28,21 @@ a {
 }
 
 /***************** Chat Colors (WebView) *****************/
-/*!important indicates that randomColors cannot override*/
 
 .self {
-  color: #FFA500 !important;
+  color: #FFA500;
 }
 
 .friend {
-  color: #16B7EB !important;
+  color: #16B7EB;
 }
 
 .foe {
-  color: #FF0000 !important;
+  color: #FF0000;
 }
 
 .moderator {
-  color: #FFFFFF !important;
+  color: #FFFFFF;
 }
 
 .chat_only {

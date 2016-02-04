@@ -230,8 +230,8 @@ public class UserInfoWindowController {
       countryLabel.setText(playerInfoBean.getCountry());
     }
 
-    ratingOver90DaysButton.setSelected(true);
     ratingOver90DaysButton.fire();
+    ratingOver90DaysButton.setSelected(true);
 
     loadAchievements();
     eventService.getPlayerEvents(playerInfoBean.getUsername()).thenAccept(events -> {

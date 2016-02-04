@@ -2,18 +2,16 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.i18n.I18n;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Region;
 import javafx.util.converter.NumberStringConverter;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -22,115 +20,68 @@ import java.text.NumberFormat;
 public class SettingsController {
 
   @FXML
-  ComboBox<ChatColorMode> colorMode;
-
+  ToggleGroup colorModeToggleGroup;
+  @FXML
+  Toggle customColorsToggle;
+  @FXML
+  Toggle randomColorsToggle;
+  @FXML
+  Toggle defaultColorsToggle;
   @FXML
   CheckBox hideFoeCheckBox;
-
   @FXML
   TextField gamePortTextField;
-
   @FXML
   TextField gameLocationTextField;
-
   @FXML
   Button gameLocationButton;
-
   @FXML
   CheckBox autoDownloadMapsCheckBox;
-
   @FXML
   ComboBox<String> languageComboBox;
-
   @FXML
   ComboBox<String> themeComboBox;
-
   @FXML
   CheckBox rememberLastTabCheckBox;
-
   @FXML
   Button resetNotificationsButton;
-
   @FXML
   TextField maxMessagesTextField;
-
   @FXML
   CheckBox imagePreviewCheckBox;
-
   @FXML
   CheckBox enableToastsCheckBox;
-
   @FXML
   ComboBox toastPositionComboBox;
-
   @FXML
   ComboBox toastScreenComboBox;
-
   @FXML
   CheckBox enableSoundsCheckBox;
-
   @FXML
   CheckBox displayFriendOnlineToastCheckBox;
-
   @FXML
   CheckBox displayFriendOfflineToastCheckBox;
-
   @FXML
   CheckBox playFriendOnlineSoundCheckBox;
-
   @FXML
   CheckBox playFriendOfflineSoundCheckBox;
-
   @FXML
   CheckBox displayFriendJoinsGameToastCheckBox;
-
   @FXML
   CheckBox displayFriendPlaysGameToastCheckBox;
-
   @FXML
   CheckBox playFriendJoinsGameSoundCheckBox;
-
   @FXML
   CheckBox playFriendPlaysGameSoundCheckBox;
-
   @FXML
   CheckBox displayPmReceivedToastCheckBox;
-
   @FXML
   CheckBox playPmReceivedSoundCheckBox;
-
   @FXML
   Region settingsRoot;
 
   @Resource
   PreferencesService preferencesService;
-
-  @Autowired
-  I18n i18n;
-
-  @PostConstruct
-  void init() {
-    colorMode.getItems().addAll(ChatColorMode.values());
-    colorMode.setCellFactory(param -> chatColorModeCell());
-    colorMode.setButtonCell(chatColorModeCell());
-  }
-
-  @NotNull
-  private ListCell<ChatColorMode> chatColorModeCell() {
-    return new ListCell<ChatColorMode>() {
-      @Override
-      protected void updateItem(ChatColorMode item, boolean empty) {
-        super.updateItem(item, empty);
-
-        if (empty || item == null) {
-          setText(null);
-          setGraphic(null);
-        } else {
-          setText(i18n.get(item.getI18nKey()));
-        }
-      }
-    };
-  }
 
   @PostConstruct
   void postConstruct() {
@@ -148,7 +99,31 @@ public class SettingsController {
     enableToastsCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().toastsEnabledProperty());
 
     hideFoeCheckBox.selectedProperty().bindBidirectional(preferences.getChat().hideFoeMessagesProperty());
-    colorMode.valueProperty().bindBidirectional(preferences.getChat().chatColorModeProperty());
+
+    preferences.getChat().chatColorModeProperty().addListener((observable, oldValue, newValue) -> {
+      switch (newValue) {
+        case DEFAULT:
+          colorModeToggleGroup.selectToggle(defaultColorsToggle);
+          break;
+        case CUSTOM:
+          colorModeToggleGroup.selectToggle(customColorsToggle);
+          break;
+        case RANDOM:
+          colorModeToggleGroup.selectToggle(randomColorsToggle);
+          break;
+      }
+    });
+    colorModeToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == defaultColorsToggle) {
+        preferences.getChat().setChatColorMode(ChatColorMode.DEFAULT);
+      }
+      if (newValue == customColorsToggle) {
+        preferences.getChat().setChatColorMode(ChatColorMode.CUSTOM);
+      }
+      if (newValue == randomColorsToggle) {
+        preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
+      }
+    });
 
     displayFriendOnlineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().displayFriendOnlineToastProperty());
     displayFriendOfflineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().displayFriendOfflineToastProperty());
