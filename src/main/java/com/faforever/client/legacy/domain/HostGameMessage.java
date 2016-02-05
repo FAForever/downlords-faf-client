@@ -9,6 +9,8 @@ import java.net.InetSocketAddress;
  */
 public class HostGameMessage extends ClientMessage {
 
+  private final String mapName;
+  private final int port;
   private int gameport;
   private String mapname;
   private String title;
@@ -22,16 +24,16 @@ public class HostGameMessage extends ClientMessage {
 
   public HostGameMessage(GameAccess gameAccess, String mapName, String title, int port, boolean[] options, String mod, String password, Integer version, InetSocketAddress relayAddress) {
     super(ClientMessageType.HOST_GAME);
+    access = gameAccess;
+    this.mapName = mapName;
+    this.title = title;
+    this.port = port;
+    this.options = options;
+    this.mod = mod;
+    this.password = password;
+    this.version = version;
     this.relayAddress = relayAddress;
-    this.setAccess(gameAccess);
-    this.setPassword(password);
-    this.setVersion(version);
-    this.setMod(mod);
-    this.setTitle(title);
-    this.setMapname(mapName);
-    this.setGameport(port);
-    this.setOptions(options);
-    this.setVisibility(GameVisibility.PUBLIC);
+    this.visibility = GameVisibility.PUBLIC;
   }
 
   public int getGameport() {

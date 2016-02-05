@@ -67,7 +67,9 @@ public class FafServiceImpl implements FafService {
 
   @Override
   public CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int port) {
-    return fafServerAccessor.startSearchRanked1v1(faction, port);
+    return fafServerAccessor.startSearchRanked1v1(faction,
+        connectivityService.getExternalSocketAddress().getPort(),
+        connectivityService.getRelayAddress());
   }
 
   @Override

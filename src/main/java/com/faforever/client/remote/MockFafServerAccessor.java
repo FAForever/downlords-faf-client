@@ -224,7 +224,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort) {
+  public CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort, InetSocketAddress relayAddress) {
     logger.debug("Searching 1v1 match with faction: {}", faction);
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);

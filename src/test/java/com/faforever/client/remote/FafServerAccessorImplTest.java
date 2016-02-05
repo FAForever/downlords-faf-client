@@ -306,7 +306,7 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
   public void startSearchRanked1v1WithAeon() throws Exception {
     connectAndLogIn();
 
-    CompletableFuture<GameLaunchMessage> future = instance.startSearchRanked1v1(Faction.AEON, GAME_PORT);
+    CompletableFuture<GameLaunchMessage> future = instance.startSearchRanked1v1(Faction.AEON, GAME_PORT, null);
 
     String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     SearchRanked1V1ClientMessage searchRanked1v1Message = gson.fromJson(clientMessage, SearchRanked1V1ClientMessage.class);

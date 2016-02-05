@@ -279,9 +279,9 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort) {
+  public CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort, @Nullable InetSocketAddress relayAddress) {
     gameLaunchFuture = new CompletableFuture<>();
-    writeToServer(new SearchRanked1V1ClientMessage(gamePort, faction));
+    writeToServer(new SearchRanked1V1ClientMessage(gamePort, faction, relayAddress));
     return gameLaunchFuture;
   }
 
