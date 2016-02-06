@@ -14,6 +14,9 @@ import java.util.Locale;
 
 public class FxmlLoaderImpl implements FxmlLoader {
 
+  private final ThreadLocal<FXMLLoader> threadLocalFXMLLoader;
+
+
   @Resource
   MessageSource messageSource;
   @Resource
@@ -22,6 +25,15 @@ public class FxmlLoaderImpl implements FxmlLoader {
   ThemeService themeService;
 
   private MessageSourceResourceBundle resources;
+
+  public FxmlLoaderImpl() {
+    threadLocalFXMLLoader = new ThreadLocal<FXMLLoader>() {
+      @Override
+      protected FXMLLoader initialValue() {
+        return new FXMLLoader();
+      }
+    };
+  }
 
   @PostConstruct
   void postConstruct() {
@@ -50,7 +62,7 @@ public class FxmlLoaderImpl implements FxmlLoader {
 
   private FXMLLoader load(String file, Object controller, Object root) {
     try {
-      FXMLLoader loader = new FXMLLoader();
+      FXMLLoader loader = this.threadLocalFXMLLoader.get();
       loader.setController(controller);
       loader.setRoot(root);
       loader.setLocation(buildResourceUrl(file));
