@@ -284,6 +284,9 @@ public class GameInfoBean {
     return victoryCondition;
   }
 
+  /**
+   * Returns a map of simulation mod UIDs to the mod's name.
+   */
   public ObservableMap<String, String> getSimMods() {
     return simMods.get();
   }

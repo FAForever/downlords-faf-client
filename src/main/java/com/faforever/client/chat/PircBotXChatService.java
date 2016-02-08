@@ -200,7 +200,7 @@ public class PircBotXChatService implements ChatService, Listener,
 
         case RANDOM:
           for (ChatUser chatUser : chatUsersByName.values()) {
-            chatUser.setColor(ColorGeneratorUtil.generateRandomHexColor());
+            chatUser.setColor(ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode()));
           }
           break;
 
@@ -305,7 +305,13 @@ public class PircBotXChatService implements ChatService, Listener,
   @SuppressWarnings("unchecked")
   public void addOnUserListListener(final OnChatUserListListener listener) {
     addEventListener(UserListEvent.class,
-        event -> listener.onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers())));
+        event -> {
+          try {
+            listener.onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers()));
+          } catch (Exception e) {
+            logger.warn("Error while handling chat user list", e);
+          }
+        });
   }
 
   @Override
@@ -365,7 +371,8 @@ public class PircBotXChatService implements ChatService, Listener,
             Configuration.ServerEntry server = configuration.getServers().get(0);
             logger.info("Connecting to IRC at {}:{}", server.getHostname(), server.getPort());
             pircBotX.startBot();
-          } catch (IOException | IrcException e) {
+          } catch (IOException | IrcException | RuntimeException e) {
+            // TODO PircBotX 2.1 supports reconnect delay
             logger.warn("Lost connection to IRC server, trying to reconnect in " + reconnectDelay / 1000 + "s");
             connectionState.set(ConnectionState.DISCONNECTED);
             Thread.sleep(reconnectDelay);
@@ -421,7 +428,7 @@ public class PircBotXChatService implements ChatService, Listener,
         if (chatPrefs.getChatColorMode().equals(CUSTOM) && chatPrefs.getUserToColor().containsKey(username)) {
           color = chatPrefs.getUserToColor().get(username);
         } else if (chatPrefs.getChatColorMode().equals(RANDOM)) {
-          color = ColorGeneratorUtil.generateRandomHexColor();
+          color = ColorGeneratorUtil.generateRandomColor(username.hashCode());
         }
 
         chatUsersByName.put(username, new ChatUser(username, color));
@@ -499,7 +506,7 @@ public class PircBotXChatService implements ChatService, Listener,
         if (chatPrefs.getChatColorMode().equals(CUSTOM) && chatPrefs.getUserToColor().containsKey(username)) {
           color = chatPrefs.getUserToColor().get(username);
         } else if (chatPrefs.getChatColorMode().equals(RANDOM)) {
-          color = ColorGeneratorUtil.generateRandomHexColor();
+          color = ColorGeneratorUtil.generateRandomColor(username.hashCode());
         }
 
         chatUsersByName.put(username, ChatUser.fromIrcUser(user, color));

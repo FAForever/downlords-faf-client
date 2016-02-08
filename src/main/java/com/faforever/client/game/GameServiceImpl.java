@@ -222,14 +222,24 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public void runWithReplay(URI replayUrl, Integer replayId) throws IOException {
-    //FIXME needs to update
-    //downloadMapIfNecessary(map);
-    process = forgedAllianceService.startReplay(replayUrl, replayId);
-    gameRunning.set(true);
+  public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) throws IOException {
+    GameInfoBean gameBean = getByUid(gameId);
 
-    this.ratingMode = RatingMode.NONE;
-    spawnTerminationListener(process);
+    Map<String, Integer> modVersions = gameBean.getFeaturedModVersions();
+    Set<String> simModUids = gameBean.getSimMods().keySet();
+
+    return updateGameIfNecessary(gameType, null, modVersions, simModUids)
+        .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
+        .thenRun(() -> {
+          try {
+            process = forgedAllianceService.startReplay(replayUrl, gameId, gameType);
+            gameRunning.set(true);
+            this.ratingMode = RatingMode.NONE;
+            spawnTerminationListener(process);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        });
   }
 
   @Override
@@ -334,8 +344,8 @@ public class GameServiceImpl implements GameService {
     return process != null && process.isAlive();
   }
 
-  private CompletableFuture<Void> updateGameIfNecessary(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUIds) {
-    return gameUpdateService.updateInBackground(gameType, version, modVersions, simModUIds);
+  private CompletableFuture<Void> updateGameIfNecessary(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUids) {
+    return gameUpdateService.updateInBackground(gameType, version, modVersions, simModUids);
   }
 
   /**

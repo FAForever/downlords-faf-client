@@ -615,7 +615,7 @@ public abstract class AbstractChatTabController {
       }
 
       html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
-      html = html.replace("{inline-style}", getInlineStyle(login, messageColorClass));
+      html = html.replace("{inline-style}", getInlineStyle(login));
 
       addToMessageContainer(html);
 
@@ -655,7 +655,7 @@ public abstract class AbstractChatTabController {
   }
 
   @VisibleForTesting
-  String getInlineStyle(String username, String messageColorClass) {
+  String getInlineStyle(String username) {
     ChatUser chatUser = chatService.createOrGetChatUser(username);
     PlayerInfoBean player = playerService.getPlayerForUsername(username);
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
@@ -669,7 +669,7 @@ public abstract class AbstractChatTabController {
         case CUSTOM:
         case RANDOM:
           if (chatUser.getColor() != null) {
-            color = createInlineStyleFromHexColor(chatUser.getColor());
+            color = createInlineStyleFromColor(chatUser.getColor());
           }
           break;
       }
@@ -679,7 +679,7 @@ public abstract class AbstractChatTabController {
   }
 
   @VisibleForTesting
-  String createInlineStyleFromHexColor(Color messageColor) {
+  String createInlineStyleFromColor(Color messageColor) {
     return String.format("color: %s;", JavaFxUtil.toRgbCode(messageColor));
   }
 

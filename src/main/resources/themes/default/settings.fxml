@@ -69,20 +69,20 @@
                         <Label text="%settings.chat.previews" />
                         <CheckBox fx:id="imagePreviewCheckBox" mnemonicParsing="false" text="%settings.chat.previewImages" />
                         <Label text="%settings.chat.colors" />
-                        <HBox spacing="5.0">
+                        <VBox spacing="5.0">
                           <children>
-                            <RadioButton fx:id="customColorsToggle" mnemonicParsing="false"
-                                         text="%settings.chat.colorMode.custom">
+                            <RadioButton fx:id="defaultColorsToggle" mnemonicParsing="false"
+                                         text="%settings.chat.colorMode.default" toggleGroup="$colorModeToggleGroup">
                               <toggleGroup>
                                 <ToggleGroup fx:id="colorModeToggleGroup"/>
                               </toggleGroup>
                             </RadioButton>
+                            <RadioButton fx:id="customColorsToggle" mnemonicParsing="false"
+                                         text="%settings.chat.colorMode.custom"/>
                             <RadioButton fx:id="randomColorsToggle" mnemonicParsing="false"
                                          text="%settings.chat.colorMode.random" toggleGroup="$colorModeToggleGroup"/>
-                            <RadioButton fx:id="defaultColorsToggle" mnemonicParsing="false"
-                                         text="%settings.chat.colorMode.default" toggleGroup="$colorModeToggleGroup"/>
                           </children>
-                        </HBox>
+                        </VBox>
                         <Label text="%settings.chat.miscellaneous" />
                         <CheckBox fx:id="hideFoeCheckBox" mnemonicParsing="false" text="%settings.chat.hideFoe" />
                       </children>

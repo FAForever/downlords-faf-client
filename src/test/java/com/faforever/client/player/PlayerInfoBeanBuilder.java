@@ -20,6 +20,11 @@ public class PlayerInfoBeanBuilder {
     return playerInfoBean;
   }
 
+  public PlayerInfoBeanBuilder chatOnly(boolean chatOnly) {
+    playerInfoBean.setChatOnly(chatOnly);
+    return this;
+  }
+
   public PlayerInfoBeanBuilder socialStatus(SocialStatus socialStatus) {
     playerInfoBean.setSocialStatus(socialStatus);
     return this;

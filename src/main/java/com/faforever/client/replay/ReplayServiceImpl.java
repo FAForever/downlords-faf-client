@@ -145,22 +145,21 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public void runLiveReplay(int replayId, String playerName) throws IOException {
-    //FIXME if getByUid returns null then handle null
-
-    GameInfoBean gameInfoBean = gameService.getByUid(replayId);
+  public void runLiveReplay(int gameId, String playerName) throws IOException {
+    GameInfoBean gameInfoBean = gameService.getByUid(gameId);
+    if (gameInfoBean == null) {
+      throw new RuntimeException("There's no game with ID: " + gameId);
+    }
 
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme(FAF_LIFE_PROTOCOL);
     uriBuilder.setHost(environment.getProperty("lobby.host"));
-    uriBuilder.setPath("/" + replayId + "/" + playerName + SUP_COM_REPLAY_FILE_ENDING);
+    uriBuilder.setPath("/" + gameId + "/" + playerName + SUP_COM_REPLAY_FILE_ENDING);
     uriBuilder.addParameter("map", gameInfoBean.getMapTechnicalName());
     uriBuilder.addParameter("mod", gameInfoBean.getFeaturedMod());
 
-    URI uri = null;
     try {
-      uri = uriBuilder.build();
-      runLiveReplay(uri);
+      runLiveReplay(uriBuilder.build());
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
@@ -177,11 +176,11 @@ public class ReplayServiceImpl implements ReplayService {
 
     String gameType = queryParams.get("mod");
     String mapName = queryParams.get("map");
-    Integer replayId = Integer.parseInt(uri.getPath().split("/")[1]);
+    Integer gameId = Integer.parseInt(uri.getPath().split("/")[1]);
 
     try {
       URI replayUri = new URI(GPGNET_SCHEME, null, uri.getHost(), uri.getPort(), uri.getPath(), null, null);
-      gameService.runWithReplay(replayUri, replayId);
+      gameService.runWithLiveReplay(replayUri, gameId, gameType, mapName);
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }

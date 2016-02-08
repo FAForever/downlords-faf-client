@@ -302,6 +302,6 @@ public class ReplayServiceImplTest {
   public void testRunLiveReplay() throws Exception {
     instance.runLiveReplay(new URI("faflive://example.com/123?mod=faf&map=mapname"));
 
-    verify(gameService).runWithReplay(new URI("gpgnet://example.com/123"), 123);
+    verify(gameService).runWithLiveReplay(new URI("gpgnet://example.com/123"), 123, "faf", "mapname");
   }
 }

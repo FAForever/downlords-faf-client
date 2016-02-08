@@ -523,8 +523,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void getInlineStyleCustom() throws Exception {
-    Color color = ColorGeneratorUtil.generateRandomHexColor();
-    String colorStyle = instance.createInlineStyleFromHexColor(color);
+    Color color = ColorGeneratorUtil.generateRandomColor();
+    String colorStyle = instance.createInlineStyleFromColor(color);
     ChatUser chatUser = new ChatUser("somePlayer", color);
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.CUSTOM);
@@ -532,38 +532,42 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
 
     String shouldBe = String.format("style=\"%s%s\"", colorStyle, "");
-    String result = instance.getInlineStyle("somePlayer", null);
+    String result = instance.getInlineStyle("somePlayer");
     assertEquals(shouldBe, result);
   }
 
   @Test
   public void getInlineStyleRandomOther() throws Exception {
-    Color color = ColorGeneratorUtil.generateRandomHexColor();
-    String colorStyle = instance.createInlineStyleFromHexColor(color);
-    ChatUser chatUser = new ChatUser("somePlayer", color);
+    String somePlayer = "somePlayer";
+    Color color = ColorGeneratorUtil.generateRandomColor();
+
+    ChatUser chatUser = new ChatUser(somePlayer, color);
+    when(playerService.getPlayerForUsername(somePlayer)).thenReturn(PlayerInfoBeanBuilder.create(somePlayer).chatOnly(true).get());
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
-    when(chatService.createOrGetChatUser("somePlayer")).thenReturn(chatUser);
+    when(chatService.createOrGetChatUser(somePlayer)).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
 
-    String shouldBe = String.format("style=\"%s%s\"", colorStyle, "");
-    String result = instance.getInlineStyle("somePlayer", null);
-    assertEquals(shouldBe, result);
+    String expected = String.format("style=\"%s\"", instance.createInlineStyleFromColor(color));
+    String result = instance.getInlineStyle(somePlayer);
+    assertEquals(expected, result);
   }
 
   @Test
   public void getInlineStyleRandomChatOnly() throws Exception {
-    Color color = ColorGeneratorUtil.generateRandomHexColor();
-    String colorStyle = instance.createInlineStyleFromHexColor(color);
-    ChatUser chatUser = new ChatUser("somePlayer", color);
+    Color color = ColorGeneratorUtil.generateRandomColor();
+    String somePlayer = "somePlayer";
+
+    ChatUser chatUser = new ChatUser(somePlayer, color);
+    when(playerService.getPlayerForUsername(somePlayer)).thenReturn(PlayerInfoBeanBuilder.create(somePlayer).chatOnly(true).get());
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
-    when(chatService.createOrGetChatUser("somePlayer")).thenReturn(chatUser);
+    when(chatService.createOrGetChatUser(somePlayer)).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
 
-    String shouldBe = String.format("style=\"%s%s\"", colorStyle, "");
-    String result = instance.getInlineStyle("somePlayer", CSS_CLASS_CHAT_ONLY);
-    assertEquals(shouldBe, result);
+    String expected = String.format("style=\"%s\"", instance.createInlineStyleFromColor(color));
+    String result = instance.getInlineStyle(somePlayer);
+    assertEquals(expected, result);
   }
 
   @Test
@@ -576,7 +580,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(chatService.createOrGetChatUser(playerName)).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(true);
 
-    String result = instance.getInlineStyle(playerName, SocialStatus.FOE.getCssClass());
+    String result = instance.getInlineStyle(playerName);
     assertEquals("style=\"display: none;\"", result);
   }
 
@@ -590,8 +594,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(chatService.createOrGetChatUser(playerName)).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
 
-    String shouldBe = String.format("style=\"%s%s\"", "", "");
-    String result = instance.getInlineStyle(playerName, SocialStatus.FOE.getCssClass());
+    String shouldBe = "style=\"\"";
+    String result = instance.getInlineStyle(playerName);
     assertEquals(shouldBe, result);
   }
 }

@@ -157,7 +157,7 @@ public class ChatUserControl extends HBox {
         }
       });
     } else if (chatPrefs.getChatColorMode().equals(ChatColorMode.RANDOM) && colorsAllowedInPane) {
-      color = ColorGeneratorUtil.generateRandomHexColor();
+      color = ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode());
     }
 
     chatUser.setColor(color);
