@@ -2,8 +2,10 @@
 
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.VBox?>
-<TitledPane xmlns:fx="http://javafx.com/fxml/1" fx:id="teamPaneRoot" animated="false" collapsible="false" minWidth="200.0" text="&lt;Team #&gt;" xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.game.TeamCardController">
+<TitledPane xmlns:fx="http://javafx.com/fxml/1" fx:id="teamPaneRoot" animated="false" collapsible="false"
+            text="&lt;Team #&gt;" xmlns="http://javafx.com/javafx/8.0.40"
+            fx:controller="com.faforever.client.game.TeamCardController">
   <content>
-    <VBox fx:id="teamPane" maxWidth="1.7976931348623157E308" />
+    <VBox fx:id="teamPane" minHeight="20.0" prefWidth="200.0"/>
   </content>
 </TitledPane>

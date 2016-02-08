@@ -91,8 +91,8 @@ public class GameStatusTooltipController {
   }
 
   private void displaySimMods(ObservableMap<? extends String, ? extends String> simMods) {
-    Platform.runLater(() -> {
       String stringSimMods = Joiner.on(i18n.get("textSeparator")).join(simMods.values());
+    Platform.runLater(() -> {
       modsLabel.setText(stringSimMods);
       modsLabel.setVisible(!modsLabel.getText().isEmpty());
     });

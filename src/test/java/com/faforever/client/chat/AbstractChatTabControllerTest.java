@@ -5,6 +5,7 @@ import com.faforever.client.fx.HostService;
 import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -567,27 +568,30 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void getInlineStyleRandomFoeHide() throws Exception {
-    ChatUser chatUser = new ChatUser("somePlayer", null);
+    String playerName = "playerName";
+    ChatUser chatUser = new ChatUser(playerName, null);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(PlayerInfoBeanBuilder.create(playerName).socialStatus(FOE).get());
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
-    when(chatService.createOrGetChatUser("somePlayer")).thenReturn(chatUser);
+    when(chatService.createOrGetChatUser(playerName)).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(true);
 
-    String shouldBe = String.format("style=\"%s%s\"", "", "display: none;");
-    String result = instance.getInlineStyle("somePlayer", SocialStatus.FOE.getCssClass());
-    assertEquals(shouldBe, result);
+    String result = instance.getInlineStyle(playerName, SocialStatus.FOE.getCssClass());
+    assertEquals("style=\"display: none;\"", result);
   }
 
   @Test
   public void getInlineStyleRandomFoeShow() throws Exception {
-    ChatUser chatUser = new ChatUser("somePlayer", null);
+    String playerName = "somePlayer";
+    ChatUser chatUser = new ChatUser(playerName, null);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(PlayerInfoBeanBuilder.create(playerName).socialStatus(FOE).get());
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
-    when(chatService.createOrGetChatUser("somePlayer")).thenReturn(chatUser);
+    when(chatService.createOrGetChatUser(playerName)).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
 
     String shouldBe = String.format("style=\"%s%s\"", "", "");
-    String result = instance.getInlineStyle("somePlayer", SocialStatus.FOE.getCssClass());
+    String result = instance.getInlineStyle(playerName, SocialStatus.FOE.getCssClass());
     assertEquals(shouldBe, result);
   }
 }

@@ -191,10 +191,8 @@ public class GamesController {
     teamListPane.getChildren().clear();
     for (Map.Entry<? extends String, ? extends List<String>> entry : playersByTeamNumber.entrySet()) {
       TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
-      boolean teamCardSuccess = teamCardController.setTeam(entry.getValue(), entry.getKey());
-      if (teamCardSuccess) {
-        teamListPane.getChildren().add(teamCardController.getRoot());
-      }
+      teamCardController.setPlayersInTeam(entry.getKey(), entry.getValue());
+      teamListPane.getChildren().add(teamCardController.getRoot());
     }
   }
 

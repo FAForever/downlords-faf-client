@@ -13,7 +13,6 @@ public class GameTypeInfoBuilder {
   public GameTypeInfoBuilder defaultValues() {
     gameTypeMessage.setDesc("Description");
     gameTypeMessage.setFullname("Full name");
-    gameTypeMessage.setHost(true);
     gameTypeMessage.setIcon("icon");
     gameTypeMessage.setJoin(true);
     gameTypeMessage.setPublish(true);

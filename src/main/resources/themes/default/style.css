@@ -927,6 +927,7 @@
 /***************** Game Status Tooltip *****************/
 
 .game-status-tooltip-root {
+  -fx-font-size: 1em;
   -fx-spacing: 10;
   -fx-min-width: 360;
   -fx-pref-width: 360;

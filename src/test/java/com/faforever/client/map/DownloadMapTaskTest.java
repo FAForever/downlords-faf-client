@@ -22,8 +22,10 @@ public class DownloadMapTaskTest extends AbstractPlainJavaFxTest {
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
   @Rule
-  public TemporaryFolder customMapsDirectry = new TemporaryFolder();
+  public TemporaryFolder customMapsDirectory = new TemporaryFolder();
+
   private DownloadMapTask instance;
+
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -41,7 +43,7 @@ public class DownloadMapTaskTest extends AbstractPlainJavaFxTest {
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliance);
-    when(forgedAlliance.getCustomMapsDirectory()).thenReturn(customMapsDirectry.getRoot().toPath());
+    when(forgedAlliance.getCustomMapsDirectory()).thenReturn(customMapsDirectory.getRoot().toPath());
   }
 
   @Test
@@ -68,6 +70,6 @@ public class DownloadMapTaskTest extends AbstractPlainJavaFxTest {
     instance.setTechnicalMapName("");
     instance.call();
 
-    assertTrue(Files.exists(customMapsDirectry.getRoot().toPath().resolve("theta_passage_5.v0001").resolve("theta_passage_5_scenario.lua")));
+    assertTrue(Files.exists(customMapsDirectory.getRoot().toPath().resolve("theta_passage_5.v0001").resolve("theta_passage_5_scenario.lua")));
   }
 }

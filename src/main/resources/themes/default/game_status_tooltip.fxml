@@ -7,8 +7,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="gameStatusRoot" styleClass="game-status-root"
-      xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.game.GameTileController">
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="gameStatusTooltipRoot" styleClass="game-status-tooltip-root"
+      xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.chat.GameStatusTooltipController">
   <children>
     <HBox focusTraversable="true">
       <children>

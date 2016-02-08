@@ -397,7 +397,7 @@ public class GameServiceImpl implements GameService {
   }
 
   private void onGameTypeInfo(GameTypeMessage gameTypeMessage) {
-    if (!gameTypeMessage.isHost() || !gameTypeMessage.isPublish() || gameTypeBeans.containsKey(gameTypeMessage.getName())) {
+    if (!gameTypeMessage.isPublish() || gameTypeBeans.containsKey(gameTypeMessage.getName())) {
       return;
     }
 

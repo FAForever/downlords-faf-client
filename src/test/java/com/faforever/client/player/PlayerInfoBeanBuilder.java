@@ -1,6 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.chat.SocialStatus;
 
 public class PlayerInfoBeanBuilder {
 
@@ -17,6 +18,11 @@ public class PlayerInfoBeanBuilder {
 
   public PlayerInfoBean get() {
     return playerInfoBean;
+  }
+
+  public PlayerInfoBeanBuilder socialStatus(SocialStatus socialStatus) {
+    playerInfoBean.setSocialStatus(socialStatus);
+    return this;
   }
 
   public static PlayerInfoBeanBuilder create(String username) {

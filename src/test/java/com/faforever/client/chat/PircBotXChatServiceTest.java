@@ -505,6 +505,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @SuppressWarnings("unchecked")
   public void testConnect() throws Exception {
     ArgumentCaptor<Configuration> captor = ArgumentCaptor.forClass(Configuration.class);
+    when(userService.getUid()).thenReturn(681);
 
     instance.connect();
     botStartedFuture.get(TIMEOUT, TIMEOUT_UNIT);
@@ -514,7 +515,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     Configuration configuration = captor.getValue();
 
     assertThat(configuration.getName(), is(CHAT_USER_NAME));
-    assertThat(configuration.getLogin(), is(CHAT_USER_NAME));
+    assertThat(configuration.getLogin(), is("681"));
     assertThat(configuration.getRealName(), is(CHAT_USER_NAME));
     assertThat(configuration.getServers().get(0).getHostname(), is(LOOPBACK_ADDRESS.getHostAddress()));
     assertThat(configuration.getServers().get(0).getPort(), is(IRC_SERVER_PORT));
