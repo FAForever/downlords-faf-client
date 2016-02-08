@@ -72,6 +72,7 @@ import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 /**
  * A chat tab displays messages in a {@link WebView}. The WebView is used since text on a JavaFX canvas isn't
@@ -175,7 +176,7 @@ public abstract class AbstractChatTabController {
 
   @PostConstruct
   void postConstruct() {
-    mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b");
+    mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b", CASE_INSENSITIVE);
 
     Platform.runLater(this::initChatView);
 
