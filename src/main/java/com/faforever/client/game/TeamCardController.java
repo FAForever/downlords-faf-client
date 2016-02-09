@@ -35,10 +35,10 @@ public class TeamCardController {
   public void setPlayersInTeam(String team, List<String> playerList) {
     String localizedTeamTile;
     if (team == null) {
-      localizedTeamTile = i18n.get("game.tooltip.observers");
-    } else if (team.equals("0")) {
-      // FIXME figure out what's the value for "no team" (instead of "0")
       localizedTeamTile = i18n.get("game.tooltip.teamTitleNoTeam");
+    } else if (team.equals("-1")) {
+      // FIXME figure out what's the value for "no team" (instead of "-1")
+      localizedTeamTile = i18n.get("game.tooltip.observers");
     } else {
       localizedTeamTile = i18n.get("game.tooltip.teamTitle", team);
     }
