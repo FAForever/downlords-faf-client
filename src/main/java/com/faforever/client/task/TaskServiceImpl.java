@@ -2,13 +2,18 @@ package com.faforever.client.task;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
+import java.lang.invoke.MethodHandles;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 public class TaskServiceImpl implements TaskService {
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final ObservableList<PrioritizedTask<?>> activeTasks;
 
@@ -27,7 +32,9 @@ public class TaskServiceImpl implements TaskService {
     CompletableFuture<T> future = new CompletableFuture<>();
 
     task.setOnFailed(event -> {
-      future.completeExceptionally(task.getException());
+      Throwable exception = task.getException();
+      logger.warn("Task failed", exception);
+      future.completeExceptionally(exception);
       activeTasks.remove(task);
     });
     task.setOnSucceeded(event -> {

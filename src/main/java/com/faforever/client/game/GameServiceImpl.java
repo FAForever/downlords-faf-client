@@ -214,8 +214,8 @@ public class GameServiceImpl implements GameService {
 
   private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
     notificationService.addNotification(new ImmediateNotification(
-        i18n.get("replayCouldNotBeStarted.title"),
-        i18n.get("replayCouldNotBeStarted.text", replayId),
+        i18n.get("errorTitle"),
+        i18n.get("replayCouldNotBeStarted", replayId),
         Severity.ERROR, throwable,
         singletonList(new Action(i18n.get("report"))))
     );

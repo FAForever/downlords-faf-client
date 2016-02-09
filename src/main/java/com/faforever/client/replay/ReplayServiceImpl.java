@@ -5,6 +5,7 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameType;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
+import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -15,6 +16,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
+import com.google.common.net.UrlEscapers;
 import com.google.common.primitives.Bytes;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
@@ -29,6 +31,8 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,6 +46,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
@@ -145,7 +150,7 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public void runLiveReplay(int gameId, String playerName) throws IOException {
+  public void runLiveReplay(int gameId, int playerId) throws IOException {
     GameInfoBean gameInfoBean = gameService.getByUid(gameId);
     if (gameInfoBean == null) {
       throw new RuntimeException("There's no game with ID: " + gameId);
@@ -154,8 +159,8 @@ public class ReplayServiceImpl implements ReplayService {
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme(FAF_LIFE_PROTOCOL);
     uriBuilder.setHost(environment.getProperty("lobby.host"));
-    uriBuilder.setPath("/" + gameId + "/" + playerName + SUP_COM_REPLAY_FILE_ENDING);
-    uriBuilder.addParameter("map", gameInfoBean.getMapTechnicalName());
+    uriBuilder.setPath("/" + gameId + "/" + playerId + SUP_COM_REPLAY_FILE_ENDING);
+    uriBuilder.addParameter("map", UrlEscapers.urlFragmentEscaper().escape(gameInfoBean.getMapTechnicalName()));
     uriBuilder.addParameter("mod", gameInfoBean.getFeaturedMod());
 
     try {
@@ -175,12 +180,21 @@ public class ReplayServiceImpl implements ReplayService {
     Map<String, String> queryParams = Splitter.on('&').trimResults().withKeyValueSeparator("=").split(uri.getQuery());
 
     String gameType = queryParams.get("mod");
-    String mapName = queryParams.get("map");
+    String mapName = URLDecoder.decode(queryParams.get("map"), StandardCharsets.UTF_8.name());
     Integer gameId = Integer.parseInt(uri.getPath().split("/")[1]);
 
     try {
       URI replayUri = new URI(GPGNET_SCHEME, null, uri.getHost(), uri.getPort(), uri.getPath(), null, null);
-      gameService.runWithLiveReplay(replayUri, gameId, gameType, mapName);
+      gameService.runWithLiveReplay(replayUri, gameId, gameType, mapName)
+          .exceptionally(throwable -> {
+            notificationService.addNotification(new ImmediateNotification(
+                i18n.get("errorTitle"),
+                i18n.get("liveReplayCouldNotBeStarted"),
+                Severity.ERROR, throwable,
+                asList(new DismissAction(i18n), new ReportAction(i18n, reportingService, throwable))
+            ));
+            return null;
+          });
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
@@ -198,7 +212,7 @@ public class ReplayServiceImpl implements ReplayService {
       logger.warn("Replay could not be started", e);
       notificationService.addNotification(new ImmediateNotification(
           i18n.get("errorTitle"),
-          i18n.get("replayCouldNotBeStarted.text", path.getFileName()),
+          i18n.get("replayCouldNotBeStarted", path.getFileName()),
           Severity.WARN, e, singletonList(new ReportAction(i18n, reportingService, e))
       ));
     }

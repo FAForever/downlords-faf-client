@@ -311,10 +311,10 @@ public class ChatUserControl extends HBox {
         gamesController.onJoinGame(gameInfoBean, null, mouseEvent.getScreenX(), mouseEvent.getScreenY());
       } else if (gameStatus == GameStatus.PLAYING) {
         try {
-          replayService.runLiveReplay(uid, playerInfoBean.getUsername());
+          replayService.runLiveReplay(uid, playerInfoBean.getId());
         } catch (IOException e) {
           notificationService.addNotification(new ImmediateNotification(
-              i18n.get("errorTitle"), i18n.get("replayCouldNotBeStarted.text"),
+              i18n.get("errorTitle"), i18n.get("replayCouldNotBeStarted"),
               Severity.ERROR, e, singletonList(new ReportAction(i18n, reportingService, e))
           ));
         }

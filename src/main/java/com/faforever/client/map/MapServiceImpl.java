@@ -7,6 +7,7 @@ import com.faforever.client.legacy.map.Comment;
 import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
+import com.google.common.net.UrlEscapers;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -255,7 +256,7 @@ public class MapServiceImpl implements MapService {
   }
 
   private static String getMapUrl(String mapName, String baseUrl) {
-    return String.format(baseUrl, mapName.toLowerCase(Locale.US));
+    return String.format(baseUrl, UrlEscapers.urlFragmentEscaper().escape(mapName.toLowerCase(Locale.US)));
   }
 
   @Nullable

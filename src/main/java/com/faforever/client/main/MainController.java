@@ -228,6 +228,7 @@ public class MainController implements OnChoseGameDirectoryListener {
 
   @VisibleForTesting
   Popup persistentNotificationsPopup;
+
   private Popup userMenuPopup;
   private ChangeListener<Boolean> windowFocusListener;
   private Popup transientNotificationsPopup;
@@ -539,7 +540,7 @@ public class MainController implements OnChoseGameDirectoryListener {
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(mainRoot.getScene().getWindow());
 
-    stageConfigurator.configureScene(userInfoWindow, controller.getRoot(), false, CLOSE);
+    stageConfigurator.configureScene(userInfoWindow, controller.getRoot(), true, CLOSE, MAXIMIZE_RESTORE);
 
     userInfoWindow.show();
   }

@@ -12,7 +12,7 @@
   <children>
     <Label fx:id="titleLabel" styleClass="header" text="&lt;Title&gt;"/>
     <Separator/>
-    <VBox styleClass="content">
+    <VBox spacing="20.0" styleClass="content">
       <children>
         <Label fx:id="messageLabel" text="&lt;message&gt;"/>
         <TitledPane fx:id="exceptionPane" text="%errorDetails">

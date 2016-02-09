@@ -203,7 +203,7 @@ public class ChatUserContextMenuController {
   @FXML
   void onWatchGame() {
     try {
-      replayService.runLiveReplay(playerInfoBean.getGameUid(), playerInfoBean.getUsername());
+      replayService.runLiveReplay(playerInfoBean.getGameUid(), playerInfoBean.getId());
     } catch (IOException e) {
       logger.error("Cannot load live replay {}", e.getCause());
       String title = i18n.get("replays.live.loadFailure.title");
