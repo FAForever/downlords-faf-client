@@ -28,7 +28,7 @@ apply plugin: 'install4j'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-version = '0.6.2-alpha'
+version = '0.6.3-alpha'
 
 mainClassName = "com.faforever.client.Main"
 applicationDefaultJvmArgs = ["-Djava.library.path=../lib"]
