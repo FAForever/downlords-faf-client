@@ -67,6 +67,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -584,8 +585,9 @@ public abstract class AbstractChatTabController {
       String text = htmlEscaper().escape(chatMessage.getMessage()).replace("\\", "\\\\");
       text = convertUrlsToHyperlinks(text);
 
-      if (mentionPattern.matcher(text).find()) {
-        text = highlightOwnUsername(text);
+      Matcher matcher = mentionPattern.matcher(text);
+      if (matcher.find()) {
+        text = matcher.replaceAll("<span class='self'>" + matcher.group(1) + "</span>");
         if (!hasFocus()) {
           audioController.playChatMentionSound();
           showNotificationIfNecessary(chatMessage);
@@ -681,14 +683,6 @@ public abstract class AbstractChatTabController {
   @VisibleForTesting
   String createInlineStyleFromColor(Color messageColor) {
     return String.format("color: %s;", JavaFxUtil.toRgbCode(messageColor));
-  }
-
-  private String highlightOwnUsername(String text) {
-    // TODO outsource in html file
-    return text.replaceAll(
-        mentionPattern.pattern(),
-        "<span class='self'>" + userService.getUsername() + "</span>"
-    );
   }
 
   private String convertUrlsToHyperlinks(String text) {
