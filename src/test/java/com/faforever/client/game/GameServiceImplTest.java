@@ -288,6 +288,21 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testOnGames() throws Exception {
+    assertThat(instance.getGameInfoBeans(), empty());
+
+    GameInfoMessage multiGameInfoMessage = new GameInfoMessage();
+    multiGameInfoMessage.setGames(Arrays.asList(
+        GameInfoMessageBuilder.create(1).defaultValues().get(),
+        GameInfoMessageBuilder.create(2).defaultValues().get()
+    ));
+
+    gameInfoMessageListenerCaptor.getValue().accept(multiGameInfoMessage);
+
+    assertThat(instance.getGameInfoBeans(), hasSize(2));
+  }
+
+  @Test
   public void testOnGameInfoAdd() {
     assertThat(instance.getGameInfoBeans(), empty());
 

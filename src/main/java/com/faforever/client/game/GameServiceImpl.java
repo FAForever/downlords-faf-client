@@ -415,6 +415,11 @@ public class GameServiceImpl implements GameService {
   }
 
   private void onGameInfo(GameInfoMessage gameInfoMessage) {
+    if (gameInfoMessage.getGames() != null) {
+      gameInfoMessage.getGames().forEach(this::onGameInfo);
+      return;
+    }
+
     if (GameState.CLOSED.equals(gameInfoMessage.getState())) {
       gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfoMessage.getUid()));
       return;

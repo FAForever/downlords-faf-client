@@ -21,9 +21,21 @@ public class GameInfoMessage extends FafServerMessage {
   private VictoryCondition gameType;
   private Map<String, String> simMods;
   private String mapname;
+  /**
+   * The server may either send a single game or a list of games in the same message... *cringe*.
+   */
+  private List<GameInfoMessage> games;
 
   public GameInfoMessage() {
     super(FafServerMessageType.GAME_INFO);
+  }
+
+  public List<GameInfoMessage> getGames() {
+    return games;
+  }
+
+  public void setGames(List<GameInfoMessage> games) {
+    this.games = games;
   }
 
   @Override
