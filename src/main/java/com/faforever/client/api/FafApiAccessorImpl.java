@@ -1,8 +1,8 @@
 package com.faforever.client.api;
 
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.game.MapBean;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
+import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.UriUtil;
 import com.faforever.client.preferences.PreferencesService;
@@ -166,6 +166,23 @@ public class FafApiAccessorImpl implements FafApiAccessor {
         .collect(Collectors.toList());
   }
 
+  private <T> List<T> getMany(String endpointPath, Class<T> type) {
+    List<T> result = new LinkedList<>();
+    List<T> current = null;
+    int page = 1;
+    while (current == null || !current.isEmpty()) {
+      current = getMany(endpointPath, type, page++);
+      result.addAll(current);
+    }
+    return result;
+  }
+
+  @Override
+  public MapBean findMapByName(String mapId) {
+    logger.debug("Searching map: {}", mapId);
+    return MapBean.fromMap(getSingle("/maps/" + mapId, com.faforever.client.api.Map.class));
+  }
+
   @Override
   @Cacheable(CacheNames.LEADERBOARD)
   public List<Ranked1v1EntryBean> getRanked1v1Entries() {
@@ -185,11 +202,50 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public void uploadMod(InputStream inputStream) {
-    upload("/mods/upload", inputStream);
+  @Cacheable(CacheNames.MAPS)
+  public List<MapBean> getMaps() {
+    logger.debug("Getting all maps");
+    // FIXME don't page 1
+    return requestMaps("/maps", 1);
   }
 
-  private void upload(String endpointPath, InputStream inputStream) {
+  @Override
+  @Cacheable(CacheNames.MAPS)
+  public List<MapBean> getMostDownloadedMaps(int count) {
+    logger.debug("Getting most downloaded maps");
+    return requestMaps(String.format("/maps?page[size]=%d&sort=-downloads", count), 1);
+  }
+
+  @Override
+  @Cacheable(CacheNames.MAPS)
+  public List<MapBean> getMostPlayedMaps(int count) {
+    logger.debug("Getting most played maps");
+    return requestMaps(String.format("/maps?page[size]=%d&sort=-times_played", count), 1);
+  }
+
+  @Override
+  public List<MapBean> getBestRatedMaps(int count) {
+    logger.debug("Getting most liked maps");
+    return requestMaps(String.format("/maps?page[size]=%d&sort=-rating", count), 1);
+  }
+
+  @Override
+  public List<MapBean> getNewestMaps(int count) {
+    logger.debug("Getting most liked maps");
+    return requestMaps(String.format("/maps?page[size]=%d&sort=-create_time", count), 1);
+  }
+
+  @Override
+  public void uploadMod(InputStream inputStream, String fileName) {
+    upload("/mods/upload", inputStream, fileName);
+  }
+
+  @Override
+  public void uploadMap(InputStream inputStream, String fileName) {
+    upload("/maps/upload", inputStream, fileName);
+  }
+
+  private void upload(String endpointPath, InputStream inputStream, String fileName) {
     if (requestFactory == null) {
       throw new IllegalStateException("authorize() must be called first");
     }
@@ -206,7 +262,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
       MultipartContent.Part part = new MultipartContent.Part(fileContent);
       part.setHeaders(new HttpHeaders().set(
           "Content-Disposition",
-          "form-data; name=\"file\"; filename=\"tmp-mod-name.zip\""));
+          String.format("form-data; name=\"file\"; filename=\"%s\"", fileName)));
       content.addPart(part);
 
       HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), content);
@@ -218,27 +274,10 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     });
   }
 
-  private <T> List<T> getMany(String endpointPath, Class<T> type) {
-    List<T> result = new LinkedList<>();
-    List<T> current = null;
-    int page = 1;
-    while (current == null || !current.isEmpty()) {
-      current = getMany(endpointPath, type, page++);
-      result.addAll(current);
-    }
-    return result;
-  }
-
-  @Override
-  public MapInfoBean findMapByName(String mapId) {
-    logger.debug("Searching map: {}", mapId);
-    return MapBean.fromMap(getSingle("/maps/" + mapId, com.faforever.client.api.Map.class));
-  }
-
-  @Override
-  public List<MapBean> getMaps() {
+  private List<MapBean> requestMaps(String query, int page) {
     logger.debug("Loading available maps");
-    return getMany("/maps", com.faforever.client.api.Map.class).stream()
+    return getMany(query, Map.class, page)
+        .stream()
         .map(MapBean::fromMap)
         .collect(Collectors.toList());
   }

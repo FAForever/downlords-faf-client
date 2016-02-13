@@ -33,7 +33,7 @@ public class ModInfoBeanBuilder {
     return this;
   }
 
-  public ModInfoBeanBuilder uidMod(boolean uiOnly) {
+  public ModInfoBeanBuilder uiMod(boolean uiOnly) {
     modInfo.setUiOnly(uiOnly);
     return this;
   }

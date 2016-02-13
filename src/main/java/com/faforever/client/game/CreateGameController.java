@@ -4,7 +4,9 @@ import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
+import com.faforever.client.map.MapSize;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.ImmediateNotification;
@@ -221,7 +223,7 @@ public class CreateGameController {
   }
 
   private void initMapSelection() {
-    ObservableList<MapBean> localMapBeans = mapService.getLocalMaps();
+    ObservableList<MapBean> localMapBeans = mapService.getInstalledMaps();
 
     filteredMapBeans = new FilteredList<>(localMapBeans);
 

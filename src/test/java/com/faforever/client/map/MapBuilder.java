@@ -1,8 +1,5 @@
 package com.faforever.client.map;
 
-import com.faforever.client.game.MapBean;
-import com.faforever.client.game.MapSize;
-
 public class MapBuilder {
 
   private final MapBean mapBean;

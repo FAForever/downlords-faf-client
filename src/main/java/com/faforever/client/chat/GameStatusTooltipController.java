@@ -3,7 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameTooltipController;
-import com.faforever.client.game.MapBean;
 import com.faforever.client.game.GameTypeBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;

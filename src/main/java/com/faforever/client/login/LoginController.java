@@ -2,9 +2,7 @@ package com.faforever.client.login;
 
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.JavaFxUtil;
 import com.google.common.base.Strings;
 import com.google.common.hash.Hashing;
 import javafx.application.Platform;

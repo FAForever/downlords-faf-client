@@ -25,7 +25,7 @@ public class DownloadMapTask extends AbstractPrioritizedTask<Void> {
   @Resource
   I18n i18n;
 
-  private String mapUrl;
+  private URL mapUrl;
   private String technicalMapName;
 
   public DownloadMapTask() {
@@ -40,7 +40,7 @@ public class DownloadMapTask extends AbstractPrioritizedTask<Void> {
     updateTitle(i18n.get("mapDownloadTask.title", technicalMapName));
     logger.info("Downloading map {} from {}", technicalMapName, mapUrl);
 
-    URLConnection urlConnection = new URL(mapUrl).openConnection();
+    URLConnection urlConnection = mapUrl.openConnection();
     int bytesToRead = urlConnection.getContentLength();
 
     Path targetDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
@@ -56,7 +56,7 @@ public class DownloadMapTask extends AbstractPrioritizedTask<Void> {
     return null;
   }
 
-  public void setMapUrl(String mapUrl) {
+  public void setMapUrl(URL mapUrl) {
     this.mapUrl = mapUrl;
   }
 

@@ -61,6 +61,8 @@
                   <items>
                     <MenuItem fx:id="modVaultButton" mnemonicParsing="false" onAction="#onModsSelected"
                               text="%main.vault.mods"/>
+                    <MenuItem fx:id="mapVaultButton" mnemonicParsing="false" onAction="#onMapsSelected"
+                              text="%main.vault.maps"/>
                     <MenuItem fx:id="replayVaultButton" mnemonicParsing="false" onAction="#onReplaysSelected"
                               text="%main.vault.replays"/>
                   </items>

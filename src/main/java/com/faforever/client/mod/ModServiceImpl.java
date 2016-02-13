@@ -6,7 +6,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ConcurrentUtil;
-import com.faforever.client.util.LuaUtil;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -49,7 +48,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.util.LuaUtil.stripQuotes;
+import static com.faforever.client.util.LuaUtil.loadFile;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
@@ -70,8 +69,6 @@ public class ModServiceImpl implements ModService {
   TaskService taskService;
   @Resource
   ApplicationContext applicationContext;
-  @Resource
-  FafApiAccessor fafApiAccessor;
   @Resource
   ThreadPoolExecutor threadPoolExecutor;
   @Resource
@@ -301,7 +298,6 @@ public class ModServiceImpl implements ModService {
     });
   }
 
-  @Override
   public ModInfoBean extractModInfo(Path path) {
     ModInfoBean modInfoBean = new ModInfoBean();
 
@@ -311,21 +307,17 @@ public class ModServiceImpl implements ModService {
     }
 
     logger.debug("Reading mod {}", path);
-    noCatch(() -> {
-      try (InputStream inputStream = Files.newInputStream(modInfoLua)) {
-        Properties properties = new Properties();
-        properties.load(inputStream);
 
-        modInfoBean.setId(stripQuotes(properties.getProperty("uid")));
-        modInfoBean.setName(stripQuotes(properties.getProperty("name")));
-        modInfoBean.setDescription(stripQuotes(properties.getProperty("description")));
-        modInfoBean.setAuthor(stripQuotes(properties.getProperty("author")));
-        modInfoBean.setVersion(stripQuotes(properties.getProperty("version")));
-        modInfoBean.setSelectable(Boolean.parseBoolean(stripQuotes(properties.getProperty("selectable"))));
-        modInfoBean.setUiOnly(Boolean.parseBoolean(stripQuotes(properties.getProperty("ui_only"))));
-        modInfoBean.setImagePath(extractIconPath(path, properties));
-      }
-    });
+    LuaValue luaValue = noCatch(() -> loadFile(modInfoLua));
+
+    modInfoBean.setId(luaValue.get("uid").toString());
+    modInfoBean.setName(luaValue.get("name").toString());
+    modInfoBean.setDescription(luaValue.get("description").toString());
+    modInfoBean.setAuthor(luaValue.get("author").toString());
+    modInfoBean.setVersion(luaValue.get("version").toString());
+    modInfoBean.setSelectable(luaValue.get("selectable").toboolean());
+    modInfoBean.setUiOnly(luaValue.get("ui_only").toboolean());
+    modInfoBean.setImagePath(extractIconPath(path, luaValue));
 
     return modInfoBean;
   }
@@ -418,30 +410,6 @@ public class ModServiceImpl implements ModService {
     if (!installedMods.contains(modInfoBean)) {
       installedMods.add(modInfoBean);
     }
-  }
-
-  private ModInfoBean extractModInfo(Path path) throws IOException {
-    ModInfoBean modInfoBean = new ModInfoBean();
-
-    Path modInfoLua = path.resolve("mod_info.lua");
-    if (Files.notExists(modInfoLua)) {
-      return null;
-    }
-
-    logger.debug("Reading mod {}", path);
-
-    LuaValue luaValue = LuaUtil.loadFile(modInfoLua);
-
-    modInfoBean.setId(luaValue.get("uid").toString());
-    modInfoBean.setName(luaValue.get("name").toString());
-    modInfoBean.setDescription(luaValue.get("description").toString());
-    modInfoBean.setAuthor(luaValue.get("author").toString());
-    modInfoBean.setVersion(luaValue.get("version").toString());
-    modInfoBean.setSelectable(luaValue.get("selectable").toboolean());
-    modInfoBean.setUiOnly(luaValue.get("ui_only").toboolean());
-    modInfoBean.setImagePath(extractIconPath(path, luaValue));
-
-    return modInfoBean;
   }
 
   private static Path extractIconPath(Path path, LuaValue luaValue) {

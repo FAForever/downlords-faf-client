@@ -1,6 +1,5 @@
 package com.faforever.client.map;
 
-import com.faforever.client.game.MapBean;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

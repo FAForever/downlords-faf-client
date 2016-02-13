@@ -5,13 +5,9 @@ import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.game.Faction;
-import com.faforever.client.game.MapBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
-import com.faforever.client.legacy.domain.GameEndedMessage;
-import com.faforever.client.legacy.domain.GameLaunchMessage;
-import com.faforever.client.legacy.domain.LoginMessage;
-import com.faforever.client.legacy.domain.ServerMessage;
+import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.relay.GpgClientMessage;
@@ -150,16 +146,6 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> expectRehostCommand() {
-    return fafServerAccessor.expectRehostCommand();
-  }
-
-  @Override
-  public void reconnect() {
-    fafServerAccessor.reconnect();
-  }
-
-  @Override
   public List<MapBean> getMaps() {
     return fafApiAccessor.getMaps();
   }
@@ -172,5 +158,35 @@ public class FafServiceImpl implements FafService {
   @Override
   public List<ModInfoBean> getMods() {
     return fafApiAccessor.getMods();
+  }
+
+  @Override
+  public CompletableFuture<GameLaunchMessage> expectRehostCommand() {
+    return fafServerAccessor.expectRehostCommand();
+  }
+
+  @Override
+  public void reconnect() {
+    fafServerAccessor.reconnect();
+  }
+
+  @Override
+  public CompletableFuture<List<MapBean>> getMostDownloadedMaps(int count) {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getMostDownloadedMaps(count));
+  }
+
+  @Override
+  public CompletableFuture<List<MapBean>> getMostPlayedMaps(int count) {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getMostPlayedMaps(count));
+  }
+
+  @Override
+  public CompletableFuture<List<MapBean>> getMostLikedMaps(int count) {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getBestRatedMaps(count));
+  }
+
+  @Override
+  public CompletableFuture<List<MapBean>> getNewestMaps(int count) {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getNewestMaps(count));
   }
 }

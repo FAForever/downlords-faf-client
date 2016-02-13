@@ -1,15 +1,14 @@
 package com.faforever.client.map;
 
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.game.MapBean;
-import com.faforever.client.game.MapSize;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ConcurrentUtil;
-import com.faforever.client.util.LuaUtil;
-import com.google.common.net.UrlEscapers;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.scene.image.Image;
@@ -41,14 +40,22 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static com.faforever.client.util.LuaUtil.loadFile;
+import static com.github.nocatch.NoCatch.noCatch;
+import static com.google.common.net.UrlEscapers.urlFragmentEscaper;
+import static java.lang.String.format;
+import static java.nio.file.Files.newDirectoryStream;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.util.Locale.US;
 
 public class MapServiceImpl implements MapService {
 
@@ -59,7 +66,7 @@ public class MapServiceImpl implements MapService {
     SCMP_034, SCMP_035, SCMP_036, SCMP_037, SCMP_038, SCMP_039, SCMP_040, X1MP_001, X1MP_002, X1MP_003, X1MP_004,
     X1MP_005, X1MP_006, X1MP_007, X1MP_008, X1MP_009, X1MP_010, X1MP_011, X1MP_012, X1MP_014, X1MP_017;
 
-    private static final java.util.Map fromString;
+    private static final Map<String, OfficialMap> fromString;
 
     static {
       fromString = new HashMap<>();
@@ -88,7 +95,7 @@ public class MapServiceImpl implements MapService {
   @Resource
   Analyzer analyzer;
   @Resource
-  Executor executor;
+  ThreadPoolExecutor threadPoolExecutor;
   @Resource
   FafService fafService;
 
@@ -99,20 +106,33 @@ public class MapServiceImpl implements MapService {
   @Value("${vault.mapPreviewUrl.large}")
   String largeMapPreviewUrl;
 
-  private java.util.Map pathToMap;
+  private Map<Path, MapBean> pathToMap;
   private AnalyzingInfixSuggester suggester;
   private Path mapsDirectory;
   private ObservableList<MapBean> installedMapBeans;
+  private Map<String, MapBean> mapsByTechnicalName;
 
   public MapServiceImpl() {
     pathToMap = new HashMap<>();
     installedMapBeans = FXCollections.observableArrayList();
+    mapsByTechnicalName = new HashMap<>();
+
+    installedMapBeans.addListener((ListChangeListener<MapBean>) change -> {
+      while (change.next()) {
+        for (MapBean mapBean : change.getRemoved()) {
+          mapsByTechnicalName.remove(mapBean.getTechnicalName().toLowerCase());
+        }
+        for (MapBean mapBean : change.getAddedSubList()) {
+          mapsByTechnicalName.put(mapBean.getTechnicalName().toLowerCase(), mapBean);
+        }
+      }
+    });
   }
 
   @PostConstruct
   void postConstruct() throws IOException {
-    mapsDirectory = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
-    preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty().addListener((observable, oldValue, newValue) -> {
+    mapsDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
+    preferencesService.getPreferences().getForgedAlliance().customMapsDirectoryProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue != null) {
         onMapDirectoryReady();
       }
@@ -130,7 +150,7 @@ public class MapServiceImpl implements MapService {
       Files.createDirectories(mapsDirectory);
       startDirectoryWatcher(mapsDirectory);
     } catch (IOException | InterruptedException e) {
-      logger.warn("Could not start mod directory watcher", e);
+      logger.warn("Could not start map directory watcher", e);
       // TODO notify user
     }
     loadInstalledMaps();
@@ -156,13 +176,14 @@ public class MapServiceImpl implements MapService {
     });
   }
 
+  // FIXME load asynchronously
   public void loadInstalledMaps() {
-    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(mapsDirectory)) {
+    try (DirectoryStream<Path> directoryStream = newDirectoryStream(mapsDirectory)) {
       for (Path path : directoryStream) {
         addMap(path);
       }
     } catch (IOException e) {
-      logger.warn("Mods could not be read from: " + mapsDirectory, e);
+      logger.warn("Maps could not be read from: " + mapsDirectory, e);
     }
   }
 
@@ -181,38 +202,41 @@ public class MapServiceImpl implements MapService {
     }
   }
 
+  @Override
   @Nullable
-  private MapBean readMap(Path mapPath) throws IOException {
+  public MapBean readMap(Path mapPath) {
     if (!Files.isDirectory(mapPath)) {
       logger.warn("Map does not exist: {}", mapPath);
       return null;
     }
-    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(mapPath, "*_scenario.lua")) {
-      Iterator<Path> iterator = directoryStream.iterator();
-      if (!iterator.hasNext()) {
-        return null;
+    return noCatch(() -> {
+      try (DirectoryStream<Path> directoryStream = newDirectoryStream(mapPath, "*_scenario.lua")) {
+        Iterator<Path> iterator = directoryStream.iterator();
+        if (!iterator.hasNext()) {
+          return null;
+        }
+
+        LuaValue luaValue = loadFile(iterator.next()).get("ScenarioInfo");
+        LuaValue size = luaValue.get("size");
+
+        MapBean mapBean = new MapBean();
+        mapBean.setTechnicalName(mapPath.getFileName().toString());
+        mapBean.setDisplayName(luaValue.get("name").toString());
+        mapBean.setDescription(luaValue.get("description").tojstring().replaceAll("<LOC .*?>", ""));
+        mapBean.setSize(new MapSize(
+            (int) (size.get(1).toint() / MAP_SIZE_FACTOR),
+            (int) (size.get(2).toint() / MAP_SIZE_FACTOR))
+        );
+        mapBean.setPlayers(luaValue.get("Configurations").get("standard").get("teams").get(1).get("armies").length());
+        return mapBean;
       }
-
-      LuaValue luaValue = LuaUtil.loadFile(iterator.next()).get("ScenarioInfo");
-      LuaValue size = luaValue.get("size");
-
-      MapBean mapBean = new MapBean();
-      mapBean.setTechnicalName(mapPath.getFileName().toString());
-      mapBean.setDisplayName(luaValue.get("name").toString());
-      mapBean.setDescription(luaValue.get("description").tojstring().replaceAll("<LOC .*?>", ""));
-      mapBean.setSize(new MapSize(
-          (int) (size.get(1).toint() / MAP_SIZE_FACTOR),
-          (int) (size.get(2).toint() / MAP_SIZE_FACTOR))
-      );
-      mapBean.setPlayers(luaValue.get("Configurations").get("standard").get("teams").get(1).get("armies").length());
-      return mapBean;
-    }
+    }, MapLoadException.class);
   }
 
   @Override
   @Cacheable(value = CacheNames.SMALL_MAP_PREVIEW, unless = "#result == null")
   public Image loadSmallPreview(String mapName) {
-    String url = getMapUrl(mapName, smallMapPreviewUrl);
+    URL url = getMapUrl(mapName, smallMapPreviewUrl);
 
     logger.debug("Fetching small preview for map {} from {}", mapName, url);
 
@@ -222,7 +246,7 @@ public class MapServiceImpl implements MapService {
   @Override
   @Cacheable(value = CacheNames.LARGE_MAP_PREVIEW, unless = "#result == null")
   public Image loadLargePreview(String mapName) {
-    String urlString = getMapUrl(mapName, largeMapPreviewUrl);
+    URL urlString = getMapUrl(mapName, largeMapPreviewUrl);
 
     logger.debug("Fetching large preview for map {} from {}", mapName, urlString);
 
@@ -230,7 +254,7 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public ObservableList<MapBean> getLocalMaps() {
+  public ObservableList<MapBean> getInstalledMaps() {
     Path officialMapsPath = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("maps");
 
     Collection<Path> mapPaths = new LinkedList<>();
@@ -243,7 +267,7 @@ public class MapServiceImpl implements MapService {
     if (Files.notExists(customMapsPath)) {
       logger.warn("Custom map directory does not exist: {}", customMapsPath);
     } else {
-      try (DirectoryStream<Path> stream = Files.newDirectoryStream(customMapsPath)) {
+      try (DirectoryStream<Path> stream = newDirectoryStream(customMapsPath)) {
         for (Path mapPath : stream) {
           mapPaths.add(mapPath);
         }
@@ -259,7 +283,7 @@ public class MapServiceImpl implements MapService {
         if (mapBean != null) {
           mapBeans.add(mapBean);
         }
-      } catch (IOException e) {
+      } catch (MapLoadException e) {
         logger.warn("Map could not be read: " + mapPath, e);
       }
     }
@@ -270,7 +294,7 @@ public class MapServiceImpl implements MapService {
   @Override
   public MapBean getMapBeanLocallyFromName(String mapName) {
     logger.debug("Trying to return {} mapInfoBean locally", mapName);
-    for (MapBean mapBean : getLocalMaps()) {
+    for (MapBean mapBean : getInstalledMaps()) {
       if (mapName.equalsIgnoreCase(mapBean.getDisplayName())) {
         logger.debug("Found map {} locally", mapName);
         return mapBean;
@@ -290,32 +314,22 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public boolean isAvailable(String mapName) {
-    logger.debug("Trying to find map {} mapName locally", mapName);
-
-    for (MapBean mapBean : getLocalMaps()) {
-      if (mapName.equalsIgnoreCase(mapBean.getDisplayName())) {
-        logger.debug("Found map {} locally", mapName);
-        return true;
-      }
-    }
-
-    logger.debug("Map {} is not available locally", mapName);
-    return false;
+  public boolean isInstalled(String technicalName) {
+    return mapsByTechnicalName.containsKey(technicalName.toLowerCase());
   }
 
   @Override
   public CompletableFuture<Void> download(String technicalMapName) {
-    String mapUrl = getMapUrl(technicalMapName, mapDownloadUrl);
-
-    DownloadMapTask task = applicationContext.getBean(DownloadMapTask.class);
-    task.setMapUrl(mapUrl);
-    task.setTechnicalMapName(technicalMapName);
-    return taskService.submitTask(task);
+    URL mapUrl = getMapUrl(technicalMapName, mapDownloadUrl);
+    return downloadAndInstallMap(technicalMapName, mapUrl, null, null);
   }
 
   @Override
-  @Cacheable(CacheNames.MAPS)
+  public CompletableFuture<Void> downloadAndInstallMap(MapBean map, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
+    return downloadAndInstallMap(map.getTechnicalName(), map.getDownloadUrl(), progressProperty, titleProperty);
+  }
+
+  @Override
   public CompletableFuture<List<MapBean>> lookupMap(String string, int maxResults) {
     return CompletableFuture.supplyAsync(() -> {
       try {
@@ -330,24 +344,105 @@ public class MapServiceImpl implements MapService {
       } finally {
         LOOKUP_LOCK.unlock();
       }
-    }, executor).exceptionally(throwable -> {
+    }, threadPoolExecutor).exceptionally(throwable -> {
       logger.warn("Lookup failed", throwable);
       return null;
     });
   }
 
-  private static String getMapUrl(String mapName, String baseUrl) {
-    return String.format(baseUrl, UrlEscapers.urlFragmentEscaper().escape(mapName.toLowerCase(Locale.US)));
+  @Override
+  public CompletableFuture<List<MapBean>> getMostDownloadedMaps(int count) {
+    return fafService.getMostDownloadedMaps(count);
+  }
+
+  @Override
+  public CompletableFuture<List<MapBean>> getMostLikedMaps(int count) {
+    return fafService.getMostLikedMaps(count);
+  }
+
+  @Override
+  public CompletableFuture<List<MapBean>> getNewestMaps(int count) {
+    return fafService.getNewestMaps(count);
+  }
+
+  @Override
+  public CompletableFuture<List<MapBean>> getMostPlayedMaps(int count) {
+    return fafService.getMostPlayedMaps(count);
+  }
+
+  @Override
+  @Cacheable(CacheNames.SMALL_MAP_PREVIEW)
+  public Image loadSmallPreview(MapBean map) {
+    return new Image(map.getSmallThumbnailUrl().toString(), true);
+  }
+
+  @Override
+  @Cacheable(CacheNames.LARGE_MAP_PREVIEW)
+  public Image loadLargePreview(MapBean map) {
+    return new Image(map.getLargeThumbnailUrl().toString(), true);
+  }
+
+  @Override
+  public CompletionStage<Void> uninstallMap(MapBean map) {
+    com.faforever.client.map.UninstallMapTask task = applicationContext.getBean(com.faforever.client.map.UninstallMapTask.class);
+    task.setMap(map);
+    return taskService.submitTask(task);
+  }
+
+  @Override
+  public Path getPathForMap(MapBean map) {
+    return getPathForMap(map.getTechnicalName());
+  }
+
+  @Override
+  public Path getPathForMap(String technicalName) {
+    Path path = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory().resolve(technicalName);
+    if (Files.notExists(path)) {
+      return null;
+    }
+    return path;
+  }
+
+  @Override
+  public UploadMapTask uploadMap(Path mapPath, Consumer<Float> progressListener) {
+    UploadMapTask uploadMapTask = applicationContext.getBean(UploadMapTask.class);
+    uploadMapTask.setMapPath(mapPath);
+    uploadMapTask.setProgressListener(progressListener);
+
+    CompletableFuture<Void> uploadFuture = taskService.submitTask(uploadMapTask);
+    uploadMapTask.setFuture(uploadFuture);
+
+    return uploadMapTask;
+  }
+
+  private CompletableFuture<Void> downloadAndInstallMap(String technicalName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
+    DownloadMapTask task = applicationContext.getBean(DownloadMapTask.class);
+    task.setMapUrl(downloadUrl);
+    task.setTechnicalMapName(technicalName);
+
+    if (progressProperty != null) {
+      progressProperty.bind(task.progressProperty());
+    }
+    if (titleProperty != null) {
+      titleProperty.bind(task.titleProperty());
+    }
+
+    return taskService.submitTask(task)
+        .thenAccept(aVoid -> noCatch(() -> addMap(getPathForMap(technicalName))));
+  }
+
+  private static URL getMapUrl(String mapName, String baseUrl) {
+    return noCatch(() -> new URL(format(baseUrl, urlFragmentEscaper().escape(mapName.toLowerCase(US)))));
   }
 
   @Nullable
-  private Image fetchImageOrNull(String urlString) {
+  private Image fetchImageOrNull(URL url) {
     try {
-      HttpURLConnection connection = (HttpURLConnection) new URL(urlString).openConnection();
+      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
       if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-        return new Image(urlString, true);
+        return new Image(url.toString(), true);
       }
-      logger.debug("Map preview is not available: " + urlString);
+      logger.debug("Map preview is not available: " + url);
       return null;
     } catch (IOException e) {
       logger.warn("Could not fetch map preview", e);
