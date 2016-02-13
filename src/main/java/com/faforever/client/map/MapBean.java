@@ -1,4 +1,4 @@
-package com.faforever.client.game;
+package com.faforever.client.map;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -9,6 +9,8 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
+
+import java.net.URL;
 
 public class MapBean implements Comparable<MapBean> {
 
@@ -22,7 +24,10 @@ public class MapBean implements Comparable<MapBean> {
   private final ObjectProperty<MapSize> size;
   private final ObjectProperty<ComparableVersion> version;
   private final StringProperty id;
-
+  private final StringProperty author;
+  private final ObjectProperty<URL> downloadUrl;
+  private final ObjectProperty<URL> smallThumbnailUrl;
+  private final ObjectProperty<URL> largeThumbnailUrl;
   public MapBean() {
     this.id = new SimpleStringProperty();
     this.displayName = new SimpleStringProperty();
@@ -34,6 +39,34 @@ public class MapBean implements Comparable<MapBean> {
     this.players = new SimpleIntegerProperty();
     this.size = new SimpleObjectProperty<>();
     this.version = new SimpleObjectProperty<>();
+    this.smallThumbnailUrl = new SimpleObjectProperty<>();
+    this.largeThumbnailUrl = new SimpleObjectProperty<>();
+    this.downloadUrl = new SimpleObjectProperty<>();
+    this.author = new SimpleStringProperty();
+  }
+
+  public String getAuthor() {
+    return author.get();
+  }
+
+  public void setAuthor(String author) {
+    this.author.set(author);
+  }
+
+  public StringProperty authorProperty() {
+    return author;
+  }
+
+  public URL getDownloadUrl() {
+    return downloadUrl.get();
+  }
+
+  public void setDownloadUrl(URL downloadUrl) {
+    this.downloadUrl.set(downloadUrl);
+  }
+
+  public ObjectProperty<URL> downloadUrlProperty() {
+    return downloadUrl;
   }
 
   public StringProperty displayNameProperty() {
@@ -161,6 +194,30 @@ public class MapBean implements Comparable<MapBean> {
     return technicalName;
   }
 
+  public URL getLargeThumbnailUrl() {
+    return largeThumbnailUrl.get();
+  }
+
+  public void setLargeThumbnailUrl(URL largeThumbnailUrl) {
+    this.largeThumbnailUrl.set(largeThumbnailUrl);
+  }
+
+  public ObjectProperty<URL> largeThumbnailUrlProperty() {
+    return largeThumbnailUrl;
+  }
+
+  public URL getSmallThumbnailUrl() {
+    return smallThumbnailUrl.get();
+  }
+
+  public void setSmallThumbnailUrl(URL smallThumbnailUrl) {
+    this.smallThumbnailUrl.set(smallThumbnailUrl);
+  }
+
+  public ObjectProperty<URL> smallThumbnailUrlProperty() {
+    return smallThumbnailUrl;
+  }
+
   public static MapBean fromMap(com.faforever.client.api.Map map) {
     MapBean mapBeanInfoBean = new MapBean();
     mapBeanInfoBean.setDescription(map.getDescription());
@@ -172,6 +229,9 @@ public class MapBean implements Comparable<MapBean> {
     mapBeanInfoBean.setPlayers(map.getMaxPlayers());
     mapBeanInfoBean.setRating(map.getRating());
     mapBeanInfoBean.setVersion(new ComparableVersion(map.getVersion()));
+    mapBeanInfoBean.setDownloadUrl(map.getDownloadUrl());
+    mapBeanInfoBean.setSmallThumbnailUrl(map.getThumbnailUrlSmall());
+    mapBeanInfoBean.setLargeThumbnailUrl(map.getThumbnailUrlLarge());
     return mapBeanInfoBean;
   }
 }

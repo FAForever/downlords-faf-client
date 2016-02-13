@@ -1,7 +1,5 @@
 package com.faforever.client.map;
 
-import com.faforever.client.game.MapBean;
-import com.faforever.client.game.MapSize;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -71,7 +69,7 @@ public class MapBeanServiceImplTest {
 
   @Test
   public void testGetLocalMapsNoMaps() throws Exception {
-    assertThat(instance.getLocalMaps(), hasSize(0));
+    assertThat(instance.getInstalledMaps(), hasSize(0));
   }
 
   @Test
@@ -79,7 +77,7 @@ public class MapBeanServiceImplTest {
     Path scmp001 = Files.createDirectory(mapsDirectory.resolve("SCMP_001"));
     Files.copy(getClass().getResourceAsStream("/maps/SCMP_001/SCMP_001_scenario.lua"), scmp001.resolve("SCMP_001_scenario.lua"));
 
-    ObservableList<MapBean> localMapBeans = instance.getLocalMaps();
+    ObservableList<MapBean> localMapBeans = instance.getInstalledMaps();
     assertThat(localMapBeans, hasSize(1));
 
     MapBean mapBean = localMapBeans.get(0);

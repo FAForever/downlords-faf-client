@@ -1,4 +1,4 @@
-package com.faforever.client.mod;
+package com.faforever.client.map;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.io.Zipper;
@@ -21,24 +21,24 @@ import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.newOutputStream;
 
-public class UploadModTask extends AbstractPrioritizedTask<Void> {
+public class UploadMapTask extends AbstractPrioritizedTask<Void> {
 
   @Resource
   PreferencesService preferencesService;
   @Resource
   FafApiAccessor fafApiAccessor;
 
-  private Path modPath;
+  private Path mapPath;
   private Consumer<Float> progressListener;
   private CompletableFuture<Void> future;
 
-  public UploadModTask() {
+  public UploadMapTask() {
     super(Priority.HIGH);
   }
 
   @Override
   protected Void call() throws Exception {
-    Validator.notNull(modPath, "modPath must not be null");
+    Validator.notNull(mapPath, "mapPath must not be null");
     Validator.notNull(progressListener, "progressListener must not be null");
 
     ResourceLocks.acquireUploadLock();
@@ -47,9 +47,9 @@ public class UploadModTask extends AbstractPrioritizedTask<Void> {
       noCatch(() -> {
         Path cacheDirectory = preferencesService.getCacheDirectory();
         Files.createDirectories(cacheDirectory);
-        Path tmpFile = createTempFile(cacheDirectory, "mod", ".zip");
+        Path tmpFile = createTempFile(cacheDirectory, "map", ".zip");
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(new BufferedOutputStream(newOutputStream(tmpFile)))) {
-          Zipper.of(modPath)
+          Zipper.of(mapPath)
               .to(zipOutputStream)
               .listener((written, total) -> progressListener.accept((float) (written / total)))
               .zip();
@@ -57,7 +57,7 @@ public class UploadModTask extends AbstractPrioritizedTask<Void> {
 
         try (InputStream inputStream = new BufferedInputStream(Files.newInputStream(tmpFile))) {
           // FIXME fix file name
-          fafApiAccessor.uploadMod(inputStream, "");
+          fafApiAccessor.uploadMap(inputStream, tmpFile.toString());
         }
         Files.delete(tmpFile);
       });
@@ -68,8 +68,8 @@ public class UploadModTask extends AbstractPrioritizedTask<Void> {
     }
   }
 
-  public void setModPath(Path modPath) {
-    this.modPath = modPath;
+  public void setMapPath(Path mapPath) {
+    this.mapPath = mapPath;
   }
 
   public void setProgressListener(Consumer<Float> progressListener) {

@@ -56,7 +56,7 @@ public class ModVaultController {
   @FXML
   Pane popularModsPane;
   @FXML
-  Pane mostLikedMods;
+  Pane mostLikedModsPane;
   @FXML
   Pane modVaultRoot;
 
@@ -103,7 +103,7 @@ public class ModVaultController {
   private void displayShowroomMods() {
     enterLoadingState();
     modService.getMostDownloadedMods(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateMods(modInfoBeans, popularModsPane))
-        .thenCompose(aVoid -> modService.getMostLikedMods(TOP_ELEMENT_COUNT)).thenAccept(modInfoBeans -> populateMods(modInfoBeans, mostLikedMods))
+        .thenCompose(aVoid -> modService.getMostLikedMods(TOP_ELEMENT_COUNT)).thenAccept(modInfoBeans -> populateMods(modInfoBeans, mostLikedModsPane))
         .thenCompose(aVoid -> modService.getNewestMods(TOP_ELEMENT_COUNT)).thenAccept(modInfoBeans -> populateMods(modInfoBeans, newestModsPane))
         .thenCompose(aVoid -> modService.getMostLikedUiMods(TOP_ELEMENT_COUNT)).thenAccept(modInfoBeans -> populateMods(modInfoBeans, recommendedUiModsPane))
         .thenRun(this::enterShowroomState)

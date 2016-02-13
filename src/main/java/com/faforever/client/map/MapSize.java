@@ -1,4 +1,4 @@
-package com.faforever.client.game;
+package com.faforever.client.map;
 
 import org.jetbrains.annotations.NotNull;
 

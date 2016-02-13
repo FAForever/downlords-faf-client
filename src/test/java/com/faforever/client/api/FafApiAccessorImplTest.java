@@ -361,7 +361,8 @@ public class FafApiAccessorImplTest {
 
     InputStream inputStream = new ByteArrayInputStream(new byte[0]);
 
-    instance.uploadMod(inputStream);
+    // FIXME filename
+    instance.uploadMod(inputStream, "");
 
     verify(httpTransport).buildRequest("POST", "http://api.example.com/mods/upload");
   }

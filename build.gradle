@@ -275,4 +275,5 @@ dependencies {
   compile 'org.javassist:javassist:3.20.0-GA'
   compile 'io.sigpipe:jbsdiff:1.0'
   compile 'org.luaj:luaj-jse:3.0.1'
+  compile 'commons-validator:commons-validator:1.5.1'
 }

@@ -1,15 +1,7 @@
 package com.faforever.client.api;
 
-import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.api.Mod;
-import com.faforever.client.api.PlayerAchievement;
-import com.faforever.client.api.PlayerEvent;
-import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
-import com.faforever.client.game.MapInfoBean;
-import com.faforever.client.game.MapBean;
-import com.faforever.client.leaderboard.Ranked1v1EntryBean;
+import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 
 import java.io.InputStream;
@@ -80,7 +72,37 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public void uploadMod(InputStream inputStream) {
+  public List<MapBean> getMaps() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<MapBean> getMostDownloadedMaps(int count) {
+    return null;
+  }
+
+  @Override
+  public List<MapBean> getMostPlayedMaps(int count) {
+    return null;
+  }
+
+  @Override
+  public List<MapBean> getBestRatedMaps(int count) {
+    return null;
+  }
+
+  @Override
+  public List<MapBean> getNewestMaps(int count) {
+    return null;
+  }
+
+  @Override
+  public void uploadMod(InputStream inputStream, String fileName) {
+
+  }
+
+  @Override
+  public void uploadMap(InputStream inputStream, String fileName) {
 
   }
 }

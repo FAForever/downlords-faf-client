@@ -2,77 +2,97 @@ package com.faforever.client.api;
 
 import com.google.api.client.util.Key;
 
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import static com.github.nocatch.NoCatch.noCatch;
+
 public class Map {
 
-  @Key("map_type")
-  String mapType;
-  @Key("max_players")
-  int maxPlayers;
-  @Key
-  private String id;
+  @Key("author")
+  private String author;
   @Key("battle_type")
-  private String battletype;
-  @Key
+  private String battle_type;
+  @Key("create_time")
+  private String createTime;
+  @Key("description")
   private String description;
-  @Key
-  private int downloads;
-  @Key
-  private String filename;
   @Key("display_name")
   private String displayName;
-  @Key("technical_name")
-  private String technicalName;
+  @Key("download_url")
+  private String downloadUrl;
+  @Key("thumbnail_url_small")
+  private String thumbnailUrlSmall;
+  @Key("thumbnail_url_large")
+  private String thumbnailUrlLarge;
+  @Key("downloads")
+  private int downloads;
+  @Key("id")
+  private String id;
+  @Key("map_type")
+  private String mapType;
+  @Key("max_players")
+  private int maxPlayers;
   @Key("num_draws")
   private int numDraws;
-  @Key
+  @Key("rating")
   private float rating;
+  @Key("technical_name")
+  private String technicalName;
   @Key("times_played")
   private int timesPlayed;
-  @Key
+  @Key("version")
   private String version;
-  @Key("map_size_x")
+  @Key("size_x")
   private int sizeX;
-  @Key("map_size_y")
+  @Key("size_y")
   private int sizeY;
 
-  public int getSizeX() {
-    return sizeX;
+  public URL getThumbnailUrlSmall() {
+    if (thumbnailUrlSmall == null) {
+      return null;
+    }
+    return noCatch(() -> new URL(thumbnailUrlSmall));
   }
 
-  public void setSizeX(int sizeX) {
-    this.sizeX = sizeX;
+  public void setThumbnailUrlSmall(URL thumbnailUrlSmall) {
+    this.thumbnailUrlSmall = thumbnailUrlSmall.toString();
   }
 
-  public int getSizeY() {
-    return sizeY;
+  public URL getThumbnailUrlLarge() {
+    if (thumbnailUrlLarge == null) {
+      return null;
+    }
+    return noCatch(() -> new URL(thumbnailUrlLarge));
   }
 
-  public void setSizeY(int sizeY) {
-    this.sizeY = sizeY;
+  public void setThumbnailUrlLarge(URL thumbnailUrlLarge) {
+    this.thumbnailUrlLarge = thumbnailUrlLarge.toString();
   }
 
-  public String getTechnicalName() {
-    return technicalName;
+  public String getAuthor() {
+    return author;
   }
 
-  public void setTechnicalName(String technicalName) {
-    this.technicalName = technicalName;
+  public void setAuthor(String author) {
+    this.author = author;
   }
 
-  public String getId() {
-    return id;
+  public String getBattle_type() {
+    return battle_type;
   }
 
-  public void setId(String id) {
-    this.id = id;
+  public void setBattle_type(String battle_type) {
+    this.battle_type = battle_type;
   }
 
-  public String getBattletype() {
-    return battletype;
+  public LocalDateTime getCreateTime() {
+    return LocalDateTime.from(DateTimeFormatter.ISO_DATE_TIME.parse(createTime));
   }
 
-  public void setBattletype(String battletype) {
-    this.battletype = battletype;
+  public void setCreateTime(LocalDateTime createTime) {
+    this.createTime = DateTimeFormatter.ISO_DATE_TIME.format(createTime);
   }
 
   public String getDescription() {
@@ -83,6 +103,25 @@ public class Map {
     this.description = description;
   }
 
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
+
+  public URL getDownloadUrl() {
+    if (downloadUrl == null) {
+      return null;
+    }
+    return noCatch(() -> new URL(downloadUrl));
+  }
+
+  public void setDownloadUrl(URL downloadUrl) {
+    this.downloadUrl = downloadUrl.toString();
+  }
+
   public int getDownloads() {
     return downloads;
   }
@@ -91,12 +130,12 @@ public class Map {
     this.downloads = downloads;
   }
 
-  public String getFilename() {
-    return filename;
+  public String getId() {
+    return id;
   }
 
-  public void setFilename(String filename) {
-    this.filename = filename;
+  public void setId(String id) {
+    this.id = id;
   }
 
   public String getMapType() {
@@ -115,14 +154,6 @@ public class Map {
     this.maxPlayers = maxPlayers;
   }
 
-  public String getDisplayName() {
-    return displayName;
-  }
-
-  public void setDisplayName(String displayName) {
-    this.displayName = displayName;
-  }
-
   public int getNumDraws() {
     return numDraws;
   }
@@ -139,6 +170,14 @@ public class Map {
     this.rating = rating;
   }
 
+  public String getTechnicalName() {
+    return technicalName;
+  }
+
+  public void setTechnicalName(String technicalName) {
+    this.technicalName = technicalName;
+  }
+
   public int getTimesPlayed() {
     return timesPlayed;
   }
@@ -153,5 +192,21 @@ public class Map {
 
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  public int getSizeX() {
+    return sizeX;
+  }
+
+  public void setSizeX(int sizeX) {
+    this.sizeX = sizeX;
+  }
+
+  public int getSizeY() {
+    return sizeY;
+  }
+
+  public void setSizeY(int sizeY) {
+    this.sizeY = sizeY;
   }
 }

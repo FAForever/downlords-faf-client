@@ -10,19 +10,19 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapVaultRoot" xmlns="http://javafx.com/javafx/8.0.40"
-           fx:controller="com.faforever.client.mod.ModVaultController">
+<StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapVaultRoot" xmlns="http://javafx.com/javafx/8.0.60"
+           fx:controller="com.faforever.client.map.MapVaultController">
    <children>
       <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
          <content>
             <VBox fx:id="contentPane" alignment="TOP_CENTER">
                <children>
-                  <VBox maxHeight="1.7976931348623157E308" maxWidth="1470.0" spacing="5.0" styleClass="mod-vault"
+                  <VBox maxHeight="1.7976931348623157E308" maxWidth="1470.0" spacing="5.0" styleClass="map-vault"
                         VBox.vgrow="ALWAYS">
                      <children>
                         <HBox maxWidth="1.7976931348623157E308" spacing="10.0">
                            <children>
-                              <TextField fx:id="searchTextField" promptText="%modVault.searchPrompt"
+                              <TextField fx:id="searchTextField" promptText="%mapVault.searchPrompt"
                                          HBox.hgrow="ALWAYS"/>
                               <Button maxHeight="1.7976931348623157E308" mnemonicParsing="false"
                                       onAction="#onResetButtonClicked" styleClass="fontawesome" text="">
@@ -31,7 +31,7 @@
                                  </padding>
                               </Button>
                               <Button defaultButton="true" maxHeight="1.7976931348623157E308" mnemonicParsing="false"
-                                      onAction="#onSearchModButtonClicked" styleClass="fontawesome" text="">
+                                      onAction="#onSearchMapButtonClicked" styleClass="fontawesome" text="">
                                  <padding>
                                     <Insets left="20.0" right="20.0"/>
                                  </padding>
@@ -41,41 +41,35 @@
                               <Insets bottom="20.0" top="20.0"/>
                            </VBox.margin>
                         </HBox>
+                        <Button mnemonicParsing="false" onAction="#onUploadMapButtonClicked" text="%mapVault.upload"/>
                         <VBox fx:id="showroomGroup" spacing="5.0">
                            <children>
-                              <Label styleClass="h2" text="%modVault.recommendedUidMods">
+                              <Label styleClass="h2" text="%mapVault.recommendedMap">
                                  <VBox.margin>
                                     <Insets top="20.0"/>
                                  </VBox.margin>
                               </Label>
-                              <FlowPane fx:id="recommendedUiMapsPane" hgap="10.0" maxWidth="1.7976931348623157E308"
+                              <FlowPane fx:id="recommendedMapsPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                         prefWrapLength="1500.0" vgap="10.0"/>
-                              <Label styleClass="h2" text="%modVault.newestMods">
+                              <Label styleClass="h2" text="%mapVault.newestMaps">
                                  <VBox.margin>
                                     <Insets top="20.0"/>
                                  </VBox.margin>
                               </Label>
                               <FlowPane fx:id="newestMapsPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                         prefWrapLength="1500.0" vgap="10.0"/>
-                              <Label styleClass="h2" text="%modVault.popularMods">
+                              <Label styleClass="h2" text="%mapVault.popularMaps">
                                  <VBox.margin>
                                     <Insets top="20.0"/>
                                  </VBox.margin>
                               </Label>
                               <FlowPane fx:id="popularMapsPane" hgap="10.0" maxWidth="1.7976931348623157E308"
                                         prefWrapLength="1500.0" vgap="10.0"/>
-                              <Label styleClass="h2" text="%modVault.mostLikedMods">
-                                 <VBox.margin>
-                                    <Insets top="20.0"/>
-                                 </VBox.margin>
-                              </Label>
-                              <FlowPane fx:id="mostLikedMaps" hgap="10.0" maxWidth="1.7976931348623157E308"
-                                        prefWrapLength="1500.0" vgap="10.0"/>
                            </children>
                         </VBox>
                         <VBox fx:id="searchResultGroup" spacing="5.0">
                            <children>
-                              <Label styleClass="h1" text="%modVault.searchResult">
+                              <Label styleClass="h1" text="%mapVault.searchResult">
                                  <VBox.margin>
                                     <Insets top="20.0"/>
                                  </VBox.margin>
