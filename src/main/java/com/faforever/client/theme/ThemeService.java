@@ -3,6 +3,8 @@ package com.faforever.client.theme;
 import javafx.scene.Scene;
 import javafx.scene.web.WebView;
 
+import java.net.URL;
+
 public interface ThemeService {
 
   String UNKNOWN_MAP_IMAGE = "images/unknown_map.png";
@@ -17,6 +19,8 @@ public interface ThemeService {
   String CSS_CLASS_FONTAWESOME = "fontawesome";
 
   String getThemeFile(String relativeFile);
+
+  URL getThemeFileUrl(String relativeFile);
 
   void setTheme(Theme theme);
 

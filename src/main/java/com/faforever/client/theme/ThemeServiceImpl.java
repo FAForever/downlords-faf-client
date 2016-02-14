@@ -138,18 +138,18 @@ public class ThemeServiceImpl implements ThemeService {
     return Theme.fromProperties(properties);
   }
 
+  @PreDestroy
+  void preDestroy() {
+    IOUtils.closeQuietly(watchService);
+  }
+
   @Override
   public String getThemeFile(String relativeFile) {
     Path externalFile = getThemeDirectory(currentTheme.get()).resolve(relativeFile);
     if (Files.notExists(externalFile)) {
-      return DEFAULT_BASE_URL + relativeFile;
+      return noCatch(() -> new ClassPathResource(DEFAULT_BASE_URL + relativeFile).getURL().toString());
     }
     return noCatch(() -> externalFile.toUri().toURL().toString());
-  }
-
-  @PreDestroy
-  void preDestroy() {
-    IOUtils.closeQuietly(watchService);
   }
 
   private void stopWatchingTheme(Theme theme) {
@@ -160,18 +160,12 @@ public class ThemeServiceImpl implements ThemeService {
   }
 
   @Override
-  public void setTheme(Theme theme) {
-    stopWatchingTheme(theme);
-
-    if (theme == DEFAULT_THEME) {
-      preferencesService.getPreferences().setTheme(DEFAULT_THEME_NAME);
-    } else {
-      watchTheme(theme);
-      preferencesService.getPreferences().setTheme(getThemeDirectory(theme).getFileName().toString());
+  public URL getThemeFileUrl(String relativeFile) {
+    String themeFile = getThemeFile(relativeFile);
+    if (themeFile.startsWith("file:")) {
+      return noCatch(() -> new URL(themeFile));
     }
-    preferencesService.storeInBackground();
-    reloadStylesheet();
-    currentTheme.set(theme);
+    return noCatch(() -> new ClassPathResource(themeFile).getURL());
   }
 
   /**
@@ -196,6 +190,41 @@ public class ThemeServiceImpl implements ThemeService {
     reloadStylesheet();
   }
 
+  private void watchDirectory(Path directory, WatchService watchService) {
+    if (watchKeys.containsKey(directory)) {
+      return;
+    }
+    logger.debug("Watching directory: {}", directory.toAbsolutePath());
+    noCatch(() -> watchKeys.put(directory, directory.register(watchService, ENTRY_MODIFY, ENTRY_CREATE, ENTRY_DELETE)));
+  }
+
+  @Override
+  public void setTheme(Theme theme) {
+    stopWatchingTheme(theme);
+
+    if (theme == DEFAULT_THEME) {
+      preferencesService.getPreferences().setTheme(DEFAULT_THEME_NAME);
+    } else {
+      watchTheme(theme);
+      preferencesService.getPreferences().setTheme(getThemeDirectory(theme).getFileName().toString());
+    }
+    preferencesService.storeInBackground();
+    reloadStylesheet();
+    currentTheme.set(theme);
+  }
+
+  private void reloadStylesheet() {
+    String styleSheet = getSceneStyleSheet();
+
+    logger.debug("Changes detected, reloading stylesheet: {}", styleSheet);
+    scenes.forEach(scene -> setStyleSheet(scene, styleSheet));
+    webViews.forEach(webView -> setStyleSheet(webView, getWebViewStyleSheet()));
+  }
+
+  private void setStyleSheet(Scene scene, String styleSheet) {
+    Platform.runLater(() -> scene.getStylesheets().setAll(styleSheet));
+  }
+
   @Override
   public void registerScene(Scene scene) {
     scenes.add(scene);
@@ -207,21 +236,9 @@ public class ThemeServiceImpl implements ThemeService {
     scene.getStylesheets().setAll(getSceneStyleSheet());
   }
 
-  private void watchDirectory(Path directory, WatchService watchService) {
-    if (watchKeys.containsKey(directory)) {
-      return;
-    }
-    logger.debug("Watching directory: {}", directory.toAbsolutePath());
-    noCatch(() -> watchKeys.put(directory, directory.register(watchService, ENTRY_MODIFY, ENTRY_CREATE, ENTRY_DELETE)));
-  }
 
-  private void reloadStylesheet() {
-    String styleSheet = getSceneStyleSheet();
 
-    logger.debug("Changes detected, reloading stylesheet: {}", styleSheet);
-    scenes.forEach(scene -> setStyleSheet(scene, styleSheet));
-    webViews.forEach(webView -> setStyleSheet(webView, getWebViewStyleSheet()));
-  }
+
 
   @Override
   public void registerWebView(WebView webView) {
@@ -234,9 +251,6 @@ public class ThemeServiceImpl implements ThemeService {
     setStyleSheet(webView, getWebViewStyleSheet());
   }
 
-  private void setStyleSheet(Scene scene, String styleSheet) {
-    Platform.runLater(() -> scene.getStylesheets().setAll(styleSheet));
-  }
 
   @Override
   public void loadThemes() {
@@ -249,25 +263,17 @@ public class ThemeServiceImpl implements ThemeService {
     });
   }
 
-
   private Path getThemeDirectory(Theme theme) {
     return preferencesService.getThemesDirectory().resolve(folderNamesByTheme.get(theme));
   }
-
 
   private String getSceneStyleSheet() {
     return getThemeFile(STYLE_CSS);
   }
 
   private String getWebViewStyleSheet() {
-    String themeFile = getThemeFile(WEBVIEW_CSS_FILE);
-    if (themeFile.startsWith("file:")) {
-      return themeFile;
-    }
-
-    return noCatch(() -> new ClassPathResource(themeFile).getURL().toString());
+    return getThemeFileUrl(WEBVIEW_CSS_FILE).toString();
   }
-
 
   private void setStyleSheet(WebView webView, String styleSheetUrl) {
     // Always copy to a new file since WebView locks the loaded one

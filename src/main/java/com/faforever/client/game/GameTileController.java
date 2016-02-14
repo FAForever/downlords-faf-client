@@ -97,12 +97,12 @@ public class GameTileController {
     lockIconLabel.setVisible(gameInfoBean.getPasswordProtected());
 
     // TODO move tooltip Y position down 10 pixels
+    // TODO create on hover, not always
     GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);
     gameTooltipController.setGameInfoBean(gameInfoBean);
     Tooltip tooltip = new Tooltip();
     tooltip.setGraphic(gameTooltipController.getRoot());
     Tooltip.install(gameTileRoot, tooltip);
-
   }
 
   private void displaySimMods(ObservableMap<? extends String, ? extends String> simMods) {

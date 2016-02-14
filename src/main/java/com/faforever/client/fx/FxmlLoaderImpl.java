@@ -4,12 +4,10 @@ import com.faforever.client.theme.ThemeService;
 import javafx.fxml.FXMLLoader;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceResourceBundle;
-import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Locale;
 
 public class FxmlLoaderImpl implements FxmlLoader {
@@ -65,16 +63,12 @@ public class FxmlLoaderImpl implements FxmlLoader {
       FXMLLoader loader = this.threadLocalFXMLLoader.get();
       loader.setController(controller);
       loader.setRoot(root);
-      loader.setLocation(buildResourceUrl(file));
+      loader.setLocation(themeService.getThemeFileUrl(file));
       loader.setResources(resources);
       loader.load();
       return loader;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private URL buildResourceUrl(String file) throws IOException {
-    return new ClassPathResource(themeService.getThemeFile(file)).getURL();
   }
 }
