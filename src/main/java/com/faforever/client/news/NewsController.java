@@ -1,9 +1,9 @@
 package com.faforever.client.news;
 
-import com.faforever.client.ThemeService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.theme.ThemeService;
 import com.google.common.io.CharStreams;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -20,7 +20,7 @@ import java.util.List;
 
 public class NewsController {
 
-  private static final ClassPathResource NEWS_DETAIL_HTML_RESOURCE = new ClassPathResource("/themes/default/news_detail.html");
+  private static final ClassPathResource NEWS_DETAIL_HTML_RESOURCE = new ClassPathResource("/theme/news_detail.html");
 
   @FXML
   Pane newsRoot;
@@ -47,6 +47,7 @@ public class NewsController {
 
     newsDetailWebView.setContextMenuEnabled(false);
     JavaFxUtil.configureWebView(newsDetailWebView, preferencesService, themeService);
+    themeService.registerWebView(newsDetailWebView);
 
     boolean firstItemSelected = false;
 

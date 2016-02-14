@@ -15,7 +15,7 @@ public class AudioClipPlayerImplTest {
 
   @Test
   public void testPlaySound() throws Exception {
-    AudioClip audioClip = new AudioClip(AudioClipPlayerImpl.class.getResource("/themes/default/sounds/info.mp3").toURI().toURL().toString());
+    AudioClip audioClip = new AudioClip(AudioClipPlayerImpl.class.getResource("/theme/sounds/info.mp3").toURI().toURL().toString());
 
     // Not much to test here, since AudioClip is final. But let's at least call the method
     instance.playSound(audioClip);

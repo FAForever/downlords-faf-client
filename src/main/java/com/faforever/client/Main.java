@@ -32,15 +32,25 @@ public class Main extends Application {
     Font.loadFont(getClass().getResourceAsStream("/font/fontawesome-webfont.ttf"), 0);
     JavaFxUtil.fixTooltipDuration();
 
+    initApplicationContext(stage);
+    initStage(stage);
+    initMainWindow(stage);
+  }
+
+  private void initApplicationContext(Stage stage) {
     context.getBeanFactory().registerSingleton("hostService", new JavaFxHostService(getHostServices()));
     context.getBeanFactory().registerSingleton("stage", stage);
     context.register(BaseConfig.class, UiConfig.class, ServiceConfig.class, TaskConfig.class, CacheConfig.class, LuceneConfig.class);
     context.registerShutdownHook();
     context.refresh();
+  }
 
+  private void initStage(Stage stage) {
     stage.getIcons().add(new Image("/images/tray_icon.png"));
     stage.initStyle(StageStyle.TRANSPARENT);
+  }
 
+  private void initMainWindow(Stage stage) {
     MainController mainController = context.getBean(MainController.class);
     mainController.display();
   }

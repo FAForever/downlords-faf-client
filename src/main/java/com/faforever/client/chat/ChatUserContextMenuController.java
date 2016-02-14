@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.fx.StageConfigurator;
+import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -34,7 +34,7 @@ import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.faforever.client.chat.SocialStatus.SELF;
-import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
+import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 
 public class ChatUserContextMenuController {
 
@@ -83,8 +83,6 @@ public class ChatUserContextMenuController {
   PreferencesService preferencesService;
   @Resource
   ApplicationContext applicationContext;
-  @Resource
-  StageConfigurator stageConfigurator;
   @Resource
   PlayerService playerService;
   @Resource
@@ -165,7 +163,8 @@ public class ChatUserContextMenuController {
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(contextMenu.getOwnerWindow());
 
-    stageConfigurator.configureScene(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
+    WindowController windowController = applicationContext.getBean(WindowController.class);
+    windowController.configure(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
 
     userInfoWindow.show();
   }

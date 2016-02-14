@@ -1,8 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.fx.StageConfigurator;
-import com.faforever.client.fx.WindowDecorator;
+import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.map.MapDetailController;
@@ -49,6 +48,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+
+import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 
 public class GamesController {
 
@@ -100,8 +101,6 @@ public class GamesController {
   EnterPasswordController enterPasswordController;
   @Resource
   PreferencesService preferencesService;
-  @Resource
-  StageConfigurator stageConfigurator;
   @Resource
   NotificationService notificationService;
 
@@ -290,7 +289,8 @@ public class GamesController {
       notificationService.addNotification(new ImmediateNotification(title, message, Severity.WARN));
     } else {
       mapDetailController.createPreview(mapInfoBean);
-      stageConfigurator.configureScene(mapDetailPopup, mapDetailController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
+      WindowController windowController = applicationContext.getBean(WindowController.class);
+      windowController.configure(mapDetailPopup, mapDetailController.getRoot(), false, CLOSE);
       mapDetailPopup.centerOnScreen();
       mapDetailPopup.show();
     }

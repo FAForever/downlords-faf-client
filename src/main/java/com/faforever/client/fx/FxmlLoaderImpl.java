@@ -1,6 +1,6 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.ThemeService;
+import com.faforever.client.theme.ThemeService;
 import javafx.fxml.FXMLLoader;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.MessageSourceResourceBundle;

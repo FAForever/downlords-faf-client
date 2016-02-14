@@ -14,7 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static com.faforever.client.ThemeService.DEFAULT_ACHIEVEMENT_IMAGE;
+import static com.faforever.client.theme.ThemeService.DEFAULT_ACHIEVEMENT_IMAGE;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;

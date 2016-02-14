@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.ThemeService;
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.fx.JavaFxUtil;
@@ -14,6 +13,7 @@ import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.ThemeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.application.Platform;

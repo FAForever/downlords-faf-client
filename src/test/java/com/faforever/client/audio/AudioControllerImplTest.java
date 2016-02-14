@@ -1,12 +1,12 @@
 package com.faforever.client.audio;
 
-import com.faforever.client.ThemeService;
 import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.ThemeService;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.media.AudioClip;
 import javafx.stage.Stage;

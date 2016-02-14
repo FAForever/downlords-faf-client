@@ -6,8 +6,7 @@ import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.connectivity.ConnectivityState;
-import com.faforever.client.fx.StageConfigurator;
-import com.faforever.client.fx.WindowDecorator;
+import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.gravatar.GravatarService;
@@ -75,8 +74,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private LeaderboardController leaderboardController;
   @Mock
-  private StageConfigurator stageConfigurator;
-  @Mock
   private ConnectivityService connectivityService;
   @Mock
   private GameUpdateService gameUpdateService;
@@ -138,6 +135,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private ChatService chatService;
   @Mock
   private ExecutorService executorService;
+  @Mock
+  private WindowController windowController;
 
   private MainController instance;
   private CountDownLatch mainControllerInitializedLatch;
@@ -153,7 +152,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.i18n = i18n;
     instance.applicationContext = applicationContext;
     instance.playerService = playerService;
-    instance.stageConfigurator = stageConfigurator;
     instance.preferencesService = preferencesService;
     instance.connectivityService = connectivityService;
     instance.gameUpdateService = gameUpdateService;
@@ -180,6 +178,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.loginController = loginController;
     instance.chatService = chatService;
     instance.executorService = executorService;
+    instance.windowController = windowController;
 
     connectionStateProperty = new SimpleObjectProperty<>();
     connectivityStateProperty = new SimpleObjectProperty<>(ConnectivityState.UNKNOWN);
@@ -198,6 +197,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(taskService.getActiveTasks()).thenReturn(FXCollections.emptyObservableList());
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(applicationContext.getBean(UserInfoWindowController.class)).thenReturn(userInfoWindowController);
+    when(applicationContext.getBean(WindowController.class)).thenReturn(windowController);
     when(preferences.getMainWindow()).thenReturn(mainWindowPrefs);
     when(mainWindowPrefs.getLastChildViews()).thenReturn(FXCollections.observableHashMap());
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
@@ -383,8 +383,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(settingsController.getRoot()).thenReturn(root);
     WaitForAsyncUtils.waitForAsyncFx(1000, instance::onSettingsItemSelected);
 
-    verify(stageConfigurator).configureScene(
-        any(), eq(root), eq(true), eq(WindowDecorator.WindowButtonType.CLOSE)
+    verify(windowController).configure(
+        any(), eq(root), eq(true), eq(WindowController.WindowButtonType.CLOSE)
     );
   }
 

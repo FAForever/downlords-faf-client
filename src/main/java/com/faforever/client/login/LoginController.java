@@ -1,7 +1,5 @@
 package com.faforever.client.login;
 
-import com.faforever.client.fx.StageConfigurator;
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
@@ -14,17 +12,12 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 
-import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
-import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
-import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -50,42 +43,20 @@ public class LoginController {
   Pane loginRoot;
 
   @Resource
-  I18n i18n;
-  @Resource
   UserService userService;
   @Resource
   PreferencesService preferencesService;
-  @Resource
-  StageConfigurator stageConfigurator;
-  @Resource
-  Stage stage;
-  private boolean loggedOut;
+
+  private boolean autoLogin;
 
   @FXML
   private void initialize() {
     loginProgressPane.setVisible(false);
     loginErrorLabel.managedProperty().bind(loginErrorLabel.visibleProperty());
-  }
-
-  @PostConstruct
-  void postConstruct() {
-    userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
-      if (!newValue) {
-        onLoggedOut();
-      }
-    });
-  }
-
-  private void onLoggedOut() {
-    loggedOut = true;
-    display();
+    autoLogin = true;
   }
 
   public void display() {
-    stageConfigurator.configureScene(stage, loginRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
-
-    stage.setTitle(i18n.get("login.title"));
-    stage.setResizable(false);
     setShowLoginProgress(false);
 
     LoginPrefs loginPrefs = preferencesService.getPreferences().getLogin();
@@ -97,7 +68,8 @@ public class LoginController {
     usernameInput.setText(Strings.nullToEmpty(username));
     autoLoginCheckBox.setSelected(isAutoLogin);
 
-    if (loginPrefs.getAutoLogin() && !isNullOrEmpty(username) && !isNullOrEmpty(password) && !loggedOut) {
+    if (loginPrefs.getAutoLogin() && !isNullOrEmpty(username) && !isNullOrEmpty(password) && autoLogin) {
+      autoLogin = false;
       login(username, password, true);
     } else if (isNullOrEmpty(username)) {
       usernameInput.requestFocus();
@@ -143,16 +115,6 @@ public class LoginController {
     boolean autoLogin = autoLoginCheckBox.isSelected();
 
     login(username, password, autoLogin);
-  }
-
-  @FXML
-  void onCloseButtonClicked() {
-    stage.close();
-  }
-
-  @FXML
-  void onMinimizeButtonClicked() {
-    stage.setIconified(true);
   }
 
   @FXML

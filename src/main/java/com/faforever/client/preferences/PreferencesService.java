@@ -341,6 +341,10 @@ public class PreferencesService {
     return getFafDataDirectory().resolve("logs");
   }
 
+  public Path getThemesDirectory() {
+    return getFafDataDirectory().resolve("themes");
+  }
+
   public static void configureLogging() {
     // This method call causes the class to be initialized (static initializers) which in turn causes the logger to initialize.
   }

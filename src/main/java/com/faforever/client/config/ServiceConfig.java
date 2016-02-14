@@ -1,7 +1,5 @@
 package com.faforever.client.config;
 
-import com.faforever.client.ThemeService;
-import com.faforever.client.ThemeServiceImpl;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.achievements.AchievementServiceImpl;
 import com.faforever.client.api.FafApiAccessor;
@@ -77,6 +75,8 @@ import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.stats.StatisticsServiceImpl;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.task.TaskServiceImpl;
+import com.faforever.client.theme.ThemeService;
+import com.faforever.client.theme.ThemeServiceImpl;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.ClientUpdateServiceImpl;
 import com.faforever.client.update.MockClientUpdateService;

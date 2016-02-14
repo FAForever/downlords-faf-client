@@ -8,7 +8,7 @@
             onMouseClicked="#onMouseClicked" onMouseDragged="#onMouseDragged" onMouseExited="#onMouseExited"
             onMouseMoved="#onMouseMoved" onMousePressed="#onMousePressed" onMouseReleased="#onMouseReleased"
             styleClass="decorated-window" xmlns="http://javafx.com/javafx/8.0.40"
-            fx:controller="com.faforever.client.fx.WindowDecorator">
+            fx:controller="com.faforever.client.fx.WindowController">
   <children>
     <AnchorPane fx:id="contentPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                 AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>

@@ -1,6 +1,5 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.ThemeService;
 import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.PlayerAchievement;
@@ -12,6 +11,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.user.UserService;
 import com.google.common.base.Strings;
 import javafx.collections.FXCollections;

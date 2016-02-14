@@ -1,5 +1,6 @@
 package com.faforever.client.fx;
 
+import com.faforever.client.theme.ThemeService;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -7,6 +8,7 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -16,15 +18,16 @@ import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
+import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 
-import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
-import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
-import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
+import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
+import static com.faforever.client.fx.WindowController.WindowButtonType.MAXIMIZE_RESTORE;
+import static com.faforever.client.fx.WindowController.WindowButtonType.MINIMIZE;
 
-public class WindowDecorator {
+public class WindowController {
 
   public enum WindowButtonType {
     MINIMIZE,
@@ -38,29 +41,28 @@ public class WindowDecorator {
     SOUTH,
     WEST
   }
+
   public static final double RESIZE_BORDER_WIDTH = 7d;
   public static final String PROPERTY_WINDOW_DECORATOR = "windowDecorator";
   private static final PseudoClass MAXIMIZED_PSEUDO_STATE = PseudoClass.getPseudoClass("maximized");
+
   @FXML
   AnchorPane contentPane;
-
   @FXML
   Button minimizeButton;
-
   @FXML
   Button maximizeButton;
-
   @FXML
   Button restoreButton;
-
   @FXML
   Button closeButton;
-
   @FXML
   AnchorPane windowRoot;
-
   @FXML
   Pane windowButtons;
+
+  @Resource
+  ThemeService themeService;
 
   private Stage stage;
   private boolean resizable;
@@ -138,8 +140,16 @@ public class WindowDecorator {
   }
 
   public void configure(Stage stage, Region content, boolean resizable, WindowButtonType... buttons) {
+    if (this.stage != null || content.getScene() != null) {
+      throw new IllegalStateException("Already configured");
+    }
+
     this.stage = stage;
     this.resizable = resizable;
+
+    Scene scene = new Scene(windowRoot);
+    stage.setScene(scene);
+    themeService.registerScene(scene);
 
     // Configure these only once per stage
     if (!stage.getProperties().containsKey(PROPERTY_WINDOW_DECORATOR)) {
@@ -177,6 +187,10 @@ public class WindowDecorator {
       restore();
     }
 
+    setContent(content);
+  }
+
+  public void setContent(Region content) {
     contentPane.getChildren().setAll(content);
     AnchorPane.setTopAnchor(content, 0d);
     AnchorPane.setRightAnchor(content, 0d);
@@ -192,6 +206,7 @@ public class WindowDecorator {
     }
 
     windowRoot.requestLayout();
+
   }
 
   public Parent getWindowRoot() {
@@ -343,6 +358,6 @@ public class WindowDecorator {
   }
 
   public static void maximize(Stage stage) {
-    ((WindowDecorator) stage.getProperties().get(PROPERTY_WINDOW_DECORATOR)).maximize();
+    ((WindowController) stage.getProperties().get(PROPERTY_WINDOW_DECORATOR)).maximize();
   }
 }

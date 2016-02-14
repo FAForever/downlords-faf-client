@@ -24,8 +24,7 @@ import com.faforever.client.fx.DialogFactory;
 import com.faforever.client.fx.DialogFactoryImpl;
 import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.fx.FxmlLoaderImpl;
-import com.faforever.client.fx.StageConfigurator;
-import com.faforever.client.fx.StageConfiguratorImpl;
+import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
 import com.faforever.client.game.GameTileController;
@@ -82,11 +81,6 @@ public class UiConfig {
 
   @Resource
   BaseConfig baseConfig;
-
-  @Bean
-  StageConfigurator sceneFactory() {
-    return new StageConfiguratorImpl();
-  }
 
   @Bean
   DialogFactory dialogFactory() {
@@ -195,6 +189,12 @@ public class UiConfig {
   @Bean
   MostActivePlayersController mostActivePlayersController() {
     return loadController("most_active_players.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  WindowController windowController() {
+    return loadController("window.fxml");
   }
 
   @Bean

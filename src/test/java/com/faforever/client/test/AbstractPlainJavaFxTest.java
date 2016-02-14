@@ -64,7 +64,7 @@ public class AbstractPlainJavaFxTest extends ApplicationTest {
   }
 
   protected String getThemeFile(String file) {
-    return String.format("/themes/default/%s", file);
+    return String.format("/theme/%s", file);
   }
 
   private static void uncaughtException(Thread t, Throwable e) {

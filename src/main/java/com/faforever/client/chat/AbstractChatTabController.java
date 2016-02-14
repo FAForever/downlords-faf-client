@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.ThemeService;
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.HostService;
@@ -20,6 +19,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.IdenticonUtil;
@@ -85,12 +85,12 @@ public abstract class AbstractChatTabController {
   protected static final String CSS_CLASS_CHAT_ONLY = "chat_only";
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private static final org.springframework.core.io.Resource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
+  private static final org.springframework.core.io.Resource CHAT_HTML_RESOURCE = new ClassPathResource("/theme/chat_container.html");
   private static final org.springframework.core.io.Resource CHAT_JS_RESOURCE = new ClassPathResource("/js/chat_container.js");
   private static final org.springframework.core.io.Resource AUTOLINKER_JS_RESOURCE = new ClassPathResource("/js/Autolinker.min.js");
   private static final org.springframework.core.io.Resource JQUERY_JS_RESOURCE = new ClassPathResource("js/jquery-2.1.4.min.js");
   private static final org.springframework.core.io.Resource JQUERY_HIGHLIGHT_JS_RESOURCE = new ClassPathResource("js/jquery.highlight-5.closure.js");
-  private static final org.springframework.core.io.Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
+  private static final org.springframework.core.io.Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/theme/chat_message.html");
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
   /**
@@ -261,6 +261,7 @@ public abstract class AbstractChatTabController {
   private void initChatView() {
     WebView messagesWebView = getMessagesWebView();
     JavaFxUtil.configureWebView(messagesWebView, preferencesService, themeService);
+    themeService.registerWebView(messagesWebView);
 
     messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
     messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {

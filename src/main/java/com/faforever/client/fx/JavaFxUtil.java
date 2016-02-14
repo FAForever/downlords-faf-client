@@ -1,7 +1,7 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.ThemeService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.theme.ThemeService;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -30,9 +30,7 @@ import javafx.util.Duration;
 import javafx.util.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
@@ -42,8 +40,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
-import static com.faforever.client.ThemeService.WEBVIEW_CSS_FILE;
 
 /**
  * Utility class to fix some annoying JavaFX shortcomings.
@@ -235,11 +231,7 @@ public class JavaFxUtil {
 
     WebEngine engine = webView.getEngine();
     engine.setUserDataDirectory(preferencesService.getCacheDirectory().toFile());
-    try {
-      engine.setUserStyleSheetLocation(new ClassPathResource(themeService.getThemeFile(WEBVIEW_CSS_FILE)).getURL().toString());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    themeService.registerWebView(webView);
   }
 
   public static boolean isVisibleRecursively(Node node) {

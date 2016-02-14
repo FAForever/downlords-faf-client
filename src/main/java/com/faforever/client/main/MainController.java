@@ -5,8 +5,7 @@ import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.StageConfigurator;
-import com.faforever.client.fx.WindowDecorator;
+import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
@@ -69,7 +68,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Modality;
 import javafx.stage.Popup;
@@ -94,9 +92,9 @@ import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
-import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MAXIMIZE_RESTORE;
-import static com.faforever.client.fx.WindowDecorator.WindowButtonType.MINIMIZE;
+import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
+import static com.faforever.client.fx.WindowController.WindowButtonType.MAXIMIZE_RESTORE;
+import static com.faforever.client.fx.WindowController.WindowButtonType.MINIMIZE;
 
 public class MainController implements OnChoseGameDirectoryListener {
 
@@ -175,8 +173,6 @@ public class MainController implements OnChoseGameDirectoryListener {
   @Resource
   PreferencesService preferencesService;
   @Resource
-  StageConfigurator stageConfigurator;
-  @Resource
   ConnectivityService connectivityService;
   @Resource
   I18n i18n;
@@ -222,6 +218,8 @@ public class MainController implements OnChoseGameDirectoryListener {
   ChatService chatService;
   @Resource
   ExecutorService executorService;
+  @Resource
+  WindowController windowController;
 
   @Value("${mainWindowTitle}")
   String mainWindowTitle;
@@ -540,7 +538,8 @@ public class MainController implements OnChoseGameDirectoryListener {
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(mainRoot.getScene().getWindow());
 
-    stageConfigurator.configureScene(userInfoWindow, controller.getRoot(), true, CLOSE, MAXIMIZE_RESTORE);
+    WindowController windowController = applicationContext.getBean(WindowController.class);
+    windowController.configure(userInfoWindow, controller.getRoot(), true, CLOSE, MAXIMIZE_RESTORE);
 
     userInfoWindow.show();
   }
@@ -554,6 +553,7 @@ public class MainController implements OnChoseGameDirectoryListener {
   }
 
   public void display() {
+    windowController.configure(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
     stage.setWidth(mainWindowPrefs.getWidth());
     stage.setHeight(mainWindowPrefs.getHeight());
@@ -569,7 +569,7 @@ public class MainController implements OnChoseGameDirectoryListener {
       stage.setY(mainWindowPrefs.getY());
     }
     if (mainWindowPrefs.getMaximized()) {
-      WindowDecorator.maximize(stage);
+      WindowController.maximize(stage);
     }
     registerWindowListeners();
   }
@@ -597,8 +597,9 @@ public class MainController implements OnChoseGameDirectoryListener {
   }
 
   private void enterLoggedOutState() {
-    loginController.display();
     stage.setTitle(i18n.get("login.title"));
+    windowController.setContent(loginController.getRoot());
+    loginController.display();
   }
 
   private void registerWindowListeners() {
@@ -644,8 +645,8 @@ public class MainController implements OnChoseGameDirectoryListener {
   }
 
   private void enterLoggedInState() {
-    stageConfigurator.configureScene(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
     stage.setTitle(mainWindowTitle);
+    windowController.setContent(mainRoot);
 
     gameUpdateService.checkForUpdateInBackground();
     clientUpdateService.checkForUpdateInBackground();
@@ -712,8 +713,8 @@ public class MainController implements OnChoseGameDirectoryListener {
     Stage stage = new Stage(StageStyle.UNDECORATED);
     stage.initOwner(mainRoot.getScene().getWindow());
 
-    Region root = settingsController.getRoot();
-    stageConfigurator.configureScene(stage, root, true, CLOSE);
+    WindowController windowController = applicationContext.getBean(WindowController.class);
+    windowController.configure(stage, settingsController.getRoot(), true, CLOSE);
 
     stage.setTitle(i18n.get("settings.windowTitle"));
     stage.show();
