@@ -42,7 +42,7 @@ public class AudioControllerImplTest extends AbstractPlainJavaFxTest {
     when(preferences.getChat()).thenReturn(chatPrefs);
     when(preferences.getTheme()).thenReturn("default");
     when(instance.preferencesService.getPreferences()).thenReturn(preferences);
-    when(instance.themeService.getThemeFile(any())).thenReturn(getThemeFile(ThemeService.MENTION_SOUND));
+    when(instance.themeService.getThemeFileUrl(any())).thenReturn(getThemeFileUrl(ThemeService.MENTION_SOUND));
 
     instance.postConstruct();
 

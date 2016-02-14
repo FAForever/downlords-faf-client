@@ -94,10 +94,6 @@ public class TurnServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
     when(connectivityService.getExternalSocketAddress()).thenReturn(InetSocketAddress.createUnresolved("foo", 123));
     when(applicationContext.getBean(StunStack.class)).thenReturn(stunStack);
-
-    instance.postConstruct();
-
-    verify(fafService).addOnMessageListener(eq(CreatePermissionMessage.class), createPermissionListenerCaptor.capture());
   }
 
   @After
@@ -138,6 +134,8 @@ public class TurnServerAccessorImplTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getConnectionState(), is(ConnectionState.DISCONNECTED));
 
     instance.connect();
+
+    verify(fafService).addOnMessageListener(eq(CreatePermissionMessage.class), createPermissionListenerCaptor.capture());
 
     assertThat(instance.getConnectionState(), is(ConnectionState.CONNECTED));
   }

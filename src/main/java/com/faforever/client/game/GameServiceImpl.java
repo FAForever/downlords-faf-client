@@ -156,7 +156,7 @@ public class GameServiceImpl implements GameService {
       return CompletableFuture.completedFuture(null);
     }
 
-    logger.info("Joining game {} ({})", gameInfoBean.getTitle(), gameInfoBean.getUid());
+    logger.info("Joining game: {} ({})", gameInfoBean.getTitle(), gameInfoBean.getUid());
 
     stopSearchRanked1v1();
 

@@ -62,6 +62,7 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
     instance.executorService = executorService;
     instance.i18n = i18n;
     instance.fafService = fafService;
+    instance.connectivityCheckTimeout = 5000;
 
     instance.setDatagramGateway(datagramGateway);
 

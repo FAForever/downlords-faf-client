@@ -305,6 +305,7 @@ public class MainController implements OnChoseGameDirectoryListener {
   /**
    * Updates the progress in the Windows 7+ task bar, if available.
    */
+  @SuppressWarnings("unchecked")
   private void updateTaskbarProgress(@Nullable Double progress) {
     if (taskBarRelatedPointer == null) {
       return;

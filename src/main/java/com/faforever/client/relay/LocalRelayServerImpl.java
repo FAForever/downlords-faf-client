@@ -158,7 +158,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   }
 
   private void onPacketFromOutside(DatagramPacket packet) {
-    DatagramSocket proxySocket = createOrGetProxySocket(packet.getSocketAddress());
+    DatagramSocket proxySocket = createOrGetRelaySocket(packet.getSocketAddress());
     try {
       if (logger.isTraceEnabled()) {
         logger.trace("Forwarding {} bytes from peer {}' to FA: {}", packet.getLength(),
@@ -181,16 +181,16 @@ public class LocalRelayServerImpl implements LocalRelayServer {
    *
    * @return the UDP socket the peer has been bound to
    */
-  private DatagramSocket createOrGetProxySocket(SocketAddress originalSocketAddress) {
+  private DatagramSocket createOrGetRelaySocket(SocketAddress originalSocketAddress) {
     if (!proxySocketsByOriginalAddress.containsKey(originalSocketAddress)) {
       try {
-        DatagramSocket proxySocket = new DatagramSocket(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0));
-        logger.debug("Mapping peer {} to proxy socket {}", originalSocketAddress);
+        DatagramSocket relaySocket = new DatagramSocket(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0));
+        logger.debug("Mapping peer {} to relay socket {}", originalSocketAddress, relaySocket.getLocalSocketAddress());
 
-        proxySocket.connect(getGameSocketAddress());
-        proxySocketsByOriginalAddress.put(originalSocketAddress, proxySocket);
+        relaySocket.connect(getGameSocketAddress());
+        proxySocketsByOriginalAddress.put(originalSocketAddress, relaySocket);
 
-        readSocket(executorService, proxySocket, packet -> {
+        readSocket(executorService, relaySocket, packet -> {
           packet.setSocketAddress(originalSocketAddress);
           if (logger.isTraceEnabled()) {
             logger.trace("Forwarding {} bytes from FA to peer {}: {}", packet.getLength(),
@@ -349,21 +349,19 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   private void handleConnectToPeer(ConnectToPeerMessage connectToPeerMessage) {
     InetSocketAddress peerAddress = connectToPeerMessage.getPeerAddress();
 
-    DatagramSocket peerSocket = createOrGetProxySocket(peerAddress);
-    SocketAddress peerSocketAddress = peerSocket.getLocalSocketAddress();
-    connectToPeerMessage.setPeerAddress((InetSocketAddress) peerSocketAddress);
+    ConnectToPeerMessage clone = connectToPeerMessage.clone();
+    clone.setPeerAddress((InetSocketAddress) createOrGetRelaySocket(peerAddress).getLocalSocketAddress());
 
-    writeToFa(connectToPeerMessage);
+    writeToFa(clone);
   }
 
   private void handleJoinGame(JoinGameMessage joinGameMessage) {
     InetSocketAddress originalAddress = joinGameMessage.getPeerAddress();
     originalAddressByUid.put(joinGameMessage.getPeerUid(), originalAddress);
 
-    DatagramSocket proxySocket = createOrGetProxySocket(originalAddress);
-    SocketAddress peerSocketAddress = proxySocket.getLocalSocketAddress();
-    joinGameMessage.setPeerAddress((InetSocketAddress) peerSocketAddress);
+    JoinGameMessage clone = joinGameMessage.clone();
+    clone.setPeerAddress((InetSocketAddress) createOrGetRelaySocket(originalAddress).getLocalSocketAddress());
 
-    writeToFa(joinGameMessage);
+    writeToFa(clone);
   }
 }

@@ -41,7 +41,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -125,13 +124,6 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
     return (InetSocketAddress) localSocket.getLocalSocketAddress();
   }
 
-  @PostConstruct
-  void postConstruct() {
-    fafService.addOnMessageListener(CreatePermissionMessage.class, message -> addPeer(message.getAddress()));
-    fafService.addOnMessageListener(JoinGameMessage.class, message -> addPeer(message.getPeerAddress()));
-    fafService.addOnMessageListener(ConnectToPeerMessage.class, message -> addPeer(message.getPeerAddress()));
-  }
-
   /**
    * Permits a peer to send data and binds it to a channel.
    *
@@ -180,7 +172,7 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
     peerAddressToChannel.clear();
     channelToPeerAddress.clear();
 
-    if (localAddress != null) {
+    if (localAddress != null && stunStack != null) {
       stunStack.removeSocket(localAddress);
       stunStack.shutDown();
     }
@@ -239,8 +231,15 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
     if (connectionState.get() == ConnectionState.CONNECTED) {
       return;
     }
-
     stunStack = applicationContext.getBean(StunStack.class);
+
+    Consumer<CreatePermissionMessage> createPermissionMessageConsumer = message -> addPeer(message.getAddress());
+    Consumer<JoinGameMessage> joinGameMessageConsumer = message -> addPeer(message.getPeerAddress());
+    Consumer<ConnectToPeerMessage> connectToPeerMessageConsumer = message -> addPeer(message.getPeerAddress());
+
+    fafService.addOnMessageListener(CreatePermissionMessage.class, createPermissionMessageConsumer);
+    fafService.addOnMessageListener(JoinGameMessage.class, joinGameMessageConsumer);
+    fafService.addOnMessageListener(ConnectToPeerMessage.class, connectToPeerMessageConsumer);
 
     serverAddress = new TransportAddress(turnHost, turnPort, Transport.UDP);
     connectionState.set(ConnectionState.CONNECTING);
@@ -404,7 +403,7 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
       for (Map.Entry<TransportAddress, Character> entry : peerAddressToChannel.entrySet()) {
         bind(entry.getKey(), entry.getValue());
       }
-    }, interval, interval, TimeUnit.SECONDS);
+    }, interval, interval, TimeUnit.MILLISECONDS);
   }
 
   private void onIndication(StunMessageEvent event) {

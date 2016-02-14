@@ -177,7 +177,7 @@ public abstract class AbstractChatTabController {
 
   @PostConstruct
   void postConstruct() {
-    mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b", CASE_INSENSITIVE);
+    mentionPattern = Pattern.compile("\\b(" + Pattern.quote(userService.getUsername()) + ")\\b", CASE_INSENSITIVE);
 
     Platform.runLater(this::initChatView);
 

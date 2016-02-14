@@ -143,15 +143,6 @@ public class ThemeServiceImpl implements ThemeService {
     IOUtils.closeQuietly(watchService);
   }
 
-  @Override
-  public String getThemeFile(String relativeFile) {
-    Path externalFile = getThemeDirectory(currentTheme.get()).resolve(relativeFile);
-    if (Files.notExists(externalFile)) {
-      return noCatch(() -> new ClassPathResource(DEFAULT_BASE_URL + relativeFile).getURL().toString());
-    }
-    return noCatch(() -> externalFile.toUri().toURL().toString());
-  }
-
   private void stopWatchingTheme(Theme theme) {
     Path path = getThemeDirectory(theme);
     if (watchKeys.containsKey(path)) {
@@ -160,12 +151,12 @@ public class ThemeServiceImpl implements ThemeService {
   }
 
   @Override
-  public URL getThemeFileUrl(String relativeFile) {
-    String themeFile = getThemeFile(relativeFile);
-    if (themeFile.startsWith("file:")) {
-      return noCatch(() -> new URL(themeFile));
+  public String getThemeFile(String relativeFile) {
+    Path externalFile = getThemeDirectory(currentTheme.get()).resolve(relativeFile);
+    if (Files.notExists(externalFile)) {
+      return noCatch(() -> new ClassPathResource(DEFAULT_BASE_URL + relativeFile).getURL().toString());
     }
-    return noCatch(() -> new ClassPathResource(themeFile).getURL());
+    return noCatch(() -> externalFile.toUri().toURL().toString());
   }
 
   /**
@@ -190,12 +181,33 @@ public class ThemeServiceImpl implements ThemeService {
     reloadStylesheet();
   }
 
+  @Override
+  public URL getThemeFileUrl(String relativeFile) {
+    String themeFile = getThemeFile(relativeFile);
+    if (themeFile.startsWith("file:") || themeFile.startsWith("jar:")) {
+      return noCatch(() -> new URL(themeFile));
+    }
+    return noCatch(() -> new ClassPathResource(getThemeFile(relativeFile)).getURL());
+  }
+
   private void watchDirectory(Path directory, WatchService watchService) {
     if (watchKeys.containsKey(directory)) {
       return;
     }
     logger.debug("Watching directory: {}", directory.toAbsolutePath());
     noCatch(() -> watchKeys.put(directory, directory.register(watchService, ENTRY_MODIFY, ENTRY_CREATE, ENTRY_DELETE)));
+  }
+
+  private void reloadStylesheet() {
+    String styleSheet = getSceneStyleSheet();
+
+    logger.debug("Changes detected, reloading stylesheet: {}", styleSheet);
+    scenes.forEach(scene -> setStyleSheet(scene, styleSheet));
+    webViews.forEach(webView -> setStyleSheet(webView, getWebViewStyleSheet()));
+  }
+
+  private void setStyleSheet(Scene scene, String styleSheet) {
+    Platform.runLater(() -> scene.getStylesheets().setAll(styleSheet));
   }
 
   @Override
@@ -213,17 +225,6 @@ public class ThemeServiceImpl implements ThemeService {
     currentTheme.set(theme);
   }
 
-  private void reloadStylesheet() {
-    String styleSheet = getSceneStyleSheet();
-
-    logger.debug("Changes detected, reloading stylesheet: {}", styleSheet);
-    scenes.forEach(scene -> setStyleSheet(scene, styleSheet));
-    webViews.forEach(webView -> setStyleSheet(webView, getWebViewStyleSheet()));
-  }
-
-  private void setStyleSheet(Scene scene, String styleSheet) {
-    Platform.runLater(() -> scene.getStylesheets().setAll(styleSheet));
-  }
 
   @Override
   public void registerScene(Scene scene) {
@@ -250,7 +251,6 @@ public class ThemeServiceImpl implements ThemeService {
     });
     setStyleSheet(webView, getWebViewStyleSheet());
   }
-
 
   @Override
   public void loadThemes() {

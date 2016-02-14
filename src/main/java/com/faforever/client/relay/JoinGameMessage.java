@@ -5,7 +5,9 @@ import com.faforever.client.net.SocketAddressUtil;
 
 import java.net.InetSocketAddress;
 
-public class JoinGameMessage extends GpgServerMessage {
+import static com.github.nocatch.NoCatch.noCatch;
+
+public class JoinGameMessage extends GpgServerMessage implements Cloneable {
 
   private static final int PEER_ADDRESS_INDEX = 0;
   private static final int USERNAME_INDEX = 1;
@@ -16,12 +18,26 @@ public class JoinGameMessage extends GpgServerMessage {
     setTarget(MessageTarget.GAME);
   }
 
+  @Override
+  public JoinGameMessage clone() {
+    noCatch(() -> super.clone());
+    JoinGameMessage joinGameMessage = new JoinGameMessage();
+    joinGameMessage.setPeerAddress(getPeerAddress());
+    joinGameMessage.setUsername(getUsername());
+    joinGameMessage.setPeerUid(getPeerUid());
+    return joinGameMessage;
+  }
+
   public InetSocketAddress getPeerAddress() {
     return getSocketAddress(PEER_ADDRESS_INDEX);
   }
 
   public void setPeerAddress(InetSocketAddress peerAddress) {
     setValue(PEER_ADDRESS_INDEX, SocketAddressUtil.toString(peerAddress));
+  }
+
+  public String getUsername() {
+    return getString(USERNAME_INDEX);
   }
 
   public int getPeerUid() {

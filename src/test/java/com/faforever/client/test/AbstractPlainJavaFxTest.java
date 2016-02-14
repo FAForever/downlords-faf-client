@@ -9,13 +9,17 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.core.io.ClassPathResource;
 import org.testfx.framework.junit.ApplicationTest;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
+
+import static com.github.nocatch.NoCatch.noCatch;
 
 public class AbstractPlainJavaFxTest extends ApplicationTest {
 
@@ -65,6 +69,10 @@ public class AbstractPlainJavaFxTest extends ApplicationTest {
 
   protected String getThemeFile(String file) {
     return String.format("/theme/%s", file);
+  }
+
+  protected URL getThemeFileUrl(String file) {
+    return noCatch(() -> new ClassPathResource(getThemeFile(file)).getURL());
   }
 
   private static void uncaughtException(Thread t, Throwable e) {
