@@ -31,7 +31,7 @@ targetCompatibility = JavaVersion.VERSION_1_8
 version = '0.6.5-alpha'
 
 mainClassName = "com.faforever.client.Main"
-applicationDefaultJvmArgs = ["-Djava.library.path=../lib"]
+applicationDefaultJvmArgs = ["-Djava.library.path=build/native", "-javaagent:build/libs/webview-patch-agent.jar"]
 
 sonarqube {
   properties {
@@ -61,10 +61,24 @@ idea {
 
 jar {
   manifest {
-    attributes "Implementation-Title": "Downlord's FAF Client",
+    attributes "Premain-Class": "com.faforever.client.fx.TransparentWebViewPatch",
+        "Implementation-Title": "Downlord's FAF Client",
         "Implementation-Version": version,
         "Implementation-Vendor": "Downlord"
   }
+}
+
+task webviewPatcherJar(type: Jar) {
+  manifest {
+    attributes "Premain-Class": "com.faforever.client.fx.TransparentWebViewPatch"
+  }
+  archiveName = 'webview-patch-agent.jar'
+  from sourceSets.main.output
+  include 'com/faforever/client/fx/TransparentWebViewPatch.class'
+}
+
+applicationDistribution.from(webviewPatcherJar) {
+  into "lib"
 }
 
 task copyNativeLibs(type: Copy) {
@@ -147,4 +161,5 @@ dependencies {
   compile 'org.opentelecoms.ice:ice4j-fork:1.0+f.4'
   compile 'com.nativelibs4java:bridj:0.7.0'
   compile 'com.github.nocatch:nocatch:1.1'
+  compile 'org.javassist:javassist:3.20.0-GA'
 }

@@ -41,6 +41,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static com.github.nocatch.NoCatch.noCatch;
+
 /**
  * Utility class to fix some annoying JavaFX shortcomings.
  */
@@ -227,6 +229,18 @@ public class JavaFxUtil {
       if (event.isControlDown() && (event.getCode() == KeyCode.DIGIT0 || event.getCode() == KeyCode.NUMPAD0)) {
         webView.setZoom(1);
       }
+    });
+
+    // Transparent WebView workaround https://bugs.openjdk.java.net/browse/JDK-8090547
+    webView.getEngine().documentProperty().addListener((observable, oldValue, newValue) -> {
+      noCatch(() -> {
+        WebEngine webEngine = webView.getEngine();
+        Field field = webEngine.getClass().getDeclaredField("page");
+        field.setAccessible(true);
+        // Breaks portability :-(
+        com.sun.webkit.WebPage page = (com.sun.webkit.WebPage) field.get(webEngine);
+        page.setBackgroundColor(new java.awt.Color(0, 0, 0, 0).getRGB());
+      });
     });
 
     WebEngine engine = webView.getEngine();

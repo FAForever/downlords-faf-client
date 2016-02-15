@@ -60,14 +60,12 @@ public class ThemeServiceImpl implements ThemeService {
     }
   };
   private static final String DEFAULT_BASE_URL = "/theme/";
-
+  private final Set<Scene> scenes;
+  private final Set<WebView> webViews;
   @Resource
   PreferencesService preferencesService;
   @Resource
   Executor executor;
-
-  private Set<Scene> scenes;
-  private Set<WebView> webViews;
   private WatchService watchService;
   private ObservableMap<String, Theme> themesByFolderName;
   private Map<Theme, String> folderNamesByTheme;
@@ -150,15 +148,6 @@ public class ThemeServiceImpl implements ThemeService {
     }
   }
 
-  @Override
-  public String getThemeFile(String relativeFile) {
-    Path externalFile = getThemeDirectory(currentTheme.get()).resolve(relativeFile);
-    if (Files.notExists(externalFile)) {
-      return noCatch(() -> new ClassPathResource(DEFAULT_BASE_URL + relativeFile).getURL().toString());
-    }
-    return noCatch(() -> externalFile.toUri().toURL().toString());
-  }
-
   /**
    * Watches all contents in the specified theme for changes and reloads the theme if a change is detected.
    */
@@ -166,6 +155,15 @@ public class ThemeServiceImpl implements ThemeService {
     Path themePath = getThemeDirectory(theme);
     logger.debug("Watching theme directory for changes: {}", themePath.toAbsolutePath());
     noCatch(() -> Files.walkFileTree(themePath, new DirectoryVisitor(path -> watchDirectory(themePath, watchService))));
+  }
+
+  @Override
+  public String getThemeFile(String relativeFile) {
+    Path externalFile = getThemeDirectory(currentTheme.get()).resolve(relativeFile);
+    if (Files.notExists(externalFile)) {
+      return noCatch(() -> new ClassPathResource(DEFAULT_BASE_URL + relativeFile).getURL().toString());
+    }
+    return noCatch(() -> externalFile.toUri().toURL().toString());
   }
 
   private void onWatchEvent(WatchKey key) throws IOException {
@@ -179,15 +177,6 @@ public class ThemeServiceImpl implements ThemeService {
     }
 
     reloadStylesheet();
-  }
-
-  @Override
-  public URL getThemeFileUrl(String relativeFile) {
-    String themeFile = getThemeFile(relativeFile);
-    if (themeFile.startsWith("file:") || themeFile.startsWith("jar:")) {
-      return noCatch(() -> new URL(themeFile));
-    }
-    return noCatch(() -> new ClassPathResource(getThemeFile(relativeFile)).getURL());
   }
 
   private void watchDirectory(Path directory, WatchService watchService) {
@@ -206,9 +195,19 @@ public class ThemeServiceImpl implements ThemeService {
     webViews.forEach(webView -> setStyleSheet(webView, getWebViewStyleSheet()));
   }
 
+  @Override
+  public URL getThemeFileUrl(String relativeFile) {
+    String themeFile = getThemeFile(relativeFile);
+    if (themeFile.startsWith("file:") || themeFile.startsWith("jar:")) {
+      return noCatch(() -> new URL(themeFile));
+    }
+    return noCatch(() -> new ClassPathResource(getThemeFile(relativeFile)).getURL());
+  }
+
   private void setStyleSheet(Scene scene, String styleSheet) {
     Platform.runLater(() -> scene.getStylesheets().setAll(styleSheet));
   }
+
 
   @Override
   public void setTheme(Theme theme) {
@@ -229,26 +228,13 @@ public class ThemeServiceImpl implements ThemeService {
   @Override
   public void registerScene(Scene scene) {
     scenes.add(scene);
-    scenes.forEach(item -> {
-      if (item.getWindow() == null) {
-        scenes.remove(item);
-      }
-    });
     scene.getStylesheets().setAll(getSceneStyleSheet());
   }
-
-
-
 
 
   @Override
   public void registerWebView(WebView webView) {
     webViews.add(webView);
-    webViews.forEach(item -> {
-      if (webView.getScene() == null || webView.getScene().getWindow() == null) {
-        webViews.remove(item);
-      }
-    });
     setStyleSheet(webView, getWebViewStyleSheet());
   }
 

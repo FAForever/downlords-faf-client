@@ -8,7 +8,7 @@
      fx:controller="com.faforever.client.chat.PrivateChatTabController" xmlns="http://javafx.com/javafx/8.0.40">
   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
     <children>
-      <WebView fx:id="messagesWebView" blendMode="ADD" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0"
+      <WebView fx:id="messagesWebView" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0"
                prefWidth="-1.0" VBox.vgrow="ALWAYS"/>
       <TextField fx:id="messageTextField" onAction="#onSendMessage" onKeyPressed="#onKeyPressed"
                  promptText="%chat.messagePrompt"/>

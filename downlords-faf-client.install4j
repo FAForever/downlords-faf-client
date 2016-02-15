@@ -23,7 +23,9 @@
     </mountPoints>
     <entries>
       <dirEntry mountPoint="23" file="./build/install/downlords-faf-client" overwriteMode="1" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="true" overrideUninstallMode="true" entryMode="direct" subDirectory="downlords-faf-client" excludeSuffixes="" dirMode="755" overrideDirMode="false">
-        <exclude />
+        <exclude>
+          <entry location="bin" fileType="regular" />
+        </exclude>
       </dirEntry>
     </entries>
     <components />
@@ -39,7 +41,7 @@
           <versionLine x="370" y="273" text="v${compiler:sys.version}" fontSize="16" fontColor="255,255,255" bold="true" />
         </text>
       </splashScreen>
-      <java mainClass="com.faforever.client.Main" vmParameters="" arguments="" allowVMPassthroughParameters="true" preferredVM="client" bundleRuntime="true">
+      <java mainClass="com.faforever.client.Main" vmParameters="-javaagent:lib/webview-patch-agent.jar" arguments="" allowVMPassthroughParameters="true" preferredVM="client" bundleRuntime="true">
         <classPath>
           <scanDirectory location="lib" failOnError="false" />
         </classPath>
