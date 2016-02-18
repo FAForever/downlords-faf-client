@@ -26,10 +26,10 @@
           <children>
             <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
               <items>
-                <MenuItem onAction="#onSupportItemSelected" text="%menu.support"/>
+                <MenuItem disable="true" onAction="#onSupportItemSelected" text="%menu.support"/>
                 <MenuItem onAction="#onSettingsItemSelected" text="%menu.settings"/>
                 <SeparatorMenuItem mnemonicParsing="false"/>
-                <MenuItem text="%menu.feedback"/>
+                <MenuItem disable="true" text="%menu.feedback"/>
                 <SeparatorMenuItem mnemonicParsing="false"/>
                 <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
               </items>
@@ -131,9 +131,9 @@
             <Tooltip text="&lt;Tooltip text inserted by code&gt;"/>
           </tooltip>
           <items>
-            <MenuItem mnemonicParsing="false" onAction="#onPortCheckHelpClicked" text="%statusBar.help" disable="true"/>
-            <MenuItem mnemonicParsing="false" onAction="#onChangePortClicked" text="%statusBar.changePort"
-                      disable="true"/>
+            <MenuItem disable="true" mnemonicParsing="false" onAction="#onPortCheckHelpClicked" text="%statusBar.help"/>
+            <MenuItem disable="true" mnemonicParsing="false" onAction="#onChangePortClicked"
+                      text="%statusBar.changePort"/>
             <MenuItem mnemonicParsing="false" onAction="#onPortCheckRetryClicked" text="%statusBar.retry"/>
           </items>
           <graphic>

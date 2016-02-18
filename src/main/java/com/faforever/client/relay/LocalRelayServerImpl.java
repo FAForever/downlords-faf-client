@@ -4,13 +4,13 @@ import com.faforever.client.connectivity.DatagramGateway;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameType;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.user.UserService;
 import org.apache.commons.compress.utils.IOUtils;
@@ -93,7 +93,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     originalAddressByUid = new HashMap<>();
     onConnectionAcceptedListeners = new ArrayList<>();
     lobbyMode = LobbyMode.DEFAULT_LOBBY;
-    datagramPacketConsumer = this::onPacketFromOutside;
+    datagramPacketConsumer = this::onIncomingPacket;
   }
 
   @Override
@@ -157,15 +157,15 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     IOUtils.closeQuietly(gameSocket);
   }
 
-  private void onPacketFromOutside(DatagramPacket packet) {
-    DatagramSocket proxySocket = createOrGetRelaySocket(packet.getSocketAddress());
+  private void onIncomingPacket(DatagramPacket packet) {
+    DatagramSocket relaySocket = createOrGetRelaySocket(packet.getSocketAddress());
     try {
       if (logger.isTraceEnabled()) {
         logger.trace("Forwarding {} bytes from peer {}' to FA: {}", packet.getLength(),
-            proxySocket.getLocalSocketAddress(), new String(packet.getData(), 0, packet.getLength(), US_ASCII));
+            packet.getSocketAddress(), new String(packet.getData(), 0, packet.getLength(), US_ASCII));
       }
       packet.setSocketAddress(getGameSocketAddress());
-      proxySocket.send(packet);
+      relaySocket.send(packet);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

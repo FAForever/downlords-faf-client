@@ -1,11 +1,11 @@
 package com.faforever.client.connectivity;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.relay.ConnectivityStateMessage;
 import com.faforever.client.relay.GpgServerMessage;
 import com.faforever.client.relay.ProcessNatPacketMessage;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.MessageTarget;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.util.Assert;
 import org.slf4j.Logger;

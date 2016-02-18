@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.game.GameStatus;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.GameStatus;
 import com.faforever.client.util.RatingUtil;
 import com.google.api.client.repackaged.com.google.common.annotations.VisibleForTesting;
 import javafx.event.ActionEvent;
@@ -16,10 +16,10 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.Map;
 
-import static com.faforever.client.legacy.GameStatus.HOST;
-import static com.faforever.client.legacy.GameStatus.LOBBY;
-import static com.faforever.client.legacy.GameStatus.NONE;
-import static com.faforever.client.legacy.GameStatus.PLAYING;
+import static com.faforever.client.game.GameStatus.HOST;
+import static com.faforever.client.game.GameStatus.LOBBY;
+import static com.faforever.client.game.GameStatus.NONE;
+import static com.faforever.client.game.GameStatus.PLAYING;
 
 public class FilterUserController {
 

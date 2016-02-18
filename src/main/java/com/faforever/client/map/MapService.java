@@ -1,7 +1,6 @@
 package com.faforever.client.map;
 
 import com.faforever.client.game.MapInfoBean;
-import com.faforever.client.legacy.map.Comment;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 
@@ -31,5 +30,4 @@ public interface MapService {
 
   CompletableFuture<Void> download(String technicalMapName);
 
-  List<Comment> getComments(int mapId);
 }

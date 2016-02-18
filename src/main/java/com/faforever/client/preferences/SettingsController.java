@@ -2,6 +2,9 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.StringListCell;
+import com.faforever.client.theme.Theme;
+import com.faforever.client.theme.ThemeService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -40,7 +43,7 @@ public class SettingsController {
   @FXML
   ComboBox<String> languageComboBox;
   @FXML
-  ComboBox<String> themeComboBox;
+  ComboBox<Theme> themeComboBox;
   @FXML
   CheckBox rememberLastTabCheckBox;
   @FXML
@@ -82,6 +85,13 @@ public class SettingsController {
 
   @Resource
   PreferencesService preferencesService;
+  @Resource
+  ThemeService themeService;
+
+  void initialize() {
+    themeComboBox.setButtonCell(new StringListCell<>(Theme::getDisplayName));
+    themeComboBox.setCellFactory(param -> new StringListCell<>(Theme::getDisplayName));
+  }
 
   @PostConstruct
   void postConstruct() {
@@ -91,7 +101,10 @@ public class SettingsController {
     Preferences preferences = preferencesService.getPreferences();
 
     languageComboBox.setItems(FXCollections.singletonObservableList("English"));
-    themeComboBox.setItems(FXCollections.singletonObservableList("Default"));
+    languageComboBox.getSelectionModel().select(0);
+
+    themeComboBox.setItems(FXCollections.observableArrayList(themeService.getAvailableThemes()));
+    themeComboBox.getSelectionModel().select(0);
 
     rememberLastTabCheckBox.selectedProperty().bindBidirectional(preferences.rememberLastTabProperty());
     maxMessagesTextField.textProperty().bindBidirectional(preferences.getChat().maxMessagesProperty(), new NumberStringConverter(integerNumberFormat));
@@ -101,18 +114,10 @@ public class SettingsController {
     hideFoeCheckBox.selectedProperty().bindBidirectional(preferences.getChat().hideFoeMessagesProperty());
 
     preferences.getChat().chatColorModeProperty().addListener((observable, oldValue, newValue) -> {
-      switch (newValue) {
-        case DEFAULT:
-          colorModeToggleGroup.selectToggle(defaultColorsToggle);
-          break;
-        case CUSTOM:
-          colorModeToggleGroup.selectToggle(customColorsToggle);
-          break;
-        case RANDOM:
-          colorModeToggleGroup.selectToggle(randomColorsToggle);
-          break;
-      }
+      setSelectedColorMode(newValue);
     });
+    setSelectedColorMode(preferences.getChat().getChatColorMode());
+
     colorModeToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == defaultColorsToggle) {
         preferences.getChat().setChatColorMode(ChatColorMode.DEFAULT);
@@ -140,6 +145,20 @@ public class SettingsController {
     gamePortTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().portProperty(), new NumberStringConverter(integerNumberFormat));
     gameLocationTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().pathProperty(), JavaFxUtil.PATH_STRING_CONVERTER);
     autoDownloadMapsCheckBox.selectedProperty().bindBidirectional(preferences.getForgedAlliance().autoDownloadMapsProperty());
+  }
+
+  private void setSelectedColorMode(ChatColorMode newValue) {
+    switch (newValue) {
+      case DEFAULT:
+        colorModeToggleGroup.selectToggle(defaultColorsToggle);
+        break;
+      case CUSTOM:
+        colorModeToggleGroup.selectToggle(customColorsToggle);
+        break;
+      case RANDOM:
+        colorModeToggleGroup.selectToggle(randomColorsToggle);
+        break;
+    }
   }
 
   public Region getRoot() {

@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.VictoryCondition;
+import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.VictoryCondition;
 import javafx.collections.FXCollections;
 
 public class GameInfoBeanBuilder {

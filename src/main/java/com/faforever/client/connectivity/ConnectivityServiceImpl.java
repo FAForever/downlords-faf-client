@@ -161,7 +161,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
 
   private void handleNatPacket(DatagramPacket packet) {
     if (logger.isTraceEnabled()) {
-      logger.trace("Processing NAT package: {}", new String(packet.getData(), 0, packet.getLength(), US_ASCII));
+      logger.trace("Processing NAT package from {}: {}", packet.getSocketAddress(), new String(packet.getData(), 0, packet.getLength(), US_ASCII));
     }
 
     String message = new String(packet.getData(), 1, packet.getLength() - 1);
@@ -171,7 +171,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
 
   private void handleGameData(DatagramPacket packet) {
     if (logger.isTraceEnabled()) {
-      logger.trace("Game data from outside: {}", new String(packet.getData(), 0, packet.getLength(), US_ASCII));
+      logger.trace("Incoming game data: {}", new String(packet.getData(), 0, packet.getLength(), US_ASCII));
     }
 
     onPacketListeners.forEach(listener -> listener.accept(packet));

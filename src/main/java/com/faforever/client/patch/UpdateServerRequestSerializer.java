@@ -1,7 +1,7 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.legacy.io.QDataWriter;
 import com.faforever.client.patch.domain.UpdateServerRequest;
+import com.faforever.client.remote.io.QDataWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.serializer.Serializer;

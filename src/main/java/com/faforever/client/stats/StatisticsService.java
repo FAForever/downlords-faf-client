@@ -1,6 +1,6 @@
 package com.faforever.client.stats;
 
-import com.faforever.client.legacy.domain.StatisticsType;
+import com.faforever.client.remote.domain.StatisticsType;
 
 import java.util.concurrent.CompletableFuture;
 

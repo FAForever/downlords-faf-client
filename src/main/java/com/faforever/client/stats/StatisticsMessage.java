@@ -1,8 +1,8 @@
 package com.faforever.client.stats;
 
-import com.faforever.client.legacy.domain.FafServerMessage;
-import com.faforever.client.legacy.domain.FafServerMessageType;
-import com.faforever.client.legacy.domain.StatisticsType;
+import com.faforever.client.remote.domain.FafServerMessage;
+import com.faforever.client.remote.domain.FafServerMessageType;
+import com.faforever.client.remote.domain.StatisticsType;
 
 public class StatisticsMessage extends FafServerMessage {
 

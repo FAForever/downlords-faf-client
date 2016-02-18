@@ -48,7 +48,6 @@ import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
 import com.faforever.client.main.UserMenuController;
-import com.faforever.client.map.CommentCardController;
 import com.faforever.client.map.MapDetailController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModDetailController;
@@ -213,12 +212,6 @@ public class UiConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   GameStatusTooltipController gameStatusContainerTooltipController() {
     return loadController("game_status_tooltip.fxml");
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  CommentCardController commentCardController() {
-    return loadController("comment_card.fxml");
   }
 
   @Bean

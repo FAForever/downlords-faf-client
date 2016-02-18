@@ -1,11 +1,11 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.legacy.AbstractServerAccessor;
-import com.faforever.client.legacy.ClientMessageSerializer;
-import com.faforever.client.legacy.StringSerializer;
-import com.faforever.client.legacy.domain.ClientMessage;
-import com.faforever.client.legacy.domain.ServerCommand;
-import com.faforever.client.legacy.writer.ServerWriter;
+import com.faforever.client.remote.AbstractServerAccessor;
+import com.faforever.client.remote.ClientMessageSerializer;
+import com.faforever.client.remote.ServerWriter;
+import com.faforever.client.remote.StringSerializer;
+import com.faforever.client.remote.domain.ClientMessage;
+import com.faforever.client.remote.domain.ServerCommand;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

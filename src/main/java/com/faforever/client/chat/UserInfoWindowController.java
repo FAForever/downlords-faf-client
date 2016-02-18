@@ -7,8 +7,8 @@ import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.api.PlayerEvent;
 import com.faforever.client.events.EventService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.domain.StatisticsType;
 import com.faforever.client.stats.PlayerStatisticsMessage;
 import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.stats.StatisticsService;
@@ -16,6 +16,7 @@ import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -78,6 +79,10 @@ public class UserInfoWindowController {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
+  Label lockedAchievementsHeaderLabel;
+  @FXML
+  Label unlockedAchievementsHeaderLabel;
+  @FXML
   PieChart gamesPlayedChart;
   @FXML
   PieChart techBuiltChart;
@@ -103,10 +108,6 @@ public class UserInfoWindowController {
   Pane lockedAchievementsHeader;
   @FXML
   ScrollPane achievementsPane;
-  @FXML
-  Label unlockedOfTotalLabel;
-  @FXML
-  Label pointsOfTotalLabel;
   @FXML
   ImageView mostRecentAchievementImageView;
   @FXML
@@ -184,6 +185,13 @@ public class UserInfoWindowController {
     lockedAchievementsContainer.managedProperty().bind(lockedAchievementsContainer.visibleProperty());
     lockedAchievementsContainer.visibleProperty().bind(Bindings.createBooleanBinding(
         () -> !lockedAchievementsContainer.getChildren().isEmpty(), lockedAchievementsContainer.getChildren()));
+
+    lockedAchievementsContainer.getChildren().addListener((InvalidationListener) observable ->
+        lockedAchievementsHeaderLabel.setText(i18n.get("achievements.locked", lockedAchievementsContainer.getChildren().size()))
+    );
+    unlockedAchievementsContainer.getChildren().addListener((InvalidationListener) observable ->
+        unlockedAchievementsHeaderLabel.setText(i18n.get("achievements.unlocked", unlockedAchievementsContainer.getChildren().size()))
+    );
 
     rating90DaysXAxis.setTickLabelFormatter(new StringConverter<Number>() {
       @Override
@@ -372,20 +380,6 @@ public class UserInfoWindowController {
         mostRecentAchievementImageView.setImage(achievementService.getRevealedIcon(mostRecentAchievement));
       });
     }
-
-    int totalExperiencePoints = 0;
-    for (AchievementDefinition definition : achievementDefinitionById.values()) {
-      totalExperiencePoints += definition.getExperiencePoints();
-    }
-
-    final int finalUnlockedAchievements = unlockedAchievements;
-    final int finalTotalExperiencePoints = totalExperiencePoints;
-    Platform.runLater(() -> {
-      unlockedOfTotalLabel.setText(i18n.get("achievements.unlockedOfTotal",
-          finalUnlockedAchievements, achievementDefinitionById.size()));
-      pointsOfTotalLabel.setText(i18n.get("achievements.earnedOfTotal",
-          earnedExperiencePoints, finalTotalExperiencePoints));
-    });
   }
 
   private void enterAchievementsLoadedState() {

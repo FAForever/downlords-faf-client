@@ -140,7 +140,7 @@ public class WindowController {
   }
 
   public void configure(Stage stage, Region content, boolean resizable, WindowButtonType... buttons) {
-    if (this.stage != null || content.getScene() != null) {
+    if (this.stage != null) {
       throw new IllegalStateException("Already configured");
     }
 

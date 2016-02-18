@@ -1,9 +1,9 @@
 package com.faforever.client.relay;
 
-import com.faforever.client.legacy.domain.MessageTarget;
-import com.faforever.client.legacy.domain.SerializableMessage;
-import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.net.SocketAddressUtil;
+import com.faforever.client.remote.domain.MessageTarget;
+import com.faforever.client.remote.domain.SerializableMessage;
+import com.faforever.client.remote.domain.ServerMessage;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.net.InetSocketAddress;

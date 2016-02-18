@@ -78,7 +78,7 @@
                               </toggleGroup>
                             </RadioButton>
                             <RadioButton fx:id="customColorsToggle" mnemonicParsing="false"
-                                         text="%settings.chat.colorMode.custom"/>
+                                         text="%settings.chat.colorMode.custom" toggleGroup="$colorModeToggleGroup"/>
                             <RadioButton fx:id="randomColorsToggle" mnemonicParsing="false"
                                          text="%settings.chat.colorMode.random" toggleGroup="$colorModeToggleGroup"/>
                           </children>

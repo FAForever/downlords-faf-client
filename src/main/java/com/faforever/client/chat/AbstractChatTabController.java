@@ -72,6 +72,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.chat.SocialStatus.FRIEND;
+import static com.faforever.client.chat.SocialStatus.SELF;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
@@ -667,6 +669,8 @@ public abstract class AbstractChatTabController {
 
     if (chatPrefs.getHideFoeMessages() && player != null && player.getSocialStatus() == FOE) {
       display = "display: none;";
+    } else if (player != null && (player.getSocialStatus() == SELF || player.getSocialStatus() == FRIEND)) {
+      return "";
     } else {
       switch (chatPrefs.getChatColorMode()) {
         case CUSTOM:

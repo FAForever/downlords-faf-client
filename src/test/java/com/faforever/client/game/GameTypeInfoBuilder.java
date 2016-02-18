@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.domain.GameTypeMessage;
+import com.faforever.client.remote.domain.GameTypeMessage;
 
 public class GameTypeInfoBuilder {
 

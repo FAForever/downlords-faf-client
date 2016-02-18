@@ -4,9 +4,9 @@ import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
+import com.faforever.client.game.GameStatus;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.GameStatus;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
@@ -47,8 +47,6 @@ public class ChatUserControl extends HBox {
 
 
   private static final String CLAN_TAG_FORMAT = "[%s]";
-  // TODO @Aulex I thought this changed, please review and clean up if necessary
-  private static final String CSS_CLASS_SELF = "self";
 
   @FXML
   ImageView countryImageView;
@@ -136,8 +134,8 @@ public class ChatUserControl extends HBox {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
     if (playerInfoBean.getSocialStatus() == SELF) {
-      usernameLabel.getStyleClass().add(CSS_CLASS_SELF);
-      clanLabel.getStyleClass().add(CSS_CLASS_SELF);
+      usernameLabel.getStyleClass().add(SELF.getCssClass());
+      clanLabel.getStyleClass().add(SELF.getCssClass());
       return;
     }
 

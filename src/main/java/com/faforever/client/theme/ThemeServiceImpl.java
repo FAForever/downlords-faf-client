@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -157,15 +158,6 @@ public class ThemeServiceImpl implements ThemeService {
     noCatch(() -> Files.walkFileTree(themePath, new DirectoryVisitor(path -> watchDirectory(themePath, watchService))));
   }
 
-  @Override
-  public String getThemeFile(String relativeFile) {
-    Path externalFile = getThemeDirectory(currentTheme.get()).resolve(relativeFile);
-    if (Files.notExists(externalFile)) {
-      return noCatch(() -> new ClassPathResource(DEFAULT_BASE_URL + relativeFile).getURL().toString());
-    }
-    return noCatch(() -> externalFile.toUri().toURL().toString());
-  }
-
   private void onWatchEvent(WatchKey key) throws IOException {
     for (WatchEvent<?> watchEvent : key.pollEvents()) {
       Path path = (Path) watchEvent.context();
@@ -177,6 +169,15 @@ public class ThemeServiceImpl implements ThemeService {
     }
 
     reloadStylesheet();
+  }
+
+  @Override
+  public String getThemeFile(String relativeFile) {
+    Path externalFile = getThemeDirectory(currentTheme.get()).resolve(relativeFile);
+    if (Files.notExists(externalFile)) {
+      return noCatch(() -> new ClassPathResource(DEFAULT_BASE_URL + relativeFile).getURL().toString());
+    }
+    return noCatch(() -> externalFile.toUri().toURL().toString());
   }
 
   private void watchDirectory(Path directory, WatchService watchService) {
@@ -195,6 +196,10 @@ public class ThemeServiceImpl implements ThemeService {
     webViews.forEach(webView -> setStyleSheet(webView, getWebViewStyleSheet()));
   }
 
+  private void setStyleSheet(Scene scene, String styleSheet) {
+    Platform.runLater(() -> scene.getStylesheets().setAll(styleSheet));
+  }
+
   @Override
   public URL getThemeFileUrl(String relativeFile) {
     String themeFile = getThemeFile(relativeFile);
@@ -204,9 +209,7 @@ public class ThemeServiceImpl implements ThemeService {
     return noCatch(() -> new ClassPathResource(getThemeFile(relativeFile)).getURL());
   }
 
-  private void setStyleSheet(Scene scene, String styleSheet) {
-    Platform.runLater(() -> scene.getStylesheets().setAll(styleSheet));
-  }
+
 
 
   @Override
@@ -247,6 +250,11 @@ public class ThemeServiceImpl implements ThemeService {
         directoryStream.forEach(this::addThemeDirectory);
       }
     });
+  }
+
+  @Override
+  public Collection<Theme> getAvailableThemes() {
+    return themesByFolderName.values();
   }
 
   private Path getThemeDirectory(Theme theme) {

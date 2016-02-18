@@ -4,6 +4,7 @@ import javafx.scene.Scene;
 import javafx.scene.web.WebView;
 
 import java.net.URL;
+import java.util.Collection;
 
 public interface ThemeService {
 
@@ -37,4 +38,6 @@ public interface ThemeService {
   void registerWebView(WebView webView);
 
   void loadThemes();
+
+  Collection<Theme> getAvailableThemes();
 }

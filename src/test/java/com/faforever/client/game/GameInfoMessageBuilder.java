@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.domain.GameInfoMessage;
-import com.faforever.client.legacy.domain.GameState;
+import com.faforever.client.remote.domain.GameInfoMessage;
+import com.faforever.client.remote.domain.GameState;
 
 public class GameInfoMessageBuilder {
 

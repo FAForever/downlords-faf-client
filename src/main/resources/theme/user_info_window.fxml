@@ -15,7 +15,12 @@
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="userInfoRoot" minHeight="256.0" minWidth="256.0" prefHeight="700.0"
           prefWidth="900.0" xmlns="http://javafx.com/javafx/8.0.40"
@@ -50,11 +55,12 @@
       <tabs>
         <Tab text="%userInfo.general">
           <content>
-            <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+            <ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308"
+                        maxWidth="1.7976931348623157E308">
               <content>
-                <VBox spacing="10.0">
+                <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
                   <children>
-                    <GridPane hgap="10.0" vgap="10.0">
+                    <GridPane hgap="10.0" vgap="10.0" VBox.vgrow="ALWAYS">
                       <columnConstraints>
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
@@ -62,7 +68,7 @@
                       </columnConstraints>
                       <rowConstraints>
                         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
                       </rowConstraints>
                       <children>
                         <GridPane prefWidth="250.0" styleClass="tile">
@@ -125,7 +131,7 @@
                               </children>
                             </HBox>
                             <LineChart fx:id="rating90DaysChart" createSymbols="false" legendVisible="false"
-                                       maxHeight="300.0">
+                                       prefHeight="300.0" VBox.vgrow="ALWAYS">
                               <xAxis>
                                 <NumberAxis fx:id="rating90DaysXAxis" autoRanging="true" forceZeroInRange="false"
                                             side="BOTTOM"/>
@@ -158,12 +164,20 @@
           <content>
             <ScrollPane fitToWidth="true">
               <content>
-                <FlowPane alignment="CENTER" hgap="10.0" maxWidth="1.7976931348623157E308" vgap="10.0">
+                <GridPane hgap="10.0" vgap="10.0">
+                  <columnConstraints>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                  </columnConstraints>
+                  <rowConstraints>
+                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                  </rowConstraints>
                   <children>
-                    <Pane maxWidth="1.7976931348623157E308" styleClass="tile">
+                    <VBox styleClass="tile">
                       <children>
-                        <StackedBarChart fx:id="factionsChart" maxWidth="395.0" prefHeight="300.0"
-                                         title="%userInfo.winLossPerFaction">
+                        <StackedBarChart fx:id="factionsChart" maxHeight="1.7976931348623157E308"
+                                         maxWidth="1.7976931348623157E308" title="%userInfo.winLossPerFaction">
                           <xAxis>
                             <CategoryAxis fx:id="factionsCategoryAxis" side="BOTTOM"/>
                           </xAxis>
@@ -172,30 +186,27 @@
                           </yAxis>
                         </StackedBarChart>
                       </children>
-                    </Pane>
-                    <Pane maxWidth="1.7976931348623157E308" styleClass="tile">
+                    </VBox>
+                    <VBox styleClass="tile" GridPane.columnIndex="1">
                       <children>
-                        <PieChart fx:id="unitsBuiltChart" maxWidth="395.0" prefHeight="300.0"
-                                  title="%userInfo.builtByCategory"/>
+                        <PieChart fx:id="unitsBuiltChart" maxHeight="1.7976931348623157E308"
+                                  maxWidth="1.7976931348623157E308" title="%userInfo.builtByCategory"/>
                       </children>
-                    </Pane>
-                    <Pane layoutX="459.0" layoutY="20.0" maxWidth="1.7976931348623157E308" styleClass="tile">
+                    </VBox>
+                    <VBox styleClass="tile" GridPane.rowIndex="1">
                       <children>
-                        <PieChart fx:id="techBuiltChart" maxWidth="395.0" prefHeight="300.0"
-                                  title="%userInfo.builtByTech"/>
+                        <PieChart fx:id="techBuiltChart" maxHeight="1.7976931348623157E308"
+                                  maxWidth="1.7976931348623157E308" title="%userInfo.builtByTech"/>
                       </children>
-                    </Pane>
-                    <Pane layoutX="20.0" layoutY="352.0" maxWidth="1.7976931348623157E308" styleClass="tile">
+                    </VBox>
+                    <VBox styleClass="tile" GridPane.columnIndex="1" GridPane.rowIndex="1">
                       <children>
-                        <PieChart fx:id="gamesPlayedChart" maxWidth="395.0" prefHeight="300.0"
-                                  title="%userInfo.gamesPlayed"/>
+                        <PieChart fx:id="gamesPlayedChart" maxHeight="1.7976931348623157E308"
+                                  maxWidth="1.7976931348623157E308" title="%userInfo.gamesPlayed"/>
                       </children>
-                    </Pane>
+                    </VBox>
                   </children>
-                  <padding>
-                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-                  </padding>
-                </FlowPane>
+                </GridPane>
               </content>
             </ScrollPane>
           </content>
@@ -219,27 +230,6 @@
                   <content>
                     <VBox alignment="TOP_CENTER" maxWidth="1.7976931348623157E308" spacing="10.0">
                       <children>
-                        <GridPane VBox.vgrow="NEVER">
-                          <columnConstraints>
-                            <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
-                            <ColumnConstraints hgrow="SOMETIMES"/>
-                            <ColumnConstraints hgrow="NEVER"/>
-                            <ColumnConstraints hgrow="SOMETIMES"/>
-                            <ColumnConstraints hgrow="SOMETIMES"/>
-                          </columnConstraints>
-                          <rowConstraints>
-                            <RowConstraints prefHeight="30.0" vgrow="SOMETIMES"/>
-                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                          </rowConstraints>
-                          <children>
-                            <Label fx:id="unlockedOfTotalLabel" styleClass="h1" text="0/0" GridPane.columnIndex="1"/>
-                            <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true"
-                                       GridPane.rowSpan="2147483647" GridPane.valignment="TOP"/>
-                            <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true"
-                                       GridPane.columnIndex="2"/>
-                            <Label fx:id="pointsOfTotalLabel" styleClass="h1" text="0/0" GridPane.columnIndex="3"/>
-                          </children>
-                        </GridPane>
                         <GridPane fx:id="mostRecentAchievementPane" hgap="20.0" VBox.vgrow="NEVER">
                           <columnConstraints>
                             <ColumnConstraints hgrow="NEVER"/>
@@ -267,25 +257,28 @@
                         <HBox fx:id="unlockedAchievementsHeader" alignment="CENTER" spacing="10.0">
                           <children>
                             <Separator HBox.hgrow="ALWAYS"/>
-                            <Label styleClass="h1" text="%achievements.unlocked"/>
+                            <Label fx:id="unlockedAchievementsHeaderLabel" styleClass="h1"
+                                   text="%achievements.unlocked"/>
                             <Separator HBox.hgrow="ALWAYS"/>
                           </children>
                           <VBox.margin>
                             <Insets top="20.0"/>
                           </VBox.margin>
                         </HBox>
-                        <FlowPane fx:id="unlockedAchievementsContainer" hgap="10.0" vgap="10.0"/>
+                        <FlowPane fx:id="unlockedAchievementsContainer" alignment="TOP_CENTER" hgap="10.0"
+                                  maxWidth="1.7976931348623157E308" vgap="10.0"/>
                         <HBox fx:id="lockedAchievementsHeader" alignment="CENTER" spacing="10.0">
                           <children>
                             <Separator HBox.hgrow="ALWAYS"/>
-                            <Label styleClass="h1" text="%achievements.open"/>
+                            <Label fx:id="lockedAchievementsHeaderLabel" styleClass="h1" text="%achievements.locked"/>
                             <Separator HBox.hgrow="ALWAYS"/>
                           </children>
                           <VBox.margin>
                             <Insets top="20.0"/>
                           </VBox.margin>
                         </HBox>
-                        <FlowPane fx:id="lockedAchievementsContainer" hgap="10.0" vgap="10.0">
+                        <FlowPane fx:id="lockedAchievementsContainer" alignment="TOP_CENTER" hgap="10.0"
+                                  maxWidth="1.7976931348623157E308" vgap="10.0">
                           <VBox.margin>
                             <Insets/>
                           </VBox.margin>

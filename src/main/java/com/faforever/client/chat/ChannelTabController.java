@@ -3,16 +3,15 @@ package com.faforever.client.chat;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.util.ConcurrentUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.SetChangeListener;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -43,6 +42,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
 import static com.faforever.client.chat.SocialStatus.FOE;
@@ -50,6 +50,7 @@ import static com.faforever.client.chat.SocialStatus.OTHER;
 import static com.faforever.client.chat.SocialStatus.SELF;
 
 public class ChannelTabController extends AbstractChatTabController {
+
   @VisibleForTesting
   static final String CSS_CLASS_MODERATOR = "moderator";
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -101,6 +102,9 @@ public class ChannelTabController extends AbstractChatTabController {
   ConfigurableApplicationContext applicationContext;
   @Resource
   I18n i18n;
+  @Resource
+  ExecutorService executorService;
+
   private String channelName;
   private Popup filterUserPopup;
 
@@ -121,10 +125,21 @@ public class ChannelTabController extends AbstractChatTabController {
     channelTabRoot.setId(channelName);
     channelTabRoot.setText(channelName);
 
-    userSearchTextField.setPromptText(i18n.get("chat.userCount", chatService.getChatUsersForChannel(channelName).size()));
-    chatService.getChatUsersForChannel(channelName).addListener((InvalidationListener) change -> {
-      Platform.runLater(() -> userSearchTextField.setPromptText(i18n.get("chat.userCount", chatService.getChatUsersForChannel(channelName).size())));
+    chatService.getChatUsersForChannel(channelName).addListener((MapChangeListener<String, ChatUser>) change -> {
+      if (change.wasAdded()) {
+        onUserJoinedChannel(change.getValueAdded());
+      }
+      if (change.wasRemoved()) {
+        onUserLeft(change.getValueRemoved().getUsername());
+      }
+      updateUserCount(channelName);
     });
+    updateUserCount(channelName);
+
+    chatService.getChatUsersForChannel(channelName).addListener((InvalidationListener) change ->
+        Platform.runLater(() -> userSearchTextField.setPromptText(
+            i18n.get("chat.userCount", chatService.getChatUsersForChannel(channelName).size())
+        )));
 
     chatService.addChannelUserListListener(channelName, change -> {
       if (change.wasAdded()) {
@@ -134,15 +149,11 @@ public class ChannelTabController extends AbstractChatTabController {
       }
     });
 
-    // Maybe there were already elements; fetch them
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        ObservableMap<String, ChatUser> chatUsersForChannel = chatService.getChatUsersForChannel(channelName);
-        synchronized (chatUsersForChannel) {
-          chatUsersForChannel.values().forEach(ChannelTabController.this::onUserJoinedChannel);
-        }
-        return null;
+    // Maybe there already were some users; fetch them
+    executorService.execute(() -> {
+      ObservableMap<String, ChatUser> chatUsersForChannel = chatService.getChatUsersForChannel(channelName);
+      synchronized (chatUsersForChannel) {
+        chatUsersForChannel.values().forEach(ChannelTabController.this::onUserJoinedChannel);
       }
     });
 
@@ -151,6 +162,10 @@ public class ChannelTabController extends AbstractChatTabController {
     searchFieldContainer.visibleProperty().bind(searchField.visibleProperty());
     closeSearchFieldButton.visibleProperty().bind(searchField.visibleProperty());
     addSearchFieldListener();
+  }
+
+  private void updateUserCount(String channelName) {
+    Platform.runLater(() -> userSearchTextField.setPromptText(i18n.get("chat.userCount", chatService.getChatUsersForChannel(channelName).size())));
   }
 
   @Override
@@ -171,12 +186,13 @@ public class ChannelTabController extends AbstractChatTabController {
   @Override
   protected String getMessageCssClass(String login) {
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(login);
-    if (playerInfoBean != null && playerInfoBean.getModeratorForChannels().contains(channelName)) {
+    if (playerInfoBean != null
+        && playerInfoBean != playerService.getCurrentPlayer()
+        && playerInfoBean.getModeratorForChannels().contains(channelName)) {
       return CSS_CLASS_MODERATOR;
     }
 
     return super.getMessageCssClass(login);
-
   }
 
   @FXML
@@ -265,6 +281,7 @@ public class ChannelTabController extends AbstractChatTabController {
     Platform.runLater(() -> getJsObject().call("removeUserMessageClass", String.format("user-%s", playerInfoBean.getUsername()), cssClass));
 
   }
+
   private void setUserMessageClass(PlayerInfoBean playerInfoBean, String cssClass) {
     Platform.runLater(() -> getJsObject().call("setUserMessageClass", String.format("user-%s", playerInfoBean.getUsername()), cssClass));
   }

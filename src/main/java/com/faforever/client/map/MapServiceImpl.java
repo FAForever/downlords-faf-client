@@ -3,8 +3,6 @@ package com.faforever.client.map;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.game.MapSize;
-import com.faforever.client.legacy.map.Comment;
-import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.google.common.net.UrlEscapers;
@@ -73,8 +71,6 @@ public class MapServiceImpl implements MapService {
   @Resource
   TaskService taskService;
   @Resource
-  MapVaultParser mapVaultParser;
-  @Resource
   ApplicationContext applicationContext;
 
   @Value("${vault.mapDownloadUrl}")
@@ -106,10 +102,7 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public CompletableFuture<List<MapInfoBean>> readMapVaultInBackground(int page, int maxEntries) {
-    MapVaultParseTask task = applicationContext.getBean(MapVaultParseTask.class);
-    task.setMaxEntries(maxEntries);
-    task.setPage(page);
-    return taskService.submitTask(task);
+    return CompletableFuture.completedFuture(Collections.emptyList());
   }
 
   @Override
@@ -198,17 +191,7 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public MapInfoBean getMapInfoBeanFromVaultByName(String mapName) {
-    logger.info("Trying to return {} mapInfoBean from vault", mapName);
-    //TODO implement official map vault parser
-    if (isOfficialMap(mapName)) {
-      return null;
-    }
-    try {
-      return mapVaultParser.parseSingleMap(mapName);
-    } catch (IOException | IllegalStateException e) {
-      logger.error("Error in parsing {} from vault", mapName);
-      return null;
-    }
+    return null;
   }
 
   @Override
@@ -239,20 +222,6 @@ public class MapServiceImpl implements MapService {
     task.setMapUrl(mapUrl);
     task.setTechnicalMapName(technicalMapName);
     return taskService.submitTask(task);
-  }
-
-  @Override
-  public List<Comment> getComments(int mapId) {
-    //int mapId = getMapInfoBeanFromVaultByName(mapName).getId();
-    if (mapId == 0) {
-      return Collections.emptyList();
-    }
-    try {
-      return mapVaultParser.parseComments(mapId);
-    } catch (IOException e) {
-      logger.warn("Error in parsing comment for {}", mapId);
-    }
-    return Collections.emptyList();
   }
 
   private static String getMapUrl(String mapName, String baseUrl) {

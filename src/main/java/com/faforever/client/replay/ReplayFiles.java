@@ -1,11 +1,11 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.legacy.domain.GameAccess;
-import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.VictoryCondition;
-import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
-import com.faforever.client.legacy.gson.GameStateTypeAdapter;
-import com.faforever.client.legacy.gson.VictoryConditionTypeAdapter;
+import com.faforever.client.remote.domain.GameAccess;
+import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.VictoryCondition;
+import com.faforever.client.remote.gson.GameAccessTypeAdapter;
+import com.faforever.client.remote.gson.GameStateTypeAdapter;
+import com.faforever.client.remote.gson.VictoryConditionTypeAdapter;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

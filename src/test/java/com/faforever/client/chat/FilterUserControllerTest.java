@@ -8,10 +8,10 @@ import org.mockito.Mock;
 
 import java.util.HashMap;
 
-import static com.faforever.client.legacy.GameStatus.HOST;
-import static com.faforever.client.legacy.GameStatus.LOBBY;
-import static com.faforever.client.legacy.GameStatus.NONE;
-import static com.faforever.client.legacy.GameStatus.PLAYING;
+import static com.faforever.client.game.GameStatus.HOST;
+import static com.faforever.client.game.GameStatus.LOBBY;
+import static com.faforever.client.game.GameStatus.NONE;
+import static com.faforever.client.game.GameStatus.PLAYING;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
