@@ -41,10 +41,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
-import static com.faforever.client.net.NetUtil.readSocket;
+import static com.faforever.client.net.SocketUtil.readSocket;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
 /**
@@ -57,6 +57,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   private final Consumer<DatagramPacket> datagramPacketConsumer;
   private final Map<SocketAddress, DatagramSocket> proxySocketsByOriginalAddress;
   private final Map<Integer, SocketAddress> originalAddressByUid;
+
   @Resource
   UserService userService;
   @Resource
@@ -64,7 +65,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   @Resource
   FafService fafService;
   @Resource
-  ExecutorService executorService;
+  ThreadPoolExecutor threadPoolExecutor;
   @Resource
   GameService gameService;
   @Resource
@@ -124,7 +125,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
     gameUdpSocketFuture = new CompletableFuture<>();
     gpgPortFuture = new CompletableFuture<>();
-    CompletableFuture.runAsync(this::innerStart, executorService);
+    threadPoolExecutor.execute(this::innerStart);
     return gpgPortFuture;
   }
 
@@ -161,8 +162,9 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     DatagramSocket relaySocket = createOrGetRelaySocket(packet.getSocketAddress());
     try {
       if (logger.isTraceEnabled()) {
-        logger.trace("Forwarding {} bytes from peer {}' to FA: {}", packet.getLength(),
-            packet.getSocketAddress(), new String(packet.getData(), 0, packet.getLength(), US_ASCII));
+        logger.trace("Forwarding {} bytes from peer '{}' through '{}': {}", packet.getLength(),
+            packet.getSocketAddress(), relaySocket.getLocalSocketAddress(),
+            new String(packet.getData(), 0, packet.getLength(), US_ASCII));
       }
       packet.setSocketAddress(getGameSocketAddress());
       relaySocket.send(packet);
@@ -187,10 +189,9 @@ public class LocalRelayServerImpl implements LocalRelayServer {
         DatagramSocket relaySocket = new DatagramSocket(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0));
         logger.debug("Mapping peer {} to relay socket {}", originalSocketAddress, relaySocket.getLocalSocketAddress());
 
-        relaySocket.connect(getGameSocketAddress());
         proxySocketsByOriginalAddress.put(originalSocketAddress, relaySocket);
 
-        readSocket(executorService, relaySocket, packet -> {
+        readSocket(threadPoolExecutor, relaySocket, packet -> {
           packet.setSocketAddress(originalSocketAddress);
           if (logger.isTraceEnabled()) {
             logger.trace("Forwarding {} bytes from FA to peer {}: {}", packet.getLength(),

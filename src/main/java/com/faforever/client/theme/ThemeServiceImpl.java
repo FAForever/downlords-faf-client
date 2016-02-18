@@ -35,7 +35,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.faforever.client.preferences.Preferences.DEFAULT_THEME_NAME;
 import static com.github.nocatch.NoCatch.noCatch;
@@ -66,7 +66,7 @@ public class ThemeServiceImpl implements ThemeService {
   @Resource
   PreferencesService preferencesService;
   @Resource
-  Executor executor;
+  ThreadPoolExecutor threadPoolExecutor;
   private WatchService watchService;
   private ObservableMap<String, Theme> themesByFolderName;
   private Map<Theme, String> folderNamesByTheme;
@@ -102,7 +102,7 @@ public class ThemeServiceImpl implements ThemeService {
 
   private void startWatchService(Path themesDirectory) throws IOException, InterruptedException {
     watchService = themesDirectory.getFileSystem().newWatchService();
-    executor.execute(() -> {
+    threadPoolExecutor.execute(() -> {
       try {
         while (!Thread.interrupted()) {
           WatchKey key = watchService.take();
@@ -171,6 +171,14 @@ public class ThemeServiceImpl implements ThemeService {
     reloadStylesheet();
   }
 
+  private void watchDirectory(Path directory, WatchService watchService) {
+    if (watchKeys.containsKey(directory)) {
+      return;
+    }
+    logger.debug("Watching directory: {}", directory.toAbsolutePath());
+    noCatch(() -> watchKeys.put(directory, directory.register(watchService, ENTRY_MODIFY, ENTRY_CREATE, ENTRY_DELETE)));
+  }
+
   @Override
   public String getThemeFile(String relativeFile) {
     Path externalFile = getThemeDirectory(currentTheme.get()).resolve(relativeFile);
@@ -178,14 +186,6 @@ public class ThemeServiceImpl implements ThemeService {
       return noCatch(() -> new ClassPathResource(DEFAULT_BASE_URL + relativeFile).getURL().toString());
     }
     return noCatch(() -> externalFile.toUri().toURL().toString());
-  }
-
-  private void watchDirectory(Path directory, WatchService watchService) {
-    if (watchKeys.containsKey(directory)) {
-      return;
-    }
-    logger.debug("Watching directory: {}", directory.toAbsolutePath());
-    noCatch(() -> watchKeys.put(directory, directory.register(watchService, ENTRY_MODIFY, ENTRY_CREATE, ENTRY_DELETE)));
   }
 
   private void reloadStylesheet() {
@@ -199,6 +199,7 @@ public class ThemeServiceImpl implements ThemeService {
   private void setStyleSheet(Scene scene, String styleSheet) {
     Platform.runLater(() -> scene.getStylesheets().setAll(styleSheet));
   }
+
 
   @Override
   public URL getThemeFileUrl(String relativeFile) {

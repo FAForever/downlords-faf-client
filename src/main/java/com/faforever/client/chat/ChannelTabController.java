@@ -42,7 +42,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
 import static com.faforever.client.chat.SocialStatus.FOE;
@@ -103,7 +103,7 @@ public class ChannelTabController extends AbstractChatTabController {
   @Resource
   I18n i18n;
   @Resource
-  ExecutorService executorService;
+  ThreadPoolExecutor threadPoolExecutor;
 
   private String channelName;
   private Popup filterUserPopup;
@@ -150,7 +150,7 @@ public class ChannelTabController extends AbstractChatTabController {
     });
 
     // Maybe there already were some users; fetch them
-    executorService.execute(() -> {
+    threadPoolExecutor.execute(() -> {
       ObservableMap<String, ChatUser> chatUsersForChannel = chatService.getChatUsersForChannel(channelName);
       synchronized (chatUsersForChannel) {
         chatUsersForChannel.values().forEach(ChannelTabController.this::onUserJoinedChannel);

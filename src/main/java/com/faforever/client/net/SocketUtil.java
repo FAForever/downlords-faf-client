@@ -9,15 +9,15 @@ import java.lang.invoke.MethodHandles;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
-public final class NetUtil {
+public final class SocketUtil {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private NetUtil() {
+  private SocketUtil() {
     throw new AssertionError("Not instantiatable");
   }
 
@@ -26,8 +26,11 @@ public final class NetUtil {
    *
    * @param executor the {@link Executor} to run the background thread in
    */
-  public static void readSocket(Executor executor, final DatagramSocket socket, Consumer<DatagramPacket> consumer) {
-    CompletableFuture.runAsync(() -> {
+  public static void readSocket(ThreadPoolExecutor executor, final DatagramSocket socket, Consumer<DatagramPacket> consumer) {
+    String localSocketAddress = socket.getLocalSocketAddress().toString();
+    logger.debug("Reading socket {}", localSocketAddress);
+
+    executor.execute(() -> {
       byte[] buffer = new byte[1500];
       DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
 
@@ -44,16 +47,15 @@ public final class NetUtil {
           consumer.accept(packetCopy);
         }
       } catch (SocketException e) {
-        // Ignore
+        logger.warn("Socket has been closed: ({})", e.getMessage());
       } catch (IOException e) {
+        logger.warn("Exception while forwarding socket: " + localSocketAddress, e);
         throw new RuntimeException(e);
       } finally {
         IOUtils.closeQuietly(socket);
       }
-    }, executor).whenComplete((aVoid, throwable) -> {
-      if (throwable != null) {
-        logger.warn("Exception while forwarding socket: " + socket.getLocalSocketAddress(), throwable);
-      }
+
+      logger.debug("Socket {} closed gracefully", localSocketAddress);
     });
   }
 }

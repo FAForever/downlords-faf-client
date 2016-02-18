@@ -11,12 +11,10 @@ import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import com.google.common.primitives.Bytes;
-import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 
-import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -29,7 +27,7 @@ import java.net.Socket;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class ReplayServerImpl implements ReplayServer {
 
@@ -57,17 +55,9 @@ public class ReplayServerImpl implements ReplayServer {
   @Resource
   ClientUpdateService clientUpdateService;
   @Resource
-  Executor executor;
+  ThreadPoolExecutor threadPoolExecutor;
 
   private LocalReplayInfo replayInfo;
-  private Task<Void> task;
-
-  @PreDestroy
-  public void close() {
-    if (task != null) {
-      task.cancel(true);
-    }
-  }
 
   CompletableFuture<Void> start(int uid) {
     return CompletableFuture.runAsync(() -> {
@@ -89,7 +79,7 @@ public class ReplayServerImpl implements ReplayServer {
             )
         );
       }
-    }, executor);
+    }, threadPoolExecutor);
   }
 
   private void initReplayInfo(int uid) {

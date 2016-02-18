@@ -9,7 +9,7 @@ import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class TaskServiceImpl implements TaskService {
 
@@ -18,7 +18,7 @@ public class TaskServiceImpl implements TaskService {
   private final ObservableList<PrioritizedTask<?>> activeTasks;
 
   @Resource
-  ScheduledThreadPoolExecutor threadPoolExecutor;
+  ThreadPoolExecutor threadPoolExecutor;
 
   private ObservableList<PrioritizedTask<?>> unmodifiableObservableList;
 
@@ -43,7 +43,7 @@ public class TaskServiceImpl implements TaskService {
     });
 
     activeTasks.add(task);
-    threadPoolExecutor.submit(task);
+    threadPoolExecutor.execute(task);
 
     return future;
   }

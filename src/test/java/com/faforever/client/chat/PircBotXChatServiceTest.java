@@ -66,8 +66,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -147,7 +147,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private FafService fafService;
   @Mock
-  private ExecutorService executorService;
+  private ThreadPoolExecutor threadPoolExecutor;
   @Mock
   private UserHostmask userHostMask;
 
@@ -164,7 +164,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.i18n = i18n;
     instance.pircBotXFactory = pircBotXFactory;
     instance.preferencesService = preferencesService;
-    instance.executorService = executorService;
+    instance.threadPoolExecutor = threadPoolExecutor;
 
     chatUser1 = new ChatUser("chatUser1", null);
     chatUser2 = new ChatUser("chatUser2", null);
@@ -192,14 +192,9 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(pircBotX.sendIRC()).thenReturn(outputIrc);
     when(pircBotX.getUserChannelDao()).thenReturn(userChannelDao);
 
-    doAnswer(invocation -> {
-      CompletableFuture<Object> future = new CompletableFuture<>();
-      WaitForAsyncUtils.async(() -> {
-        invocation.getArgumentAt(0, Task.class).run();
-        future.complete(null);
-      });
-      return future;
-    }).when(executorService).submit(any(Task.class));
+    doAnswer(
+        invocation -> WaitForAsyncUtils.async(() -> invocation.getArgumentAt(0, Task.class).run())
+    ).when(threadPoolExecutor).execute(any(Task.class));
 
     botStartedFuture = new CompletableFuture<>();
     doAnswer(invocation -> {

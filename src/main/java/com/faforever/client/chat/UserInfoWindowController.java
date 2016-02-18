@@ -17,7 +17,6 @@ import com.faforever.client.util.RatingUtil;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -258,11 +257,8 @@ public class UserInfoWindowController {
           return null;
         })
         .thenAccept(this::displayAvailableAchievements)
-        .thenRun(() -> {
-          ObservableList<PlayerAchievement> playerAchievements = achievementService.getPlayerAchievements(playerInfoBean.getUsername());
-          playerAchievements.addListener((Observable observable) -> {
-            updatePlayerAchievements(playerAchievements);
-          });
+        .thenCompose(aVoid -> achievementService.getPlayerAchievements(playerInfoBean.getUsername()))
+        .thenAccept(playerAchievements -> {
           updatePlayerAchievements(playerAchievements);
           enterAchievementsLoadedState();
         })

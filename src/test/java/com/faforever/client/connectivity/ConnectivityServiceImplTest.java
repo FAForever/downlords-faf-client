@@ -39,8 +39,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -84,7 +84,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private LocalRelayServer localRelayServer;
   @Mock
-  private Executor executor;
+  private ThreadPoolExecutor threadPoolExecutor;
   @Mock
   private TurnServerAccessor turnServerAccessor;
   @Mock
@@ -108,7 +108,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     instance.notificationService = notificationService;
     instance.fafService = fafService;
     instance.localRelayServer = localRelayServer;
-    instance.executor = executor;
+    instance.threadPoolExecutor = threadPoolExecutor;
     instance.turnServerAccessor = turnServerAccessor;
     instance.userService = userService;
 
@@ -126,7 +126,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> {
       WaitForAsyncUtils.async(invocation.getArgumentAt(0, Runnable.class));
       return null;
-    }).when(executor).execute(any());
+    }).when(threadPoolExecutor).execute(any());
 
     instance.postConstruct();
 
@@ -178,7 +178,6 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     instance.connect();
 
     verify(turnServerAccessor, never()).disconnect();
-    verify(turnServerAccessor).removeOnPacketListener(any());
 
     verifySendThroughPublicSocket();
 

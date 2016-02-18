@@ -19,6 +19,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.apache.commons.compress.utils.IOUtils;
+import org.ice4j.TransportAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +29,6 @@ import org.springframework.util.SocketUtils;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -42,11 +42,13 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
-import static com.faforever.client.net.NetUtil.readSocket;
+import static com.faforever.client.net.SocketUtil.readSocket;
+import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.US_ASCII;
+import static org.ice4j.Transport.UDP;
 
 /**
  * Opens the game port and connects to the FAF relay server in order the see whether data on the game port is received.
@@ -55,13 +57,16 @@ public class ConnectivityServiceImpl implements ConnectivityService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  /**
+   * Prefix of NAT packages containing a bind statement, e.g. "Bind 1234" which means "Bind peer with UID 1234 to a
+   * channel".
+   */
+  private static final String BIND_PREFIX = "Bind";
   private static final String PORT_UNREACHABLE_NOTIFICATION_ID = "portUnreachable";
   private final ObjectProperty<ConnectivityState> connectivityState;
   private final ObjectProperty<InetSocketAddress> externalSocketAddress;
   private final Collection<Consumer<DatagramPacket>> onPacketListeners;
   private final Consumer<DatagramPacket> packetConsumer;
-  private final Consumer<DatagramPacket> publicSendStrategy;
-  private final Consumer<DatagramPacket> turnSendStrategy;
 
   @Resource
   TaskService taskService;
@@ -86,43 +91,17 @@ public class ConnectivityServiceImpl implements ConnectivityService {
   @Value("${connectivity.helpUrl}")
   String connectivityHelpUrl;
   @Resource
-  Executor executor;
+  ThreadPoolExecutor threadPoolExecutor;
   /**
    * The socket to the "outside", receives and sends game data.
    */
   private DatagramSocket publicSocket;
-  private Consumer<DatagramPacket> sendStrategy;
 
   public ConnectivityServiceImpl() {
     connectivityState = new SimpleObjectProperty<>(ConnectivityState.UNKNOWN);
     externalSocketAddress = new SimpleObjectProperty<>();
     onPacketListeners = new LinkedList<>();
     packetConsumer = this::onIncomingPacket;
-
-    publicSendStrategy = publicSendStrategy();
-    turnSendStrategy = turnSendStrategy();
-  }
-
-  /**
-   * Creates a forwarder that sends datagrams directly from a public UDP socket.
-   */
-  private Consumer<DatagramPacket> publicSendStrategy() {
-    logger.info("Using direct connection");
-    return datagramPacket -> {
-      try {
-        publicSocket.send(datagramPacket);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    };
-  }
-
-  /**
-   * Creates a forwarder that forwards datagrams through to a TURN server.
-   */
-  private Consumer<DatagramPacket> turnSendStrategy() {
-    logger.info("Using TURN server");
-    return datagramPacket -> turnServerAccessor.send(datagramPacket);
   }
 
   @PostConstruct
@@ -151,7 +130,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
     if (isNatPacket(packet.getData())) {
       handleNatPacket(packet);
     } else {
-      handleGameData(packet);
+      handleIncomingData(packet);
     }
   }
 
@@ -167,11 +146,15 @@ public class ConnectivityServiceImpl implements ConnectivityService {
     String message = new String(packet.getData(), 1, packet.getLength() - 1);
     ProcessNatPacketMessage processNatPacketMessage = new ProcessNatPacketMessage((InetSocketAddress) packet.getSocketAddress(), message);
     fafService.sendGpgMessage(processNatPacketMessage);
+
+    if (message.startsWith(BIND_PREFIX)) {
+      turnServerAccessor.bind(new TransportAddress((InetSocketAddress) packet.getSocketAddress(), UDP));
+    }
   }
 
-  private void handleGameData(DatagramPacket packet) {
+  private void handleIncomingData(DatagramPacket packet) {
     if (logger.isTraceEnabled()) {
-      logger.trace("Incoming game data: {}", new String(packet.getData(), 0, packet.getLength(), US_ASCII));
+      logger.trace("Incoming data from {}: {}", packet.getSocketAddress(), new String(packet.getData(), 0, packet.getLength(), US_ASCII));
     }
 
     onPacketListeners.forEach(listener -> listener.accept(packet));
@@ -195,7 +178,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
     datagramPacket.setSocketAddress(receiver);
 
     logger.debug("Sending NAT packet to {}: {}", datagramPacket.getSocketAddress(), new String(datagramPacket.getData(), US_ASCII));
-    publicSendStrategy.accept(datagramPacket);
+    send(datagramPacket);
   }
 
   /**
@@ -212,7 +195,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
 
     try {
       publicSocket = new DatagramSocket(new InetSocketAddress(InetAddress.getLocalHost(), port));
-      readSocket(executor, publicSocket, packetConsumer);
+      readSocket(threadPoolExecutor, publicSocket, packetConsumer);
       logger.info("Opened public UDP socket: {}", publicSocket.getLocalSocketAddress());
     } catch (SocketException | UnknownHostException e) {
       throw new RuntimeException(e);
@@ -277,11 +260,6 @@ public class ConnectivityServiceImpl implements ConnectivityService {
     return externalSocketAddress.get();
   }
 
-  public void reset() {
-    turnServerAccessor.removeOnPacketListener(packetConsumer);
-    sendStrategy = null;
-  }
-
   @Override
   public void connect() {
     logger.debug("Establishing connection");
@@ -289,22 +267,17 @@ public class ConnectivityServiceImpl implements ConnectivityService {
     ConnectivityState connectivityState = this.connectivityState.get();
     switch (connectivityState) {
       case PUBLIC:
-        reset();
-        sendStrategy = publicSendStrategy;
         break;
 
       case STUN:
         turnServerAccessor.addOnPacketListener(packetConsumer);
         turnServerAccessor.connect();
-        sendStrategy = turnSendStrategy;
         break;
 
       case BLOCKED:
-        reset();
         throw new IllegalStateException("Can't connect");
 
       case UNKNOWN:
-        reset();
         throw new IllegalStateException("Can't initialize connection when connectivity state is unknown");
 
       default:
@@ -360,10 +333,10 @@ public class ConnectivityServiceImpl implements ConnectivityService {
 
   @Override
   public void send(DatagramPacket datagramPacket) {
-    if (!turnServerAccessor.isBound(datagramPacket.getSocketAddress())) {
-      publicSendStrategy.accept(datagramPacket);
+    if (turnServerAccessor.isBound((InetSocketAddress) datagramPacket.getSocketAddress())) {
+      turnServerAccessor.send(datagramPacket);
     } else {
-      sendStrategy.accept(datagramPacket);
+      noCatch(() -> publicSocket.send(datagramPacket));
     }
   }
 

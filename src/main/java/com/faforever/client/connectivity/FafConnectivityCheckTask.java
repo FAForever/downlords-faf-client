@@ -19,7 +19,6 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -37,8 +36,6 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
   I18n i18n;
   @Resource
   FafService fafService;
-  @Resource
-  ExecutorService executorService;
   @Value("${connectivityCheck.timeout}")
   int connectivityCheckTimeout;
 

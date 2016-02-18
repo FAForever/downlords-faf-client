@@ -1,9 +1,7 @@
 package com.faforever.client.connectivity;
 
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.relay.ConnectToPeerMessage;
 import com.faforever.client.relay.CreatePermissionMessage;
-import com.faforever.client.relay.JoinGameMessage;
 import com.faforever.client.remote.FafService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.ObjectProperty;
@@ -54,13 +52,13 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
+import static com.github.nocatch.NoCatch.noCatch;
 import static java.net.InetAddress.getLocalHost;
 import static org.ice4j.attribute.Attribute.ERROR_CODE;
 import static org.ice4j.attribute.Attribute.XOR_MAPPED_ADDRESS;
@@ -125,15 +123,10 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
   }
 
   /**
-   * Permits a peer to send data and binds it to a channel.
+   * Permits a peer to send data through the TURN.
    *
    * @param address the peer's publicly visible address
    */
-  private void addPeer(InetSocketAddress address) {
-    permit(address);
-    bind(new TransportAddress(address, Transport.UDP), (char) CHANNEL_NUMBER.getAndIncrement());
-  }
-
   private void permit(InetSocketAddress address) {
     logger.info("Permitting sends from {}", address);
     Request createPermissionRequest = MessageFactory.createCreatePermissionRequest(
@@ -141,26 +134,17 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
         TransactionID.createNewTransactionID().getBytes()
     );
     sendBlockingStunRequest(createPermissionRequest);
-    logger.debug("Permitted sends from {}", address);
-  }
+    sendStunRequest(createPermissionRequest, new ResponseCollector() {
+      @Override
+      public void processResponse(StunResponseEvent event) {
+        logger.debug("Permitted sends from {}", address);
+      }
 
-  private void bind(TransportAddress address, int channelNumber) {
-    if (peerAddressToChannel.containsKey(address)) {
-      return;
-    }
-
-    logger.info("Binding '{}' to channel '{}'", address, channelNumber);
-    Response response = sendBlockingStunRequest(MessageFactory.createChannelBindRequest(
-        (char) channelNumber, address, TransactionID.createNewTransactionID().getBytes()
-    ));
-    if (response.isSuccessResponse()) {
-      logger.debug("Bound '{}' to channel '{}'", address, channelNumber);
-
-      peerAddressToChannel.put(address, (char) channelNumber);
-      channelToPeerAddress.put((char) channelNumber, address);
-    } else {
-      logger.warn("Binding for '{}' to channel '{}' failed", address, channelNumber);
-    }
+      @Override
+      public void processTimeout(StunTimeoutEvent event) {
+        logger.warn("Permission request for '{}' timed out.", address);
+      }
+    });
   }
 
   @Override
@@ -206,7 +190,7 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
     channelData.setChannelNumber(channelNumber);
 
     if (logger.isTraceEnabled()) {
-      logger.trace("Writing {} bytes on channel {}: {}", packet.getLength(), (int) channelNumber,
+      logger.trace("Writing {} bytes to channel {}: {}", packet.getLength(), (int) channelNumber,
           new String(payload, 0, payload.length, StandardCharsets.US_ASCII));
     }
     try {
@@ -233,13 +217,7 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
     }
     stunStack = applicationContext.getBean(StunStack.class);
 
-    Consumer<CreatePermissionMessage> createPermissionMessageConsumer = message -> addPeer(message.getAddress());
-    Consumer<JoinGameMessage> joinGameMessageConsumer = message -> addPeer(message.getPeerAddress());
-    Consumer<ConnectToPeerMessage> connectToPeerMessageConsumer = message -> addPeer(message.getPeerAddress());
-
-    fafService.addOnMessageListener(CreatePermissionMessage.class, createPermissionMessageConsumer);
-    fafService.addOnMessageListener(JoinGameMessage.class, joinGameMessageConsumer);
-    fafService.addOnMessageListener(ConnectToPeerMessage.class, connectToPeerMessageConsumer);
+    fafService.addOnMessageListener(CreatePermissionMessage.class, message -> permit(message.getAddress()));
 
     serverAddress = new TransportAddress(turnHost, turnPort, Transport.UDP);
     connectionState.set(ConnectionState.CONNECTING);
@@ -275,8 +253,43 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
   }
 
   @Override
-  public boolean isBound(SocketAddress socketAddress) {
+  public boolean isBound(InetSocketAddress socketAddress) {
     return peerAddressToChannel.containsKey(socketAddress);
+  }
+
+  @Override
+  public void bind(InetSocketAddress socketAddress) {
+    bind(new TransportAddress(socketAddress, Transport.UDP), CHANNEL_NUMBER.getAndIncrement());
+  }
+
+  private void bind(TransportAddress address, int channelNumber) {
+    synchronized (peerAddressToChannel) {
+      if (peerAddressToChannel.containsKey(address)) {
+        return;
+      }
+
+      logger.info("Binding '{}' to channel '{}'", address, channelNumber);
+      sendStunRequest(MessageFactory.createChannelBindRequest(
+          (char) channelNumber, address, TransactionID.createNewTransactionID().getBytes()
+      ), new ResponseCollector() {
+        @Override
+        public void processResponse(StunResponseEvent event) {
+          if (event.getResponse().isSuccessResponse()) {
+            logger.debug("Bound '{}' to channel '{}'", address, channelNumber);
+
+            peerAddressToChannel.put(address, (char) channelNumber);
+            channelToPeerAddress.put((char) channelNumber, address);
+          } else {
+            logger.warn("Binding for '{}' to channel '{}' failed", address, channelNumber);
+          }
+        }
+
+        @Override
+        public void processTimeout(StunTimeoutEvent event) {
+          logger.warn("Binding request for '{}' to channel '{}' timed out.", address, channelNumber);
+        }
+      });
+    }
   }
 
   private void releaseAllocation() {
@@ -289,22 +302,24 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
 
   @NotNull
   private Response sendBlockingStunRequest(Request request) {
-    try {
+    return noCatch(() -> {
       CompletableFuture<Response> responseFuture = new CompletableFuture<>();
-      stunStack.sendRequest(request, serverAddress, localAddress, blockingResponseCollector(responseFuture));
+      sendStunRequest(request, responseCollector(responseFuture));
       Response response = responseFuture.get();
 
       if (response.isErrorResponse()) {
         logger.warn("STUN error: {}", ((ErrorCodeAttribute) response.getAttribute(ERROR_CODE)).getReasonPhrase());
       }
       return response;
-    } catch (IOException | InterruptedException | ExecutionException e) {
-      throw new RuntimeException(e);
-    }
+    });
+  }
+
+  private void sendStunRequest(Request request, ResponseCollector responseCollector) {
+    noCatch(() -> stunStack.sendRequest(request, serverAddress, localAddress, responseCollector));
   }
 
   @NotNull
-  private ResponseCollector blockingResponseCollector(final CompletableFuture<Response> responseFuture) {
+  private ResponseCollector responseCollector(final CompletableFuture<Response> responseFuture) {
     return new ResponseCollector() {
       @Override
       public void processResponse(StunResponseEvent event) {
@@ -463,12 +478,23 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
         continue;
       }
 
+      if (!channelToPeerAddress.containsKey(channelNumber)) {
+        logger.warn("Received {} bytes on unbound channel '{}' from {}", channelDataLength, (int) channelNumber, packet.getSocketAddress());
+        continue;
+      }
+
       byte[] payload = new byte[length];
       System.arraycopy(receivedData, channelDataOffset, payload, 0, length);
+
+      if (logger.isTraceEnabled()) {
+        logger.trace("Received {} bytes on channel {}: {}", channelDataLength, (int) channelNumber,
+            new String(payload, 0, length, StandardCharsets.US_ASCII));
+      }
 
       ChannelData channelData = new ChannelData();
       channelData.setChannelNumber(channelNumber);
       channelData.setData(payload);
+
       try {
         onChannelData(new ChannelDataMessageEvent(stunStack,
             channelToPeerAddress.get(channelNumber),
@@ -485,11 +511,6 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
 
   private void onChannelData(ChannelDataMessageEvent event) {
     ChannelData channelData = event.getChannelDataMessage();
-
-    if (logger.isTraceEnabled()) {
-      logger.trace("Received {} bytes on channel {}: {}", (int) channelData.getDataLength(), (int) channelData.getChannelNumber(),
-          new String(channelData.getData(), 0, channelData.getDataLength(), StandardCharsets.US_ASCII));
-    }
 
     DatagramPacket datagramPacket = new DatagramPacket(channelData.getData(), channelData.getDataLength());
     datagramPacket.setSocketAddress(event.getRemoteAddress());

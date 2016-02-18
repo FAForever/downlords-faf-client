@@ -31,7 +31,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 import static com.faforever.client.net.UriStartingWithMatcher.uriStartingWith;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -65,8 +64,6 @@ public class FafApiAccessorImplTest {
   @Mock
   private LowLevelHttpRequest httpRequest;
   @Mock
-  private ExecutorService executorService;
-  @Mock
   private LowLevelHttpResponse lowLevelHttpResponse;
   @Mock
   private UserService userService;
@@ -89,7 +86,6 @@ public class FafApiAccessorImplTest {
     instance.oAuthClientId = "456";
     instance.oAuthUrl = "http://api.example.com/oauth/authorize";
     instance.oAuthLoginUrl = new URI("http://api.example.com/login");
-    instance.executorService = executorService;
     instance.httpTransport = httpTransport;
     instance.userService = userService;
     instance.clientHttpRequestFactory = clientHttpRequestFactory;

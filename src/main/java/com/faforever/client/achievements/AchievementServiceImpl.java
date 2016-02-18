@@ -3,6 +3,7 @@ package com.faforever.client.achievements;
 import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.PlayerAchievement;
+import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -24,8 +25,10 @@ import org.springframework.cache.annotation.Cacheable;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class AchievementServiceImpl implements AchievementService {
 
@@ -47,6 +50,8 @@ public class AchievementServiceImpl implements AchievementService {
   PlayerService playerService;
   @Resource
   ThemeService themeService;
+  @Resource
+  ThreadPoolExecutor threadPoolExecutor;
 
   public AchievementServiceImpl() {
     playerAchievements = FXCollections.observableArrayList();
@@ -54,27 +59,30 @@ public class AchievementServiceImpl implements AchievementService {
   }
 
   @Override
-  public ObservableList<PlayerAchievement> getPlayerAchievements(String username) {
+  public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(String username) {
     if (userService.getUsername().equals(username)) {
       if (readOnlyPlayerAchievements.isEmpty()) {
         updatePlayerAchievementsFromServer();
       }
-      return readOnlyPlayerAchievements;
+      return CompletableFuture.completedFuture(readOnlyPlayerAchievements);
     }
 
-    int playerId = playerService.getPlayerForUsername(username).getId();
-    return FXCollections.observableList(fafApiAccessor.getPlayerAchievements(playerId));
+    PlayerInfoBean playerForUsername = playerService.getPlayerForUsername(username);
+    if (playerForUsername == null) {
+      return CompletableFuture.completedFuture(Collections.emptyList());
+    }
+    int playerId = playerForUsername.getId();
+    return CompletableFuture.supplyAsync(() -> FXCollections.observableList(fafApiAccessor.getPlayerAchievements(playerId)), threadPoolExecutor);
   }
 
   @Override
   public CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions() {
-    // TODO make async again
-    return CompletableFuture.completedFuture(fafApiAccessor.getAchievementDefinitions());
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getAchievementDefinitions(), threadPoolExecutor);
   }
 
   @Override
   public CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getAchievementDefinition(achievementId));
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getAchievementDefinition(achievementId), threadPoolExecutor);
   }
 
   @Override

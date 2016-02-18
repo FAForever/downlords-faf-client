@@ -90,7 +90,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowController.WindowButtonType.MAXIMIZE_RESTORE;
@@ -217,7 +217,7 @@ public class MainController implements OnChoseGameDirectoryListener {
   @Resource
   ChatService chatService;
   @Resource
-  ExecutorService executorService;
+  ThreadPoolExecutor threadPoolExecutor;
   @Resource
   WindowController windowController;
 
@@ -310,7 +310,7 @@ public class MainController implements OnChoseGameDirectoryListener {
     if (taskBarRelatedPointer == null) {
       return;
     }
-    executorService.execute(() -> {
+    threadPoolExecutor.execute(() -> {
       if (progress == null) {
         taskBarList.SetProgressState(taskBarRelatedPointer, ITaskbarList3.TbpFlag.TBPF_NOPROGRESS);
       } else if (progress == ProgressIndicator.INDETERMINATE_PROGRESS) {
@@ -580,7 +580,7 @@ public class MainController implements OnChoseGameDirectoryListener {
    */
   private void initWindowsTaskBar() {
     try {
-      executorService.execute(() -> {
+      threadPoolExecutor.execute(() -> {
         try {
           taskBarList = COMRuntime.newInstance(ITaskbarList3.class);
 

@@ -55,7 +55,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
@@ -98,7 +98,7 @@ public class PircBotXChatService implements ChatService, Listener,
   @Resource
   NotificationService notificationService;
   @Resource
-  ExecutorService executorService;
+  ThreadPoolExecutor threadPoolExecutor;
 
   @Value("${irc.host}")
   String ircHost;
@@ -381,7 +381,7 @@ public class PircBotXChatService implements ChatService, Listener,
         return null;
       }
     };
-    executorService.submit(connectionTask);
+    threadPoolExecutor.execute(connectionTask);
   }
 
   @Override
