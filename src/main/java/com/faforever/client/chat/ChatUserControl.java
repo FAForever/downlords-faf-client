@@ -20,6 +20,8 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.RatingUtil;
 import javafx.application.Platform;
 import javafx.beans.property.FloatProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -92,6 +94,7 @@ public class ChatUserControl extends HBox {
 
   private PlayerInfoBean playerInfoBean;
   private boolean colorsAllowedInPane;
+  private ChangeListener<ChatColorMode> colorModeChangeListener;
 
   @FXML
   void onContextMenuRequested(ContextMenuEvent event) {
@@ -109,25 +112,10 @@ public class ChatUserControl extends HBox {
 
   @PostConstruct
   void init() {
+    // TODO clean up FXML loading
     fxmlLoader.loadCustomControl("chat_user_control.fxml", this);
-  }
 
-  public PlayerInfoBean getPlayerInfoBean() {
-    return playerInfoBean;
-  }
-
-  public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
-    this.playerInfoBean = playerInfoBean;
-
-    configureColor();
-    addChatColorModeListener();
-    configureCountryImageView();
-    configureAvatarImageView();
-    configureClanLabel();
-    configureGameStatusView();
-    configureRatingTooltip();
-
-    usernameLabel.setText(playerInfoBean.getUsername());
+    colorModeChangeListener = (observable, oldValue, newValue) -> configureColor();
   }
 
   private void configureColor() {
@@ -162,11 +150,37 @@ public class ChatUserControl extends HBox {
     assignColor(color);
   }
 
+  private void assignColor(Color color) {
+    if (color != null) {
+      usernameLabel.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)));
+      clanLabel.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)));
+    } else {
+      usernameLabel.setStyle("");
+      clanLabel.setStyle("");
+    }
+  }
+
+  public PlayerInfoBean getPlayerInfoBean() {
+    return playerInfoBean;
+  }
+
+  public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
+    this.playerInfoBean = playerInfoBean;
+
+    configureColor();
+    addChatColorModeListener();
+    configureCountryImageView();
+    configureAvatarImageView();
+    configureClanLabel();
+    configureGameStatusView();
+    configureRatingTooltip();
+
+    usernameLabel.setText(playerInfoBean.getUsername());
+  }
+
   private void addChatColorModeListener() {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    chatPrefs.chatColorModeProperty().addListener((observable, oldValue, newValue) -> {
-      configureColor();
-    });
+    chatPrefs.chatColorModeProperty().addListener(new WeakChangeListener<>(colorModeChangeListener));
   }
 
   private void configureCountryImageView() {
@@ -218,16 +232,6 @@ public class ChatUserControl extends HBox {
 
       Tooltip.install(clanLabel, userRatingTooltip);
       Tooltip.install(usernameLabel, userRatingTooltip);
-    }
-  }
-
-  private void assignColor(Color color) {
-    if (color != null) {
-      usernameLabel.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)));
-      clanLabel.setStyle(String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)));
-    } else {
-      usernameLabel.setStyle("");
-      clanLabel.setStyle("");
     }
   }
 

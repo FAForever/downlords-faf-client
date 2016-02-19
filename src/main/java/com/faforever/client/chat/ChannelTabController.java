@@ -112,6 +112,7 @@ public class ChannelTabController extends AbstractChatTabController {
     userToChatUserControls = FXCollections.observableMap(new ConcurrentHashMap<>());
   }
 
+  // TODO clean this up
   public Map<String, Map<Pane, ChatUserControl>> getUserToChatUserControls() {
     return userToChatUserControls;
   }
