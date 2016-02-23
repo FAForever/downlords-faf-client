@@ -254,6 +254,7 @@ public abstract class AbstractChatTabController {
       messageTextField.insertText(currentCaretPosition, url);
       messageTextField.setDisable(false);
       messageTextField.requestFocus();
+      messageTextField.positionCaret(messageTextField.getLength());
     }).exceptionally(throwable -> {
       messageTextField.setDisable(false);
       return null;
@@ -277,7 +278,7 @@ public abstract class AbstractChatTabController {
     }
 
     engine = messagesWebView.getEngine();
-    (getJsObject()).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
+    getJsObject().setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
       if (Worker.State.SUCCEEDED.equals(newValue)) {
         synchronized (waitingMessages) {
@@ -507,7 +508,7 @@ public abstract class AbstractChatTabController {
       messageTextField.clear();
       messageTextField.setDisable(false);
       messageTextField.requestFocus();
-      onChatMessage(new ChatMessage(Instant.now(), userService.getUsername(), message));
+      onChatMessage(new ChatMessage(null, Instant.now(), userService.getUsername(), message));
     }).exceptionally(throwable -> {
       logger.warn("Message could not be sent: {}", text, throwable);
       notificationService.addNotification(new ImmediateNotification(
@@ -530,7 +531,7 @@ public abstract class AbstractChatTabController {
           messageTextField.clear();
           messageTextField.setDisable(false);
           messageTextField.requestFocus();
-          onChatMessage(new ChatMessage(Instant.now(), userService.getUsername(), message, true));
+          onChatMessage(new ChatMessage(null, Instant.now(), userService.getUsername(), message, true));
         }).exceptionally(throwable -> {
 
       // TODO display error to user somehow
@@ -661,7 +662,7 @@ public abstract class AbstractChatTabController {
 
   @VisibleForTesting
   String getInlineStyle(String username) {
-    ChatUser chatUser = chatService.createOrGetChatUser(username);
+    ChatUser chatUser = chatService.getOrCreateChatUser(username);
     PlayerInfoBean player = playerService.getPlayerForUsername(username);
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     String color = "";

@@ -70,20 +70,20 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnChatMessageUnfocusedTriggersNotification() throws Exception {
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> getRoot().getScene().getWindow().hide());
-    instance.onChatMessage(new ChatMessage(Instant.now(), playerName, "Test message"));
+    instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
     verify(notificationService).addNotification(any(TransientNotification.class));
   }
 
   @Test
   public void testOnChatMessageFocusedDoesntTriggersNotification() throws Exception {
-    instance.onChatMessage(new ChatMessage(Instant.now(), playerName, "Test message"));
+    instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
     verifyZeroInteractions(notificationService);
   }
 
   @Test
   public void onChatMessageTestNotFoeShowFoe() {
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
-    instance.onChatMessage(new ChatMessage(Instant.now(), playerName, "Test message"));
+    instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
   }
 
   @Ignore("Not yet implemented")

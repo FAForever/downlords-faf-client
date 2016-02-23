@@ -415,13 +415,13 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnChatMessage() throws Exception {
     // TODO assert something, maybe we can spy on engine
-    instance.onChatMessage(new ChatMessage(Instant.now(), "junit", "Test message"));
+    instance.onChatMessage(new ChatMessage("", Instant.now(), "junit", "Test message"));
   }
 
   @Test
   public void testOnChatMessageAction() throws Exception {
     // TODO assert something, maybe we can spy on engine
-    instance.onChatMessage(new ChatMessage(Instant.now(), "junit", "Test action", true));
+    instance.onChatMessage(new ChatMessage("", Instant.now(), "junit", "Test action", true));
   }
 
   @Test
@@ -528,7 +528,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     ChatUser chatUser = new ChatUser("somePlayer", color);
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.CUSTOM);
-    when(chatService.createOrGetChatUser("somePlayer")).thenReturn(chatUser);
+    when(chatService.getOrCreateChatUser("somePlayer")).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
 
     String shouldBe = String.format("style=\"%s%s\"", colorStyle, "");
@@ -545,7 +545,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.getPlayerForUsername(somePlayer)).thenReturn(PlayerInfoBeanBuilder.create(somePlayer).chatOnly(true).get());
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
-    when(chatService.createOrGetChatUser(somePlayer)).thenReturn(chatUser);
+    when(chatService.getOrCreateChatUser(somePlayer)).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
 
     String expected = String.format("style=\"%s\"", instance.createInlineStyleFromColor(color));
@@ -562,7 +562,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.getPlayerForUsername(somePlayer)).thenReturn(PlayerInfoBeanBuilder.create(somePlayer).chatOnly(true).get());
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
-    when(chatService.createOrGetChatUser(somePlayer)).thenReturn(chatUser);
+    when(chatService.getOrCreateChatUser(somePlayer)).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
 
     String expected = String.format("style=\"%s\"", instance.createInlineStyleFromColor(color));
@@ -577,7 +577,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.getPlayerForUsername(playerName)).thenReturn(PlayerInfoBeanBuilder.create(playerName).socialStatus(FOE).get());
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
-    when(chatService.createOrGetChatUser(playerName)).thenReturn(chatUser);
+    when(chatService.getOrCreateChatUser(playerName)).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(true);
 
     String result = instance.getInlineStyle(playerName);
@@ -591,7 +591,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.getPlayerForUsername(playerName)).thenReturn(PlayerInfoBeanBuilder.create(playerName).socialStatus(FOE).get());
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
-    when(chatService.createOrGetChatUser(playerName)).thenReturn(chatUser);
+    when(chatService.getOrCreateChatUser(playerName)).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
 
     String shouldBe = "style=\"\"";

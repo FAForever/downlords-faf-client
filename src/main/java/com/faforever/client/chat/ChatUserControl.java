@@ -128,7 +128,7 @@ public class ChatUserControl extends HBox {
     }
 
     Color color = null;
-    ChatUser chatUser = chatService.createOrGetChatUser(playerInfoBean.getUsername());
+    ChatUser chatUser = chatService.getOrCreateChatUser(playerInfoBean.getUsername());
 
     if (chatPrefs.getChatColorMode().equals(CUSTOM)) {
       if (chatPrefs.getUserToColor().containsKey(playerInfoBean.getUsername())) {

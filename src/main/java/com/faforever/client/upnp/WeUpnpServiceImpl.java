@@ -63,7 +63,6 @@ public class WeUpnpServiceImpl implements UpnpService {
       }
 
       addPortMapping(port, localAddress);
-      logger.info("Port {} has been mapped to {}:{}", port, localAddress, port);
     } catch (IOException | SAXException | ParserConfigurationException e) {
       throw new RuntimeException(e);
     }
@@ -75,14 +74,14 @@ public class WeUpnpServiceImpl implements UpnpService {
     }
   }
 
-  private boolean addPortMapping(int port, String localAddress) throws IOException, SAXException {
+  private void addPortMapping(int port, String localAddress) throws IOException, SAXException {
     boolean added = validGateway.addPortMapping(port, port, localAddress, UDP, "Downlord's FAF Client");
     if (!added) {
       logger.warn("Port {} could not be mapped to {}:{}", port, localAddress, port);
     } else {
       mappedPort = port;
+      logger.info("Port {} has been mapped to {}:{}", port, localAddress, port);
     }
-    return added;
   }
 
   @PreDestroy

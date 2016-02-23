@@ -95,6 +95,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowController.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowController.WindowButtonType.MINIMIZE;
+import static com.github.nocatch.NoCatch.noCatch;
 
 public class MainController implements OnChoseGameDirectoryListener {
 
@@ -311,6 +312,9 @@ public class MainController implements OnChoseGameDirectoryListener {
       return;
     }
     threadPoolExecutor.execute(() -> {
+      if (taskBarList == null) {
+        return;
+      }
       if (progress == null) {
         taskBarList.SetProgressState(taskBarRelatedPointer, ITaskbarList3.TbpFlag.TBPF_NOPROGRESS);
       } else if (progress == ProgressIndicator.INDETERMINATE_PROGRESS) {
@@ -580,18 +584,12 @@ public class MainController implements OnChoseGameDirectoryListener {
    */
   private void initWindowsTaskBar() {
     try {
-      threadPoolExecutor.execute(() -> {
-        try {
-          taskBarList = COMRuntime.newInstance(ITaskbarList3.class);
-
-        } catch (ClassNotFoundException e) {
-          throw new RuntimeException(e);
-        }
-      });
+      threadPoolExecutor.execute(() ->
+          noCatch(() -> taskBarList = COMRuntime.newInstance(ITaskbarList3.class))
+      );
 
       long hwndVal = com.sun.glass.ui.Window.getWindows().get(0).getNativeWindow();
       taskBarRelatedPointer = Pointer.pointerToAddress(hwndVal, (PointerIO) null);
-
     } catch (NoClassDefFoundError e) {
       taskBarRelatedPointer = null;
     }

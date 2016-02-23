@@ -23,6 +23,7 @@ public final class ConcurrentUtil {
    * @return the {@link Service} the specified task has been started in.
    */
   @SuppressWarnings("unchecked")
+  // TODO this needs to be removed
   public static <T> Service<T> executeInBackground(final Worker<T> worker) {
     Service<T> service = new Service<T>() {
       @Override

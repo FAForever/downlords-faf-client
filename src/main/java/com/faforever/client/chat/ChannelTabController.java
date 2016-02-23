@@ -6,11 +6,9 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.collections.SetChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -107,6 +105,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private String channelName;
   private Popup filterUserPopup;
+  private MapChangeListener<String, ChatUser> usersChangeListener;
 
   public ChannelTabController() {
     userToChatUserControls = FXCollections.observableMap(new ConcurrentHashMap<>());
@@ -126,47 +125,37 @@ public class ChannelTabController extends AbstractChatTabController {
     channelTabRoot.setId(channelName);
     channelTabRoot.setText(channelName);
 
-    chatService.getChatUsersForChannel(channelName).addListener((MapChangeListener<String, ChatUser>) change -> {
-      if (change.wasAdded()) {
-        onUserJoinedChannel(change.getValueAdded());
-      }
-      if (change.wasRemoved()) {
-        onUserLeft(change.getValueRemoved().getUsername());
-      }
-      updateUserCount(channelName);
-    });
-    updateUserCount(channelName);
 
-    chatService.getChatUsersForChannel(channelName).addListener((InvalidationListener) change ->
-        Platform.runLater(() -> userSearchTextField.setPromptText(
-            i18n.get("chat.userCount", chatService.getChatUsersForChannel(channelName).size())
-        )));
-
-    chatService.addChannelUserListListener(channelName, change -> {
+    usersChangeListener = change -> {
       if (change.wasAdded()) {
         onUserJoinedChannel(change.getValueAdded());
       } else if (change.wasRemoved()) {
         onUserLeft(change.getValueRemoved().getUsername());
       }
-    });
+      updateUserCount(channelName, change.getMap().size());
+    };
+    updateUserCount(channelName, chatService.getOrCreateChannel(channelName).getUsers().size());
+
+    chatService.addUsersListener(channelName, usersChangeListener);
 
     // Maybe there already were some users; fetch them
     threadPoolExecutor.execute(() -> {
-      ObservableMap<String, ChatUser> chatUsersForChannel = chatService.getChatUsersForChannel(channelName);
-      synchronized (chatUsersForChannel) {
-        chatUsersForChannel.values().forEach(ChannelTabController.this::onUserJoinedChannel);
-      }
+      Channel channel = chatService.getOrCreateChannel(channelName);
+      channel.getUsers().forEach(ChannelTabController.this::onUserJoinedChannel);
     });
 
-    channelTabRoot.setOnCloseRequest(event -> chatService.leaveChannel(channelName));
+    channelTabRoot.setOnCloseRequest(event -> {
+      chatService.leaveChannel(channelName);
+      chatService.removeUsersListener(channelName, usersChangeListener);
+    });
 
     searchFieldContainer.visibleProperty().bind(searchField.visibleProperty());
     closeSearchFieldButton.visibleProperty().bind(searchField.visibleProperty());
     addSearchFieldListener();
   }
 
-  private void updateUserCount(String channelName) {
-    Platform.runLater(() -> userSearchTextField.setPromptText(i18n.get("chat.userCount", chatService.getChatUsersForChannel(channelName).size())));
+  private void updateUserCount(String channelName, int count) {
+    Platform.runLater(() -> userSearchTextField.setPromptText(i18n.get("chat.userCount", count)));
   }
 
   @Override
@@ -254,11 +243,10 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void setAllMessageColors() {
-    ObservableMap<String, ChatUser> chatUsersForChannel = chatService.getChatUsersForChannel(channelName);
+    Channel channel = chatService.getOrCreateChannel(channelName);
     Map<String, String> userToColor = new HashMap<>();
-    chatUsersForChannel.values().stream().filter(chatUser -> chatUser.getColor() != null).forEach(chatUser -> {
-      userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor()));
-    });
+    channel.getUsers().stream().filter(chatUser -> chatUser.getColor() != null).forEach(chatUser
+        -> userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor())));
     getJsObject().call("setAllMessageColors", new Gson().toJson(userToColor));
   }
 
