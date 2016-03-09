@@ -179,6 +179,14 @@ public class ThemeServiceImpl implements ThemeService {
     noCatch(() -> watchKeys.put(directory, directory.register(watchService, ENTRY_MODIFY, ENTRY_CREATE, ENTRY_DELETE)));
   }
 
+  private void reloadStylesheet() {
+    String styleSheet = getSceneStyleSheet();
+
+    logger.debug("Changes detected, reloading stylesheet: {}", styleSheet);
+    scenes.forEach(scene -> setStyleSheet(scene, styleSheet));
+    webViews.forEach(webView -> setStyleSheet(webView, getWebViewStyleSheet()));
+  }
+
   @Override
   public String getThemeFile(String relativeFile) {
     Path externalFile = getThemeDirectory(currentTheme.get()).resolve(relativeFile);
@@ -186,14 +194,6 @@ public class ThemeServiceImpl implements ThemeService {
       return noCatch(() -> new ClassPathResource(DEFAULT_BASE_URL + relativeFile).getURL().toString());
     }
     return noCatch(() -> externalFile.toUri().toURL().toString());
-  }
-
-  private void reloadStylesheet() {
-    String styleSheet = getSceneStyleSheet();
-
-    logger.debug("Changes detected, reloading stylesheet: {}", styleSheet);
-    scenes.forEach(scene -> setStyleSheet(scene, styleSheet));
-    webViews.forEach(webView -> setStyleSheet(webView, getWebViewStyleSheet()));
   }
 
   private void setStyleSheet(Scene scene, String styleSheet) {
@@ -209,8 +209,6 @@ public class ThemeServiceImpl implements ThemeService {
     }
     return noCatch(() -> new ClassPathResource(getThemeFile(relativeFile)).getURL());
   }
-
-
 
 
   @Override
@@ -247,6 +245,7 @@ public class ThemeServiceImpl implements ThemeService {
     themesByFolderName.clear();
     themesByFolderName.put(DEFAULT_THEME_NAME, DEFAULT_THEME);
     noCatch(() -> {
+      Files.createDirectories(preferencesService.getThemesDirectory());
       try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(preferencesService.getThemesDirectory())) {
         directoryStream.forEach(this::addThemeDirectory);
       }
@@ -273,7 +272,10 @@ public class ThemeServiceImpl implements ThemeService {
   private void setStyleSheet(WebView webView, String styleSheetUrl) {
     // Always copy to a new file since WebView locks the loaded one
     Path cacheDirectory = preferencesService.getCacheDirectory();
+
     noCatch(() -> {
+      Files.createDirectories(cacheDirectory);
+
       Path tempStyleSheet = Files.createTempFile(cacheDirectory, "style-webview", ".css");
       Files.delete(tempStyleSheet);
 

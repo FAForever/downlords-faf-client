@@ -307,7 +307,7 @@ public class MainController implements OnChoseGameDirectoryListener {
    */
   @SuppressWarnings("unchecked")
   private void updateTaskbarProgress(@Nullable Double progress) {
-    if (taskBarRelatedPointer == null) {
+    if (taskBarRelatedPointer == null || taskBarList == null) {
       return;
     }
     threadPoolExecutor.execute(() -> {
