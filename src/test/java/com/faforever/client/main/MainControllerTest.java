@@ -536,8 +536,15 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnMatchMakerMessageDisplaysNotificationLessThan75Quality() {
+  public void testOnMatchMakerMessageDoesNotDisplaysNotificationLessThan75Quality() {
     prepareTestMatchmakerMessageTest(201);
+    verify(notificationService, never()).addNotification(any(TransientNotification.class));
+  }
+
+  @Test
+  public void testOnMatchMakerMessageDoesNotDisplaysNotificationWhenGameIsRunning() {
+    gameRunningProperty.set(true);
+    prepareTestMatchmakerMessageTest(100);
     verify(notificationService, never()).addNotification(any(TransientNotification.class));
   }
 
