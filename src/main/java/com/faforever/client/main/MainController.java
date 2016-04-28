@@ -158,8 +158,6 @@ public class MainController implements OnChoseGameDirectoryListener {
   MenuButton chatConnectionButton;
   @FXML
   Label taskProgressLabel;
-  @FXML
-  Pane rankedMatchNotificationPane;
 
   @Resource
   NewsController newsController;
@@ -246,9 +244,6 @@ public class MainController implements OnChoseGameDirectoryListener {
     taskPane.managedProperty().bind(taskPane.visibleProperty());
     taskProgressBar.managedProperty().bind(taskProgressBar.visibleProperty());
     taskProgressLabel.managedProperty().bind(taskProgressLabel.visibleProperty());
-    rankedMatchNotificationPane.managedProperty().bind(rankedMatchNotificationPane.visibleProperty());
-
-    rankedMatchNotificationPane.setVisible(false);
 
     addHoverListener(playButton);
     addHoverListener(communityButton);
@@ -475,9 +470,7 @@ public class MainController implements OnChoseGameDirectoryListener {
     );
 
     preferencesService.setOnChoseGameDirectoryListener(this);
-    gameService.addOnRankedMatchNotificationListener(this::onRankedMatchInfo); ///marked
-    fafService.addOnMessageListener(MatchmakerMessage.class, this::onMatchmakerMessage);
-
+    gameService.addOnRankedMatchNotificationListener(this::onMatchmakerMessage);
 
     userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue) {
@@ -486,17 +479,7 @@ public class MainController implements OnChoseGameDirectoryListener {
         onLoggedOut();
       }
     });
-
   }
-
-  private  void onMatchmakerMessage(MatchmakerMessage message) {
-    String title = i18n.get("ranked1v1.notification.title");
-    String text = i18n.get("ranked1v1.notification.message");
-    Image image = new Image(themeService.getThemeFile("images/laddernotif.png"));
-    Action action = new Action("ranked1v1", this::onPlayRanked1v1Selected);
-    notificationService.addNotification(new TransientNotification(title, text, image, action));
-  }
-
 
   private void setContent(Node node) {
     ObservableList<Node> children = contentPane.getChildren();
@@ -569,6 +552,21 @@ public class MainController implements OnChoseGameDirectoryListener {
 
   private void onLoggedOut() {
     Platform.runLater(this::enterLoggedOutState);
+  }
+
+  private void onMatchmakerMessage(MatchmakerMessage message) {
+    if (!message.isPotential()
+        || gameService.gameRunningProperty().get()
+        || !preferencesService.getPreferences().getNotification().getDisplayRanked1v1Toast()) {
+      return;
+    }
+
+    notificationService.addNotification(new TransientNotification(
+        i18n.get("ranked1v1.notification.title"),
+        i18n.get("ranked1v1.notification.message"),
+        new Image(themeService.getThemeFile(ThemeService.RANKED_1V1_IMAGE)),
+        new Action(this::onPlayRanked1v1Selected)
+    ));
   }
 
   public void display() {
@@ -907,10 +905,6 @@ public class MainController implements OnChoseGameDirectoryListener {
     leaderboardController.setUpIfNecessary();
     setContent(leaderboardController.getRoot());
     setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
-  }
-
-  private void onRankedMatchInfo(MatchmakerMessage matchmakerServerMessage) {
-    rankedMatchNotificationPane.setVisible(matchmakerServerMessage.potential);
   }
 
   @FXML

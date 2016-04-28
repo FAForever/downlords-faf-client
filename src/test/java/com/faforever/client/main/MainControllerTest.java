@@ -1,5 +1,6 @@
 package com.faforever.client.main;
 
+import com.faforever.client.ThemeService;
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
@@ -21,6 +22,7 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotificationsController;
+import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
@@ -31,6 +33,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.preferences.WindowPrefs;
+import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.TaskService;
@@ -47,6 +50,7 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
@@ -55,6 +59,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
@@ -63,6 +68,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -138,6 +144,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private ChatService chatService;
   @Mock
   private ExecutorService executorService;
+  @Mock
+  private ThemeService themeService;
 
   private MainController instance;
   private CountDownLatch mainControllerInitializedLatch;
@@ -145,6 +153,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private SimpleObjectProperty<ConnectivityState> connectivityStateProperty;
   private ObjectProperty<ConnectionState> chatConnectionStateProperty;
   private BooleanProperty loggedInProperty;
+  private BooleanProperty gameRunningProperty;
 
   @Before
   public void setUp() throws Exception {
@@ -180,11 +189,13 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.loginController = loginController;
     instance.chatService = chatService;
     instance.executorService = executorService;
+    instance.themeService = themeService;
 
     connectionStateProperty = new SimpleObjectProperty<>();
     connectivityStateProperty = new SimpleObjectProperty<>(ConnectivityState.UNKNOWN);
     chatConnectionStateProperty = new SimpleObjectProperty<>();
     loggedInProperty = new SimpleBooleanProperty();
+    gameRunningProperty = new SimpleBooleanProperty();
 
     when(chatController.getRoot()).thenReturn(new Pane());
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
@@ -209,6 +220,9 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(connectivityService.connectivityStateProperty()).thenReturn(connectivityStateProperty);
     when(chatService.connectionStateProperty()).thenReturn(chatConnectionStateProperty);
     when(userService.loggedInProperty()).thenReturn(loggedInProperty);
+    when(gameService.gameRunningProperty()).thenReturn(gameRunningProperty);
+
+    doAnswer(invocation -> getThemeFile(invocation.getArgumentAt(0, String.class))).when(themeService).getThemeFile(any());
 
     instance.postConstruct();
 
@@ -487,5 +501,49 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     attachToRoot();
     when(leaderboardController.getRoot()).thenReturn(new Pane());
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.leaderboardButton.getItems().get(0).fire());
+  }
+
+  @Test
+  public void testOnMatchMakerMessageDisplaysNotification() {
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
+    when(notificationPrefs.getDisplayRanked1v1Toast()).thenReturn(true);
+
+    verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
+
+    MatchmakerMessage matchmakerMessage = new MatchmakerMessage();
+    matchmakerMessage.setPotential(true);
+    matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
+
+    verify(notificationService).addNotification(any(TransientNotification.class));
+  }
+
+  @Test
+  public void testOnMatchMakerMessageDisplaysNotificationNotPotential() {
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
+
+    verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
+
+    MatchmakerMessage matchmakerMessage = new MatchmakerMessage();
+    matchmakerMessage.setPotential(false);
+    matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
+
+    verify(notificationService, never()).addNotification(any(TransientNotification.class));
+  }
+
+  @Test
+  public void testOnMatchMakerMessageDisplaysNotificationPotentialButDisabled() {
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
+    when(notificationPrefs.getDisplayRanked1v1Toast()).thenReturn(false);
+
+    verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
+
+    MatchmakerMessage matchmakerMessage = new MatchmakerMessage();
+    matchmakerMessage.setPotential(true);
+    matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
+
+    verify(notificationService, never()).addNotification(any(TransientNotification.class));
   }
 }

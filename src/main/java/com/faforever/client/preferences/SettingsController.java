@@ -23,82 +23,58 @@ public class SettingsController {
 
   @FXML
   ComboBox<ChatColorMode> colorMode;
-
   @FXML
   CheckBox hideFoeCheckBox;
-
   @FXML
   TextField gamePortTextField;
-
   @FXML
   TextField gameLocationTextField;
-
   @FXML
   Button gameLocationButton;
-
   @FXML
   CheckBox autoDownloadMapsCheckBox;
-
   @FXML
   ComboBox<String> languageComboBox;
-
   @FXML
   ComboBox<String> themeComboBox;
-
   @FXML
   CheckBox rememberLastTabCheckBox;
-
   @FXML
   Button resetNotificationsButton;
-
   @FXML
   TextField maxMessagesTextField;
-
   @FXML
   CheckBox imagePreviewCheckBox;
-
   @FXML
   CheckBox enableToastsCheckBox;
-
   @FXML
   ComboBox toastPositionComboBox;
-
   @FXML
   ComboBox toastScreenComboBox;
-
   @FXML
   CheckBox enableSoundsCheckBox;
-
   @FXML
   CheckBox displayFriendOnlineToastCheckBox;
-
   @FXML
   CheckBox displayFriendOfflineToastCheckBox;
-
   @FXML
   CheckBox playFriendOnlineSoundCheckBox;
-
   @FXML
   CheckBox playFriendOfflineSoundCheckBox;
-
   @FXML
   CheckBox displayFriendJoinsGameToastCheckBox;
-
   @FXML
   CheckBox displayFriendPlaysGameToastCheckBox;
-
   @FXML
   CheckBox playFriendJoinsGameSoundCheckBox;
-
   @FXML
   CheckBox playFriendPlaysGameSoundCheckBox;
-
   @FXML
   CheckBox displayPmReceivedToastCheckBox;
-
+  @FXML
+  CheckBox displayRanked1v1ToastCheckBox;
   @FXML
   CheckBox playPmReceivedSoundCheckBox;
-
   @FXML
   Region settingsRoot;
 
@@ -155,6 +131,7 @@ public class SettingsController {
     displayFriendJoinsGameToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendJoinsGameToastEnabledProperty());
     displayFriendPlaysGameToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().displayFriendPlaysGameToastProperty());
     displayPmReceivedToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().privateMessageToastEnabledProperty());
+    displayRanked1v1ToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().displayRanked1v1ToastProperty());
     playFriendOnlineSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendOnlineSoundEnabledProperty());
     playFriendOfflineSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendOfflineSoundEnabledProperty());
     playFriendJoinsGameSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendJoinsGameSoundEnabledProperty());

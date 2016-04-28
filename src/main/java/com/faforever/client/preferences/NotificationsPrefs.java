@@ -17,6 +17,7 @@ public class NotificationsPrefs {
   private final BooleanProperty errorSoundEnabled;
   private final BooleanProperty displayFriendOnlineToast;
   private final BooleanProperty displayFriendOfflineToast;
+  private final BooleanProperty displayRanked1v1Toast;
   private final BooleanProperty friendOnlineSoundEnabled;
   private final BooleanProperty friendOfflineSoundEnabled;
   private final BooleanProperty friendJoinsGameSoundEnabled;
@@ -39,6 +40,7 @@ public class NotificationsPrefs {
     toastPosition = new SimpleObjectProperty<>(ToastPosition.BOTTOM_RIGHT);
     displayFriendOnlineToast = new SimpleBooleanProperty(true);
     displayFriendOfflineToast = new SimpleBooleanProperty(true);
+    displayRanked1v1Toast = new SimpleBooleanProperty(true);
     friendOnlineSoundEnabled = new SimpleBooleanProperty(true);
     friendOfflineSoundEnabled = new SimpleBooleanProperty(true);
     friendJoinsGameSoundEnabled = new SimpleBooleanProperty(true);
@@ -277,5 +279,17 @@ public class NotificationsPrefs {
 
   public BooleanProperty privateMessageToastEnabledProperty() {
     return privateMessageToastEnabled;
+  }
+
+  public boolean getDisplayRanked1v1Toast() {
+    return displayRanked1v1Toast.get();
+  }
+
+  public void setDisplayRanked1v1Toast(boolean displayRanked1v1Toast) {
+    this.displayRanked1v1Toast.set(displayRanked1v1Toast);
+  }
+
+  public BooleanProperty displayRanked1v1ToastProperty() {
+    return displayRanked1v1Toast;
   }
 }

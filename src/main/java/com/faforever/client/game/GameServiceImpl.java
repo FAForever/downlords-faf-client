@@ -8,14 +8,12 @@ import com.faforever.client.legacy.domain.GameInfoMessage;
 import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.legacy.domain.GameTypeMessage;
-import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -31,7 +29,6 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.scene.image.Image;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -394,7 +391,6 @@ public class GameServiceImpl implements GameService {
   }
 
   @PostConstruct
-  <T extends ServerMessage>
   void postConstruct() {
     fafService.addOnMessageListener(GameTypeMessage.class, this::onGameTypeInfo);
     fafService.addOnMessageListener(GameInfoMessage.class, this::onGameInfo);

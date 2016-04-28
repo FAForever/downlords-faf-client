@@ -15,6 +15,7 @@ import com.faforever.client.legacy.domain.LoginMessage;
 import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.legacy.domain.SessionMessage;
 import com.faforever.client.legacy.gson.ClientMessageTypeTypeAdapter;
+import com.faforever.client.legacy.gson.InetSocketAddressTypeAdapter;
 import com.faforever.client.legacy.gson.MessageTargetTypeAdapter;
 import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.legacy.io.QDataInputStream;
@@ -47,6 +48,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -80,6 +82,7 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
       .registerTypeAdapter(FafServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
       .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
       .registerTypeAdapter(Faction.class, new FactionDeserializer())
+      .registerTypeAdapter(InetSocketAddress.class, InetSocketAddressTypeAdapter.INSTANCE)
       .create();
 
   @Rule
@@ -305,8 +308,9 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void startSearchRanked1v1WithAeon() throws Exception {
     connectAndLogIn();
+    InetSocketAddress relayAddress = InetSocketAddress.createUnresolved("foobar", 1235);
 
-    CompletableFuture<GameLaunchMessage> future = instance.startSearchRanked1v1(Faction.AEON, GAME_PORT);
+    CompletableFuture<GameLaunchMessage> future = instance.startSearchRanked1v1(Faction.AEON, GAME_PORT, relayAddress);
 
     String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     SearchRanked1V1ClientMessage searchRanked1v1Message = gson.fromJson(clientMessage, SearchRanked1V1ClientMessage.class);
@@ -314,6 +318,7 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     assertThat(searchRanked1v1Message, instanceOf(SearchRanked1V1ClientMessage.class));
     assertThat(searchRanked1v1Message.getFaction(), is(Faction.AEON));
     assertThat(searchRanked1v1Message.getGameport(), is(GAME_PORT));
+    assertThat(searchRanked1v1Message.getRelayAddress(), is(relayAddress));
 
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(1234);

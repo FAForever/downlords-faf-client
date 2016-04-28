@@ -14,6 +14,10 @@ public class MatchmakerMessage extends FafServerMessage {
     super(FafServerMessageType.MATCHMAKER_INFO);
   }
 
+  public boolean isPotential() {
+    return potential;
+  }
+
   public void setPotential(boolean potential) {
     this.potential = potential;
   }

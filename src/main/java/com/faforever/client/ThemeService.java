@@ -11,6 +11,7 @@ public interface ThemeService {
   String DEFAULT_ACHIEVEMENT_IMAGE = "images/default_achievement.png";
   String MENTION_SOUND = "sounds/mention.mp3";
   String CSS_CLASS_FONTAWESOME = "fontawesome";
+  String RANKED_1V1_IMAGE = "images/ranked1v1_notification.png";
 
   String getThemeFile(String relativeFile);
 }

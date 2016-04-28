@@ -39,6 +39,7 @@ import com.faforever.client.legacy.gson.ConnectivityStateTypeAdapter;
 import com.faforever.client.legacy.gson.GameAccessTypeAdapter;
 import com.faforever.client.legacy.gson.GameStateTypeAdapter;
 import com.faforever.client.legacy.gson.GpgServerMessageTypeTypeAdapter;
+import com.faforever.client.legacy.gson.InetSocketAddressTypeAdapter;
 import com.faforever.client.legacy.gson.InitConnectivityTestMessage;
 import com.faforever.client.legacy.gson.MessageTargetTypeAdapter;
 import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
@@ -138,6 +139,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
         .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
         .registerTypeAdapter(ServerMessage.class, ServerMessageTypeAdapter.INSTANCE)
         .registerTypeAdapter(ConnectivityState.class, ConnectivityStateTypeAdapter.INSTANCE)
+        .registerTypeAdapter(InetSocketAddress.class, InetSocketAddressTypeAdapter.INSTANCE)
         .create();
 
     addOnMessageListener(SessionMessage.class, this::onSessionInitiated);
@@ -279,9 +281,9 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort) {
+  public CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort, @Nullable InetSocketAddress relayAddress) {
     gameLaunchFuture = new CompletableFuture<>();
-    writeToServer(new SearchRanked1V1ClientMessage(gamePort, faction));
+    writeToServer(new SearchRanked1V1ClientMessage(gamePort, faction, relayAddress));
     return gameLaunchFuture;
   }
 

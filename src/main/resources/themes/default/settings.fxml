@@ -138,6 +138,7 @@
                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                       </rowConstraints>
                       <children>
                         <Label text="%settings.notifications.displayToast" GridPane.columnIndex="1" />
@@ -147,6 +148,8 @@
                         <Label text="%settings.notifications.friendPlaysGame" GridPane.rowIndex="4" />
                         <Label text="%settings.notifications.friendOffline" GridPane.rowIndex="2" />
                         <Label text="%settings.notifications.pmReceived" GridPane.rowIndex="5" />
+                        <Label layoutX="20.0" layoutY="177.0" text="%settings.notifications.ranked1v1"
+                               GridPane.rowIndex="6"/>
                         <CheckBox fx:id="displayFriendOnlineToastCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                         <CheckBox fx:id="displayFriendOfflineToastCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                         <CheckBox fx:id="playFriendOnlineSoundCheckBox" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.rowIndex="1" />
@@ -157,6 +160,10 @@
                         <CheckBox fx:id="playFriendPlaysGameSoundCheckBox" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.rowIndex="4" />
                         <CheckBox fx:id="displayPmReceivedToastCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="5" />
                         <CheckBox fx:id="playPmReceivedSoundCheckBox" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.rowIndex="5" />
+                        <CheckBox fx:id="displayRanked1v1ToastCheckBox" layoutX="160.0" layoutY="177.0"
+                                  mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+                        <CheckBox fx:id="playRanked1v1SoundCheckBox" layoutX="260.0" layoutY="177.0"
+                                  mnemonicParsing="false" GridPane.columnIndex="2" GridPane.rowIndex="6"/>
                       </children>
                     </GridPane>
                   </content>

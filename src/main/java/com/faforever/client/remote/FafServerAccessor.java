@@ -41,7 +41,7 @@ public interface FafServerAccessor {
 
   void addFoe(int playerId);
 
-  CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort);
+  CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort, @Nullable InetSocketAddress relayAddress);
 
   void stopSearchingRanked();
 

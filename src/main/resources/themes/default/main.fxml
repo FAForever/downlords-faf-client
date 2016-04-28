@@ -111,19 +111,6 @@
             <ProgressBar fx:id="taskProgressBar" maxHeight="1.7976931348623157E308" minWidth="20.0" prefWidth="150.0"/>
           </children>
         </HBox>
-        <HBox fx:id="rankedMatchNotificationPane" alignment="CENTER">
-          <children>
-            <Separator focusTraversable="false" orientation="VERTICAL"/>
-            <Button focusTraversable="false" mnemonicParsing="false" onAction="#onAeonButtonClicked"
-                    styleClass="small-faction-button, aeon-button"/>
-            <Button focusTraversable="false" mnemonicParsing="false" onAction="#onUefButtonClicked"
-                    styleClass="small-faction-button, uef-button"/>
-            <Button focusTraversable="false" mnemonicParsing="false" onAction="#onCybranButtonClicked"
-                    styleClass="small-faction-button, cybran-button"/>
-            <Button focusTraversable="false" mnemonicParsing="false" onAction="#onSeraphimButtonClicked"
-                    styleClass="small-faction-button, seraphim-button"/>
-          </children>
-        </HBox>
         <Separator focusTraversable="false" orientation="VERTICAL"/>
         <MenuButton fx:id="portCheckStatusButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
                     styleClass="status-bar-menu-button" text="%statusBar.connectivityUnknown">
