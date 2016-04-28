@@ -3,12 +3,14 @@ package com.faforever.client.main;
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
+import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
+import com.faforever.client.game.RatingRange;
 import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.i18n.I18n;
@@ -93,9 +95,12 @@ import javax.annotation.Resource;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Function;
 
 import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowController.WindowButtonType.MAXIMIZE_RESTORE;
@@ -229,6 +234,8 @@ public class MainController implements OnChoseGameDirectoryListener {
 
   @Value("${mainWindowTitle}")
   String mainWindowTitle;
+  @Value("${rating.beta}")
+  int ratingBeta;
 
   @VisibleForTesting
   Popup persistentNotificationsPopup;
@@ -572,6 +579,46 @@ public class MainController implements OnChoseGameDirectoryListener {
         new Image(themeService.getThemeFile(ThemeService.RANKED_1V1_IMAGE)),
         new Action(this::onPlayRanked1v1Selected)
     ));
+
+    if (matchmakerServerMessage.getQueues() == null) {
+      return;
+    }
+    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
+
+    int deviationFor80PercentQuality = (int) (ratingBeta / 2.5f);
+    int deviationFor75PercentQuality = (int) (ratingBeta / 1.25f);
+    float leaderboardRatingDeviation = currentPlayer.getLeaderboardRatingDeviation();
+
+    if (leaderboardRatingDeviation > deviationFor80PercentQuality) {
+      return;
+    }
+
+    float leaderboardRatingMean = currentPlayer.getLeaderboardRatingMean();
+
+    Function<MatchmakerMessage.MatchmakerQueue, List<RatingRange>> ratingRangeSupplier;
+    if (leaderboardRatingDeviation <= deviationFor80PercentQuality) {
+      ratingRangeSupplier = new Function<MatchmakerMessage.MatchmakerQueue, List<RatingRange>>() {
+        @Override
+        public List<RatingRange> apply(MatchmakerMessage.MatchmakerQueue matchmakerQueue) {
+          return matchmakerQueue.getRating;
+        }
+      }
+    }
+
+    for (MatchmakerMessage.MatchmakerQueue matchmakerQueue : matchmakerServerMessage.getQueues()) {
+      if (!Objects.equals("ladder1v1", matchmakerQueue.getQueueName())) {
+        continue;
+      }
+
+      for (RatingRange ratingRange : matchmakerQueue.getRatingRanges()) {
+        if (ratingRange.getMin() < leaderboardRatingMean && leaderboardRatingMean < ratingRange.getMax()) {
+
+        }
+      }
+
+
+      MatchmakerMessage.GameQuality gameQuality;
+      rankedMatchNotificationPane.setVisible(matchmakerServerMessage.potential);
   }
 
   public void display() {
