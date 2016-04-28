@@ -22,29 +22,22 @@ public class TeamCardController {
 
   @FXML
   TitledPane teamPaneRoot;
-
   @FXML
   VBox teamPane;
 
   @Resource
   PlayerService playerService;
-
   @Resource
   ApplicationContext applicationContext;
-
   @Resource
   I18n i18n;
 
-  /**
-   * @return whether playerInfoBean is a null parameter
-   */
-  public boolean setTeam(List<String> playerList, String team) {
-
+  public void setPlayersInTeam(String team, List<String> playerList) {
     String localizedTeamTile;
     if (team == null) {
       localizedTeamTile = i18n.get("game.tooltip.teamTitleNoTeam");
     } else if (team.equals("-1")) {
-      // TODO server-update: check what's the new value for observers is (instead of -1)
+      // FIXME figure out what's the value for "no team" (instead of "-1")
       localizedTeamTile = i18n.get("game.tooltip.observers");
     } else {
       localizedTeamTile = i18n.get("game.tooltip.teamTitle", team);
@@ -55,14 +48,13 @@ public class TeamCardController {
       PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(player);
       if (playerInfoBean == null) {
         logger.warn("{} is not returned by playerService", player);
-        return false;
+        continue;
       }
       PlayerCardTooltipController playerCardTooltipController = applicationContext.getBean(PlayerCardTooltipController.class);
       playerCardTooltipController.setPlayer(playerInfoBean);
 
       teamPane.getChildren().add(playerCardTooltipController.getRoot());
     }
-    return true;
   }
 
   public Node getRoot() {

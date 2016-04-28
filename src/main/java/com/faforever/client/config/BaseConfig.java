@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.core.env.Environment;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -21,6 +20,7 @@ import javax.annotation.Resource;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * This configuration has to be imported by other configurations and should only contain beans that are necessary to run
@@ -30,9 +30,6 @@ import java.util.concurrent.ScheduledExecutorService;
 @PropertySource("classpath:/faf_client.properties")
 @EnableAsync
 public class BaseConfig {
-
-  @Resource
-  Environment environment;
 
   @Resource
   ScheduledExecutorService scheduledExecutorService;
@@ -52,6 +49,11 @@ public class BaseConfig {
   @Bean
   I18n i18n() {
     return new I18nImpl();
+  }
+
+  @Bean
+  ThreadPoolExecutor threadPoolExecutor() {
+    return (ThreadPoolExecutor) Executors.newCachedThreadPool();
   }
 
   @Bean

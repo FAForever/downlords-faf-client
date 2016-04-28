@@ -15,6 +15,8 @@ import static javafx.collections.FXCollections.observableArrayList;
 
 public class Preferences {
 
+  public static final String DEFAULT_THEME_NAME = "default";
+
   private final WindowPrefs mainWindow;
   private final ForgedAlliancePrefs forgedAlliance;
   private final LoginPrefs login;
@@ -36,7 +38,7 @@ public class Preferences {
     login = new LoginPrefs();
     mainWindow = new WindowPrefs();
     forgedAlliance = new ForgedAlliancePrefs();
-    theme = new SimpleStringProperty("default");
+    theme = new SimpleStringProperty(DEFAULT_THEME_NAME);
     lastGameType = new SimpleStringProperty(GameType.DEFAULT.getString());
     ignoredNotifications = new SimpleListProperty<>(observableArrayList());
     notification = new NotificationsPrefs();

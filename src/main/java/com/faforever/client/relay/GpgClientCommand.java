@@ -25,6 +25,7 @@ public enum GpgClientCommand {
   AI_OPTION("AIOption"),
   JSON_STATS("JsonStats"),
   REHOST("Rehost"),
+  DESYNC("Desync"),
   INIT_CONNECTIVITY_TEST("InitiateTest"),
   // Yes, these are the only lower-cased in the protocol. Because fuck you.
   CONNECTED_TO_HOST("connectedToHost");

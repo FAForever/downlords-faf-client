@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.domain.GameInfoMessage;
-import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.VictoryCondition;
+import com.faforever.client.remote.domain.GameInfoMessage;
+import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.VictoryCondition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.MapProperty;
@@ -284,6 +284,9 @@ public class GameInfoBean {
     return victoryCondition;
   }
 
+  /**
+   * Returns a map of simulation mod UIDs to the mod's name.
+   */
   public ObservableMap<String, String> getSimMods() {
     return simMods.get();
   }

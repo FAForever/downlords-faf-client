@@ -1,10 +1,10 @@
 package com.faforever.client.game;
 
-import com.faforever.client.ThemeService;
 import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
+import com.faforever.client.theme.ThemeService;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;

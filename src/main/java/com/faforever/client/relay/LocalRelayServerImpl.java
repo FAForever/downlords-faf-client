@@ -4,13 +4,13 @@ import com.faforever.client.connectivity.DatagramGateway;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameType;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.user.UserService;
 import org.apache.commons.compress.utils.IOUtils;
@@ -41,10 +41,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
-import static com.faforever.client.net.NetUtil.readSocket;
+import static com.faforever.client.net.SocketUtil.readSocket;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
 /**
@@ -57,6 +57,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   private final Consumer<DatagramPacket> datagramPacketConsumer;
   private final Map<SocketAddress, DatagramSocket> proxySocketsByOriginalAddress;
   private final Map<Integer, SocketAddress> originalAddressByUid;
+
   @Resource
   UserService userService;
   @Resource
@@ -64,7 +65,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   @Resource
   FafService fafService;
   @Resource
-  ExecutorService executorService;
+  ThreadPoolExecutor threadPoolExecutor;
   @Resource
   GameService gameService;
   @Resource
@@ -93,7 +94,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     originalAddressByUid = new HashMap<>();
     onConnectionAcceptedListeners = new ArrayList<>();
     lobbyMode = LobbyMode.DEFAULT_LOBBY;
-    datagramPacketConsumer = this::onPacketFromOutside;
+    datagramPacketConsumer = this::onIncomingPacket;
   }
 
   @Override
@@ -124,7 +125,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
     gameUdpSocketFuture = new CompletableFuture<>();
     gpgPortFuture = new CompletableFuture<>();
-    CompletableFuture.runAsync(this::innerStart, executorService);
+    threadPoolExecutor.execute(this::innerStart);
     return gpgPortFuture;
   }
 
@@ -157,15 +158,16 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     IOUtils.closeQuietly(gameSocket);
   }
 
-  private void onPacketFromOutside(DatagramPacket packet) {
-    DatagramSocket proxySocket = createOrGetProxySocket(packet.getSocketAddress());
+  private void onIncomingPacket(DatagramPacket packet) {
+    DatagramSocket relaySocket = createOrGetRelaySocket(packet.getSocketAddress());
     try {
       if (logger.isTraceEnabled()) {
-        logger.trace("Forwarding {} bytes from peer {}' to FA: {}", packet.getLength(),
-            proxySocket.getLocalSocketAddress(), new String(packet.getData(), 0, packet.getLength(), US_ASCII));
+        logger.trace("Forwarding {} bytes from peer '{}' through '{}': {}", packet.getLength(),
+            packet.getSocketAddress(), relaySocket.getLocalSocketAddress(),
+            new String(packet.getData(), 0, packet.getLength(), US_ASCII));
       }
       packet.setSocketAddress(getGameSocketAddress());
-      proxySocket.send(packet);
+      relaySocket.send(packet);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -181,16 +183,15 @@ public class LocalRelayServerImpl implements LocalRelayServer {
    *
    * @return the UDP socket the peer has been bound to
    */
-  private DatagramSocket createOrGetProxySocket(SocketAddress originalSocketAddress) {
+  private DatagramSocket createOrGetRelaySocket(SocketAddress originalSocketAddress) {
     if (!proxySocketsByOriginalAddress.containsKey(originalSocketAddress)) {
       try {
-        DatagramSocket proxySocket = new DatagramSocket(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0));
-        logger.debug("Mapping peer {} to proxy socket {}", originalSocketAddress);
+        DatagramSocket relaySocket = new DatagramSocket(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0));
+        logger.debug("Mapping peer {} to relay socket {}", originalSocketAddress, relaySocket.getLocalSocketAddress());
 
-        proxySocket.connect(getGameSocketAddress());
-        proxySocketsByOriginalAddress.put(originalSocketAddress, proxySocket);
+        proxySocketsByOriginalAddress.put(originalSocketAddress, relaySocket);
 
-        readSocket(executorService, proxySocket, packet -> {
+        readSocket(threadPoolExecutor, relaySocket, packet -> {
           packet.setSocketAddress(originalSocketAddress);
           if (logger.isTraceEnabled()) {
             logger.trace("Forwarding {} bytes from FA to peer {}: {}", packet.getLength(),
@@ -349,21 +350,19 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   private void handleConnectToPeer(ConnectToPeerMessage connectToPeerMessage) {
     InetSocketAddress peerAddress = connectToPeerMessage.getPeerAddress();
 
-    DatagramSocket peerSocket = createOrGetProxySocket(peerAddress);
-    SocketAddress peerSocketAddress = peerSocket.getLocalSocketAddress();
-    connectToPeerMessage.setPeerAddress((InetSocketAddress) peerSocketAddress);
+    ConnectToPeerMessage clone = connectToPeerMessage.clone();
+    clone.setPeerAddress((InetSocketAddress) createOrGetRelaySocket(peerAddress).getLocalSocketAddress());
 
-    writeToFa(connectToPeerMessage);
+    writeToFa(clone);
   }
 
   private void handleJoinGame(JoinGameMessage joinGameMessage) {
     InetSocketAddress originalAddress = joinGameMessage.getPeerAddress();
     originalAddressByUid.put(joinGameMessage.getPeerUid(), originalAddress);
 
-    DatagramSocket proxySocket = createOrGetProxySocket(originalAddress);
-    SocketAddress peerSocketAddress = proxySocket.getLocalSocketAddress();
-    joinGameMessage.setPeerAddress((InetSocketAddress) peerSocketAddress);
+    JoinGameMessage clone = joinGameMessage.clone();
+    clone.setPeerAddress((InetSocketAddress) createOrGetRelaySocket(originalAddress).getLocalSocketAddress());
 
-    writeToFa(joinGameMessage);
+    writeToFa(clone);
   }
 }

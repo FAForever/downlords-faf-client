@@ -121,6 +121,9 @@ public class LaunchCommandBuilder {
     if (username == null) {
       throw new IllegalStateException("username has not been set");
     }
+    if (replayUri != null && uid != null) {
+      throw new IllegalStateException("uid and replayUri cannot be set at the same time");
+    }
 
     List<String> command = new ArrayList<>(Arrays.asList(
         executable.toAbsolutePath().toString(),

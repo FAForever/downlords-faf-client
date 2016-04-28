@@ -1,8 +1,8 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.game.GameInfoBean;
-import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.VictoryCondition;
+import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.VictoryCondition;
 
 import java.util.List;
 import java.util.Map;

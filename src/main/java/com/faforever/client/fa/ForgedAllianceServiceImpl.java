@@ -79,14 +79,17 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   }
 
   @Override
-  public Process startReplay(URI replayUri, Integer replayId) throws IOException {
+  public Process startReplay(URI replayUri, Integer replayId, String gameType) throws IOException {
     Path executable = getExecutable();
 
+    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
     List<String> launchCommand = LaunchCommandBuilder.create()
         .executable(executable)
         .replayUri(replayUri)
         .replayId(replayId)
         .logFile(preferencesService.getFafLogDirectory().resolve("replay.log"))
+        .gameType(gameType)
+        .username(currentPlayer.getUsername())
         .build();
 
     return launch(executable, launchCommand);

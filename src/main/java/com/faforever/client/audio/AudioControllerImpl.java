@@ -1,11 +1,10 @@
 package com.faforever.client.audio;
 
-import com.faforever.client.ThemeService;
 import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.theme.ThemeService;
 import javafx.scene.media.AudioClip;
-import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -58,7 +57,7 @@ public class AudioControllerImpl implements AudioController {
   }
 
   private AudioClip loadSound(String sound) throws IOException {
-    return new AudioClip(new ClassPathResource(themeService.getThemeFile(sound)).getURL().toString());
+    return new AudioClip(themeService.getThemeFileUrl(sound).toString());
   }
 
   @Override

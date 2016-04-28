@@ -1,14 +1,14 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.legacy.domain.ClientMessage;
-import com.faforever.client.legacy.domain.ClientMessageType;
-import com.faforever.client.legacy.domain.FafServerMessage;
-import com.faforever.client.legacy.domain.FafServerMessageType;
-import com.faforever.client.legacy.domain.StatisticsType;
-import com.faforever.client.legacy.gson.ClientMessageTypeTypeAdapter;
-import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
-import com.faforever.client.legacy.io.QDataInputStream;
-import com.faforever.client.legacy.writer.ServerWriter;
+import com.faforever.client.remote.ServerWriter;
+import com.faforever.client.remote.domain.ClientMessage;
+import com.faforever.client.remote.domain.ClientMessageType;
+import com.faforever.client.remote.domain.FafServerMessage;
+import com.faforever.client.remote.domain.FafServerMessageType;
+import com.faforever.client.remote.domain.StatisticsType;
+import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
+import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
+import com.faforever.client.remote.io.QDataInputStream;
 import com.faforever.client.stats.PlayerStatisticsMessage;
 import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.stats.StatisticsMessage;

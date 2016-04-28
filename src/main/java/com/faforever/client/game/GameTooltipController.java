@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 
 import com.google.common.base.Joiner;
+import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
@@ -13,56 +14,64 @@ import javafx.scene.layout.VBox;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Resource;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class GameTooltipController {
 
   @FXML
   public TitledPane modsPane;
-
   @FXML
   public Pane teamsPane;
-
   @FXML
   public Label modsLabel;
-
   @FXML
-  public VBox teamListRoot;
+  public VBox gameTooltipRoot;
 
   @Resource
   ApplicationContext applicationContext;
 
+  @FXML
+  void initialize() {
+    modsPane.managedProperty().bind(modsPane.visibleProperty());
+  }
+
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
-    createTeam(gameInfoBean.getTeams());
+    createTeams(gameInfoBean.getTeams());
     createModsList(gameInfoBean.getSimMods());
-    gameInfoBean.getTeams().addListener((MapChangeListener<String, List<String>>) change -> createTeam(change.getMap()));
+    gameInfoBean.getTeams().addListener((MapChangeListener<String, List<String>>) change -> createTeams(change.getMap()));
     gameInfoBean.getSimMods().addListener((MapChangeListener<String, String>) change -> createModsList(change.getMap()));
   }
 
-  private void createTeam(ObservableMap<? extends String, ? extends List<String>> teamsList) {
-    teamsPane.getChildren().clear();
-    for (Map.Entry<? extends String, ? extends List<String>> entry : teamsList.entrySet()) {
-      TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
-      boolean teamCardSuccess = teamCardController.setTeam(entry.getValue(), entry.getKey());
-      if (teamCardSuccess) {
+  private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList) {
+    // Copy to prevent concurrent modification exception
+    Set<Map.Entry<? extends String, ? extends List<String>>> teamEntries = new HashSet<>(teamsList.entrySet());
+    Platform.runLater(() -> {
+      teamsPane.getChildren().clear();
+      for (Map.Entry<? extends String, ? extends List<String>> entry : teamEntries) {
+        TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
+        teamCardController.setPlayersInTeam(entry.getKey(), entry.getValue());
         teamsPane.getChildren().add(teamCardController.getRoot());
       }
-    }
+    });
   }
 
   private void createModsList(ObservableMap<? extends String, ? extends String> simMods) {
-    if (simMods.isEmpty()) {
-      modsPane.setVisible(false);
-      return;
-    }
-
     String stringSimMods = Joiner.on(System.getProperty("line.separator")).join(simMods.values());
-    modsLabel.setText(stringSimMods);
-    modsPane.setVisible(true);
+    Platform.runLater(() -> {
+      if (simMods.isEmpty()) {
+        modsPane.setVisible(false);
+        return;
+      }
+
+      modsLabel.setText(stringSimMods);
+      modsPane.setVisible(true);
+    });
   }
 
   public Node getRoot() {
-    return teamListRoot;
+    return gameTooltipRoot;
   }
 }

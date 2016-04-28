@@ -8,19 +8,19 @@ import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
-import com.faforever.client.legacy.domain.GameEndedMessage;
-import com.faforever.client.legacy.domain.GameLaunchMessage;
-import com.faforever.client.legacy.domain.LoginMessage;
-import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.relay.GpgClientMessage;
+import com.faforever.client.remote.domain.GameEndedMessage;
+import com.faforever.client.remote.domain.GameLaunchMessage;
+import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.ServerMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import org.springframework.cache.annotation.Cacheable;
 
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
 public class FafServiceImpl implements FafService {
@@ -32,7 +32,7 @@ public class FafServiceImpl implements FafService {
   @Resource
   ConnectivityService connectivityService;
   @Resource
-  Executor executor;
+  ThreadPoolExecutor threadPoolExecutor;
 
   @Override
   public <T extends ServerMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
@@ -128,17 +128,17 @@ public class FafServiceImpl implements FafService {
   @Override
   @Cacheable(CacheNames.LEADERBOARD)
   public CompletableFuture<List<Ranked1v1EntryBean>> getRanked1v1Entries() {
-    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getRanked1v1Entries(), executor);
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getRanked1v1Entries(), threadPoolExecutor);
   }
 
   @Override
   public CompletableFuture<Ranked1v1Stats> getRanked1v1Stats() {
-    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getRanked1v1Stats(), executor);
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getRanked1v1Stats(), threadPoolExecutor);
   }
 
   @Override
   public CompletableFuture<Ranked1v1EntryBean> getRanked1v1EntryForPlayer(int playerId) {
-    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getRanked1v1EntryForPlayer(playerId), executor);
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getRanked1v1EntryForPlayer(playerId), threadPoolExecutor);
   }
 
   @Override

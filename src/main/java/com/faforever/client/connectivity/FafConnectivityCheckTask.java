@@ -1,15 +1,16 @@
 package com.faforever.client.connectivity;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.relay.ConnectivityStateMessage;
 import com.faforever.client.relay.GpgServerMessage;
 import com.faforever.client.relay.ProcessNatPacketMessage;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.MessageTarget;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.util.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
@@ -18,7 +19,6 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -31,19 +31,19 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 public class FafConnectivityCheckTask extends AbstractPrioritizedTask<ConnectivityStateMessage> implements ConnectivityCheckTask {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final int TIMEOUT = 5000;
 
   @Resource
   I18n i18n;
   @Resource
   FafService fafService;
-  @Resource
-  ExecutorService executorService;
+  @Value("${connectivityCheck.timeout}")
+  int connectivityCheckTimeout;
 
   private DatagramGateway datagramGateway;
   private CompletableFuture<DatagramPacket> gamePortPacketFuture;
   private CompletableFuture<ConnectivityStateMessage> connectivityStateFuture;
   private Integer publicPort;
+
   public FafConnectivityCheckTask() {
     super(Priority.LOW);
   }
@@ -95,8 +95,9 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
 
     try {
       runTestForPort(publicPort);
-      return connectivityStateFuture.get(TIMEOUT, TimeUnit.MILLISECONDS);
+      return connectivityStateFuture.get(connectivityCheckTimeout, TimeUnit.MILLISECONDS);
     } catch (TimeoutException e) {
+      logger.warn("Connectivity state not received from server within " + connectivityCheckTimeout + "ms");
       throw new RuntimeException(e);
     } finally {
       fafService.removeOnMessageListener(GpgServerMessage.class, connectivityStateMessageListener);
@@ -109,7 +110,7 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
       gamePortPacketFuture = listenForPackage();
 
       fafService.initConnectivityTest(port);
-      DatagramPacket udpPacket = gamePortPacketFuture.get(TIMEOUT, TimeUnit.MILLISECONDS);
+      DatagramPacket udpPacket = gamePortPacketFuture.get(connectivityCheckTimeout, TimeUnit.MILLISECONDS);
       String message = new String(udpPacket.getData(), 1, udpPacket.getLength() - 1, US_ASCII);
 
       logger.info("Received UDP package on port {}: ", port, message);
@@ -121,7 +122,9 @@ public class FafConnectivityCheckTask extends AbstractPrioritizedTask<Connectivi
       fafService.sendGpgMessage(processNatPacketMessage);
     } catch (CancellationException e) {
       logger.debug("Waiting for UDP package on public game port has been cancelled");
-    } catch (InterruptedException | TimeoutException | ExecutionException e) {
+    } catch (TimeoutException e) {
+      logger.debug("Waiting for UDP package on public game port timed out");
+    } catch (InterruptedException | ExecutionException e) {
       throw new RuntimeException(e);
     }
   }

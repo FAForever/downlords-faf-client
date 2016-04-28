@@ -1,7 +1,7 @@
 package com.faforever.client.news;
 
-import com.faforever.client.ThemeService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.theme.ThemeService;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;

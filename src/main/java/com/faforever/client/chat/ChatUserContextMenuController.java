@@ -1,10 +1,10 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.fx.StageConfigurator;
+import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
+import com.faforever.client.game.GameStatus;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.GameStatus;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
@@ -34,7 +34,7 @@ import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.faforever.client.chat.SocialStatus.SELF;
-import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
+import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 
 public class ChatUserContextMenuController {
 
@@ -84,8 +84,6 @@ public class ChatUserContextMenuController {
   @Resource
   ApplicationContext applicationContext;
   @Resource
-  StageConfigurator stageConfigurator;
-  @Resource
   PlayerService playerService;
   @Resource
   GameService gameService;
@@ -118,7 +116,7 @@ public class ChatUserContextMenuController {
       } else {
         chatPrefs.getUserToColor().put(playerInfoBean.getUsername(), newValue);
       }
-      ChatUser chatUser = chatService.createOrGetChatUser(playerInfoBean.getUsername());
+      ChatUser chatUser = chatService.getOrCreateChatUser(playerInfoBean.getUsername());
       chatUser.setColor(newValue);
       contextMenu.hide();
     });
@@ -165,7 +163,8 @@ public class ChatUserContextMenuController {
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(contextMenu.getOwnerWindow());
 
-    stageConfigurator.configureScene(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
+    WindowController windowController = applicationContext.getBean(WindowController.class);
+    windowController.configure(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
 
     userInfoWindow.show();
   }
@@ -203,7 +202,7 @@ public class ChatUserContextMenuController {
   @FXML
   void onWatchGame() {
     try {
-      replayService.runLiveReplay(playerInfoBean.getGameUid(), playerInfoBean.getUsername());
+      replayService.runLiveReplay(playerInfoBean.getGameUid(), playerInfoBean.getId());
     } catch (IOException e) {
       logger.error("Cannot load live replay {}", e.getCause());
       String title = i18n.get("replays.live.loadFailure.title");

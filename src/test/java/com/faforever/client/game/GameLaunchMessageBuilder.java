@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.domain.GameLaunchMessage;
+import com.faforever.client.remote.domain.GameLaunchMessage;
 
 import java.util.Arrays;
 

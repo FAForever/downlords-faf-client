@@ -8,9 +8,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
 import org.pircbotx.User;
@@ -22,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -37,12 +34,9 @@ public class MockChatService implements ChatService {
   private static final int CHAT_MESSAGE_INTERVAL = 5000;
   private static final long CONNECTION_DELAY = 1000;
   private final Timer timer;
-  private final Collection<OnChatMessageListener> onChatMessageListeners;
-  private final Collection<OnChatUserListListener> onUserListListeners;
-  private final Collection<OnPrivateChatMessageListener> onPrivateChatMessageListeners;
-  private final Collection<OnChatUserJoinedChannelListener> onChannelJoinedListeners;
-  private final Collection<OnChatUserQuitListener> onChatUserQuitListeners;
-  private final Map<String, ObservableMap<String, ChatUser>> channelUserListListeners;
+  private final Collection<Consumer<ChatMessage>> onChatMessageListeners;
+  private final Collection<Consumer<ChatMessage>> onPrivateChatMessageListeners;
+  private final Map<String, Channel> channelUserListListeners;
 
   private final ObjectProperty<ConnectionState> connectionState;
 
@@ -57,10 +51,7 @@ public class MockChatService implements ChatService {
     connectionState = new SimpleObjectProperty<>();
 
     onChatMessageListeners = new ArrayList<>();
-    onUserListListeners = new ArrayList<>();
     onPrivateChatMessageListeners = new ArrayList<>();
-    onChannelJoinedListeners = new ArrayList<>();
-    onChatUserQuitListeners = new ArrayList<>();
     channelUserListListeners = new HashMap<>();
 
     timer = new Timer(true);
@@ -81,38 +72,13 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public void addOnMessageListener(OnChatMessageListener listener) {
+  public void addOnMessageListener(Consumer<ChatMessage> listener) {
     onChatMessageListeners.add(listener);
   }
 
   @Override
-  public void addOnUserListListener(OnChatUserListListener listener) {
-    onUserListListeners.add(listener);
-  }
+  public void addOnPrivateChatMessageListener(Consumer<ChatMessage> listener) {
 
-  @Override
-  public void addOnPrivateChatMessageListener(OnPrivateChatMessageListener listener) {
-    onPrivateChatMessageListeners.add(listener);
-  }
-
-  @Override
-  public void addOnChatUserJoinedChannelListener(OnChatUserJoinedChannelListener listener) {
-    onChannelJoinedListeners.add(listener);
-  }
-
-  @Override
-  public void addOnChatUserLeftChannelListener(OnChatUserLeftChannelListener listener) {
-
-  }
-
-  @Override
-  public void addOnModeratorSetListener(OnModeratorSetListener listener) {
-
-  }
-
-  @Override
-  public void addOnChatUserQuitListener(OnChatUserQuitListener listener) {
-    onChatUserQuitListeners.add(listener);
   }
 
   @Override
@@ -144,23 +110,30 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public ObservableMap<String, ChatUser> getChatUsersForChannel(String channelName) {
-    channelUserListListeners.putIfAbsent(channelName, FXCollections.observableHashMap());
+  public Channel getOrCreateChannel(String channelName) {
+    channelUserListListeners.putIfAbsent(channelName, new Channel(channelName));
     return channelUserListListeners.get(channelName);
   }
 
 
   @Override
-  public ChatUser createOrGetChatUser(String username) {
+  public ChatUser getOrCreateChatUser(String username) {
     return new ChatUser(username, Color.ALICEBLUE);
   }
 
   @Override
-  public void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener) {
-    ObservableMap<String, ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
-    synchronized (chatUsersForChannel) {
-      chatUsersForChannel.addListener(listener);
-    }
+  public void addUsersListener(String channelName, MapChangeListener<String, ChatUser> listener) {
+    getOrCreateChannel(channelName).addUsersListeners(listener);
+  }
+
+  @Override
+  public void addChannelsListener(MapChangeListener<String, Channel> listener) {
+
+  }
+
+  @Override
+  public void removeUsersListener(String channelName, MapChangeListener<String, ChatUser> listener) {
+
   }
 
   @Override
@@ -182,19 +155,10 @@ public class MockChatService implements ChatService {
         ChatUser mockUser = new ChatUser("MockUser", null);
         ChatUser moderatorUser = new ChatUser("MockModerator", Collections.singleton(channelName), null);
 
-        for (OnChatUserJoinedChannelListener onChannelJoinedListener : onChannelJoinedListeners) {
-          onChannelJoinedListener.onUserJoinedChannel(channelName, chatUser);
-          onChannelJoinedListener.onUserJoinedChannel(channelName, mockUser);
-          onChannelJoinedListener.onUserJoinedChannel(channelName, moderatorUser);
-        }
-
-        ObservableMap<String, ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
-
-        synchronized (chatUsersForChannel) {
-          chatUsersForChannel.put(chatUser.getUsername(), chatUser);
-          chatUsersForChannel.put(mockUser.getUsername(), mockUser);
-          chatUsersForChannel.put(moderatorUser.getUsername(), moderatorUser);
-        }
+        Channel channel = getOrCreateChannel(channelName);
+        channel.addUser(chatUser);
+        channel.addUser(mockUser);
+        channel.addUser(moderatorUser);
 
         return null;
       }
@@ -203,8 +167,8 @@ public class MockChatService implements ChatService {
     timer.schedule(new TimerTask() {
       @Override
       public void run() {
-        for (OnChatMessageListener onChatMessageListener : onChatMessageListeners) {
-          ChatMessage chatMessage = new ChatMessage(Instant.now(), "Mock User",
+        for (Consumer<ChatMessage> onChatMessageListener : onChatMessageListeners) {
+          ChatMessage chatMessage = new ChatMessage(channelName, Instant.now(), "Mock User",
               String.format(
                   "%1$s Lorem ipsum dolor sit amet, consetetur %1$s sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam %1$s " +
                       "http://www.faforever.com/wp-content/uploads/2013/07/cropped-backForum41.jpg",
@@ -212,17 +176,11 @@ public class MockChatService implements ChatService {
               )
           );
 
-          onChatMessageListener.onMessage(userService.getUsername(), chatMessage);
+          onChatMessageListener.accept(chatMessage);
         }
       }
     }, 0, CHAT_MESSAGE_INTERVAL);
   }
-
-  @Override
-  public void addOnJoinChannelsRequestListener(Consumer<List<String>> listener) {
-
-  }
-
 
   @Override
   public boolean isDefaultChannel(String channelName) {
@@ -234,16 +192,9 @@ public class MockChatService implements ChatService {
 
   }
 
-  //TODO implement
   @Override
   public ChatUser createOrGetChatUser(User user) {
     return null;
-  }
-
-  //TODO implement
-  @Override
-  public void addUserToColorListener() {
-
   }
 
   @Override
@@ -253,6 +204,11 @@ public class MockChatService implements ChatService {
 
   @Override
   public void reconnect() {
+
+  }
+
+  @Override
+  public void whois(String username) {
 
   }
 }

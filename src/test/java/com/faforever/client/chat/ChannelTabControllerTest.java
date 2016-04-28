@@ -22,6 +22,8 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -57,6 +59,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private NotificationService notificationService;
+  @Mock
+  private ThreadPoolExecutor threadPoolExecutor;
 
   private ChannelTabController instance;
 
@@ -72,6 +76,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     instance.preferencesService = preferencesService;
     instance.hostService = hostService;
     instance.i18n = i18n;
+    instance.threadPoolExecutor = threadPoolExecutor;
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getCacheDirectory()).thenReturn(tempDir.getRoot().toPath());
@@ -100,17 +105,17 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetChannelName() throws Exception {
-    when(chatService.getChatUsersForChannel(CHANNEL_NAME)).thenReturn(FXCollections.emptyObservableMap());
+    when(chatService.getOrCreateChannel(CHANNEL_NAME)).thenReturn(new Channel(CHANNEL_NAME));
 
     instance.setChannelName(CHANNEL_NAME);
 
-    verify(chatService).addChannelUserListListener(eq(CHANNEL_NAME), any());
+    verify(chatService).addUsersListener(eq(CHANNEL_NAME), any());
   }
 
   @Test
   public void testGetMessageCssClassModerator() throws Exception {
     String playerName = "junit";
-    when(chatService.getChatUsersForChannel(CHANNEL_NAME)).thenReturn(FXCollections.emptyObservableMap());
+    when(chatService.getOrCreateChannel(CHANNEL_NAME)).thenReturn(new Channel(CHANNEL_NAME));
 
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
     playerInfoBean.moderatorForChannelsProperty().set(FXCollections.observableSet(CHANNEL_NAME));

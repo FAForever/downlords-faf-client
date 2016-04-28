@@ -7,15 +7,14 @@ import com.faforever.client.achievements.PlayerAchievementBuilder;
 import com.faforever.client.api.AchievementState;
 import com.faforever.client.events.EventService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.domain.StatisticsType;
 import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.domain.StatisticsType;
 import com.faforever.client.stats.PlayerStatisticsMessage;
 import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import javafx.collections.FXCollections;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -23,6 +22,7 @@ import org.springframework.context.ApplicationContext;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
@@ -92,8 +92,8 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
         AchievementDefinitionBuilder.create().defaultValues().get()
     )));
     when(applicationContext.getBean(AchievementItemController.class)).thenReturn(achievementItemController);
-    when(achievementService.getPlayerAchievements(PLAYER_NAME)).thenReturn(FXCollections.observableArrayList(
-        PlayerAchievementBuilder.create().defaultValues().get()
+    when(achievementService.getPlayerAchievements(PLAYER_NAME)).thenReturn(CompletableFuture.completedFuture(
+        Collections.singletonList(PlayerAchievementBuilder.create().defaultValues().get())
     ));
     when(eventService.getPlayerEvents(PLAYER_NAME)).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
 
@@ -126,10 +126,10 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
         AchievementDefinitionBuilder.create().defaultValues().get()
     )));
     when(applicationContext.getBean(AchievementItemController.class)).thenReturn(achievementItemController);
-    when(achievementService.getPlayerAchievements(PLAYER_NAME)).thenReturn(FXCollections.observableArrayList(
+    when(achievementService.getPlayerAchievements(PLAYER_NAME)).thenReturn(CompletableFuture.completedFuture(asList(
         PlayerAchievementBuilder.create().defaultValues().achievementId("foo-bar").state(AchievementState.UNLOCKED).get(),
         PlayerAchievementBuilder.create().defaultValues().get()
-    ));
+    )));
     when(eventService.getPlayerEvents(PLAYER_NAME)).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
 
     instance.setPlayerInfoBean(PlayerInfoBeanBuilder.create(PLAYER_NAME).get());

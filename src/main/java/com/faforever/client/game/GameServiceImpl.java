@@ -4,10 +4,6 @@ import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.domain.GameInfoMessage;
-import com.faforever.client.legacy.domain.GameLaunchMessage;
-import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.GameTypeMessage;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
@@ -20,6 +16,10 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.GameInfoMessage;
+import com.faforever.client.remote.domain.GameLaunchMessage;
+import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.GameTypeMessage;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
@@ -156,7 +156,7 @@ public class GameServiceImpl implements GameService {
       return CompletableFuture.completedFuture(null);
     }
 
-    logger.info("Joining game {} ({})", gameInfoBean.getTitle(), gameInfoBean.getUid());
+    logger.info("Joining game: {} ({})", gameInfoBean.getTitle(), gameInfoBean.getUid());
 
     stopSearchRanked1v1();
 
@@ -214,22 +214,32 @@ public class GameServiceImpl implements GameService {
 
   private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
     notificationService.addNotification(new ImmediateNotification(
-        i18n.get("replayCouldNotBeStarted.title"),
-        i18n.get("replayCouldNotBeStarted.text", replayId),
+        i18n.get("errorTitle"),
+        i18n.get("replayCouldNotBeStarted", replayId),
         Severity.ERROR, throwable,
         singletonList(new Action(i18n.get("report"))))
     );
   }
 
   @Override
-  public void runWithReplay(URI replayUrl, Integer replayId) throws IOException {
-    //FIXME needs to update
-    //downloadMapIfNecessary(map);
-    process = forgedAllianceService.startReplay(replayUrl, replayId);
-    gameRunning.set(true);
+  public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) throws IOException {
+    GameInfoBean gameBean = getByUid(gameId);
 
-    this.ratingMode = RatingMode.NONE;
-    spawnTerminationListener(process);
+    Map<String, Integer> modVersions = gameBean.getFeaturedModVersions();
+    Set<String> simModUids = gameBean.getSimMods().keySet();
+
+    return updateGameIfNecessary(gameType, null, modVersions, simModUids)
+        .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
+        .thenRun(() -> {
+          try {
+            process = forgedAllianceService.startReplay(replayUrl, gameId, gameType);
+            gameRunning.set(true);
+            this.ratingMode = RatingMode.NONE;
+            spawnTerminationListener(process);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        });
   }
 
   @Override
@@ -334,8 +344,8 @@ public class GameServiceImpl implements GameService {
     return process != null && process.isAlive();
   }
 
-  private CompletableFuture<Void> updateGameIfNecessary(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUIds) {
-    return gameUpdateService.updateInBackground(gameType, version, modVersions, simModUIds);
+  private CompletableFuture<Void> updateGameIfNecessary(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUids) {
+    return gameUpdateService.updateInBackground(gameType, version, modVersions, simModUids);
   }
 
   /**
@@ -398,7 +408,7 @@ public class GameServiceImpl implements GameService {
 
 
   private void onGameTypeInfo(GameTypeMessage gameTypeMessage) {
-    if (!gameTypeMessage.isHost() || !gameTypeMessage.isLive() || gameTypeBeans.containsKey(gameTypeMessage.getName())) {
+    if (!gameTypeMessage.isPublish() || gameTypeBeans.containsKey(gameTypeMessage.getName())) {
       return;
     }
 
@@ -406,6 +416,11 @@ public class GameServiceImpl implements GameService {
   }
 
   private void onGameInfo(GameInfoMessage gameInfoMessage) {
+    if (gameInfoMessage.getGames() != null) {
+      gameInfoMessage.getGames().forEach(this::onGameInfo);
+      return;
+    }
+
     if (GameState.CLOSED.equals(gameInfoMessage.getState())) {
       gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfoMessage.getUid()));
       return;

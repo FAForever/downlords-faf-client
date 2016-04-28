@@ -5,11 +5,11 @@ import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
-import com.faforever.client.legacy.domain.GameLaunchMessage;
-import com.faforever.client.legacy.domain.LoginMessage;
-import com.faforever.client.legacy.domain.ServerMessage;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.relay.GpgClientMessage;
+import com.faforever.client.remote.domain.GameLaunchMessage;
+import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.ServerMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
 
 import java.util.List;

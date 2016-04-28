@@ -2,11 +2,6 @@ package com.faforever.client.game;
 
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fa.ForgedAllianceService;
-import com.faforever.client.legacy.domain.GameInfoMessage;
-import com.faforever.client.legacy.domain.GameLaunchMessage;
-import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.GameTypeMessage;
-import com.faforever.client.legacy.domain.VictoryCondition;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
@@ -15,6 +10,11 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.GameInfoMessage;
+import com.faforever.client.remote.domain.GameLaunchMessage;
+import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.GameTypeMessage;
+import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -285,6 +285,21 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     disconnectedFuture.get(5000, TimeUnit.MILLISECONDS);
 
     verify(process).waitFor();
+  }
+
+  @Test
+  public void testOnGames() throws Exception {
+    assertThat(instance.getGameInfoBeans(), empty());
+
+    GameInfoMessage multiGameInfoMessage = new GameInfoMessage();
+    multiGameInfoMessage.setGames(Arrays.asList(
+        GameInfoMessageBuilder.create(1).defaultValues().get(),
+        GameInfoMessageBuilder.create(2).defaultValues().get()
+    ));
+
+    gameInfoMessageListenerCaptor.getValue().accept(multiGameInfoMessage);
+
+    assertThat(instance.getGameInfoBeans(), hasSize(2));
   }
 
   @Test

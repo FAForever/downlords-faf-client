@@ -5,7 +5,6 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
 public interface TurnServerAccessor extends DatagramGateway {
 
@@ -23,6 +22,9 @@ public interface TurnServerAccessor extends DatagramGateway {
 
   /**
    * Returns {@code true} if the specified address is bound to a channel.
+   * @param socketAddress
    */
-  boolean isBound(SocketAddress socketAddress);
+  boolean isBound(InetSocketAddress socketAddress);
+
+  void bind(InetSocketAddress socketAddress);
 }

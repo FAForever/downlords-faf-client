@@ -42,7 +42,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
@@ -72,7 +72,7 @@ public class ModServiceImpl implements ModService {
   @Resource
   FafApiAccessor fafApiAccessor;
   @Resource
-  Executor executor;
+  ThreadPoolExecutor threadPoolExecutor;
   @Resource
   Analyzer analyzer;
   @Resource
@@ -252,7 +252,7 @@ public class ModServiceImpl implements ModService {
             throw new RuntimeException(e);
           }
         }
-        , executor);
+        , threadPoolExecutor);
   }
 
   @Override
@@ -295,7 +295,7 @@ public class ModServiceImpl implements ModService {
       } finally {
         LOOKUP_LOCK.unlock();
       }
-    }, executor).exceptionally(throwable -> {
+    }, threadPoolExecutor).exceptionally(throwable -> {
       logger.warn("Lookup failed", throwable);
       return null;
     });

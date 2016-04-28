@@ -12,7 +12,7 @@ public class SearchRanked1V1ClientMessage extends MatchMakerClientMessage {
   private int gameport;
   private InetSocketAddress relayAddress;
 
-  public SearchRanked1V1ClientMessage(int gamePort, Faction faction, InetSocketAddress relayAddress) {
+  public SearchRanked1V1ClientMessage(int gamePort, Faction faction) {
     super(ClientMessageType.GAME_MATCH_MAKING);
     this.relayAddress = relayAddress;
     mod = GameType.LADDER_1V1.getString();

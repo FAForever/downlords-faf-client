@@ -34,6 +34,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -94,10 +95,6 @@ public class TurnServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
     when(connectivityService.getExternalSocketAddress()).thenReturn(InetSocketAddress.createUnresolved("foo", 123));
     when(applicationContext.getBean(StunStack.class)).thenReturn(stunStack);
-
-    instance.postConstruct();
-
-    verify(fafService).addOnMessageListener(eq(CreatePermissionMessage.class), createPermissionListenerCaptor.capture());
   }
 
   @After
@@ -138,6 +135,8 @@ public class TurnServerAccessorImplTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getConnectionState(), is(ConnectionState.DISCONNECTED));
 
     instance.connect();
+
+    verify(fafService).addOnMessageListener(eq(CreatePermissionMessage.class), createPermissionListenerCaptor.capture());
 
     assertThat(instance.getConnectionState(), is(ConnectionState.CONNECTED));
   }
@@ -185,6 +184,7 @@ public class TurnServerAccessorImplTest extends AbstractPlainJavaFxTest {
     DatagramPacket datagramPacket = new DatagramPacket(bytes, bytes.length);
     datagramPacket.setSocketAddress(remotePeerAddress);
 
+    bindToChannel(remotePeerAddress);
     instance.send(datagramPacket);
 
     ArgumentCaptor<ChannelData> channelDataCaptor = ArgumentCaptor.forClass(ChannelData.class);
@@ -196,6 +196,18 @@ public class TurnServerAccessorImplTest extends AbstractPlainJavaFxTest {
     assertThat(channelDataCaptor.getValue().getDataLength(), is((char) 3));
     assertThat(sendToCaptor.getValue(), equalTo(new TransportAddress(TURN_HOST, TURN_PORT, UDP)));
     assertThat(sendThroughCaptor.getValue(), equalTo(new TransportAddress(instance.getLocalSocketAddress(), UDP)));
+  }
+
+  private void bindToChannel(SocketAddress socketAddress) throws IOException {
+    // Mock the binding response
+    StunResponseEvent responseEvent = mock(StunResponseEvent.class);
+    Response response = mock(Response.class);
+    when(response.isSuccessResponse()).thenReturn(true);
+    when(responseEvent.getResponse()).thenReturn(response);
+
+    respond(responseEvent).when(stunStack).sendRequest(any(), any(), any(TransportAddress.class), any());
+
+    instance.bind((InetSocketAddress) socketAddress);
   }
 
   @Test
@@ -214,13 +226,13 @@ public class TurnServerAccessorImplTest extends AbstractPlainJavaFxTest {
       instance.addOnPacketListener(packetFuture::complete);
 
       InetSocketAddress localSocketAddress = instance.getLocalSocketAddress();
+      bindToChannel(socket.getLocalSocketAddress());
 
       // First two bytes are channel number, second two bytes are message length, rest is data
       byte[] channelData = new byte[]{0x40, 0x00, 0x00, 0x04, 0x01, 0x02, 0x03, 0x04};
       DatagramPacket datagramPacket = new DatagramPacket(channelData, channelData.length);
       datagramPacket.setSocketAddress(localSocketAddress);
       datagramPacket.setData(channelData);
-
 
       CreatePermissionMessage createPermissionMessage = new CreatePermissionMessage();
       createPermissionMessage.setAddress((InetSocketAddress) socket.getLocalSocketAddress());

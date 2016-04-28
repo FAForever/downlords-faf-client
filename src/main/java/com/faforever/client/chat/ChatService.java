@@ -3,28 +3,17 @@ package com.faforever.client.chat;
 import com.faforever.client.net.ConnectionState;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableMap;
 import org.pircbotx.User;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public interface ChatService {
 
-  void addOnMessageListener(OnChatMessageListener listener);
+  void addOnMessageListener(Consumer<ChatMessage> listener);
 
-  void addOnUserListListener(OnChatUserListListener listener);
+  void addOnPrivateChatMessageListener(Consumer<ChatMessage> listener);
 
-  void addOnPrivateChatMessageListener(OnPrivateChatMessageListener listener);
-
-  void addOnChatUserJoinedChannelListener(OnChatUserJoinedChannelListener listener);
-
-  void addOnChatUserLeftChannelListener(OnChatUserLeftChannelListener listener);
-
-  void addOnModeratorSetListener(OnModeratorSetListener listener);
-
-  void addOnChatUserQuitListener(OnChatUserQuitListener listener);
 
   void connect();
 
@@ -36,11 +25,15 @@ public interface ChatService {
    * Gets the list of chat users for the given channel as soon as it is available. <p> <strong>IMPORTANT:</strong> All
    * operations on the returned list must be synchronized, even iteration. Use the map as monitor. </p>
    */
-  ObservableMap<String, ChatUser> getChatUsersForChannel(String channelName);
+  Channel getOrCreateChannel(String channelName);
 
-  ChatUser createOrGetChatUser(String username);
+  ChatUser getOrCreateChatUser(String username);
 
-  void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener);
+  void addUsersListener(String channelName, MapChangeListener<String, ChatUser> listener);
+
+  void addChannelsListener(MapChangeListener<String, Channel> listener);
+
+  void removeUsersListener(String channelName, MapChangeListener<String, ChatUser> listener);
 
   void leaveChannel(String channelName);
 
@@ -48,17 +41,15 @@ public interface ChatService {
 
   void joinChannel(String channelName);
 
-  void addOnJoinChannelsRequestListener(Consumer<List<String>> listener);
-
   boolean isDefaultChannel(String channelName);
 
   void close();
 
   ChatUser createOrGetChatUser(User user);
 
-  void addUserToColorListener();
-
   ObjectProperty<ConnectionState> connectionStateProperty();
 
   void reconnect();
+
+  void whois(String username);
 }

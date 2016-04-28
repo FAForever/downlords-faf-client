@@ -4,18 +4,17 @@ import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.UpdatedAchievement;
-import com.faforever.client.legacy.UpdatedAchievementsMessage;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.UpdatedAchievement;
+import com.faforever.client.remote.UpdatedAchievementsMessage;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
 import com.google.api.client.json.JsonFactory;
-import javafx.collections.ObservableList;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,7 +27,8 @@ import org.mockito.Mock;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -67,9 +67,9 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private FafApiAccessor fafApiAccessor;
   @Mock
-  private ExecutorService executorService;
-  @Mock
   private FafService fafService;
+  @Mock
+  private ThreadPoolExecutor threadPoolExecutor;
   @Captor
   private ArgumentCaptor<Consumer<UpdatedAchievementsMessage>> onUpdatedAchievementsCaptor;
 
@@ -82,6 +82,7 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
     instance.fafApiAccessor = fafApiAccessor;
     instance.fafService = fafService;
     instance.playerService = playerService;
+    instance.threadPoolExecutor = threadPoolExecutor;
 
     when(userService.getUid()).thenReturn(PLAYER_ID);
     when(userService.getUsername()).thenReturn(USERNAME);
@@ -89,7 +90,7 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> {
       invocation.getArgumentAt(0, Runnable.class).run();
       return null;
-    }).when(executorService).execute(any(Runnable.class));
+    }).when(threadPoolExecutor).execute(any(Runnable.class));
 
     instance.postConstruct();
   }
@@ -140,10 +141,10 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
     when(playerService.getPlayerForUsername("foobar")).thenReturn(PlayerInfoBeanBuilder.create("foobar").id(PLAYER_ID).get());
     when(fafApiAccessor.getPlayerAchievements(PLAYER_ID)).thenReturn(achievements);
 
-    ObservableList<PlayerAchievement> result = instance.getPlayerAchievements("foobar");
+    List<PlayerAchievement> playerAchievements = instance.getPlayerAchievements("foobar").get(5, TimeUnit.SECONDS);
 
-    assertThat(result, hasSize(2));
-    assertThat(result, is(achievements));
+    assertThat(playerAchievements, hasSize(2));
+    assertThat(playerAchievements, is(achievements));
     verify(playerService).getPlayerForUsername("foobar");
     verify(fafApiAccessor).getPlayerAchievements(PLAYER_ID);
   }

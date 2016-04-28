@@ -2,7 +2,6 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.gson.FactionTypeAdapter;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -10,6 +9,7 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.gson.ColorTypeAdapter;
 import com.faforever.client.preferences.gson.PathTypeAdapter;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
+import com.faforever.client.remote.gson.FactionTypeAdapter;
 import com.faforever.client.util.OperatingSystem;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -339,6 +339,10 @@ public class PreferencesService {
 
   public Path getFafLogDirectory() {
     return getFafDataDirectory().resolve("logs");
+  }
+
+  public Path getThemesDirectory() {
+    return getFafDataDirectory().resolve("themes");
   }
 
   public static void configureLogging() {

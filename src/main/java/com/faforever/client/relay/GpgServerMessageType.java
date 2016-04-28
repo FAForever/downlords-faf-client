@@ -1,7 +1,7 @@
 package com.faforever.client.relay;
 
-import com.faforever.client.legacy.domain.ServerMessage;
-import com.faforever.client.legacy.domain.ServerMessageType;
+import com.faforever.client.remote.domain.ServerMessage;
+import com.faforever.client.remote.domain.ServerMessageType;
 
 import java.util.HashMap;
 import java.util.Map;

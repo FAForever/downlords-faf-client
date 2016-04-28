@@ -18,5 +18,5 @@ public interface ForgedAllianceService {
 
   Process startReplay(Path path, @Nullable Integer replayId, String gameType) throws IOException;
 
-  Process startReplay(URI replayUri, Integer replayId) throws IOException;
+  Process startReplay(URI replayUri, Integer replayId, String gameType) throws IOException;
 }

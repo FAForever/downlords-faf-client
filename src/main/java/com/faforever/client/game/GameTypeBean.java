@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.legacy.domain.GameTypeMessage;
+import com.faforever.client.remote.domain.GameTypeMessage;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.jsoup.Jsoup;

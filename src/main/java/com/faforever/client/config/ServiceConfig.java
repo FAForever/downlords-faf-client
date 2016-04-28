@@ -1,11 +1,10 @@
 package com.faforever.client.config;
 
-import com.faforever.client.ThemeService;
-import com.faforever.client.ThemeServiceImpl;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.achievements.AchievementServiceImpl;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.FafApiAccessorImpl;
+import com.faforever.client.api.MockFafApiAccessor;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.MockChatService;
 import com.faforever.client.chat.PircBotXChatService;
@@ -27,16 +26,12 @@ import com.faforever.client.gravatar.MockGravatarService;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.LeaderboardServiceImpl;
 import com.faforever.client.leaderboard.MockLeaderboardService;
-import com.faforever.client.legacy.MockFafApiAccessor;
 import com.faforever.client.legacy.MockStatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessor;
 import com.faforever.client.legacy.StatisticsServerAccessorImpl;
 import com.faforever.client.legacy.UidService;
 import com.faforever.client.legacy.UnixUidService;
 import com.faforever.client.legacy.WindowsUidService;
-import com.faforever.client.legacy.htmlparser.HtmlParser;
-import com.faforever.client.legacy.map.LegacyMapVaultParser;
-import com.faforever.client.legacy.map.MapVaultParser;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl;
 import com.faforever.client.mod.ModService;
@@ -77,6 +72,8 @@ import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.stats.StatisticsServiceImpl;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.task.TaskServiceImpl;
+import com.faforever.client.theme.ThemeService;
+import com.faforever.client.theme.ThemeServiceImpl;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.ClientUpdateServiceImpl;
 import com.faforever.client.update.MockClientUpdateService;
@@ -110,11 +107,6 @@ public class ServiceConfig {
 
   @Resource
   Environment environment;
-
-  @Bean
-  HtmlParser htmlParser() {
-    return new HtmlParser();
-  }
 
   @Bean
   UserService userService() {
@@ -161,11 +153,6 @@ public class ServiceConfig {
       return new MockChatService();
     }
     return new PircBotXChatService();
-  }
-
-  @Bean
-  MapVaultParser mapVaultParser() {
-    return new LegacyMapVaultParser();
   }
 
   @Bean

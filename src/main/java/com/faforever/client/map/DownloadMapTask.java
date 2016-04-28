@@ -22,7 +22,6 @@ public class DownloadMapTask extends AbstractPrioritizedTask<Void> {
 
   @Resource
   PreferencesService preferencesService;
-
   @Resource
   I18n i18n;
 

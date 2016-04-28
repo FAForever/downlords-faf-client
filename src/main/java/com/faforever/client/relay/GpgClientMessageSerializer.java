@@ -1,10 +1,10 @@
 package com.faforever.client.relay;
 
-import com.faforever.client.legacy.domain.MessageTarget;
-import com.faforever.client.legacy.gson.GpgClientMessageTypeAdapter;
-import com.faforever.client.legacy.gson.GpgServerMessageTypeTypeAdapter;
-import com.faforever.client.legacy.gson.MessageTargetTypeAdapter;
-import com.faforever.client.legacy.writer.JsonMessageSerializer;
+import com.faforever.client.remote.JsonMessageSerializer;
+import com.faforever.client.remote.domain.MessageTarget;
+import com.faforever.client.remote.gson.GpgClientMessageTypeAdapter;
+import com.faforever.client.remote.gson.GpgServerMessageTypeTypeAdapter;
+import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
 import com.google.gson.GsonBuilder;
 
 public class GpgClientMessageSerializer extends JsonMessageSerializer<GpgClientMessage> {

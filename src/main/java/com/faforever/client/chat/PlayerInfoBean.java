@@ -1,8 +1,8 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.legacy.GameStatus;
-import com.faforever.client.legacy.domain.GameState;
-import com.faforever.client.legacy.domain.Player;
+import com.faforever.client.game.GameStatus;
+import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.Player;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;

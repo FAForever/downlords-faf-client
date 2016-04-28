@@ -1,16 +1,19 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.legacy.domain.AskPlayerStatsDaysMessage;
-import com.faforever.client.legacy.domain.ClientMessage;
-import com.faforever.client.legacy.domain.FafServerMessage;
-import com.faforever.client.legacy.domain.FafServerMessageType;
-import com.faforever.client.legacy.domain.ServerCommand;
-import com.faforever.client.legacy.domain.StatisticsType;
-import com.faforever.client.legacy.gson.LocalDateDeserializer;
-import com.faforever.client.legacy.gson.LocalTimeDeserializer;
-import com.faforever.client.legacy.gson.ServerMessageTypeTypeAdapter;
-import com.faforever.client.legacy.gson.StatisticsTypeTypeAdapter;
-import com.faforever.client.legacy.writer.ServerWriter;
+import com.faforever.client.remote.AbstractServerAccessor;
+import com.faforever.client.remote.ClientMessageSerializer;
+import com.faforever.client.remote.ServerWriter;
+import com.faforever.client.remote.StringSerializer;
+import com.faforever.client.remote.domain.AskPlayerStatsDaysMessage;
+import com.faforever.client.remote.domain.ClientMessage;
+import com.faforever.client.remote.domain.FafServerMessage;
+import com.faforever.client.remote.domain.FafServerMessageType;
+import com.faforever.client.remote.domain.ServerCommand;
+import com.faforever.client.remote.domain.StatisticsType;
+import com.faforever.client.remote.gson.LocalDateDeserializer;
+import com.faforever.client.remote.gson.LocalTimeDeserializer;
+import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
+import com.faforever.client.remote.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.stats.PlayerStatisticsMessage;
 import com.faforever.client.stats.StatisticsMessage;
 import com.google.gson.FieldNamingPolicy;
@@ -33,7 +36,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.concurrent.CompletableFuture;
 
-import static com.faforever.client.legacy.domain.FafServerMessageType.STATS;
+import static com.faforever.client.remote.domain.FafServerMessageType.STATS;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
 public class StatisticsServerAccessorImpl extends AbstractServerAccessor implements StatisticsServerAccessor {

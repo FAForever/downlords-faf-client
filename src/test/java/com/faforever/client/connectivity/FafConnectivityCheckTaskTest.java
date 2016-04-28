@@ -1,12 +1,12 @@
 package com.faforever.client.connectivity;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.domain.MessageTarget;
 import com.faforever.client.relay.ConnectivityStateMessage;
 import com.faforever.client.relay.GpgServerMessage;
 import com.faforever.client.relay.ProcessNatPacketMessage;
 import com.faforever.client.relay.SendNatPacketMessage;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.MessageTarget;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.apache.commons.compress.utils.IOUtils;
 import org.junit.After;
@@ -21,8 +21,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -43,8 +41,6 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
   private FafConnectivityCheckTask instance;
 
   @Mock
-  private ExecutorService executorService;
-  @Mock
   private I18n i18n;
   @Mock
   private FafService fafService;
@@ -59,20 +55,15 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = new FafConnectivityCheckTask();
-    instance.executorService = executorService;
     instance.i18n = i18n;
     instance.fafService = fafService;
+    instance.connectivityCheckTimeout = 5000;
 
     instance.setDatagramGateway(datagramGateway);
 
     gamePort = SocketUtils.findAvailableUdpPort();
 
     publicSocket = new DatagramSocket(gamePort);
-
-    doAnswer(invocation -> {
-      CompletableFuture.runAsync(invocation.getArgumentAt(0, Runnable.class));
-      return null;
-    }).when(executorService).execute(any(Runnable.class));
   }
 
   @After

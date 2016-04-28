@@ -1,6 +1,6 @@
 package com.faforever.client.rankedmatch;
 
-import com.faforever.client.legacy.domain.ClientMessageType;
+import com.faforever.client.remote.domain.ClientMessageType;
 
 public class StopSearchRanked1V1ClientMessage extends MatchMakerClientMessage {
 

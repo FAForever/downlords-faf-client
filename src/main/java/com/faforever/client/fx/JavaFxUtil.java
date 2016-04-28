@@ -1,7 +1,7 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.ThemeService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.theme.ThemeService;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -30,9 +30,7 @@ import javafx.util.Duration;
 import javafx.util.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
@@ -43,7 +41,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static com.faforever.client.ThemeService.WEBVIEW_CSS_FILE;
+import static com.github.nocatch.NoCatch.noCatch;
 
 /**
  * Utility class to fix some annoying JavaFX shortcomings.
@@ -233,13 +231,21 @@ public class JavaFxUtil {
       }
     });
 
+    // Transparent WebView workaround https://bugs.openjdk.java.net/browse/JDK-8090547
+    webView.getEngine().documentProperty().addListener((observable, oldValue, newValue) -> {
+      noCatch(() -> {
+        WebEngine webEngine = webView.getEngine();
+        Field field = webEngine.getClass().getDeclaredField("page");
+        field.setAccessible(true);
+        // Breaks portability :-(
+        com.sun.webkit.WebPage page = (com.sun.webkit.WebPage) field.get(webEngine);
+        page.setBackgroundColor(new java.awt.Color(0, 0, 0, 0).getRGB());
+      });
+    });
+
     WebEngine engine = webView.getEngine();
     engine.setUserDataDirectory(preferencesService.getCacheDirectory().toFile());
-    try {
-      engine.setUserStyleSheetLocation(new ClassPathResource(themeService.getThemeFile(WEBVIEW_CSS_FILE)).getURL().toString());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    themeService.registerWebView(webView);
   }
 
   public static boolean isVisibleRecursively(Node node) {

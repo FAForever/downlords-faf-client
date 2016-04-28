@@ -1,6 +1,6 @@
 package com.faforever.client.relay;
 
-import com.faforever.client.legacy.domain.MessageTarget;
+import com.faforever.client.remote.domain.MessageTarget;
 
 public class DisconnectFromPeerMessage extends GpgServerMessage {
 

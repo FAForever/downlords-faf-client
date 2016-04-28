@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="notificationRoot" styleClass="immediate-notification"
+      xmlns="http://javafx.com/javafx/8.0.40"
+      fx:controller="com.faforever.client.notification.ImmediateNotificationController">
+  <children>
+    <Label fx:id="titleLabel" styleClass="header" text="&lt;Title&gt;"/>
+    <Separator/>
+    <VBox spacing="20.0" styleClass="content">
+      <children>
+        <Label fx:id="messageLabel" text="&lt;message&gt;"/>
+        <TitledPane fx:id="exceptionPane" text="%errorDetails">
+          <content>
+            <TextArea fx:id="exceptionTextArea" maxWidth="1.7976931348623157E308"/>
+          </content>
+        </TitledPane>
+      </children>
+    </VBox>
+    <ButtonBar fx:id="buttonBar">
+    </ButtonBar>
+  </children>
+</VBox>

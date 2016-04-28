@@ -5,7 +5,7 @@ import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.HostService;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.StageConfigurator;
+import com.faforever.client.fx.WindowController;
 import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.user.UserService;
@@ -26,7 +26,7 @@ import org.springframework.context.ApplicationContext;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
-import static com.faforever.client.fx.WindowDecorator.WindowButtonType.CLOSE;
+import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 import static com.faforever.client.util.IdenticonUtil.createIdenticon;
 
 public class UserMenuController {
@@ -54,8 +54,6 @@ public class UserMenuController {
   HostService hostService;
   @Resource
   ApplicationContext applicationContext;
-  @Resource
-  StageConfigurator stageConfigurator;
 
   public Node getRoot() {
     return userMenuRoot;
@@ -124,7 +122,8 @@ public class UserMenuController {
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(((Popup) userMenuRoot.getScene().getWindow()).getOwnerWindow());
 
-    stageConfigurator.configureScene(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
+    WindowController windowController = applicationContext.getBean(WindowController.class);
+    windowController.configure(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
 
     userInfoWindow.show();
   }

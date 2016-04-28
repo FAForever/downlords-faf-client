@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.ThemeService;
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.HostService;
@@ -20,6 +19,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.IdenticonUtil;
@@ -67,12 +67,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.chat.ChatColorMode.CUSTOM;
-import static com.faforever.client.chat.ChatColorMode.RANDOM;
+import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.chat.SocialStatus.FRIEND;
+import static com.faforever.client.chat.SocialStatus.SELF;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 /**
  * A chat tab displays messages in a {@link WebView}. The WebView is used since text on a JavaFX canvas isn't
@@ -84,12 +87,12 @@ public abstract class AbstractChatTabController {
   protected static final String CSS_CLASS_CHAT_ONLY = "chat_only";
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private static final org.springframework.core.io.Resource CHAT_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_container.html");
+  private static final org.springframework.core.io.Resource CHAT_HTML_RESOURCE = new ClassPathResource("/theme/chat_container.html");
   private static final org.springframework.core.io.Resource CHAT_JS_RESOURCE = new ClassPathResource("/js/chat_container.js");
   private static final org.springframework.core.io.Resource AUTOLINKER_JS_RESOURCE = new ClassPathResource("/js/Autolinker.min.js");
   private static final org.springframework.core.io.Resource JQUERY_JS_RESOURCE = new ClassPathResource("js/jquery-2.1.4.min.js");
   private static final org.springframework.core.io.Resource JQUERY_HIGHLIGHT_JS_RESOURCE = new ClassPathResource("js/jquery.highlight-5.closure.js");
-  private static final org.springframework.core.io.Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/themes/default/chat_message.html");
+  private static final org.springframework.core.io.Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/theme/chat_message.html");
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-message";
   /**
@@ -98,6 +101,7 @@ public abstract class AbstractChatTabController {
   private static final String CHAT_TAB_REFERENCE_IN_JAVASCRIPT = "chatTab";
   private static final String ACTION_PREFIX = "/me ";
   private static final String JOIN_PREFIX = "/join ";
+  private static final String WHOIS_PREFIX = "/whois ";
   /**
    * Added if a message is what IRC calls an "action".
    */
@@ -175,7 +179,7 @@ public abstract class AbstractChatTabController {
 
   @PostConstruct
   void postConstruct() {
-    mentionPattern = Pattern.compile("\\b" + Pattern.quote(userService.getUsername()) + "\\b");
+    mentionPattern = Pattern.compile("\\b(" + Pattern.quote(userService.getUsername()) + ")\\b", CASE_INSENSITIVE);
 
     Platform.runLater(this::initChatView);
 
@@ -250,6 +254,7 @@ public abstract class AbstractChatTabController {
       messageTextField.insertText(currentCaretPosition, url);
       messageTextField.setDisable(false);
       messageTextField.requestFocus();
+      messageTextField.positionCaret(messageTextField.getLength());
     }).exceptionally(throwable -> {
       messageTextField.setDisable(false);
       return null;
@@ -259,6 +264,7 @@ public abstract class AbstractChatTabController {
   private void initChatView() {
     WebView messagesWebView = getMessagesWebView();
     JavaFxUtil.configureWebView(messagesWebView, preferencesService, themeService);
+    themeService.registerWebView(messagesWebView);
 
     messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
     messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> {
@@ -272,7 +278,7 @@ public abstract class AbstractChatTabController {
     }
 
     engine = messagesWebView.getEngine();
-    (getJsObject()).setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
+    getJsObject().setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
       if (Worker.State.SUCCEEDED.equals(newValue)) {
         synchronized (waitingMessages) {
@@ -395,6 +401,9 @@ public abstract class AbstractChatTabController {
     } else if (text.startsWith(JOIN_PREFIX)) {
       chatService.joinChannel(text.replaceFirst(Pattern.quote(JOIN_PREFIX), ""));
       messageTextField.clear();
+    } else if (text.startsWith(WHOIS_PREFIX)) {
+      chatService.whois(text.replaceFirst(Pattern.quote(JOIN_PREFIX), ""));
+      messageTextField.clear();
     } else {
       sendMessage();
     }
@@ -499,7 +508,7 @@ public abstract class AbstractChatTabController {
       messageTextField.clear();
       messageTextField.setDisable(false);
       messageTextField.requestFocus();
-      onChatMessage(new ChatMessage(Instant.now(), userService.getUsername(), message));
+      onChatMessage(new ChatMessage(null, Instant.now(), userService.getUsername(), message));
     }).exceptionally(throwable -> {
       logger.warn("Message could not be sent: {}", text, throwable);
       notificationService.addNotification(new ImmediateNotification(
@@ -522,7 +531,7 @@ public abstract class AbstractChatTabController {
           messageTextField.clear();
           messageTextField.setDisable(false);
           messageTextField.requestFocus();
-          onChatMessage(new ChatMessage(Instant.now(), userService.getUsername(), message, true));
+          onChatMessage(new ChatMessage(null, Instant.now(), userService.getUsername(), message, true));
         }).exceptionally(throwable -> {
 
       // TODO display error to user somehow
@@ -580,8 +589,9 @@ public abstract class AbstractChatTabController {
       String text = htmlEscaper().escape(chatMessage.getMessage()).replace("\\", "\\\\");
       text = convertUrlsToHyperlinks(text);
 
-      if (mentionPattern.matcher(text).find()) {
-        text = highlightOwnUsername(text);
+      Matcher matcher = mentionPattern.matcher(text);
+      if (matcher.find()) {
+        text = matcher.replaceAll("<span class='self'>" + matcher.group(1) + "</span>");
         if (!hasFocus()) {
           audioController.playChatMentionSound();
           showNotificationIfNecessary(chatMessage);
@@ -611,7 +621,7 @@ public abstract class AbstractChatTabController {
       }
 
       html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
-      html = html.replace("{inline-style}", getInlineStyle(login, messageColorClass));
+      html = html.replace("{inline-style}", getInlineStyle(login));
 
       addToMessageContainer(html);
 
@@ -651,36 +661,34 @@ public abstract class AbstractChatTabController {
   }
 
   @VisibleForTesting
-  String getInlineStyle(String username, String messageColorClass) {
-    ChatUser chatUser = chatService.createOrGetChatUser(username);
+  String getInlineStyle(String username) {
+    ChatUser chatUser = chatService.getOrCreateChatUser(username);
+    PlayerInfoBean player = playerService.getPlayerForUsername(username);
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    String inlineStyle = "style=\"%s%s\"";
     String color = "";
     String display = "";
 
-    if ((chatPrefs.getChatColorMode().equals(RANDOM) && (messageColorClass == null || messageColorClass.equals(CSS_CLASS_CHAT_ONLY)))) {
-      color = createInlineStyleFromHexColor(chatUser.getColor());
-    } else if (chatPrefs.getChatColorMode().equals(CUSTOM) && chatUser.getColor() != null) {
-      color = createInlineStyleFromHexColor(chatUser.getColor());
+    if (chatPrefs.getHideFoeMessages() && player != null && player.getSocialStatus() == FOE) {
+      display = "display: none;";
+    } else if (player != null && (player.getSocialStatus() == SELF || player.getSocialStatus() == FRIEND)) {
+      return "";
+    } else {
+      switch (chatPrefs.getChatColorMode()) {
+        case CUSTOM:
+        case RANDOM:
+          if (chatUser.getColor() != null) {
+            color = createInlineStyleFromColor(chatUser.getColor());
+          }
+          break;
+      }
     }
 
-    if (chatPrefs.getHideFoeMessages() && messageColorClass != null && messageColorClass.equals(SocialStatus.FOE.getCssClass())) {
-      display = "display: none;";
-    }
-    return String.format(inlineStyle, color, display);
+    return String.format("style=\"%s%s\"", color, display);
   }
 
   @VisibleForTesting
-  String createInlineStyleFromHexColor(Color messageColor) {
+  String createInlineStyleFromColor(Color messageColor) {
     return String.format("color: %s;", JavaFxUtil.toRgbCode(messageColor));
-  }
-
-  private String highlightOwnUsername(String text) {
-    // TODO outsource in html file
-    return text.replaceAll(
-        mentionPattern.pattern(),
-        "<span class='self'>" + userService.getUsername() + "</span>"
-    );
   }
 
   private String convertUrlsToHyperlinks(String text) {

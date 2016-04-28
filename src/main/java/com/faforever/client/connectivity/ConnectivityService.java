@@ -15,8 +15,6 @@ public interface ConnectivityService extends DatagramGateway {
 
   InetSocketAddress getExternalSocketAddress();
 
-  void reset();
-
   void connect();
 
   InetSocketAddress getRelayAddress();

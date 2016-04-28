@@ -2,7 +2,7 @@ package com.faforever.client.stats;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.legacy.StatisticsServerAccessor;
-import com.faforever.client.legacy.domain.StatisticsType;
+import com.faforever.client.remote.domain.StatisticsType;
 import org.springframework.cache.annotation.Cacheable;
 
 import javax.annotation.Resource;

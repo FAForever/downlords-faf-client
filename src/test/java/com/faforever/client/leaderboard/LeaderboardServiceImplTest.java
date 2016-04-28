@@ -10,13 +10,10 @@ import org.mockito.MockitoAnnotations;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -25,8 +22,6 @@ public class LeaderboardServiceImplTest {
   private static final int PLAYER_ID = 123;
   @Mock
   private FafService fafService;
-  @Mock
-  private Executor executor;
 
   private LeaderboardServiceImpl instance;
 
@@ -36,11 +31,6 @@ public class LeaderboardServiceImplTest {
 
     instance = new LeaderboardServiceImpl();
     instance.fafService = fafService;
-
-    doAnswer(invocation -> {
-      invocation.getArgumentAt(0, Runnable.class).run();
-      return null;
-    }).when(executor).execute(any());
   }
 
   @Test

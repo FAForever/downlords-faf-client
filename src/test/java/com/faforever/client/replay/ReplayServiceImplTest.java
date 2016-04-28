@@ -33,6 +33,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -300,8 +302,11 @@ public class ReplayServiceImplTest {
 
   @Test
   public void testRunLiveReplay() throws Exception {
-    instance.runLiveReplay(new URI("faflive://example.com/123?mod=faf&map=mapname"));
+    when(gameService.runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString()))
+        .thenReturn(CompletableFuture.completedFuture(null));
 
-    verify(gameService).runWithReplay(new URI("gpgnet://example.com/123"), 123);
+    instance.runLiveReplay(new URI("faflive://example.com/123/456.scfareplay?mod=faf&map=map%20name"));
+
+    verify(gameService).runWithLiveReplay(new URI("gpgnet://example.com/123/456.scfareplay"), 123, "faf", "map name");
   }
 }

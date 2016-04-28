@@ -1,7 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.legacy.GameStatus;
+import com.faforever.client.game.GameStatus;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

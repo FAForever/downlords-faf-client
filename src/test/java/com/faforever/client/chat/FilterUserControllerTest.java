@@ -8,17 +8,17 @@ import org.mockito.Mock;
 
 import java.util.HashMap;
 
-import static com.faforever.client.legacy.GameStatus.HOST;
-import static com.faforever.client.legacy.GameStatus.LOBBY;
-import static com.faforever.client.legacy.GameStatus.NONE;
-import static com.faforever.client.legacy.GameStatus.PLAYING;
+import static com.faforever.client.game.GameStatus.HOST;
+import static com.faforever.client.game.GameStatus.LOBBY;
+import static com.faforever.client.game.GameStatus.NONE;
+import static com.faforever.client.game.GameStatus.PLAYING;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 public class FilterUserControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
-  ChatUserControl chatUserControl;
+  ChatUserItemController chatUserItemController;
 
   @Mock
   PlayerInfoBean playerInfoBean;
@@ -37,7 +37,7 @@ public class FilterUserControllerTest extends AbstractPlainJavaFxTest {
     instance.channelTabController = loadController("channel_tab.fxml");
     instance.i18n = i18n;
 
-    when(chatUserControl.getPlayerInfoBean()).thenReturn(playerInfoBean);
+    when(chatUserItemController.getPlayerInfoBean()).thenReturn(playerInfoBean);
   }
 
   @Test
@@ -52,7 +52,7 @@ public class FilterUserControllerTest extends AbstractPlainJavaFxTest {
     when(playerInfoBean.getClan()).thenReturn(testClan);
     instance.clanFilterField.setText(testClan);
 
-    assertTrue(instance.isInClan(chatUserControl));
+    assertTrue(instance.isInClan(chatUserItemController));
   }
 
   @Test
@@ -62,7 +62,7 @@ public class FilterUserControllerTest extends AbstractPlainJavaFxTest {
     instance.minRatingFilterField.setText("300");
     instance.maxRatingFilterField.setText("700");
 
-    assertTrue(instance.isBoundedByRating(chatUserControl));
+    assertTrue(instance.isBoundedByRating(chatUserItemController));
   }
 
   @Test
@@ -72,7 +72,7 @@ public class FilterUserControllerTest extends AbstractPlainJavaFxTest {
     instance.minRatingFilterField.setText("600");
     instance.maxRatingFilterField.setText("300");
 
-    assertFalse(instance.isBoundedByRating(chatUserControl));
+    assertFalse(instance.isBoundedByRating(chatUserItemController));
   }
 
   @Test
@@ -80,7 +80,7 @@ public class FilterUserControllerTest extends AbstractPlainJavaFxTest {
     when(playerInfoBean.getGameStatus()).thenReturn(PLAYING);
     instance.gameStatusFilter = PLAYING;
 
-    assertTrue(instance.isGameStatusMatch(chatUserControl));
+    assertTrue(instance.isGameStatusMatch(chatUserItemController));
   }
 
   @Test
@@ -88,12 +88,12 @@ public class FilterUserControllerTest extends AbstractPlainJavaFxTest {
     when(playerInfoBean.getGameStatus()).thenReturn(HOST);
     instance.gameStatusFilter = HOST;
 
-    assertTrue(instance.isGameStatusMatch(chatUserControl));
+    assertTrue(instance.isGameStatusMatch(chatUserItemController));
 
     when(playerInfoBean.getGameStatus()).thenReturn(LOBBY);
     instance.gameStatusFilter = LOBBY;
 
-    assertTrue(instance.isGameStatusMatch(chatUserControl));
+    assertTrue(instance.isGameStatusMatch(chatUserItemController));
   }
 
   @Test

@@ -1,7 +1,7 @@
 package com.faforever.client.stats;
 
 import com.faforever.client.legacy.StatisticsServerAccessor;
-import com.faforever.client.legacy.domain.StatisticsType;
+import com.faforever.client.remote.domain.StatisticsType;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.Before;
 import org.junit.Test;

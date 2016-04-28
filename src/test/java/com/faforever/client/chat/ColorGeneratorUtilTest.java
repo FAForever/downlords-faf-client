@@ -15,7 +15,7 @@ public class ColorGeneratorUtilTest {
     Color[] result = new Color[10];
 
     for (int i = 0; i < 10; i++) {
-      Color resultColor = ColorGeneratorUtil.generateRandomHexColor(seed);
+      Color resultColor = ColorGeneratorUtil.generateRandomColor(seed);
       result[i] = resultColor;
     }
     for (Color resultColor : result) {
@@ -27,7 +27,7 @@ public class ColorGeneratorUtilTest {
     Color[] result2 = new Color[10];
 
     for (int i = 0; i < 10; i++) {
-      Color resultColor = ColorGeneratorUtil.generateRandomHexColor(seed2);
+      Color resultColor = ColorGeneratorUtil.generateRandomColor(seed2);
       result2[i] = resultColor;
     }
     for (Color resultColor : result2) {
@@ -39,7 +39,7 @@ public class ColorGeneratorUtilTest {
     Color[] result3 = new Color[10];
 
     for (int i = 0; i < 10; i++) {
-      Color resultColor = ColorGeneratorUtil.generateRandomHexColor(seed3);
+      Color resultColor = ColorGeneratorUtil.generateRandomColor(seed3);
       result3[i] = resultColor;
     }
     for (Color resultColor : result3) {

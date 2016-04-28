@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.ThemeService;
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.i18n.I18n;
@@ -11,6 +10,7 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.ThemeService;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;

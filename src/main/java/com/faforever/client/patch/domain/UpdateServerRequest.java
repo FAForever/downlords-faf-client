@@ -1,6 +1,6 @@
 package com.faforever.client.patch.domain;
 
-import com.faforever.client.legacy.domain.SerializableMessage;
+import com.faforever.client.remote.domain.SerializableMessage;
 
 import java.util.ArrayList;
 import java.util.Collection;

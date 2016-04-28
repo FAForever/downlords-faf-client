@@ -1,18 +1,20 @@
 package com.faforever.client.game;
 
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.fx.StageConfigurator;
-import com.faforever.client.fx.WindowDecorator;
+import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.domain.GameState;
 import com.faforever.client.map.MapDetailController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
+import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.RatingUtil;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -45,10 +47,13 @@ import org.springframework.context.ApplicationContext;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+
+import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
+import static com.faforever.client.notification.Severity.ERROR;
+import static java.util.Arrays.asList;
 
 public class GamesController {
 
@@ -101,9 +106,9 @@ public class GamesController {
   @Resource
   PreferencesService preferencesService;
   @Resource
-  StageConfigurator stageConfigurator;
-  @Resource
   NotificationService notificationService;
+  @Resource
+  ReportingService reportingService;
 
   private Popup createGamePopup;
   private Popup passwordPopup;
@@ -191,10 +196,8 @@ public class GamesController {
     teamListPane.getChildren().clear();
     for (Map.Entry<? extends String, ? extends List<String>> entry : playersByTeamNumber.entrySet()) {
       TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
-      boolean teamCardSuccess = teamCardController.setTeam(entry.getValue(), entry.getKey());
-      if (teamCardSuccess) {
-        teamListPane.getChildren().add(teamCardController.getRoot());
-      }
+      teamCardController.setPlayersInTeam(entry.getKey(), entry.getValue());
+      teamListPane.getChildren().add(teamCardController.getRoot());
     }
   }
 
@@ -228,7 +231,7 @@ public class GamesController {
         i18n.get("game.joinGameRatingConfirmation.title"),
         i18n.get("game.joinGameRatingConfirmation.text", gameInfoBean.getMinRating(), gameInfoBean.getMaxRating(), playerRating),
         Severity.INFO,
-        Arrays.asList(
+        asList(
             new Action(i18n.get("game.join"), event -> doJoinGame(gameInfoBean, null, screenX, screenY)),
             new Action(i18n.get("game.cancel"))
         )
@@ -252,8 +255,12 @@ public class GamesController {
     } else {
       gameService.joinGame(gameInfoBean, password)
           .exceptionally(throwable -> {
-            // FIXME implement
             logger.warn("Game could not be joined", throwable);
+            notificationService.addNotification(
+                new ImmediateNotification(
+                    i18n.get("errorTitle"),
+                    i18n.get("games.couldNotJoin"),
+                    ERROR, asList(new DismissAction(i18n), new ReportAction(i18n, reportingService, throwable))));
             return null;
           });
     }
@@ -292,7 +299,8 @@ public class GamesController {
       notificationService.addNotification(new ImmediateNotification(title, message, Severity.WARN));
     } else {
       mapDetailController.createPreview(mapInfoBean);
-      stageConfigurator.configureScene(mapDetailPopup, mapDetailController.getRoot(), false, WindowDecorator.WindowButtonType.CLOSE);
+      WindowController windowController = applicationContext.getBean(WindowController.class);
+      windowController.configure(mapDetailPopup, mapDetailController.getRoot(), false, CLOSE);
       mapDetailPopup.centerOnScreen();
       mapDetailPopup.show();
     }

@@ -2,7 +2,6 @@ package com.faforever.client.map;
 
 import com.faforever.client.game.MapInfoBean;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.map.Comment;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
@@ -11,7 +10,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
@@ -39,9 +37,6 @@ public class MapDetailController {
   MapService mapService;
 
   @Resource
-  ApplicationContext applicationContext;
-
-  @Resource
   I18n i18n;
 
   public void createPreview(MapInfoBean mapInfoBean) {
@@ -60,12 +55,6 @@ public class MapDetailController {
     mapSizeLabel.setText(i18n.get("mapPreview.size", mapInfoBean.getSize().getWidth(), mapInfoBean.getSize().getHeight()));
     mapDescriptionLabel.setText(mapInfoBean.getDescription());
 
-    commentContainer.getChildren().clear();
-    for (Comment comment : mapService.getComments(mapInfoBean.getId())) {
-      CommentCardController commentCardController = applicationContext.getBean(CommentCardController.class);
-      commentCardController.addComment(comment);
-      commentContainer.getChildren().add(commentCardController.getRoot());
-    }
   }
 
   public Region getRoot() {

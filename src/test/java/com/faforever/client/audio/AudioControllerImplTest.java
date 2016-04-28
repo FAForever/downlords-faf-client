@@ -1,12 +1,12 @@
 package com.faforever.client.audio;
 
-import com.faforever.client.ThemeService;
 import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.ThemeService;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.media.AudioClip;
 import javafx.stage.Stage;
@@ -42,7 +42,7 @@ public class AudioControllerImplTest extends AbstractPlainJavaFxTest {
     when(preferences.getChat()).thenReturn(chatPrefs);
     when(preferences.getTheme()).thenReturn("default");
     when(instance.preferencesService.getPreferences()).thenReturn(preferences);
-    when(instance.themeService.getThemeFile(any())).thenReturn(getThemeFile(ThemeService.MENTION_SOUND));
+    when(instance.themeService.getThemeFileUrl(any())).thenReturn(getThemeFileUrl(ThemeService.MENTION_SOUND));
 
     instance.postConstruct();
 

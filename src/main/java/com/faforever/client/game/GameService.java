@@ -38,7 +38,7 @@ public interface GameService {
    */
   void runWithReplay(Path path, @Nullable Integer replayId, String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simMods);
 
-  void runWithReplay(URI replayUri, Integer replayId) throws IOException;
+  CompletableFuture<Void> runWithLiveReplay(URI replayUri, Integer gameId, String gameType, String mapName) throws IOException;
 
   ObservableList<GameInfoBean> getGameInfoBeans();
 

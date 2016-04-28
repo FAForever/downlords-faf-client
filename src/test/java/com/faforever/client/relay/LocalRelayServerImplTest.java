@@ -4,12 +4,12 @@ import com.faforever.client.connectivity.DatagramGateway;
 import com.faforever.client.connectivity.TurnServerAccessor;
 import com.faforever.client.game.GameLaunchMessageBuilder;
 import com.faforever.client.game.GameType;
-import com.faforever.client.legacy.domain.GameLaunchMessage;
 import com.faforever.client.net.SocketAddressUtil;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
 import javafx.beans.property.IntegerProperty;
@@ -37,7 +37,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -89,7 +89,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private FafService fafService;
   @Mock
-  private ExecutorService executorService;
+  private ThreadPoolExecutor threadPoolExecutor;
   @Mock
   private DatagramGateway datagramGateway;
 
@@ -116,17 +116,16 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     instance.userService = userService;
     instance.preferencesService = preferencesService;
     instance.fafService = fafService;
-    instance.executorService = executorService;
+    instance.threadPoolExecutor = threadPoolExecutor;
 
     ForgedAlliancePrefs forgedAlliancePrefs = mock(ForgedAlliancePrefs.class);
     Preferences preferences = mock(Preferences.class);
 
     instance.addOnConnectionAcceptedListener(gameConnectedLatch::countDown);
 
-    doAnswer(invocation -> {
-      WaitForAsyncUtils.async(invocation.getArgumentAt(0, Runnable.class));
-      return null;
-    }).when(executorService).execute(any(Runnable.class));
+    doAnswer(
+        invocation -> WaitForAsyncUtils.async(invocation.getArgumentAt(0, Runnable.class))
+    ).when(threadPoolExecutor).execute(any(Runnable.class));
 
     when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
@@ -187,6 +186,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     stopped = true;
     IOUtils.closeQuietly(gameToRelaySocket);
     instance.close();
+    threadPoolExecutor.shutdownNow();
   }
 
   @Test
@@ -241,11 +241,6 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testJoinGame() throws Exception {
-    doAnswer(invocation -> {
-      WaitForAsyncUtils.async(invocation.getArgumentAt(0, Runnable.class));
-      return null;
-    }).when(executorService).execute(any(Runnable.class));
-
     enterIdleState();
 
     try (DatagramSocket fakePeer = new DatagramSocket(new InetSocketAddress(InetAddress.getLocalHost(), 0))) {

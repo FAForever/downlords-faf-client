@@ -2,9 +2,9 @@ package com.faforever.client.player;
 
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.game.GameService;
-import com.faforever.client.legacy.domain.PlayersMessage;
-import com.faforever.client.legacy.domain.SocialMessage;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.PlayersMessage;
+import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.user.UserService;
 import org.junit.Before;
 import org.junit.Test;

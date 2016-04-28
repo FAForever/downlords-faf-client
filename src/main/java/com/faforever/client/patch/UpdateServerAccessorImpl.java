@@ -1,8 +1,6 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.AbstractServerAccessor;
-import com.faforever.client.legacy.writer.ServerWriter;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
@@ -16,6 +14,8 @@ import com.faforever.client.patch.domain.SimPathRequest;
 import com.faforever.client.patch.domain.UpdateFileRequest;
 import com.faforever.client.patch.domain.UpdateServerRequest;
 import com.faforever.client.patch.domain.VersionRequest;
+import com.faforever.client.remote.AbstractServerAccessor;
+import com.faforever.client.remote.ServerWriter;
 import com.faforever.client.util.ConcurrentUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

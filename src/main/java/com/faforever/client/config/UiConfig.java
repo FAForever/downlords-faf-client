@@ -11,7 +11,7 @@ import com.faforever.client.chat.AvatarServiceImpl;
 import com.faforever.client.chat.ChannelTabController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatUserContextMenuController;
-import com.faforever.client.chat.ChatUserControl;
+import com.faforever.client.chat.ChatUserItemController;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.CountryFlagServiceImpl;
 import com.faforever.client.chat.FilterUserController;
@@ -24,8 +24,7 @@ import com.faforever.client.fx.DialogFactory;
 import com.faforever.client.fx.DialogFactoryImpl;
 import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.fx.FxmlLoaderImpl;
-import com.faforever.client.fx.StageConfigurator;
-import com.faforever.client.fx.StageConfiguratorImpl;
+import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
 import com.faforever.client.game.GameTileController;
@@ -49,7 +48,6 @@ import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
 import com.faforever.client.main.UserMenuController;
-import com.faforever.client.map.CommentCardController;
 import com.faforever.client.map.MapDetailController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModDetailController;
@@ -82,11 +80,6 @@ public class UiConfig {
 
   @Resource
   BaseConfig baseConfig;
-
-  @Bean
-  StageConfigurator sceneFactory() {
-    return new StageConfiguratorImpl();
-  }
 
   @Bean
   DialogFactory dialogFactory() {
@@ -199,6 +192,12 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  WindowController windowController() {
+    return loadController("window.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   FilterUserController filterUserController() {
     return loadController("filter_user.fxml");
   }
@@ -213,12 +212,6 @@ public class UiConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   GameStatusTooltipController gameStatusContainerTooltipController() {
     return loadController("game_status_tooltip.fxml");
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  CommentCardController commentCardController() {
-    return loadController("comment_card.fxml");
   }
 
   @Bean
@@ -285,12 +278,6 @@ public class UiConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   PersistentNotificationController persistentNotificationController() {
     return loadController("persistent_notification.fxml");
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  ChatUserControl chatUserControl() {
-    return new ChatUserControl();
   }
 
   @Bean
@@ -390,5 +377,11 @@ public class UiConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   TransientNotificationController transientNotificationController() {
     return loadController("transient_notification.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  ChatUserItemController chatUserItemController() {
+    return loadController("chat_user_item.fxml");
   }
 }

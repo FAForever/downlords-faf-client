@@ -1,7 +1,7 @@
 package com.faforever.client.util;
 
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.legacy.domain.Player;
+import com.faforever.client.remote.domain.Player;
 import com.faforever.client.stats.RatingInfo;
 
 import java.util.regex.Matcher;
