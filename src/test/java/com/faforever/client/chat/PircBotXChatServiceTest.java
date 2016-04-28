@@ -267,6 +267,12 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   private void connect() throws Exception {
+    CountDownLatch joinChannelLatch = new CountDownLatch(1);
+    doAnswer(invocation -> {
+      joinChannelLatch.countDown();
+      return null;
+    }).when(outputIrc).joinChannel(DEFAULT_CHANNEL_NAME);
+
     instance.connect();
     verify(pircBotXFactory).createPircBotX(configurationCaptor.capture());
 
@@ -274,7 +280,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     firePircBotXEvent(new ConnectEvent(pircBotX));
     latch.await(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(outputIrc).joinChannel(DEFAULT_CHANNEL_NAME);
+    joinChannelLatch.countDown();
 
     SocialMessage socialMessage = new SocialMessage();
     socialMessage.setChannels(Collections.singletonList(DEFAULT_CHANNEL_NAME));
