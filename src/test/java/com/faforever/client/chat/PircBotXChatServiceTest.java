@@ -84,6 +84,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -189,8 +190,20 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(pircBotX.getUserChannelDao()).thenReturn(userChannelDao);
 
     doAnswer(
-        invocation -> WaitForAsyncUtils.async(() -> invocation.getArgumentAt(0, Task.class).run())
+        invocation -> {
+          WaitForAsyncUtils.async(() -> invocation.getArgumentAt(0, Task.class).run());
+          return null;
+        }
     ).when(threadPoolExecutor).execute(any(Task.class));
+
+    doAnswer((InvocationOnMock invocation) -> {
+      @SuppressWarnings("unchecked")
+      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(0, PrioritizedTask.class);
+      prioritizedTask.run();
+
+      Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
+      return completedFuture(result.get(1, TimeUnit.SECONDS));
+    }).when(instance.taskService).submitTask(any());
 
     botStartedFuture = new CompletableFuture<>();
     doAnswer(invocation -> {
@@ -254,13 +267,14 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   private void connect() throws Exception {
-    mockTaskService();
     instance.connect();
     verify(pircBotXFactory).createPircBotX(configurationCaptor.capture());
 
-    CompletableFuture<Void> future = listenForConnected();
+    CountDownLatch latch = listenForConnected();
     firePircBotXEvent(new ConnectEvent(pircBotX));
-    future.get(TIMEOUT, TIMEOUT_UNIT);
+    latch.await(TIMEOUT, TIMEOUT_UNIT);
+
+    verify(outputIrc).joinChannel(DEFAULT_CHANNEL_NAME);
 
     SocialMessage socialMessage = new SocialMessage();
     socialMessage.setChannels(Collections.singletonList(DEFAULT_CHANNEL_NAME));
@@ -282,25 +296,14 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     configurationCaptor.getValue().getListenerManager().onEvent(event);
   }
 
-  @SuppressWarnings("unchecked")
-  private void mockTaskService() {
-    doAnswer((InvocationOnMock invocation) -> {
-      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(0, PrioritizedTask.class);
-      prioritizedTask.run();
-
-      Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
-      return completedFuture(result.get(1, TimeUnit.SECONDS));
-    }).when(instance.taskService).submitTask(any());
-  }
-
-  private CompletableFuture<Void> listenForConnected() {
-    CompletableFuture<Void> future = new CompletableFuture<>();
+  private CountDownLatch listenForConnected() {
+    CountDownLatch latch = new CountDownLatch(1);
     instance.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == ConnectionState.CONNECTED) {
-        future.complete(null);
+        latch.countDown();
       }
     });
-    return future;
+    return latch;
   }
 
   @Test
@@ -620,7 +623,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     CompletableFuture<String> future = instance.sendMessageInBackground(DEFAULT_CHANNEL_NAME, message);
 
     assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(message));
-    verify(pircBotX).sendIRC();
     verify(outputIrc).message(DEFAULT_CHANNEL_NAME, message);
   }
 
@@ -688,15 +690,13 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testSendActionInBackground() throws Exception {
     connect();
-    String action = "test action";
 
-    when(taskService.submitTask(any())).thenReturn(completedFuture(action));
+    String action = "test action";
 
     CompletableFuture<String> future = instance.sendActionInBackground(DEFAULT_CHANNEL_NAME, action);
 
-    verify(pircBotX).sendIRC();
-    verify(outputIrc).action(DEFAULT_CHANNEL_NAME, action);
     assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(action));
+    verify(outputIrc).action(DEFAULT_CHANNEL_NAME, action);
   }
 
   @Test
@@ -728,6 +728,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testJoinChannel() throws Exception {
+    reset(taskService);
     when(taskService.submitTask(any())).thenReturn(completedFuture(null));
 
     connect();

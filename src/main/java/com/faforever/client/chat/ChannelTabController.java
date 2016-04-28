@@ -55,7 +55,7 @@ public class ChannelTabController extends AbstractChatTabController {
   /**
    * Keeps track of which ChatUserControl in which pane belongs to which user.
    */
-  private final Map<String, Map<Pane, ChatUserControl>> userToChatUserControls;
+  private final Map<String, Map<Pane, ChatUserItemController>> userToChatUserControls;
   @FXML
   Button advancedUserFilter;
   @FXML
@@ -112,7 +112,7 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   // TODO clean this up
-  public Map<String, Map<Pane, ChatUserControl>> getUserToChatUserControls() {
+  public Map<String, Map<Pane, ChatUserItemController>> getUserToChatUserControls() {
     return userToChatUserControls;
   }
 
@@ -198,20 +198,18 @@ public class ChannelTabController extends AbstractChatTabController {
    */
   private void filterChatUserControlsBySearchString() {
     synchronized (userToChatUserControls) {
-      for (Map<Pane, ChatUserControl> chatUserControlMap : userToChatUserControls.values()) {
-        for (Map.Entry<Pane, ChatUserControl> chatUserControlEntry : chatUserControlMap.entrySet()) {
-          ChatUserControl chatUserControl = chatUserControlEntry.getValue();
-          boolean display = isUsernameMatch(chatUserControl);
-          chatUserControl.setVisible(display);
-          chatUserControl.setManaged(display);
+      for (Map<Pane, ChatUserItemController> chatUserControlMap : userToChatUserControls.values()) {
+        for (Map.Entry<Pane, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
+          ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
+          chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
         }
       }
     }
   }
 
   //TODO: I don't like how this is public
-  public boolean isUsernameMatch(ChatUserControl chatUserControl) {
-    String lowerCaseSearchString = chatUserControl.getPlayerInfoBean().getUsername().toLowerCase();
+  public boolean isUsernameMatch(ChatUserItemController chatUserItemController) {
+    String lowerCaseSearchString = chatUserItemController.getPlayerInfoBean().getUsername().toLowerCase();
     return lowerCaseSearchString.contains(userSearchTextField.getText().toLowerCase());
   }
 
@@ -289,12 +287,12 @@ public class ChannelTabController extends AbstractChatTabController {
 
     player.moderatorForChannelsProperty().bind(chatUser.moderatorInChannelsProperty());
     player.usernameProperty().addListener((observable, oldValue, newValue) -> {
-      for (Map.Entry<Pane, ChatUserControl> entry : userToChatUserControls.get(oldValue).entrySet()) {
+      for (Map.Entry<Pane, ChatUserItemController> entry : userToChatUserControls.get(oldValue).entrySet()) {
         Pane pane = entry.getKey();
-        ChatUserControl chatUserControl = entry.getValue();
+        ChatUserItemController chatUserItemController = entry.getValue();
 
-        pane.getChildren().remove(chatUserControl);
-        addChatUserControlSorted(pane, chatUserControl);
+        pane.getChildren().remove(chatUserItemController.getRoot());
+        addChatUserItemSorted(pane, chatUserItemController);
       }
     });
     player.usernameProperty().bind(chatUser.usernameProperty());
@@ -390,102 +388,91 @@ public class ChannelTabController extends AbstractChatTabController {
   private void onUserLeft(String username) {
     JavaFxUtil.assertBackgroundThread();
 
-    Map<Pane, ChatUserControl> paneToChatUserControlMap = userToChatUserControls.get(username);
+    Map<Pane, ChatUserItemController> paneToChatUserControlMap = userToChatUserControls.get(username);
     if (paneToChatUserControlMap == null) {
       return;
     }
 
-    for (Map.Entry<Pane, ChatUserControl> entry : paneToChatUserControlMap.entrySet()) {
-      Platform.runLater(() -> entry.getKey().getChildren().remove(entry.getValue()));
+    for (Map.Entry<Pane, ChatUserItemController> entry : paneToChatUserControlMap.entrySet()) {
+      Platform.runLater(() -> entry.getKey().getChildren().remove(entry.getValue().getRoot()));
     }
     paneToChatUserControlMap.clear();
     userToChatUserControls.remove(username);
   }
 
-  private ChatUserControl addToPane(PlayerInfoBean playerInfoBean, Pane pane) {
+  private ChatUserItemController addToPane(PlayerInfoBean playerInfoBean, Pane pane) {
     return createChatUserControlForPlayerIfNecessary(pane, playerInfoBean);
   }
 
   private void removeFromPane(PlayerInfoBean playerInfoBean, Pane pane) {
-    // Re-add Plateform.runLater() as soon as RT-40417 is fixed
-//        Platform.runLater(() -> {
-    Map<Pane, ChatUserControl> paneChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
+    Map<Pane, ChatUserItemController> paneChatUserControlMap = userToChatUserControls.get(playerInfoBean.getUsername());
     if (paneChatUserControlMap == null) {
       // User has not yet been added to this pane; no need to remove him
       return;
     }
     Platform.runLater(() -> {
-      ChatUserControl chatUserControl = paneChatUserControlMap.remove(pane);
-      pane.getChildren().remove(chatUserControl);
+      ChatUserItemController chatUserItemController = paneChatUserControlMap.remove(pane);
+      pane.getChildren().remove(chatUserItemController.getRoot());
     });
-//        });
   }
 
   /**
-   * Creates a {@link com.faforever.client.chat.ChatUserControl} for the given playerInfoBean and adds it to the given
-   * pane if there isn't already such a control in this pane. After the control has been added, the user search filter
-   * is applied.
+   * Creates a {@link ChatUserItemController} for the given playerInfoBean and adds it to the given pane if there isn't
+   * already such a control in this pane. After the control has been added, the user search filter is applied.
    */
-  private ChatUserControl createChatUserControlForPlayerIfNecessary(Pane pane, PlayerInfoBean playerInfoBean) {
+  private ChatUserItemController createChatUserControlForPlayerIfNecessary(Pane pane, PlayerInfoBean playerInfoBean) {
     String username = playerInfoBean.getUsername();
     if (!userToChatUserControls.containsKey(username)) {
       userToChatUserControls.put(username, new HashMap<>(1, 1));
     }
 
-    Map<Pane, ChatUserControl> paneToChatUserControlMap = userToChatUserControls.get(username);
+    Map<Pane, ChatUserItemController> paneToChatUserControlMap = userToChatUserControls.get(username);
 
-    ChatUserControl existingChatUserControl = paneToChatUserControlMap.get(pane);
-    if (existingChatUserControl != null) {
-      return existingChatUserControl;
+    ChatUserItemController existingChatUserItemController = paneToChatUserControlMap.get(pane);
+    if (existingChatUserItemController != null) {
+      return existingChatUserItemController;
     }
 
     if (!applicationContext.isActive()) {
       logger.warn("Application context has been closed, not creating control for player {}", playerInfoBean.getUsername());
     }
-    ChatUserControl chatUserControl = applicationContext.getBean(ChatUserControl.class);
-    chatUserControl.setPlayerInfoBean(playerInfoBean);
-    paneToChatUserControlMap.put(pane, chatUserControl);
+    ChatUserItemController chatUserItemController = applicationContext.getBean(ChatUserItemController.class);
+    chatUserItemController.setPlayerInfoBean(playerInfoBean);
+    paneToChatUserControlMap.put(pane, chatUserItemController);
 
-    chatUserControl.setColorsAllowedInPane((pane == othersPane || pane == chatOnlyPane) && playerInfoBean.getSocialStatus() != SELF);
+    chatUserItemController.setColorsAllowedInPane((pane == othersPane || pane == chatOnlyPane) && playerInfoBean.getSocialStatus() != SELF);
 
     Platform.runLater(() -> {
-      addChatUserControlSorted(pane, chatUserControl);
-      isUsernameMatch(chatUserControl);
+      addChatUserItemSorted(pane, chatUserItemController);
+      isUsernameMatch(chatUserItemController);
     });
 
-    return chatUserControl;
+    return chatUserItemController;
   }
 
   /**
    * Inserts the given ChatUserControl into the given Pane such that it is correctly sorted alphabetically.
    */
-  private void addChatUserControlSorted(Pane pane, ChatUserControl chatUserControl) {
+  private void addChatUserItemSorted(Pane pane, ChatUserItemController chatUserItemController) {
     ObservableList<Node> children = pane.getChildren();
 
-    if (chatUserControl.getPlayerInfoBean().getSocialStatus() == SELF) {
-      children.add(0, chatUserControl);
+    Pane chatUserItemRoot = chatUserItemController.getRoot();
+    if (chatUserItemController.getPlayerInfoBean().getSocialStatus() == SELF) {
+      children.add(0, chatUserItemRoot);
       return;
     }
 
+    String thisUsername = chatUserItemController.getPlayerInfoBean().getUsername();
     for (Node child : children) {
-      if (!(child instanceof ChatUserControl)) {
-        continue;
-      }
+      String otherUsername = ((ChatUserItemController) child.getUserData()).getPlayerInfoBean().getUsername();
 
-      String newUser = chatUserControl.getPlayerInfoBean().getUsername();
-      String nextUser = ((ChatUserControl) child).getPlayerInfoBean().getUsername();
-
-      if (nextUser.equals(userService.getUsername())) {
-        continue;
-      }
-
-      if (newUser.compareToIgnoreCase(nextUser) < 0) {
-        children.add(children.indexOf(child), chatUserControl);
+      if (thisUsername.compareToIgnoreCase(otherUsername) < 0) {
+        children.add(children.indexOf(child), chatUserItemRoot);
         return;
       }
     }
 
-    children.add(chatUserControl);
+    children.add(chatUserItemRoot);
   }
 
   private Collection<Pane> getTargetPanesForUser(PlayerInfoBean playerInfoBean) {

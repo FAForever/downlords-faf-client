@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
@@ -16,13 +15,12 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.ThemeService;
-import com.faforever.client.user.UserService;
-import com.faforever.client.util.RatingUtil;
 import javafx.application.Platform;
-import javafx.beans.property.FloatProperty;
+import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.MapChangeListener;
+import javafx.collections.WeakMapChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -31,7 +29,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow;
 import org.springframework.context.ApplicationContext;
@@ -43,13 +41,16 @@ import java.io.IOException;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.chat.SocialStatus.SELF;
+import static com.faforever.client.util.RatingUtil.getGlobalRating;
+import static com.faforever.client.util.RatingUtil.getLeaderboardRating;
 import static java.util.Collections.singletonList;
 
-public class ChatUserControl extends HBox {
-
+public class ChatUserItemController {
 
   private static final String CLAN_TAG_FORMAT = "[%s]";
 
+  @FXML
+  Pane chatUserItemRoot;
   @FXML
   ImageView countryImageView;
   @FXML
@@ -64,8 +65,6 @@ public class ChatUserControl extends HBox {
   @Resource
   ApplicationContext applicationContext;
   @Resource
-  FxmlLoader fxmlLoader;
-  @Resource
   AvatarService avatarService;
   @Resource
   CountryFlagService countryFlagService;
@@ -75,8 +74,6 @@ public class ChatUserControl extends HBox {
   GameService gameService;
   @Resource
   PreferencesService preferencesService;
-  @Resource
-  UserService userService;
   @Resource
   ChatService chatService;
   @Resource
@@ -95,12 +92,22 @@ public class ChatUserControl extends HBox {
   private PlayerInfoBean playerInfoBean;
   private boolean colorsAllowedInPane;
   private ChangeListener<ChatColorMode> colorModeChangeListener;
+  private MapChangeListener<? super String, ? super Color> colorPerUserMapChangeListener;
+  private ChangeListener<String> avatarChangeListener;
+  private ChangeListener<String> clanChangeListener;
+  private ChangeListener<GameStatus> gameStatusChangeListener;
+  private Tooltip tooltip;
+
+  @FXML
+  void initialize() {
+    chatUserItemRoot.setUserData(this);
+  }
 
   @FXML
   void onContextMenuRequested(ContextMenuEvent event) {
     ChatUserContextMenuController contextMenuController = applicationContext.getBean(ChatUserContextMenuController.class);
     contextMenuController.setPlayerInfoBean(playerInfoBean);
-    contextMenuController.getContextMenu().show(getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    contextMenuController.getContextMenu().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
   }
 
   @FXML
@@ -111,15 +118,24 @@ public class ChatUserControl extends HBox {
   }
 
   @PostConstruct
-  void init() {
-    // TODO clean up FXML loading
-    fxmlLoader.loadCustomControl("chat_user_control.fxml", this);
+  void postConstruct() {
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
     colorModeChangeListener = (observable, oldValue, newValue) -> configureColor();
+    colorPerUserMapChangeListener = change -> {
+      if (playerInfoBean.getUsername().equals(change.getKey())) {
+        Color newColor = chatPrefs.getUserToColor().get(playerInfoBean.getUsername());
+        assignColor(newColor);
+      }
+    };
+    avatarChangeListener = (observable, oldValue, newValue) -> Platform.runLater(() -> setAvatarUrl(newValue));
+    clanChangeListener = (observable, oldValue, newValue) -> Platform.runLater(() -> setClanTag(newValue));
+    gameStatusChangeListener = (observable, oldValue, newValue) -> Platform.runLater(() -> setGameStatus(newValue));
   }
 
   private void configureColor() {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    chatPrefs.getUserToColor().removeListener(colorPerUserMapChangeListener);
 
     if (playerInfoBean.getSocialStatus() == SELF) {
       usernameLabel.getStyleClass().add(SELF.getCssClass());
@@ -135,13 +151,7 @@ public class ChatUserControl extends HBox {
         color = chatPrefs.getUserToColor().get(playerInfoBean.getUsername());
       }
 
-      //FIXME: something here returned NPE when starting chat and users starting messaging aeolus on non-dev server
-      chatPrefs.getUserToColor().addListener((MapChangeListener<? super String, ? super Color>) change -> {
-        if (playerInfoBean.getUsername().equals(change.getKey())) {
-          Color newColor = chatPrefs.getUserToColor().get(playerInfoBean.getUsername());
-          assignColor(newColor);
-        }
-      });
+      chatPrefs.getUserToColor().addListener(new WeakMapChangeListener<>(colorPerUserMapChangeListener));
     } else if (chatPrefs.getChatColorMode().equals(ChatColorMode.RANDOM) && colorsAllowedInPane) {
       color = ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode());
     }
@@ -157,90 +167,6 @@ public class ChatUserControl extends HBox {
     } else {
       usernameLabel.setStyle("");
       clanLabel.setStyle("");
-    }
-  }
-
-  public PlayerInfoBean getPlayerInfoBean() {
-    return playerInfoBean;
-  }
-
-  public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
-    this.playerInfoBean = playerInfoBean;
-
-    configureColor();
-    addChatColorModeListener();
-    configureCountryImageView();
-    configureAvatarImageView();
-    configureClanLabel();
-    configureGameStatusView();
-    configureRatingTooltip();
-
-    usernameLabel.setText(playerInfoBean.getUsername());
-  }
-
-  private void addChatColorModeListener() {
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    chatPrefs.chatColorModeProperty().addListener(new WeakChangeListener<>(colorModeChangeListener));
-  }
-
-  private void configureCountryImageView() {
-    setCountry(playerInfoBean.getCountry());
-
-    Tooltip countryTooltip = new Tooltip(playerInfoBean.getCountry());
-    countryTooltip.textProperty().bind(playerInfoBean.countryProperty());
-
-    Tooltip.install(countryImageView, countryTooltip);
-  }
-
-  private void configureAvatarImageView() {
-    playerInfoBean.avatarUrlProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> setAvatarUrl(newValue));
-    });
-    setAvatarUrl(playerInfoBean.getAvatarUrl());
-
-    Tooltip avatarTooltip = new Tooltip(playerInfoBean.getAvatarTooltip());
-    avatarTooltip.textProperty().bind(playerInfoBean.avatarTooltipProperty());
-    avatarTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
-
-    Tooltip.install(avatarImageView, avatarTooltip);
-  }
-
-  private void configureClanLabel() {
-    setClanTag(playerInfoBean.getClan());
-    playerInfoBean.clanProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> setClanTag(newValue));
-    });
-  }
-
-  private void configureGameStatusView() {
-    setGameStatus(playerInfoBean.getGameStatus());
-    playerInfoBean.gameStatusProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> setGameStatus(newValue));
-    });
-
-  }
-
-  private void configureRatingTooltip() {
-    if (!playerInfoBean.getChatOnly()) {
-      Tooltip userRatingTooltip = new Tooltip();
-
-      String rating = i18n.get("userInfo.ratingFormat", RatingUtil.getRoundedGlobalRating(playerInfoBean), RatingUtil.getLeaderboardRating(playerInfoBean));
-      userRatingTooltip.setText(rating);
-
-      addRatingListenerToTooltip(playerInfoBean.leaderboardRatingMeanProperty(), userRatingTooltip);
-      addRatingListenerToTooltip(playerInfoBean.globalRatingMeanProperty(), userRatingTooltip);
-
-      Tooltip.install(clanLabel, userRatingTooltip);
-      Tooltip.install(usernameLabel, userRatingTooltip);
-    }
-  }
-
-  private void setCountry(String country) {
-    if (StringUtils.isEmpty(country)) {
-      countryImageView.setVisible(false);
-    } else {
-      countryImageView.setImage(countryFlagService.loadCountryFlag(country));
-      countryImageView.setVisible(true);
     }
   }
 
@@ -279,11 +205,82 @@ public class ChatUserControl extends HBox {
     statusImageView.setVisible(true);
   }
 
-  private void addRatingListenerToTooltip(FloatProperty ratingProperty, Tooltip tooltip) {
-    ratingProperty.addListener((observable, oldValue, newValue) -> {
-      String updatedRating = i18n.get("userInfo.ratingFormat", RatingUtil.getGlobalRating(playerInfoBean), RatingUtil.getLeaderboardRating(playerInfoBean));
-      tooltip.setText(updatedRating);
-    });
+  public PlayerInfoBean getPlayerInfoBean() {
+    return playerInfoBean;
+  }
+
+  public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
+    this.playerInfoBean = playerInfoBean;
+
+    configureColor();
+    addChatColorModeListener();
+    configureCountryImageView();
+    configureAvatarImageView();
+    configureClanLabel();
+    configureGameStatusView();
+    configureTooltip();
+
+    usernameLabel.setText(playerInfoBean.getUsername());
+  }
+
+  private void addChatColorModeListener() {
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    chatPrefs.chatColorModeProperty().addListener(new WeakChangeListener<>(colorModeChangeListener));
+  }
+
+  private void configureCountryImageView() {
+    setCountry(playerInfoBean.getCountry());
+
+    Tooltip countryTooltip = new Tooltip(playerInfoBean.getCountry());
+    countryTooltip.textProperty().bind(playerInfoBean.countryProperty());
+
+    Tooltip.install(countryImageView, countryTooltip);
+  }
+
+  private void configureAvatarImageView() {
+    playerInfoBean.avatarUrlProperty().addListener(new WeakChangeListener<>(avatarChangeListener));
+    setAvatarUrl(playerInfoBean.getAvatarUrl());
+
+    Tooltip avatarTooltip = new Tooltip(playerInfoBean.getAvatarTooltip());
+    avatarTooltip.textProperty().bind(playerInfoBean.avatarTooltipProperty());
+    avatarTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
+
+    Tooltip.install(avatarImageView, avatarTooltip);
+  }
+
+  private void configureClanLabel() {
+    setClanTag(playerInfoBean.getClan());
+    playerInfoBean.clanProperty().addListener(new WeakChangeListener<>(clanChangeListener));
+  }
+
+  private void configureGameStatusView() {
+    setGameStatus(playerInfoBean.getGameStatus());
+    playerInfoBean.gameStatusProperty().addListener(new WeakChangeListener<>(gameStatusChangeListener));
+  }
+
+  private void configureTooltip() {
+    if (playerInfoBean.getChatOnly()) {
+      return;
+    }
+
+    tooltip = new Tooltip();
+    Tooltip.install(clanLabel, tooltip);
+    Tooltip.install(usernameLabel, tooltip);
+
+    Bindings.createStringBinding(
+        () -> i18n.get("userInfo.ratingFormat", getGlobalRating(playerInfoBean), getLeaderboardRating(playerInfoBean)),
+        playerInfoBean.leaderboardRatingMeanProperty(), playerInfoBean.leaderboardRatingDeviationProperty(),
+        playerInfoBean.globalRatingMeanProperty(), playerInfoBean.globalRatingDeviationProperty()
+    );
+  }
+
+  private void setCountry(String country) {
+    if (StringUtils.isEmpty(country)) {
+      countryImageView.setVisible(false);
+    } else {
+      countryImageView.setImage(countryFlagService.loadCountryFlag(country));
+      countryImageView.setVisible(true);
+    }
   }
 
   @FXML
@@ -327,5 +324,14 @@ public class ChatUserControl extends HBox {
   public void setColorsAllowedInPane(boolean colorsAllowedInPane) {
     this.colorsAllowedInPane = colorsAllowedInPane;
     configureColor();
+  }
+
+  public Pane getRoot() {
+    return chatUserItemRoot;
+  }
+
+  public void setVisible(boolean visible) {
+    chatUserItemRoot.setVisible(visible);
+    chatUserItemRoot.setManaged(visible);
   }
 }

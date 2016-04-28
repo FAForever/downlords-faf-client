@@ -28,6 +28,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -109,45 +110,6 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void testOnUserJoinedChannel() throws Exception {
-    channelJoined(TEST_CHANNEL_NAME);
-
-    ChatUser chatUser = mock(ChatUser.class);
-
-    verify(chatService).addUsersListener(eq(TEST_CHANNEL_NAME), onUsersListenerCaptor.capture());
-
-    MapChangeListener.Change<? extends String, ? extends ChatUser> usersChange = mock(MapChangeListener.Change.class);
-    when(usersChange.wasAdded()).thenReturn(true);
-    when(usersChange.getValueAdded()).thenReturn(chatUser);
-    onUsersListenerCaptor.getValue().onChanged(usersChange);
-    // TODO assert something useful
-  }
-
-  @SuppressWarnings("unchecked")
-  private void channelJoined(String channel) {
-    MapChangeListener.Change<? extends String, ? extends Channel> testChannelChange = mock(MapChangeListener.Change.class);
-    when(testChannelChange.getKey()).thenReturn(channel);
-    channelsListener.getValue().onChanged(testChannelChange);
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testOnChatUserLeftChannel() throws Exception {
-    channelJoined(TEST_CHANNEL_NAME);
-
-    ChatUser chatUser = mock(ChatUser.class);
-
-    verify(chatService).addUsersListener(eq(TEST_CHANNEL_NAME), onUsersListenerCaptor.capture());
-
-    MapChangeListener.Change<? extends String, ? extends ChatUser> change = mock(MapChangeListener.Change.class);
-    when(change.wasRemoved()).thenReturn(true);
-    when(change.getValueRemoved()).thenReturn(chatUser);
-    onUsersListenerCaptor.getValue().onChanged(change);
-    // TODO assert something useful
-  }
-
-  @Test
   public void testOnPrivateMessage() throws Exception {
     ChatMessage chatMessage = mock(ChatMessage.class);
 
@@ -190,29 +152,42 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     connectionState.set(ConnectionState.DISCONNECTED);
   }
 
+  @SuppressWarnings("unchecked")
+  private void channelJoined(String channel) {
+    MapChangeListener.Change<? extends String, ? extends Channel> testChannelChange = mock(MapChangeListener.Change.class);
+    when(testChannelChange.getKey()).thenReturn(channel);
+    channelsListener.getValue().onChanged(testChannelChange);
+  }
+
   @Test
   @SuppressWarnings("unchecked")
   public void testOnJoinChannelButtonClicked() throws Exception {
+    assertThat(instance.chatsTabPane.getTabs(), is(empty()));
+
     Tab tab = new Tab();
     tab.setId(TEST_CHANNEL_NAME);
 
     when(channelTabController.getRoot()).thenReturn(tab);
     when(userService.getUsername()).thenReturn(TEST_USER_NAME);
     when(chatService.isDefaultChannel(TEST_CHANNEL_NAME)).thenReturn(false);
+    doAnswer(invocation -> {
+      MapChangeListener.Change<? extends String, ? extends Channel> change = mock(MapChangeListener.Change.class);
+      when(change.wasAdded()).thenReturn(true);
+      when(change.getValueAdded()).thenReturn(new Channel(invocation.getArgumentAt(0, String.class)));
+      channelsListener.getValue().onChanged(change);
+      return null;
+    }).when(chatService).joinChannel(anyString());
 
     instance.channelNameTextField.setText(TEST_CHANNEL_NAME);
     instance.onJoinChannelButtonClicked();
 
     verify(chatService).joinChannel(TEST_CHANNEL_NAME);
-    assertThat(instance.chatsTabPane.getTabs(), is(empty()));
-
     verify(chatService).addUsersListener(eq(TEST_CHANNEL_NAME), onUsersListenerCaptor.capture());
 
     MapChangeListener.Change<? extends String, ? extends ChatUser> change = mock(MapChangeListener.Change.class);
     when(change.wasAdded()).thenReturn(true);
     when(change.getValueAdded()).thenReturn(new ChatUser(TEST_USER_NAME, null));
     onUsersListenerCaptor.getValue().onChanged(change);
-
 
     CountDownLatch tabAddedLatch = new CountDownLatch(1);
     instance.chatsTabPane.getTabs().addListener((InvalidationListener) observable -> tabAddedLatch.countDown());
