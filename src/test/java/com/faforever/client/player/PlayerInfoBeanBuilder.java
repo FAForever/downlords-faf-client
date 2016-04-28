@@ -30,6 +30,16 @@ public class PlayerInfoBeanBuilder {
     return this;
   }
 
+  public PlayerInfoBeanBuilder leaderboardRatingMean(float mean) {
+    playerInfoBean.setLeaderboardRatingMean(mean);
+    return this;
+  }
+
+  public PlayerInfoBeanBuilder leaderboardRatingDeviation(float deviation) {
+    playerInfoBean.setLeaderboardRatingDeviation(deviation);
+    return this;
+  }
+
   public static PlayerInfoBeanBuilder create(String username) {
     return new PlayerInfoBeanBuilder(username);
   }

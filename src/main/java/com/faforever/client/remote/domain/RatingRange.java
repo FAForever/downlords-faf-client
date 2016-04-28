@@ -1,4 +1,4 @@
-package com.faforever.client.game;
+package com.faforever.client.remote.domain;
 
 import org.jetbrains.annotations.NotNull;
 

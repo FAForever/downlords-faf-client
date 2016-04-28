@@ -19,6 +19,7 @@ import com.faforever.client.remote.domain.GameTypeMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.Player;
 import com.faforever.client.remote.domain.PlayersMessage;
+import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
@@ -46,6 +47,7 @@ import java.util.function.Consumer;
 import static com.faforever.client.remote.domain.GameAccess.PASSWORD;
 import static com.faforever.client.remote.domain.GameAccess.PUBLIC;
 import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
+import static java.util.Collections.singletonList;
 
 public class MockFafServerAccessor implements FafServerAccessor {
 
@@ -111,7 +113,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
         player.setNumberOfGames(330);
 
         PlayersMessage playersMessage = new PlayersMessage();
-        playersMessage.setPlayers(Collections.singletonList(player));
+        playersMessage.setPlayers(singletonList(player));
 
         messageListeners.getOrDefault(playersMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(playersMessage));
 
@@ -119,11 +121,10 @@ public class MockFafServerAccessor implements FafServerAccessor {
           @Override
           public void run() {
             MatchmakerMessage matchmakerServerMessage = new MatchmakerMessage();
-            matchmakerServerMessage.setPotential(true);
+            matchmakerServerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue("ladder1v1", singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
             messageListeners.getOrDefault(matchmakerServerMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(matchmakerServerMessage));
           }
         }, 7000);
-
 
         List<GameInfoMessage> gameInfoMessages = Arrays.asList(
             createGameInfo(1, "Mock game 500 - 800", PUBLIC, "faf", "scmp_010", 3, 6, "Mock user"),

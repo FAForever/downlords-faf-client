@@ -20,10 +20,12 @@ import com.faforever.client.remote.domain.InitSessionMessage;
 import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.MessageTarget;
+import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.SessionMessage;
 import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.InetSocketAddressTypeAdapter;
 import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
+import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.io.QDataInputStream;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -59,7 +61,10 @@ import java.util.function.Consumer;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -82,6 +87,7 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
       .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
       .registerTypeAdapter(Faction.class, new FactionDeserializer())
       .registerTypeAdapter(InetSocketAddress.class, InetSocketAddressTypeAdapter.INSTANCE)
+      .registerTypeAdapter(RatingRange.class, RatingRangeTypeAdapter.INSTANCE)
       .create();
 
   @Rule
@@ -288,8 +294,8 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
   public void testRankedMatchNotification() throws Exception {
     connectAndLogIn();
 
-    MatchmakerMessage message = new MatchmakerMessage();
-    message.setPotential(true);
+    MatchmakerMessage matchmakerMessage = new MatchmakerMessage();
+    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue("ladder1v1", singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
 
     CompletableFuture<MatchmakerMessage> serviceStateDoneFuture = new CompletableFuture<>();
 
@@ -297,11 +303,11 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
         MatchmakerMessage.class, serviceStateDoneFuture::complete
     ));
 
-    sendFromServer(message);
+    sendFromServer(matchmakerMessage);
 
     MatchmakerMessage matchmakerServerMessage = serviceStateDoneFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(matchmakerServerMessage.potential, is(true));
+    assertThat(matchmakerServerMessage.getQueues(), not(empty()));
   }
 
   @Test

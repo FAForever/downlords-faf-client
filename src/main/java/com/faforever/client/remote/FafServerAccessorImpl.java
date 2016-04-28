@@ -28,6 +28,7 @@ import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.MessageTarget;
 import com.faforever.client.remote.domain.Ranked1v1SearchExpansionMessage;
+import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.RemoveFoeMessage;
 import com.faforever.client.remote.domain.RemoveFriendMessage;
 import com.faforever.client.remote.domain.SerializableMessage;
@@ -44,6 +45,7 @@ import com.faforever.client.remote.gson.GpgServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.InetSocketAddressTypeAdapter;
 import com.faforever.client.remote.gson.InitConnectivityTestMessage;
 import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
+import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.StatisticsTypeTypeAdapter;
@@ -134,6 +136,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
         .registerTypeAdapter(ServerMessage.class, ServerMessageTypeAdapter.INSTANCE)
         .registerTypeAdapter(ConnectivityState.class, ConnectivityStateTypeAdapter.INSTANCE)
         .registerTypeAdapter(InetSocketAddress.class, InetSocketAddressTypeAdapter.INSTANCE)
+        .registerTypeAdapter(RatingRange.class, RatingRangeTypeAdapter.INSTANCE)
         .create();
 
     addOnMessageListener(SessionMessage.class, this::onSessionInitiated);

@@ -10,7 +10,6 @@ import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
-import com.faforever.client.game.RatingRange;
 import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.i18n.I18n;
@@ -37,6 +36,7 @@ import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.rankedmatch.Ranked1v1Controller;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
@@ -567,9 +567,44 @@ public class MainController implements OnChoseGameDirectoryListener {
   }
 
   private void onMatchmakerMessage(MatchmakerMessage message) {
-    if (!message.isPotential()
+    if (message.getQueues() == null
         || gameService.gameRunningProperty().get()
         || !preferencesService.getPreferences().getNotification().getDisplayRanked1v1Toast()) {
+      return;
+    }
+
+    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
+
+    int deviationFor80PercentQuality = (int) (ratingBeta / 2.5f);
+    int deviationFor75PercentQuality = (int) (ratingBeta / 1.25f);
+    float leaderboardRatingDeviation = currentPlayer.getLeaderboardRatingDeviation();
+
+    Function<MatchmakerMessage.MatchmakerQueue, List<RatingRange>> ratingRangesSupplier;
+    if (leaderboardRatingDeviation <= deviationFor80PercentQuality) {
+      ratingRangesSupplier = MatchmakerMessage.MatchmakerQueue::getBoundary80s;
+    } else if (leaderboardRatingDeviation <= deviationFor75PercentQuality) {
+      ratingRangesSupplier = MatchmakerMessage.MatchmakerQueue::getBoundary75s;
+    } else {
+      return;
+    }
+
+    float leaderboardRatingMean = currentPlayer.getLeaderboardRatingMean();
+    boolean showNotification = false;
+    for (MatchmakerMessage.MatchmakerQueue matchmakerQueue : message.getQueues()) {
+      if (!Objects.equals("ladder1v1", matchmakerQueue.getQueueName())) {
+        continue;
+      }
+      List<RatingRange> ratingRanges = ratingRangesSupplier.apply(matchmakerQueue);
+
+      for (RatingRange ratingRange : ratingRanges) {
+        if (ratingRange.getMin() <= leaderboardRatingMean && leaderboardRatingMean <= ratingRange.getMax()) {
+          showNotification = true;
+          break;
+        }
+      }
+    }
+
+    if (!showNotification) {
       return;
     }
 
@@ -579,46 +614,6 @@ public class MainController implements OnChoseGameDirectoryListener {
         new Image(themeService.getThemeFile(ThemeService.RANKED_1V1_IMAGE)),
         new Action(this::onPlayRanked1v1Selected)
     ));
-
-    if (matchmakerServerMessage.getQueues() == null) {
-      return;
-    }
-    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
-
-    int deviationFor80PercentQuality = (int) (ratingBeta / 2.5f);
-    int deviationFor75PercentQuality = (int) (ratingBeta / 1.25f);
-    float leaderboardRatingDeviation = currentPlayer.getLeaderboardRatingDeviation();
-
-    if (leaderboardRatingDeviation > deviationFor80PercentQuality) {
-      return;
-    }
-
-    float leaderboardRatingMean = currentPlayer.getLeaderboardRatingMean();
-
-    Function<MatchmakerMessage.MatchmakerQueue, List<RatingRange>> ratingRangeSupplier;
-    if (leaderboardRatingDeviation <= deviationFor80PercentQuality) {
-      ratingRangeSupplier = new Function<MatchmakerMessage.MatchmakerQueue, List<RatingRange>>() {
-        @Override
-        public List<RatingRange> apply(MatchmakerMessage.MatchmakerQueue matchmakerQueue) {
-          return matchmakerQueue.getRating;
-        }
-      }
-    }
-
-    for (MatchmakerMessage.MatchmakerQueue matchmakerQueue : matchmakerServerMessage.getQueues()) {
-      if (!Objects.equals("ladder1v1", matchmakerQueue.getQueueName())) {
-        continue;
-      }
-
-      for (RatingRange ratingRange : matchmakerQueue.getRatingRanges()) {
-        if (ratingRange.getMin() < leaderboardRatingMean && leaderboardRatingMean < ratingRange.getMax()) {
-
-        }
-      }
-
-
-      MatchmakerMessage.GameQuality gameQuality;
-      rankedMatchNotificationPane.setVisible(matchmakerServerMessage.potential);
   }
 
   public void display() {
@@ -922,7 +917,10 @@ public class MainController implements OnChoseGameDirectoryListener {
   void onPlayRanked1v1Selected(Event event) {
     ranked1v1Controller.setUpIfNecessary();
     setContent(ranked1v1Controller.getRoot());
-    setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
+    // FIXME remove with
+    if (event.getTarget() instanceof MenuItem) {
+      setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
+    }
   }
 
   @FXML

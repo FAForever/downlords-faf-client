@@ -23,6 +23,7 @@ import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.patch.GameUpdateService;
+import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
@@ -33,6 +34,7 @@ import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -60,6 +62,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -189,6 +192,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.threadPoolExecutor = threadPoolExecutor;
     instance.windowController = windowController;
     instance.themeService = themeService;
+    instance.ratingBeta = 250;
 
     connectionStateProperty = new SimpleObjectProperty<>();
     connectivityStateProperty = new SimpleObjectProperty<>(ConnectivityState.UNKNOWN);
@@ -504,44 +508,67 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnMatchMakerMessageDisplaysNotification() {
+  public void testOnMatchMakerMessageDisplaysNotification80Quality() {
+    prepareTestMatchmakerMessageTest(100);
+    verify(notificationService).addNotification(any(TransientNotification.class));
+  }
+
+  private void prepareTestMatchmakerMessageTest(float deviation) {
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
     when(notificationPrefs.getDisplayRanked1v1Toast()).thenReturn(true);
+    when(playerService.getCurrentPlayer()).thenReturn(
+        PlayerInfoBeanBuilder.create("JUnit").leaderboardRatingMean(1500).leaderboardRatingDeviation(deviation).get()
+    );
 
     verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
 
     MatchmakerMessage matchmakerMessage = new MatchmakerMessage();
-    matchmakerMessage.setPotential(true);
+    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue("ladder1v1",
+        singletonList(new RatingRange(1500, 1510)), singletonList(new RatingRange(1500, 1510)))));
     matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
+  }
 
+  @Test
+  public void testOnMatchMakerMessageDisplaysNotification75Quality() {
+    prepareTestMatchmakerMessageTest(101);
     verify(notificationService).addNotification(any(TransientNotification.class));
   }
 
   @Test
-  public void testOnMatchMakerMessageDisplaysNotificationNotPotential() {
+  public void testOnMatchMakerMessageDisplaysNotificationLessThan75Quality() {
+    prepareTestMatchmakerMessageTest(201);
+    verify(notificationService, never()).addNotification(any(TransientNotification.class));
+  }
+
+  @Test
+  public void testOnMatchMakerMessageDisplaysNotificationNullQueues() {
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
 
     verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
 
     MatchmakerMessage matchmakerMessage = new MatchmakerMessage();
-    matchmakerMessage.setPotential(false);
+    matchmakerMessage.setQueues(null);
     matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
 
     verify(notificationService, never()).addNotification(any(TransientNotification.class));
   }
 
   @Test
-  public void testOnMatchMakerMessageDisplaysNotificationPotentialButDisabled() {
+  public void testOnMatchMakerMessageDisplaysNotificationWithQueuesButDisabled() {
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
     when(notificationPrefs.getDisplayRanked1v1Toast()).thenReturn(false);
+    when(playerService.getCurrentPlayer()).thenReturn(
+        PlayerInfoBeanBuilder.create("JUnit").leaderboardRatingMean(1500).leaderboardRatingDeviation(100).get()
+    );
 
     verify(gameService).addOnRankedMatchNotificationListener(matchmakerMessageCaptor.capture());
 
     MatchmakerMessage matchmakerMessage = new MatchmakerMessage();
-    matchmakerMessage.setPotential(true);
+    matchmakerMessage.setQueues(singletonList(new MatchmakerMessage.MatchmakerQueue("ladder1v1",
+        singletonList(new RatingRange(1500, 1510)), singletonList(new RatingRange(1500, 1510)))));
     matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
 
     verify(notificationService, never()).addNotification(any(TransientNotification.class));

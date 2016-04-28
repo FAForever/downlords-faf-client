@@ -1,34 +1,50 @@
 package com.faforever.client.rankedmatch;
 
-import com.faforever.client.game.RatingRange;
 import com.faforever.client.remote.domain.FafServerMessage;
 import com.faforever.client.remote.domain.FafServerMessageType;
+import com.faforever.client.remote.domain.RatingRange;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
 public class MatchmakerMessage extends FafServerMessage {
 
-  public enum GameQuality {
-    QUALITY_80("boundary_80s"), QUALITY_75("boundary_75s");
-
-    private String key;
-
-    GameQuality(String key) {
-      this.key = key;
-    }
-  }
-
-  public class MatchmakerQueue {
+  public static class MatchmakerQueue {
 
     private String queueName;
-    private List<RatingRange> ratingRanges;
+    @SerializedName("boundary_75s")
+    private List<RatingRange> boundary75s;
+    @SerializedName("boundary_80s")
+    private List<RatingRange> boundary80s;
+
+    public MatchmakerQueue(String queueName, List<RatingRange> boundary75s, List<RatingRange> boundary80s) {
+      this.queueName = queueName;
+      this.boundary75s = boundary75s;
+      this.boundary80s = boundary80s;
+    }
 
     public String getQueueName() {
       return queueName;
     }
 
-    public List<RatingRange> getRatingRanges() {
-      return ratingRanges;
+    public void setQueueName(String queueName) {
+      this.queueName = queueName;
+    }
+
+    public List<RatingRange> getBoundary75s() {
+      return boundary75s;
+    }
+
+    public void setBoundary75s(List<RatingRange> boundary75s) {
+      this.boundary75s = boundary75s;
+    }
+
+    public List<RatingRange> getBoundary80s() {
+      return boundary80s;
+    }
+
+    public void setBoundary80s(List<RatingRange> boundary80s) {
+      this.boundary80s = boundary80s;
     }
   }
 
