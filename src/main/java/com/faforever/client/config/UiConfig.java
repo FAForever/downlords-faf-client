@@ -11,7 +11,7 @@ import com.faforever.client.chat.AvatarServiceImpl;
 import com.faforever.client.chat.ChannelTabController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatUserContextMenuController;
-import com.faforever.client.chat.ChatUserControl;
+import com.faforever.client.chat.ChatUserItemController;
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.CountryFlagServiceImpl;
 import com.faforever.client.chat.FilterUserController;
@@ -282,12 +282,6 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  ChatUserControl chatUserControl() {
-    return new ChatUserControl();
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   ChatUserContextMenuController chatUserContextMenuController() {
     return loadController("chat_user_context_menu.fxml");
   }
@@ -383,5 +377,11 @@ public class UiConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   TransientNotificationController transientNotificationController() {
     return loadController("transient_notification.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  ChatUserItemController chatUserItemController() {
+    return loadController("chat_user_item.fxml");
   }
 }

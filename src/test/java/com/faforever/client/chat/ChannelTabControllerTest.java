@@ -105,17 +105,17 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetChannelName() throws Exception {
-    when(chatService.getChatUsersForChannel(CHANNEL_NAME)).thenReturn(FXCollections.emptyObservableMap());
+    when(chatService.getOrCreateChannel(CHANNEL_NAME)).thenReturn(new Channel(CHANNEL_NAME));
 
     instance.setChannelName(CHANNEL_NAME);
 
-    verify(chatService).addChannelUserListListener(eq(CHANNEL_NAME), any());
+    verify(chatService).addUsersListener(eq(CHANNEL_NAME), any());
   }
 
   @Test
   public void testGetMessageCssClassModerator() throws Exception {
     String playerName = "junit";
-    when(chatService.getChatUsersForChannel(CHANNEL_NAME)).thenReturn(FXCollections.emptyObservableMap());
+    when(chatService.getOrCreateChannel(CHANNEL_NAME)).thenReturn(new Channel(CHANNEL_NAME));
 
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
     playerInfoBean.moderatorForChannelsProperty().set(FXCollections.observableSet(CHANNEL_NAME));

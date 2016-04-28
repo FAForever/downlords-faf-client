@@ -27,7 +27,6 @@ import org.pircbotx.User;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.Event;
-import org.pircbotx.hooks.Listener;
 import org.pircbotx.hooks.events.ActionEvent;
 import org.pircbotx.hooks.events.ConnectEvent;
 import org.pircbotx.hooks.events.DisconnectEvent;
@@ -57,17 +56,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
+import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javafx.collections.FXCollections.observableHashMap;
-import static javafx.collections.FXCollections.synchronizedObservableMap;
 
-public class PircBotXChatService implements ChatService, Listener,
-    OnChatUserListListener, OnChatUserJoinedChannelListener, OnChatUserQuitListener,
-    OnChatUserLeftChannelListener, OnModeratorSetListener {
+public class PircBotXChatService implements ChatService {
 
   interface ChatEventListener<T> {
 
@@ -79,9 +77,11 @@ public class PircBotXChatService implements ChatService, Listener,
   private final Map<Class<? extends Event>, ArrayList<ChatEventListener>> eventListeners;
 
   /**
-   * Maps channel names to a map containing chat users, indexed by their login name.
+   * Maps channels by name.
    */
-  private final ObservableMap<String, ObservableMap<String, ChatUser>> chatUserLists;
+  private final ObservableMap<String, Channel> channels;
+  private final Map<String, ChatUser> chatUsersByName;
+  private final ObjectProperty<ConnectionState> connectionState;
 
   @Resource
   PreferencesService preferencesService;
@@ -112,56 +112,18 @@ public class PircBotXChatService implements ChatService, Listener,
   private Configuration configuration;
   private PircBotX pircBotX;
   private CountDownLatch chatConnectedLatch;
-  private Map<String, ChatUser> chatUsersByName;
   private Task<Void> connectionTask;
-  private ObjectProperty<ConnectionState> connectionState;
-
 
   public PircBotXChatService() {
     connectionState = new SimpleObjectProperty<>();
     eventListeners = new ConcurrentHashMap<>();
-    chatUserLists = observableHashMap();
+    channels = observableHashMap();
     chatUsersByName = new HashMap<>();
-  }
-
-  @Override
-  public void onChatUserList(String channelName, Map<String, ChatUser> users) {
-    ObservableMap<String, ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
-    synchronized (chatUsersForChannel) {
-      chatUsersForChannel.putAll(users);
-    }
-  }
-
-  @Override
-  public void onUserJoinedChannel(String channelName, ChatUser chatUser) {
-    ObservableMap<String, ChatUser> chatUsers = getChatUsersForChannel(channelName);
-    synchronized (chatUsers) {
-      chatUsers.put(chatUser.getUsername(), chatUser);
-    }
-  }
-
-  @Override
-  public void onChatUserLeftChannel(String username, String channelName) {
-    ObservableMap<String, ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
-    synchronized (chatUsersForChannel) {
-      chatUsersForChannel.remove(username);
-    }
-  }
-
-  @Override
-  public void onChatUserQuit(String username) {
-    synchronized (chatUserLists) {
-      for (ObservableMap<String, ChatUser> chatUsers : chatUserLists.values()) {
-        chatUsers.remove(username);
-      }
-    }
   }
 
   @PostConstruct
   void postConstruct() {
-    addEventListener(ConnectEvent.class, event -> connectionState.set(ConnectionState.CONNECTED));
-    addEventListener(DisconnectEvent.class, event -> connectionState.set(ConnectionState.DISCONNECTED));
-
+    fafService.addOnMessageListener(SocialMessage.class, this::onSocialMessage);
     connectionState.addListener((observable, oldValue, newValue) -> {
       switch (newValue) {
         case DISCONNECTED:
@@ -174,11 +136,18 @@ public class PircBotXChatService implements ChatService, Listener,
       }
     });
 
-    addOnUserListListener(this);
-    addOnChatUserJoinedChannelListener(this);
-    addOnChatUserQuitListener(this);
-    addOnModeratorSetListener(this);
-    addUserToColorListener();
+    addEventListener(ConnectEvent.class, event -> connectionState.set(ConnectionState.CONNECTED));
+    addEventListener(DisconnectEvent.class, event -> connectionState.set(ConnectionState.DISCONNECTED));
+    addEventListener(UserListEvent.class, event -> onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers())));
+    addEventListener(JoinEvent.class, event -> onUserJoinedChannel(event.getChannel().getName(), createOrGetChatUser(event.getUser())));
+    addEventListener(PartEvent.class, event -> onChatUserLeftChannel(event.getChannel().getName(), event.getUser().getNick()));
+    addEventListener(QuitEvent.class, event -> onChatUserQuit(event.getUser().getNick()));
+    addEventListener(OpEvent.class, event -> {
+      User recipient = event.getRecipient();
+      if (recipient != null) {
+        onModeratorSet(event.getChannel().getName(), recipient.getNick());
+      }
+    });
 
     userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue) {
@@ -189,46 +158,44 @@ public class PircBotXChatService implements ChatService, Listener,
     });
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-
+    chatPrefs.userToColorProperty().addListener(
+        (MapChangeListener<? super String, ? super Color>) change -> preferencesService.store()
+    );
     chatPrefs.chatColorModeProperty().addListener((observable, oldValue, newValue) -> {
-      switch (newValue) {
-        case CUSTOM:
-          chatUsersByName.values().stream()
-              .filter(chatUser -> chatPrefs.getUserToColor().containsKey(chatUser.getUsername()))
-              .forEach(chatUser -> chatUser.setColor(chatPrefs.getUserToColor().get(chatUser.getUsername())));
-          break;
+      synchronized (chatUsersByName) {
+        switch (newValue) {
+          case CUSTOM:
+            chatUsersByName.values().stream()
+                .filter(chatUser -> chatPrefs.getUserToColor().containsKey(chatUser.getUsername()))
+                .forEach(chatUser -> chatUser.setColor(chatPrefs.getUserToColor().get(chatUser.getUsername())));
+            break;
 
-        case RANDOM:
-          for (ChatUser chatUser : chatUsersByName.values()) {
-            chatUser.setColor(ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode()));
-          }
-          break;
+          case RANDOM:
+            for (ChatUser chatUser : chatUsersByName.values()) {
+              chatUser.setColor(ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode()));
+            }
+            break;
 
-        default:
-          for (ChatUser chatUser : chatUsersByName.values()) {
-            chatUser.setColor(null);
-          }
+          default:
+            for (ChatUser chatUser : chatUsersByName.values()) {
+              chatUser.setColor(null);
+            }
+        }
       }
     });
   }
 
-  private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
-    if (!eventListeners.containsKey(eventClass)) {
-      eventListeners.put(eventClass, new ArrayList<>());
-    }
-    eventListeners.get(eventClass).add(listener);
-  }
-
   private void onDisconnected() {
-    synchronized (chatUserLists) {
-      chatUserLists.values().forEach(ObservableMap::clear);
+    synchronized (channels) {
+      channels.values().forEach(Channel::clearUsers);
     }
   }
 
   private void onConnected() {
     sendMessageInBackground("NICKSERV", "IDENTIFY " + Hashing.md5().hashString(userService.getPassword(), UTF_8))
-        .thenAccept(s1 -> {
+        .thenAccept(message -> {
           chatConnectedLatch.countDown();
+          connectionState.set(ConnectionState.CONNECTED);
           joinChannel(defaultChannelName);
         })
         .exceptionally(throwable -> {
@@ -239,13 +206,37 @@ public class PircBotXChatService implements ChatService, Listener,
         });
   }
 
-  private Map<String, ChatUser> chatUsers(ImmutableSortedSet<User> users) {
-    Map<String, ChatUser> chatUsers = new HashMap<>();
-    for (User user : users) {
-      ChatUser chatUser = createOrGetChatUser(user);
-      chatUsers.put(chatUser.getUsername(), chatUser);
+  private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
+    if (!eventListeners.containsKey(eventClass)) {
+      eventListeners.put(eventClass, new ArrayList<>());
     }
-    return chatUsers;
+    eventListeners.get(eventClass).add(listener);
+  }
+
+  private void onChatUserList(String channelName, List<ChatUser> users) {
+    getOrCreateChannel(channelName).addUsers(users);
+  }
+
+  private List<ChatUser> chatUsers(ImmutableSortedSet<User> users) {
+    return users.stream().map(this::createOrGetChatUser).collect(Collectors.toList());
+  }
+
+  private void onUserJoinedChannel(String channelName, ChatUser chatUser) {
+    getOrCreateChannel(channelName).addUser(chatUser);
+  }
+
+  private void onChatUserLeftChannel(String channelName, String username) {
+    getOrCreateChannel(channelName).removeUser(username);
+  }
+
+  private void onChatUserQuit(String username) {
+    synchronized (channels) {
+      channels.values().forEach(channel -> channel.removeUser(username));
+    }
+  }
+
+  private void onModeratorSet(String channelName, String username) {
+    getOrCreateChannel(channelName).setModerator(username);
   }
 
   @SuppressWarnings("unchecked")
@@ -261,100 +252,78 @@ public class PircBotXChatService implements ChatService, Listener,
         .setAutoSplitMessage(true)
         .setEncoding(UTF_8)
         .setAutoReconnect(false)
-        .addListener(this)
+        .addListener(this::onEvent)
         .setSocketTimeout(SOCKET_TIMEOUT)
         .buildConfiguration();
 
     pircBotX = pircBotXFactory.createPircBotX(configuration);
   }
 
-  @Override
+  private void onSocialMessage(SocialMessage socialMessage) {
+    socialMessage.getChannels().forEach(this::joinChannel);
+  }
+
   @SuppressWarnings("unchecked")
-  public void onEvent(Event event) throws Exception {
+  private void onEvent(Event event) {
     if (!eventListeners.containsKey(event.getClass())) {
       return;
     }
-
-    for (ChatEventListener listener : eventListeners.get(event.getClass())) {
-      listener.onEvent(event);
-    }
+    eventListeners.get(event.getClass()).forEach(listener -> listener.onEvent(event));
   }
 
-  @Override
-  public void addOnMessageListener(final OnChatMessageListener listener) {
-    addEventListener(MessageEvent.class, event -> listener.onMessage(event.getChannel().getName(),
-        new ChatMessage(
-            Instant.ofEpochMilli(event.getTimestamp()),
-            event.getUser().getNick(),
-            event.getMessage()
-        )
-    ));
-    addEventListener(ActionEvent.class, event -> {
-      listener.onMessage(event.getChannel().getName(),
-          new ChatMessage(
-              Instant.ofEpochMilli(event.getTimestamp()),
-              event.getUser().getNick(),
-              event.getMessage(),
-              true
-          )
-      );
-    });
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public void addOnUserListListener(final OnChatUserListListener listener) {
-    addEventListener(UserListEvent.class,
-        event -> {
-          try {
-            listener.onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers()));
-          } catch (Exception e) {
-            logger.warn("Error while handling chat user list", e);
-          }
-        });
-  }
-
-  @Override
-  public void addOnPrivateChatMessageListener(final OnPrivateChatMessageListener listener) {
-    addEventListener(PrivateMessageEvent.class,
-        event -> listener.onPrivateMessage(
-            event.getUser().getNick(),
-            new ChatMessage(
-                Instant.ofEpochMilli(event.getTimestamp()),
-                event.getUser().getNick(),
-                event.getMessage()
-            )
-        )
-    );
-  }
-
-  @Override
-  public void addOnChatUserJoinedChannelListener(final OnChatUserJoinedChannelListener listener) {
-    addEventListener(JoinEvent.class, event -> {
+  public void addOnMessageListener(Consumer<ChatMessage> listener) {
+    addEventListener(MessageEvent.class, event -> {
       User user = event.getUser();
-      listener.onUserJoinedChannel(
-          event.getChannel().getName(),
-          createOrGetChatUser(user)
+      if (user == null) {
+        logger.warn("Action event without user: {}", event);
+        return;
+      }
+
+      String source;
+      org.pircbotx.Channel channel = event.getChannel();
+      if (channel == null) {
+        source = user.getNick();
+      } else {
+        source = channel.getName();
+      }
+      listener.accept(
+          new ChatMessage(source, Instant.ofEpochMilli(event.getTimestamp()), user.getNick(), event.getMessage(), false)
+      );
+    });
+    addEventListener(ActionEvent.class, event -> {
+      User user = event.getUser();
+      if (user == null) {
+        logger.warn("Action event without user: {}", event);
+        return;
+      }
+
+      String source;
+      org.pircbotx.Channel channel = event.getChannel();
+      if (channel == null) {
+        source = user.getNick();
+      } else {
+        source = channel.getName();
+      }
+      listener.accept(
+          new ChatMessage(source, Instant.ofEpochMilli(event.getTimestamp()), user.getNick(), event.getMessage(), true)
       );
     });
   }
 
   @Override
-  public void addOnChatUserLeftChannelListener(OnChatUserLeftChannelListener listener) {
-    addEventListener(PartEvent.class, event -> listener.onChatUserLeftChannel(event.getUser().getNick(), event.getChannel().getName()));
-  }
-
-  @Override
-  public void addOnModeratorSetListener(OnModeratorSetListener listener) {
-    addEventListener(OpEvent.class, event -> listener.onModeratorSet(event.getChannel().getName(), event.getRecipient().getNick()));
-  }
-
-  @Override
-  public void addOnChatUserQuitListener(final OnChatUserQuitListener listener) {
-    addEventListener(QuitEvent.class,
-        event -> listener.onChatUserQuit(
-            event.getUser().getNick()
-        ));
+  public void addOnPrivateChatMessageListener(Consumer<ChatMessage> listener) {
+    addEventListener(PrivateMessageEvent.class,
+        event -> {
+          User user = event.getUser();
+          if (user == null) {
+            logger.warn("Private message without user: {}", event);
+            return;
+          }
+          listener.accept(
+              new ChatMessage(user.getNick(), Instant.ofEpochMilli(event.getTimestamp()), user.getNick(), event.getMessage())
+          );
+        }
+    );
   }
 
   @Override
@@ -409,22 +378,21 @@ public class PircBotXChatService implements ChatService, Listener,
   }
 
   @Override
-  public ObservableMap<String, ChatUser> getChatUsersForChannel(String channelName) {
-    synchronized (chatUserLists) {
-      if (!chatUserLists.containsKey(channelName)) {
-        chatUserLists.put(channelName, synchronizedObservableMap(observableHashMap()));
+  public Channel getOrCreateChannel(String channelName) {
+    synchronized (channels) {
+      if (!channels.containsKey(channelName)) {
+        channels.put(channelName, new Channel(channelName));
       }
-      return chatUserLists.get(channelName);
+      return channels.get(channelName);
     }
   }
 
   @Override
-  public ChatUser createOrGetChatUser(String username) {
+  public ChatUser getOrCreateChatUser(String username) {
     synchronized (chatUsersByName) {
       if (!chatUsersByName.containsKey(username)) {
         ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
         Color color = null;
-
         if (chatPrefs.getChatColorMode().equals(CUSTOM) && chatPrefs.getUserToColor().containsKey(username)) {
           color = chatPrefs.getUserToColor().get(username);
         } else if (chatPrefs.getChatColorMode().equals(RANDOM)) {
@@ -438,11 +406,20 @@ public class PircBotXChatService implements ChatService, Listener,
   }
 
   @Override
-  public void addChannelUserListListener(String channelName, MapChangeListener<String, ChatUser> listener) {
-    ObservableMap<String, ChatUser> chatUsersForChannel = getChatUsersForChannel(channelName);
-    synchronized (chatUsersForChannel) {
-      chatUsersForChannel.addListener(listener);
+  public void addUsersListener(String channelName, MapChangeListener<String, ChatUser> listener) {
+    getOrCreateChannel(channelName).addUsersListeners(listener);
+  }
+
+  @Override
+  public void addChannelsListener(MapChangeListener<String, Channel> listener) {
+    synchronized (channels) {
+      channels.addListener(listener);
     }
+  }
+
+  @Override
+  public void removeUsersListener(String channelName, MapChangeListener<String, ChatUser> listener) {
+    getOrCreateChannel(channelName).removeUserListener(listener);
   }
 
   @Override
@@ -465,17 +442,8 @@ public class PircBotXChatService implements ChatService, Listener,
 
   @Override
   public void joinChannel(String channelName) {
-    try {
-      chatConnectedLatch.await();
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    noCatch(() -> chatConnectedLatch.await());
     pircBotX.sendIRC().joinChannel(channelName);
-  }
-
-  @Override
-  public void addOnJoinChannelsRequestListener(Consumer<List<String>> listener) {
-    fafService.addOnMessageListener(SocialMessage.class, socialMessage -> listener.accept(socialMessage.getAutoJoin()));
   }
 
   @Override
@@ -516,14 +484,6 @@ public class PircBotXChatService implements ChatService, Listener,
   }
 
   @Override
-  public void addUserToColorListener() {
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    chatPrefs.userToColorProperty().addListener((MapChangeListener<? super String, ? super Color>) change -> {
-      preferencesService.store();
-    });
-  }
-
-  @Override
   public ObjectProperty<ConnectionState> connectionStateProperty() {
     return connectionState;
   }
@@ -537,14 +497,5 @@ public class PircBotXChatService implements ChatService, Listener,
   @Override
   public void whois(String username) {
     pircBotX.sendIRC().whois(username);
-  }
-
-  @Override
-  public void onModeratorSet(String channelName, String username) {
-    ChatUser chatUser = getChatUsersForChannel(channelName).get(username);
-    if (chatUser == null) {
-      return;
-    }
-    chatUser.getModeratorInChannels().add(channelName);
   }
 }

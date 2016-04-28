@@ -116,7 +116,7 @@ public class ChatUserContextMenuController {
       } else {
         chatPrefs.getUserToColor().put(playerInfoBean.getUsername(), newValue);
       }
-      ChatUser chatUser = chatService.createOrGetChatUser(playerInfoBean.getUsername());
+      ChatUser chatUser = chatService.getOrCreateChatUser(playerInfoBean.getUsername());
       chatUser.setColor(newValue);
       contextMenu.hide();
     });

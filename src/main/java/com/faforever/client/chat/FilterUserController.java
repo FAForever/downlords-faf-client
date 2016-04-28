@@ -60,32 +60,31 @@ public class FilterUserController {
   }
 
   private void filterUsers() {
-    Map<String, Map<Pane, ChatUserControl>> userToChatUserControls = channelTabController.getUserToChatUserControls();
-    for (Map<Pane, ChatUserControl> chatUserControlMap : userToChatUserControls.values()) {
-      for (Map.Entry<Pane, ChatUserControl> chatUserControlEntry : chatUserControlMap.entrySet()) {
-        ChatUserControl chatUserControl = chatUserControlEntry.getValue();
+    Map<String, Map<Pane, ChatUserItemController>> userToChatUserControls = channelTabController.getUserToChatUserControls();
+    for (Map<Pane, ChatUserItemController> chatUserControlMap : userToChatUserControls.values()) {
+      for (Map.Entry<Pane, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
+        ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
         boolean display;
-        display = filterUser(chatUserControl);
-        chatUserControl.setVisible(display);
-        chatUserControl.setManaged(display);
+        display = filterUser(chatUserItemController);
+        chatUserItemController.setVisible(display);
       }
     }
   }
 
-  private boolean filterUser(ChatUserControl chatUserControl) {
-    return channelTabController.isUsernameMatch(chatUserControl)
-        && isInClan(chatUserControl)
-        && isBoundedByRating(chatUserControl)
-        && isGameStatusMatch(chatUserControl);
+  private boolean filterUser(ChatUserItemController chatUserItemController) {
+    return channelTabController.isUsernameMatch(chatUserItemController)
+        && isInClan(chatUserItemController)
+        && isBoundedByRating(chatUserItemController)
+        && isGameStatusMatch(chatUserItemController);
   }
 
   @VisibleForTesting
-  boolean isInClan(ChatUserControl chatUserControl) {
+  boolean isInClan(ChatUserItemController chatUserItemController) {
     if (clanFilterField.getText().isEmpty()) {
       return true;
     }
 
-    String clan = chatUserControl.getPlayerInfoBean().getClan();
+    String clan = chatUserItemController.getPlayerInfoBean().getClan();
     if (clan == null) {
       return false;
     } else {
@@ -95,8 +94,8 @@ public class FilterUserController {
   }
 
   @VisibleForTesting
-  boolean isBoundedByRating(ChatUserControl chatUserControl) {
-    int globalRating = RatingUtil.getGlobalRating(chatUserControl.getPlayerInfoBean());
+  boolean isBoundedByRating(ChatUserItemController chatUserItemController) {
+    int globalRating = RatingUtil.getGlobalRating(chatUserItemController.getPlayerInfoBean());
     int minRating;
     int maxRating;
 
@@ -115,12 +114,12 @@ public class FilterUserController {
   }
 
   @VisibleForTesting
-  boolean isGameStatusMatch(ChatUserControl chatUserControl) {
+  boolean isGameStatusMatch(ChatUserItemController chatUserItemController) {
     if (gameStatusFilter == null) {
       return true;
     }
 
-    GameStatus gameStatus = chatUserControl.getPlayerInfoBean().getGameStatus();
+    GameStatus gameStatus = chatUserItemController.getPlayerInfoBean().getGameStatus();
     if (gameStatusFilter == LOBBY) {
       return LOBBY == gameStatus || HOST == gameStatus;
     } else {

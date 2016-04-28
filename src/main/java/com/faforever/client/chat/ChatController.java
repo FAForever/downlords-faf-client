@@ -17,14 +17,9 @@ import org.springframework.context.ApplicationContext;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public class ChatController implements
-    OnChatMessageListener,
-    OnPrivateChatMessageListener,
-    OnChatUserJoinedChannelListener,
-    OnChatUserLeftChannelListener {
+public class ChatController {
 
   private final Map<String, AbstractChatTabController> nameToChatTabController;
 
@@ -51,17 +46,28 @@ public class ChatController implements
   }
 
   @PostConstruct
-  void postConstrut() {
-    chatService.addOnMessageListener(this);
-    chatService.addOnPrivateChatMessageListener(this);
-    chatService.addOnChatUserJoinedChannelListener(this);
-    chatService.addOnChatUserLeftChannelListener(this);
-    chatService.addOnJoinChannelsRequestListener(this::onJoinChannelsRequest);
+  void postConstruct() {
+    chatService.addOnMessageListener(this::onChannelMessage);
+    chatService.addOnPrivateChatMessageListener(this::onPrivateMessage);
+    chatService.addChannelsListener(change -> {
+      if (change.wasRemoved()) {
+        onChannelLeft(change.getValueRemoved());
+      }
+      if (change.wasAdded()) {
+        onChannelJoined(change.getValueAdded());
+      }
+    });
 
     chatService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       switch (newValue) {
         case DISCONNECTED:
           onDisconnected();
+          break;
+        case CONNECTED:
+          onConnected();
+          break;
+        case CONNECTING:
+          onConnecting();
           break;
       }
     });
@@ -73,7 +79,27 @@ public class ChatController implements
     });
   }
 
+  private void onChannelLeft(Channel channel) {
+    removeTab(channel.getName());
+  }
+
+  private void onChannelJoined(Channel channel) {
+    Platform.runLater(() -> getOrCreateChannelTab(channel.getName()));
+  }
+
   private void onDisconnected() {
+    connectingProgressPane.setVisible(true);
+    chatsTabPane.setVisible(false);
+    noOpenTabsContainer.setVisible(false);
+  }
+
+  private void onConnected() {
+    connectingProgressPane.setVisible(false);
+    chatsTabPane.setVisible(true);
+    noOpenTabsContainer.setVisible(false);
+  }
+
+  private void onConnecting() {
     connectingProgressPane.setVisible(true);
     chatsTabPane.setVisible(false);
     noOpenTabsContainer.setVisible(false);
@@ -81,6 +107,27 @@ public class ChatController implements
 
   private void onLoggedOut() {
     chatsTabPane.getTabs().clear();
+  }
+
+  private void removeTab(String playerOrChannelName) {
+    nameToChatTabController.remove(playerOrChannelName);
+    chatsTabPane.getTabs().remove(nameToChatTabController.remove(playerOrChannelName).getRoot());
+  }
+
+  private AbstractChatTabController getOrCreateChannelTab(String channelName) {
+    JavaFxUtil.assertApplicationThread();
+
+    if (!nameToChatTabController.containsKey(channelName)) {
+      ChannelTabController tab = applicationContext.getBean(ChannelTabController.class);
+      tab.setChannelName(channelName);
+      addTab(channelName, tab);
+    }
+    return nameToChatTabController.get(channelName);
+  }
+
+  private void addTab(String playerOrChannelName, AbstractChatTabController tabController) {
+    nameToChatTabController.put(playerOrChannelName, tabController);
+    chatsTabPane.getTabs().add(tabController.getRoot());
   }
 
   @FXML
@@ -97,55 +144,13 @@ public class ChatController implements
         noOpenTabsContainer.setVisible(chatsTabPane.getTabs().isEmpty()));
   }
 
-  @Override
-  public void onMessage(String channelName, ChatMessage chatMessage) {
-    Platform.runLater(() -> addAndGetChannelTab(channelName).onChatMessage(chatMessage));
+  private void onChannelMessage(ChatMessage chatMessage) {
+    Platform.runLater(() -> getOrCreateChannelTab(chatMessage.getSource()).onChatMessage(chatMessage));
   }
 
-  private AbstractChatTabController addAndGetChannelTab(String channelName) {
-    JavaFxUtil.assertApplicationThread();
-
-    if (!nameToChatTabController.containsKey(channelName)) {
-      ChannelTabController tab = applicationContext.getBean(ChannelTabController.class);
-      tab.setChannelName(channelName);
-      addTab(channelName, tab);
-    }
-    return nameToChatTabController.get(channelName);
-  }
-
-  private void addTab(String playerOrChannelName, AbstractChatTabController tabController) {
-    nameToChatTabController.put(playerOrChannelName, tabController);
-    Tab tab = tabController.getRoot();
-
-    if (chatService.isDefaultChannel(tab.getId())) {
-      chatsTabPane.getTabs().add(0, tab);
-    } else {
-      chatsTabPane.getTabs().add(tab);
-    }
-
-    chatsTabPane.getSelectionModel().select(0);
-  }
-
-  @Override
-  public void onUserJoinedChannel(String channelName, ChatUser chatUser) {
-    Platform.runLater(() -> {
-      addAndGetChannelTab(channelName);
-
-      if (isCurrentUser(chatUser)) {
-        connectingProgressPane.setVisible(false);
-        chatsTabPane.setVisible(true);
-      }
-    });
-  }
-
-  private boolean isCurrentUser(ChatUser chatUser) {
-    return chatUser.getUsername().equals(userService.getUsername());
-  }
-
-  @Override
-  public void onPrivateMessage(String sender, ChatMessage chatMessage) {
+  private void onPrivateMessage(ChatMessage chatMessage) {
     JavaFxUtil.assertBackgroundThread();
-    Platform.runLater(() -> addAndGetPrivateMessageTab(sender).onChatMessage(chatMessage));
+    Platform.runLater(() -> addAndGetPrivateMessageTab(chatMessage.getSource()).onChatMessage(chatMessage));
   }
 
   private AbstractChatTabController addAndGetPrivateMessageTab(String username) {
@@ -172,8 +177,27 @@ public class ChatController implements
     chatsTabPane.getSelectionModel().select(controller.getRoot());
   }
 
-  @Override
-  public void onChatUserLeftChannel(String username, String channelName) {
+  @FXML
+  void onJoinChannelButtonClicked() {
+    String channelName = channelNameTextField.getText();
+    channelNameTextField.clear();
+
+    joinChannel(channelName);
+  }
+
+  private void joinChannel(String channelName) {
+    chatService.addUsersListener(channelName, change -> {
+      if (change.wasRemoved()) {
+        onChatUserLeftChannel(channelName, change.getValueRemoved().getUsername());
+      }
+      if (change.wasAdded()) {
+        onUserJoinedChannel(channelName, change.getValueAdded());
+      }
+    });
+    chatService.joinChannel(channelName);
+  }
+
+  private void onChatUserLeftChannel(String channelName, String username) {
     if (userService.getUsername().equals(username)) {
       AbstractChatTabController chatTab = nameToChatTabController.get(channelName);
       if (chatTab != null) {
@@ -182,13 +206,15 @@ public class ChatController implements
     }
   }
 
-  private void onJoinChannelsRequest(List<String> channelNames) {
-    channelNames.forEach(chatService::joinChannel);
+  private void onUserJoinedChannel(String channelName, ChatUser chatUser) {
+    Platform.runLater(() -> {
+      if (isCurrentUser(chatUser)) {
+        onConnected();
+      }
+    });
   }
 
-  @FXML
-  void onJoinChannel() {
-    chatService.joinChannel(channelNameTextField.getText());
-    channelNameTextField.clear();
+  private boolean isCurrentUser(ChatUser chatUser) {
+    return chatUser.getUsername().equals(userService.getUsername());
   }
 }

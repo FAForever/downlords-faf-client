@@ -6,7 +6,7 @@ public class SocialMessage extends FafServerMessage {
 
   private List<Integer> friends;
   private List<Integer> foes;
-  private List<String> autojoin;
+  private List<String> channels;
 
   public List<Integer> getFriends() {
     return friends;
@@ -16,18 +16,14 @@ public class SocialMessage extends FafServerMessage {
     return foes;
   }
 
-  public List<String> getAutojoin() {
-    return autojoin;
-  }
-
   /**
    * List of channel names to join.
    */
-  public List<String> getAutoJoin() {
-    return autojoin;
+  public List<String> getChannels() {
+    return channels;
   }
 
-  public void setAutoJoin(List<String> autojoin) {
-    this.autojoin = autojoin;
+  public void setChannels(List<String> channels) {
+    this.channels = channels;
   }
 }
