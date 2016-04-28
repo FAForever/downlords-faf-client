@@ -41,6 +41,7 @@ import com.faforever.client.remote.gson.ConnectivityStateTypeAdapter;
 import com.faforever.client.remote.gson.GameAccessTypeAdapter;
 import com.faforever.client.remote.gson.GameStateTypeAdapter;
 import com.faforever.client.remote.gson.GpgServerMessageTypeTypeAdapter;
+import com.faforever.client.remote.gson.InetSocketAddressTypeAdapter;
 import com.faforever.client.remote.gson.InitConnectivityTestMessage;
 import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeAdapter;

@@ -1,6 +1,5 @@
 package com.faforever.client.main;
 
-import com.faforever.client.ThemeService;
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
@@ -37,6 +36,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import javafx.beans.property.BooleanProperty;

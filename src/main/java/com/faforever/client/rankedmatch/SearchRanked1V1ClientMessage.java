@@ -2,7 +2,7 @@ package com.faforever.client.rankedmatch;
 
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameType;
-import com.faforever.client.legacy.domain.ClientMessageType;
+import com.faforever.client.remote.domain.ClientMessageType;
 
 import java.net.InetSocketAddress;
 
@@ -12,7 +12,7 @@ public class SearchRanked1V1ClientMessage extends MatchMakerClientMessage {
   private int gameport;
   private InetSocketAddress relayAddress;
 
-  public SearchRanked1V1ClientMessage(int gamePort, Faction faction) {
+  public SearchRanked1V1ClientMessage(int gamePort, Faction faction, InetSocketAddress relayAddress) {
     super(ClientMessageType.GAME_MATCH_MAKING);
     this.relayAddress = relayAddress;
     mod = GameType.LADDER_1V1.getString();
