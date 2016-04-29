@@ -233,6 +233,9 @@ public class PircBotXChatService implements ChatService {
     synchronized (channels) {
       channels.values().forEach(channel -> channel.removeUser(username));
     }
+    synchronized (chatUsersByName) {
+      chatUsersByName.remove(username);
+    }
   }
 
   private void onModeratorSet(String channelName, String username) {

@@ -113,8 +113,10 @@ public class PlayerServiceImpl implements PlayerService {
       if (!playersByName.containsKey(username)) {
         PlayerInfoBean player = new PlayerInfoBean(username);
         player.idProperty().addListener((observable, oldValue, newValue) -> {
-          playersById.remove(oldValue.intValue());
-          playersById.put(newValue.intValue(), player);
+          synchronized (playersById) {
+            playersById.remove(oldValue.intValue());
+            playersById.put(newValue.intValue(), player);
+          }
         });
         playersByName.put(username, player);
       }
@@ -193,10 +195,12 @@ public class PlayerServiceImpl implements PlayerService {
     foeList.clear();
     foeList.addAll(foes);
 
-    for (Integer foeId : foes) {
-      PlayerInfoBean playerInfoBean = playersById.get(foeId);
-      if (playerInfoBean != null) {
-        playerInfoBean.setSocialStatus(FOE);
+    synchronized (playersById) {
+      for (Integer foeId : foes) {
+        PlayerInfoBean playerInfoBean = playersById.get(foeId);
+        if (playerInfoBean != null) {
+          playerInfoBean.setSocialStatus(FOE);
+        }
       }
     }
   }
@@ -205,10 +209,12 @@ public class PlayerServiceImpl implements PlayerService {
     friendList.clear();
     friendList.addAll(friends);
 
-    for (Integer friendId : friendList) {
-      PlayerInfoBean playerInfoBean = playersById.get(friendId);
-      if (playerInfoBean != null) {
-        playerInfoBean.setSocialStatus(FRIEND);
+    synchronized (playersById) {
+      for (Integer friendId : friendList) {
+        PlayerInfoBean playerInfoBean = playersById.get(friendId);
+        if (playerInfoBean != null) {
+          playerInfoBean.setSocialStatus(FRIEND);
+        }
       }
     }
   }

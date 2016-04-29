@@ -28,10 +28,10 @@ apply plugin: 'install4j'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-version = '0.6.7-alpha'
+version = '0.6.8-alpha'
 
 mainClassName = "com.faforever.client.Main"
-applicationDefaultJvmArgs = ["-Djava.library.path=build/native", "-javaagent:build/libs/webview-patch-agent.jar"]
+applicationDefaultJvmArgs = ["-Djava.library.path=build/native", "-javaagent:build/libs/webview-patch-agent.jar", "-Xmx640m"]
 
 sonarqube {
   properties {

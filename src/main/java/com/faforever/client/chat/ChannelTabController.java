@@ -6,6 +6,8 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -106,6 +108,8 @@ public class ChannelTabController extends AbstractChatTabController {
   private String channelName;
   private Popup filterUserPopup;
   private MapChangeListener<String, ChatUser> usersChangeListener;
+  private ChangeListener<ChatColorMode> chatColorModeChangeListener;
+  private ChangeListener<String> usernameChangeListener;
 
   public ChannelTabController() {
     userToChatUserControls = FXCollections.observableMap(new ConcurrentHashMap<>());
@@ -158,6 +162,99 @@ public class ChannelTabController extends AbstractChatTabController {
     Platform.runLater(() -> userSearchTextField.setPromptText(i18n.get("chat.userCount", count)));
   }
 
+  @FXML
+  void initialize() {
+    userSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+      filterChatUserControlsBySearchString();
+    });
+
+    usernameChangeListener = (observable, oldValue, newValue) -> {
+      for (Map.Entry<Pane, ChatUserItemController> entry : userToChatUserControls.get(oldValue).entrySet()) {
+        Pane pane = entry.getKey();
+        ChatUserItemController chatUserItemController = entry.getValue();
+
+        pane.getChildren().remove(chatUserItemController.getRoot());
+        addChatUserItemSorted(pane, chatUserItemController);
+      }
+    };
+
+    chatColorModeChangeListener = (observable, oldValue, newValue) -> {
+      if (newValue != DEFAULT) {
+        setAllMessageColors();
+      } else {
+        removeAllMessageColors();
+      }
+    };
+  }
+
+  /**
+   * Hides all chat user controls whose username does not contain the string entered in the {@link
+   * #userSearchTextField}.
+   */
+  private void filterChatUserControlsBySearchString() {
+    synchronized (userToChatUserControls) {
+      for (Map<Pane, ChatUserItemController> chatUserControlMap : userToChatUserControls.values()) {
+        for (Map.Entry<Pane, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
+          ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
+          chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
+        }
+      }
+    }
+  }
+
+  /**
+   * Inserts the given ChatUserControl into the given Pane such that it is correctly sorted alphabetically.
+   */
+  private void addChatUserItemSorted(Pane pane, ChatUserItemController chatUserItemController) {
+    ObservableList<Node> children = pane.getChildren();
+
+    Pane chatUserItemRoot = chatUserItemController.getRoot();
+    if (chatUserItemController.getPlayerInfoBean().getSocialStatus() == SELF) {
+      children.add(0, chatUserItemRoot);
+      return;
+    }
+
+    String thisUsername = chatUserItemController.getPlayerInfoBean().getUsername();
+    for (Node child : children) {
+      String otherUsername = ((ChatUserItemController) child.getUserData()).getPlayerInfoBean().getUsername();
+
+      if (thisUsername.compareToIgnoreCase(otherUsername) < 0) {
+        children.add(children.indexOf(child), chatUserItemRoot);
+        return;
+      }
+    }
+
+    children.add(chatUserItemRoot);
+  }
+
+  private void setAllMessageColors() {
+    Channel channel = chatService.getOrCreateChannel(channelName);
+    Map<String, String> userToColor = new HashMap<>();
+    channel.getUsers().stream().filter(chatUser -> chatUser.getColor() != null).forEach(chatUser
+        -> userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor())));
+    getJsObject().call("setAllMessageColors", new Gson().toJson(userToColor));
+  }
+
+  private void removeAllMessageColors() {
+    getJsObject().call("removeAllMessageColors");
+  }
+
+  //TODO: I don't like how this is public
+  public boolean isUsernameMatch(ChatUserItemController chatUserItemController) {
+    String lowerCaseSearchString = chatUserItemController.getPlayerInfoBean().getUsername().toLowerCase();
+    return lowerCaseSearchString.contains(userSearchTextField.getText().toLowerCase());
+  }
+
+  @PostConstruct
+  void postConstruct() {
+    super.postConstruct();
+
+    channelTabScrollPaneVBox.setMinWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
+    channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
+    addChatColorListener();
+    addUserFilterPopup();
+  }
+
   @Override
   public Tab getRoot() {
     return channelTabRoot;
@@ -185,50 +282,8 @@ public class ChannelTabController extends AbstractChatTabController {
     return super.getMessageCssClass(login);
   }
 
-  @FXML
-  void initialize() {
-    userSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      filterChatUserControlsBySearchString();
-    });
-  }
-
-  /**
-   * Hides all chat user controls whose username does not contain the string entered in the {@link
-   * #userSearchTextField}.
-   */
-  private void filterChatUserControlsBySearchString() {
-    synchronized (userToChatUserControls) {
-      for (Map<Pane, ChatUserItemController> chatUserControlMap : userToChatUserControls.values()) {
-        for (Map.Entry<Pane, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
-          ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
-          chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
-        }
-      }
-    }
-  }
-
-  //TODO: I don't like how this is public
-  public boolean isUsernameMatch(ChatUserItemController chatUserItemController) {
-    String lowerCaseSearchString = chatUserItemController.getPlayerInfoBean().getUsername().toLowerCase();
-    return lowerCaseSearchString.contains(userSearchTextField.getText().toLowerCase());
-  }
-
-  @PostConstruct
-  void init() {
-    channelTabScrollPaneVBox.setMinWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
-    channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
-    addChatColorListener();
-    addUserFilterPopup();
-  }
-
   private void addChatColorListener() {
-    preferencesService.getPreferences().getChat().chatColorModeProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue != DEFAULT) {
-        setAllMessageColors();
-      } else {
-        removeAllMessageColors();
-      }
-    });
+    preferencesService.getPreferences().getChat().chatColorModeProperty().addListener(new WeakChangeListener<>(chatColorModeChangeListener));
   }
 
   private void addUserFilterPopup() {
@@ -238,18 +293,6 @@ public class ChannelTabController extends AbstractChatTabController {
     filterUserPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
     filterUserPopup.getContent().setAll(filterUserController.getRoot());
     filterUserController.setChannelController(this);
-  }
-
-  private void setAllMessageColors() {
-    Channel channel = chatService.getOrCreateChannel(channelName);
-    Map<String, String> userToColor = new HashMap<>();
-    channel.getUsers().stream().filter(chatUser -> chatUser.getColor() != null).forEach(chatUser
-        -> userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor())));
-    getJsObject().call("setAllMessageColors", new Gson().toJson(userToColor));
-  }
-
-  private void removeAllMessageColors() {
-    getJsObject().call("removeAllMessageColors");
   }
 
   public void updateUserMessageColor(ChatUser chatUser) {
@@ -286,15 +329,7 @@ public class ChannelTabController extends AbstractChatTabController {
     PlayerInfoBean player = playerService.createAndGetPlayerForUsername(username);
 
     player.moderatorForChannelsProperty().bind(chatUser.moderatorInChannelsProperty());
-    player.usernameProperty().addListener((observable, oldValue, newValue) -> {
-      for (Map.Entry<Pane, ChatUserItemController> entry : userToChatUserControls.get(oldValue).entrySet()) {
-        Pane pane = entry.getKey();
-        ChatUserItemController chatUserItemController = entry.getValue();
-
-        pane.getChildren().remove(chatUserItemController.getRoot());
-        addChatUserItemSorted(pane, chatUserItemController);
-      }
-    });
+    player.usernameProperty().addListener(usernameChangeListener);
     player.usernameProperty().bind(chatUser.usernameProperty());
 
     player.socialStatusProperty().addListener((observable, oldValue, newValue) -> {
@@ -448,31 +483,6 @@ public class ChannelTabController extends AbstractChatTabController {
     });
 
     return chatUserItemController;
-  }
-
-  /**
-   * Inserts the given ChatUserControl into the given Pane such that it is correctly sorted alphabetically.
-   */
-  private void addChatUserItemSorted(Pane pane, ChatUserItemController chatUserItemController) {
-    ObservableList<Node> children = pane.getChildren();
-
-    Pane chatUserItemRoot = chatUserItemController.getRoot();
-    if (chatUserItemController.getPlayerInfoBean().getSocialStatus() == SELF) {
-      children.add(0, chatUserItemRoot);
-      return;
-    }
-
-    String thisUsername = chatUserItemController.getPlayerInfoBean().getUsername();
-    for (Node child : children) {
-      String otherUsername = ((ChatUserItemController) child.getUserData()).getPlayerInfoBean().getUsername();
-
-      if (thisUsername.compareToIgnoreCase(otherUsername) < 0) {
-        children.add(children.indexOf(child), chatUserItemRoot);
-        return;
-      }
-    }
-
-    children.add(chatUserItemRoot);
   }
 
   private Collection<Pane> getTargetPanesForUser(PlayerInfoBean playerInfoBean) {
