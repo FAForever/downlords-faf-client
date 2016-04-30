@@ -96,6 +96,7 @@ public class ChannelTabController extends AbstractChatTabController {
   TextField userSearchTextField;
   @FXML
   TextField messageTextField;
+
   @Resource
   FilterUserController filterUserController;
   @Resource

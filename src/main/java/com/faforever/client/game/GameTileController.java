@@ -79,9 +79,11 @@ public class GameTileController {
     JavaFxUtil.bindOnApplicationThread(modsLabel.visibleProperty(), () -> !gameInfoBean.getSimMods().isEmpty(), gameInfoBean.mapTechnicalNameProperty());
 
     numberOfPlayersLabel.setText(i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
-    gameInfoBean.numPlayersProperty().addListener(((observable3, oldValue3, newValue3) -> {
-      Platform.runLater(() -> numberOfPlayersLabel.setText(i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers())));
-    }));
+
+    JavaFxUtil.bindOnApplicationThread(numberOfPlayersLabel.textProperty(),
+        () -> i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()),
+        gameInfoBean.numPlayersProperty(), gameInfoBean.maxPlayersProperty()
+    );
 
     displaySimMods(gameInfoBean.getSimMods());
     gameInfoBean.getSimMods().addListener((MapChangeListener<String, String>) change -> displaySimMods(change.getMap()));
