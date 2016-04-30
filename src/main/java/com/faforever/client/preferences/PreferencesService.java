@@ -103,7 +103,7 @@ public class PreferencesService {
   NotificationService notificationService;
   private Preferences preferences;
   private TimerTask storeInBackgroundTask;
-  private OnChoseGameDirectoryListener onChoseGameDirectoryListener;
+  private OnChooseGameDirectoryListener onChooseGameDirectoryListener;
 
   public PreferencesService() {
     updateListeners = new ArrayList<>();
@@ -171,11 +171,11 @@ public class PreferencesService {
   }
 
   public CompletableFuture<Boolean> letUserChoseGameDirectory() {
-    if (onChoseGameDirectoryListener == null) {
+    if (onChooseGameDirectoryListener == null) {
       throw new IllegalStateException("No listener has been specified");
     }
 
-    return onChoseGameDirectoryListener.onChoseGameDirectory().thenApply(path -> {
+    return onChooseGameDirectoryListener.onChooseGameDirectory().thenApply(path -> {
       if (path == null) {
         return null;
       }
@@ -329,8 +329,8 @@ public class PreferencesService {
     return getFafDataDirectory().resolve(REPLAYS_SUB_FOLDER);
   }
 
-  public void setOnChoseGameDirectoryListener(OnChoseGameDirectoryListener onChoseGameDirectoryListener) {
-    this.onChoseGameDirectoryListener = onChoseGameDirectoryListener;
+  public void setOnChooseGameDirectoryListener(OnChooseGameDirectoryListener onChooseGameDirectoryListener) {
+    this.onChooseGameDirectoryListener = onChooseGameDirectoryListener;
   }
 
   public Path getCacheDirectory() {

@@ -43,7 +43,7 @@ public class ChatUserContextMenuController {
   @FXML
   MenuItem sendPrivateMessageItem;
   @FXML
-  SeparatorMenuItem socialSeperator;
+  SeparatorMenuItem socialSeparator;
   @FXML
   MenuItem removeCustomColorItem;
   @FXML
@@ -148,7 +148,7 @@ public class ChatUserContextMenuController {
     inviteItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF)
         .and(playerInfoBean.gameStatusProperty().isNotEqualTo(GameStatus.PLAYING)));
 
-    socialSeperator.visibleProperty().bind(addFriendItem.visibleProperty().or(
+    socialSeparator.visibleProperty().bind(addFriendItem.visibleProperty().or(
         removeFriendItem.visibleProperty().or(
             addFoeItem.visibleProperty().or(
                 removeFoeItem.visibleProperty()))));

@@ -2,12 +2,16 @@ package com.faforever.client.game;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class MapSize implements Comparable<MapSize> {
 
+  private static Map<String, MapSize> cache = new HashMap<>();
   private int width;
   private int height;
 
-  public MapSize(int width, int height) {
+  private MapSize(int width, int height) {
     this.width = width;
     this.height = height;
   }
@@ -68,5 +72,16 @@ public class MapSize implements Comparable<MapSize> {
   @Override
   public String toString() {
     return String.format("%dx%d", width, height);
+  }
+
+  public static MapSize get(int width, int height) {
+    String cacheKey = String.valueOf("width") + String.valueOf("height");
+    if (cache.containsKey(cacheKey)) {
+      return cache.get(cacheKey);
+    }
+
+    MapSize mapSize = new MapSize(width, height);
+    cache.put(cacheKey, mapSize);
+    return mapSize;
   }
 }

@@ -15,7 +15,9 @@ import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.HttpStatusCodes;
 import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.InputStreamContent;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonParser;
 import com.google.api.client.json.JsonToken;
@@ -52,6 +54,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.github.nocatch.NoCatch.noCatch;
+import static com.google.common.net.MediaType.ZIP;
 
 public class FafApiAccessorImpl implements FafApiAccessor {
 
@@ -172,6 +177,28 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public Ranked1v1EntryBean getRanked1v1EntryForPlayer(int playerId) {
     return Ranked1v1EntryBean.fromLeaderboardEntry(getSingle("/ranked1v1/" + playerId, LeaderboardEntry.class));
+  }
+
+  @Override
+  public void uploadMod(InputStream inputStream) {
+    upload("/mods/upload", inputStream);
+  }
+
+  private void upload(String endpointPath, InputStream inputStream) {
+    if (requestFactory == null) {
+      throw new IllegalStateException("authorize() must be called first");
+    }
+
+    String url = baseUrl + endpointPath;
+    logger.trace("Posting to: {}", url);
+    noCatch(() -> {
+      HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), new InputStreamContent(ZIP.toString(), inputStream));
+      credential.initialize(request);
+      int statusCode = request.execute().getStatusCode();
+      if (statusCode != HttpStatusCodes.STATUS_CODE_OK) {
+        throw new RuntimeException("Request failed with status code: " + statusCode);
+      }
+    });
   }
 
   private <T> List<T> getMany(String endpointPath, Class<T> type) {

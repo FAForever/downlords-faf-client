@@ -3,6 +3,7 @@ package com.faforever.client.api;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.mod.ModInfoBean;
 
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -29,4 +30,6 @@ public interface FafApiAccessor {
   Ranked1v1Stats getRanked1v1Stats();
 
   Ranked1v1EntryBean getRanked1v1EntryForPlayer(int playerId);
+
+  void uploadMod(InputStream inputStream);
 }

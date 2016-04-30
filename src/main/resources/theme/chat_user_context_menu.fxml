@@ -18,7 +18,7 @@
     </CustomMenuItem>
     <MenuItem fx:id="removeCustomColorItem" mnemonicParsing="false" onAction="#onRemoveCustomColor"
               text="%chat.userContext.removeColor"/>
-    <SeparatorMenuItem fx:id="socialSeperator" mnemonicParsing="false"/>
+    <SeparatorMenuItem fx:id="socialSeparator" mnemonicParsing="false"/>
     <MenuItem fx:id="addFriendItem" mnemonicParsing="false" onAction="#onAddFriend" text="%chat.userContext.addFriend" />
     <MenuItem fx:id="removeFriendItem" mnemonicParsing="false" onAction="#onRemoveFriend" text="%chat.userContext.removeFriend" />
     <MenuItem fx:id="addFoeItem" mnemonicParsing="false" onAction="#onAddFoe" text="%chat.userContext.addFoe" />

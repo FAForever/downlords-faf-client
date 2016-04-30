@@ -3,6 +3,7 @@ package com.faforever.client.api;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.mod.ModInfoBean;
 
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -62,5 +63,10 @@ public class MockFafApiAccessor implements FafApiAccessor {
   @Override
   public Ranked1v1EntryBean getRanked1v1EntryForPlayer(int playerId) {
     return null;
+  }
+
+  @Override
+  public void uploadMod(InputStream inputStream) {
+
   }
 }

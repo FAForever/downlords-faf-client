@@ -3,6 +3,8 @@ package com.faforever.client.mod;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventHandler;
 
 import java.io.IOException;
 import java.net.URL;
@@ -10,6 +12,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public interface ModService {
 
@@ -49,4 +52,8 @@ public interface ModService {
   CompletableFuture<List<ModInfoBean>> getMostLikedUiMods(int count);
 
   CompletableFuture<List<ModInfoBean>> lookupMod(String string, int maxSuggestions);
+
+  ModInfoBean extractModInfo(Path path);
+
+  UploadModTask uploadMod(Path modPath, Consumer<Float> progressListener, EventHandler<WorkerStateEvent> onSucceededHandler, EventHandler<WorkerStateEvent> onFailedHandler);
 }
