@@ -60,7 +60,7 @@ public class PlayerServiceImpl implements PlayerService {
   void init() {
     fafService.addOnMessageListener(PlayersMessage.class, this::onPlayersInfo);
     fafService.addOnMessageListener(SocialMessage.class, this::onFoeList);
-    gameService.addOnGameInfoBeanListener(change -> {
+    gameService.addOnGameInfoBeansChangeListener(change -> {
       while (change.next()) {
         for (GameInfoBean gameInfoBean : change.getRemoved()) {
           gameInfoBean.setStatus(GameState.CLOSED);

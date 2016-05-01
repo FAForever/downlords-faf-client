@@ -110,7 +110,6 @@ public class ChannelTabController extends AbstractChatTabController {
   private Popup filterUserPopup;
   private MapChangeListener<String, ChatUser> usersChangeListener;
   private ChangeListener<ChatColorMode> chatColorModeChangeListener;
-  private ChangeListener<String> usernameChangeListener;
 
   public ChannelTabController() {
     userToChatUserControls = FXCollections.observableMap(new ConcurrentHashMap<>());
@@ -169,16 +168,6 @@ public class ChannelTabController extends AbstractChatTabController {
       filterChatUserControlsBySearchString();
     });
 
-    usernameChangeListener = (observable, oldValue, newValue) -> {
-      for (Map.Entry<Pane, ChatUserItemController> entry : userToChatUserControls.get(oldValue).entrySet()) {
-        Pane pane = entry.getKey();
-        ChatUserItemController chatUserItemController = entry.getValue();
-
-        pane.getChildren().remove(chatUserItemController.getRoot());
-        addChatUserItemSorted(pane, chatUserItemController);
-      }
-    };
-
     chatColorModeChangeListener = (observable, oldValue, newValue) -> {
       if (newValue != DEFAULT) {
         setAllMessageColors();
@@ -201,6 +190,24 @@ public class ChannelTabController extends AbstractChatTabController {
         }
       }
     }
+  }
+
+  private void setAllMessageColors() {
+    Channel channel = chatService.getOrCreateChannel(channelName);
+    Map<String, String> userToColor = new HashMap<>();
+    channel.getUsers().stream().filter(chatUser -> chatUser.getColor() != null).forEach(chatUser
+        -> userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor())));
+    getJsObject().call("setAllMessageColors", new Gson().toJson(userToColor));
+  }
+
+  private void removeAllMessageColors() {
+    getJsObject().call("removeAllMessageColors");
+  }
+
+  //TODO: I don't like how this is public
+  public boolean isUsernameMatch(ChatUserItemController chatUserItemController) {
+    String lowerCaseSearchString = chatUserItemController.getPlayerInfoBean().getUsername().toLowerCase();
+    return lowerCaseSearchString.contains(userSearchTextField.getText().toLowerCase());
   }
 
   /**
@@ -226,24 +233,6 @@ public class ChannelTabController extends AbstractChatTabController {
     }
 
     children.add(chatUserItemRoot);
-  }
-
-  private void setAllMessageColors() {
-    Channel channel = chatService.getOrCreateChannel(channelName);
-    Map<String, String> userToColor = new HashMap<>();
-    channel.getUsers().stream().filter(chatUser -> chatUser.getColor() != null).forEach(chatUser
-        -> userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor())));
-    getJsObject().call("setAllMessageColors", new Gson().toJson(userToColor));
-  }
-
-  private void removeAllMessageColors() {
-    getJsObject().call("removeAllMessageColors");
-  }
-
-  //TODO: I don't like how this is public
-  public boolean isUsernameMatch(ChatUserItemController chatUserItemController) {
-    String lowerCaseSearchString = chatUserItemController.getPlayerInfoBean().getUsername().toLowerCase();
-    return lowerCaseSearchString.contains(userSearchTextField.getText().toLowerCase());
   }
 
   @PostConstruct
@@ -330,7 +319,15 @@ public class ChannelTabController extends AbstractChatTabController {
     PlayerInfoBean player = playerService.createAndGetPlayerForUsername(username);
 
     player.moderatorForChannelsProperty().bind(chatUser.moderatorInChannelsProperty());
-    player.usernameProperty().addListener(usernameChangeListener);
+    player.usernameProperty().addListener((observable, oldValue, newValue) -> {
+      for (Map.Entry<Pane, ChatUserItemController> entry : userToChatUserControls.get(oldValue).entrySet()) {
+        Pane pane = entry.getKey();
+        ChatUserItemController chatUserItemController = entry.getValue();
+
+        pane.getChildren().remove(chatUserItemController.getRoot());
+        addChatUserItemSorted(pane, chatUserItemController);
+      }
+    });
     player.usernameProperty().bind(chatUser.usernameProperty());
 
     player.socialStatusProperty().addListener((observable, oldValue, newValue) -> {

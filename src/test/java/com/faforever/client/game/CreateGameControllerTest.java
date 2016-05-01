@@ -206,7 +206,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   private void onGameTypeAdded(GameTypeBean gameTypeBean) {
     ArgumentCaptor<MapChangeListener<String, GameTypeBean>> argument = ArgumentCaptor.forClass(MapChangeListener.class);
-    verify(instance.gameService, atLeastOnce()).addOnGameTypeInfoListener(argument.capture());
+    verify(instance.gameService, atLeastOnce()).addOnGameTypesChangeListener(argument.capture());
 
     MapChangeListener<String, GameTypeBean> listener = argument.getValue();
 

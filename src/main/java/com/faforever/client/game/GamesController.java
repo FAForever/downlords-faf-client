@@ -54,6 +54,8 @@ import java.util.function.Predicate;
 import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 import static com.faforever.client.notification.Severity.ERROR;
 import static java.util.Arrays.asList;
+import static javafx.beans.binding.Bindings.createObjectBinding;
+import static javafx.beans.binding.Bindings.createStringBinding;
 
 public class GamesController {
 
@@ -167,29 +169,29 @@ public class GamesController {
     gameTitleLabel.setText(gameInfoBean.getTitle());
     mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapTechnicalName()));
 
-    gameInfoBean.mapTechnicalNameProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> {
-        gameTitleLabel.setText(newValue);
-        mapImageView.setImage(mapService.loadLargePreview(newValue));
-      });
-    });
+    gameTitleLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
 
-    numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()));
+    mapImageView.imageProperty().bind(createObjectBinding(
+        () -> mapService.loadLargePreview(gameInfoBean.getMapTechnicalName()),
+        gameInfoBean.mapTechnicalNameProperty()
+    ));
+
+    numberOfPlayersLabel.textProperty().bind(createStringBinding(
+        () -> i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()),
+        gameInfoBean.numPlayersProperty(),
+        gameInfoBean.maxPlayersProperty()
+    ));
+
     hostLabel.textProperty().bind(gameInfoBean.hostProperty());
     mapLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
 
-    gameInfoBean.featuredModProperty().addListener((observable, oldValue, newValue) -> {
-      updateGameType(newValue);
-    });
-    updateGameType(gameInfoBean.getFeaturedMod());
+    gameTypeLabel.textProperty().bind(createStringBinding(() -> {
+      GameTypeBean gameType = gameService.getGameTypeByString(gameInfoBean.getFeaturedMod());
+      String fullName = gameType != null ? gameType.getFullName() : null;
+      return StringUtils.defaultString(fullName);
+    }, gameInfoBean.featuredModProperty()));
 
     createTeams(gameInfoBean.getTeams());
-  }
-
-  private void updateGameType(String newValue) {
-    GameTypeBean gameType = gameService.getGameTypeByString(newValue);
-    String fullName = gameType != null ? gameType.getFullName() : null;
-    gameTypeLabel.setText(StringUtils.defaultString(fullName));
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber) {
@@ -208,10 +210,7 @@ public class GamesController {
     if (selected) {
       filteredItems.setPredicate(OPEN_GAMES_PREDICATE);
     } else {
-      filteredItems.setPredicate(
-          OPEN_GAMES_PREDICATE.and(
-              gameInfoBean -> !gameInfoBean.getPasswordProtected())
-      );
+      filteredItems.setPredicate(OPEN_GAMES_PREDICATE.and(gameInfoBean -> !gameInfoBean.getPasswordProtected()));
     }
   }
 

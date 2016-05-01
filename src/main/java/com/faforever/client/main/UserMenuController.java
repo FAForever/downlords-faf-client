@@ -1,26 +1,22 @@
 package com.faforever.client.main;
 
 import com.faforever.client.chat.CountryFlagService;
-import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.HostService;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.user.UserService;
 import com.neovisionaries.i18n.CountryCode;
-import javafx.beans.binding.ObjectBinding;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
@@ -62,45 +58,18 @@ public class UserMenuController {
   @PostConstruct
   void postConstruct() {
     playerService.currentPlayerProperty().addListener((observable, oldValue, newValue) -> {
-      countryLabel.textProperty().bind(countryLabelBinding(newValue));
       usernameLabel.textProperty().bind(newValue.usernameProperty());
-      countryImageView.imageProperty().bind(countryImageBinding(newValue));
-      JavaFxUtil.bindOnApplicationThread(userImageView.imageProperty(),
-          () -> createIdenticon(newValue.getId()), newValue.idProperty());
-    });
-  }
-
-  @NotNull
-  private ObjectBinding<String> countryLabelBinding(final PlayerInfoBean newValue) {
-    return new ObjectBinding<String>() {
-      @Override
-      protected String computeValue() {
+      countryImageView.imageProperty().bind(Bindings.createObjectBinding(() -> countryFlagService.loadCountryFlag(newValue.getCountry()), newValue.countryProperty()));
+      userImageView.imageProperty().bind(Bindings.createObjectBinding(() -> createIdenticon(newValue.getId()), newValue.idProperty()));
+      countryLabel.textProperty().bind(Bindings.createObjectBinding(() -> {
         CountryCode countryCode = CountryCode.getByCode(newValue.getCountry());
         if (countryCode != null) {
           // Country code is unknown to CountryCode, like A1 or A2 (from GeoIP)
           return countryCode.getName();
         }
         return newValue.getCountry();
-      }
-
-      {
-        bind(newValue.countryProperty());
-      }
-    };
-  }
-
-  @NotNull
-  private ObjectBinding<Image> countryImageBinding(final PlayerInfoBean newValue) {
-    return new ObjectBinding<Image>() {
-      {
-        bind(newValue.countryProperty());
-      }
-
-      @Override
-      protected Image computeValue() {
-        return countryFlagService.loadCountryFlag(newValue.getCountry());
-      }
-    };
+      }, newValue.countryProperty()));
+    });
   }
 
   @FXML

@@ -214,7 +214,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   public void testAddOnGameTypeInfoListener() throws Exception {
     @SuppressWarnings("unchecked")
     MapChangeListener<String, GameTypeBean> listener = mock(MapChangeListener.class);
-    instance.addOnGameTypeInfoListener(listener);
+    instance.addOnGameTypesChangeListener(listener);
 
     gameTypeMessageListenerCaptor.getValue().accept(GameTypeInfoBuilder.create().defaultValues().get());
   }
@@ -440,7 +440,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @SuppressWarnings("unchecked")
   public void testAddOnGameInfoBeanListener() throws Exception {
     ListChangeListener<GameInfoBean> listener = mock(ListChangeListener.class);
-    instance.addOnGameInfoBeanListener(listener);
+    instance.addOnGameInfoBeansChangeListener(listener);
 
     GameInfoMessage gameInfoMessage = new GameInfoMessage();
     gameInfoMessage.setUid(1);
