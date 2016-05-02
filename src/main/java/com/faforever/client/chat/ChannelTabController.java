@@ -226,6 +226,10 @@ public class ChannelTabController extends AbstractChatTabController {
     for (Node child : children) {
       String otherUsername = ((ChatUserItemController) child.getUserData()).getPlayerInfoBean().getUsername();
 
+      if (otherUsername.equals(userService.getUsername())) {
+        continue;
+      }
+
       if (thisUsername.compareToIgnoreCase(otherUsername) < 0) {
         children.add(children.indexOf(child), chatUserItemRoot);
         return;
