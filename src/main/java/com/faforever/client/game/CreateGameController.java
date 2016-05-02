@@ -226,7 +226,6 @@ public class CreateGameController {
 
     filteredMaps = new FilteredList<>(localMaps);
 
-
     mapListView.setItems(filteredMaps);
     mapListView.setCellFactory(mapListCellFactory());
     mapListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
