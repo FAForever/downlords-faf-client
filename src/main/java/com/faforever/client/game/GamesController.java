@@ -166,8 +166,6 @@ public class GamesController {
 
     gameDetailPane.setVisible(true);
     currentGameInfoBean = gameInfoBean;
-    gameTitleLabel.setText(gameInfoBean.getTitle());
-    mapImageView.setImage(mapService.loadLargePreview(gameInfoBean.getMapTechnicalName()));
 
     gameTitleLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
 

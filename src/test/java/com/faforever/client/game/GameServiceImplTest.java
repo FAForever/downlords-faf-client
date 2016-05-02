@@ -327,7 +327,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnGameInfoModify() {
+  public void testOnGameInfoModify() throws InterruptedException {
     assertThat(instance.getGameInfoBeans(), empty());
 
     GameInfoMessage gameInfoMessage = new GameInfoMessage();
@@ -337,6 +337,12 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfoMessage.setPasswordProtected(true);
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
+    CountDownLatch changeLatch = new CountDownLatch(1);
+    GameInfoBean gameInfoBean = instance.getGameInfoBeans().iterator().next();
+    gameInfoBean.titleProperty().addListener((observable, oldValue, newValue) -> {
+      changeLatch.countDown();
+    });
+
     gameInfoMessage = new GameInfoMessage();
     gameInfoMessage.setUid(1);
     gameInfoMessage.setTitle("Game 1 modified");
@@ -344,7 +350,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfoMessage.setPasswordProtected(true);
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
-    assertEquals(gameInfoMessage.getTitle(), instance.getGameInfoBeans().iterator().next().getTitle());
+    changeLatch.await();
+    assertEquals(gameInfoMessage.getTitle(), gameInfoBean.getTitle());
   }
 
   @Test
