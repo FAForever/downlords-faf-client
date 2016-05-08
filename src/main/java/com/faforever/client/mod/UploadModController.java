@@ -102,7 +102,7 @@ public class UploadModController {
     thumbnailImageView.imageProperty().bind(
         Bindings.createObjectBinding(() -> {
           if (modInfo.getImagePath() != null && Files.isRegularFile(modInfo.getImagePath())) {
-            return new Image(modPath.resolve(modInfo.getImagePath()).toString());
+            return new Image(modInfo.getImagePath().toUri().toString());
           }
 
           return IdenticonUtil.createIdenticon(modInfo.getId());

@@ -13,11 +13,14 @@ import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpHeaders;
+import com.google.api.client.http.HttpMediaType;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpStatusCodes;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.InputStreamContent;
+import com.google.api.client.http.MultipartContent;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonParser;
 import com.google.api.client.json.JsonToken;
@@ -192,7 +195,23 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     String url = baseUrl + endpointPath;
     logger.trace("Posting to: {}", url);
     noCatch(() -> {
-      HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), new InputStreamContent(ZIP.toString(), inputStream));
+
+
+      MultipartContent content = new MultipartContent().setMediaType(
+          new HttpMediaType("multipart/form-data")
+              .setParameter("boundary", "__END_OF_PART__"));
+
+
+      MultipartContent multipartContent = new MultipartContent();
+      multipartContent.setMediaType(new HttpMediaType(ZIP.toString()));
+
+      MultipartContent.Part part = new MultipartContent.Part(new InputStreamContent(ZIP.toString(), inputStream));
+      part.setHeaders(new HttpHeaders().set(
+          "Content-Disposition",
+          String.format("form-data; name=\"content\"; filename=\"%s\"", "tmp-mod-name.zip")));
+      multipartContent.addPart(part);
+
+      HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), multipartContent);
       credential.initialize(request);
       int statusCode = request.execute().getStatusCode();
       if (statusCode != HttpStatusCodes.STATUS_CODE_OK) {

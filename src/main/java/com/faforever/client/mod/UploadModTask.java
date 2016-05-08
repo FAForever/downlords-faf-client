@@ -38,7 +38,7 @@ public class UploadModTask extends AbstractPrioritizedTask<Void> {
     ResourceLocks.acquireDiskLock();
     try {
       noCatch(() -> {
-        Path tmpFile = createTempFile(preferencesService.getCacheDirectory(), "mod", "zip");
+        Path tmpFile = createTempFile(preferencesService.getCacheDirectory(), "mod", ".zip");
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(new BufferedOutputStream(newOutputStream(tmpFile)))) {
           Zipper.of(modPath)
               .to(zipOutputStream)

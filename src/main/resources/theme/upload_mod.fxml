@@ -17,7 +17,7 @@
       xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.mod.UploadModController">
   <children>
     <VBox fx:id="modInfoPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="500.0" minWidth="100.0"
-          prefWidth="380.0" spacing="20.0">
+          prefWidth="380.0" spacing="20.0" VBox.vgrow="ALWAYS">
       <children>
         <Label styleClass="h1" text="%modVault.upload.title"/>
         <HBox styleClass="hint">
@@ -69,7 +69,7 @@
       </children>
     </VBox>
     <VBox fx:id="parseProgressPane" alignment="CENTER" maxHeight="1.7976931348623157E308"
-          maxWidth="1.7976931348623157E308">
+          maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
       <children>
         <Label contentDisplay="TOP" styleClass="h2" text="%modVault.upload.reading">
           <graphic>
@@ -79,7 +79,7 @@
       </children>
     </VBox>
     <VBox fx:id="uploadProgressPane" alignment="CENTER" layoutX="20.0" layoutY="520.0"
-          maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="20.0">
+          maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="20.0" VBox.vgrow="ALWAYS">
       <children>
         <Label contentDisplay="TOP" layoutX="108.0" layoutY="30.0" styleClass="h2" text="%modVault.upload.uploading"/>
         <ProgressBar fx:id="uploadProgressBar" maxWidth="1.7976931348623157E308" progress="0.0"/>
@@ -87,7 +87,7 @@
       </children>
     </VBox>
     <VBox fx:id="uploadCompletePane" alignment="CENTER" layoutX="20.0" layoutY="648.0"
-          maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="20.0">
+          maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="20.0" VBox.vgrow="ALWAYS">
       <children>
         <Label contentDisplay="TOP" layoutX="108.0" layoutY="30.0" styleClass="h2" text="%modVault.upload.complete"/>
       </children>
