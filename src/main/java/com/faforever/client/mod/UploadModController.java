@@ -10,7 +10,6 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
 import javafx.beans.binding.Bindings;
-import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -123,8 +122,8 @@ public class UploadModController {
     enterModInfoState();
   }
 
-  private void onUploadFailed(WorkerStateEvent workerStateEvent) {
-    Throwable throwable = workerStateEvent.getSource().getException();
+  private void onUploadFailed(Throwable throwable) {
+    enterModInfoState();
     notificationService.addNotification(new ImmediateNotification(
         i18n.get("errorTitle"),
         i18n.get("modVault.upload.failed"),
@@ -144,10 +143,14 @@ public class UploadModController {
     uploadProgressBar.setProgress(0);
     uploadProgressPane.setVisible(true);
     uploadModTask = modService.uploadMod(modPath,
-        progress -> uploadProgressBar.setProgress(progress),
-        event -> enterUploadCompleteState(),
-        this::onUploadFailed
+        progress -> uploadProgressBar.setProgress(progress)
     );
+    uploadModTask.getFuture()
+        .thenAccept(aVoid -> enterUploadCompleteState())
+        .exceptionally(throwable -> {
+          onUploadFailed(throwable);
+          return null;
+        });
   }
 
   private void enterUploadingState() {

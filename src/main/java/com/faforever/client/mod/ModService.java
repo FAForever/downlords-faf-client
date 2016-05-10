@@ -3,8 +3,6 @@ package com.faforever.client.mod;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
 
 import java.io.IOException;
 import java.net.URL;
@@ -55,5 +53,5 @@ public interface ModService {
 
   ModInfoBean extractModInfo(Path path);
 
-  UploadModTask uploadMod(Path modPath, Consumer<Float> progressListener, EventHandler<WorkerStateEvent> onSucceededHandler, EventHandler<WorkerStateEvent> onFailedHandler);
+  UploadModTask uploadMod(Path modPath, Consumer<Float> progressListener);
 }

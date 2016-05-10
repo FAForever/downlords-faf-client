@@ -30,6 +30,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -45,6 +47,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -368,5 +371,26 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getInstalledMods(), hasSize(1));
 
     assertThat(instance.getPathForMod(ModInfoBeanBuilder.create().uid("1").get()), Matchers.nullValue());
+  }
+
+  @Test
+  public void testUploadMod() throws Exception {
+    UploadModTask uploadModTask = mock(UploadModTask.class);
+
+    when(applicationContext.getBean(UploadModTask.class)).thenReturn(uploadModTask);
+
+    Path modPath = Paths.get(".");
+    Consumer<Float> progressListener = aFloat -> {
+    };
+
+    instance.uploadMod(modPath, progressListener);
+
+    verify(applicationContext).getBean(UploadModTask.class);
+
+    verify(uploadModTask).setModPath(modPath);
+    verify(uploadModTask).setProgressListener(progressListener);
+    verify(uploadModTask).setFuture(any());
+
+    verify(taskService).submitTask(uploadModTask);
   }
 }

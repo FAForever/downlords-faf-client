@@ -1,5 +1,6 @@
 package com.faforever.client.io;
 
+import com.faforever.client.util.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +63,9 @@ public final class Zipper {
   }
 
   public void zip() throws IOException {
+    Validator.notNull(zipOutputStream, "zipOutputStream must not be null");
+    Validator.notNull(directoryToZip, "directoryToZip must not be null");
+
     bytesTotal = calculateTotalBytes();
     bytesDone = 0;
     buffer = new byte[bufferSize];

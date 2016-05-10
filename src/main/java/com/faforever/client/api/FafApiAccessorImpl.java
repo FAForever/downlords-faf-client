@@ -28,6 +28,7 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.escape.Escaper;
+import com.google.common.net.MediaType;
 import com.google.common.net.UrlEscapers;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -59,7 +60,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.github.nocatch.NoCatch.noCatch;
-import static com.google.common.net.MediaType.ZIP;
 
 public class FafApiAccessorImpl implements FafApiAccessor {
 
@@ -196,22 +196,18 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     logger.trace("Posting to: {}", url);
     noCatch(() -> {
 
-
       MultipartContent content = new MultipartContent().setMediaType(
           new HttpMediaType("multipart/form-data")
               .setParameter("boundary", "__END_OF_PART__"));
 
-
-      MultipartContent multipartContent = new MultipartContent();
-      multipartContent.setMediaType(new HttpMediaType(ZIP.toString()));
-
-      MultipartContent.Part part = new MultipartContent.Part(new InputStreamContent(ZIP.toString(), inputStream));
+      InputStreamContent fileContent = new InputStreamContent(MediaType.ZIP.toString(), inputStream);
+      MultipartContent.Part part = new MultipartContent.Part(fileContent);
       part.setHeaders(new HttpHeaders().set(
           "Content-Disposition",
-          String.format("form-data; name=\"content\"; filename=\"%s\"", "tmp-mod-name.zip")));
-      multipartContent.addPart(part);
+          "form-data; name=\"file\"; filename=\"tmp-mod-name.zip\""));
+      content.addPart(part);
 
-      HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), multipartContent);
+      HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), content);
       credential.initialize(request);
       int statusCode = request.execute().getStatusCode();
       if (statusCode != HttpStatusCodes.STATUS_CODE_OK) {

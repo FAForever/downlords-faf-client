@@ -11,8 +11,6 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
@@ -335,13 +333,14 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public UploadModTask uploadMod(Path modPath, Consumer<Float> progressListener, EventHandler<WorkerStateEvent> onSucceededHandler, EventHandler<WorkerStateEvent> onFailedHandler) {
+  public UploadModTask uploadMod(Path modPath, Consumer<Float> progressListener) {
     UploadModTask uploadModTask = applicationContext.getBean(UploadModTask.class);
     uploadModTask.setModPath(modPath);
     uploadModTask.setProgressListener(progressListener);
-    uploadModTask.setOnSucceeded(onSucceededHandler);
-    uploadModTask.setOnFailed(onFailedHandler);
-    taskService.submitTask(uploadModTask);
+
+    CompletableFuture<Void> uploadFuture = taskService.submitTask(uploadModTask);
+    uploadModTask.setFuture(uploadFuture);
+
     return uploadModTask;
   }
 
