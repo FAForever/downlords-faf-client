@@ -257,7 +257,9 @@ public class GamesController {
                 new ImmediateNotification(
                     i18n.get("errorTitle"),
                     i18n.get("games.couldNotJoin"),
-                    ERROR, asList(new DismissAction(i18n), new ReportAction(i18n, reportingService, throwable))));
+                    ERROR,
+                    throwable,
+                    asList(new DismissAction(i18n), new ReportAction(i18n, reportingService, throwable))));
             return null;
           });
     }
