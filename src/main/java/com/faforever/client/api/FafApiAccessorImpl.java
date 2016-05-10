@@ -13,9 +13,14 @@ import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpHeaders;
+import com.google.api.client.http.HttpMediaType;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.HttpStatusCodes;
 import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.InputStreamContent;
+import com.google.api.client.http.MultipartContent;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonParser;
 import com.google.api.client.json.JsonToken;
@@ -23,6 +28,7 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.escape.Escaper;
+import com.google.common.net.MediaType;
 import com.google.common.net.UrlEscapers;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -52,6 +58,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.github.nocatch.NoCatch.noCatch;
 
 public class FafApiAccessorImpl implements FafApiAccessor {
 
@@ -172,6 +180,40 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public Ranked1v1EntryBean getRanked1v1EntryForPlayer(int playerId) {
     return Ranked1v1EntryBean.fromLeaderboardEntry(getSingle("/ranked1v1/" + playerId, LeaderboardEntry.class));
+  }
+
+  @Override
+  public void uploadMod(InputStream inputStream) {
+    upload("/mods/upload", inputStream);
+  }
+
+  private void upload(String endpointPath, InputStream inputStream) {
+    if (requestFactory == null) {
+      throw new IllegalStateException("authorize() must be called first");
+    }
+
+    String url = baseUrl + endpointPath;
+    logger.trace("Posting to: {}", url);
+    noCatch(() -> {
+
+      MultipartContent content = new MultipartContent().setMediaType(
+          new HttpMediaType("multipart/form-data")
+              .setParameter("boundary", "__END_OF_PART__"));
+
+      InputStreamContent fileContent = new InputStreamContent(MediaType.ZIP.toString(), inputStream);
+      MultipartContent.Part part = new MultipartContent.Part(fileContent);
+      part.setHeaders(new HttpHeaders().set(
+          "Content-Disposition",
+          "form-data; name=\"file\"; filename=\"tmp-mod-name.zip\""));
+      content.addPart(part);
+
+      HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), content);
+      credential.initialize(request);
+      int statusCode = request.execute().getStatusCode();
+      if (statusCode != HttpStatusCodes.STATUS_CODE_OK) {
+        throw new RuntimeException("Request failed with status code: " + statusCode);
+      }
+    });
   }
 
   private <T> List<T> getMany(String endpointPath, Class<T> type) {

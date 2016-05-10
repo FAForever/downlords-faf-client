@@ -135,6 +135,11 @@
       -fx-light-text-color 40%
   );
 
+  -fx-text-fill: -fx-light-text-color;
+  -fx-text-base-color: -fx-light-text-color;
+  -fx-text-inner-color: -fx-light-text-color;
+  -fx-text-background-color: -fx-light-text-color;
+
   /* The color to use for -fx-text-fill when text is to be painted on top of
    * a background filled with the -fx-background color.
    */
@@ -172,6 +177,10 @@
   -fx-dim-color: #00000099;
 }
 
+.text {
+  -fx-fill: -fx-text-base-color;
+}
+
 .scroll-bar > .increment-button > .increment-arrow,
 .scroll-bar > .decrement-button > .decrement-arrow {
   -fx-background-color: -fx-mark-highlight-color, derive(-fx-base, 45%);
@@ -185,6 +194,12 @@
 .scroll-bar > .increment-button:pressed > .increment-arrow,
 .scroll-bar > .decrement-button:pressed > .decrement-arrow {
   -fx-background-color: -fx-mark-highlight-color, derive(-fx-base, 55%);
+}
+
+/***************** Dialog Windows *****************/
+
+.dialog-window {
+  -fx-padding: 10;
 }
 
 /***************** ChatUser *****************/
@@ -420,7 +435,7 @@
 /***************** Progress indicator *****************/
 
 .determinate-indicator > .percentage {
-  -fx-fill: -fx-text-base-color;
+  visibility: hidden;
 }
 
 /***************** Popup *****************/
@@ -819,17 +834,10 @@
   -fx-text-fill: #FFA500;
 }
 
-/***************** Range Slider *****************/
-
-.slider > .axis:bottom {
-  -fx-padding: 50, 50, 50, 50;
-  -fx-margin: 50, 50, 50, 50;
-}
-
 /***************** Played Card Tooltip*****************/
 
 .player-card-tooltip {
-  -fx-padding: 2, 10, 2, 10;
+  -fx-padding: 2 10 2 10;
 }
 
 /***************** Progress bar *****************/
@@ -855,11 +863,11 @@
 }
 
 .map-preview-large .max-player-label {
-  -fx-padding: 0, 0, 0, 10px;
+  -fx-padding: 0 0 0 10;
 }
 
 .map-preview-large .comment-container-scroll-pane {
-  -fx-padding: 5px, 5px, 5px, 5px;
+  -fx-padding: 5;
   -fx-max-height: 500px;
 }
 
@@ -870,7 +878,7 @@
 
 /*FIXME can't seem to get the padding correctly */
 .map-preview-large .large-image-preview {
-  -fx-padding: 0, 30px, 0, 0;
+  -fx-padding: 0 30 0 0;
 }
 
 .comment-card {
@@ -964,8 +972,8 @@
 
 .window-button {
   -fx-background-color: transparent;
-  -fx-min-height: 20px;
-  -fx-max-height: 20px;
+  -fx-min-height: 20;
+  -fx-max-height: 20;
   -fx-margin: 0;
   -fx-padding: 0;
 }
@@ -1128,7 +1136,7 @@
 
 .ranked1v1-play-button {
   -fx-font-size: 2em;
-  -fx-padding: 10 20;
+  -fx-padding: 10, 20;
 }
 
 .chart-bar:highlighted-bar {
@@ -1148,4 +1156,12 @@
 .achievement-title {
   -fx-font-size: 1.2em;
   -fx-font-weight: bold;
+}
+
+/***************** Hint *****************/
+
+.hint {
+  -fx-background-color: -fx-control-inner-background;
+  -fx-background-radius: 5;
+  -fx-padding: 10 10;
 }

@@ -1,26 +1,37 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.WindowController;
+import com.faforever.client.i18n.I18n;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.io.File;
 import java.lang.invoke.MethodHandles;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 
 public class ModVaultController {
 
@@ -55,11 +66,10 @@ public class ModVaultController {
   ApplicationContext applicationContext;
   @Resource
   ModDetailController modDetailController;
-  private boolean initialized;
+  @Resource
+  I18n i18n;
 
-  public Node getRoot() {
-    return modVaultRoot;
-  }
+  private boolean initialized;
 
   @FXML
   void initialize() {
@@ -193,5 +203,36 @@ public class ModVaultController {
     searchResultGroup.setVisible(true);
 
     populateMods(modInfoBeans, searchResultPane);
+  }
+
+  public void onUploadModButtonClicked(ActionEvent actionEvent) {
+    Platform.runLater(() -> {
+      DirectoryChooser directoryChooser = new DirectoryChooser();
+      directoryChooser.setTitle(i18n.get("modVault.upload.choseDirectory"));
+      File result = directoryChooser.showDialog(getRoot().getScene().getWindow());
+
+      if (result == null) {
+        return;
+      }
+      openModUploadWindow(result.toPath());
+    });
+  }
+
+  public Node getRoot() {
+    return modVaultRoot;
+  }
+
+  private void openModUploadWindow(Path path) {
+    UploadModController uploadModController = applicationContext.getBean(UploadModController.class);
+    uploadModController.setModPath(path);
+
+    Stage modUploadWindow = new Stage(StageStyle.TRANSPARENT);
+    modUploadWindow.initModality(Modality.NONE);
+    modUploadWindow.initOwner(getRoot().getScene().getWindow());
+
+    WindowController windowController = applicationContext.getBean(WindowController.class);
+    windowController.configure(modUploadWindow, uploadModController.getRoot(), true, CLOSE);
+
+    modUploadWindow.show();
   }
 }

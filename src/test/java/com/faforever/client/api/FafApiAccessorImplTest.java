@@ -353,4 +353,16 @@ public class FafApiAccessorImplTest {
     assertThat(instance.getRanked1v1EntryForPlayer(123), equalTo(entry));
     verify(httpTransport).buildRequest("GET", "http://api.example.com/ranked1v1/123");
   }
+
+  @Test
+  public void testUploadMod() throws Exception {
+    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.credential = mock(Credential.class);
+
+    InputStream inputStream = new ByteArrayInputStream(new byte[0]);
+
+    instance.uploadMod(inputStream);
+
+    verify(httpTransport).buildRequest("POST", "http://api.example.com/mods/upload");
+  }
 }

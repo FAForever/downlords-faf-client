@@ -11,10 +11,13 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,8 +64,11 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private NotificationService notificationService;
   @Mock
   private ThreadPoolExecutor threadPoolExecutor;
+  @Mock
+  private FilterUserController filterUserController;
 
   private ChannelTabController instance;
+  private ObjectProperty<ChatColorMode> chatColorModeProperty;
 
   @Before
   public void setUp() throws Exception {
@@ -77,6 +83,9 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     instance.hostService = hostService;
     instance.i18n = i18n;
     instance.threadPoolExecutor = threadPoolExecutor;
+    instance.filterUserController = filterUserController;
+
+    chatColorModeProperty = new SimpleObjectProperty<>(ChatColorMode.DEFAULT);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getCacheDirectory()).thenReturn(tempDir.getRoot().toPath());
@@ -84,6 +93,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getChat()).thenReturn(chatPrefs);
     when(chatPrefs.getZoom()).thenReturn(1d);
     when(userService.getUsername()).thenReturn(USER_NAME);
+    when(chatPrefs.chatColorModeProperty()).thenReturn(chatColorModeProperty);
+    when(filterUserController.getRoot()).thenReturn(new Pane());
 
     instance.postConstruct();
 

@@ -41,22 +41,11 @@ public class ModTileController {
 
   private ModInfoBean mod;
   private Consumer<ModInfoBean> onOpenDetailListener;
+  private ListChangeListener<ModInfoBean> installStatusChangeListener;
 
-  public void setMod(ModInfoBean mod) {
-    this.mod = mod;
-    Image image;
-    if (StringUtils.isNotEmpty(mod.getThumbnailUrl())) {
-      image = new Image(mod.getThumbnailUrl());
-    } else {
-      image = IdenticonUtil.createIdenticon(mod.getId());
-    }
-    thumbnailImageView.setImage(image);
-    nameLabel.setText(mod.getName());
-    authorLabel.setText(mod.getAuthor());
-    likesLabel.setText(String.format("%d", mod.getLikes()));
-    commentsLabel.setText(String.format("%d", mod.getComments().size()));
-
-    modService.getInstalledMods().addListener((ListChangeListener<ModInfoBean>) change -> {
+  @FXML
+  void initialize() {
+    installStatusChangeListener = change -> {
       while (change.next()) {
         for (ModInfoBean modInfoBean : change.getAddedSubList()) {
           if (mod.getId().equals(modInfoBean.getId())) {
@@ -71,11 +60,27 @@ public class ModTileController {
           }
         }
       }
-    });
+    };
   }
 
   private void setInstalled(boolean installed) {
 
+  }
+
+  public void setMod(ModInfoBean mod) {
+    this.mod = mod;
+    Image image;
+    if (StringUtils.isNotEmpty(mod.getThumbnailUrl())) {
+      image = new Image(mod.getThumbnailUrl());
+    } else {
+      image = IdenticonUtil.createIdenticon(mod.getId());
+    }
+    thumbnailImageView.setImage(image);
+    nameLabel.setText(mod.getName());
+    authorLabel.setText(mod.getAuthor());
+    likesLabel.setText(String.format("%d", mod.getLikes()));
+    commentsLabel.setText(String.format("%d", mod.getComments().size()));
+    modService.getInstalledMods().addListener(installStatusChangeListener);
   }
 
   public Node getRoot() {

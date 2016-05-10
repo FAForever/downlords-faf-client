@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public interface ModService {
 
@@ -49,4 +50,8 @@ public interface ModService {
   CompletableFuture<List<ModInfoBean>> getMostLikedUiMods(int count);
 
   CompletableFuture<List<ModInfoBean>> lookupMod(String string, int maxSuggestions);
+
+  ModInfoBean extractModInfo(Path path);
+
+  UploadModTask uploadMod(Path modPath, Consumer<Float> progressListener);
 }

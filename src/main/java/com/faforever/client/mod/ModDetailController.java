@@ -8,6 +8,7 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
 import javafx.collections.ListChangeListener;
+import javafx.collections.WeakListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -54,6 +55,7 @@ public class ModDetailController {
   ReportingService reportingService;
 
   private ModInfoBean mod;
+  private ListChangeListener<ModInfoBean> installStatusChangeListener;
 
   @FXML
   void initialize() {
@@ -69,10 +71,32 @@ public class ModDetailController {
         onCloseButtonClicked();
       }
     });
+
+    installStatusChangeListener = change -> {
+      while (change.next()) {
+        for (ModInfoBean modInfoBean : change.getAddedSubList()) {
+          if (mod.getId().equals(modInfoBean.getId())) {
+            setInstalled(true);
+            return;
+          }
+        }
+        for (ModInfoBean modInfoBean : change.getRemoved()) {
+          if (mod.getId().equals(modInfoBean.getId())) {
+            setInstalled(false);
+            return;
+          }
+        }
+      }
+    };
   }
 
   public void onCloseButtonClicked() {
     getRoot().setVisible(false);
+  }
+
+  private void setInstalled(boolean installed) {
+    installButton.setVisible(!installed);
+    uninstallButton.setVisible(installed);
   }
 
   public Node getRoot() {
@@ -94,29 +118,8 @@ public class ModDetailController {
     uninstallButton.setVisible(modInstalled);
 
     modDescriptionLabel.textProperty().bind(mod.descriptionProperty());
-
-    modService.getInstalledMods().addListener((ListChangeListener<ModInfoBean>) change -> {
-      while (change.next()) {
-        for (ModInfoBean modInfoBean : change.getAddedSubList()) {
-          if (mod.getId().equals(modInfoBean.getId())) {
-            setInstalled(true);
-            return;
-          }
-        }
-        for (ModInfoBean modInfoBean : change.getRemoved()) {
-          if (mod.getId().equals(modInfoBean.getId())) {
-            setInstalled(false);
-            return;
-          }
-        }
-      }
-    });
+    modService.getInstalledMods().addListener(new WeakListChangeListener<>(installStatusChangeListener));
     setInstalled(modService.isModInstalled(mod.getId()));
-  }
-
-  private void setInstalled(boolean installed) {
-    installButton.setVisible(!installed);
-    uninstallButton.setVisible(installed);
   }
 
   @FXML

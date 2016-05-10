@@ -3,7 +3,7 @@ package com.faforever.client.preferences;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
-public interface OnChoseGameDirectoryListener {
+public interface OnChooseGameDirectoryListener {
 
-  CompletableFuture<Path> onChoseGameDirectory();
+  CompletableFuture<Path> onChooseGameDirectory();
 }

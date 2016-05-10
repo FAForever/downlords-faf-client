@@ -5,12 +5,13 @@ import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameStatus;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.remote.domain.Player;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -21,7 +22,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -46,7 +49,13 @@ public class PlayerServiceImpl implements PlayerService {
   UserService userService;
   @Resource
   GameService gameService;
+
   private ObjectProperty<PlayerInfoBean> currentPlayer;
+
+  /**
+   * Maps game IDs to status change listeners.
+   */
+  private Map<Integer, InvalidationListener> statusChangeListeners;
 
   public PlayerServiceImpl() {
     playersByName = FXCollections.observableHashMap();
@@ -54,39 +63,43 @@ public class PlayerServiceImpl implements PlayerService {
     friendList = new ArrayList<>();
     foeList = new ArrayList<>();
     currentPlayer = new SimpleObjectProperty<>();
+    statusChangeListeners = new HashMap<>();
   }
 
   @PostConstruct
   void init() {
     fafService.addOnMessageListener(PlayersMessage.class, this::onPlayersInfo);
     fafService.addOnMessageListener(SocialMessage.class, this::onFoeList);
-    gameService.addOnGameInfoBeanListener(change -> {
-      while (change.next()) {
-        for (GameInfoBean gameInfoBean : change.getRemoved()) {
-          gameInfoBean.setStatus(GameState.CLOSED);
-          gameInfoBean.getTeams().forEach((team, players) -> updatePlayerInfoBean(players, gameInfoBean));
+
+    gameService.addOnGameInfoBeansChangeListener(listChange -> {
+      while (listChange.next()) {
+        for (GameInfoBean gameInfoBean : listChange.getRemoved()) {
+          gameInfoBean.getTeams().forEach((team, players) -> updateGameStateForPlayer(players, gameInfoBean));
+          gameInfoBean.statusProperty().removeListener(statusChangeListeners.remove(gameInfoBean.getUid()));
         }
-        for (GameInfoBean gameInfoBean : change.getAddedSubList()) {
-          gameInfoBean.getTeams().forEach((team, players) -> updatePlayerInfoBean(players, gameInfoBean));
-          gameInfoBean.statusProperty().addListener(change2 -> {
-            gameInfoBean.getTeams().forEach((team, updatedPlayer) -> updatePlayerInfoBean(updatedPlayer, gameInfoBean));
-          });
+
+        for (GameInfoBean gameInfoBean : listChange.getAddedSubList()) {
+          gameInfoBean.getTeams().forEach((team, players) -> updateGameStateForPlayer(players, gameInfoBean));
+
+          InvalidationListener statusChangeListener = statusChange -> gameInfoBean.getTeams().forEach((team, updatedPlayer) -> updateGameStateForPlayer(updatedPlayer, gameInfoBean));
+          statusChangeListeners.put(gameInfoBean.getUid(), statusChangeListener);
+          gameInfoBean.statusProperty().addListener(new WeakInvalidationListener(statusChangeListener));
         }
       }
     });
   }
 
   //FIXME ugly fix until host can be resolved from gamestate
-  private void updatePlayerInfoBean(List<String> players, GameInfoBean gameInfoBean) {
+  private void updateGameStateForPlayer(List<String> players, GameInfoBean gameInfoBean) {
     for (String player : players) {
       PlayerInfoBean playerInfoBean = getPlayerForUsername(player);
       if (playerInfoBean == null) {
         continue;
       }
-      updatePlayerGameStatus(playerInfoBean, GameStatus.getFromGameState(gameInfoBean.getStatus()));
+      updatePlayerGameStatus(playerInfoBean, GameStatus.fromGameState(gameInfoBean.getStatus()));
       playerInfoBean.setGameUid(gameInfoBean.getUid());
     }
-    if (GameStatus.getFromGameState(gameInfoBean.getStatus()) == GameStatus.LOBBY) {
+    if (GameStatus.fromGameState(gameInfoBean.getStatus()) == GameStatus.LOBBY) {
       PlayerInfoBean host = getPlayerForUsername(gameInfoBean.getHost());
       updatePlayerGameStatus(host, GameStatus.HOST);
     }

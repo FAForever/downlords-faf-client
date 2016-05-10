@@ -53,6 +53,7 @@ import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModDetailController;
 import com.faforever.client.mod.ModTileController;
 import com.faforever.client.mod.ModVaultController;
+import com.faforever.client.mod.UploadModController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.news.NewsListItemController;
 import com.faforever.client.notification.ImmediateNotificationController;
@@ -383,5 +384,11 @@ public class UiConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   ChatUserItemController chatUserItemController() {
     return loadController("chat_user_item.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  UploadModController uploadModController() {
+    return loadController("upload_mod.fxml");
   }
 }

@@ -214,7 +214,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   public void testAddOnGameTypeInfoListener() throws Exception {
     @SuppressWarnings("unchecked")
     MapChangeListener<String, GameTypeBean> listener = mock(MapChangeListener.class);
-    instance.addOnGameTypeInfoListener(listener);
+    instance.addOnGameTypesChangeListener(listener);
 
     gameTypeMessageListenerCaptor.getValue().accept(GameTypeInfoBuilder.create().defaultValues().get());
   }
@@ -327,7 +327,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnGameInfoModify() {
+  public void testOnGameInfoModify() throws InterruptedException {
     assertThat(instance.getGameInfoBeans(), empty());
 
     GameInfoMessage gameInfoMessage = new GameInfoMessage();
@@ -337,6 +337,12 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfoMessage.setPasswordProtected(true);
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
+    CountDownLatch changeLatch = new CountDownLatch(1);
+    GameInfoBean gameInfoBean = instance.getGameInfoBeans().iterator().next();
+    gameInfoBean.titleProperty().addListener((observable, oldValue, newValue) -> {
+      changeLatch.countDown();
+    });
+
     gameInfoMessage = new GameInfoMessage();
     gameInfoMessage.setUid(1);
     gameInfoMessage.setTitle("Game 1 modified");
@@ -344,7 +350,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfoMessage.setPasswordProtected(true);
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
-    assertEquals(gameInfoMessage.getTitle(), instance.getGameInfoBeans().iterator().next().getTitle());
+    changeLatch.await();
+    assertEquals(gameInfoMessage.getTitle(), gameInfoBean.getTitle());
   }
 
   @Test
@@ -440,7 +447,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @SuppressWarnings("unchecked")
   public void testAddOnGameInfoBeanListener() throws Exception {
     ListChangeListener<GameInfoBean> listener = mock(ListChangeListener.class);
-    instance.addOnGameInfoBeanListener(listener);
+    instance.addOnGameInfoBeansChangeListener(listener);
 
     GameInfoMessage gameInfoMessage = new GameInfoMessage();
     gameInfoMessage.setUid(1);

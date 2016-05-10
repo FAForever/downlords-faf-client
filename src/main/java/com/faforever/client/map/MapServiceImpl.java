@@ -181,7 +181,7 @@ public class MapServiceImpl implements MapService {
           if (matcher.find()) {
             int width = Integer.parseInt(matcher.group(1));
             int height = Integer.parseInt(matcher.group(2));
-            mapInfoBean.setSize(new MapSize(width, height));
+            mapInfoBean.setSize(MapSize.get(width, height));
           }
         }
         return mapInfoBean;

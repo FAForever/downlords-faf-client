@@ -226,7 +226,6 @@ public class CreateGameController {
 
     filteredMaps = new FilteredList<>(localMaps);
 
-
     mapListView.setItems(filteredMaps);
     mapListView.setCellFactory(mapListCellFactory());
     mapListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -261,7 +260,7 @@ public class CreateGameController {
   }
 
   private void initGameTypeComboBox() {
-    gameService.addOnGameTypeInfoListener(change -> {
+    gameService.addOnGameTypesChangeListener(change -> {
       gameTypeListView.getItems().add(change.getValueAdded());
       selectLastOrDefaultGameType();
     });

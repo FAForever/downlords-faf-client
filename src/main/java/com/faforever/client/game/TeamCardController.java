@@ -34,13 +34,12 @@ public class TeamCardController {
 
   public void setPlayersInTeam(String team, List<String> playerList) {
     String localizedTeamTile;
-    if (team == null) {
+    if ("1".equals(team) || "-1".equals(team)) {
       localizedTeamTile = i18n.get("game.tooltip.teamTitleNoTeam");
-    } else if (team.equals("-1")) {
-      // FIXME figure out what's the value for "no team" (instead of "-1")
+    } else if ("null".equals(team)) {
       localizedTeamTile = i18n.get("game.tooltip.observers");
     } else {
-      localizedTeamTile = i18n.get("game.tooltip.teamTitle", team);
+      localizedTeamTile = i18n.get("game.tooltip.teamTitle", Integer.valueOf(team) - 1);
     }
     teamPaneRoot.setText(localizedTeamTile);
 

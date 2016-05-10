@@ -253,7 +253,7 @@ public class PlayerInfoBean {
   }
 
   public void setGameStatusFromGameState(GameState gameState) {
-    gameStatus.set(GameStatus.getFromGameState(gameState));
+    gameStatus.set(GameStatus.fromGameState(gameState));
   }
 
   public int getGameUid() {

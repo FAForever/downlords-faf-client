@@ -45,11 +45,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.util.LuaUtil.stripQuotes;
+import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 
@@ -301,6 +303,47 @@ public class ModServiceImpl implements ModService {
     });
   }
 
+  @Override
+  public ModInfoBean extractModInfo(Path path) {
+    ModInfoBean modInfoBean = new ModInfoBean();
+
+    Path modInfoLua = path.resolve("mod_info.lua");
+    if (Files.notExists(modInfoLua)) {
+      return null;
+    }
+
+    logger.debug("Reading mod {}", path);
+    noCatch(() -> {
+      try (InputStream inputStream = Files.newInputStream(modInfoLua)) {
+        Properties properties = new Properties();
+        properties.load(inputStream);
+
+        modInfoBean.setId(stripQuotes(properties.getProperty("uid")));
+        modInfoBean.setName(stripQuotes(properties.getProperty("name")));
+        modInfoBean.setDescription(stripQuotes(properties.getProperty("description")));
+        modInfoBean.setAuthor(stripQuotes(properties.getProperty("author")));
+        modInfoBean.setVersion(stripQuotes(properties.getProperty("version")));
+        modInfoBean.setSelectable(Boolean.parseBoolean(stripQuotes(properties.getProperty("selectable"))));
+        modInfoBean.setUiOnly(Boolean.parseBoolean(stripQuotes(properties.getProperty("ui_only"))));
+        modInfoBean.setImagePath(extractIconPath(path, properties));
+      }
+    });
+
+    return modInfoBean;
+  }
+
+  @Override
+  public UploadModTask uploadMod(Path modPath, Consumer<Float> progressListener) {
+    UploadModTask uploadModTask = applicationContext.getBean(UploadModTask.class);
+    uploadModTask.setModPath(modPath);
+    uploadModTask.setProgressListener(progressListener);
+
+    CompletableFuture<Void> uploadFuture = taskService.submitTask(uploadModTask);
+    uploadModTask.setFuture(uploadFuture);
+
+    return uploadModTask;
+  }
+
   private CompletableFuture<List<ModInfoBean>> getTopElements(Comparator<? super ModInfoBean> comparator, int count) {
     return getAvailableMods().thenApply(modInfoBeans -> modInfoBeans.stream()
         .sorted(comparator)
@@ -377,32 +420,6 @@ public class ModServiceImpl implements ModService {
     if (!installedMods.contains(modInfoBean)) {
       installedMods.add(modInfoBean);
     }
-  }
-
-  private ModInfoBean extractModInfo(Path path) throws IOException {
-    ModInfoBean modInfoBean = new ModInfoBean();
-
-    Path modInfoLua = path.resolve("mod_info.lua");
-    if (Files.notExists(modInfoLua)) {
-      return null;
-    }
-
-    logger.debug("Reading mod {}", path);
-    try (InputStream inputStream = Files.newInputStream(modInfoLua)) {
-      Properties properties = new Properties();
-      properties.load(inputStream);
-
-      modInfoBean.setId(stripQuotes(properties.getProperty("uid")));
-      modInfoBean.setName(stripQuotes(properties.getProperty("name")));
-      modInfoBean.setDescription(stripQuotes(properties.getProperty("description")));
-      modInfoBean.setAuthor(stripQuotes(properties.getProperty("author")));
-      modInfoBean.setVersion(stripQuotes(properties.getProperty("version")));
-      modInfoBean.setSelectable(Boolean.parseBoolean(stripQuotes(properties.getProperty("selectable"))));
-      modInfoBean.setUiOnly(Boolean.parseBoolean(stripQuotes(properties.getProperty("ui_only"))));
-      modInfoBean.setImagePath(extractIconPath(path, properties));
-    }
-
-    return modInfoBean;
   }
 
   private static Path extractIconPath(Path path, Properties properties) {

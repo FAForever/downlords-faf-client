@@ -10,6 +10,12 @@ public final class Validator {
     // Utility class
   }
 
+  /**
+   * Throws a NullPointerException with the specified message when {@code object} is null.
+   *
+   * @param object the object to check for null
+   * @param message the exception message
+   */
   public static void notNull(Object object, String message) {
     if (object == null) {
       throw new NullPointerException(message);

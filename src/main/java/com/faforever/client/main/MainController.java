@@ -29,7 +29,7 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.OnChoseGameDirectoryListener;
+import com.faforever.client.preferences.OnChooseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.preferences.WindowPrefs;
@@ -107,7 +107,7 @@ import static com.faforever.client.fx.WindowController.WindowButtonType.MAXIMIZE
 import static com.faforever.client.fx.WindowController.WindowButtonType.MINIMIZE;
 import static com.github.nocatch.NoCatch.noCatch;
 
-public class MainController implements OnChoseGameDirectoryListener {
+public class MainController implements OnChooseGameDirectoryListener {
 
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_CLASS = PseudoClass.getPseudoClass("info");
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_CLASS = PseudoClass.getPseudoClass("warn");
@@ -480,7 +480,7 @@ public class MainController implements OnChoseGameDirectoryListener {
         i18n.get("statusBar.portCheckTooltip", preferencesService.getPreferences().getForgedAlliance().getPort())
     );
 
-    preferencesService.setOnChoseGameDirectoryListener(this);
+    preferencesService.setOnChooseGameDirectoryListener(this);
     gameService.addOnRankedMatchNotificationListener(this::onMatchmakerMessage);
 
     userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
@@ -784,7 +784,7 @@ public class MainController implements OnChoseGameDirectoryListener {
   }
 
   @Override
-  public CompletableFuture<Path> onChoseGameDirectory() {
+  public CompletableFuture<Path> onChooseGameDirectory() {
     CompletableFuture<Path> future = new CompletableFuture<>();
     Platform.runLater(() -> {
       DirectoryChooser directoryChooser = new DirectoryChooser();

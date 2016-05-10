@@ -21,6 +21,7 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.remote.domain.GameTypeMessage;
 import com.google.common.annotations.VisibleForTesting;
+import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -125,7 +126,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public void addOnGameInfoBeanListener(ListChangeListener<GameInfoBean> listener) {
+  public void addOnGameInfoBeansChangeListener(ListChangeListener<GameInfoBean> listener) {
     gameInfoBeans.addListener(listener);
   }
 
@@ -189,7 +190,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public void addOnGameTypeInfoListener(MapChangeListener<String, GameTypeBean> changeListener) {
+  public void addOnGameTypesChangeListener(MapChangeListener<String, GameTypeBean> changeListener) {
     gameTypeBeans.addListener(changeListener);
   }
 
@@ -432,7 +433,7 @@ public class GameServiceImpl implements GameService {
       gameInfoBeans.add(gameInfoBean);
       uidToGameInfoBean.put(gameInfoMessage.getUid(), gameInfoBean);
     } else {
-      uidToGameInfoBean.get(gameInfoMessage.getUid()).updateFromGameInfo(gameInfoMessage);
+      Platform.runLater(() -> uidToGameInfoBean.get(gameInfoMessage.getUid()).updateFromGameInfo(gameInfoMessage));
     }
   }
 }

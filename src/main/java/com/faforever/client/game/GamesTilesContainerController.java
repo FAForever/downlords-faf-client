@@ -17,7 +17,6 @@ public class GamesTilesContainerController {
 
   @FXML
   public FlowPane tiledFlowPane;
-
   @FXML
   public ScrollPane tiledScrollPane;
 
@@ -30,14 +29,12 @@ public class GamesTilesContainerController {
     uidToGameCard = new HashMap<>();
     gameInfoBeans.forEach(this::addGameCard);
 
-    gameInfoBeans.addListener((ListChangeListener<GameInfoBean>) change -> {
-      Platform.runLater(() -> {
-        while (change.next()) {
-          change.getRemoved().forEach(gameInfoBean -> tiledFlowPane.getChildren().remove(uidToGameCard.get(gameInfoBean.getUid())));
-          change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
-        }
-      });
-    });
+    gameInfoBeans.addListener((ListChangeListener<GameInfoBean>) change -> Platform.runLater(() -> {
+      while (change.next()) {
+        change.getRemoved().forEach(gameInfoBean -> tiledFlowPane.getChildren().remove(uidToGameCard.remove(gameInfoBean.getUid())));
+        change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
+      }
+    }));
   }
 
   private void addGameCard(GameInfoBean gameInfoBean) {

@@ -96,6 +96,7 @@ public class ChannelTabController extends AbstractChatTabController {
   TextField userSearchTextField;
   @FXML
   TextField messageTextField;
+
   @Resource
   FilterUserController filterUserController;
   @Resource
@@ -109,7 +110,6 @@ public class ChannelTabController extends AbstractChatTabController {
   private Popup filterUserPopup;
   private MapChangeListener<String, ChatUser> usersChangeListener;
   private ChangeListener<ChatColorMode> chatColorModeChangeListener;
-  private ChangeListener<String> usernameChangeListener;
 
   public ChannelTabController() {
     userToChatUserControls = FXCollections.observableMap(new ConcurrentHashMap<>());
@@ -168,16 +168,6 @@ public class ChannelTabController extends AbstractChatTabController {
       filterChatUserControlsBySearchString();
     });
 
-    usernameChangeListener = (observable, oldValue, newValue) -> {
-      for (Map.Entry<Pane, ChatUserItemController> entry : userToChatUserControls.get(oldValue).entrySet()) {
-        Pane pane = entry.getKey();
-        ChatUserItemController chatUserItemController = entry.getValue();
-
-        pane.getChildren().remove(chatUserItemController.getRoot());
-        addChatUserItemSorted(pane, chatUserItemController);
-      }
-    };
-
     chatColorModeChangeListener = (observable, oldValue, newValue) -> {
       if (newValue != DEFAULT) {
         setAllMessageColors();
@@ -202,31 +192,6 @@ public class ChannelTabController extends AbstractChatTabController {
     }
   }
 
-  /**
-   * Inserts the given ChatUserControl into the given Pane such that it is correctly sorted alphabetically.
-   */
-  private void addChatUserItemSorted(Pane pane, ChatUserItemController chatUserItemController) {
-    ObservableList<Node> children = pane.getChildren();
-
-    Pane chatUserItemRoot = chatUserItemController.getRoot();
-    if (chatUserItemController.getPlayerInfoBean().getSocialStatus() == SELF) {
-      children.add(0, chatUserItemRoot);
-      return;
-    }
-
-    String thisUsername = chatUserItemController.getPlayerInfoBean().getUsername();
-    for (Node child : children) {
-      String otherUsername = ((ChatUserItemController) child.getUserData()).getPlayerInfoBean().getUsername();
-
-      if (thisUsername.compareToIgnoreCase(otherUsername) < 0) {
-        children.add(children.indexOf(child), chatUserItemRoot);
-        return;
-      }
-    }
-
-    children.add(chatUserItemRoot);
-  }
-
   private void setAllMessageColors() {
     Channel channel = chatService.getOrCreateChannel(channelName);
     Map<String, String> userToColor = new HashMap<>();
@@ -243,6 +208,35 @@ public class ChannelTabController extends AbstractChatTabController {
   public boolean isUsernameMatch(ChatUserItemController chatUserItemController) {
     String lowerCaseSearchString = chatUserItemController.getPlayerInfoBean().getUsername().toLowerCase();
     return lowerCaseSearchString.contains(userSearchTextField.getText().toLowerCase());
+  }
+
+  /**
+   * Inserts the given ChatUserControl into the given Pane such that it is correctly sorted alphabetically.
+   */
+  private void addChatUserItemSorted(Pane pane, ChatUserItemController chatUserItemController) {
+    ObservableList<Node> children = pane.getChildren();
+
+    Pane chatUserItemRoot = chatUserItemController.getRoot();
+    if (chatUserItemController.getPlayerInfoBean().getSocialStatus() == SELF) {
+      children.add(0, chatUserItemRoot);
+      return;
+    }
+
+    String thisUsername = chatUserItemController.getPlayerInfoBean().getUsername();
+    for (Node child : children) {
+      String otherUsername = ((ChatUserItemController) child.getUserData()).getPlayerInfoBean().getUsername();
+
+      if (otherUsername.equals(userService.getUsername())) {
+        continue;
+      }
+
+      if (thisUsername.compareToIgnoreCase(otherUsername) < 0) {
+        children.add(children.indexOf(child), chatUserItemRoot);
+        return;
+      }
+    }
+
+    children.add(chatUserItemRoot);
   }
 
   @PostConstruct
@@ -329,7 +323,15 @@ public class ChannelTabController extends AbstractChatTabController {
     PlayerInfoBean player = playerService.createAndGetPlayerForUsername(username);
 
     player.moderatorForChannelsProperty().bind(chatUser.moderatorInChannelsProperty());
-    player.usernameProperty().addListener(usernameChangeListener);
+    player.usernameProperty().addListener((observable, oldValue, newValue) -> {
+      for (Map.Entry<Pane, ChatUserItemController> entry : userToChatUserControls.get(oldValue).entrySet()) {
+        Pane pane = entry.getKey();
+        ChatUserItemController chatUserItemController = entry.getValue();
+
+        pane.getChildren().remove(chatUserItemController.getRoot());
+        addChatUserItemSorted(pane, chatUserItemController);
+      }
+    });
     player.usernameProperty().bind(chatUser.usernameProperty());
 
     player.socialStatusProperty().addListener((observable, oldValue, newValue) -> {

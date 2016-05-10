@@ -23,7 +23,7 @@ public interface GameService {
 
   BooleanProperty gameRunningProperty();
 
-  void addOnGameInfoBeanListener(ListChangeListener<GameInfoBean> listener);
+  void addOnGameInfoBeansChangeListener(ListChangeListener<GameInfoBean> listener);
 
   CompletableFuture<Void> hostGame(NewGameInfo name);
 
@@ -31,7 +31,7 @@ public interface GameService {
 
   List<GameTypeBean> getGameTypes();
 
-  void addOnGameTypeInfoListener(MapChangeListener<String, GameTypeBean> changeListener);
+  void addOnGameTypesChangeListener(MapChangeListener<String, GameTypeBean> changeListener);
 
   /**
    * @param path a replay file that is readable by the game without any further conversion
