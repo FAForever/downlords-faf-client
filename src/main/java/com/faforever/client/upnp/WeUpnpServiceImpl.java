@@ -12,7 +12,6 @@ import javax.annotation.PreDestroy;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.InetAddress;
 import java.util.Objects;
 
 public class WeUpnpServiceImpl implements UpnpService {
@@ -41,9 +40,9 @@ public class WeUpnpServiceImpl implements UpnpService {
         return;
       }
 
-      logger.info("Found UPnP capable gateway at {}", validGateway.getLocalAddress().getHostAddress());
+      logger.info("Found UPnP capable gateway at {}", validGateway.getPresentationURL());
 
-      String localAddress = InetAddress.getLocalHost().getHostAddress();
+      String localAddress = validGateway.getLocalAddress().getHostAddress();
 
       logger.debug("Looking for existing port mapping for {}:{}", localAddress, port);
 
