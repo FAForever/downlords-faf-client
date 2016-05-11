@@ -196,6 +196,11 @@ public class GameServiceImpl implements GameService {
 
   @Override
   public void runWithReplay(Path path, @Nullable Integer replayId, String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simMods) {
+    if (isRunning()) {
+      logger.warn("Forged Alliance is already running, not starting replay");
+      return;
+    }
+
     updateGameIfNecessary(gameType, version, modVersions, simMods)
         .thenRun(() -> {
           try {
@@ -224,6 +229,11 @@ public class GameServiceImpl implements GameService {
 
   @Override
   public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) throws IOException {
+    if (isRunning()) {
+      logger.warn("Forged Alliance is already running, not starting live replay");
+      return CompletableFuture.completedFuture(null);
+    }
+
     GameInfoBean gameBean = getByUid(gameId);
 
     Map<String, Integer> modVersions = gameBean.getFeaturedModVersions();
@@ -354,6 +364,11 @@ public class GameServiceImpl implements GameService {
    * etc.)
    */
   private void startGame(GameLaunchMessage gameLaunchMessage, Faction faction, RatingMode ratingMode, Integer localRelayPort) {
+    if (isRunning()) {
+      logger.warn("Forged Alliance is already running, not starting game");
+      return;
+    }
+
     stopSearchRanked1v1();
     List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
     try {
