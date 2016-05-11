@@ -59,7 +59,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static com.github.nocatch.NoCatch.noCatch;
-import static java.net.InetAddress.getLocalHost;
 import static org.ice4j.attribute.Attribute.ERROR_CODE;
 import static org.ice4j.attribute.Attribute.XOR_MAPPED_ADDRESS;
 import static org.ice4j.attribute.Attribute.XOR_PEER_ADDRESS;
@@ -222,7 +221,7 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
     serverAddress = new TransportAddress(turnHost, turnPort, Transport.UDP);
     connectionState.set(ConnectionState.CONNECTING);
     try {
-      localSocket = new MultiplexingDatagramSocket(0, getLocalHost());
+      localSocket = new MultiplexingDatagramSocket(0);
       channelDataSocket = localSocket.getSocket(
           new TurnDatagramPacketFilter(serverAddress) {
             @Override

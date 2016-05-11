@@ -32,10 +32,7 @@ import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -193,13 +190,9 @@ public class ConnectivityServiceImpl implements ConnectivityService {
   private void initPublicSocket(int port) {
     IOUtils.closeQuietly(publicSocket);
 
-    try {
-      publicSocket = new DatagramSocket(new InetSocketAddress(InetAddress.getLocalHost(), port));
-      readSocket(threadPoolExecutor, publicSocket, packetConsumer);
-      logger.info("Opened public UDP socket: {}", publicSocket.getLocalSocketAddress());
-    } catch (SocketException | UnknownHostException e) {
-      throw new RuntimeException(e);
-    }
+    publicSocket = noCatch(() -> new DatagramSocket(port));
+    readSocket(threadPoolExecutor, publicSocket, packetConsumer);
+    logger.info("Opened public UDP socket: {}", publicSocket.getLocalSocketAddress());
   }
 
   @Override
