@@ -3,7 +3,6 @@ package com.faforever.client.mod;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import javafx.application.Platform;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -11,9 +10,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -72,25 +69,6 @@ public class UploadModControllerTest extends AbstractPlainJavaFxTest {
     instance.onUploadClicked();
 
     verify(modService).uploadMod(any(), any());
-  }
-
-  @Test
-  public void testOnCancelClicked() throws Exception {
-    CountDownLatch showingLatch = new CountDownLatch(1);
-    getStage().showingProperty().addListener((observable, oldValue, newValue) -> {
-      if (!newValue) {
-        showingLatch.countDown();
-      }
-    });
-
-    Platform.runLater(() -> {
-      getScene().setRoot(instance.getRoot());
-      assertTrue(getStage().isShowing());
-      instance.onCancelClicked();
-    });
-
-    assertTrue(showingLatch.await(5, TimeUnit.SECONDS));
-    assertFalse(getStage().isShowing());
   }
 
   @Test
