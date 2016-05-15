@@ -211,7 +211,6 @@ task githubRelease(type: ReleaseTask, overwrite: true) {
       body = buildReleaseBody()
       assets = buildAssetList()
     }
-    println project.github.assets.join(', ')
   }
 }
 
