@@ -283,6 +283,8 @@ public class LocalRelayServerImpl implements LocalRelayServer {
                 Collections.singletonList(new ReportAction(i18n, reportingService, throwable))));
         return null;
       });
+    } if(gpgClientMessage.getCommand() == GpgClientCommand.JSON_STATS){
+      logger.debug("Received game stats: {}", gpgClientMessage.getArgs().get(0));
     }
 
     fafService.sendGpgMessage(gpgClientMessage);
