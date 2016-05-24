@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -21,7 +22,7 @@ import java.util.function.Consumer;
  */
 public interface GameService {
 
-  BooleanProperty gameRunningProperty();
+  ReadOnlyBooleanProperty gameRunningProperty();
 
   void addOnGameInfoBeansChangeListener(ListChangeListener<GameInfoBean> listener);
 

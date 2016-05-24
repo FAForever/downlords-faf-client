@@ -268,7 +268,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testWaitForProcessTerminationInBackground() throws Exception {
-    instance.gameRunningProperty().set(true);
+    instance.gameRunning.set(true);
 
     CompletableFuture<Void> disconnectedFuture = new CompletableFuture<>();
 

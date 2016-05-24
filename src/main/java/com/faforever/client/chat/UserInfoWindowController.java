@@ -48,6 +48,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -254,7 +255,7 @@ public class UserInfoWindowController {
     achievementService.getAchievementDefinitions()
         .exceptionally(throwable -> {
           logger.warn("Could not load achievement definitions", throwable);
-          return null;
+          return Collections.emptyList();
         })
         .thenAccept(this::displayAvailableAchievements)
         .thenCompose(aVoid -> achievementService.getPlayerAchievements(playerInfoBean.getUsername()))

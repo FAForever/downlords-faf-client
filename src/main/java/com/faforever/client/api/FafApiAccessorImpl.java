@@ -92,12 +92,12 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   String oAuthClientSecret;
   @Value("${oauth.loginUri}")
   URI oAuthLoginUrl;
+
   @VisibleForTesting
   Credential credential;
   @VisibleForTesting
   HttpRequestFactory requestFactory;
   private FileDataStoreFactory dataStoreFactory;
-
 
   @PostConstruct
   void postConstruct() throws IOException {

@@ -24,6 +24,7 @@ import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -63,13 +64,13 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public class GameServiceImpl implements GameService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  @VisibleForTesting
+  final BooleanProperty gameRunning;
   private final ObservableMap<String, GameTypeBean> gameTypeBeans;
   // It is indeed ugly to keep references in both, a list and a map, however I don't see how I can populate the map
   // values as an observable list (in order to display it in the games table)
   private final ObservableList<GameInfoBean> gameInfoBeans;
   private final Map<Integer, GameInfoBean> uidToGameInfoBean;
-
   @Resource
   FafService fafService;
   @Resource
@@ -94,20 +95,18 @@ public class GameServiceImpl implements GameService {
   ConnectivityService connectivityService;
   @Resource
   LocalRelayServer localRelayServer;
-
   @Value("${ranked1v1.search.maxRadius}")
   float ranked1v1SearchMaxRadius;
   @Value("${ranked1v1.search.radiusIncrement}")
   float ranked1v1SearchRadiusIncrement;
   @Value("${ranked1v1.search.expansionDelay}")
   int ranked1v1SearchExpansionDelay;
-
   @VisibleForTesting
   RatingMode ratingMode;
   private Process process;
   private BooleanProperty searching1v1;
   private ScheduledFuture<?> searchExpansionFuture;
-  private BooleanProperty gameRunning;
+
 
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
@@ -121,7 +120,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public BooleanProperty gameRunningProperty() {
+  public ReadOnlyBooleanProperty gameRunningProperty() {
     return gameRunning;
   }
 
@@ -205,7 +204,7 @@ public class GameServiceImpl implements GameService {
         .thenRun(() -> {
           try {
             process = forgedAllianceService.startReplay(path, replayId, gameType);
-            gameRunning.set(true);
+            setGameRunning(true);
             this.ratingMode = RatingMode.NONE;
             spawnTerminationListener(process);
           } catch (IOException e) {
@@ -244,7 +243,7 @@ public class GameServiceImpl implements GameService {
         .thenRun(() -> {
           try {
             process = forgedAllianceService.startReplay(replayUrl, gameId, gameType);
-            gameRunning.set(true);
+            setGameRunning(true);
             this.ratingMode = RatingMode.NONE;
             spawnTerminationListener(process);
           } catch (IOException e) {
@@ -374,7 +373,7 @@ public class GameServiceImpl implements GameService {
     try {
       localRelayServer.getPort();
       process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), faction, args, ratingMode, localRelayPort);
-      gameRunning.set(true);
+      setGameRunning(true);
 
       this.ratingMode = ratingMode;
       spawnTerminationListener(process);
@@ -401,12 +400,18 @@ public class GameServiceImpl implements GameService {
     return fixedArgs;
   }
 
+  private void setGameRunning(boolean running) {
+    synchronized (gameRunning) {
+      gameRunning.set(running);
+    }
+  }
+
   @VisibleForTesting
   void spawnTerminationListener(Process process) {
     CompletableFuture.runAsync(() -> {
       try {
         int exitCode = process.waitFor();
-        gameRunning.set(false);
+        setGameRunning(false);
         localRelayServer.close();
         fafService.notifyGameEnded();
         logger.info("Forged Alliance terminated with exit code {}", exitCode);
@@ -421,7 +426,6 @@ public class GameServiceImpl implements GameService {
     fafService.addOnMessageListener(GameTypeMessage.class, this::onGameTypeInfo);
     fafService.addOnMessageListener(GameInfoMessage.class, this::onGameInfo);
   }
-
 
   private void onGameTypeInfo(GameTypeMessage gameTypeMessage) {
     if (!gameTypeMessage.isPublish() || gameTypeBeans.containsKey(gameTypeMessage.getName())) {
