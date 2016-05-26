@@ -11,9 +11,14 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface LocalRelayServer {
 
+  /**
+   * Add a listener to be called whenever the game connected to this relay server.
+   */
+  void addOnGameConnectedListener(Runnable listener);
 
-  void addOnConnectionAcceptedListener(Runnable listener);
-
+  /**
+   * Returns the port number the server socket is listening on.
+   */
   Integer getPort();
 
   /**
@@ -24,6 +29,9 @@ public interface LocalRelayServer {
    */
   CompletableFuture<Integer> start(DatagramGateway gateway);
 
+  /**
+   * Returns the datagram socket address (IP/port) on which the game accepts packages.
+   */
   InetSocketAddress getGameSocketAddress();
 
   void close();

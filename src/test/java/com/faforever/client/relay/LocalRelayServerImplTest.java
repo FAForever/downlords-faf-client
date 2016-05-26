@@ -121,7 +121,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     ForgedAlliancePrefs forgedAlliancePrefs = mock(ForgedAlliancePrefs.class);
     Preferences preferences = mock(Preferences.class);
 
-    instance.addOnConnectionAcceptedListener(gameConnectedLatch::countDown);
+    instance.addOnGameConnectedListener(gameConnectedLatch::countDown);
 
     doAnswer(
         invocation -> WaitForAsyncUtils.async(invocation.getArgumentAt(0, Runnable.class))

@@ -1,5 +1,8 @@
 package com.faforever.client.relay;
 
+/**
+ * See values for description.
+ */
 public enum LobbyMode {
 
   /**
