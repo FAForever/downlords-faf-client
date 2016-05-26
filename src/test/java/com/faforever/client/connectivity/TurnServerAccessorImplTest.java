@@ -225,7 +225,7 @@ public class TurnServerAccessorImplTest extends AbstractPlainJavaFxTest {
       CompletableFuture<DatagramPacket> packetFuture = new CompletableFuture<>();
       instance.addOnPacketListener(packetFuture::complete);
 
-      InetSocketAddress localSocketAddress = instance.getLocalSocketAddress();
+      InetSocketAddress localSocketAddress = new InetSocketAddress(InetAddress.getLocalHost(), instance.getLocalSocketAddress().getPort());
       bindToChannel(socket.getLocalSocketAddress());
 
       // First two bytes are channel number, second two bytes are message length, rest is data

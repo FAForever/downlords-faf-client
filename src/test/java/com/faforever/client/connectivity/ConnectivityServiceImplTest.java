@@ -370,7 +370,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(fafService).sendGpgMessage(any());
 
-    InetSocketAddress publicSocketAddress = instance.getPublicSocketAddress();
+    InetSocketAddress publicSocketAddress = new InetSocketAddress(InetAddress.getLocalHost(), instance.getPublicSocketAddress().getPort());
 
     try (DatagramSocket socket = new DatagramSocket(new InetSocketAddress(InetAddress.getLocalHost(), 0))) {
       byte[] data = "\bFoo".getBytes(StandardCharsets.US_ASCII);
@@ -395,7 +395,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     CompletableFuture<DatagramPacket> packetFuture = new CompletableFuture<>();
     instance.addOnPacketListener(packetFuture::complete);
 
-    InetSocketAddress publicSocketAddress = instance.getPublicSocketAddress();
+    InetSocketAddress publicSocketAddress = new InetSocketAddress(InetAddress.getLocalHost(), instance.getPublicSocketAddress().getPort());
 
     try (DatagramSocket socket = new DatagramSocket(new InetSocketAddress(InetAddress.getLocalHost(), 0))) {
       byte[] data = "Hello".getBytes(StandardCharsets.US_ASCII);
