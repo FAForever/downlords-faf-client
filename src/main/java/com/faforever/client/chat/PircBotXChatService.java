@@ -333,13 +333,13 @@ public class PircBotXChatService implements ChatService {
   public void connect() {
     init();
 
+    chatConnectedLatch = new CountDownLatch(1);
     connectionTask = new Task<Void>() {
       @Override
       protected Void call() throws Exception {
         while (!isCancelled()) {
           try {
             connectionState.set(ConnectionState.CONNECTING);
-            chatConnectedLatch = new CountDownLatch(1);
             Configuration.ServerEntry server = configuration.getServers().get(0);
             logger.info("Connecting to IRC at {}:{}", server.getHostname(), server.getPort());
             pircBotX.startBot();
