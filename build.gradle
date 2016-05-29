@@ -75,7 +75,7 @@ def httpRequest(Method method, String url, onSuccess) {
 }
 
 def buildReleaseBody() {
-  def GITHUB_BASE_URL = "https://api.github.com/repos/micheljung/downlords-faf-client"
+  def GITHUB_BASE_URL = "https://api.github.com/repos/FAForever/downlords-faf-client"
   def versionString = "v" + project.version
 
   def milestones
@@ -202,7 +202,7 @@ task githubRelease(type: ReleaseTask, overwrite: true) {
 
   doFirst {
     project.github {
-      owner = 'micheljung'
+      owner = 'FAForever'
       repo = 'downlords-faf-client'
       token = System.properties['githubAccessToken']
       tagName = "v" + project.version
