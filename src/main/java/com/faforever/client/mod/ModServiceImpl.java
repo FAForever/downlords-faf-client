@@ -439,8 +439,14 @@ public class ModServiceImpl implements ModService {
     }
 
     Path iconPath = Paths.get(icon);
-    // mods/BlackOpsUnleashed/icons/yoda_icon.bmp -> icons/yoda_icon.bmp
-    iconPath = iconPath.subpath(2, iconPath.getNameCount());
+    // FIXME try-catch until I know exactly what's the value that causes #228
+    try {
+      // mods/BlackOpsUnleashed/icons/yoda_icon.bmp -> icons/yoda_icon.bmp
+      iconPath = iconPath.subpath(2, iconPath.getNameCount());
+    } catch (IllegalArgumentException e) {
+      logger.warn("Can't load icon for mod: {}, icon path: {}", path, iconPath);
+      return null;
+    }
 
     return path.resolve(iconPath);
   }
