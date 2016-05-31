@@ -32,13 +32,11 @@ public class UserMenuControllerTest extends AbstractPlainJavaFxTest {
     assertThat(getStage().isShowing(), is(true));
 
     CountDownLatch latch = new CountDownLatch(1);
-    getStage().showingProperty().addListener((observable, oldValue, newValue) -> {
-      latch.countDown();
-    });
+    getStage().showingProperty().addListener((observable, oldValue, newValue) -> latch.countDown());
 
     Platform.runLater(() -> instance.onLogOutButtonClicked());
 
-    assertTrue(latch.await(2, TimeUnit.SECONDS));
+    assertTrue(latch.await(10, TimeUnit.SECONDS));
     assertThat(getStage().isShowing(), is(false));
   }
 }
