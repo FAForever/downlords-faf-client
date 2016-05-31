@@ -75,6 +75,7 @@ public class UserMenuController {
   @FXML
   void onLogOutButtonClicked() {
     userService.logOut();
+    userMenuRoot.getScene().getWindow().hide();
   }
 
   @FXML
