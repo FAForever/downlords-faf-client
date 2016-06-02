@@ -419,12 +419,6 @@ public abstract class AbstractChatTabController {
     }
   }
 
-
-  //FIXME: remove
-  public void log(String string) {
-    logger.warn(string);
-  }
-
   private void autoComplete() {
     TextInputControl messageTextField = getMessageTextField();
 
