@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
@@ -168,7 +169,7 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
 
     CountDownLatch filesUpdatedLatch = new CountDownLatch(1);
     filesToUpdate.addListener((Observable observable) -> {
-      updateProgress();
+      updateTitle(i18n.get("updatingGameTask.updatingFile", numberOfFilesToUpdate - filesToUpdate.size(), numberOfFilesToUpdate));
       if (filesToUpdate.isEmpty()) {
         filesUpdatedLatch.countDown();
       }
@@ -226,12 +227,6 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
         }
       }
     }
-  }
-
-  private void updateProgress() {
-    logger.trace("Updating progress to {}/{}", numberOfFilesToUpdate - filesToUpdate.size(), numberOfFilesToUpdate);
-    updateTitle(i18n.get("updatingGameTask.updatingFile", numberOfFilesToUpdate - filesToUpdate.size(), numberOfFilesToUpdate));
-    updateProgress(numberOfFilesToUpdate - filesToUpdate.size(), numberOfFilesToUpdate);
   }
 
   @Override
@@ -308,6 +303,8 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
     Files.createDirectories(targetFile.getParent());
     Path tempFile = targetFile.getParent().resolve(targetFile.getFileName().toString() + ".tmp");
 
+    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+
     try (InputStream inputStream = url.openStream();
          OutputStream outputStream = Files.newOutputStream(tempFile)) {
       ResourceLocks.acquireDownloadLock();
@@ -315,6 +312,7 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
       updateTitle(i18n.get("downloadingGamePatchTask.downloadingFile", url));
       ByteCopier.from(inputStream)
           .to(outputStream)
+          .totalBytes(urlConnection.getContentLength())
           .listener(this::updateProgress)
           .copy();
 

@@ -44,7 +44,7 @@ public final class Zipper {
     this.zipContent = zipContent;
     // 4K
     bufferSize = 0x1000;
-    byteCountInterval = 333;
+    byteCountInterval = 40;
   }
 
   public Zipper to(ZipOutputStream zipOutputStream) {
