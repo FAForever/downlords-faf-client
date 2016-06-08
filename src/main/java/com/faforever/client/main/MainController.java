@@ -54,7 +54,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -73,7 +72,6 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SplitMenuButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -94,14 +92,7 @@ import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.imageio.ImageIO;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -254,8 +245,6 @@ public class MainController implements OnChooseGameDirectoryListener {
   private Popup transientNotificationsPopup;
   private ITaskbarList3 taskBarList;
   private Pointer<Integer> taskBarRelatedPointer;
-  public static final int BADGE_ICON_SIZE = 14;
-  public static final int BADGE_FONT_HEIGHT_OFFSET = 3;
 
   @FXML
   void initialize() {
@@ -541,9 +530,7 @@ public class MainController implements OnChooseGameDirectoryListener {
     JavaFxUtil.assertApplicationThread();
 
     int numberOfNotifications = notifications.size();
-
-    updateApplicationIcon(numberOfNotifications);
-
+    themeService.setApplicationIconBadgeNumber(stage, numberOfNotifications);
     notificationsButton.setText(String.format(locale, "%d", numberOfNotifications));
 
     Severity highestSeverity = null;
@@ -556,41 +543,6 @@ public class MainController implements OnChooseGameDirectoryListener {
     notificationsButton.pseudoClassStateChanged(NOTIFICATION_INFO_PSEUDO_CLASS, highestSeverity == Severity.INFO);
     notificationsButton.pseudoClassStateChanged(NOTIFICATION_WARN_PSEUDO_CLASS, highestSeverity == Severity.WARN);
     notificationsButton.pseudoClassStateChanged(NOTIFICATION_ERROR_PSEUDO_CLASS, highestSeverity == Severity.ERROR);
-  }
-
-  private void updateApplicationIcon(int numberOfNotifications) {
-    if (numberOfNotifications == 0) {
-      Platform.runLater(() -> stage.getIcons().set(0, new Image(
-          getClass().getResourceAsStream("/images/tray_icon.png"))
-      ));
-    } else {
-      try {
-        BufferedImage appIcon = ImageIO.read(getClass().getResourceAsStream("/images/tray_icon.png"));
-        Graphics2D appIconGraphics = appIcon.createGraphics();
-        appIconGraphics.setRenderingHints(new RenderingHints(
-            RenderingHints.KEY_ANTIALIASING,
-            RenderingHints.VALUE_ANTIALIAS_ON));
-
-        appIconGraphics.setColor(Color.RED);
-        appIconGraphics.fillOval(appIcon.getWidth() - BADGE_ICON_SIZE - 1,
-            appIcon.getHeight() - BADGE_ICON_SIZE - 1, BADGE_ICON_SIZE, BADGE_ICON_SIZE);
-
-        appIconGraphics.setFont(new Font(Font.MONOSPACED, Font.BOLD, BADGE_ICON_SIZE));
-        String out = numberOfNotifications > 9 ? "+" : String.valueOf(numberOfNotifications);
-        int x = (appIcon.getWidth() - BADGE_ICON_SIZE - 1) +
-            ((BADGE_ICON_SIZE - appIconGraphics.getFontMetrics().stringWidth(out)) / 2);
-        int y = (appIcon.getHeight() - BADGE_FONT_HEIGHT_OFFSET);
-
-        appIconGraphics.setColor(Color.WHITE);
-
-        appIconGraphics.drawString(out, x, y);
-        WritableImage fxIcon = new WritableImage(appIcon.getWidth(), appIcon.getHeight());
-        SwingFXUtils.toFXImage(appIcon, fxIcon);
-        Platform.runLater(() -> stage.getIcons().set(0, fxIcon));
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
   }
 
   private void displayImmediateNotification(ImmediateNotification notification) {
