@@ -10,9 +10,9 @@ import com.faforever.client.user.UserService;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
@@ -36,7 +36,7 @@ public class UserMenuController {
   @FXML
   ImageView countryImageView;
   @FXML
-  Node userMenuRoot;
+  Pane userMenuRoot;
 
   @Resource
   PlayerService playerService;
@@ -51,7 +51,7 @@ public class UserMenuController {
   @Resource
   ApplicationContext applicationContext;
 
-  public Node getRoot() {
+  public Pane getRoot() {
     return userMenuRoot;
   }
 
@@ -75,6 +75,7 @@ public class UserMenuController {
   @FXML
   void onLogOutButtonClicked() {
     userService.logOut();
+    userMenuRoot.getScene().getWindow().hide();
   }
 
   @FXML
