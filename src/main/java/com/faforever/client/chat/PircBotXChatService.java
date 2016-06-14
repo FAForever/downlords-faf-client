@@ -15,7 +15,10 @@ import com.faforever.client.user.UserService;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.hash.Hashing;
 import javafx.application.Platform;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -82,7 +85,7 @@ public class PircBotXChatService implements ChatService {
   private final ObservableMap<String, Channel> channels;
   private final Map<String, ChatUser> chatUsersByName;
   private final ObjectProperty<ConnectionState> connectionState;
-
+  private final IntegerProperty unreadMessagesCount;
   @Resource
   PreferencesService preferencesService;
   @Resource
@@ -99,7 +102,6 @@ public class PircBotXChatService implements ChatService {
   NotificationService notificationService;
   @Resource
   ThreadPoolExecutor threadPoolExecutor;
-
   @Value("${irc.host}")
   String ircHost;
   @Value("${irc.port}")
@@ -108,7 +110,6 @@ public class PircBotXChatService implements ChatService {
   String defaultChannelName;
   @Value("${irc.reconnectDelay}")
   int reconnectDelay;
-
   private Configuration configuration;
   private PircBotX pircBotX;
   private CountDownLatch chatConnectedLatch;
@@ -119,6 +120,7 @@ public class PircBotXChatService implements ChatService {
     eventListeners = new ConcurrentHashMap<>();
     channels = observableHashMap();
     chatUsersByName = new HashMap<>();
+    unreadMessagesCount = new SimpleIntegerProperty();
   }
 
   @PostConstruct
@@ -500,5 +502,17 @@ public class PircBotXChatService implements ChatService {
   @Override
   public void whois(String username) {
     pircBotX.sendIRC().whois(username);
+  }
+
+  @Override
+  public void incrementUnreadMessagesCount(int delta) {
+    synchronized (unreadMessagesCount) {
+      unreadMessagesCount.set(unreadMessagesCount.get() + delta);
+    }
+  }
+
+  @Override
+  public ReadOnlyIntegerProperty unreadMessagesCount() {
+    return unreadMessagesCount;
   }
 }

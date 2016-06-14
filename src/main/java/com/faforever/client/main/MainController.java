@@ -340,6 +340,10 @@ public class MainController implements OnChooseGameDirectoryListener {
     // We need to initialize all skins, so initially add the chat root to the scene graph.
     setContent(chatController.getRoot());
 
+    chatService.unreadMessagesCount().addListener((observable, oldValue, newValue) -> {
+      themeService.setApplicationIconBadgeNumber(stage, newValue.intValue());
+    });
+
     fafService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       Platform.runLater(() -> {
         switch (newValue) {
@@ -529,9 +533,7 @@ public class MainController implements OnChooseGameDirectoryListener {
   private void updateNotificationsButton(Collection<? extends PersistentNotification> notifications) {
     JavaFxUtil.assertApplicationThread();
 
-    int numberOfNotifications = notifications.size();
-    themeService.setApplicationIconBadgeNumber(stage, numberOfNotifications);
-    notificationsButton.setText(String.format(locale, "%d", numberOfNotifications));
+    notificationsButton.setText(String.format(locale, "%d", notifications.size()));
 
     Severity highestSeverity = null;
     for (PersistentNotification notification : notifications) {

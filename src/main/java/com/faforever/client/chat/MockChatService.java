@@ -6,7 +6,10 @@ import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.MapChangeListener;
 import javafx.concurrent.Task;
@@ -37,8 +40,8 @@ public class MockChatService implements ChatService {
   private final Collection<Consumer<ChatMessage>> onChatMessageListeners;
   private final Collection<Consumer<ChatMessage>> onPrivateChatMessageListeners;
   private final Map<String, Channel> channelUserListListeners;
-
   private final ObjectProperty<ConnectionState> connectionState;
+  private final IntegerProperty unreadMessagesCount;
 
   @Resource
   UserService userService;
@@ -49,6 +52,7 @@ public class MockChatService implements ChatService {
 
   public MockChatService() {
     connectionState = new SimpleObjectProperty<>();
+    unreadMessagesCount = new SimpleIntegerProperty();
 
     onChatMessageListeners = new ArrayList<>();
     onPrivateChatMessageListeners = new ArrayList<>();
@@ -210,5 +214,17 @@ public class MockChatService implements ChatService {
   @Override
   public void whois(String username) {
 
+  }
+
+  @Override
+  public void incrementUnreadMessagesCount(int delta) {
+    synchronized (unreadMessagesCount) {
+      unreadMessagesCount.set(unreadMessagesCount.get() + delta);
+    }
+  }
+
+  @Override
+  public ReadOnlyIntegerProperty unreadMessagesCount() {
+    return unreadMessagesCount;
   }
 }

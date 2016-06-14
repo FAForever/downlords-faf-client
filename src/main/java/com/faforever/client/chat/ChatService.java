@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.net.ConnectionState;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.collections.MapChangeListener;
 import org.pircbotx.User;
 
@@ -52,4 +53,13 @@ public interface ChatService {
   void reconnect();
 
   void whois(String username);
+
+  /**
+   * Increase or decrease the number of unread messages.
+   *
+   * @param delta a positive or negative number
+   */
+  void incrementUnreadMessagesCount(int delta);
+
+  ReadOnlyIntegerProperty unreadMessagesCount();
 }

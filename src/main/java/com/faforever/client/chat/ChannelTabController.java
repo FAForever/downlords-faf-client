@@ -239,6 +239,11 @@ public class ChannelTabController extends AbstractChatTabController {
     children.add(chatUserItemRoot);
   }
 
+  @Override
+  public Tab getRoot() {
+    return channelTabRoot;
+  }
+
   @PostConstruct
   void postConstruct() {
     super.postConstruct();
@@ -250,11 +255,6 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @Override
-  public Tab getRoot() {
-    return channelTabRoot;
-  }
-
-  @Override
   protected TextInputControl getMessageTextField() {
     return messageTextField;
   }
@@ -262,6 +262,16 @@ public class ChannelTabController extends AbstractChatTabController {
   @Override
   protected WebView getMessagesWebView() {
     return messagesWebView;
+  }
+
+  @Override
+  protected void onMention(ChatMessage chatMessage) {
+    if (!hasFocus()) {
+      audioController.playChatMentionSound();
+      showNotificationIfNecessary(chatMessage);
+      incrementUnreadMessagesCount(1);
+      setUnread(true);
+    }
   }
 
   @Override
