@@ -260,7 +260,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
     String cookie = Joiner.on("").join(loginResponse.getHeaders().get("set-cookie"));
 
-    postData = "allow".getBytes(StandardCharsets.UTF_8);
+    postData = "allow=yes".getBytes(StandardCharsets.UTF_8);
     postDataLength = postData.length;
 
     ClientHttpRequest authorizeRequest = clientHttpRequestFactory.createRequest(fixedAuthorizationUri, HttpMethod.POST);
@@ -270,12 +270,13 @@ public class FafApiAccessorImpl implements FafApiAccessor {
       outputStream.write(postData);
     }
     ClientHttpResponse authorizeResponse = authorizeRequest.execute();
+    URI redirectLocation = authorizeResponse.getHeaders().getLocation();
 
-    if (!authorizeResponse.getStatusCode().is3xxRedirection()) {
+    if (!authorizeResponse.getStatusCode().is3xxRedirection()
+        || !redirectLocation.toString().contains("code=")) {
       throw new RuntimeException("Could not authorize (" + authorizeResponse.getStatusCode() + ")");
     }
 
-    URI redirectLocation = authorizeResponse.getHeaders().getLocation();
     String code = UriComponentsBuilder.fromUri(redirectLocation).build().getQueryParams().get("code").get(0);
 
     TokenResponse tokenResponse = flow.newTokenRequest(code).setRedirectUri(redirectUri).execute();
