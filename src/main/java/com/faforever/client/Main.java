@@ -10,6 +10,7 @@ import com.faforever.client.fx.JavaFxHostService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.theme.ThemeService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Application;
 import javafx.scene.image.Image;
@@ -33,7 +34,7 @@ public class Main extends Application {
     JavaFxUtil.fixTooltipDuration();
 
     initApplicationContext(stage);
-    initStage(stage);
+    initStage(stage, context.getBean(ThemeService.class));
     initMainWindow(stage);
   }
 
@@ -45,8 +46,8 @@ public class Main extends Application {
     context.refresh();
   }
 
-  private void initStage(Stage stage) {
-    stage.getIcons().add(new Image("/images/tray_icon.png"));
+  private void initStage(Stage stage, ThemeService themeService) {
+    stage.getIcons().add(new Image(themeService.getThemeFile(ThemeService.TRAY_ICON)));
     stage.initStyle(StageStyle.TRANSPARENT);
   }
 

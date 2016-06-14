@@ -132,6 +132,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.imageUploadService = imageUploadService;
     instance.notificationService = notificationService;
     instance.i18n = i18n;
+    instance.stage = stage;
 
     TabPane tabPane = new TabPane(instance.getRoot());
     getRoot().getChildren().setAll(tabPane);

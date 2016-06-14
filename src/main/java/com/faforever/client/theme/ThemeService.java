@@ -2,6 +2,7 @@ package com.faforever.client.theme;
 
 import javafx.scene.Scene;
 import javafx.scene.web.WebView;
+import javafx.stage.Stage;
 
 import java.net.URL;
 import java.util.Collection;
@@ -19,6 +20,7 @@ public interface ThemeService {
   String MENTION_SOUND = "sounds/mention.mp3";
   String CSS_CLASS_FONTAWESOME = "fontawesome";
   String RANKED_1V1_IMAGE = "images/ranked1v1_notification.png";
+  String TRAY_ICON = "images/tray_icon.png";
 
   String getThemeFile(String relativeFile);
 
@@ -41,4 +43,14 @@ public interface ThemeService {
   void loadThemes();
 
   Collection<Theme> getAvailableThemes();
+
+  /**
+   * Sets the application badge number to display on the application icon. An application badge is a small indicator
+   * (e.g. a red circle) with a number on it, which indicates the number of (for instance) new messages or
+   * notifications.
+   *
+   * @param stage
+   * @param number the new badge number. If 0, the badge will be removed.
+   */
+  void setApplicationIconBadgeNumber(Stage stage, int number);
 }

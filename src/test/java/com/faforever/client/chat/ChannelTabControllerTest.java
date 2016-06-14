@@ -18,6 +18,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -66,6 +67,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private ThreadPoolExecutor threadPoolExecutor;
   @Mock
   private FilterUserController filterUserController;
+  @Mock
+  private Stage stage;
 
   private ChannelTabController instance;
   private ObjectProperty<ChatColorMode> chatColorModeProperty;
@@ -84,6 +87,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     instance.i18n = i18n;
     instance.threadPoolExecutor = threadPoolExecutor;
     instance.filterUserController = filterUserController;
+    instance.stage = getStage();
 
     chatColorModeProperty = new SimpleObjectProperty<>(ChatColorMode.DEFAULT);
 
