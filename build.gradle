@@ -76,7 +76,7 @@ def httpRequest(Method method, String url, onSuccess) {
 
 def buildReleaseBody() {
   def GITHUB_BASE_URL = "https://api.github.com/repos/FAForever/downlords-faf-client"
-  def versionString = "v" + project.version
+  def versionString = project.version
 
   def milestones
   httpRequest(Method.GET, "${GITHUB_BASE_URL}/milestones?state=all", { resp, json ->
