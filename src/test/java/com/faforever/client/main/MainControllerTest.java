@@ -42,8 +42,10 @@ import com.faforever.client.theme.ThemeService;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
@@ -154,6 +156,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private SimpleObjectProperty<ConnectionState> connectionStateProperty;
   private SimpleObjectProperty<ConnectivityState> connectivityStateProperty;
   private ObjectProperty<ConnectionState> chatConnectionStateProperty;
+  private IntegerProperty chatUnreadMessagesCountProperty;
   private BooleanProperty loggedInProperty;
   private BooleanProperty gameRunningProperty;
 
@@ -199,6 +202,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     chatConnectionStateProperty = new SimpleObjectProperty<>();
     loggedInProperty = new SimpleBooleanProperty();
     gameRunningProperty = new SimpleBooleanProperty();
+    chatUnreadMessagesCountProperty = new SimpleIntegerProperty();
 
     when(chatController.getRoot()).thenReturn(new Pane());
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
@@ -223,6 +227,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(connectivityService.checkConnectivity()).thenReturn(CompletableFuture.completedFuture(null));
     when(connectivityService.connectivityStateProperty()).thenReturn(connectivityStateProperty);
     when(chatService.connectionStateProperty()).thenReturn(chatConnectionStateProperty);
+    when(chatService.unreadMessagesCount()).thenReturn(chatUnreadMessagesCountProperty);
     when(userService.loggedInProperty()).thenReturn(loggedInProperty);
     when(gameService.gameRunningProperty()).thenReturn(gameRunningProperty);
 

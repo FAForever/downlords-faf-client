@@ -244,7 +244,7 @@ public class MainController implements OnChooseGameDirectoryListener {
   private ChangeListener<Boolean> windowFocusListener;
   private Popup transientNotificationsPopup;
   private ITaskbarList3 taskBarList;
-  private Pointer taskBarRelatedPointer;
+  private Pointer<Integer> taskBarRelatedPointer;
 
   @FXML
   void initialize() {
@@ -339,6 +339,10 @@ public class MainController implements OnChooseGameDirectoryListener {
   void postConstruct() {
     // We need to initialize all skins, so initially add the chat root to the scene graph.
     setContent(chatController.getRoot());
+
+    chatService.unreadMessagesCount().addListener((observable, oldValue, newValue) -> {
+      themeService.setApplicationIconBadgeNumber(stage, newValue.intValue());
+    });
 
     fafService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       Platform.runLater(() -> {
@@ -529,8 +533,7 @@ public class MainController implements OnChooseGameDirectoryListener {
   private void updateNotificationsButton(Collection<? extends PersistentNotification> notifications) {
     JavaFxUtil.assertApplicationThread();
 
-    int numberOfNotifications = notifications.size();
-    notificationsButton.setText(String.format(locale, "%d", numberOfNotifications));
+    notificationsButton.setText(String.format(locale, "%d", notifications.size()));
 
     Severity highestSeverity = null;
     for (PersistentNotification notification : notifications) {

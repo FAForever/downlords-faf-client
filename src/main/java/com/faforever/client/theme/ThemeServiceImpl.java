@@ -7,8 +7,12 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
 import javafx.scene.web.WebView;
+import javafx.stage.Stage;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +21,11 @@ import org.springframework.core.io.ClassPathResource;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -32,6 +41,7 @@ import java.nio.file.WatchService;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -39,14 +49,18 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.faforever.client.preferences.Preferences.DEFAULT_THEME_NAME;
 import static com.github.nocatch.NoCatch.noCatch;
+import static java.awt.RenderingHints.KEY_ANTIALIASING;
+import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import static javax.imageio.ImageIO.read;
 
 public class ThemeServiceImpl implements ThemeService {
 
+  public static final int BADGE_ICON_PADDING = 1;
+  public static final int BADGE_ICON_SIZE = 18;
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   /**
    * This value needs to be updated whenever theme-breaking changes were made to the client.
    */
@@ -63,10 +77,14 @@ public class ThemeServiceImpl implements ThemeService {
   private static final String DEFAULT_BASE_URL = "/theme/";
   private final Set<Scene> scenes;
   private final Set<WebView> webViews;
+
   @Resource
   PreferencesService preferencesService;
   @Resource
   ThreadPoolExecutor threadPoolExecutor;
+  @Resource
+  Locale locale;
+
   private WatchService watchService;
   private ObservableMap<String, Theme> themesByFolderName;
   private Map<Theme, String> folderNamesByTheme;
@@ -187,6 +205,10 @@ public class ThemeServiceImpl implements ThemeService {
     webViews.forEach(webView -> setStyleSheet(webView, getWebViewStyleSheet()));
   }
 
+  private void setStyleSheet(Scene scene, String styleSheet) {
+    Platform.runLater(() -> scene.getStylesheets().setAll(styleSheet));
+  }
+
   @Override
   public String getThemeFile(String relativeFile) {
     Path externalFile = getThemeDirectory(currentTheme.get()).resolve(relativeFile);
@@ -194,10 +216,6 @@ public class ThemeServiceImpl implements ThemeService {
       return noCatch(() -> new ClassPathResource(DEFAULT_BASE_URL + relativeFile).getURL().toString());
     }
     return noCatch(() -> externalFile.toUri().toURL().toString());
-  }
-
-  private void setStyleSheet(Scene scene, String styleSheet) {
-    Platform.runLater(() -> scene.getStylesheets().setAll(styleSheet));
   }
 
 
@@ -255,6 +273,44 @@ public class ThemeServiceImpl implements ThemeService {
   @Override
   public Collection<Theme> getAvailableThemes() {
     return themesByFolderName.values();
+  }
+
+  @Override
+  // TODO make this supporting multiple resolutions
+  public void setApplicationIconBadgeNumber(Stage stage, int number) {
+    if (number == 0) {
+      Platform.runLater(() -> stage.getIcons().set(0, new Image(getThemeFile(TRAY_ICON))));
+      return;
+    }
+
+    BufferedImage appIcon = noCatch(() -> read(getThemeFileUrl(TRAY_ICON)));
+    Graphics2D appIconGraphics = appIcon.createGraphics();
+    appIconGraphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, (int) (BADGE_ICON_SIZE * .8)));
+    appIconGraphics.setRenderingHints(new RenderingHints(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON));
+    appIconGraphics.setColor(new Color(255, 102, 102));
+    int badgeIconSize = BADGE_ICON_SIZE + 2 * BADGE_ICON_PADDING;
+    appIconGraphics.fillOval(
+        appIcon.getWidth() - BADGE_ICON_SIZE - 2 * BADGE_ICON_PADDING,
+        appIcon.getHeight() - BADGE_ICON_SIZE - 2 * BADGE_ICON_PADDING,
+        badgeIconSize,
+        badgeIconSize
+    );
+
+    String numberText;
+    if (number < 10) {
+      numberText = String.format(locale, "%d", number);
+    } else {
+      numberText = String.format(locale, "%d+", 9);
+    }
+
+    int numberX = appIcon.getWidth() - badgeIconSize / 2 - appIconGraphics.getFontMetrics().stringWidth(numberText) / 2;
+    int numberY = appIcon.getHeight() - badgeIconSize / 2 + (appIconGraphics.getFontMetrics().getAscent() - appIconGraphics.getFontMetrics().getDescent()) / 2;
+
+    appIconGraphics.setColor(Color.WHITE);
+    appIconGraphics.drawString(numberText, numberX, numberY);
+    WritableImage fxIcon = new WritableImage(appIcon.getWidth(), appIcon.getHeight());
+    SwingFXUtils.toFXImage(appIcon, fxIcon);
+    Platform.runLater(() -> stage.getIcons().set(0, fxIcon));
   }
 
   private Path getThemeDirectory(Theme theme) {

@@ -27,10 +27,17 @@ import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
+import com.sun.javafx.scene.control.skin.TabPaneSkin;
 import javafx.application.Platform;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.concurrent.Worker;
+import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -76,6 +83,7 @@ import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.faforever.client.chat.SocialStatus.SELF;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
+import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
 
 /**
  * A chat tab displays messages in a {@link WebView}. The WebView is used since text on a JavaFX canvas isn't
@@ -85,8 +93,8 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
 public abstract class AbstractChatTabController {
 
   protected static final String CSS_CLASS_CHAT_ONLY = "chat_only";
+  private static final PseudoClass UNREAD_PSEUDO_STATE = PseudoClass.getPseudoClass("unread");
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   private static final org.springframework.core.io.Resource CHAT_HTML_RESOURCE = new ClassPathResource("/theme/chat_container.html");
   private static final org.springframework.core.io.Resource CHAT_JS_RESOURCE = new ClassPathResource("/js/chat_container.js");
   private static final org.springframework.core.io.Resource AUTOLINKER_JS_RESOURCE = new ClassPathResource("/js/Autolinker.min.js");
@@ -107,8 +115,12 @@ public abstract class AbstractChatTabController {
    */
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
+  /**
+   * Messages that arrived before the web view was ready. Those are appended as soon as it is ready.
+   */
   private final List<ChatMessage> waitingMessages;
-
+  private final IntegerProperty unreadMessagesCount;
+  private final ChangeListener<Boolean> resetUnreadMessagesListener;
   @Resource
   UserService userService;
   @Resource
@@ -143,7 +155,6 @@ public abstract class AbstractChatTabController {
   MainController mainController;
   @Resource
   ThemeService themeService;
-
   private boolean isChatReady;
   private WebEngine engine;
   private double lastMouseX;
@@ -156,7 +167,6 @@ public abstract class AbstractChatTabController {
    * Either a channel like "#aeolus" or a user like "Visionik".
    */
   private String receiver;
-
   /**
    * Stores possible values for autocompletion (when strted typing a name, then pressing TAB). This value needs to be
    * set to {@code null} after the message has been sent or the caret has been moved in order to restart the
@@ -168,9 +178,65 @@ public abstract class AbstractChatTabController {
   private Pattern mentionPattern;
   private Popup playerCardTooltip;
   private Tooltip linkPreviewTooltip;
+  private ChangeListener<Boolean> stageFocusedListener;
 
   public AbstractChatTabController() {
     waitingMessages = new ArrayList<>();
+    unreadMessagesCount = new SimpleIntegerProperty();
+    resetUnreadMessagesListener = (observable, oldValue, newValue) -> {
+      if (hasFocus()) {
+        setUnread(false);
+      }
+    };
+  }
+
+  /**
+   * Returns true if this chat tab is currently focused by the user. Returns false if a different tab is selected, the
+   * user is not in "chat" or if the window has no focus.
+   */
+  protected boolean hasFocus() {
+    if (!getRoot().isSelected()) {
+      return false;
+    }
+
+    TabPane tabPane = getRoot().getTabPane();
+    return tabPane != null
+        && JavaFxUtil.isVisibleRecursively(tabPane)
+        && tabPane.getScene().getWindow().isFocused()
+        && tabPane.getScene().getWindow().isShowing();
+
+  }
+
+  protected void setUnread(boolean unread) {
+    TabPane tabPane = getRoot().getTabPane();
+    if (tabPane == null) {
+      return;
+    }
+    TabPaneSkin skin = (TabPaneSkin) tabPane.getSkin();
+    if (skin == null) {
+      return;
+    }
+    int tabIndex = tabPane.getTabs().indexOf(getRoot());
+    if (tabIndex == -1) {
+      // Tab has been closed
+      return;
+    }
+    Node tab = (Node) skin.queryAccessibleAttribute(ITEM_AT_INDEX, tabIndex);
+    tab.pseudoClassStateChanged(UNREAD_PSEUDO_STATE, unread);
+
+    if (!unread) {
+      synchronized (unreadMessagesCount) {
+        unreadMessagesCount.setValue(0);
+      }
+    }
+  }
+
+  public abstract Tab getRoot();
+
+  protected void incrementUnreadMessagesCount(int delta) {
+    synchronized (unreadMessagesCount) {
+      unreadMessagesCount.set(unreadMessagesCount.get() + delta);
+    }
   }
 
   public void setReceiver(String receiver) {
@@ -185,6 +251,12 @@ public abstract class AbstractChatTabController {
 
     addFocusListeners();
     addImagePasteListener();
+
+    unreadMessagesCount.addListener((observable, oldValue, newValue) -> {
+      chatService.incrementUnreadMessagesCount(newValue.intValue() - oldValue.intValue());
+    });
+    stage.focusedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
+    getRoot().selectedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
   }
 
   /**
@@ -204,16 +276,13 @@ public abstract class AbstractChatTabController {
       if (newTabPane == null) {
         return;
       }
-      newTabPane.sceneProperty().addListener((tabPane1, oldScene, newScene) -> {
-        if (newScene == null || newScene.getWindow() == null) {
-          return;
+      stageFocusedListener = (window, windowFocusOld, windowFocusNew) -> {
+        if (newTabPane.isVisible()) {
+          getMessageTextField().requestFocus();
         }
-        newScene.getWindow().focusedProperty().addListener((window, windowFocusOld, windowFocusNew) -> {
-          if (newTabPane.isVisible()) {
-            getMessageTextField().requestFocus();
-          }
-        });
-      });
+      };
+      stage.focusedProperty().addListener(new WeakChangeListener<>(stageFocusedListener));
+
       newTabPane.focusedProperty().addListener((focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
         if (newTabPaneFocus) {
           getMessageTextField().requestFocus();
@@ -231,8 +300,6 @@ public abstract class AbstractChatTabController {
       }
     });
   }
-
-  public abstract Tab getRoot();
 
   protected abstract TextInputControl getMessageTextField();
 
@@ -419,12 +486,7 @@ public abstract class AbstractChatTabController {
     }
   }
 
-
-  //FIXME: remove
-  public void log(String string) {
-    logger.warn(string);
-  }
-
+  // TODO extract to helper class
   private void autoComplete() {
     TextInputControl messageTextField = getMessageTextField();
 
@@ -592,10 +654,7 @@ public abstract class AbstractChatTabController {
       Matcher matcher = mentionPattern.matcher(text);
       if (matcher.find()) {
         text = matcher.replaceAll("<span class='self'>" + matcher.group(1) + "</span>");
-        if (!hasFocus()) {
-          audioController.playChatMentionSound();
-          showNotificationIfNecessary(chatMessage);
-        }
+        onMention(chatMessage);
       }
 
       String timeString = timeService.asShortTime(chatMessage.getTime());
@@ -624,10 +683,13 @@ public abstract class AbstractChatTabController {
       html = html.replace("{inline-style}", getInlineStyle(login));
 
       addToMessageContainer(html);
-
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  protected void onMention(ChatMessage chatMessage) {
+    // Default implementation does nothing
   }
 
   protected void showNotificationIfNecessary(ChatMessage chatMessage) {
@@ -698,22 +760,5 @@ public abstract class AbstractChatTabController {
   private void addToMessageContainer(String html) {
     ((JSObject) engine.executeScript("document.getElementById('" + MESSAGE_CONTAINER_ID + "')"))
         .call("insertAdjacentHTML", "beforeend", html);
-  }
-
-  /**
-   * Returns true if this chat tab is currently focused by the user. Returns false if a different tab is selected, the
-   * user is not in "chat" or if the window has no focus.
-   */
-  protected boolean hasFocus() {
-    if (!getRoot().isSelected()) {
-      return false;
-    }
-
-    TabPane tabPane = getRoot().getTabPane();
-    return tabPane != null
-        && JavaFxUtil.isVisibleRecursively(tabPane)
-        && tabPane.getScene().getWindow().isFocused()
-        && tabPane.getScene().getWindow().isShowing();
-
   }
 }

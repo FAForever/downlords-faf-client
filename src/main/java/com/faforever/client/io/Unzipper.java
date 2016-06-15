@@ -33,7 +33,7 @@ public final class Unzipper {
     this.zipInputStream = zipInputStream;
     // 4K
     bufferSize = 0x1000;
-    byteCountInterval = 333;
+    byteCountInterval = 40;
   }
 
   public Unzipper to(Path targetDirectory) {

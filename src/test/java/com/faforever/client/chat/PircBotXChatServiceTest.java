@@ -257,10 +257,16 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(user2.compareTo(user1)).thenReturn(1);
 
     connect();
-    CompletableFuture<ChatUser> usersJoinedFuture = listenForUserJoined(defaultChannel);
-    firePircBotXEvent(new UserListEvent(pircBotX, defaultChannel, ImmutableSortedSet.of(user1, user2), true));
-    usersJoinedFuture.get(TIMEOUT, TIMEOUT_UNIT);
+    CountDownLatch usersJoinedLatch = new CountDownLatch(2);
+    instance.addUsersListener(channel.getName(), change -> {
+      if (change.wasAdded()) {
+        usersJoinedLatch.countDown();
+      }
+    });
 
+    firePircBotXEvent(new UserListEvent(pircBotX, defaultChannel, ImmutableSortedSet.of(user1, user2), true));
+
+    assertTrue(usersJoinedLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(channel.getUsers(), hasSize(2));
     assertThat(channel.getUser(chatUser1.getUsername()), sameInstance(chatUser1));
     assertThat(channel.getUser(chatUser2.getUsername()), sameInstance(chatUser2));
@@ -286,16 +292,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     socialMessage.setChannels(Collections.singletonList(DEFAULT_CHANNEL_NAME));
 
     socialMessageListenerCaptor.getValue().accept(socialMessage);
-  }
-
-  private CompletableFuture<ChatUser> listenForUserJoined(org.pircbotx.Channel channel) {
-    CompletableFuture<ChatUser> future = new CompletableFuture<>();
-    instance.addUsersListener(channel.getName(), change -> {
-      if (change.wasAdded()) {
-        future.complete(change.getValueAdded());
-      }
-    });
-    return future;
   }
 
   private void firePircBotXEvent(Event event) {
@@ -331,6 +327,16 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     CompletableFuture<ChatUser> future = listenForUserJoined(channel);
     firePircBotXEvent(createJoinEvent(channel, user));
     future.get(TIMEOUT, TIMEOUT_UNIT);
+  }
+
+  private CompletableFuture<ChatUser> listenForUserJoined(org.pircbotx.Channel channel) {
+    CompletableFuture<ChatUser> future = new CompletableFuture<>();
+    instance.addUsersListener(channel.getName(), change -> {
+      if (change.wasAdded()) {
+        future.complete(change.getValueAdded());
+      }
+    });
+    return future;
   }
 
   @NotNull

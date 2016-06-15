@@ -23,7 +23,7 @@ public final class ByteCopier {
     this.inputStream = inputStream;
     // 4K
     bufferSize = 0x1000;
-    byteCountInterval = 333;
+    byteCountInterval = 40;
   }
 
   public ByteCopier to(OutputStream outputStream) {
