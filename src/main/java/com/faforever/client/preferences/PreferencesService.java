@@ -164,13 +164,13 @@ public class PreferencesService {
 
   private void notifyMissingGamePath() {
     List<Action> actions = Collections.singletonList(
-        new Action(i18n.get("missingGamePath.locate"), event -> letUserChoseGameDirectory())
+        new Action(i18n.get("missingGamePath.locate"), event -> letUserChooseGameDirectory())
     );
 
     notificationService.addNotification(new PersistentNotification(i18n.get("missingGamePath.notification"), Severity.WARN, actions));
   }
 
-  public CompletableFuture<Boolean> letUserChoseGameDirectory() {
+  public CompletableFuture<Boolean> letUserChooseGameDirectory() {
     if (onChooseGameDirectoryListener == null) {
       throw new IllegalStateException("No listener has been specified");
     }

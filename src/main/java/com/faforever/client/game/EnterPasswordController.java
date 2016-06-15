@@ -1,28 +1,47 @@
 package com.faforever.client.game;
 
 import javafx.fxml.FXML;
-import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Region;
 
 public class EnterPasswordController {
 
-  public interface OnPasswordEnteredListener {
+  interface OnPasswordEnteredListener {
 
-    void onPasswordEntered(GameInfoBean gameInfoBean, String password, double screenX, double screenY);
+    void onPasswordEntered(GameInfoBean gameInfoBean, String password, boolean ignoreRating);
   }
 
   @FXML
-  Node enterPasswordRoot;
+  Label loginErrorLabel;
   @FXML
-  TextField passwordTextField;
+  Label titleLabel;
+  @FXML
+  TextField passwordField;
+  @FXML
+  ButtonBar buttonBar;
+  @FXML
+  Region enterPasswordRoot;
+  @FXML
+  Button joinButton;
+  @FXML
+  Button cancelButton;
   private OnPasswordEnteredListener listener;
   private GameInfoBean gameInfoBean;
 
-  public Node getRoot() {
-    return enterPasswordRoot;
+
+  private boolean ignoreRating;
+
+  @FXML
+  void initialize() {
+    loginErrorLabel.setVisible(false); // ToDo: manage negative logins
+    loginErrorLabel.managedProperty().bind(loginErrorLabel.visibleProperty());
+    joinButton.disableProperty().bind(passwordField.textProperty().isEmpty());
   }
 
-  public void setOnPasswordEnteredListener(OnPasswordEnteredListener listener) {
+  void setOnPasswordEnteredListener(OnPasswordEnteredListener listener) {
     if (this.listener != null) {
       throw new IllegalStateException("Listener has already been set");
     }
@@ -30,14 +49,28 @@ public class EnterPasswordController {
   }
 
   @FXML
-  void onPasswordEntered() {
+  void onJoinButtonClicked() {
     if (listener == null) {
       throw new IllegalStateException("No listener has been set");
     }
-    listener.onPasswordEntered(gameInfoBean, passwordTextField.getText(), 0, 0);
+    listener.onPasswordEntered(gameInfoBean, passwordField.getText(), ignoreRating);
+    getRoot().getScene().getWindow().hide();
+  }
+
+  public Region getRoot() {
+    return enterPasswordRoot;
+  }
+
+  @FXML
+  void onCancelButtonClicked() {
+    getRoot().getScene().getWindow().hide();
   }
 
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
     this.gameInfoBean = gameInfoBean;
+  }
+
+  public void setIgnoreRating(boolean ignoreRating) {
+    this.ignoreRating = ignoreRating;
   }
 }
