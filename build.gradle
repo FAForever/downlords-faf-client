@@ -205,8 +205,8 @@ task githubRelease(type: ReleaseTask, overwrite: true) {
       owner = 'FAForever'
       repo = 'downlords-faf-client'
       token = System.properties['githubAccessToken']
-      tagName = "v" + project.version
-      name = "v" + project.version
+      tagName = project.version
+      name = project.version
       prerelease = project.version =~ /alpha|beta|RC/
       body = buildReleaseBody()
       assets = buildAssetList()
