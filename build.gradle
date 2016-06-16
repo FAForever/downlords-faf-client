@@ -38,7 +38,7 @@ apply plugin: 'distribution'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-version = 'v0.6.12-alpha'
+version = '0.6.12-alpha'
 
 class HttpBuilder extends HTTPBuilder {
 
@@ -76,7 +76,7 @@ def httpRequest(Method method, String url, onSuccess) {
 
 def buildReleaseBody() {
   def GITHUB_BASE_URL = "https://api.github.com/repos/FAForever/downlords-faf-client"
-  def versionString = project.version
+  def versionString = "v" + project.version
 
   def milestones
   httpRequest(Method.GET, "${GITHUB_BASE_URL}/milestones?state=all", { resp, json ->
@@ -205,8 +205,8 @@ task githubRelease(type: ReleaseTask, overwrite: true) {
       owner = 'FAForever'
       repo = 'downlords-faf-client'
       token = System.properties['githubAccessToken']
-      tagName = project.version
-      name = project.version
+      tagName = "v" + project.version
+      name = "v" + project.version
       prerelease = project.version =~ /alpha|beta|RC/
       body = buildReleaseBody()
       assets = buildAssetList()
