@@ -1,11 +1,21 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fx.WindowController;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.stage.Window;
+import org.springframework.context.ApplicationContext;
+
+import javax.annotation.Resource;
+
+import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 
 public class EnterPasswordController {
 
@@ -13,6 +23,9 @@ public class EnterPasswordController {
 
     void onPasswordEntered(GameInfoBean gameInfoBean, String password, boolean ignoreRating);
   }
+
+  @Resource
+  ApplicationContext applicationContext;
 
   @FXML
   Label loginErrorLabel;
@@ -72,5 +85,16 @@ public class EnterPasswordController {
 
   public void setIgnoreRating(boolean ignoreRating) {
     this.ignoreRating = ignoreRating;
+  }
+
+  public void showPasswordDialog(Window owner) {
+    Stage userInfoWindow = new Stage(StageStyle.TRANSPARENT);
+    userInfoWindow.initModality(Modality.NONE);
+    userInfoWindow.initOwner(owner);
+
+    WindowController windowController = applicationContext.getBean(WindowController.class);
+    windowController.configure(userInfoWindow, getRoot(), true, CLOSE);
+
+    userInfoWindow.show();
   }
 }

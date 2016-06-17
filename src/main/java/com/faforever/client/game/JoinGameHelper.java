@@ -1,7 +1,6 @@
 package com.faforever.client.game;
 
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
@@ -15,9 +14,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.RatingUtil;
 import javafx.scene.Node;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -27,7 +23,6 @@ import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.util.Objects;
 
-import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 import static com.faforever.client.notification.Severity.ERROR;
 import static java.util.Arrays.asList;
 
@@ -93,7 +88,7 @@ public class JoinGameHelper {
     if (gameInfoBean.getPasswordProtected() && password == null) {
       enterPasswordController.setGameInfoBean(gameInfoBean);
       enterPasswordController.setIgnoreRating(ignoreRating);
-      showPasswordDialog();
+      enterPasswordController.showPasswordDialog(parentNode.getScene().getWindow());
     } else {
       gameService.joinGame(gameInfoBean, password)
           .exceptionally(throwable -> {
@@ -108,17 +103,6 @@ public class JoinGameHelper {
             return null;
           });
     }
-  }
-
-  private void showPasswordDialog() {
-    Stage userInfoWindow = new Stage(StageStyle.TRANSPARENT);
-    userInfoWindow.initModality(Modality.NONE);
-    userInfoWindow.initOwner(parentNode.getScene().getWindow());
-
-    WindowController windowController = applicationContext.getBean(WindowController.class);
-    windowController.configure(userInfoWindow, enterPasswordController.getRoot(), true, CLOSE);
-
-    userInfoWindow.show();
   }
 
   private void showRatingOutOfBoundsConfirmation(int playerRating, GameInfoBean gameInfoBean, String password) {
