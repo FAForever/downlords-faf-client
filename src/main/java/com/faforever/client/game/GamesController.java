@@ -159,8 +159,8 @@ public class GamesController {
 
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
       preferencesService.letUserChooseGameDirectory()
-          .thenAccept(isPathValid -> {
-            if (isPathValid != null && !isPathValid) {
+          .thenAccept(path -> {
+            if (path != null) {
               onCreateGameButtonClicked(actionEvent);
             }
           });

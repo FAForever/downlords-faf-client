@@ -17,11 +17,12 @@ import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -80,9 +81,9 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
 
     when(gameService.joinGame(any(), any())).thenReturn(new CompletableFuture<Void>());
 
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
-    when(forgedAlliancePrefs.getPath()).thenReturn(path);
+    when(preferencesService.isGamePathValid()).thenReturn(true);
+
+    instance.postConstruct();
   }
 
 
@@ -99,13 +100,33 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
    * Ensure that the user is allowed to choose the GameDirectory if no path is provided
    */
   @Test
-  public void testJoinGameInvalidGamePath() throws Exception {
-    when(forgedAlliancePrefs.getPath()).thenReturn(null);
-    when(preferencesService.letUserChooseGameDirectory()).thenReturn(new CompletableFuture<Boolean>());
+  public void testJoinGameMissingGamePathUserSelectsValidPath() throws Exception {
+    when(preferencesService.isGamePathValid()).thenReturn(false).thenReturn(true);
+    when(preferencesService.letUserChooseGameDirectory()).thenReturn(CompletableFuture.completedFuture(Paths.get("")));
+
     instance.join(gameInfoBean);
-    verify(preferencesService, atLeastOnce()).letUserChooseGameDirectory();
+
+    verify(preferencesService, times(1)).letUserChooseGameDirectory();
+    verify(gameService).joinGame(any(), any());
   }
 
+  /**
+   * Ensure that the user is allowed to choose the GameDirectory if no path is provided
+   */
+  @Test
+  public void testJoinGameMissingGamePathUserSelectsInvalidPath() throws Exception {
+    when(preferencesService.isGamePathValid()).thenReturn(false);
+
+    // First, user selects invalid path. Seconds, he aborts so we don't stay in an endless loop
+    when(preferencesService.letUserChooseGameDirectory())
+        .thenReturn(CompletableFuture.completedFuture(Paths.get("")))
+        .thenReturn(CompletableFuture.completedFuture(null));
+
+    instance.join(gameInfoBean);
+
+    verify(preferencesService, times(2)).letUserChooseGameDirectory();
+    verify(gameService, never()).joinGame(any(), any());
+  }
 
   /**
    * Ensure that the user is asked for password using enterPasswordController

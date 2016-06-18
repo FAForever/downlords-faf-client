@@ -170,7 +170,11 @@ public class PreferencesService {
     notificationService.addNotification(new PersistentNotification(i18n.get("missingGamePath.notification"), Severity.WARN, actions));
   }
 
-  public CompletableFuture<Boolean> letUserChooseGameDirectory() {
+  /**
+   * Completes the returned future with the game path selected by the user. Returns {@code null} if the user selected no
+   * path.
+   */
+  public CompletableFuture<Path> letUserChooseGameDirectory() {
     if (onChooseGameDirectoryListener == null) {
       throw new IllegalStateException("No listener has been specified");
     }
@@ -182,9 +186,9 @@ public class PreferencesService {
       boolean isPathValid = storeGamePathIfValid(path);
 
       if (!isPathValid) {
-        logger.info("User specified game path does not seem to be valid: {}", path);
+        throw new RuntimeException("Invalid game path selected");
       }
-      return isPathValid;
+      return path;
     }).exceptionally(throwable -> {
       logger.warn("Unexpected exception", throwable);
       return null;
@@ -343,6 +347,11 @@ public class PreferencesService {
 
   public Path getThemesDirectory() {
     return getFafDataDirectory().resolve("themes");
+  }
+
+  public boolean isGamePathValid() {
+    return preferences.getForgedAlliance().getPath() != null
+        && Files.isRegularFile(preferences.getForgedAlliance().getPath().resolve("bin").resolve(FORGED_ALLIANCE_EXE));
   }
 
   public static void configureLogging() {

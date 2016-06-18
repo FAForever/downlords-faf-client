@@ -49,8 +49,6 @@ public class GameTileController {
   @Resource
   ApplicationContext applicationContext;
   @Resource
-  GamesController gamesController;
-  @Resource
   GameService gameService;
   @Resource
   JoinGameHelper joinGameHelper;
@@ -121,6 +119,7 @@ public class GameTileController {
   @FXML
   void onClick(MouseEvent mouseEvent) {
     Objects.requireNonNull(onSelectedListener, "onSelectedListener has not been set");
+    Objects.requireNonNull(gameInfoBean, "gameInfoBean has not been set");
 
     gameTileRoot.requestFocus();
     onSelectedListener.accept(gameInfoBean);

@@ -70,11 +70,11 @@ public class JoinGameHelper {
     PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
     int playerRating = RatingUtil.getGlobalRating(currentPlayer);
 
-    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
+    if (!preferencesService.isGamePathValid()) {
       preferencesService.letUserChooseGameDirectory()
-          .thenAccept(isPathValid -> {
-            if (isPathValid != null && !isPathValid) {
-              join(gameInfoBean);
+          .thenAccept(path -> {
+            if (path != null) {
+              join(gameInfoBean, password, ignoreRating);
             }
           });
       return;
