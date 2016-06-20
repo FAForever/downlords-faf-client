@@ -8,8 +8,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
@@ -28,7 +28,13 @@ public class UserMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnLogoutButtonClickedClosesPopup() throws Exception {
-    getScene().setRoot(instance.userMenuRoot);
+    CountDownLatch setRootLatch = new CountDownLatch(1);
+    Platform.runLater(() -> {
+      getScene().setRoot(instance.userMenuRoot);
+      setRootLatch.countDown();
+    });
+    setRootLatch.await(5, SECONDS);
+
     assertThat(getStage().isShowing(), is(true));
 
     CountDownLatch latch = new CountDownLatch(1);
@@ -37,7 +43,7 @@ public class UserMenuControllerTest extends AbstractPlainJavaFxTest {
       latch.countDown();
     });
 
-    assertTrue(latch.await(5, TimeUnit.SECONDS));
+    assertTrue(latch.await(5, SECONDS));
     assertThat(getStage().isShowing(), is(false));
   }
 }
