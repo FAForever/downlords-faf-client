@@ -1,6 +1,5 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.config.CacheNames;
 import com.faforever.client.remote.AbstractServerAccessor;
 import com.faforever.client.remote.ClientMessageSerializer;
 import com.faforever.client.remote.ServerWriter;
@@ -25,7 +24,6 @@ import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PreDestroy;
@@ -62,7 +60,6 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   }
 
   @Override
-  @Cacheable(value = CacheNames.STATISTICS, key = "#type + #username")
   public CompletableFuture<PlayerStatisticsMessage> requestPlayerStatistics(StatisticsType type, String username) {
     // FIXME this is not safe (as well aren't similar implementations in other accessors)
     playerStatisticsFuture = new CompletableFuture<>();

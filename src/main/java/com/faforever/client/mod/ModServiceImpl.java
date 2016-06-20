@@ -1,7 +1,6 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.config.CacheNames;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
@@ -18,7 +17,6 @@ import org.apache.lucene.store.Directory;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
@@ -241,7 +239,6 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  @Cacheable(CacheNames.MODS)
   public CompletableFuture<List<ModInfoBean>> getAvailableMods() {
     return CompletableFuture.supplyAsync(() -> {
           List<ModInfoBean> availableMods = fafApiAccessor.getMods();
@@ -282,7 +279,6 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  @Cacheable(CacheNames.MODS)
   public CompletableFuture<List<ModInfoBean>> lookupMod(String string, int maxResults) {
     return CompletableFuture.supplyAsync(() -> {
       try {

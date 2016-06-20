@@ -147,7 +147,7 @@ public class UserInfoWindowController {
   @FXML
   ImageView countryImageView;
   @FXML
-  Region userInfoRoot;
+  Pane userInfoRoot;
 
   @Resource
   StatisticsService statisticsService;
@@ -202,6 +202,21 @@ public class UserInfoWindowController {
     );
 
     rating90DaysXAxis.setTickLabelFormatter(DAY_AXIS_FORMATTER);
+
+    getRoot().sceneProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue != null) {
+        newValue.getWindow().showingProperty().addListener((observable11, oldValue11, newValue11) -> {
+          if (!newValue11) {
+            // Fixes #241
+            userInfoRoot.getChildren().clear();
+          }
+        });
+      }
+    });
+  }
+
+  public Region getRoot() {
+    return userInfoRoot;
   }
 
   private void displayAvailableAchievements(List<AchievementDefinition> achievementDefinitions) {
@@ -384,10 +399,6 @@ public class UserInfoWindowController {
 
   private static boolean isUnlocked(PlayerAchievement playerAchievement) {
     return UNLOCKED.equals(playerAchievement.getState());
-  }
-
-  public Region getRoot() {
-    return userInfoRoot;
   }
 
   @FXML
