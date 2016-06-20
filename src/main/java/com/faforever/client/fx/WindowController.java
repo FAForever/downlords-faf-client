@@ -337,7 +337,7 @@ public class WindowController {
   @FXML
   void onMouseClicked(MouseEvent event) {
     if (event.getTarget() instanceof Pane
-        && event.getButton().equals(MouseButton.PRIMARY)
+        && event.getButton() == MouseButton.PRIMARY
         && event.getClickCount() == 2 && resizable) {
       if (stage.isMaximized()) {
         restore();

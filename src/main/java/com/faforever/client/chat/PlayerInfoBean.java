@@ -129,7 +129,7 @@ public class PlayerInfoBean {
       return false;
     }
     return (obj.getClass() == PlayerInfoBean.class)
-        && getUsername().equals(((PlayerInfoBean) obj).getUsername());
+        && getUsername().equalsIgnoreCase(((PlayerInfoBean) obj).getUsername());
   }
 
   public String getUsername() {

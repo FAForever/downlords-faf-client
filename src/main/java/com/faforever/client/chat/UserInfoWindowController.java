@@ -385,7 +385,7 @@ public class UserInfoWindowController {
   }
 
   private static boolean isUnlocked(PlayerAchievement playerAchievement) {
-    return UNLOCKED.equals(playerAchievement.getState());
+    return UNLOCKED == playerAchievement.getState();
   }
 
   public Region getRoot() {

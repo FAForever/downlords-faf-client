@@ -60,7 +60,7 @@ public class AchievementServiceImpl implements AchievementService {
 
   @Override
   public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(String username) {
-    if (userService.getUsername().equals(username)) {
+    if (userService.getUsername().equalsIgnoreCase(username)) {
       if (readOnlyPlayerAchievements.isEmpty()) {
         updatePlayerAchievementsFromServer();
       }

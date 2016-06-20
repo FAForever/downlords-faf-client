@@ -170,7 +170,7 @@ public class ChatController {
   }
 
   public void openPrivateMessageTabForUser(String username) {
-    if (username.equals(userService.getUsername())) {
+    if (username.equalsIgnoreCase(userService.getUsername())) {
       return;
     }
     AbstractChatTabController controller = addAndGetPrivateMessageTab(username);
@@ -198,7 +198,7 @@ public class ChatController {
   }
 
   private void onChatUserLeftChannel(String channelName, String username) {
-    if (userService.getUsername().equals(username)) {
+    if (username.equalsIgnoreCase(userService.getUsername())) {
       AbstractChatTabController chatTab = nameToChatTabController.get(channelName);
       if (chatTab != null) {
         chatsTabPane.getTabs().remove(chatTab.getRoot());
@@ -215,6 +215,6 @@ public class ChatController {
   }
 
   private boolean isCurrentUser(ChatUser chatUser) {
-    return chatUser.getUsername().equals(userService.getUsername());
+    return chatUser.getUsername().equalsIgnoreCase(userService.getUsername());
   }
 }

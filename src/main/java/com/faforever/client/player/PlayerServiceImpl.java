@@ -233,7 +233,7 @@ public class PlayerServiceImpl implements PlayerService {
   }
 
   private void onPlayerInfo(Player player) {
-    if (player.getLogin().equals(userService.getUsername())) {
+    if (player.getLogin().equalsIgnoreCase(userService.getUsername())) {
       PlayerInfoBean playerInfoBean = getCurrentPlayer();
       playerInfoBean.updateFromPlayerInfo(player);
       playerInfoBean.setSocialStatus(SELF);

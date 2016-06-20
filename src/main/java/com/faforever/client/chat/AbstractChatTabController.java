@@ -347,7 +347,7 @@ public abstract class AbstractChatTabController {
     engine = messagesWebView.getEngine();
     getJsObject().setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
-      if (Worker.State.SUCCEEDED.equals(newValue)) {
+      if (Worker.State.SUCCEEDED == newValue) {
         synchronized (waitingMessages) {
           waitingMessages.forEach(AbstractChatTabController.this::appendMessage);
           waitingMessages.clear();
