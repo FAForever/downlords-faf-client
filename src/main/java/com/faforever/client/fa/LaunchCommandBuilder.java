@@ -128,8 +128,7 @@ public class LaunchCommandBuilder {
     List<String> command = new ArrayList<>(Arrays.asList(
         executable.toAbsolutePath().toString(),
         "/init", String.format("init_%s.lua", gameType),
-        "/nobugreport",
-        "/profile", username
+        "/nobugreport"
     ));
 
     if (faction != null) {
