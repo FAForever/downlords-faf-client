@@ -3,7 +3,6 @@ package com.faforever.client.remote;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.config.CacheNames;
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
@@ -15,7 +14,6 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import org.springframework.cache.annotation.Cacheable;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -126,7 +124,6 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  @Cacheable(CacheNames.LEADERBOARD)
   public CompletableFuture<List<Ranked1v1EntryBean>> getRanked1v1Entries() {
     return CompletableFuture.supplyAsync(() -> fafApiAccessor.getRanked1v1Entries(), threadPoolExecutor);
   }

@@ -38,7 +38,7 @@ apply plugin: 'distribution'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-version = 'v0.6.12-alpha'
+version = '0.6.13-alpha'
 
 class HttpBuilder extends HTTPBuilder {
 

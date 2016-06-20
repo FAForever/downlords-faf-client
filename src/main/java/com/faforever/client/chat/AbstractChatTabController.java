@@ -347,7 +347,7 @@ public abstract class AbstractChatTabController {
     engine = messagesWebView.getEngine();
     getJsObject().setMember(CHAT_TAB_REFERENCE_IN_JAVASCRIPT, this);
     engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
-      if (Worker.State.SUCCEEDED.equals(newValue)) {
+      if (Worker.State.SUCCEEDED == newValue) {
         synchronized (waitingMessages) {
           waitingMessages.forEach(AbstractChatTabController.this::appendMessage);
           waitingMessages.clear();
@@ -693,18 +693,23 @@ public abstract class AbstractChatTabController {
   }
 
   protected void showNotificationIfNecessary(ChatMessage chatMessage) {
-    if (!stage.isFocused() || !stage.isShowing()) {
-      notificationService.addNotification(new TransientNotification(
-          chatMessage.getUsername(),
-          chatMessage.getMessage(),
-          IdenticonUtil.createIdenticon(chatMessage.getUsername()),
-          new Action(event -> {
-            mainController.selectChatTab();
-            stage.toFront();
-            getRoot().getTabPane().getSelectionModel().select(getRoot());
-          }))
-      );
+    if (stage.isFocused() && stage.isShowing()) {
+      return;
     }
+
+    PlayerInfoBean player = playerService.getPlayerForUsername(chatMessage.getUsername());
+    String identiconSource = player != null ? String.valueOf(player.getId()) : chatMessage.getUsername();
+
+    notificationService.addNotification(new TransientNotification(
+        chatMessage.getUsername(),
+        chatMessage.getMessage(),
+        IdenticonUtil.createIdenticon(identiconSource),
+        new Action(event -> {
+          mainController.selectChatTab();
+          stage.toFront();
+          getRoot().getTabPane().getSelectionModel().select(getRoot());
+        }))
+    );
   }
 
   protected String getMessageCssClass(String login) {

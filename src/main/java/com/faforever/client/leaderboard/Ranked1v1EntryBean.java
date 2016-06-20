@@ -100,7 +100,7 @@ public class Ranked1v1EntryBean {
 
     Ranked1v1EntryBean that = (Ranked1v1EntryBean) o;
 
-    return !(username.get() != null ? !username.get().equals(that.username.get()) : that.username.get() != null);
+    return !(username.get() != null ? !username.get().equalsIgnoreCase(that.username.get()) : that.username.get() != null);
 
   }
 

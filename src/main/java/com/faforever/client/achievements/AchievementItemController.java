@@ -69,7 +69,7 @@ public class AchievementItemController {
     progressLabel.setText(i18n.get("achievement.stepsFormat", 0, achievementDefinition.getTotalSteps()));
     progressBar.setProgress(0);
 
-    if (AchievementType.STANDARD.equals(achievementDefinition.getType())) {
+    if (AchievementType.STANDARD == achievementDefinition.getType()) {
       progressBar.setVisible(false);
       progressLabel.setVisible(false);
     }
@@ -88,13 +88,13 @@ public class AchievementItemController {
       throw new IllegalStateException("Achievement ID does not match");
     }
 
-    if (AchievementState.UNLOCKED.equals(playerAchievement.getState())) {
+    if (AchievementState.UNLOCKED == playerAchievement.getState()) {
       imageView.setImage(achievementService.getUnlockedIcon(achievementDefinition));
       imageView.setOpacity(1);
       imageView.setEffect(null);
     }
 
-    if (AchievementType.INCREMENTAL.equals(achievementDefinition.getType())) {
+    if (AchievementType.INCREMENTAL == achievementDefinition.getType()) {
       Integer currentSteps = MoreObjects.firstNonNull(playerAchievement.getCurrentSteps(), 0);
       Integer totalSteps = achievementDefinition.getTotalSteps();
       progressBar.setProgress((double) currentSteps / totalSteps);

@@ -22,7 +22,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
@@ -76,6 +75,19 @@ import static com.faforever.client.events.EventService.EVENT_UEF_WINS;
 public class UserInfoWindowController {
 
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM");
+  public static final StringConverter<Number> DAY_AXIS_FORMATTER = new StringConverter<Number>() {
+    @Override
+    public String toString(Number object) {
+      ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(object.longValue()), ZoneId.systemDefault());
+      return DATE_FORMATTER.format(zonedDateTime);
+    }
+
+    @Override
+    public Number fromString(String string) {
+      return null;
+    }
+  };
+
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
@@ -88,10 +100,6 @@ public class UserInfoWindowController {
   PieChart techBuiltChart;
   @FXML
   PieChart unitsBuiltChart;
-  @FXML
-  CategoryAxis factionsCategoryAxis;
-  @FXML
-  NumberAxis factionsNumberAxis;
   @FXML
   StackedBarChart factionsChart;
   @FXML
@@ -139,7 +147,7 @@ public class UserInfoWindowController {
   @FXML
   ImageView countryImageView;
   @FXML
-  Region userInfoRoot;
+  Pane userInfoRoot;
 
   @Resource
   StatisticsService statisticsService;
@@ -193,18 +201,22 @@ public class UserInfoWindowController {
         unlockedAchievementsHeaderLabel.setText(i18n.get("achievements.unlocked", unlockedAchievementsContainer.getChildren().size()))
     );
 
-    rating90DaysXAxis.setTickLabelFormatter(new StringConverter<Number>() {
-      @Override
-      public String toString(Number object) {
-        ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(object.longValue()), ZoneId.systemDefault());
-        return DATE_FORMATTER.format(zonedDateTime);
-      }
+    rating90DaysXAxis.setTickLabelFormatter(DAY_AXIS_FORMATTER);
 
-      @Override
-      public Number fromString(String string) {
-        return null;
+    getRoot().sceneProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue != null) {
+        newValue.getWindow().showingProperty().addListener((observable11, oldValue11, newValue11) -> {
+          if (!newValue11) {
+            // Fixes #241
+            userInfoRoot.getChildren().clear();
+          }
+        });
       }
     });
+  }
+
+  public Region getRoot() {
+    return userInfoRoot;
   }
 
   private void displayAvailableAchievements(List<AchievementDefinition> achievementDefinitions) {
@@ -223,7 +235,7 @@ public class UserInfoWindowController {
   public void setPlayerInfoBean(PlayerInfoBean playerInfoBean) {
     this.playerInfoBean = playerInfoBean;
 
-    usernameLabel.textProperty().bind(playerInfoBean.usernameProperty());
+    usernameLabel.setText(playerInfoBean.getUsername());
     countryImageView.setImage(countryFlagService.loadCountryFlag(playerInfoBean.getCountry()));
     avatarImageView.setImage(IdenticonUtil.createIdenticon(playerInfoBean.getId()));
     gamesPlayedLabel.setText(String.format(locale, "%d", playerInfoBean.getNumberOfGames()));
@@ -254,6 +266,7 @@ public class UserInfoWindowController {
     enterAchievementsLoadingState();
     achievementService.getAchievementDefinitions()
         .exceptionally(throwable -> {
+          // TODO display to user
           logger.warn("Could not load achievement definitions", throwable);
           return Collections.emptyList();
         })
@@ -385,11 +398,7 @@ public class UserInfoWindowController {
   }
 
   private static boolean isUnlocked(PlayerAchievement playerAchievement) {
-    return UNLOCKED.equals(playerAchievement.getState());
-  }
-
-  public Region getRoot() {
-    return userInfoRoot;
+    return UNLOCKED == playerAchievement.getState();
   }
 
   @FXML

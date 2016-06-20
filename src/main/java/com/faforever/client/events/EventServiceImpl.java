@@ -2,11 +2,13 @@ package com.faforever.client.events;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.PlayerEvent;
+import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -25,7 +27,11 @@ public class EventServiceImpl implements EventService {
 
   @Override
   public CompletableFuture<Map<String, PlayerEvent>> getPlayerEvents(String username) {
-    int playerId = playerService.getPlayerForUsername(username).getId();
+    PlayerInfoBean playerForUsername = playerService.getPlayerForUsername(username);
+    if (playerForUsername == null) {
+      return CompletableFuture.completedFuture(Collections.emptyMap());
+    }
+    int playerId = playerForUsername.getId();
 
     return taskService.submitTask(new AbstractPrioritizedTask<Map<String, PlayerEvent>>(HIGH) {
       @Override

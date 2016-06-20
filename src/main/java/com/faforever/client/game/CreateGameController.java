@@ -291,7 +291,7 @@ public class CreateGameController {
   private void selectLastMap() {
     String lastMap = preferencesService.getPreferences().getLastMap();
     for (MapInfoBean mapInfoBean : mapListView.getItems()) {
-      if (mapInfoBean.getTechnicalName().equals(lastMap)) {
+      if (mapInfoBean.getTechnicalName().equalsIgnoreCase(lastMap)) {
         mapListView.getSelectionModel().select(mapInfoBean);
         return;
       }
@@ -413,7 +413,7 @@ public class CreateGameController {
   @FXML
   void onSelectDefaultGameTypeButtonClicked(ActionEvent event) {
     for (GameTypeBean gameTypeBean : gameTypeListView.getItems()) {
-      if (GameType.FAF.getString().equals(gameTypeBean.getName())) {
+      if (GameType.FAF.getString().equalsIgnoreCase(gameTypeBean.getName())) {
         gameTypeListView.getSelectionModel().select(gameTypeBean);
         return;
       }

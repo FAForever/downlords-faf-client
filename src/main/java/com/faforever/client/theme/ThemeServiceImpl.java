@@ -39,6 +39,7 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -92,7 +93,7 @@ public class ThemeServiceImpl implements ThemeService {
   private ObjectProperty<Theme> currentTheme;
 
   public ThemeServiceImpl() {
-    scenes = new HashSet<>();
+    scenes = Collections.synchronizedSet(new HashSet<>());
     webViews = new HashSet<>();
     watchKeys = new HashMap<>();
     currentTheme = new SimpleObjectProperty<>(DEFAULT_THEME);
@@ -209,7 +210,9 @@ public class ThemeServiceImpl implements ThemeService {
     Platform.runLater(() -> scene.getStylesheets().setAll(styleSheet));
   }
 
-  @Override
+  private String getSceneStyleSheet() {
+    return getThemeFile(STYLE_CSS);
+  }  @Override
   public String getThemeFile(String relativeFile) {
     Path externalFile = getThemeDirectory(currentTheme.get()).resolve(relativeFile);
     if (Files.notExists(externalFile)) {
@@ -244,13 +247,24 @@ public class ThemeServiceImpl implements ThemeService {
     currentTheme.set(theme);
   }
 
+  @Override
+  public void unregisterScene(Scene scene) {
+    scenes.remove(scene);
+  }
 
   @Override
   public void registerScene(Scene scene) {
     scenes.add(scene);
+
+    scene.getWindow().showingProperty().addListener((observable, oldValue, newValue) -> {
+      if (!newValue) {
+        unregisterScene(scene);
+      } else {
+        registerScene(scene);
+      }
+    });
     scene.getStylesheets().setAll(getSceneStyleSheet());
   }
-
 
   @Override
   public void registerWebView(WebView webView) {
@@ -317,9 +331,7 @@ public class ThemeServiceImpl implements ThemeService {
     return preferencesService.getThemesDirectory().resolve(folderNamesByTheme.get(theme));
   }
 
-  private String getSceneStyleSheet() {
-    return getThemeFile(STYLE_CSS);
-  }
+
 
   private String getWebViewStyleSheet() {
     return getThemeFileUrl(WEBVIEW_CSS_FILE).toString();

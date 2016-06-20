@@ -66,6 +66,7 @@ import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Locale.US;
 import static javafx.collections.FXCollections.observableHashMap;
 
 public class PircBotXChatService implements ChatService {
@@ -168,8 +169,8 @@ public class PircBotXChatService implements ChatService {
         switch (newValue) {
           case CUSTOM:
             chatUsersByName.values().stream()
-                .filter(chatUser -> chatPrefs.getUserToColor().containsKey(chatUser.getUsername()))
-                .forEach(chatUser -> chatUser.setColor(chatPrefs.getUserToColor().get(chatUser.getUsername())));
+                .filter(chatUser -> chatPrefs.getUserToColor().containsKey(chatUser.getUsername().toLowerCase(US)))
+                .forEach(chatUser -> chatUser.setColor(chatPrefs.getUserToColor().get(chatUser.getUsername().toLowerCase(US))));
             break;
 
           case RANDOM:
@@ -395,18 +396,19 @@ public class PircBotXChatService implements ChatService {
   @Override
   public ChatUser getOrCreateChatUser(String username) {
     synchronized (chatUsersByName) {
-      if (!chatUsersByName.containsKey(username)) {
+      String lowerUsername = username.toLowerCase(US);
+      if (!chatUsersByName.containsKey(lowerUsername)) {
         ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
         Color color = null;
-        if (chatPrefs.getChatColorMode().equals(CUSTOM) && chatPrefs.getUserToColor().containsKey(username)) {
-          color = chatPrefs.getUserToColor().get(username);
-        } else if (chatPrefs.getChatColorMode().equals(RANDOM)) {
-          color = ColorGeneratorUtil.generateRandomColor(username.hashCode());
+        if (chatPrefs.getChatColorMode() == CUSTOM && chatPrefs.getUserToColor().containsKey(lowerUsername)) {
+          color = chatPrefs.getUserToColor().get(lowerUsername);
+        } else if (chatPrefs.getChatColorMode() == RANDOM) {
+          color = ColorGeneratorUtil.generateRandomColor(lowerUsername.hashCode());
         }
 
-        chatUsersByName.put(username, new ChatUser(username, color));
+        chatUsersByName.put(lowerUsername, new ChatUser(username, color));
       }
-      return chatUsersByName.get(username);
+      return chatUsersByName.get(lowerUsername);
     }
   }
 
@@ -471,20 +473,20 @@ public class PircBotXChatService implements ChatService {
   @Override
   public ChatUser createOrGetChatUser(User user) {
     synchronized (chatUsersByName) {
-      String username = user.getNick();
-      if (!chatUsersByName.containsKey(username)) {
+      String lowerUsername = user.getNick().toLowerCase(US);
+      if (!chatUsersByName.containsKey(lowerUsername)) {
         ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
         Color color = null;
 
-        if (chatPrefs.getChatColorMode().equals(CUSTOM) && chatPrefs.getUserToColor().containsKey(username)) {
-          color = chatPrefs.getUserToColor().get(username);
-        } else if (chatPrefs.getChatColorMode().equals(RANDOM)) {
-          color = ColorGeneratorUtil.generateRandomColor(username.hashCode());
+        if (chatPrefs.getChatColorMode() == CUSTOM && chatPrefs.getUserToColor().containsKey(lowerUsername)) {
+          color = chatPrefs.getUserToColor().get(lowerUsername);
+        } else if (chatPrefs.getChatColorMode() == RANDOM) {
+          color = ColorGeneratorUtil.generateRandomColor(lowerUsername.hashCode());
         }
 
-        chatUsersByName.put(username, ChatUser.fromIrcUser(user, color));
+        chatUsersByName.put(lowerUsername, ChatUser.fromIrcUser(user, color));
       }
-      return chatUsersByName.get(username);
+      return chatUsersByName.get(lowerUsername);
     }
   }
 

@@ -44,6 +44,7 @@ import static com.faforever.client.chat.SocialStatus.SELF;
 import static com.faforever.client.util.RatingUtil.getGlobalRating;
 import static com.faforever.client.util.RatingUtil.getLeaderboardRating;
 import static java.util.Collections.singletonList;
+import static java.util.Locale.US;
 
 public class ChatUserItemController {
 
@@ -123,8 +124,9 @@ public class ChatUserItemController {
 
     colorModeChangeListener = (observable, oldValue, newValue) -> configureColor();
     colorPerUserMapChangeListener = change -> {
-      if (playerInfoBean.getUsername().equals(change.getKey())) {
-        Color newColor = chatPrefs.getUserToColor().get(playerInfoBean.getUsername());
+      String lowerUsername = playerInfoBean.getUsername().toLowerCase(US);
+      if (lowerUsername.equalsIgnoreCase(change.getKey())) {
+        Color newColor = chatPrefs.getUserToColor().get(lowerUsername);
         assignColor(newColor);
       }
     };
@@ -144,15 +146,16 @@ public class ChatUserItemController {
     }
 
     Color color = null;
-    ChatUser chatUser = chatService.getOrCreateChatUser(playerInfoBean.getUsername());
+    String lowerUsername = playerInfoBean.getUsername().toLowerCase(US);
+    ChatUser chatUser = chatService.getOrCreateChatUser(lowerUsername);
 
-    if (chatPrefs.getChatColorMode().equals(CUSTOM)) {
-      if (chatPrefs.getUserToColor().containsKey(playerInfoBean.getUsername())) {
-        color = chatPrefs.getUserToColor().get(playerInfoBean.getUsername());
+    if (chatPrefs.getChatColorMode() == CUSTOM) {
+      if (chatPrefs.getUserToColor().containsKey(lowerUsername)) {
+        color = chatPrefs.getUserToColor().get(lowerUsername);
       }
 
       chatPrefs.getUserToColor().addListener(new WeakMapChangeListener<>(colorPerUserMapChangeListener));
-    } else if (chatPrefs.getChatColorMode().equals(ChatColorMode.RANDOM) && colorsAllowedInPane) {
+    } else if (chatPrefs.getChatColorMode() == ChatColorMode.RANDOM && colorsAllowedInPane) {
       color = ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode());
     }
 

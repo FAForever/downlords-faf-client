@@ -35,6 +35,7 @@ import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.faforever.client.chat.SocialStatus.SELF;
 import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
+import static java.util.Locale.US;
 
 public class ChatUserContextMenuController {
 
@@ -104,19 +105,21 @@ public class ChatUserContextMenuController {
     this.playerInfoBean = playerInfoBean;
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
-    if (chatPrefs.getUserToColor().containsKey(playerInfoBean.getUsername())) {
-      colorPicker.setValue(chatPrefs.getUserToColor().get(playerInfoBean.getUsername()));
+    String lowerCaseUsername = playerInfoBean.getUsername().toLowerCase(US);
+    if (chatPrefs.getUserToColor().containsKey(lowerCaseUsername)) {
+      colorPicker.setValue(chatPrefs.getUserToColor().get(lowerCaseUsername));
     } else {
       colorPicker.setValue(null);
     }
 
     colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+      String lowerUsername = playerInfoBean.getUsername().toLowerCase(US);
       if (newValue == null) {
-        chatPrefs.getUserToColor().remove(playerInfoBean.getUsername());
+        chatPrefs.getUserToColor().remove(lowerUsername);
       } else {
-        chatPrefs.getUserToColor().put(playerInfoBean.getUsername(), newValue);
+        chatPrefs.getUserToColor().put(lowerUsername, newValue);
       }
-      ChatUser chatUser = chatService.getOrCreateChatUser(playerInfoBean.getUsername());
+      ChatUser chatUser = chatService.getOrCreateChatUser(lowerUsername);
       chatUser.setColor(newValue);
       contextMenu.hide();
     });

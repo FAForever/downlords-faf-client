@@ -69,7 +69,7 @@ public class ChatUser {
   @Override
   public boolean equals(Object obj) {
     return obj instanceof ChatUser
-        && username.get().equals(((ChatUser) obj).username.get());
+        && username.get().equalsIgnoreCase(((ChatUser) obj).username.get());
   }
 
   public static ChatUser fromIrcUser(User user, Color color) {

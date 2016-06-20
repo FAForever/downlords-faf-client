@@ -441,7 +441,7 @@ public class GameServiceImpl implements GameService {
       return;
     }
 
-    if (GameState.CLOSED.equals(gameInfoMessage.getState())) {
+    if (GameState.CLOSED == gameInfoMessage.getState()) {
       gameInfoBeans.remove(uidToGameInfoBean.remove(gameInfoMessage.getUid()));
       return;
     }

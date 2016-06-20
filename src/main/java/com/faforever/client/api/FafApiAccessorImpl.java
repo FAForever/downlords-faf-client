@@ -166,6 +166,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
+  @Cacheable(CacheNames.LEADERBOARD)
   public List<Ranked1v1EntryBean> getRanked1v1Entries() {
     return getMany("/ranked1v1?filter[is_active]=true", LeaderboardEntry.class).stream()
         .map(Ranked1v1EntryBean::fromLeaderboardEntry)
