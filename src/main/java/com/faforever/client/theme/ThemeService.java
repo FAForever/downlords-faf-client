@@ -29,7 +29,12 @@ public interface ThemeService {
   void setTheme(Theme theme);
 
   /**
-   * Registers a scene against the theme service so it can be updated whenever the theme changes.
+   * Unregisters a scene so it's no longer updated when the theme (or its CSS) changes.
+   */
+  void unregisterScene(Scene scene);
+
+  /**
+   * Registers a scene against the theme service so it can be updated whenever the theme (or its CSS) changes.
    */
   void registerScene(Scene scene);
 
