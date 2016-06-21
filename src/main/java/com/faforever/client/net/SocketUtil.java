@@ -47,7 +47,9 @@ public final class SocketUtil {
           consumer.accept(packetCopy);
         }
       } catch (SocketException e) {
-        logger.warn("Socket has been closed: ({})", e.getMessage());
+        if (!e.getMessage().equals("socket closed")) {
+          logger.warn("Socket has been closed: ({})", e.getMessage());
+        }
       } catch (IOException e) {
         logger.warn("Exception while forwarding socket: " + localSocketAddress, e);
         throw new RuntimeException(e);
