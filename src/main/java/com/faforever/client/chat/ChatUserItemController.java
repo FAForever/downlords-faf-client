@@ -5,6 +5,7 @@ import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameStatus;
 import com.faforever.client.game.GamesController;
+import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -89,6 +90,8 @@ public class ChatUserItemController {
   NotificationService notificationService;
   @Resource
   ReportingService reportingService;
+  @Resource
+  JoinGameHelper joinGameHelper;
 
   private PlayerInfoBean playerInfoBean;
   private boolean colorsAllowedInPane;
@@ -133,6 +136,7 @@ public class ChatUserItemController {
     avatarChangeListener = (observable, oldValue, newValue) -> Platform.runLater(() -> setAvatarUrl(newValue));
     clanChangeListener = (observable, oldValue, newValue) -> Platform.runLater(() -> setClanTag(newValue));
     gameStatusChangeListener = (observable, oldValue, newValue) -> Platform.runLater(() -> setGameStatus(newValue));
+    joinGameHelper.setParentNode(getRoot());
   }
 
   private void configureColor() {
@@ -206,6 +210,10 @@ public class ChatUserItemController {
         statusImageView.setImage(null);
     }
     statusImageView.setVisible(true);
+  }
+
+  public Pane getRoot() {
+    return chatUserItemRoot;
   }
 
   public PlayerInfoBean getPlayerInfoBean() {
@@ -310,7 +318,7 @@ public class ChatUserItemController {
       int uid = playerInfoBean.getGameUid();
       if (gameStatus == GameStatus.LOBBY || gameStatus == GameStatus.HOST) {
         GameInfoBean gameInfoBean = gameService.getByUid(uid);
-        gamesController.onJoinGame(gameInfoBean, null, mouseEvent.getScreenX(), mouseEvent.getScreenY());
+        joinGameHelper.join(gameInfoBean);
       } else if (gameStatus == GameStatus.PLAYING) {
         try {
           replayService.runLiveReplay(uid, playerInfoBean.getId());
@@ -327,10 +335,6 @@ public class ChatUserItemController {
   public void setColorsAllowedInPane(boolean colorsAllowedInPane) {
     this.colorsAllowedInPane = colorsAllowedInPane;
     configureColor();
-  }
-
-  public Pane getRoot() {
-    return chatUserItemRoot;
   }
 
   public void setVisible(boolean visible) {

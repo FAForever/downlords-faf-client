@@ -1,6 +1,9 @@
 package com.faforever.client.game;
 
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -24,6 +27,15 @@ public class GamesTilesContainerController {
   ApplicationContext applicationContext;
 
   private Map<Integer, Node> uidToGameCard;
+  private ObjectProperty<GameInfoBean> selectedGame;
+
+  public GamesTilesContainerController() {
+    selectedGame = new SimpleObjectProperty<>();
+  }
+
+  public ReadOnlyObjectProperty<GameInfoBean> selectedGameProperty() {
+    return this.selectedGame;
+  }
 
   public void createTiledFlowPane(ObservableList<GameInfoBean> gameInfoBeans) {
     uidToGameCard = new HashMap<>();
@@ -40,6 +52,7 @@ public class GamesTilesContainerController {
   private void addGameCard(GameInfoBean gameInfoBean) {
     GameTileController gameTileController = applicationContext.getBean(GameTileController.class);
     gameTileController.setGameInfoBean(gameInfoBean);
+    gameTileController.setOnSelectedListener(gameInfoBean1 -> selectedGame.set(gameInfoBean1));
 
     Node root = gameTileController.getRoot();
     tiledFlowPane.getChildren().add(root);
