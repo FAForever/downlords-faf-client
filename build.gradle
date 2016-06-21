@@ -273,4 +273,5 @@ dependencies {
   compile 'com.nativelibs4java:bridj:0.7.0'
   compile 'com.github.nocatch:nocatch:1.1'
   compile 'org.javassist:javassist:3.20.0-GA'
+  compile 'io.sigpipe:jbsdiff:1.0'
 }

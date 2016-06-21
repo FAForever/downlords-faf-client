@@ -63,7 +63,6 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   private ChatController instance;
   private SimpleObjectProperty<ConnectionState> connectionState;
-  private BooleanProperty loggedInProperty;
 
   @Before
   public void setUp() throws Exception {
@@ -73,7 +72,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     instance.applicationContext = applicationContext;
 
     connectionState = new SimpleObjectProperty<>();
-    loggedInProperty = new SimpleBooleanProperty();
+    BooleanProperty loggedInProperty = new SimpleBooleanProperty();
 
     when(applicationContext.getBean(PrivateChatTabController.class)).thenReturn(privateChatTabController);
     when(applicationContext.getBean(ChannelTabController.class)).thenReturn(channelTabController);

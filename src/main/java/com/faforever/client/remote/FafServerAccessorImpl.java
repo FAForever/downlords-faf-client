@@ -172,6 +172,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     this.username = username;
     this.password = password;
 
+    // TODO extract class?
     fafConnectionTask = new Task<Void>() {
 
       @Override

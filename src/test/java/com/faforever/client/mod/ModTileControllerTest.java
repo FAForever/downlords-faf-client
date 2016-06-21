@@ -33,7 +33,6 @@ public class ModTileControllerTest extends AbstractPlainJavaFxTest {
   public ReportingService reportingService;
 
   private ModTileController instance;
-  private ObservableList<ModInfoBean> installedMods;
 
   @Before
   public void setUp() throws Exception {
@@ -43,7 +42,7 @@ public class ModTileControllerTest extends AbstractPlainJavaFxTest {
     instance.i18n = i18n;
     instance.reportingService = reportingService;
 
-    installedMods = FXCollections.observableArrayList();
+    ObservableList<ModInfoBean> installedMods = FXCollections.observableArrayList();
     when(modService.getInstalledMods()).thenReturn(installedMods);
   }
 

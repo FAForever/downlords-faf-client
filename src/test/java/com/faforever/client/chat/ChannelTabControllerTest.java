@@ -71,7 +71,6 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private Stage stage;
 
   private ChannelTabController instance;
-  private ObjectProperty<ChatColorMode> chatColorModeProperty;
 
   @Before
   public void setUp() throws Exception {
@@ -89,7 +88,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     instance.filterUserController = filterUserController;
     instance.stage = getStage();
 
-    chatColorModeProperty = new SimpleObjectProperty<>(ChatColorMode.DEFAULT);
+    ObjectProperty<ChatColorMode> chatColorModeProperty = new SimpleObjectProperty<>(ChatColorMode.DEFAULT);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getCacheDirectory()).thenReturn(tempDir.getRoot().toPath());
@@ -141,7 +140,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void onSearchFieldCloseTest() throws Exception {
-    instance.onSearchFieldClose(null);
+    instance.onSearchFieldClose();
     assertTrue(!instance.searchField.isVisible());
     assertEquals("", instance.searchField.getText());
   }

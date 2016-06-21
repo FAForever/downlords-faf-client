@@ -124,6 +124,7 @@ public class ModServiceImpl implements ModService {
         WatchService watcher = modsDirectory.getFileSystem().newWatchService();
         modsDirectory.register(watcher, ENTRY_DELETE);
 
+        //noinspection InfiniteLoopStatement
         while (true) {
           WatchKey key = watcher.take();
           for (WatchEvent<?> event : key.pollEvents()) {

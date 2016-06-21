@@ -46,6 +46,7 @@ import java.util.Stack;
  * @author <a href="mailto:hboutemy@apache.org">Herv� Boutemy</a>
  * @see <a href="https://cwiki.apache.org/confluence/display/MAVENOLD/Versioning">"Versioning" on Maven Wiki</a>
  */
+@SuppressWarnings("ALL")
 public class ComparableVersion
     implements Comparable<ComparableVersion> {
 

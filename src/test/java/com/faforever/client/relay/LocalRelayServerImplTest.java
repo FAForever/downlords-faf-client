@@ -78,7 +78,6 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private FaDataInputStream gameFromRelayInputStream;
   private Socket gameToRelaySocket;
   private boolean stopped;
-  private IntegerProperty portProperty;
 
   @Mock
   private TurnServerAccessor turnServerAccessor;
@@ -108,7 +107,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     messagesReceivedByFafServer = new ArrayBlockingQueue<>(10);
     messagesReceivedByGame = new ArrayBlockingQueue<>(10);
-    portProperty = new SimpleIntegerProperty(GAME_PORT);
+    IntegerProperty portProperty = new SimpleIntegerProperty(GAME_PORT);
 
     CountDownLatch gameConnectedLatch = new CountDownLatch(1);
 

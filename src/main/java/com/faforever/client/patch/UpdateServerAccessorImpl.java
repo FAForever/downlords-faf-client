@@ -51,7 +51,6 @@ public class UpdateServerAccessorImpl extends AbstractServerAccessor implements 
   @Resource
   NotificationService notificationService;
   private Socket socket;
-  private ArrayList<String> filesToUpdate;
   private ServerWriter serverWriter;
   private CompletableFuture<List<String>> filesToUpdateFuture;
   private CompletableFuture<String> requestSimPathFuture;
@@ -79,7 +78,7 @@ public class UpdateServerAccessorImpl extends AbstractServerAccessor implements 
       case LIST_FILES_TO_UP:
         Type listType = new TypeToken<List<String>>() {
         }.getType();
-        this.filesToUpdate = gson.fromJson(readNextString(), listType);
+        ArrayList<String> filesToUpdate = gson.fromJson(readNextString(), listType);
         filesToUpdateFuture.complete(filesToUpdate);
         break;
 

@@ -68,7 +68,8 @@ public class ChatUser {
 
   @Override
   public boolean equals(Object obj) {
-    return obj instanceof ChatUser
+    return obj != null
+        && obj.getClass() == this.getClass()
         && username.get().equalsIgnoreCase(((ChatUser) obj).username.get());
   }
 

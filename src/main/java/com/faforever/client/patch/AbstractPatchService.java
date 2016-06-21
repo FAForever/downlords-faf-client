@@ -1,16 +1,11 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.preferences.PreferencesService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 
-public class AbstractPatchService {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+public abstract class AbstractPatchService {
 
   @Resource
   PreferencesService preferencesService;

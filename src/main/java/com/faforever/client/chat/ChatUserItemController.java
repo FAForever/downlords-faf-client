@@ -100,7 +100,6 @@ public class ChatUserItemController {
   private ChangeListener<String> avatarChangeListener;
   private ChangeListener<String> clanChangeListener;
   private ChangeListener<GameStatus> gameStatusChangeListener;
-  private Tooltip tooltip;
 
   @FXML
   void initialize() {
@@ -274,7 +273,7 @@ public class ChatUserItemController {
       return;
     }
 
-    tooltip = new Tooltip();
+    Tooltip tooltip = new Tooltip();
     Tooltip.install(clanLabel, tooltip);
     Tooltip.install(usernameLabel, tooltip);
 

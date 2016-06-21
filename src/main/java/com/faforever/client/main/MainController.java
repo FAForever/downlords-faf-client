@@ -650,6 +650,7 @@ public class MainController implements OnChooseGameDirectoryListener {
   /**
    * Initializes the Windows 7+ task bar.
    */
+  @SuppressWarnings("unchecked")
   private void initWindowsTaskBar() {
     try {
       threadPoolExecutor.execute(() ->

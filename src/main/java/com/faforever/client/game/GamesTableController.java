@@ -141,7 +141,7 @@ public class GamesTableController {
   }
 
   private TableCell<GameInfoBean, RatingRange> ratingTableCell() {
-    return new StringCell<GameInfoBean, RatingRange>(ratingRange -> {
+    return new StringCell<>(ratingRange -> {
       if (ratingRange.getMin() == null && ratingRange.getMax() == null) {
         return "";
       }

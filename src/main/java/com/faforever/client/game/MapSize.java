@@ -38,6 +38,7 @@ public class MapSize implements Comparable<MapSize> {
     int otherDimension = o.width * o.height;
 
     if (dimension == otherDimension) {
+      //noinspection SuspiciousNameCombination
       return Integer.compare(width, o.width);
     }
 
@@ -62,11 +63,7 @@ public class MapSize implements Comparable<MapSize> {
 
     MapSize mapSize = (MapSize) o;
 
-    if (width != mapSize.width) {
-      return false;
-    }
-    return height == mapSize.height;
-
+    return width == mapSize.width && height == mapSize.height;
   }
 
   @Override

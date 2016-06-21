@@ -253,9 +253,9 @@ public abstract class AbstractChatTabController {
     addFocusListeners();
     addImagePasteListener();
 
-    unreadMessagesCount.addListener((observable, oldValue, newValue) -> {
-      chatService.incrementUnreadMessagesCount(newValue.intValue() - oldValue.intValue());
-    });
+    unreadMessagesCount.addListener((observable, oldValue, newValue) ->
+        chatService.incrementUnreadMessagesCount(newValue.intValue() - oldValue.intValue())
+    );
     stage.focusedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
     getRoot().selectedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
   }
@@ -741,13 +741,10 @@ public abstract class AbstractChatTabController {
     } else if (player != null && (player.getSocialStatus() == SELF || player.getSocialStatus() == FRIEND)) {
       return "";
     } else {
-      switch (chatPrefs.getChatColorMode()) {
-        case CUSTOM:
-        case RANDOM:
-          if (chatUser.getColor() != null) {
-            color = createInlineStyleFromColor(chatUser.getColor());
-          }
-          break;
+      ChatColorMode chatColorMode = chatPrefs.getChatColorMode();
+      if ((chatColorMode == ChatColorMode.CUSTOM || chatColorMode == ChatColorMode.RANDOM)
+          && chatUser.getColor() != null) {
+        color = createInlineStyleFromColor(chatUser.getColor());
       }
     }
 

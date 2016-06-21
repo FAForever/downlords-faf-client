@@ -80,9 +80,6 @@ public class CheckForUpdateTask extends AbstractPrioritizedTask<UpdateInfo> {
           gitHubAsset.getBrowserDownloadUrl(),
           gitHubAsset.getSize(),
           gitHubRelease.getHtmlUrl());
-    } catch (Throwable t) {
-      logger.error("Error", t);
-      throw t;
     }
   }
 

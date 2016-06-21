@@ -1,5 +1,7 @@
 package com.faforever.client.leaderboard;
 
+import org.jetbrains.annotations.NotNull;
+
 public class RatingDistribution implements Comparable<RatingDistribution> {
 
   private int maxRating;
@@ -22,7 +24,7 @@ public class RatingDistribution implements Comparable<RatingDistribution> {
   }
 
   @Override
-  public int compareTo(RatingDistribution o) {
+  public int compareTo(@NotNull RatingDistribution o) {
     return Integer.compare(maxRating, o.getMaxRating());
   }
 

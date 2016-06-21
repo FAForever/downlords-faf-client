@@ -93,8 +93,6 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   @Captor
   private ArgumentCaptor<Consumer<SendNatPacketMessage>> sendNatPacketMessageListenerCaptor;
 
-  private IntegerProperty portProperty;
-  private SimpleObjectProperty<ConnectionState> fafConnectionState;
   private BooleanProperty loggedInProperty;
 
   @Before
@@ -112,8 +110,8 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     instance.turnServerAccessor = turnServerAccessor;
     instance.userService = userService;
 
-    portProperty = new SimpleIntegerProperty(SocketUtils.findAvailableUdpPort());
-    fafConnectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
+    IntegerProperty portProperty = new SimpleIntegerProperty(SocketUtils.findAvailableUdpPort());
+    SimpleObjectProperty<ConnectionState> fafConnectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
     loggedInProperty = new SimpleBooleanProperty();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);

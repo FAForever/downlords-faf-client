@@ -33,9 +33,7 @@ public class MockLeaderboardService implements LeaderboardService {
           String name = RandomStringUtils.random(10);
           int rating = (int) (Math.random() * 2500);
           int gamecount = (int) (Math.random() * 10000);
-          int score = (int) (Math.random() * 100);
           float winloss = (float) (Math.random() * 100);
-          String division = RandomStringUtils.random(10);
 
           list.add(createLadderInfoBean(name, i, rating, gamecount, winloss));
 

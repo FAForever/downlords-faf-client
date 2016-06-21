@@ -12,6 +12,7 @@ public class ClientMessage implements SerializableMessage {
     this.command = command;
   }
 
+  @Override
   public Collection<String> getStringsToMask() {
     return Collections.emptyList();
   }

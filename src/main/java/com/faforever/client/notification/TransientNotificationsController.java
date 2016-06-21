@@ -11,11 +11,9 @@ import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.util.TreeSet;
 
 public class TransientNotificationsController {
 
-  private final TreeSet<TransientNotification> transientNotificationBuffer;
   @FXML
   VBox transientNotificationsRoot;
   @Resource
@@ -24,7 +22,6 @@ public class TransientNotificationsController {
   PreferencesService preferencesService;
 
   public TransientNotificationsController() {
-    transientNotificationBuffer = new TreeSet<>();
   }
 
 

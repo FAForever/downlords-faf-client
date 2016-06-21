@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.ProgrammingError;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.collections.ListChangeListener;
@@ -69,6 +70,8 @@ public class ChatController {
         case CONNECTING:
           onConnecting();
           break;
+        default:
+          throw new ProgrammingError("Uncovered connection state: " + newValue);
       }
     });
 
@@ -131,7 +134,7 @@ public class ChatController {
   }
 
   @FXML
-  private void initialize() {
+  void initialize() {
     onDisconnected();
 
     chatsTabPane.getTabs().addListener((ListChangeListener<Tab>) change -> {
@@ -198,11 +201,12 @@ public class ChatController {
   }
 
   private void onChatUserLeftChannel(String channelName, String username) {
-    if (username.equalsIgnoreCase(userService.getUsername())) {
-      AbstractChatTabController chatTab = nameToChatTabController.get(channelName);
-      if (chatTab != null) {
-        chatsTabPane.getTabs().remove(chatTab.getRoot());
-      }
+    if (!username.equalsIgnoreCase(userService.getUsername())) {
+      return;
+    }
+    AbstractChatTabController chatTab = nameToChatTabController.get(channelName);
+    if (chatTab != null) {
+      chatsTabPane.getTabs().remove(chatTab.getRoot());
     }
   }
 

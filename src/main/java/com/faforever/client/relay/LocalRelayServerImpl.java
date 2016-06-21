@@ -284,6 +284,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
    */
   private void redirectGpgConnection() {
     try {
+      //noinspection InfiniteLoopStatement
       while (true) {
         String message = gameInputStream.readString();
 

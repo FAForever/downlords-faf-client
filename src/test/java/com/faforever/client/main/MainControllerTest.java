@@ -162,8 +162,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private CountDownLatch mainControllerInitializedLatch;
   private SimpleObjectProperty<ConnectionState> connectionStateProperty;
   private SimpleObjectProperty<ConnectivityState> connectivityStateProperty;
-  private ObjectProperty<ConnectionState> chatConnectionStateProperty;
-  private IntegerProperty chatUnreadMessagesCountProperty;
   private BooleanProperty loggedInProperty;
   private BooleanProperty gameRunningProperty;
 
@@ -206,10 +204,10 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     connectionStateProperty = new SimpleObjectProperty<>();
     connectivityStateProperty = new SimpleObjectProperty<>(ConnectivityState.UNKNOWN);
-    chatConnectionStateProperty = new SimpleObjectProperty<>();
+    ObjectProperty<ConnectionState> chatConnectionStateProperty = new SimpleObjectProperty<>();
     loggedInProperty = new SimpleBooleanProperty();
     gameRunningProperty = new SimpleBooleanProperty();
-    chatUnreadMessagesCountProperty = new SimpleIntegerProperty();
+    IntegerProperty chatUnreadMessagesCountProperty = new SimpleIntegerProperty();
 
     when(chatController.getRoot()).thenReturn(new Pane());
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());

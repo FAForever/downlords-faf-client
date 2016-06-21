@@ -174,6 +174,7 @@ public class ChatUserContextMenuController {
 
   @FXML
   void onSendPrivateMessage() {
+    // FIXME implement
   }
 
   @FXML

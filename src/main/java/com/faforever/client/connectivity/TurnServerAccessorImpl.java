@@ -174,11 +174,13 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
   @Override
   public void send(DatagramPacket packet) {
     SocketAddress socketAddress = packet.getSocketAddress();
+    //noinspection SuspiciousMethodCalls
     if (!peerAddressToChannel.containsKey(socketAddress)) {
       logger.warn("Peer {} is not bound to a channel", socketAddress);
       return;
     }
 
+    @SuppressWarnings("SuspiciousMethodCalls")
     Character channelNumber = peerAddressToChannel.get(socketAddress);
 
     byte[] payload = new byte[packet.getLength()];
@@ -252,6 +254,7 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
   }
 
   @Override
+  @SuppressWarnings("SuspiciousMethodCalls")
   public boolean isBound(InetSocketAddress socketAddress) {
     return peerAddressToChannel.containsKey(socketAddress);
   }

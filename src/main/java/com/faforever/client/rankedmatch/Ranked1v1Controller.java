@@ -12,6 +12,7 @@ import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.Integer.parseInt;
 
+@SuppressWarnings("FieldCanBeLocal")
 public class Ranked1v1Controller {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -215,8 +217,8 @@ public class Ranked1v1Controller {
   private void setCurrentPlayer(PlayerInfoBean player) {
     playerRatingListener = ratingObservable -> Platform.runLater(() -> updateRating(player));
 
-    player.leaderboardRatingDeviationProperty().addListener(playerRatingListener);
-    player.leaderboardRatingMeanProperty().addListener(playerRatingListener);
+    player.leaderboardRatingDeviationProperty().addListener(new WeakInvalidationListener(playerRatingListener));
+    player.leaderboardRatingMeanProperty().addListener(new WeakInvalidationListener(playerRatingListener));
     updateRating(player);
     updateOtherValues(player);
   }
