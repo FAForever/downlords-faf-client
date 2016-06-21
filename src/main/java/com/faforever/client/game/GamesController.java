@@ -43,6 +43,8 @@ import org.springframework.context.ApplicationContext;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -53,7 +55,16 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 
 public class GamesController {
 
-  private static final Predicate<GameInfoBean> OPEN_GAMES_PREDICATE = gameInfoBean -> gameInfoBean.getStatus() == GameState.OPEN;
+  private static final Collection<String> DISPLAYED_FEATURED_MODS = Arrays.asList(
+      GameType.FAF.getString(),
+      GameType.FAF_BETA.getString(),
+      GameType.BALANCE_TESTING.getString()
+  );
+
+  private static final Predicate<GameInfoBean> OPEN_CUSTOM_GAMES_PREDICATE = gameInfoBean ->
+      gameInfoBean.getStatus() == GameState.OPEN
+          && DISPLAYED_FEATURED_MODS.contains(gameInfoBean.getFeaturedMod());
+
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
@@ -127,7 +138,7 @@ public class GamesController {
     ObservableList<GameInfoBean> gameInfoBeans = gameService.getGameInfoBeans();
 
     filteredItems = new FilteredList<>(gameInfoBeans);
-    filteredItems.setPredicate(OPEN_GAMES_PREDICATE);
+    filteredItems.setPredicate(OPEN_CUSTOM_GAMES_PREDICATE);
 
     if (tilesButton.getId().equals(preferencesService.getPreferences().getGamesViewMode())) {
       viewToggleGroup.selectToggle(tilesButton);
@@ -147,9 +158,9 @@ public class GamesController {
     CheckBox checkBox = (CheckBox) actionEvent.getSource();
     boolean selected = checkBox.isSelected();
     if (selected) {
-      filteredItems.setPredicate(OPEN_GAMES_PREDICATE);
+      filteredItems.setPredicate(OPEN_CUSTOM_GAMES_PREDICATE);
     } else {
-      filteredItems.setPredicate(OPEN_GAMES_PREDICATE.and(gameInfoBean -> !gameInfoBean.getPasswordProtected()));
+      filteredItems.setPredicate(OPEN_CUSTOM_GAMES_PREDICATE.and(gameInfoBean -> !gameInfoBean.getPasswordProtected()));
     }
   }
 
