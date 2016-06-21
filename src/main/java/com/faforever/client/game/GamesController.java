@@ -17,8 +17,10 @@ import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.RatingUtil;
 import javafx.application.Platform;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.WeakMapChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -118,6 +120,7 @@ public class GamesController {
   private Stage mapDetailPopup;
 
   private GameInfoBean currentGameInfoBean;
+  private MapChangeListener<String, List<String>> teamsChangeListener;
 
   @FXML
   void initialize() {
@@ -188,6 +191,9 @@ public class GamesController {
       String fullName = gameType != null ? gameType.getFullName() : null;
       return StringUtils.defaultString(fullName);
     }, gameInfoBean.featuredModProperty()));
+
+    teamsChangeListener = change -> createTeams(gameInfoBean.getTeams());
+    gameInfoBean.getTeams().addListener(new WeakMapChangeListener<>(teamsChangeListener));
 
     createTeams(gameInfoBean.getTeams());
   }
