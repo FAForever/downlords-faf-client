@@ -156,7 +156,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   private CountDownLatch botShutdownLatch;
   private CompletableFuture<Object> botStartedFuture;
-  private BooleanProperty loggedInProperty;
 
   @Before
   public void setUp() throws Exception {
@@ -170,7 +169,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.threadPoolExecutor = threadPoolExecutor;
     instance.defaultChannelName = DEFAULT_CHANNEL_NAME;
 
-    loggedInProperty = new SimpleBooleanProperty();
+    BooleanProperty loggedInProperty = new SimpleBooleanProperty();
 
     botShutdownLatch = new CountDownLatch(1);
 

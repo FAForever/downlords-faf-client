@@ -4,7 +4,11 @@ import javafx.scene.paint.Color;
 
 import java.util.Random;
 
-public class ColorGeneratorUtil {
+public final class ColorGeneratorUtil {
+
+  private ColorGeneratorUtil() {
+    throw new AssertionError("Not instantiatable");
+  }
 
   //http://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
 
@@ -16,9 +20,6 @@ public class ColorGeneratorUtil {
     double goldenRatioConj = (1.0 + Math.sqrt(5.0)) / 2.0;
     float saturation;
     float hue;
-    if (seed == 0) {
-      seed = new Random().nextLong();
-    }
     saturation = randFloat(0.5f, 0.7f, seed);
     hue = new Random(seed).nextFloat();
     hue += goldenRatioConj;

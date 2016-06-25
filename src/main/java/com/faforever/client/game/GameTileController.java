@@ -13,7 +13,10 @@ import javafx.scene.input.MouseEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationContext;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 import static javafx.beans.binding.Bindings.createObjectBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
@@ -46,11 +49,15 @@ public class GameTileController {
   @Resource
   ApplicationContext applicationContext;
   @Resource
-  GamesController gamesController;
-  @Resource
   GameService gameService;
-
+  @Resource
+  JoinGameHelper joinGameHelper;
+  private Consumer<GameInfoBean> onSelectedListener;
   private GameInfoBean gameInfoBean;
+
+  public void setOnSelectedListener(Consumer<GameInfoBean> onSelectedListener) {
+    this.onSelectedListener = onSelectedListener;
+  }
 
   @FXML
   void initialize() {
@@ -58,6 +65,15 @@ public class GameTileController {
     modsLabel.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
     gameTypeLabel.managedProperty().bind(gameTypeLabel.visibleProperty());
     lockIconLabel.managedProperty().bind(lockIconLabel.visibleProperty());
+  }
+
+  @PostConstruct
+  void postConstruct() {
+    joinGameHelper.setParentNode(getRoot());
+  }
+
+  public Node getRoot() {
+    return gameTileRoot;
   }
 
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
@@ -102,16 +118,15 @@ public class GameTileController {
 
   @FXML
   void onClick(MouseEvent mouseEvent) {
+    Objects.requireNonNull(onSelectedListener, "onSelectedListener has not been set");
+    Objects.requireNonNull(gameInfoBean, "gameInfoBean has not been set");
+
     gameTileRoot.requestFocus();
-    gamesController.setSelectedGame(gameInfoBean);
+    onSelectedListener.accept(gameInfoBean);
 
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
       mouseEvent.consume();
-      gamesController.onJoinGame(gameInfoBean, null, mouseEvent.getScreenX(), mouseEvent.getScreenY());
+      joinGameHelper.join(gameInfoBean);
     }
-  }
-
-  public Node getRoot() {
-    return gameTileRoot;
   }
 }

@@ -622,18 +622,24 @@ public class MainController implements OnChooseGameDirectoryListener {
   public void display() {
     windowController.configure(stage, mainRoot, true, MINIMIZE, MAXIMIZE_RESTORE, CLOSE);
     final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
-    stage.setWidth(mainWindowPrefs.getWidth());
-    stage.setHeight(mainWindowPrefs.getHeight());
+    double x = mainWindowPrefs.getX();
+    double y = mainWindowPrefs.getY();
+    int width = mainWindowPrefs.getWidth();
+    int height = mainWindowPrefs.getHeight();
+
+    stage.setWidth(width);
+    stage.setHeight(height);
     stage.show();
 
     initWindowsTaskBar();
     enterLoggedOutState();
 
-    if (mainWindowPrefs.getX() < 0 && mainWindowPrefs.getY() < 0) {
+    ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(x, y, width, height);
+    if (screensForRectangle.isEmpty()) {
       JavaFxUtil.centerOnScreen(stage);
     } else {
-      stage.setX(mainWindowPrefs.getX());
-      stage.setY(mainWindowPrefs.getY());
+      stage.setX(x);
+      stage.setY(y);
     }
     if (mainWindowPrefs.getMaximized()) {
       WindowController.maximize(stage);
@@ -644,6 +650,7 @@ public class MainController implements OnChooseGameDirectoryListener {
   /**
    * Initializes the Windows 7+ task bar.
    */
+  @SuppressWarnings("unchecked")
   private void initWindowsTaskBar() {
     try {
       threadPoolExecutor.execute(() ->

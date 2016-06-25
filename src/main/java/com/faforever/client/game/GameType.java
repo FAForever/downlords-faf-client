@@ -5,8 +5,10 @@ import java.util.Map;
 
 public enum GameType {
   FAF("faf"),
+  FAF_BETA("fafbeta"),
   BALANCE_TESTING("balancetesting"),
-  LADDER_1V1("ladder1v1");
+  LADDER_1V1("ladder1v1"),
+  COOP("coop");
 
   public static final GameType DEFAULT = FAF;
 

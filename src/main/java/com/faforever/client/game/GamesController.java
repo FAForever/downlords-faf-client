@@ -1,24 +1,20 @@
 package com.faforever.client.game;
 
-import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapDetailController;
 import com.faforever.client.map.MapService;
-import com.faforever.client.notification.Action;
-import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameState;
-import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.util.RatingUtil;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.WeakMapChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -47,19 +43,28 @@ import org.springframework.context.ApplicationContext;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
-import static com.faforever.client.notification.Severity.ERROR;
-import static java.util.Arrays.asList;
 import static javafx.beans.binding.Bindings.createObjectBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
 
 public class GamesController {
 
-  private static final Predicate<GameInfoBean> OPEN_GAMES_PREDICATE = gameInfoBean -> gameInfoBean.getStatus() == GameState.OPEN;
+  private static final Collection<String> DISPLAYED_FEATURED_MODS = Arrays.asList(
+      GameType.FAF.getString(),
+      GameType.FAF_BETA.getString(),
+      GameType.BALANCE_TESTING.getString()
+  );
+
+  private static final Predicate<GameInfoBean> OPEN_CUSTOM_GAMES_PREDICATE = gameInfoBean ->
+      gameInfoBean.getStatus() == GameState.OPEN
+          && DISPLAYED_FEATURED_MODS.contains(gameInfoBean.getFeaturedMod());
+
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
@@ -96,8 +101,6 @@ public class GamesController {
   @Resource
   I18n i18n;
   @Resource
-  PlayerService playerService;
-  @Resource
   GameService gameService;
   @Resource
   MapService mapService;
@@ -109,15 +112,14 @@ public class GamesController {
   PreferencesService preferencesService;
   @Resource
   NotificationService notificationService;
-  @Resource
-  ReportingService reportingService;
+
 
   private Popup createGamePopup;
-  private Popup passwordPopup;
   private FilteredList<GameInfoBean> filteredItems;
   private Stage mapDetailPopup;
 
   private GameInfoBean currentGameInfoBean;
+  private MapChangeListener<String, List<String>> teamsChangeListener;
 
   @FXML
   void initialize() {
@@ -127,23 +129,16 @@ public class GamesController {
 
   @PostConstruct
   void postConstruct() {
-    passwordPopup = new Popup();
-    passwordPopup.setAutoHide(true);
-    passwordPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
-    passwordPopup.getContent().setAll(enterPasswordController.getRoot());
-
     createGamePopup = new Popup();
     createGamePopup.setAutoFix(false);
     createGamePopup.setAutoHide(true);
     createGamePopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
     createGamePopup.getContent().setAll(createGameController.getRoot());
 
-    enterPasswordController.setOnPasswordEnteredListener(this::doJoinGame);
-
     ObservableList<GameInfoBean> gameInfoBeans = gameService.getGameInfoBeans();
 
     filteredItems = new FilteredList<>(gameInfoBeans);
-    filteredItems.setPredicate(OPEN_GAMES_PREDICATE);
+    filteredItems.setPredicate(OPEN_CUSTOM_GAMES_PREDICATE);
 
     if (tilesButton.getId().equals(preferencesService.getPreferences().getGamesViewMode())) {
       viewToggleGroup.selectToggle(tilesButton);
@@ -158,110 +153,14 @@ public class GamesController {
     });
   }
 
-  public void setSelectedGame(GameInfoBean gameInfoBean) {
-    if (gameInfoBean == null) {
-      gameDetailPane.setVisible(false);
-      return;
-    }
-
-    gameDetailPane.setVisible(true);
-    currentGameInfoBean = gameInfoBean;
-
-    gameTitleLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
-
-    mapImageView.imageProperty().bind(createObjectBinding(
-        () -> mapService.loadLargePreview(gameInfoBean.getMapTechnicalName()),
-        gameInfoBean.mapTechnicalNameProperty()
-    ));
-
-    numberOfPlayersLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()),
-        gameInfoBean.numPlayersProperty(),
-        gameInfoBean.maxPlayersProperty()
-    ));
-
-    hostLabel.textProperty().bind(gameInfoBean.hostProperty());
-    mapLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
-
-    gameTypeLabel.textProperty().bind(createStringBinding(() -> {
-      GameTypeBean gameType = gameService.getGameTypeByString(gameInfoBean.getFeaturedMod());
-      String fullName = gameType != null ? gameType.getFullName() : null;
-      return StringUtils.defaultString(fullName);
-    }, gameInfoBean.featuredModProperty()));
-
-    createTeams(gameInfoBean.getTeams());
-  }
-
-  private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber) {
-    teamListPane.getChildren().clear();
-    for (Map.Entry<? extends String, ? extends List<String>> entry : playersByTeamNumber.entrySet()) {
-      TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
-      teamCardController.setPlayersInTeam(entry.getKey(), entry.getValue());
-      teamListPane.getChildren().add(teamCardController.getRoot());
-    }
-  }
-
   @FXML
   void onShowPrivateGames(ActionEvent actionEvent) {
     CheckBox checkBox = (CheckBox) actionEvent.getSource();
     boolean selected = checkBox.isSelected();
     if (selected) {
-      filteredItems.setPredicate(OPEN_GAMES_PREDICATE);
+      filteredItems.setPredicate(OPEN_CUSTOM_GAMES_PREDICATE);
     } else {
-      filteredItems.setPredicate(OPEN_GAMES_PREDICATE.and(gameInfoBean -> !gameInfoBean.getPasswordProtected()));
-    }
-  }
-
-  public void onJoinGame(GameInfoBean gameInfoBean, String password, double screenX, double screenY) {
-    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
-    int playerRating = RatingUtil.getGlobalRating(currentPlayer);
-
-    if ((playerRating < gameInfoBean.getMinRating() || playerRating > gameInfoBean.getMaxRating())) {
-      showRatingOutOfBoundsConfirmation(playerRating, gameInfoBean, screenX, screenY);
-    } else {
-      doJoinGame(gameInfoBean, password, screenX, screenY);
-    }
-  }
-
-  private void showRatingOutOfBoundsConfirmation(int playerRating, GameInfoBean gameInfoBean, double screenX, double screenY) {
-    notificationService.addNotification(new ImmediateNotification(
-        i18n.get("game.joinGameRatingConfirmation.title"),
-        i18n.get("game.joinGameRatingConfirmation.text", gameInfoBean.getMinRating(), gameInfoBean.getMaxRating(), playerRating),
-        Severity.INFO,
-        asList(
-            new Action(i18n.get("game.join"), event -> doJoinGame(gameInfoBean, null, screenX, screenY)),
-            new Action(i18n.get("game.cancel"))
-        )
-    ));
-  }
-
-  private void doJoinGame(GameInfoBean gameInfoBean, String password, double screenX, double screenY) {
-    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
-      preferencesService.letUserChoseGameDirectory()
-          .thenAccept(isPathValid -> {
-            if (isPathValid != null && !isPathValid) {
-              doJoinGame(gameInfoBean, password, screenX, screenY);
-            }
-          });
-      return;
-    }
-
-    if (gameInfoBean.getPasswordProtected() && password == null) {
-      enterPasswordController.setGameInfoBean(gameInfoBean);
-      passwordPopup.show(gamesRoot.getScene().getWindow(), screenX, screenY);
-    } else {
-      gameService.joinGame(gameInfoBean, password)
-          .exceptionally(throwable -> {
-            logger.warn("Game could not be joined", throwable);
-            notificationService.addNotification(
-                new ImmediateNotification(
-                    i18n.get("errorTitle"),
-                    i18n.get("games.couldNotJoin"),
-                    ERROR,
-                    throwable,
-                    asList(new DismissAction(i18n), new ReportAction(i18n, reportingService, throwable))));
-            return null;
-          });
+      filteredItems.setPredicate(OPEN_CUSTOM_GAMES_PREDICATE.and(gameInfoBean -> !gameInfoBean.getPasswordProtected()));
     }
   }
 
@@ -270,9 +169,9 @@ public class GamesController {
     Button button = (Button) actionEvent.getSource();
 
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
-      preferencesService.letUserChoseGameDirectory()
-          .thenAccept(isPathValid -> {
-            if (isPathValid != null && !isPathValid) {
+      preferencesService.letUserChooseGameDirectory()
+          .thenAccept(path -> {
+            if (path != null) {
               onCreateGameButtonClicked(actionEvent);
             }
           });
@@ -321,6 +220,7 @@ public class GamesController {
   @FXML
   void onTableButtonClicked() {
     GamesTableController gamesTableController = applicationContext.getBean(GamesTableController.class);
+    gamesTableController.setOnSelectedListener(this::setSelectedGame);
     Platform.runLater(() -> {
       gamesTableController.initializeGameTable(filteredItems);
 
@@ -340,9 +240,59 @@ public class GamesController {
   @FXML
   void onTilesButtonClicked() {
     GamesTilesContainerController gamesTilesContainerController = applicationContext.getBean(GamesTilesContainerController.class);
+    gamesTilesContainerController.selectedGameProperty().addListener((observable, oldValue, newValue) -> {
+      setSelectedGame(newValue);
+    });
     gamesTilesContainerController.createTiledFlowPane(filteredItems);
 
     Node root = gamesTilesContainerController.getRoot();
     populateContainer(root);
+  }
+
+  @VisibleForTesting
+  void setSelectedGame(GameInfoBean gameInfoBean) {
+    if (gameInfoBean == null) {
+      gameDetailPane.setVisible(false);
+      return;
+    }
+
+    gameDetailPane.setVisible(true);
+    currentGameInfoBean = gameInfoBean;
+
+    gameTitleLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
+
+    mapImageView.imageProperty().bind(createObjectBinding(
+        () -> mapService.loadLargePreview(gameInfoBean.getMapTechnicalName()),
+        gameInfoBean.mapTechnicalNameProperty()
+    ));
+
+    numberOfPlayersLabel.textProperty().bind(createStringBinding(
+        () -> i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()),
+        gameInfoBean.numPlayersProperty(),
+        gameInfoBean.maxPlayersProperty()
+    ));
+
+    hostLabel.textProperty().bind(gameInfoBean.hostProperty());
+    mapLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
+
+    gameTypeLabel.textProperty().bind(createStringBinding(() -> {
+      GameTypeBean gameType = gameService.getGameTypeByString(gameInfoBean.getFeaturedMod());
+      String fullName = gameType != null ? gameType.getFullName() : null;
+      return StringUtils.defaultString(fullName);
+    }, gameInfoBean.featuredModProperty()));
+
+    teamsChangeListener = change -> createTeams(gameInfoBean.getTeams());
+    gameInfoBean.getTeams().addListener(new WeakMapChangeListener<>(teamsChangeListener));
+
+    createTeams(gameInfoBean.getTeams());
+  }
+
+  private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber) {
+    teamListPane.getChildren().clear();
+    for (Map.Entry<? extends String, ? extends List<String>> entry : playersByTeamNumber.entrySet()) {
+      TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
+      teamCardController.setPlayersInTeam(entry.getKey(), entry.getValue());
+      teamListPane.getChildren().add(teamCardController.getRoot());
+    }
   }
 }

@@ -24,8 +24,10 @@ import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class GamesTableController {
@@ -49,12 +51,25 @@ public class GamesTableController {
   FxmlLoader fxmlLoader;
   @Resource
   MapService mapService;
-  // TODO replace with gamecontroller listener
-  @Resource
-  GamesController gamesController;
 
   @Resource
+  JoinGameHelper joinGameHelper;
+  @Resource
   I18n i18n;
+  private Consumer<GameInfoBean> onSelectedListener;
+
+  public void setOnSelectedListener(Consumer<GameInfoBean> onSelectedListener) {
+    this.onSelectedListener = onSelectedListener;
+  }
+
+  @PostConstruct
+  void postConstruct() {
+    joinGameHelper.setParentNode(getRoot());
+  }
+
+  public Node getRoot() {
+    return gamesTable;
+  }
 
   public void initializeGameTable(ObservableList<GameInfoBean> gameInfoBeans) {
     SortedList<GameInfoBean> sortedList = new SortedList<>(gameInfoBeans);
@@ -98,7 +113,7 @@ public class GamesTableController {
     hostColumn.setCellFactory(param -> new StringCell<>(title -> title));
 
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> gamesController.setSelectedGame(newValue));
+      Platform.runLater(() -> onSelectedListener.accept(newValue));
     });
   }
 
@@ -108,7 +123,7 @@ public class GamesTableController {
     row.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
         GameInfoBean gameInfoBean = row.getItem();
-        gamesController.onJoinGame(gameInfoBean, null, event.getScreenX(), event.getScreenY());
+        joinGameHelper.join(gameInfoBean);
       }
     });
     return row;
@@ -126,7 +141,7 @@ public class GamesTableController {
   }
 
   private TableCell<GameInfoBean, RatingRange> ratingTableCell() {
-    return new StringCell<GameInfoBean, RatingRange>(ratingRange -> {
+    return new StringCell<>(ratingRange -> {
       if (ratingRange.getMin() == null && ratingRange.getMax() == null) {
         return "";
       }
@@ -141,9 +156,5 @@ public class GamesTableController {
 
       return i18n.get("game.ratingFormat.maxOnly", ratingRange.getMax());
     }, Pos.CENTER);
-  }
-
-  public Node getRoot() {
-    return gamesTable;
   }
 }

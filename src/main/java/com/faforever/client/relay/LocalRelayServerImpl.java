@@ -148,12 +148,12 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   public CompletableFuture<Integer> start(DatagramGateway gateway) {
     synchronized (started) {
       if (started.get()) {
-        logger.warn("Local relay server was already running");
-        return gpgPortFuture;
+        logger.warn("Local relay server was already running, restarting");
+        close();
       }
-      logger.debug("Starting relay server");
-      started.set(true);
     }
+
+    logger.debug("Starting relay server");
     this.gateway = gateway;
 
     gateway.addOnPacketListener(incomingPacketConsumer);
@@ -253,6 +253,9 @@ public class LocalRelayServerImpl implements LocalRelayServer {
         gpgPortFuture.complete(localPort);
 
         logger.info("GPG relay server listening on port {}", localPort);
+        synchronized (started) {
+          started.set(true);
+        }
 
         try (Socket faSocket = serverSocket.accept()) {
           LocalRelayServerImpl.this.gameSocket = faSocket;
@@ -281,6 +284,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
    */
   private void redirectGpgConnection() {
     try {
+      //noinspection InfiniteLoopStatement
       while (true) {
         String message = gameInputStream.readString();
 

@@ -82,6 +82,7 @@ import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.faforever.client.chat.SocialStatus.SELF;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
+import static java.util.Locale.US;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
 
@@ -252,9 +253,9 @@ public abstract class AbstractChatTabController {
     addFocusListeners();
     addImagePasteListener();
 
-    unreadMessagesCount.addListener((observable, oldValue, newValue) -> {
-      chatService.incrementUnreadMessagesCount(newValue.intValue() - oldValue.intValue());
-    });
+    unreadMessagesCount.addListener((observable, oldValue, newValue) ->
+        chatService.incrementUnreadMessagesCount(newValue.intValue() - oldValue.intValue())
+    );
     stage.focusedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
     getRoot().selectedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
   }
@@ -548,7 +549,7 @@ public abstract class AbstractChatTabController {
 
     possibleAutoCompletions.addAll(
         playerService.getPlayerNames().stream()
-            .filter(playerName -> playerName.toLowerCase().startsWith(autoCompletePartialName.toLowerCase()))
+            .filter(playerName -> playerName.toLowerCase(US).startsWith(autoCompletePartialName.toLowerCase()))
             .sorted()
             .collect(Collectors.toList())
     );
@@ -740,13 +741,10 @@ public abstract class AbstractChatTabController {
     } else if (player != null && (player.getSocialStatus() == SELF || player.getSocialStatus() == FRIEND)) {
       return "";
     } else {
-      switch (chatPrefs.getChatColorMode()) {
-        case CUSTOM:
-        case RANDOM:
-          if (chatUser.getColor() != null) {
-            color = createInlineStyleFromColor(chatUser.getColor());
-          }
-          break;
+      ChatColorMode chatColorMode = chatPrefs.getChatColorMode();
+      if ((chatColorMode == ChatColorMode.CUSTOM || chatColorMode == ChatColorMode.RANDOM)
+          && chatUser.getColor() != null) {
+        color = createInlineStyleFromColor(chatUser.getColor());
       }
     }
 

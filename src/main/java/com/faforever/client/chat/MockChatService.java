@@ -38,7 +38,6 @@ public class MockChatService implements ChatService {
   private static final long CONNECTION_DELAY = 1000;
   private final Timer timer;
   private final Collection<Consumer<ChatMessage>> onChatMessageListeners;
-  private final Collection<Consumer<ChatMessage>> onPrivateChatMessageListeners;
   private final Map<String, Channel> channelUserListListeners;
   private final ObjectProperty<ConnectionState> connectionState;
   private final IntegerProperty unreadMessagesCount;
@@ -55,7 +54,6 @@ public class MockChatService implements ChatService {
     unreadMessagesCount = new SimpleIntegerProperty();
 
     onChatMessageListeners = new ArrayList<>();
-    onPrivateChatMessageListeners = new ArrayList<>();
     channelUserListListeners = new HashMap<>();
 
     timer = new Timer(true);

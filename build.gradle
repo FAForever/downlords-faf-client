@@ -38,7 +38,7 @@ apply plugin: 'distribution'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-version = '0.6.13-alpha'
+version = '0.6.14-alpha'
 
 class HttpBuilder extends HTTPBuilder {
 
@@ -273,4 +273,5 @@ dependencies {
   compile 'com.nativelibs4java:bridj:0.7.0'
   compile 'com.github.nocatch:nocatch:1.1'
   compile 'org.javassist:javassist:3.20.0-GA'
+  compile 'io.sigpipe:jbsdiff:1.0'
 }

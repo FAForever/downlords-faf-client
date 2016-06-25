@@ -36,14 +36,14 @@ public class AudioControllerImpl implements AudioController {
 
   @PostConstruct
   void postConstruct() throws IOException {
-    mainController.getRoot().sceneProperty().addListener((observable, oldValue, newValue) -> {
-      playSounds = newValue != null;
-    });
+    mainController.getRoot().sceneProperty().addListener((observable, oldValue, newValue) ->
+        playSounds = newValue != null
+    );
 
     notificationsPrefs = preferencesService.getPreferences().getNotification();
-    notificationsPrefs.soundsEnabledProperty().addListener((observable, oldValue, newValue) -> {
-      playSounds &= newValue;
-    });
+    notificationsPrefs.soundsEnabledProperty().addListener((observable, oldValue, newValue) ->
+        playSounds &= newValue
+    );
 
     loadSounds();
   }

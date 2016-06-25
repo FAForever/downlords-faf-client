@@ -40,8 +40,6 @@ public interface ThemeService {
 
   /**
    * Registers a WebView against the theme service so it can be updated whenever the theme changes.
-   *
-   * @param webView
    */
   void registerWebView(WebView webView);
 
@@ -54,7 +52,6 @@ public interface ThemeService {
    * (e.g. a red circle) with a number on it, which indicates the number of (for instance) new messages or
    * notifications.
    *
-   * @param stage
    * @param number the new badge number. If 0, the badge will be removed.
    */
   void setApplicationIconBadgeNumber(Stage stage, int number);

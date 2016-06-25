@@ -71,7 +71,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   private CreateGameController instance;
   private ObservableList<MapInfoBean> mapList;
-  private ReadOnlyObjectProperty<ConnectivityState> connectivityStateProperty;
 
   @Before
   public void setUp() throws Exception {
@@ -86,7 +85,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     instance.connectivityService = connectivityService;
 
     mapList = FXCollections.observableArrayList();
-    connectivityStateProperty = new SimpleObjectProperty<>();
+    ReadOnlyObjectProperty<ConnectivityState> connectivityStateProperty = new SimpleObjectProperty<>();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);

@@ -41,6 +41,7 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -48,7 +49,11 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
+import javafx.stage.Screen;
+import javafx.stage.Window;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -70,6 +75,8 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
@@ -155,8 +162,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private CountDownLatch mainControllerInitializedLatch;
   private SimpleObjectProperty<ConnectionState> connectionStateProperty;
   private SimpleObjectProperty<ConnectivityState> connectivityStateProperty;
-  private ObjectProperty<ConnectionState> chatConnectionStateProperty;
-  private IntegerProperty chatUnreadMessagesCountProperty;
   private BooleanProperty loggedInProperty;
   private BooleanProperty gameRunningProperty;
 
@@ -199,10 +204,10 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     connectionStateProperty = new SimpleObjectProperty<>();
     connectivityStateProperty = new SimpleObjectProperty<>(ConnectivityState.UNKNOWN);
-    chatConnectionStateProperty = new SimpleObjectProperty<>();
+    ObjectProperty<ConnectionState> chatConnectionStateProperty = new SimpleObjectProperty<>();
     loggedInProperty = new SimpleBooleanProperty();
     gameRunningProperty = new SimpleBooleanProperty();
-    chatUnreadMessagesCountProperty = new SimpleIntegerProperty();
+    IntegerProperty chatUnreadMessagesCountProperty = new SimpleIntegerProperty();
 
     when(chatController.getRoot()).thenReturn(new Pane());
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
@@ -584,5 +589,31 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     matchmakerMessageCaptor.getValue().accept(matchmakerMessage);
 
     verify(notificationService, never()).addNotification(any(TransientNotification.class));
+  }
+
+  @Test
+  public void testWindowOutsideScreensGetsCentered() throws Exception {
+    Rectangle2D visualBounds = Screen.getPrimary().getBounds();
+    when(mainWindowPrefs.getY()).thenReturn(visualBounds.getMaxY() + 1);
+    when(mainWindowPrefs.getX()).thenReturn(visualBounds.getMaxX() + 1);
+
+    doAnswer(invocation -> {
+      getRoot().getChildren().setAll(invocation.getArgumentAt(1, Region.class));
+      return null;
+    }).when(windowController).configure(any(), any(), anyBoolean(), anyVararg());
+
+    CountDownLatch latch = new CountDownLatch(1);
+    Platform.runLater(() -> {
+      instance.display();
+      latch.countDown();
+    });
+
+    assertTrue(latch.await(5, TimeUnit.SECONDS));
+
+    verify(windowController).configure(any(), any(), anyBoolean(), anyVararg());
+
+    Window window = instance.getRoot().getScene().getWindow();
+    Rectangle2D bounds = new Rectangle2D(window.getX(), window.getY(), window.getWidth(), window.getHeight());
+    assertTrue(Screen.getPrimary().getBounds().contains(bounds));
   }
 }

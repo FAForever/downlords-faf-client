@@ -13,7 +13,6 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.SetChangeListener;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -54,6 +53,7 @@ public class ChannelTabController extends AbstractChatTabController {
   @VisibleForTesting
   static final String CSS_CLASS_MODERATOR = "moderator";
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String USER_CSS_CLASS_FORMAT = "user-%s";
   /**
    * Keeps track of which ChatUserControl in which pane belongs to which user.
    */
@@ -136,9 +136,9 @@ public class ChannelTabController extends AbstractChatTabController {
       } else if (change.wasRemoved()) {
         onUserLeft(change.getValueRemoved().getUsername());
       }
-      updateUserCount(channelName, change.getMap().size());
+      updateUserCount(change.getMap().size());
     };
-    updateUserCount(channelName, chatService.getOrCreateChannel(channelName).getUsers().size());
+    updateUserCount(chatService.getOrCreateChannel(channelName).getUsers().size());
 
     chatService.addUsersListener(channelName, usersChangeListener);
 
@@ -158,7 +158,7 @@ public class ChannelTabController extends AbstractChatTabController {
     addSearchFieldListener();
   }
 
-  private void updateUserCount(String channelName, int count) {
+  private void updateUserCount(int count) {
     Platform.runLater(() -> userSearchTextField.setPromptText(i18n.get("chat.userCount", count)));
   }
 
@@ -245,6 +245,7 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @PostConstruct
+  @Override
   void postConstruct() {
     super.postConstruct();
 
@@ -278,7 +279,7 @@ public class ChannelTabController extends AbstractChatTabController {
   protected String getMessageCssClass(String login) {
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(login);
     if (playerInfoBean != null
-        && playerInfoBean != playerService.getCurrentPlayer()
+        && !playerInfoBean.equals(playerService.getCurrentPlayer())
         && playerInfoBean.getModeratorForChannels().contains(channelName)) {
       return CSS_CLASS_MODERATOR;
     }
@@ -312,16 +313,16 @@ public class ChannelTabController extends AbstractChatTabController {
     if (cssClass.isEmpty()) {
       return;
     }
-    Platform.runLater(() -> getJsObject().call("removeUserMessageClass", String.format("user-%s", playerInfoBean.getUsername()), cssClass));
+    Platform.runLater(() -> getJsObject().call("removeUserMessageClass", String.format(USER_CSS_CLASS_FORMAT, playerInfoBean.getUsername()), cssClass));
 
   }
 
   private void setUserMessageClass(PlayerInfoBean playerInfoBean, String cssClass) {
-    Platform.runLater(() -> getJsObject().call("setUserMessageClass", String.format("user-%s", playerInfoBean.getUsername()), cssClass));
+    Platform.runLater(() -> getJsObject().call("setUserMessageClass", String.format(USER_CSS_CLASS_FORMAT, playerInfoBean.getUsername()), cssClass));
   }
 
   private void updateUserMessageDisplay(PlayerInfoBean playerInfoBean, String display) {
-    Platform.runLater(() -> getJsObject().call("updateUserMessageDisplay", String.format("user-%s", playerInfoBean.getUsername()), display));
+    Platform.runLater(() -> getJsObject().call("updateUserMessageDisplay", String.format(USER_CSS_CLASS_FORMAT, playerInfoBean.getUsername()), display));
   }
 
   private void onUserJoinedChannel(ChatUser chatUser) {
@@ -409,9 +410,9 @@ public class ChannelTabController extends AbstractChatTabController {
       }
     });
 
-    chatUser.colorProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> updateUserMessageColor(chatUser));
-    });
+    chatUser.colorProperty().addListener((observable, oldValue, newValue) ->
+        Platform.runLater(() -> updateUserMessageColor(chatUser))
+    );
 
     Collection<Pane> targetPanesForUser = getTargetPanesForUser(player);
     userToChatUserControls.putIfAbsent(username, new HashMap<>(targetPanesForUser.size(), 1));
@@ -517,7 +518,7 @@ public class ChannelTabController extends AbstractChatTabController {
   @FXML
   void onKeyReleased(KeyEvent event) {
     if (event.getCode() == KeyCode.ESCAPE) {
-      onSearchFieldClose(event);
+      onSearchFieldClose();
     } else if (event.isControlDown() && event.getCode() == KeyCode.F) {
       searchField.clear();
       searchField.setVisible(!searchField.isVisible());
@@ -526,14 +527,14 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @FXML
-  void onSearchFieldClose(Event event) {
+  void onSearchFieldClose() {
     searchField.setVisible(false);
     searchField.clear();
   }
 
   public void addSearchFieldListener() {
     searchField.textProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue.isEmpty() || newValue.equals(" ")) {
+      if (newValue.trim().isEmpty()) {
         getJsObject().call("removeHighlight");
       } else {
         getJsObject().call("highlightText", newValue);

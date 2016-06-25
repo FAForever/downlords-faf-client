@@ -125,10 +125,8 @@ public class PlayerInfoBean {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj == null) {
-      return false;
-    }
-    return (obj.getClass() == PlayerInfoBean.class)
+    return obj != null
+        && (obj.getClass() == PlayerInfoBean.class)
         && getUsername().equalsIgnoreCase(((PlayerInfoBean) obj).getUsername());
   }
 

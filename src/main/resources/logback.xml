@@ -1,6 +1,8 @@
 <configuration scan="true" scanPeriod="30 seconds">
 
   <logger name="org.pircbotx" level="warn"/>
+  <logger name="com.google.api.client.util.store.FileDataStoreFactory" level="error"/>
+
   <logger name="com.faforever.client.api" level="info"/>
   <logger name="com.faforever.client.connectivity" level="info"/>
   <logger name="com.faforever.client.preferences" level="info"/>

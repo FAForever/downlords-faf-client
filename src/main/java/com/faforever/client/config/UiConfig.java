@@ -32,6 +32,7 @@ import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.game.GamesTableController;
 import com.faforever.client.game.GamesTilesContainerController;
+import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.hub.CommunityHubController;
@@ -390,5 +391,10 @@ public class UiConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   UploadModController uploadModController() {
     return loadController("upload_mod.fxml");
+  }
+
+  @Bean
+  JoinGameHelper joinGameHelper() {
+    return new JoinGameHelper();
   }
 }

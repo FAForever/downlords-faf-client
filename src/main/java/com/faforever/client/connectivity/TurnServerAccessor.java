@@ -22,7 +22,6 @@ public interface TurnServerAccessor extends DatagramGateway {
 
   /**
    * Returns {@code true} if the specified address is bound to a channel.
-   * @param socketAddress
    */
   boolean isBound(InetSocketAddress socketAddress);
 

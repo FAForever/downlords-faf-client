@@ -105,7 +105,6 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
   private ClientUpdateService clientUpdateService;
 
   private FafServerAccessorImpl instance;
-  private LoginPrefs loginPrefs;
   private ServerSocket fafLobbyServerSocket;
   private Socket localToServerSocket;
   private ServerWriter serverToClientWriter;
@@ -127,7 +126,7 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     instance.lobbyPort = fafLobbyServerSocket.getLocalPort();
     instance.clientUpdateService = clientUpdateService;
 
-    loginPrefs = new LoginPrefs();
+    LoginPrefs loginPrefs = new LoginPrefs();
     loginPrefs.setUsername("junit");
     loginPrefs.setPassword("password");
 
