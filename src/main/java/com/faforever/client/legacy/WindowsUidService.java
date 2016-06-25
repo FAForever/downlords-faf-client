@@ -8,6 +8,7 @@ public class WindowsUidService implements UidService {
 
   @Override
   public String generate(String sessionId, Path logFile) {
-    return OsUtils.execAndGetOutput(String.format("uid.exe %s", sessionId));
+    String uidDir = System.getProperty("uid.dir");
+    return OsUtils.execAndGetOutput(String.format("%s/uid.exe %s", uidDir, sessionId));
   }
 }

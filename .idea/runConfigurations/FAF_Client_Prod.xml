@@ -7,7 +7,7 @@
       </pattern>
     </extension>
     <option name="MAIN_CLASS_NAME" value="com.faforever.client.Main" />
-    <option name="VM_PARAMETERS" value="-Djava.library.path=src/main/native -Xmx512m -javaagent:build/libs/webview-patch-agent.jar" />
+    <option name="VM_PARAMETERS" value="-Djava.library.path=src/main/native -Xmx512m -javaagent:build/libs/webview-patch-agent.jar -Duid.dir=src/main/native" />
     <option name="PROGRAM_PARAMETERS" value="" />
     <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
@@ -16,9 +16,7 @@
     <option name="ENV_VARIABLES" />
     <option name="PASS_PARENT_ENVS" value="true" />
     <module name="downlords-faf-client" />
-    <envs>
-      <env name="PATH" value="%PATH%;src\main\native" />
-    </envs>
+    <envs />
     <RunnerSettings RunnerId="Debug">
       <option name="DEBUG_PORT" value="" />
       <option name="TRANSPORT" value="0" />
