@@ -1,9 +1,9 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.AbstractPrioritizedTask;
-import com.faforever.client.util.OperatingSystem;
 import com.google.common.hash.Hashing;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
