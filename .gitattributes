@@ -7,3 +7,4 @@
 *.jpg     binary
 *.mp3     binary
 *.zip     binary
+*.exe     binary

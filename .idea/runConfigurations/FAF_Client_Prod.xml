@@ -16,7 +16,9 @@
     <option name="ENV_VARIABLES" />
     <option name="PASS_PARENT_ENVS" value="true" />
     <module name="downlords-faf-client" />
-    <envs />
+    <envs>
+      <env name="PATH" value="%PATH%;src\main\native" />
+    </envs>
     <RunnerSettings RunnerId="Debug">
       <option name="DEBUG_PORT" value="" />
       <option name="TRANSPORT" value="0" />
