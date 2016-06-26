@@ -27,6 +27,7 @@ import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.notification.TransientNotificationsController;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.OnChooseGameDirectoryListener;
@@ -105,6 +106,7 @@ import java.util.function.Function;
 import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowController.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowController.WindowButtonType.MINIMIZE;
+import static com.faforever.client.os.OperatingSystem.WINDOWS;
 import static com.github.nocatch.NoCatch.noCatch;
 
 public class MainController implements OnChooseGameDirectoryListener {
@@ -630,8 +632,9 @@ public class MainController implements OnChooseGameDirectoryListener {
     stage.setWidth(width);
     stage.setHeight(height);
     stage.show();
-
-    initWindowsTaskBar();
+    if (OperatingSystem.current() == WINDOWS) {
+      initWindowsTaskBar();
+    }
     enterLoggedOutState();
 
     ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(x, y, width, height);
