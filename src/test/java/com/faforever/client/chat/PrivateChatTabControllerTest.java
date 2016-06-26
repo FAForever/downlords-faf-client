@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioController;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
@@ -20,6 +21,8 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.io.IOException;
 import java.time.Instant;
 
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -39,6 +42,8 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   AudioController audioController;
   @Mock
   NotificationService notificationService;
+  @Mock
+  I18n i18n;
 
   private PrivateChatTabController instance;
   private String playerName;
@@ -50,10 +55,13 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.playerService = playerService;
     instance.audioController = audioController;
     instance.notificationService = notificationService;
+    instance.i18n = i18n;
+
     WaitForAsyncUtils.waitForAsyncFx(3000, () -> instance.stage = new Stage());
 
     playerName = "testUser";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
+    instance.setReceiver(playerName);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getChat()).thenReturn(chatPrefs);
@@ -102,5 +110,24 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void onChatMessageTestIsFoeHideFoe() {
 
+  }
+
+  @Test
+  public void onPlayerConnectedTest() {
+    assertFalse(instance.isUserOffline());
+
+    instance.onPlayerDisconnected(playerName, null);
+    instance.onPlayerConnected(playerName, null);
+
+    assertFalse(instance.isUserOffline());
+  }
+
+  @Test
+  public void onPlayerDisconnected() {
+    assertFalse(instance.isUserOffline());
+
+    instance.onPlayerDisconnected(playerName, null);
+
+    assertTrue(instance.isUserOffline());
   }
 }

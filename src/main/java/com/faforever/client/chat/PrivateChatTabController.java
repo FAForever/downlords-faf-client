@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.preferences.ChatPrefs;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Tab;
@@ -27,7 +28,11 @@ public class PrivateChatTabController extends AbstractChatTabController {
   AudioController audioController;
   @Resource
   ChatService chatService;
-  private boolean isOffline;
+  private boolean userOffline;
+
+  public boolean isUserOffline() {
+    return userOffline;
+  }
 
   @Override
   public Tab getRoot() {
@@ -45,6 +50,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
   @Override
   void postConstruct() {
     super.postConstruct();
+    userOffline = false;
     chatService.addChatUsersByNameListener(change -> {
       if (change.wasRemoved()) {
         onPlayerDisconnected(change.getKey(), change.getValueRemoved());
@@ -85,16 +91,18 @@ public class PrivateChatTabController extends AbstractChatTabController {
     }
   }
 
-  private void onPlayerDisconnected(String userName, ChatUser userItem) {
+  @VisibleForTesting
+  void onPlayerDisconnected(String userName, ChatUser userItem) {
     if (userName.equals(getReceiver())) {
-      isOffline = true;
+      userOffline = true;
       Platform.runLater(() -> onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerLeft", userName), true)));
     }
   }
 
-  private void onPlayerConnected(String userName, ChatUser userItem) {
-    if (isOffline && userName.equals(getReceiver())) {
-      isOffline = false;
+  @VisibleForTesting
+  void onPlayerConnected(String userName, ChatUser userItem) {
+    if (userOffline && userName.equals(getReceiver())) {
+      userOffline = false;
       Platform.runLater(() -> onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerReconnect", userName), true)));
     }
   }
