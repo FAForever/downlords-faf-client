@@ -51,7 +51,6 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -84,7 +83,7 @@ public class PircBotXChatService implements ChatService {
    * Maps channels by name.
    */
   private final ObservableMap<String, Channel> channels;
-  private final Map<String, ChatUser> chatUsersByName;
+  private final ObservableMap<String, ChatUser> chatUsersByName;
   private final ObjectProperty<ConnectionState> connectionState;
   private final IntegerProperty unreadMessagesCount;
   @Resource
@@ -120,7 +119,7 @@ public class PircBotXChatService implements ChatService {
     connectionState = new SimpleObjectProperty<>();
     eventListeners = new ConcurrentHashMap<>();
     channels = observableHashMap();
-    chatUsersByName = new HashMap<>();
+    chatUsersByName = observableHashMap();
     unreadMessagesCount = new SimpleIntegerProperty();
   }
 
@@ -415,6 +414,13 @@ public class PircBotXChatService implements ChatService {
   @Override
   public void addUsersListener(String channelName, MapChangeListener<String, ChatUser> listener) {
     getOrCreateChannel(channelName).addUsersListeners(listener);
+  }
+
+  @Override
+  public void addChatUsersByNameListener(MapChangeListener<String, ChatUser> listener) {
+    synchronized (chatUsersByName) {
+      chatUsersByName.addListener(listener);
+    }
   }
 
   @Override
