@@ -2,12 +2,15 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.preferences.ChatPrefs;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.web.WebView;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.time.Instant;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 
@@ -22,16 +25,35 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   @Resource
   AudioController audioController;
+  @Resource
+  ChatService chatService;
+  private boolean isOffline;
 
-  public void setUsername(String username) {
+  @Override
+  public Tab getRoot() {
+    return privateChatTabRoot;
+  }
+
+  @Override
+  public void setReceiver(String username) {
     super.setReceiver(username);
     privateChatTabRoot.setId(username);
     privateChatTabRoot.setText(username);
   }
 
+  @PostConstruct
   @Override
-  public Tab getRoot() {
-    return privateChatTabRoot;
+  void postConstruct() {
+    super.postConstruct();
+    chatService.addChatUsersByNameListener(change -> {
+      if (change.wasRemoved()) {
+        onPlayerDisconnected(change.getKey(), change.getValueRemoved());
+      }
+      if (change.wasAdded()) {
+        onPlayerConnected(change.getKey(), change.getValueRemoved());
+      }
+
+    });
   }
 
   @Override
@@ -60,6 +82,20 @@ public class PrivateChatTabController extends AbstractChatTabController {
       showNotificationIfNecessary(chatMessage);
       setUnread(true);
       incrementUnreadMessagesCount(1);
+    }
+  }
+
+  private void onPlayerDisconnected(String userName, ChatUser userItem) {
+    if (userName.equals(getReceiver())) {
+      isOffline = true;
+      Platform.runLater(() -> onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerLeft", userName), true)));
+    }
+  }
+
+  private void onPlayerConnected(String userName, ChatUser userItem) {
+    if (isOffline && userName.equals(getReceiver())) {
+      isOffline = false;
+      Platform.runLater(() -> onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerReconnect", userName), true)));
     }
   }
 }

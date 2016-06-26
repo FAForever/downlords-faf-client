@@ -240,6 +240,10 @@ public abstract class AbstractChatTabController {
     }
   }
 
+  public String getReceiver() {
+    return receiver;
+  }
+
   public void setReceiver(String receiver) {
     this.receiver = receiver;
   }
