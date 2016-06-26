@@ -140,7 +140,6 @@ public class ChatUserItemController {
 
   private void configureColor() {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    chatPrefs.getUserToColor().removeListener(colorPerUserMapChangeListener);
 
     if (playerInfoBean.getSocialStatus() == SELF) {
       usernameLabel.getStyleClass().add(SELF.getCssClass());
