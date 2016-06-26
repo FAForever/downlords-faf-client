@@ -350,8 +350,11 @@ public class PreferencesService {
   }
 
   public boolean isGamePathValid() {
+    Path binPath = preferences.getForgedAlliance().getPath().resolve("bin");
     return preferences.getForgedAlliance().getPath() != null
-        && Files.isRegularFile(preferences.getForgedAlliance().getPath().resolve("bin").resolve(FORGED_ALLIANCE_EXE));
+        && (Files.isRegularFile(binPath.resolve(FORGED_ALLIANCE_EXE))
+        || Files.isRegularFile(binPath.resolve(SUPREME_COMMANDER_EXE))
+    );
   }
 
   public static void configureLogging() {
