@@ -76,13 +76,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.faforever.client.chat.SocialStatus.SELF;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
-import static java.util.Locale.US;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
 
@@ -156,6 +154,9 @@ public abstract class AbstractChatTabController {
   MainController mainController;
   @Resource
   ThemeService themeService;
+  @Resource
+  AutoCompletitionHelper autoCompletitionHelper;
+
   private boolean isChatReady;
   private WebEngine engine;
   private double lastMouseX;
@@ -168,14 +169,7 @@ public abstract class AbstractChatTabController {
    * Either a channel like "#aeolus" or a user like "Visionik".
    */
   private String receiver;
-  /**
-   * Stores possible values for autocompletion (when strted typing a name, then pressing TAB). This value needs to be
-   * set to {@code null} after the message has been sent or the caret has been moved in order to restart the
-   * autocompletion on next TAB press.
-   */
-  private List<String> possibleAutoCompletions;
-  private int nextAutoCompleteIndex;
-  private String autoCompletePartialName;
+
   private Pattern mentionPattern;
   private Popup playerCardTooltip;
   private Tooltip linkPreviewTooltip;
@@ -262,6 +256,8 @@ public abstract class AbstractChatTabController {
     );
     stage.focusedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
     getRoot().selectedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
+
+    autoCompletitionHelper.bindTo(getMessageTextField());
   }
 
   /**
@@ -384,12 +380,6 @@ public abstract class AbstractChatTabController {
     return (JSObject) engine.executeScript("window");
   }
 
-  private void resetAutoCompletion() {
-    possibleAutoCompletions = null;
-    nextAutoCompleteIndex = -1;
-    autoCompletePartialName = null;
-  }
-
   /**
    * Called from JavaScript when user hovers over a user name.
    */
@@ -479,84 +469,6 @@ public abstract class AbstractChatTabController {
     } else {
       sendMessage();
     }
-
-    resetAutoCompletion();
-  }
-
-  @FXML
-  void onKeyPressed(KeyEvent keyEvent) {
-    if (!keyEvent.isControlDown() && keyEvent.getCode() == KeyCode.TAB) {
-      keyEvent.consume();
-      autoComplete();
-    }
-  }
-
-  // TODO extract to helper class
-  private void autoComplete() {
-    TextInputControl messageTextField = getMessageTextField();
-
-    if (messageTextField.getText().isEmpty()) {
-      return;
-    }
-
-    if (possibleAutoCompletions == null) {
-      initializeAutoCompletion(messageTextField);
-
-      if (possibleAutoCompletions.isEmpty()) {
-        // There are no autocompletion matches
-        resetAutoCompletion();
-        return;
-      }
-
-      // It's the first autocomplete event at this location, just replace the text with the first user name
-      messageTextField.selectPreviousWord();
-      messageTextField.replaceSelection(possibleAutoCompletions.get(nextAutoCompleteIndex++));
-      return;
-    }
-
-    // At this point, it's a subsequent auto complete event
-    String wordBeforeCaret = getWordBeforeCaret(messageTextField);
-
-    /*
-     * We have to check if the previous word is the one we auto completed. If not we reset and start all over again
-     * as the user started auto completion on another word.
-     */
-    if (!wordBeforeCaret.equals(possibleAutoCompletions.get(nextAutoCompleteIndex - 1))) {
-      resetAutoCompletion();
-      autoComplete();
-      return;
-    }
-
-    if (possibleAutoCompletions.size() == 1) {
-      // No need to cycle since there was only one match
-      return;
-    }
-
-    if (possibleAutoCompletions.size() <= nextAutoCompleteIndex) {
-      // Start over again in order to cycle
-      nextAutoCompleteIndex = 0;
-    }
-
-    messageTextField.selectPreviousWord();
-    messageTextField.replaceSelection(possibleAutoCompletions.get(nextAutoCompleteIndex++));
-  }
-
-  private void initializeAutoCompletion(TextInputControl messageTextField) {
-    possibleAutoCompletions = new ArrayList<>();
-
-    autoCompletePartialName = getWordBeforeCaret(messageTextField);
-    if (autoCompletePartialName.isEmpty()) {
-      return;
-    }
-
-    nextAutoCompleteIndex = 0;
-
-    possibleAutoCompletions.addAll(
-        playerService.getPlayerNames().stream()
-            .filter(playerName -> playerName.toLowerCase(US).startsWith(autoCompletePartialName.toLowerCase()))
-            .sorted()
-            .collect(Collectors.toList())
-    );
   }
 
   private String getWordBeforeCaret(TextInputControl messageTextField) {

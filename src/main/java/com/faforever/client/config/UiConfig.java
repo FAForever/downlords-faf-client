@@ -6,6 +6,7 @@ import com.faforever.client.audio.AudioClipPlayerImpl;
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.audio.AudioControllerImpl;
 import com.faforever.client.cast.CastsController;
+import com.faforever.client.chat.AutoCompletitionHelper;
 import com.faforever.client.chat.AvatarService;
 import com.faforever.client.chat.AvatarServiceImpl;
 import com.faforever.client.chat.ChannelTabController;
@@ -396,5 +397,11 @@ public class UiConfig {
   @Bean
   JoinGameHelper joinGameHelper() {
     return new JoinGameHelper();
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  AutoCompletitionHelper autoCompletitionHelper() {
+    return new AutoCompletitionHelper();
   }
 }

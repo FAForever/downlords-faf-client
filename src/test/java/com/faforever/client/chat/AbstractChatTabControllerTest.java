@@ -15,7 +15,6 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
-import javafx.collections.FXCollections;
 import javafx.concurrent.Worker;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -92,6 +91,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private NotificationService notificationService;
+  @Mock
+  private AutoCompletitionHelper autoCompletitionHelper;
 
   private AbstractChatTabController instance;
   private CountDownLatch chatReadyLatch;
@@ -133,6 +134,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.notificationService = notificationService;
     instance.i18n = i18n;
     instance.stage = stage;
+    instance.autoCompletitionHelper = autoCompletitionHelper;
 
     TabPane tabPane = new TabPane(instance.getRoot());
     getRoot().getChildren().setAll(tabPane);
@@ -302,15 +304,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     // I don't see what could be verified here
   }
 
-  @Test
-  public void testAutoCompleteWithEmptyText() throws Exception {
-    KeyEvent keyEvent = keyEvent(KeyCode.TAB);
-
-    instance.onKeyPressed(keyEvent);
-
-    assertThat(keyEvent.isConsumed(), is(true));
-    assertThat(instance.getMessageTextField().getText(), isEmptyString());
-  }
 
   @NotNull
   private KeyEvent keyEvent(KeyCode keyCode) {
@@ -325,93 +318,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
         modifiers.contains(KeyCode.META));
   }
 
-  @Test
-  public void testAutoCompleteDoesntCompleteWhenTheresNoWordBeforeCaret() throws Exception {
-    when(playerService.getPlayerNames()).thenReturn(FXCollections.observableSet("DummyUser", "Junit"));
-    instance.getMessageTextField().setText("j");
-    instance.getMessageTextField().positionCaret(0);
-    KeyEvent keyEvent = keyEvent(KeyCode.TAB);
-
-    instance.onKeyPressed(keyEvent);
-
-    assertThat(keyEvent.isConsumed(), is(true));
-    assertThat(instance.getMessageTextField().getText(), is("j"));
-  }
-
-  @Test
-  public void testAutoCompleteCompletesToFirstMatchCaseInsensitive() throws Exception {
-    when(playerService.getPlayerNames()).thenReturn(FXCollections.observableSet("DummyUser", "Junit"));
-    instance.getMessageTextField().setText("j");
-    instance.getMessageTextField().positionCaret(1);
-    KeyEvent keyEvent = keyEvent(KeyCode.TAB);
-
-    instance.onKeyPressed(keyEvent);
-
-    assertThat(keyEvent.isConsumed(), is(true));
-    assertThat(instance.getMessageTextField().getText(), is("Junit"));
-  }
-
-  @Test
-  public void testAutoCompleteCompletesToFirstMatchCaseInsensitiveRepeated() throws Exception {
-    when(playerService.getPlayerNames()).thenReturn(FXCollections.observableSet("DummyUser", "Junit"));
-    instance.getMessageTextField().setText("j");
-    instance.getMessageTextField().positionCaret(1);
-    KeyEvent keyEvent = keyEvent(KeyCode.TAB);
-
-    instance.onKeyPressed(keyEvent);
-    instance.onKeyPressed(keyEvent);
-
-    assertThat(keyEvent.isConsumed(), is(true));
-    assertThat(instance.getMessageTextField().getText(), is("Junit"));
-  }
-
-  @Test
-  public void testAutoCompleteCycles() throws Exception {
-    when(playerService.getPlayerNames()).thenReturn(FXCollections.observableSet("JayUnit", "Junit"));
-    instance.getMessageTextField().setText("j");
-    instance.getMessageTextField().positionCaret(1);
-    KeyEvent keyEvent = keyEvent(KeyCode.TAB);
-
-    instance.onKeyPressed(keyEvent);
-    assertThat(instance.getMessageTextField().getText(), is("JayUnit"));
-
-    instance.onKeyPressed(keyEvent);
-    assertThat(instance.getMessageTextField().getText(), is("Junit"));
-
-    instance.onKeyPressed(keyEvent);
-    assertThat(instance.getMessageTextField().getText(), is("JayUnit"));
-  }
-
-  @Test
-  public void testAutoCompleteSortedByName() throws Exception {
-    when(playerService.getPlayerNames()).thenReturn(FXCollections.observableSet("JBunit", "JAyUnit"));
-    instance.getMessageTextField().setText("j");
-    instance.getMessageTextField().positionCaret(1);
-    KeyEvent keyEvent = keyEvent(KeyCode.TAB);
-
-    instance.onKeyPressed(keyEvent);
-
-    assertThat(keyEvent.isConsumed(), is(true));
-    assertThat(instance.getMessageTextField().getText(), is("JAyUnit"));
-  }
-
-  @Test
-  public void testAutoCompleteCaretMovedAway() throws Exception {
-    when(playerService.getPlayerNames()).thenReturn(FXCollections.observableSet("JUnit", "Downlord"));
-    KeyEvent keyEvent = keyEvent(KeyCode.TAB);
-
-    // Start auto completion on "JB"
-    instance.getMessageTextField().setText("JU Do");
-    instance.getMessageTextField().positionCaret(2);
-    instance.onKeyPressed(keyEvent);
-
-    // Then auto complete on "Do"
-    instance.getMessageTextField().positionCaret(instance.getMessageTextField().getText().length());
-    instance.onKeyPressed(keyEvent);
-
-    assertThat(keyEvent.isConsumed(), is(true));
-    assertThat(instance.getMessageTextField().getText(), is("JUnit Downlord"));
-  }
 
   @Test
   public void testOnChatMessage() throws Exception {

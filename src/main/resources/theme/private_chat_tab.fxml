@@ -10,7 +10,7 @@
     <children>
       <WebView fx:id="messagesWebView" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0"
                prefWidth="-1.0" VBox.vgrow="ALWAYS"/>
-      <TextField fx:id="messageTextField" onAction="#onSendMessage" onKeyPressed="#onKeyPressed"
+      <TextField fx:id="messageTextField" onAction="#onSendMessage"
                  promptText="%chat.messagePrompt"/>
     </children>
   </VBox>
