@@ -61,7 +61,7 @@ public class DownloadMapBeanTaskTest extends AbstractPlainJavaFxTest {
     expectedException.expectMessage("technicalMapName");
     expectedException.expect(NullPointerException.class);
 
-    instance.setMapUrl(new URL(""));
+    instance.setMapUrl(new URL("http://www.example.com"));
     instance.call();
   }
 

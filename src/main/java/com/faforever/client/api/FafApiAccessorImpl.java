@@ -13,6 +13,7 @@ import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponse;
+import com.google.api.client.http.FileContent;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpMediaType;
@@ -20,8 +21,9 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpStatusCodes;
 import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.InputStreamContent;
 import com.google.api.client.http.MultipartContent;
+import com.google.api.client.http.json.JsonHttpContent;
+import com.google.api.client.json.GenericJson;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonParser;
 import com.google.api.client.json.JsonToken;
@@ -31,6 +33,7 @@ import com.google.common.base.Joiner;
 import com.google.common.escape.Escaper;
 import com.google.common.net.MediaType;
 import com.google.common.net.UrlEscapers;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +48,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,6 +60,7 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -69,6 +77,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String SCOPE_READ_ACHIEVEMENTS = "read_achievements";
   private static final String SCOPE_READ_EVENTS = "read_events";
+  private static final String UPLOAD_MAP = "upload_map";
 
   @Resource
   JsonFactory jsonFactory;
@@ -104,6 +113,39 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   void postConstruct() throws IOException {
     Path playServicesDirectory = preferencesService.getPreferencesDirectory().resolve("oauth");
     dataStoreFactory = new FileDataStoreFactory(playServicesDirectory.toFile());
+
+    if (baseUrl.contains("faforever.com")) {
+      disableSslVerification();
+    }
+  }
+
+  // FIXME remove as soon as test server has a proper HTTPS certificate
+  private static void disableSslVerification() {
+    noCatch(() -> {
+      TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+        @Override
+        public void checkClientTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws CertificateException {
+
+        }
+
+        @Override
+        public void checkServerTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws CertificateException {
+
+        }
+
+        @Override
+        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+          return new java.security.cert.X509Certificate[0];
+        }
+      }
+      };
+
+      SSLContext sc = SSLContext.getInstance("SSL");
+      sc.init(null, trustAllCerts, new java.security.SecureRandom());
+      HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+      HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
+    });
   }
 
   @Override
@@ -147,7 +189,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
           oAuthClientId,
           oAuthUrl)
           .setDataStoreFactory(dataStoreFactory)
-          .setScopes(Arrays.asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_READ_EVENTS))
+          .setScopes(Arrays.asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_READ_EVENTS, UPLOAD_MAP))
           .build();
 
       credential = authorize(flow, String.valueOf(playerId));
@@ -224,6 +266,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
+  @Cacheable(CacheNames.MAPS)
   public List<MapBean> getBestRatedMaps(int count) {
     logger.debug("Getting most liked maps");
     return requestMaps(String.format("/maps?page[size]=%d&sort=-rating", count), 1);
@@ -236,16 +279,39 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public void uploadMod(InputStream inputStream, String fileName) {
-    upload("/mods/upload", inputStream, fileName);
+  public void uploadMod(Path file) {
+    MultipartContent multipartContent = createFileMultipart(file);
+    postMultipart("/mods/upload", multipartContent);
   }
 
   @Override
-  public void uploadMap(InputStream inputStream, String fileName) {
-    upload("/maps/upload", inputStream, fileName);
+  public void uploadMap(Path file, boolean isRanked) {
+    MultipartContent multipartContent = createFileMultipart(file);
+    multipartContent.addPart(new MultipartContent.Part(
+        new HttpHeaders().set("Content-Disposition", "form-data; name=\"metadata\";"),
+        new JsonHttpContent(jsonFactory, new GenericJson() {
+          {
+            set("is_ranked", isRanked);
+          }
+        })));
+
+    postMultipart("/maps/upload", multipartContent);
   }
 
-  private void upload(String endpointPath, InputStream inputStream, String fileName) {
+  @NotNull
+  private MultipartContent createFileMultipart(Path file) {
+    HttpMediaType mediaType = new HttpMediaType("multipart/form-data").setParameter("boundary", "__END_OF_PART__");
+    MultipartContent multipartContent = new MultipartContent().setMediaType(mediaType);
+
+    String fileName = file.getFileName().toString();
+    multipartContent.addPart(new MultipartContent.Part(
+        new HttpHeaders().set("Content-Disposition", String.format("form-data; name=\"file\"; filename=\"%s\"", fileName)),
+        new FileContent(guessMediaType(fileName).toString(), file.toFile())
+    ));
+    return multipartContent;
+  }
+
+  private void postMultipart(String endpointPath, MultipartContent multipartContent) {
     if (requestFactory == null) {
       throw new IllegalStateException("authorize() must be called first");
     }
@@ -253,25 +319,21 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     String url = baseUrl + endpointPath;
     logger.trace("Posting to: {}", url);
     noCatch(() -> {
-
-      MultipartContent content = new MultipartContent().setMediaType(
-          new HttpMediaType("multipart/form-data")
-              .setParameter("boundary", "__END_OF_PART__"));
-
-      InputStreamContent fileContent = new InputStreamContent(MediaType.ZIP.toString(), inputStream);
-      MultipartContent.Part part = new MultipartContent.Part(fileContent);
-      part.setHeaders(new HttpHeaders().set(
-          "Content-Disposition",
-          String.format("form-data; name=\"file\"; filename=\"%s\"", fileName)));
-      content.addPart(part);
-
-      HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), content);
+      HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), multipartContent);
       credential.initialize(request);
       int statusCode = request.execute().getStatusCode();
       if (statusCode != HttpStatusCodes.STATUS_CODE_OK) {
         throw new RuntimeException("Request failed with status code: " + statusCode);
       }
     });
+  }
+
+  @NotNull
+  private MediaType guessMediaType(String fileName) {
+    if (fileName.endsWith(".zip")) {
+      return MediaType.ZIP;
+    }
+    return MediaType.OCTET_STREAM;
   }
 
   private List<MapBean> requestMaps(String query, int page) {

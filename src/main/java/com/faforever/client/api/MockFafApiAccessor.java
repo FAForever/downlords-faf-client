@@ -4,7 +4,7 @@ import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 
-import java.io.InputStream;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -97,12 +97,12 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public void uploadMod(InputStream inputStream, String fileName) {
+  public void uploadMod(Path file) {
 
   }
 
   @Override
-  public void uploadMap(InputStream inputStream, String fileName) {
+  public void uploadMap(Path file, boolean isRanked) {
 
   }
 }

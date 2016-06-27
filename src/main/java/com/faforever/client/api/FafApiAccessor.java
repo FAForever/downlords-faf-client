@@ -4,7 +4,7 @@ import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 
-import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -44,7 +44,7 @@ public interface FafApiAccessor {
 
   List<MapBean> getNewestMaps(int count);
 
-  void uploadMod(InputStream inputStream, String fileName);
+  void uploadMod(Path file);
 
-  void uploadMap(InputStream inputStream, String fileName);
+  void uploadMap(Path file, boolean isRanked);
 }

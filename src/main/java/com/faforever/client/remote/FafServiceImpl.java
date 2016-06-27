@@ -172,21 +172,21 @@ public class FafServiceImpl implements FafService {
 
   @Override
   public CompletableFuture<List<MapBean>> getMostDownloadedMaps(int count) {
-    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getMostDownloadedMaps(count));
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getMostDownloadedMaps(count), threadPoolExecutor);
   }
 
   @Override
   public CompletableFuture<List<MapBean>> getMostPlayedMaps(int count) {
-    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getMostPlayedMaps(count));
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getMostPlayedMaps(count), threadPoolExecutor);
   }
 
   @Override
   public CompletableFuture<List<MapBean>> getMostLikedMaps(int count) {
-    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getBestRatedMaps(count));
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getBestRatedMaps(count), threadPoolExecutor);
   }
 
   @Override
   public CompletableFuture<List<MapBean>> getNewestMaps(int count) {
-    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getNewestMaps(count));
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getNewestMaps(count), threadPoolExecutor);
   }
 }

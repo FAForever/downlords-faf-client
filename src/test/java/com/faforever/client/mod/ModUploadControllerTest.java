@@ -19,11 +19,11 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class UploadModControllerTest extends AbstractPlainJavaFxTest {
+public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
 
   @Rule
   public TemporaryFolder modFolder = new TemporaryFolder();
-  private UploadModController instance;
+  private ModUploadController instance;
   @Mock
   private ModService modService;
   @Mock

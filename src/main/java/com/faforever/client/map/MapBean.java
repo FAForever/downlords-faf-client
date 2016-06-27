@@ -11,6 +11,7 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
+import java.time.LocalDate;
 
 public class MapBean implements Comparable<MapBean> {
 
@@ -28,6 +29,8 @@ public class MapBean implements Comparable<MapBean> {
   private final ObjectProperty<URL> downloadUrl;
   private final ObjectProperty<URL> smallThumbnailUrl;
   private final ObjectProperty<URL> largeThumbnailUrl;
+  private final ObjectProperty<LocalDate> createTime;
+
   public MapBean() {
     this.id = new SimpleStringProperty();
     this.displayName = new SimpleStringProperty();
@@ -43,6 +46,7 @@ public class MapBean implements Comparable<MapBean> {
     this.largeThumbnailUrl = new SimpleObjectProperty<>();
     this.downloadUrl = new SimpleObjectProperty<>();
     this.author = new SimpleStringProperty();
+    this.createTime = new SimpleObjectProperty<>();
   }
 
   public String getAuthor() {
@@ -216,6 +220,18 @@ public class MapBean implements Comparable<MapBean> {
 
   public ObjectProperty<URL> smallThumbnailUrlProperty() {
     return smallThumbnailUrl;
+  }
+
+  public LocalDate getCreateTime() {
+    return createTime.get();
+  }
+
+  public void setCreateTime(LocalDate createTime) {
+    this.createTime.set(createTime);
+  }
+
+  public ObjectProperty<LocalDate> createTimeProperty() {
+    return createTime;
   }
 
   public static MapBean fromMap(com.faforever.client.api.Map map) {

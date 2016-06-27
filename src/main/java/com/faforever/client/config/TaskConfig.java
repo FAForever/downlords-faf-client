@@ -6,6 +6,7 @@ import com.faforever.client.connectivity.UpnpPortForwardingTask;
 import com.faforever.client.game.SearchExpansionTask;
 import com.faforever.client.map.DownloadMapTask;
 import com.faforever.client.map.UninstallMapTask;
+import com.faforever.client.map.UploadMapTask;
 import com.faforever.client.mod.InstallModTask;
 import com.faforever.client.mod.UninstallModTask;
 import com.faforever.client.mod.UploadModTask;
@@ -113,5 +114,11 @@ public class TaskConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   UploadModTask uploadModTask() {
     return new UploadModTask();
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  UploadMapTask uploadMapTask() {
+    return new UploadMapTask();
   }
 }

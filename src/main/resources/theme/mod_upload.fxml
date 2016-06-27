@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="modUploadRoot" styleClass="dialog-window"
-      xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.mod.UploadModController">
+      xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.mod.ModUploadController">
   <children>
     <VBox fx:id="modInfoPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="500.0" minWidth="100.0"
           prefWidth="380.0" spacing="20.0" VBox.vgrow="ALWAYS">

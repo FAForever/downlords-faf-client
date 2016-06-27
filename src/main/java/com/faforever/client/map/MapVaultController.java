@@ -231,15 +231,15 @@ public class MapVaultController {
   }
 
   private void openMapUploadWindow(Path path) {
-    UploadMapController uploadMapController = applicationContext.getBean(UploadMapController.class);
-    uploadMapController.setMapPath(path);
+    MapUploadController mapUploadController = applicationContext.getBean(MapUploadController.class);
+    mapUploadController.setMapPath(path);
 
     Stage mapUploadWindow = new Stage(StageStyle.TRANSPARENT);
     mapUploadWindow.initModality(Modality.NONE);
     mapUploadWindow.initOwner(getRoot().getScene().getWindow());
 
     WindowController windowController = applicationContext.getBean(WindowController.class);
-    windowController.configure(mapUploadWindow, uploadMapController.getRoot(), true, CLOSE);
+    windowController.configure(mapUploadWindow, mapUploadController.getRoot(), true, CLOSE);
 
     mapUploadWindow.show();
   }

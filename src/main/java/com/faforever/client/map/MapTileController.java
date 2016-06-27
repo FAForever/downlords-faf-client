@@ -1,6 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.util.IdenticonUtil;
+import com.faforever.client.util.TimeService;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -14,6 +15,8 @@ import java.util.function.Consumer;
 public class MapTileController {
 
   @FXML
+  Label updatedDateLabel;
+  @FXML
   Label downloadsLabel;
   @FXML
   ImageView thumbnailImageView;
@@ -26,6 +29,8 @@ public class MapTileController {
 
   @Resource
   MapService mapService;
+  @Resource
+  TimeService timeService;
 
   private MapBean map;
   private Consumer<MapBean> onOpenDetailListener;
@@ -42,6 +47,7 @@ public class MapTileController {
     nameLabel.setText(map.getDisplayName());
     playsLabel.setText(String.format("%d", map.getPlays()));
     downloadsLabel.setText(String.format("%d", map.getDownloads()));
+    updatedDateLabel.setText(timeService.asDate(map.getCreateTime()));
 
     mapService.getInstalledMaps().addListener((ListChangeListener<MapBean>) change -> {
       while (change.next()) {

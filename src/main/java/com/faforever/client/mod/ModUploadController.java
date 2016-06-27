@@ -26,7 +26,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import static java.util.Arrays.asList;
 
-public class UploadModController {
+public class ModUploadController {
 
   @FXML
   Pane parseProgressPane;

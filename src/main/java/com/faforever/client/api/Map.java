@@ -37,16 +37,16 @@ public class Map {
   @Key("num_draws")
   private int numDraws;
   @Key("rating")
-  private float rating;
+  private Float rating;
   @Key("technical_name")
   private String technicalName;
   @Key("times_played")
   private int timesPlayed;
   @Key("version")
   private String version;
-  @Key("size_x")
+  @Key("width")
   private int sizeX;
-  @Key("size_y")
+  @Key("height")
   private int sizeY;
 
   public URL getThumbnailUrlSmall() {
@@ -162,11 +162,11 @@ public class Map {
     this.numDraws = numDraws;
   }
 
-  public float getRating() {
+  public Float getRating() {
     return rating;
   }
 
-  public void setRating(float rating) {
+  public void setRating(Float rating) {
     this.rating = rating;
   }
 
