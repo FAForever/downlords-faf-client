@@ -91,6 +91,7 @@ public class ThemeServiceImpl implements ThemeService {
   private Map<Theme, String> folderNamesByTheme;
   private Map<Path, WatchKey> watchKeys;
   private ObjectProperty<Theme> currentTheme;
+  private Path currentTempStyleSheet;
 
   public ThemeServiceImpl() {
     scenes = Collections.synchronizedSet(new HashSet<>());
@@ -202,11 +203,11 @@ public class ThemeServiceImpl implements ThemeService {
     String styleSheet = getSceneStyleSheet();
 
     logger.debug("Changes detected, reloading stylesheet: {}", styleSheet);
-    scenes.forEach(scene -> setStyleSheet(scene, styleSheet));
-    webViews.forEach(webView -> setStyleSheet(webView, getWebViewStyleSheet()));
+    scenes.forEach(scene -> setSceneStyleSheet(scene, styleSheet));
+    setAndCreateWebViewsStyleSheet(getWebViewStyleSheet());
   }
 
-  private void setStyleSheet(Scene scene, String styleSheet) {
+  private void setSceneStyleSheet(Scene scene, String styleSheet) {
     Platform.runLater(() -> scene.getStylesheets().setAll(styleSheet));
   }
 
@@ -269,7 +270,11 @@ public class ThemeServiceImpl implements ThemeService {
   @Override
   public void registerWebView(WebView webView) {
     webViews.add(webView);
-    setStyleSheet(webView, getWebViewStyleSheet());
+    if (currentTempStyleSheet == null) {
+      setAndCreateWebViewsStyleSheet(getWebViewStyleSheet());
+    } else {
+      Platform.runLater(() -> webView.getEngine().setUserStyleSheetLocation(getWebViewStyleSheet()));
+    }
   }
 
   @Override
@@ -337,21 +342,26 @@ public class ThemeServiceImpl implements ThemeService {
     return getThemeFileUrl(WEBVIEW_CSS_FILE).toString();
   }
 
-  private void setStyleSheet(WebView webView, String styleSheetUrl) {
+  private void setAndCreateWebViewsStyleSheet(String styleSheetUrl) {
     // Always copy to a new file since WebView locks the loaded one
     Path cacheDirectory = preferencesService.getCacheDirectory();
 
     noCatch(() -> {
       Files.createDirectories(cacheDirectory);
 
-      Path tempStyleSheet = Files.createTempFile(cacheDirectory, "style-webview", ".css");
-      Files.delete(tempStyleSheet);
+      Path newTempStyleSheet = Files.createTempFile(cacheDirectory, "style-webview", ".css");
+      Files.delete(newTempStyleSheet);
 
       try (InputStream inputStream = new URL(styleSheetUrl).openStream()) {
-        Files.copy(inputStream, tempStyleSheet);
+        Files.copy(inputStream, newTempStyleSheet);
       }
-      String newStyleSheetUrl = tempStyleSheet.toUri().toURL().toString();
-      Platform.runLater(() -> webView.getEngine().setUserStyleSheetLocation(newStyleSheetUrl));
+      String newStyleSheetUrl = newTempStyleSheet.toUri().toURL().toString();
+      webViews.forEach(webView -> Platform.runLater(() -> webView.getEngine().setUserStyleSheetLocation(newStyleSheetUrl)));
+      logger.debug("{} created and applied to all web views", newTempStyleSheet.getFileName());
+      if (currentTempStyleSheet != null) {
+        Files.delete(currentTempStyleSheet);
+      }
+      currentTempStyleSheet = newTempStyleSheet;
     });
   }
 }
