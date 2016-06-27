@@ -55,15 +55,16 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 
 public class GamesController {
 
-  private static final Collection<String> DISPLAYED_FEATURED_MODS = Arrays.asList(
-      GameType.FAF.getString(),
-      GameType.FAF_BETA.getString(),
-      GameType.BALANCE_TESTING.getString()
+  private static final Collection<String> HIDDEN_FEATURED_MODS = Arrays.asList(
+      GameType.COOP.getString(),
+      GameType.LADDER_1V1.getString(),
+      GameType.GALACTIC_WAR.getString(),
+      GameType.MATCHMAKER.getString()
   );
 
   private static final Predicate<GameInfoBean> OPEN_CUSTOM_GAMES_PREDICATE = gameInfoBean ->
       gameInfoBean.getStatus() == GameState.OPEN
-          && DISPLAYED_FEATURED_MODS.contains(gameInfoBean.getFeaturedMod());
+          && !HIDDEN_FEATURED_MODS.contains(gameInfoBean.getFeaturedMod());
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
