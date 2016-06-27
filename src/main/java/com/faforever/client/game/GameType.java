@@ -8,7 +8,9 @@ public enum GameType {
   FAF_BETA("fafbeta"),
   BALANCE_TESTING("balancetesting"),
   LADDER_1V1("ladder1v1"),
-  COOP("coop");
+  COOP("coop"),
+  GALACTIC_WAR("gw"),
+  MATCHMAKER("matchmaker");
 
   public static final GameType DEFAULT = FAF;
 
