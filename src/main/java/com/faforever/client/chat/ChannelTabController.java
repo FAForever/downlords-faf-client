@@ -418,8 +418,17 @@ public class ChannelTabController extends AbstractChatTabController {
     userToChatUserControls.putIfAbsent(username, new HashMap<>(targetPanesForUser.size(), 1));
 
     for (Pane pane : targetPanesForUser) {
-      createChatUserControlForPlayerIfNecessary(pane, player);
+      ChatUserItemController chatUserItemController = createChatUserControlForPlayerIfNecessary(pane, player);
+
+      // Apply filter if exists
+      if (!userSearchTextField.textProperty().get().isEmpty()) {
+        chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
+      }
+      if (filterUserPopup.isShowing()) {
+        filterUserController.filterUser(chatUserItemController);
+      }
     }
+
   }
 
   private Pane getPaneForSocialStatus(SocialStatus socialStatus) {
