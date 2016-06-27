@@ -2,8 +2,10 @@ package com.faforever.client.chat;
 
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.util.Assert;
-import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -22,6 +24,16 @@ public class AutoCompletitionHelper {
   private String autoCompletePartialName;
 
   private TextInputControl boundTextField;
+  private EventHandler<KeyEvent> keyEventHandler;
+
+  public AutoCompletitionHelper() {
+    keyEventHandler = keyEvent -> {
+      if (!keyEvent.isControlDown() && keyEvent.getCode() == KeyCode.TAB) {
+        keyEvent.consume();
+        autoComplete();
+      }
+    };
+  }
 
   private void autoComplete() {
     if (boundTextField.getText().isEmpty()) {
@@ -89,24 +101,20 @@ public class AutoCompletitionHelper {
   }
 
   public void bindTo(TextInputControl messageTextField) {
-    Assert.checkNull(boundTextField, "AutoCompletitionHelper is already bound to a TextInputControl");
+    Assert.checkNotNullIllegalState(boundTextField, "AutoCompletitionHelper is already bound to a TextInputControl");
     boundTextField = messageTextField;
-    boundTextField.textProperty().addListener(this::onBoundTextFieldChanged);
+    boundTextField.addEventFilter(KeyEvent.KEY_PRESSED, keyEventHandler);
   }
 
   public void unbind() {
     if (boundTextField != null) {
-      boundTextField.textProperty().removeListener(this::onBoundTextFieldChanged);
+      boundTextField.removeEventFilter(KeyEvent.KEY_PRESSED, keyEventHandler);
       boundTextField = null;
     }
   }
 
   public boolean isBound() {
     return boundTextField != null;
-  }
-
-  private void onBoundTextFieldChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-    autoComplete();
   }
 
   private String getWordBeforeCaret(TextInputControl messageTextField) {

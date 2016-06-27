@@ -17,4 +17,10 @@ public final class Assert {
       throw new IllegalStateException(message);
     }
   }
+
+  public static void checkNotNullIllegalState(Object object, String message) {
+    if (object != null) {
+      throw new IllegalStateException(message);
+    }
+  }
 }
