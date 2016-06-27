@@ -104,29 +104,32 @@ public class PropertyTypeAdapter implements JsonSerializer<Property>, JsonDeseri
 
   @Override
   public Property deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-    if (typeOfT == StringProperty.class) {
-      return new SimpleStringProperty(json.getAsString());
-    }
-    if (typeOfT == IntegerProperty.class) {
-      return new SimpleIntegerProperty(json.getAsInt());
-    }
-    if (typeOfT == DoubleProperty.class) {
-      return new SimpleDoubleProperty(json.getAsDouble());
-    }
-    if (typeOfT == LongProperty.class) {
-      return new SimpleLongProperty(json.getAsLong());
-    }
-    if (typeOfT == FloatProperty.class) {
-      return new SimpleFloatProperty(json.getAsFloat());
-    }
-    if (typeOfT == BooleanProperty.class) {
-      return new SimpleBooleanProperty(json.getAsBoolean());
-    }
-    if (typeOfT == SetProperty.class) {
-      return new SimpleSetProperty<>(context.deserialize(json, Set.class));
-    }
-    if (typeOfT == MapProperty.class) {
-      return new SimpleSetProperty<>(context.deserialize(json, Map.class));
+    if (typeOfT instanceof Class) {
+      Class clazz = (Class) typeOfT;
+      if (StringProperty.class.isAssignableFrom(clazz)) {
+        return new SimpleStringProperty(json.getAsString());
+      }
+      if (IntegerProperty.class.isAssignableFrom(clazz)) {
+        return new SimpleIntegerProperty(json.getAsInt());
+      }
+      if (DoubleProperty.class.isAssignableFrom(clazz)) {
+        return new SimpleDoubleProperty(json.getAsDouble());
+      }
+      if (LongProperty.class.isAssignableFrom(clazz)) {
+        return new SimpleLongProperty(json.getAsLong());
+      }
+      if (FloatProperty.class.isAssignableFrom(clazz)) {
+        return new SimpleFloatProperty(json.getAsFloat());
+      }
+      if (BooleanProperty.class.isAssignableFrom(clazz)) {
+        return new SimpleBooleanProperty(json.getAsBoolean());
+      }
+      if (SetProperty.class.isAssignableFrom(clazz)) {
+        return new SimpleSetProperty<>(context.deserialize(json, Set.class));
+      }
+      if (MapProperty.class.isAssignableFrom(clazz)) {
+        return new SimpleSetProperty<>(context.deserialize(json, Map.class));
+      }
     }
     if (typeOfT instanceof ParameterizedType) {
       ParameterizedType parameterizedType = (ParameterizedType) typeOfT;

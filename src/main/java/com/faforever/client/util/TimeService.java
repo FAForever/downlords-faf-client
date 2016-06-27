@@ -2,6 +2,7 @@ package com.faforever.client.util;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.TemporalAccessor;
 
 public interface TimeService {
 
@@ -15,7 +16,7 @@ public interface TimeService {
    */
   String lessThanOneDayAgo(Instant instant);
 
-  String asDate(Instant instant);
+  String asDate(TemporalAccessor instant);
 
   String asShortTime(Instant instant);
 

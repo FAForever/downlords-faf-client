@@ -15,6 +15,7 @@ import javafx.scene.image.Image;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.Directory;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.Nullable;
 import org.luaj.vm2.LuaValue;
 import org.slf4j.Logger;
@@ -37,7 +38,6 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +53,7 @@ import static com.faforever.client.util.LuaUtil.loadFile;
 import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.common.net.UrlEscapers.urlFragmentEscaper;
 import static java.lang.String.format;
+import static java.nio.file.Files.list;
 import static java.nio.file.Files.newDirectoryStream;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.util.Locale.US;
@@ -204,32 +205,32 @@ public class MapServiceImpl implements MapService {
 
   @Override
   @Nullable
-  public MapBean readMap(Path mapPath) {
-    if (!Files.isDirectory(mapPath)) {
-      logger.warn("Map does not exist: {}", mapPath);
+  public MapBean readMap(Path mapFolder) {
+    if (!Files.isDirectory(mapFolder)) {
+      logger.warn("Map does not exist: {}", mapFolder);
       return null;
     }
     return noCatch(() -> {
-      try (DirectoryStream<Path> directoryStream = newDirectoryStream(mapPath, "*_scenario.lua")) {
-        Iterator<Path> iterator = directoryStream.iterator();
-        if (!iterator.hasNext()) {
-          return null;
-        }
+      Path scenarioLuaPath = noCatch(() -> list(mapFolder))
+          .filter(file -> file.getFileName().toString().endsWith("_scenario.lua"))
+          .findFirst()
+          .orElseThrow(() -> new MapLoadException("Map folder does not contain a *_scenario.lua"));
 
-        LuaValue luaValue = loadFile(iterator.next()).get("ScenarioInfo");
-        LuaValue size = luaValue.get("size");
+      LuaValue luaRoot = loadFile(scenarioLuaPath);
+      LuaValue scenarioInfo = luaRoot.get("ScenarioInfo");
+      LuaValue size = scenarioInfo.get("size");
 
-        MapBean mapBean = new MapBean();
-        mapBean.setTechnicalName(mapPath.getFileName().toString());
-        mapBean.setDisplayName(luaValue.get("name").toString());
-        mapBean.setDescription(luaValue.get("description").tojstring().replaceAll("<LOC .*?>", ""));
-        mapBean.setSize(new MapSize(
-            (int) (size.get(1).toint() / MAP_SIZE_FACTOR),
-            (int) (size.get(2).toint() / MAP_SIZE_FACTOR))
-        );
-        mapBean.setPlayers(luaValue.get("Configurations").get("standard").get("teams").get(1).get("armies").length());
-        return mapBean;
-      }
+      MapBean mapBean = new MapBean();
+      mapBean.setTechnicalName(mapFolder.getFileName().toString());
+      mapBean.setDisplayName(scenarioInfo.get("name").toString());
+      mapBean.setDescription(scenarioInfo.get("description").tojstring().replaceAll("<LOC .*?>", ""));
+      mapBean.setVersion(new ComparableVersion(luaRoot.get("version").tojstring()));
+      mapBean.setSize(new MapSize(
+          (int) (size.get(1).toint() / MAP_SIZE_FACTOR),
+          (int) (size.get(2).toint() / MAP_SIZE_FACTOR))
+      );
+      mapBean.setPlayers(scenarioInfo.get("Configurations").get("standard").get("teams").get(1).get("armies").length());
+      return mapBean;
     }, MapLoadException.class);
   }
 
@@ -404,15 +405,16 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public UploadMapTask uploadMap(Path mapPath, Consumer<Float> progressListener) {
+  public CompletableFuture<Void> uploadMap(Path mapPath, Consumer<Float> progressListener, boolean ranked) {
     UploadMapTask uploadMapTask = applicationContext.getBean(UploadMapTask.class);
     uploadMapTask.setMapPath(mapPath);
     uploadMapTask.setProgressListener(progressListener);
+    uploadMapTask.setRanked(ranked);
 
     CompletableFuture<Void> uploadFuture = taskService.submitTask(uploadMapTask);
     uploadMapTask.setFuture(uploadFuture);
 
-    return uploadMapTask;
+    return uploadFuture;
   }
 
   private CompletableFuture<Void> downloadAndInstallMap(String technicalName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {

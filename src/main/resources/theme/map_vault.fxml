@@ -41,7 +41,8 @@
                               <Insets bottom="20.0" top="20.0"/>
                            </VBox.margin>
                         </HBox>
-                        <Button mnemonicParsing="false" onAction="#onUploadMapButtonClicked" text="%mapVault.upload"/>
+                        <Button disable="true" mnemonicParsing="false" onAction="#onUploadMapButtonClicked"
+                                text="%mapVault.upload"/>
                         <VBox fx:id="showroomGroup" spacing="5.0">
                            <children>
                               <Label styleClass="h2" text="%mapVault.recommendedMap">

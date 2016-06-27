@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapTileRoot" onMouseClicked="#onShowMapDetail" prefWidth="200.0"
-          styleClass="tile,pointable" xmlns="http://javafx.com/javafx/8.0.40"
+          styleClass="tile,pointable" xmlns="http://javafx.com/javafx/8.0.60"
           fx:controller="com.faforever.client.map.MapTileController">
   <columnConstraints>
     <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
@@ -20,10 +20,9 @@
     <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
   </rowConstraints>
   <children>
-    <ImageView fx:id="thumbnailImageView" fitHeight="128.0" fitWidth="128.0"
-               pickOnBounds="true" preserveRatio="true" GridPane.columnSpan="2" GridPane.halignment="CENTER"/>
-    <Label fx:id="nameLabel" text="Label" GridPane.columnSpan="2147483647"
-           GridPane.rowIndex="1"/>
+    <ImageView fx:id="thumbnailImageView" fitHeight="128.0" fitWidth="128.0" pickOnBounds="true" preserveRatio="true"
+               GridPane.columnSpan="2" GridPane.halignment="CENTER"/>
+    <Label fx:id="nameLabel" text="Label" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
     <Label fx:id="downloadsLabel" text="1" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
       <graphic>
         <Label styleClass="fontawesome" text=""/>
@@ -34,5 +33,7 @@
         <Label styleClass="fontawesome" text=""/>
       </graphic>
     </Label>
+    <Label text="%mapVault." GridPane.rowIndex="4"/>
+    <Label fx:id="updatedDateLabel" text="&lt;Updated&gt;" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
   </children>
 </GridPane>

@@ -223,15 +223,15 @@ public class ModVaultController {
   }
 
   private void openModUploadWindow(Path path) {
-    UploadModController uploadModController = applicationContext.getBean(UploadModController.class);
-    uploadModController.setModPath(path);
+    ModUploadController modUploadController = applicationContext.getBean(ModUploadController.class);
+    modUploadController.setModPath(path);
 
     Stage modUploadWindow = new Stage(StageStyle.TRANSPARENT);
     modUploadWindow.initModality(Modality.NONE);
     modUploadWindow.initOwner(getRoot().getScene().getWindow());
 
     WindowController windowController = applicationContext.getBean(WindowController.class);
-    windowController.configure(modUploadWindow, uploadModController.getRoot(), true, CLOSE);
+    windowController.configure(modUploadWindow, modUploadController.getRoot(), true, CLOSE);
 
     modUploadWindow.show();
   }

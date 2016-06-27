@@ -8,7 +8,9 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
@@ -21,15 +23,19 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static java.util.Arrays.asList;
 
-public class UploadMapController {
+public class MapUploadController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  @FXML
+  Label sizeLabel;
+  @FXML
+  Label playersLabel;
   @FXML
   Pane parseProgressPane;
   @FXML
@@ -47,11 +53,13 @@ public class UploadMapController {
   @FXML
   Label versionLabel;
   @FXML
-  Label uidLabel;
-  @FXML
   ImageView thumbnailImageView;
   @FXML
   Region mapUploadRoot;
+  @FXML
+  CheckBox rankedCheckbox;
+  @FXML
+  Label rankedLabel;
 
   @Resource
   MapService mapService;
@@ -65,7 +73,7 @@ public class UploadMapController {
   I18n i18n;
 
   private Path mapPath;
-  private UploadMapTask uploadMapTask;
+  private CompletableFuture<Void> uploadMapFuture;
 
   @FXML
   void initialize() {
@@ -78,6 +86,8 @@ public class UploadMapController {
     uploadProgressPane.setVisible(false);
     parseProgressPane.setVisible(false);
     uploadCompletePane.setVisible(false);
+
+    rankedLabel.setLabelFor(rankedCheckbox);
   }
 
   public void setMapPath(Path mapPath) {
@@ -100,13 +110,21 @@ public class UploadMapController {
 
   private void setMapInfo(MapBean mapInfo) {
     enterMapInfoState();
+
     mapNameLabel.textProperty().bind(mapInfo.displayNameProperty());
     descriptionLabel.textProperty().bind(mapInfo.descriptionProperty());
     versionLabel.textProperty().bind(mapInfo.versionProperty().asString());
-    uidLabel.textProperty().bind(mapInfo.idProperty());
+    sizeLabel.textProperty().bind(Bindings.createStringBinding(
+        () -> {
+          MapSize mapSize = mapInfo.getSize();
+          return i18n.get("mapVault.upload.sizeFormat", mapSize.getWidth(), mapSize.getHeight());
+        }, mapInfo.sizeProperty())
+    );
+    playersLabel.textProperty().bind(Bindings.createStringBinding(
+        () -> i18n.get("mapVault.upload.playersFormat", mapInfo.getPlayers()), mapInfo.playersProperty())
+    );
 
-    // FIXME size
-    Image image = PreviewGenerator.generatePreview(mapService.getPathForMap(mapInfo), 512, 512);
+    Image image = PreviewGenerator.generatePreview(mapService.getPathForMap(mapInfo), 256, 256);
     thumbnailImageView.setImage(image);
   }
 
@@ -119,7 +137,7 @@ public class UploadMapController {
 
   @FXML
   void onCancelUploadClicked() {
-    uploadMapTask.cancel(true);
+    uploadMapFuture.cancel(true);
     enterMapInfoState();
   }
 
@@ -143,13 +161,12 @@ public class UploadMapController {
     enterUploadingState();
     uploadProgressBar.setProgress(0);
     uploadProgressPane.setVisible(true);
-    uploadMapTask = mapService.uploadMap(mapPath,
-        progress -> uploadProgressBar.setProgress(progress)
-    );
-    uploadMapTask.getFuture()
+    uploadMapFuture = mapService.uploadMap(mapPath, progress -> uploadProgressBar.setProgress(progress), rankedCheckbox.isSelected())
         .thenAccept(aVoid -> enterUploadCompleteState())
         .exceptionally(throwable -> {
-          onUploadFailed(throwable);
+          if (!(throwable instanceof CancellationException)) {
+            onUploadFailed(throwable);
+          }
           return null;
         });
   }

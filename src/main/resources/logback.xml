@@ -6,7 +6,7 @@
   <logger name="com.faforever.client.api" level="trace"/>
   <logger name="com.faforever.client.connectivity" level="info"/>
   <logger name="com.faforever.client.preferences" level="info"/>
-  <logger name="com.faforever.client.map" level="info"/>
+  <logger name="com.faforever.client.map" level="debug"/>
   <logger name="com.faforever.client.mod" level="info"/>
   <logger name="com.faforever.client.net" level="info"/>
   <logger name="com.faforever.client.util" level="info"/>

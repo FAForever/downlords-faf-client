@@ -58,5 +58,5 @@ public interface MapService {
 
   Path getPathForMap(String technicalName);
 
-  UploadMapTask uploadMap(Path mapPath, Consumer<Float> progressListener);
+  CompletableFuture<Void> uploadMap(Path mapPath, Consumer<Float> progressListener, boolean ranked);
 }

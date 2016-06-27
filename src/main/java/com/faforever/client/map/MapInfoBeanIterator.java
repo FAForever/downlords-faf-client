@@ -3,9 +3,11 @@ package com.faforever.client.map;
 import com.faforever.client.preferences.gson.PropertyTypeAdapter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.InstanceCreator;
 import javafx.beans.property.Property;
 import org.apache.lucene.search.suggest.InputIterator;
 import org.apache.lucene.util.BytesRef;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -28,6 +30,24 @@ public class MapInfoBeanIterator implements InputIterator {
     this.mapIterator = mapIterator;
     this.gson = new GsonBuilder()
         .registerTypeHierarchyAdapter(Property.class, PropertyTypeAdapter.INSTANCE)
+        .registerTypeAdapter(ComparableVersion.Item.class, (InstanceCreator<ComparableVersion.Item>) type -> new ComparableVersion.Item() {
+          @Override
+          public int compareTo(ComparableVersion.Item item) {
+            return 0;
+          }
+
+          @Override
+          public int getType() {
+            return 0;
+          }
+
+          @Override
+          public boolean isNull() {
+            return false;
+          }
+        })
+        .registerTypeAdapter(ComparableVersion.class, (InstanceCreator<ComparableVersion>) type -> new ComparableVersion("0"))
+        .registerTypeAdapter(MapSize.class, (InstanceCreator<MapSize>) type -> new MapSize(0, 0))
         .create();
   }
 

@@ -50,7 +50,7 @@ import java.util.Stack;
 public class ComparableVersion
     implements Comparable<ComparableVersion> {
 
-  private interface Item {
+  public static interface Item {
 
     int INTEGER_ITEM = 0;
     int STRING_ITEM = 1;
@@ -66,7 +66,7 @@ public class ComparableVersion
   /**
    * Represents a numeric item in the version item list.
    */
-  private static class IntegerItem
+  public static class IntegerItem
       implements Item {
 
     public static final IntegerItem ZERO = new IntegerItem();
@@ -118,7 +118,7 @@ public class ComparableVersion
   /**
    * Represents a string in the version item list, usually a qualifier.
    */
-  private static class StringItem
+  public static class StringItem
       implements Item {
 
     private static final String[] QUALIFIERS = {"alpha", "beta", "milestone", "rc", "snapshot", "", "sp"};

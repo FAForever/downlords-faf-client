@@ -60,7 +60,7 @@ public class UploadModTaskTest {
     instance.call();
 
     // FIXME filename
-    verify(fafApiAccessor).uploadMod(any(), "");
+    verify(fafApiAccessor).uploadMod(any());
 
     assertThat(preferencesService.getCacheDirectory().toFile().list(), emptyArray());
   }

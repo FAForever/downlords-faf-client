@@ -29,17 +29,23 @@ public class TaskServiceImpl implements TaskService {
 
   @Override
   public <T> CompletableFuture<T> submitTask(PrioritizedTask<T> task) {
-    CompletableFuture<T> future = new CompletableFuture<>();
+    CompletableFuture<T> future = new CompletableFuture<T>() {
+      @Override
+      public boolean cancel(boolean mayInterruptIfRunning) {
+        task.cancel(mayInterruptIfRunning);
+        return super.cancel(mayInterruptIfRunning);
+      }
+    };
 
     task.setOnFailed(event -> {
+      activeTasks.remove(task);
       Throwable exception = task.getException();
       logger.warn("Task failed", exception);
       future.completeExceptionally(exception);
-      activeTasks.remove(task);
     });
     task.setOnSucceeded(event -> {
-      future.complete(task.getValue());
       activeTasks.remove(task);
+      future.complete(task.getValue());
     });
 
     activeTasks.add(task);
