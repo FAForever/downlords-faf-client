@@ -2,6 +2,9 @@ package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -81,9 +84,11 @@ import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -127,6 +132,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
+  private NotificationService notificationService;
+  @Mock
   private Preferences preferences;
   @Mock
   private ChatPrefs chatPrefs;
@@ -148,6 +155,10 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   private ChannelSnapshot defaultChannelSnapshot;
   @Mock
   private ChannelSnapshot otherChannelSnapshot;
+  @Mock
+  private PlayerService playerService;
+  @Mock
+  private PlayerInfoBean playerInfoBean;
 
   @Captor
   private ArgumentCaptor<Consumer<SocialMessage>> socialMessageListenerCaptor;
@@ -163,6 +174,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.fafService = fafService;
     instance.userService = userService;
     instance.taskService = taskService;
+    instance.playerService = playerService;
+    instance.notificationService = notificationService;
     instance.i18n = i18n;
     instance.pircBotXFactory = pircBotXFactory;
     instance.preferencesService = preferencesService;
@@ -806,5 +819,27 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
+  }
+
+  @Test
+  public void getOrCreateChatUserFriendNotification() throws Exception {
+    when(playerService.getPlayerForUsername(anyString())).thenReturn(playerInfoBean);
+    when(playerInfoBean.getSocialStatus()).thenReturn(SocialStatus.FRIEND);
+    when(playerInfoBean.getId()).thenReturn(1);
+
+    instance.getOrCreateChatUser(CHAT_USER_NAME);
+
+    verify(notificationService).addNotification(any(TransientNotification.class));
+  }
+
+  @Test
+  public void getOrCreateChatUserFoeNoNotification() throws Exception {
+    when(playerService.getPlayerForUsername(anyString())).thenReturn(playerInfoBean);
+    when(playerInfoBean.getSocialStatus()).thenReturn(SocialStatus.FOE);
+    when(playerInfoBean.getId()).thenReturn(1);
+
+    instance.getOrCreateChatUser(CHAT_USER_NAME);
+
+    verify(notificationService, never()).addNotification(any(TransientNotification.class));
   }
 }

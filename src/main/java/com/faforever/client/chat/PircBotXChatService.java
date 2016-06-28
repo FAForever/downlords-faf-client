@@ -148,7 +148,7 @@ public class PircBotXChatService implements ChatService {
     addEventListener(ConnectEvent.class, event -> connectionState.set(ConnectionState.CONNECTED));
     addEventListener(DisconnectEvent.class, event -> connectionState.set(ConnectionState.DISCONNECTED));
     addEventListener(UserListEvent.class, event -> onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers())));
-    addEventListener(JoinEvent.class, event -> onUserJoinedChannel(event.getChannel().getName(), createOrGetChatUser(event.getUser())));
+    addEventListener(JoinEvent.class, event -> onUserJoinedChannel(event.getChannel().getName(), getOrCreateChatUser(event.getUser().getNick())));
     addEventListener(PartEvent.class, event -> onChatUserLeftChannel(event.getChannel().getName(), event.getUser().getNick()));
     addEventListener(QuitEvent.class, event -> onChatUserQuit(event.getUser().getNick()));
     addEventListener(OpEvent.class, event -> {
@@ -417,10 +417,25 @@ public class PircBotXChatService implements ChatService {
         }
 
         chatUsersByName.put(lowerUsername, new ChatUser(username, color));
+
+        PlayerInfoBean player = playerService.getPlayerForUsername(username);
+        String identiconSource = player != null ? String.valueOf(player.getId()) : username;
+        if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
+          notificationService.addNotification(
+              new TransientNotification(
+                  i18n.get("friend.nowOnlineNotification.title", username),
+                  i18n.get("friend.nowOnlineNotification.action"),
+                  IdenticonUtil.createIdenticon(identiconSource),
+                  new Action(
+                      event -> onOpenPrivateChatListener.accept(username)
+                  )
+              ));
+        }
       }
       return chatUsersByName.get(lowerUsername);
     }
   }
+
 
   @Override
   public void addUsersListener(String channelName, MapChangeListener<String, ChatUser> listener) {
@@ -489,36 +504,7 @@ public class PircBotXChatService implements ChatService {
 
   @Override
   public ChatUser createOrGetChatUser(User user) {
-    synchronized (chatUsersByName) {
-      String lowerUsername = user.getNick().toLowerCase(US);
-      if (!chatUsersByName.containsKey(lowerUsername)) {
-        ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-        Color color = null;
-
-        if (chatPrefs.getChatColorMode() == CUSTOM && chatPrefs.getUserToColor().containsKey(lowerUsername)) {
-          color = chatPrefs.getUserToColor().get(lowerUsername);
-        } else if (chatPrefs.getChatColorMode() == RANDOM) {
-          color = ColorGeneratorUtil.generateRandomColor(lowerUsername.hashCode());
-        }
-
-        chatUsersByName.put(lowerUsername, ChatUser.fromIrcUser(user, color));
-
-        PlayerInfoBean player = playerService.getPlayerForUsername(user.getNick());
-        String identiconSource = player != null ? String.valueOf(player.getId()) : user.getNick();
-        if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
-          notificationService.addNotification(
-              new TransientNotification(
-                  i18n.get("friend.nowOnlineNotification.title", user.getNick()),
-                  i18n.get("friend.nowOnlineNotification.action"),
-                  IdenticonUtil.createIdenticon(identiconSource),
-                  new Action(
-                      event -> onOpenPrivateChatListener.accept(user.getNick())
-                  )
-              ));
-        }
-      }
-      return chatUsersByName.get(lowerUsername);
-    }
+    return getOrCreateChatUser(user.getNick());
   }
 
   @Override
