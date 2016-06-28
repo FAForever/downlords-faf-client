@@ -2,9 +2,12 @@ package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
@@ -12,6 +15,7 @@ import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.IdenticonUtil;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.hash.Hashing;
 import javafx.application.Platform;
@@ -91,6 +95,8 @@ public class PircBotXChatService implements ChatService {
   @Resource
   UserService userService;
   @Resource
+  PlayerService playerService;
+  @Resource
   TaskService taskService;
   @Resource
   FafService fafService;
@@ -110,6 +116,7 @@ public class PircBotXChatService implements ChatService {
   String defaultChannelName;
   @Value("${irc.reconnectDelay}")
   int reconnectDelay;
+  private Consumer<String> onOpenPrivateChatListener;
   private Configuration configuration;
   private PircBotX pircBotX;
   private CountDownLatch chatConnectedLatch;
@@ -331,6 +338,10 @@ public class PircBotXChatService implements ChatService {
     );
   }
 
+  public void setOnOpenPrivateChatListener(Consumer<String> onOpenPrivateChatListener) {
+    this.onOpenPrivateChatListener = onOpenPrivateChatListener;
+  }
+
   @Override
   public void connect() {
     init();
@@ -491,6 +502,20 @@ public class PircBotXChatService implements ChatService {
         }
 
         chatUsersByName.put(lowerUsername, ChatUser.fromIrcUser(user, color));
+
+        PlayerInfoBean player = playerService.getPlayerForUsername(user.getNick());
+        String identiconSource = player != null ? String.valueOf(player.getId()) : user.getNick();
+        if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
+          notificationService.addNotification(
+              new TransientNotification(
+                  i18n.get("friend.nowOnlineNotification.title", user.getNick()),
+                  i18n.get("friend.nowOnlineNotification.action"),
+                  IdenticonUtil.createIdenticon(identiconSource),
+                  new Action(
+                      event -> onOpenPrivateChatListener.accept(user.getNick())
+                  )
+              ));
+        }
       }
       return chatUsersByName.get(lowerUsername);
     }

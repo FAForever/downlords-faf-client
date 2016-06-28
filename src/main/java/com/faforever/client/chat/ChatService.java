@@ -15,6 +15,8 @@ public interface ChatService {
 
   void addOnPrivateChatMessageListener(Consumer<ChatMessage> listener);
 
+  void setOnOpenPrivateChatListener(Consumer<String> chatUser);
+
 
   void connect();
 

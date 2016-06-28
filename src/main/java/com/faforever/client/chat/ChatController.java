@@ -58,6 +58,7 @@ public class ChatController {
         onChannelJoined(change.getValueAdded());
       }
     });
+    chatService.setOnOpenPrivateChatListener(this::openPrivateMessageTabForUser);
 
     chatService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       switch (newValue) {
