@@ -54,6 +54,12 @@ public class UserServiceImpl implements UserService {
         .thenAccept(loginInfo -> {
           uid = loginInfo.getId();
 
+          // Because of different case (upper/lower)
+          UserServiceImpl.this.username = loginInfo.getLogin();
+
+          preferencesService.getPreferences().getLogin().setUsername(username);
+          preferencesService.storeInBackground();
+
           fafApiAccessor.authorize(loginInfo.getId());
           loggedIn.set(true);
         });
