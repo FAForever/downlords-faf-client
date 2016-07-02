@@ -69,6 +69,8 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   private FilterUserController filterUserController;
   @Mock
   private Stage stage;
+  @Mock
+  private AutoCompletionHelper autoCompletionHelper;
 
   private ChannelTabController instance;
 
@@ -86,6 +88,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     instance.i18n = i18n;
     instance.threadPoolExecutor = threadPoolExecutor;
     instance.filterUserController = filterUserController;
+    instance.autoCompletionHelper = autoCompletionHelper;
     instance.stage = getStage();
 
     ObjectProperty<ChatColorMode> chatColorModeProperty = new SimpleObjectProperty<>(ChatColorMode.DEFAULT);
