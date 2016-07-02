@@ -26,6 +26,7 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -35,6 +36,7 @@ import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
@@ -48,6 +50,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import static com.faforever.client.io.FileUtils.deleteRecursively;
 import static com.faforever.client.preferences.Preferences.DEFAULT_THEME_NAME;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.awt.RenderingHints.KEY_ANTIALIASING;
@@ -114,6 +117,7 @@ public class ThemeServiceImpl implements ThemeService {
   void postConstruct() throws IOException, InterruptedException {
     Path themesDirectory = preferencesService.getThemesDirectory();
     startWatchService(themesDirectory);
+    deleteRecursively(preferencesService.getCacheDirectory());
     loadThemes();
 
     String storedTheme = preferencesService.getPreferences().getTheme();
@@ -336,8 +340,6 @@ public class ThemeServiceImpl implements ThemeService {
     return preferencesService.getThemesDirectory().resolve(folderNamesByTheme.get(theme));
   }
 
-
-
   private String getWebViewStyleSheet() {
     return getThemeFileUrl(WEBVIEW_CSS_FILE).toString();
   }
@@ -350,10 +352,9 @@ public class ThemeServiceImpl implements ThemeService {
       Files.createDirectories(cacheDirectory);
 
       Path newTempStyleSheet = Files.createTempFile(cacheDirectory, "style-webview", ".css");
-      Files.delete(newTempStyleSheet);
 
       try (InputStream inputStream = new URL(styleSheetUrl).openStream()) {
-        Files.copy(inputStream, newTempStyleSheet);
+        Files.copy(inputStream, newTempStyleSheet, StandardCopyOption.REPLACE_EXISTING);
       }
       String newStyleSheetUrl = newTempStyleSheet.toUri().toURL().toString();
       webViews.forEach(webView -> Platform.runLater(() -> webView.getEngine().setUserStyleSheetLocation(newStyleSheetUrl)));
