@@ -11,6 +11,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.ThemeService;
+import com.faforever.client.util.SslUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Application;
 import javafx.scene.image.Image;
@@ -32,6 +33,7 @@ public class Main extends Application {
   public void start(Stage stage) {
     Font.loadFont(getClass().getResourceAsStream("/font/fontawesome-webfont.ttf"), 0);
     JavaFxUtil.fixTooltipDuration();
+    SslUtil.loadTruststores();
 
     initApplicationContext(stage);
     initStage(stage, context.getBean(ThemeService.class));
