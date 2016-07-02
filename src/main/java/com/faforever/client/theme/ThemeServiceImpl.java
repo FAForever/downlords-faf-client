@@ -117,7 +117,10 @@ public class ThemeServiceImpl implements ThemeService {
   void postConstruct() throws IOException, InterruptedException {
     Path themesDirectory = preferencesService.getThemesDirectory();
     startWatchService(themesDirectory);
-    deleteRecursively(preferencesService.getCacheDirectory());
+    Path cacheStylesheetsDirectory = preferencesService.getCacheStylesheetsDirectory();
+    if (Files.exists(cacheStylesheetsDirectory)) {
+      deleteRecursively(cacheStylesheetsDirectory);
+    }
     loadThemes();
 
     String storedTheme = preferencesService.getPreferences().getTheme();
@@ -346,12 +349,12 @@ public class ThemeServiceImpl implements ThemeService {
 
   private void setAndCreateWebViewsStyleSheet(String styleSheetUrl) {
     // Always copy to a new file since WebView locks the loaded one
-    Path cacheDirectory = preferencesService.getCacheDirectory();
+    Path stylesheetsCacheDirectory = preferencesService.getCacheStylesheetsDirectory();
 
     noCatch(() -> {
-      Files.createDirectories(cacheDirectory);
+      Files.createDirectories(stylesheetsCacheDirectory);
 
-      Path newTempStyleSheet = Files.createTempFile(cacheDirectory, "style-webview", ".css");
+      Path newTempStyleSheet = Files.createTempFile(stylesheetsCacheDirectory, "style-webview", ".css");
 
       try (InputStream inputStream = new URL(styleSheetUrl).openStream()) {
         Files.copy(inputStream, newTempStyleSheet, StandardCopyOption.REPLACE_EXISTING);

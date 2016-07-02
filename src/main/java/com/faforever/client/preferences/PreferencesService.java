@@ -58,6 +58,7 @@ public class PreferencesService {
   private static final String REPLAYS_SUB_FOLDER = "replays";
   private static final String CORRUPTED_REPLAYS_SUB_FOLDER = "corrupt";
   private static final String CACHE_SUB_FOLDER = "cache";
+  private static final String CACHE_STYLESHEETS_SUB_FOLDER = Paths.get(CACHE_SUB_FOLDER, "stylesheets").toString();
   private static final Collection<Path> USUAL_GAME_PATHS = Arrays.asList(
       Paths.get(System.getenv("ProgramFiles") + "\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
       Paths.get(System.getenv("ProgramFiles") + " (x86)\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
@@ -91,7 +92,6 @@ public class PreferencesService {
 
   private final Path preferencesFilePath;
   private final Gson gson;
-
   /**
    * @see #storeInBackground()
    */
@@ -104,7 +104,6 @@ public class PreferencesService {
   private Preferences preferences;
   private TimerTask storeInBackgroundTask;
   private OnChooseGameDirectoryListener onChooseGameDirectoryListener;
-
   public PreferencesService() {
     updateListeners = new ArrayList<>();
     this.preferencesFilePath = getPreferencesDirectory().resolve(PREFS_FILE_NAME);
@@ -352,6 +351,10 @@ public class PreferencesService {
   public boolean isGamePathValid() {
     return preferences.getForgedAlliance().getPath() != null
         && Files.isRegularFile(preferences.getForgedAlliance().getPath().resolve("bin").resolve(FORGED_ALLIANCE_EXE));
+  }
+
+  public Path getCacheStylesheetsDirectory() {
+    return getFafDataDirectory().resolve(CACHE_STYLESHEETS_SUB_FOLDER);
   }
 
   public static void configureLogging() {
