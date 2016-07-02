@@ -92,7 +92,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private AutoCompletitionHelper autoCompletitionHelper;
+  private AutoCompletionHelper autoCompletionHelper;
 
   private AbstractChatTabController instance;
   private CountDownLatch chatReadyLatch;
@@ -134,7 +134,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.notificationService = notificationService;
     instance.i18n = i18n;
     instance.stage = stage;
-    instance.autoCompletitionHelper = autoCompletitionHelper;
+    instance.autoCompletionHelper = autoCompletionHelper;
 
     TabPane tabPane = new TabPane(instance.getRoot());
     getRoot().getChildren().setAll(tabPane);

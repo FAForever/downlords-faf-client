@@ -21,18 +21,18 @@ import static org.hamcrest.text.IsEmptyString.isEmptyString;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
-public class AutoCompletitionHelperTest extends AbstractPlainJavaFxTest {
+public class AutoCompletionHelperTest extends AbstractPlainJavaFxTest {
 
   private static final long TIMEOUT = 5000;
 
   @Mock
   PlayerService playerService;
-  AutoCompletitionHelper instance;
+  AutoCompletionHelper instance;
   private TextInputControl textInputControl;
 
   @Before
   public void setUp() throws Exception {
-    instance = new AutoCompletitionHelper();
+    instance = new AutoCompletionHelper();
     instance.playerService = playerService;
 
     textInputControl = new TextField();
@@ -45,7 +45,6 @@ public class AutoCompletitionHelperTest extends AbstractPlainJavaFxTest {
 
     simulate(keyEvent);
 
-//    assertThat(keyEvent.isConsumed(), is(true));
     assertThat(textInputControl.getText(), isEmptyString());
   }
 
@@ -82,7 +81,6 @@ public class AutoCompletitionHelperTest extends AbstractPlainJavaFxTest {
 
     simulate(keyEvent);
 
-//    assertThat(keyEvent.isConsumed(), is(true));
     assertThat(textInputControl.getText(), is("j"));
   }
 
@@ -95,7 +93,6 @@ public class AutoCompletitionHelperTest extends AbstractPlainJavaFxTest {
 
     simulate(keyEvent);
 
-//    assertTrue(keyEvent.isConsumed());
     assertThat(textInputControl.getText(), is("Junit"));
   }
 
@@ -108,7 +105,6 @@ public class AutoCompletitionHelperTest extends AbstractPlainJavaFxTest {
 
     simulate(keyEvent);
     simulate(keyEvent);
-//    assertThat(keyEvent.isConsumed(), is(true));
     assertThat(textInputControl.getText(), is("Junit"));
   }
 
@@ -138,7 +134,6 @@ public class AutoCompletitionHelperTest extends AbstractPlainJavaFxTest {
 
     simulate(keyEvent);
 
-//    assertThat(keyEvent.isConsumed(), is(true));
     assertThat(textInputControl.getText(), is("JAyUnit"));
   }
 
@@ -156,7 +151,6 @@ public class AutoCompletitionHelperTest extends AbstractPlainJavaFxTest {
     textInputControl.positionCaret(textInputControl.getText().length());
     simulate(keyEvent);
 
-//    assertThat(keyEvent.isConsumed(), is(true));
     assertThat(textInputControl.getText(), is("JUnit Downlord"));
   }
 }

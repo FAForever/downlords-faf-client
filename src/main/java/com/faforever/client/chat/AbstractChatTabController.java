@@ -155,7 +155,7 @@ public abstract class AbstractChatTabController {
   @Resource
   ThemeService themeService;
   @Resource
-  AutoCompletitionHelper autoCompletitionHelper;
+  AutoCompletionHelper autoCompletionHelper;
 
   private boolean isChatReady;
   private WebEngine engine;
@@ -257,7 +257,7 @@ public abstract class AbstractChatTabController {
     stage.focusedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
     getRoot().selectedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
 
-    autoCompletitionHelper.bindTo(getMessageTextField());
+    autoCompletionHelper.bindTo(getMessageTextField());
   }
 
   /**

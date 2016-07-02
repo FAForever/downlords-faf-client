@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Locale.US;
 
-public class AutoCompletitionHelper {
+public class AutoCompletionHelper {
 
   @Resource
   PlayerService playerService;
@@ -26,7 +26,7 @@ public class AutoCompletitionHelper {
   private TextInputControl boundTextField;
   private EventHandler<KeyEvent> keyEventHandler;
 
-  public AutoCompletitionHelper() {
+  public AutoCompletionHelper() {
     keyEventHandler = keyEvent -> {
       if (!keyEvent.isControlDown() && keyEvent.getCode() == KeyCode.TAB) {
         keyEvent.consume();
@@ -44,12 +44,12 @@ public class AutoCompletitionHelper {
       initializeAutoCompletion();
 
       if (possibleAutoCompletions.isEmpty()) {
-        // There are no autocompletion matches
+        // There are no auto completion matches
         resetAutoCompletion();
         return;
       }
 
-      // It's the first autocomplete event at this location, just replace the text with the first user name
+      // It's the first auto complete event at this location, just replace the text with the first user name
       boundTextField.selectPreviousWord();
       boundTextField.replaceSelection(possibleAutoCompletions.get(nextAutoCompleteIndex++));
       return;
@@ -101,7 +101,7 @@ public class AutoCompletitionHelper {
   }
 
   public void bindTo(TextInputControl messageTextField) {
-    Assert.checkNotNullIllegalState(boundTextField, "AutoCompletitionHelper is already bound to a TextInputControl");
+    Assert.checkNotNullIllegalState(boundTextField, "AutoCompletionHelper is already bound to a TextInputControl");
     boundTextField = messageTextField;
     boundTextField.addEventFilter(KeyEvent.KEY_PRESSED, keyEventHandler);
   }
