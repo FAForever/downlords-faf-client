@@ -26,6 +26,7 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -35,6 +36,7 @@ import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
@@ -48,6 +50,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import static com.faforever.client.io.FileUtils.deleteRecursively;
 import static com.faforever.client.preferences.Preferences.DEFAULT_THEME_NAME;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.awt.RenderingHints.KEY_ANTIALIASING;
@@ -91,6 +94,7 @@ public class ThemeServiceImpl implements ThemeService {
   private Map<Theme, String> folderNamesByTheme;
   private Map<Path, WatchKey> watchKeys;
   private ObjectProperty<Theme> currentTheme;
+  private Path currentTempStyleSheet;
 
   public ThemeServiceImpl() {
     scenes = Collections.synchronizedSet(new HashSet<>());
@@ -113,6 +117,10 @@ public class ThemeServiceImpl implements ThemeService {
   void postConstruct() throws IOException, InterruptedException {
     Path themesDirectory = preferencesService.getThemesDirectory();
     startWatchService(themesDirectory);
+    Path cacheStylesheetsDirectory = preferencesService.getCacheStylesheetsDirectory();
+    if (Files.exists(cacheStylesheetsDirectory)) {
+      deleteRecursively(cacheStylesheetsDirectory);
+    }
     loadThemes();
 
     String storedTheme = preferencesService.getPreferences().getTheme();
@@ -202,11 +210,11 @@ public class ThemeServiceImpl implements ThemeService {
     String styleSheet = getSceneStyleSheet();
 
     logger.debug("Changes detected, reloading stylesheet: {}", styleSheet);
-    scenes.forEach(scene -> setStyleSheet(scene, styleSheet));
-    webViews.forEach(webView -> setStyleSheet(webView, getWebViewStyleSheet()));
+    scenes.forEach(scene -> setSceneStyleSheet(scene, styleSheet));
+    setAndCreateWebViewsStyleSheet(getWebViewStyleSheet());
   }
 
-  private void setStyleSheet(Scene scene, String styleSheet) {
+  private void setSceneStyleSheet(Scene scene, String styleSheet) {
     Platform.runLater(() -> scene.getStylesheets().setAll(styleSheet));
   }
 
@@ -269,7 +277,11 @@ public class ThemeServiceImpl implements ThemeService {
   @Override
   public void registerWebView(WebView webView) {
     webViews.add(webView);
-    setStyleSheet(webView, getWebViewStyleSheet());
+    if (currentTempStyleSheet == null) {
+      setAndCreateWebViewsStyleSheet(getWebViewStyleSheet());
+    } else {
+      Platform.runLater(() -> webView.getEngine().setUserStyleSheetLocation(getWebViewStyleSheet()));
+    }
   }
 
   @Override
@@ -331,27 +343,29 @@ public class ThemeServiceImpl implements ThemeService {
     return preferencesService.getThemesDirectory().resolve(folderNamesByTheme.get(theme));
   }
 
-
-
   private String getWebViewStyleSheet() {
     return getThemeFileUrl(WEBVIEW_CSS_FILE).toString();
   }
 
-  private void setStyleSheet(WebView webView, String styleSheetUrl) {
+  private void setAndCreateWebViewsStyleSheet(String styleSheetUrl) {
     // Always copy to a new file since WebView locks the loaded one
-    Path cacheDirectory = preferencesService.getCacheDirectory();
+    Path stylesheetsCacheDirectory = preferencesService.getCacheStylesheetsDirectory();
 
     noCatch(() -> {
-      Files.createDirectories(cacheDirectory);
+      Files.createDirectories(stylesheetsCacheDirectory);
 
-      Path tempStyleSheet = Files.createTempFile(cacheDirectory, "style-webview", ".css");
-      Files.delete(tempStyleSheet);
+      Path newTempStyleSheet = Files.createTempFile(stylesheetsCacheDirectory, "style-webview", ".css");
 
       try (InputStream inputStream = new URL(styleSheetUrl).openStream()) {
-        Files.copy(inputStream, tempStyleSheet);
+        Files.copy(inputStream, newTempStyleSheet, StandardCopyOption.REPLACE_EXISTING);
       }
-      String newStyleSheetUrl = tempStyleSheet.toUri().toURL().toString();
-      Platform.runLater(() -> webView.getEngine().setUserStyleSheetLocation(newStyleSheetUrl));
+      String newStyleSheetUrl = newTempStyleSheet.toUri().toURL().toString();
+      webViews.forEach(webView -> Platform.runLater(() -> webView.getEngine().setUserStyleSheetLocation(newStyleSheetUrl)));
+      logger.debug("{} created and applied to all web views", newTempStyleSheet.getFileName());
+      if (currentTempStyleSheet != null) {
+        Files.delete(currentTempStyleSheet);
+      }
+      currentTempStyleSheet = newTempStyleSheet;
     });
   }
 }
