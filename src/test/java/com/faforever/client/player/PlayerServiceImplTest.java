@@ -16,9 +16,7 @@ import java.util.function.Consumer;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -84,7 +82,7 @@ public class PlayerServiceImplTest {
     assertEquals("junit", playerInfoBean.getUsername());
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void testRegisterAndGetPlayerForUsernameNull() throws Exception {
     instance.createAndGetPlayerForUsername(null);
   }

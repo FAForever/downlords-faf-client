@@ -16,13 +16,10 @@ import org.springframework.context.ApplicationContext;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.only;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
+import static org.mockito.Mockito.*;
 
 public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
 
@@ -68,13 +65,13 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
 
     when(taskService.submitTask(eq(updateGameFilesTask))).thenReturn(CompletableFuture.completedFuture(null));
 
-    instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
+    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet()).get(TIMEOUT, TIMEOUT_UNIT);
 
     verify(taskService).submitTask(updateGameFilesTask);
 
     verify(updateGameFilesTask).setGameType(GameType.DEFAULT.getString());
-    verify(updateGameFilesTask).setSimMods(null);
-    verify(updateGameFilesTask).setModVersions(null);
+    verify(updateGameFilesTask).setModVersions(eq(emptyMap()));
+    verify(updateGameFilesTask).setSimMods(eq(emptySet()));
   }
 
   @Test

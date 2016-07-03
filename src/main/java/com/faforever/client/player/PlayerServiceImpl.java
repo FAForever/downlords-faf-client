@@ -21,18 +21,11 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.faforever.client.chat.SocialStatus.FOE;
-import static com.faforever.client.chat.SocialStatus.FRIEND;
-import static com.faforever.client.chat.SocialStatus.OTHER;
-import static com.faforever.client.chat.SocialStatus.SELF;
+import static com.faforever.client.chat.SocialStatus.*;
 
 public class PlayerServiceImpl implements PlayerService {
 
@@ -120,7 +113,7 @@ public class PlayerServiceImpl implements PlayerService {
 
   @Override
   public PlayerInfoBean createAndGetPlayerForUsername(@NotNull String username) {
-    Assert.checkNull(username, "username must not be null");
+    Assert.checkNullArgument(username, "username must not be null");
 
     synchronized (playersByName) {
       if (!playersByName.containsKey(username)) {
