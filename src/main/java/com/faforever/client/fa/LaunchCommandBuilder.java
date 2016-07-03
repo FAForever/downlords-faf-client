@@ -8,8 +8,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class LaunchCommandBuilder {
+
+  private static final Pattern QUOTED_STRING_PATTERN = Pattern.compile("([^\"]\\S*|\".+?\")\\s*");
 
   private Float mean;
   private Float deviation;
@@ -26,9 +30,23 @@ public class LaunchCommandBuilder {
   private URI replayUri;
   private String gameType;
   private Faction faction;
+  private String executableDecorator;
 
   private LaunchCommandBuilder() {
-    // Private
+    executableDecorator = "\"%s\"";
+  }
+
+  public static LaunchCommandBuilder create() {
+    return new LaunchCommandBuilder();
+  }
+
+  private static List<String> split(String string) {
+    Matcher matcher = QUOTED_STRING_PATTERN.matcher(string);
+    ArrayList<String> result = new ArrayList<>();
+    while (matcher.find()) {
+      result.add(matcher.group(1).replace("\"", ""));
+    }
+    return result;
   }
 
   public LaunchCommandBuilder localGpgPort(int localGpgPort) {
@@ -71,7 +89,6 @@ public class LaunchCommandBuilder {
     return this;
   }
 
-
   public LaunchCommandBuilder logFile(Path logFile) {
     this.logFile = logFile;
     return this;
@@ -107,8 +124,10 @@ public class LaunchCommandBuilder {
     return this;
   }
 
-
   public List<String> build() {
+    if (executableDecorator == null) {
+      throw new IllegalStateException("executableDecorator has not been set");
+    }
     if (executable == null) {
       throw new IllegalStateException("executable has not been set");
     }
@@ -125,8 +144,10 @@ public class LaunchCommandBuilder {
       throw new IllegalStateException("uid and replayUri cannot be set at the same time");
     }
 
-    List<String> command = new ArrayList<>(Arrays.asList(
-        executable.toAbsolutePath().toString(),
+
+    List<String> command = new ArrayList<>();
+    command.addAll(split(String.format(executableDecorator, executable.toAbsolutePath().toString())));
+    command.addAll(Arrays.asList(
         "/init", String.format("init_%s.lua", gameType),
         "/nobugreport"
     ));
@@ -190,7 +211,8 @@ public class LaunchCommandBuilder {
     return command;
   }
 
-  public static LaunchCommandBuilder create() {
-    return new LaunchCommandBuilder();
+  public LaunchCommandBuilder executableDecorator(String executableDecorator) {
+    this.executableDecorator = executableDecorator;
+    return this;
   }
 }
