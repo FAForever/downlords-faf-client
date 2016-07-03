@@ -106,7 +106,7 @@ public class ChannelTabController extends AbstractChatTabController {
   @Resource
   ThreadPoolExecutor threadPoolExecutor;
 
-  private String channelName;
+  private Channel channel;
   private Popup filterUserPopup;
   private MapChangeListener<String, ChatUser> usersChangeListener;
   private ChangeListener<ChatColorMode> chatColorModeChangeListener;
@@ -120,15 +120,12 @@ public class ChannelTabController extends AbstractChatTabController {
     return userToChatUserControls;
   }
 
-  public void setChannelName(String channelName) {
-    if (this.channelName != null) {
-      throw new IllegalStateException("channelName has already been set");
-    }
-    this.channelName = channelName;
+  public void setChannel(Channel channel) {
+    this.channel = channel;
+    String channelName = channel.getName();
     setReceiver(channelName);
     channelTabRoot.setId(channelName);
     channelTabRoot.setText(channelName);
-
 
     usersChangeListener = change -> {
       if (change.wasAdded()) {
@@ -138,18 +135,17 @@ public class ChannelTabController extends AbstractChatTabController {
       }
       updateUserCount(change.getMap().size());
     };
-    updateUserCount(chatService.getOrCreateChannel(channelName).getUsers().size());
+    updateUserCount(channel.getUsers().size());
 
     chatService.addUsersListener(channelName, usersChangeListener);
 
     // Maybe there already were some users; fetch them
     threadPoolExecutor.execute(() -> {
-      Channel channel = chatService.getOrCreateChannel(channelName);
       channel.getUsers().forEach(ChannelTabController.this::onUserJoinedChannel);
     });
 
     channelTabRoot.setOnCloseRequest(event -> {
-      chatService.leaveChannel(channelName);
+      chatService.leaveChannel(channel.getName());
       chatService.removeUsersListener(channelName, usersChangeListener);
     });
 
@@ -193,7 +189,6 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void setAllMessageColors() {
-    Channel channel = chatService.getOrCreateChannel(channelName);
     Map<String, String> userToColor = new HashMap<>();
     channel.getUsers().stream().filter(chatUser -> chatUser.getColor() != null).forEach(chatUser
         -> userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor())));
@@ -280,7 +275,7 @@ public class ChannelTabController extends AbstractChatTabController {
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(login);
     if (playerInfoBean != null
         && !playerInfoBean.equals(playerService.getCurrentPlayer())
-        && playerInfoBean.getModeratorForChannels().contains(channelName)) {
+        && playerInfoBean.getModeratorForChannels().contains(channel.getName())) {
       return CSS_CLASS_MODERATOR;
     }
 
@@ -510,7 +505,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private Collection<Pane> getTargetPanesForUser(PlayerInfoBean playerInfoBean) {
     ArrayList<Pane> panes = new ArrayList<>(3);
 
-    if (playerInfoBean.getModeratorForChannels().contains(channelName)) {
+    if (playerInfoBean.getModeratorForChannels().contains(channel.getName())) {
       panes.add(moderatorsPane);
     }
 

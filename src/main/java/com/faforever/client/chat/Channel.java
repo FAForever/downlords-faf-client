@@ -1,5 +1,7 @@
 package com.faforever.client.chat;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -11,11 +13,21 @@ import java.util.List;
 public class Channel {
 
   private final ObservableMap<String, ChatUser> users;
+  private final StringProperty topic;
   private String name;
 
   public Channel(String name) {
     this.name = name;
     users = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
+    topic = new SimpleStringProperty();
+  }
+
+  public String getTopic() {
+    return topic.get();
+  }
+
+  public StringProperty topicProperty() {
+    return topic;
   }
 
   public void removeUser(String username) {
@@ -58,6 +70,12 @@ public class Channel {
 
   public ChatUser getUser(String username) {
     return users.get(username);
+  }
+
+  public void onChannelTopic(String oldTopic, String topic, String username, long date, boolean changed) {
+    if (this.topic.getValue() == null || changed) {
+      this.topic.setValue(topic);
+    }
   }
 
   public String getName() {
