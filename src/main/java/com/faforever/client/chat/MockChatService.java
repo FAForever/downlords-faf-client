@@ -129,6 +129,11 @@ public class MockChatService implements ChatService {
   }
 
   @Override
+  public void addChatUsersByNameListener(MapChangeListener<String, ChatUser> listener) {
+
+  }
+
+  @Override
   public void addChannelsListener(MapChangeListener<String, Channel> listener) {
 
   }

@@ -161,7 +161,7 @@ public class ChatController {
 
     if (!nameToChatTabController.containsKey(username)) {
       PrivateChatTabController tab = applicationContext.getBean(PrivateChatTabController.class);
-      tab.setUsername(username);
+      tab.setReceiver(username);
       addTab(username, tab);
     }
 

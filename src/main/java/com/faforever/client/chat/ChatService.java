@@ -32,6 +32,8 @@ public interface ChatService {
 
   void addUsersListener(String channelName, MapChangeListener<String, ChatUser> listener);
 
+  void addChatUsersByNameListener(MapChangeListener<String, ChatUser> listener);
+
   void addChannelsListener(MapChangeListener<String, Channel> listener);
 
   void removeUsersListener(String channelName, MapChangeListener<String, ChatUser> listener);

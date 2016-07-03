@@ -54,7 +54,7 @@ public class UserServiceImplTest {
 //
 //    instance.login("junit", "junitPw", true);
 //
-//    verify(login).setUsername("junit");
+//    verify(login).setReceiver("junit");
 //    verify(login).setPassword("junitPw");
 //    verify(login).setAutoLogin(true);
 //    verify(preferencesService).storeInBackground();

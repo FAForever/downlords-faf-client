@@ -1,6 +1,6 @@
 package com.faforever.client.preferences;
 
-import com.faforever.client.util.OperatingSystem;
+import com.faforever.client.os.OperatingSystem;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
 import org.junit.Before;

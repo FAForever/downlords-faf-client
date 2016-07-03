@@ -64,14 +64,12 @@ public class FilterUserController {
     for (Map<Pane, ChatUserItemController> chatUserControlMap : userToChatUserControls.values()) {
       for (Map.Entry<Pane, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
         ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
-        boolean display;
-        display = filterUser(chatUserItemController);
-        chatUserItemController.setVisible(display);
+        chatUserItemController.setVisible(filterUser(chatUserItemController));
       }
     }
   }
 
-  private boolean filterUser(ChatUserItemController chatUserItemController) {
+  boolean filterUser(ChatUserItemController chatUserItemController) {
     return channelTabController.isUsernameMatch(chatUserItemController)
         && isInClan(chatUserItemController)
         && isBoundedByRating(chatUserItemController)
@@ -95,6 +93,10 @@ public class FilterUserController {
 
   @VisibleForTesting
   boolean isBoundedByRating(ChatUserItemController chatUserItemController) {
+    if (minRatingFilterField.getText().isEmpty() && maxRatingFilterField.getText().isEmpty()) {
+      return true;
+    }
+
     int globalRating = RatingUtil.getGlobalRating(chatUserItemController.getPlayerInfoBean());
     int minRating;
     int maxRating;

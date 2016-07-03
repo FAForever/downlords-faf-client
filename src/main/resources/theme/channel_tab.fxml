@@ -86,7 +86,8 @@
           </VBox>
         </items>
       </SplitPane>
-      <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage" onKeyPressed="#onKeyPressed" promptText="%chat.messagePrompt" />
+      <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage"
+                 promptText="%chat.messagePrompt"/>
     </children>
   </VBox>
 </Tab>
