@@ -19,6 +19,23 @@ a {
   text-decoration: none;
 }
 
+/***************** Header / Channel topic *****************/
+
+#wrapper {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#channelTopic {
+  color: white;
+  background: #333;
+}
+
+#content {
+  overflow: auto;
+}
+
 /***************** Search (WebView) *****************/
 .highlight {
   background-color: rgba(255, 255, 0, 0.7);

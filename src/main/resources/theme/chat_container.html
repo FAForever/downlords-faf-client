@@ -19,13 +19,16 @@
   </style>
 </head>
 <body>
-<table id="chat-table">
+<div id="wrapper">
+  <div id="channel-topic">{channel-topic}</div>
+  <div id="content">
+    <table id="chat-table">
+      <!-- Message items are always appended to #chat-container -->
+      <tbody id="chat-container">
 
-  <!-- Message items are always appended to #chat-container -->
-  <tbody id="chat-container">
-
-  </tbody>
-
-</table>
+      </tbody>
+    </table>
+  </div>
+</div>
 </body>
 </html>
