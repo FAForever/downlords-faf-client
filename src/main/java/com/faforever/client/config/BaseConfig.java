@@ -27,12 +27,17 @@ import java.util.concurrent.ThreadPoolExecutor;
  * the application.
  */
 @org.springframework.context.annotation.Configuration
-@PropertySource("classpath:/faf_client.properties")
+@PropertySource("classpath:/application.properties")
 @EnableAsync
 public class BaseConfig {
 
   @Resource
   ScheduledExecutorService scheduledExecutorService;
+
+  @Bean
+  static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+    return new PropertySourcesPlaceholderConfigurer();
+  }
 
   @Bean
   Locale locale() {
@@ -79,10 +84,5 @@ public class BaseConfig {
   @Bean
   ClientHttpRequestFactory clientHttpRequestFactory() {
     return new SimpleClientHttpRequestFactory();
-  }
-
-  @Bean
-  static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
-    return new PropertySourcesPlaceholderConfigurer();
   }
 }
