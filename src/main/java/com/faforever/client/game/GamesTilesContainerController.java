@@ -46,8 +46,8 @@ public class GamesTilesContainerController {
         change.getRemoved().forEach(gameInfoBean -> tiledFlowPane.getChildren().remove(uidToGameCard.remove(gameInfoBean.getUid())));
         change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
       }
-      selectFirstGame();
     }));
+    selectFirstGame();
   }
 
   private void selectFirstGame() {
