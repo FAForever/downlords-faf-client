@@ -46,7 +46,15 @@ public class GamesTilesContainerController {
         change.getRemoved().forEach(gameInfoBean -> tiledFlowPane.getChildren().remove(uidToGameCard.remove(gameInfoBean.getUid())));
         change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
       }
+      selectFirstGame();
     }));
+  }
+
+  private void selectFirstGame() {
+    ObservableList<Node> cards = tiledFlowPane.getChildren();
+    if (!cards.isEmpty()) {
+      selectedGame.set((GameInfoBean) cards.get(0).getUserData());
+    }
   }
 
   private void addGameCard(GameInfoBean gameInfoBean) {
@@ -55,6 +63,7 @@ public class GamesTilesContainerController {
     gameTileController.setOnSelectedListener(gameInfoBean1 -> selectedGame.set(gameInfoBean1));
 
     Node root = gameTileController.getRoot();
+    root.setUserData(gameInfoBean);
     tiledFlowPane.getChildren().add(root);
     uidToGameCard.put(gameInfoBean.getUid(), root);
   }

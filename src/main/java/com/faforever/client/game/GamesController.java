@@ -20,29 +20,17 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
-import javafx.stage.Popup;
-import javafx.stage.PopupWindow;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import javafx.stage.*;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -65,8 +53,6 @@ public class GamesController {
   private static final Predicate<GameInfoBean> OPEN_CUSTOM_GAMES_PREDICATE = gameInfoBean ->
       gameInfoBean.getStatus() == GameState.OPEN
           && !HIDDEN_FEATURED_MODS.contains(gameInfoBean.getFeaturedMod());
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @FXML
   ToggleButton tableButton;
@@ -125,7 +111,6 @@ public class GamesController {
   @FXML
   void initialize() {
     gameDetailPane.managedProperty().bind(gameDetailPane.visibleProperty());
-    gameDetailPane.setVisible(false);
   }
 
   @PostConstruct
@@ -221,7 +206,8 @@ public class GamesController {
   @FXML
   void onTableButtonClicked() {
     GamesTableController gamesTableController = applicationContext.getBean(GamesTableController.class);
-    gamesTableController.setOnSelectedListener(this::setSelectedGame);
+    gamesTableController.selectedGameProperty()
+        .addListener((observable, oldValue, newValue) -> setSelectedGame(newValue));
     Platform.runLater(() -> {
       gamesTableController.initializeGameTable(filteredItems);
 
@@ -241,9 +227,8 @@ public class GamesController {
   @FXML
   void onTilesButtonClicked() {
     GamesTilesContainerController gamesTilesContainerController = applicationContext.getBean(GamesTilesContainerController.class);
-    gamesTilesContainerController.selectedGameProperty().addListener((observable, oldValue, newValue) -> {
-      setSelectedGame(newValue);
-    });
+    gamesTilesContainerController.selectedGameProperty()
+        .addListener((observable, oldValue, newValue) -> setSelectedGame(newValue));
     gamesTilesContainerController.createTiledFlowPane(filteredItems);
 
     Node root = gamesTilesContainerController.getRoot();
