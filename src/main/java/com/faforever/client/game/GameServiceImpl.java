@@ -5,11 +5,7 @@ import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.notification.Action;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.*;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -26,11 +22,7 @@ import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
+import javafx.collections.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -44,21 +36,15 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.Consumer;
 
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonList;
+import static com.github.nocatch.NoCatch.noCatch;
+import static java.util.Collections.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class GameServiceImpl implements GameService {
@@ -110,7 +96,7 @@ public class GameServiceImpl implements GameService {
 
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
-    uidToGameInfoBean = new HashMap<>();
+    uidToGameInfoBean = synchronizedMap(new HashMap<>());
     searching1v1 = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
 
@@ -337,12 +323,8 @@ public class GameServiceImpl implements GameService {
   public CompletableFuture<Void> prepareForRehost() {
     return fafService.expectRehostCommand().thenAccept(gameLaunchMessage -> {
       logger.debug("Received game launch command, waiting for FA to terminate");
-      try {
-        process.waitFor();
-        localRelayServer.close();
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
+      noCatch(() -> process.waitFor());
+      localRelayServer.close();
 
       localRelayServer.start(connectivityService);
       connectivityService.connect();
