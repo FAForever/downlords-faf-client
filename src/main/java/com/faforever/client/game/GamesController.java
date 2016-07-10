@@ -11,10 +11,9 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameState;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
-import javafx.collections.MapChangeListener;
+import javafx.beans.InvalidationListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.collections.WeakMapChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -106,7 +105,7 @@ public class GamesController {
   private Stage mapDetailPopup;
 
   private GameInfoBean currentGameInfoBean;
-  private MapChangeListener<String, List<String>> teamsChangeListener;
+  private InvalidationListener teamsChangeListener;
 
   @FXML
   void initialize() {
@@ -243,7 +242,6 @@ public class GamesController {
     }
 
     gameDetailPane.setVisible(true);
-    currentGameInfoBean = gameInfoBean;
 
     gameTitleLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
 
@@ -267,10 +265,14 @@ public class GamesController {
       return StringUtils.defaultString(fullName);
     }, gameInfoBean.featuredModProperty()));
 
-    teamsChangeListener = change -> createTeams(gameInfoBean.getTeams());
-    gameInfoBean.getTeams().addListener(new WeakMapChangeListener<>(teamsChangeListener));
+    if (currentGameInfoBean != null) {
+      currentGameInfoBean.getTeams().removeListener(teamsChangeListener);
+    }
+    teamsChangeListener = observable -> createTeams(gameInfoBean.getTeams());
+    gameInfoBean.getTeams().addListener(teamsChangeListener);
+    teamsChangeListener.invalidated(gameInfoBean.getTeams());
 
-    createTeams(gameInfoBean.getTeams());
+    currentGameInfoBean = gameInfoBean;
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber) {
