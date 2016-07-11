@@ -51,7 +51,7 @@ public interface ModService {
 
   CompletableFuture<List<ModInfoBean>> lookupMod(String string, int maxSuggestions);
 
-  ModInfoBean extractModInfo(Path path);
+  ModInfoBean extractModInfo(Path path) throws IOException;
 
   UploadModTask uploadMod(Path modPath, Consumer<Float> progressListener);
 }

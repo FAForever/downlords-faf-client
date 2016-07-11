@@ -1,12 +1,7 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.Action;
-import com.faforever.client.notification.DismissAction;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.*;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
 import javafx.beans.binding.Bindings;
@@ -24,6 +19,7 @@ import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import static com.github.nocatch.NoCatch.noCatch;
 import static java.util.Arrays.asList;
 
 public class ModUploadController {
@@ -81,8 +77,9 @@ public class ModUploadController {
   public void setModPath(Path modPath) {
     this.modPath = modPath;
     enterParsingState();
-    CompletableFuture.supplyAsync(() -> modService.extractModInfo(modPath), threadPoolExecutor)
+    CompletableFuture.supplyAsync(() -> noCatch(() -> modService.extractModInfo(modPath)), threadPoolExecutor)
         .thenAccept(this::setModInfo);
+    // FIXME show error if any
   }
 
   private void enterParsingState() {

@@ -1,6 +1,6 @@
 package com.faforever.client.connectivity;
 
-import com.faforever.client.fx.HostService;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
@@ -17,12 +17,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,16 +43,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
 
@@ -70,7 +60,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private I18n i18n;
   @Mock
-  private HostService hostService;
+  private PlatformService platformService;
   @Mock
   private Preferences preferences;
   @Mock
@@ -101,7 +91,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     instance.taskService = taskService;
     instance.preferencesService = preferencesService;
     i18n = instance.i18n = i18n;
-    instance.hostService = hostService;
+    instance.platformService = platformService;
     instance.applicationContext = applicationContext;
     instance.notificationService = notificationService;
     instance.fafService = fafService;

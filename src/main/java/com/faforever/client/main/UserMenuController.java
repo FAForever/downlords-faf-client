@@ -2,7 +2,7 @@ package com.faforever.client.main;
 
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.UserInfoWindowController;
-import com.faforever.client.fx.HostService;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.player.PlayerService;
@@ -47,7 +47,7 @@ public class UserMenuController {
   @Resource
   GravatarService gravatarService;
   @Resource
-  HostService hostService;
+  PlatformService platformService;
   @Resource
   ApplicationContext applicationContext;
 
