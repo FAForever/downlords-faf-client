@@ -5,6 +5,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
@@ -12,7 +13,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class GamesControllerTest extends AbstractPlainJavaFxTest {
@@ -57,16 +59,17 @@ public class GamesControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getGamesViewMode()).thenReturn("tableButton");
     when(applicationContext.getBean(GamesTilesContainerController.class)).thenReturn(gamesTilesContainerController);
     when(applicationContext.getBean(GamesTableController.class)).thenReturn(gamesTableController);
+    when(gamesTableController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
     when(gamesTilesContainerController.getRoot()).thenReturn(new Pane());
 
     instance.postConstruct();
   }
 
   @Test
-  public void testSetSelectedGameShowsDetailPane() throws Exception {
-    assertFalse(instance.gameDetailPane.isVisible());
-    instance.setSelectedGame(GameInfoBeanBuilder.create().defaultValues().get());
+  public void testSetSelectedGameHidesDetailPane() throws Exception {
     assertTrue(instance.gameDetailPane.isVisible());
+    instance.setSelectedGame(null);
+    assertFalse(instance.gameDetailPane.isVisible());
   }
 
   @Test

@@ -79,7 +79,7 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getFafBinDirectory()).thenReturn(null);
     when(forgedAlliancePrefs.getPath()).thenReturn(null);
 
-    instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
+    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet()).get(TIMEOUT, TIMEOUT_UNIT);
 
     verifyZeroInteractions(taskService);
   }
@@ -94,8 +94,8 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
 
     when(taskService.submitTask(eq(updateGameFilesTask))).thenReturn(CompletableFuture.completedFuture(null));
 
-    instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
-    instance.updateInBackground(GameType.DEFAULT.getString(), null, null, null).get(TIMEOUT, TIMEOUT_UNIT);
+    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet()).get(TIMEOUT, TIMEOUT_UNIT);
+    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet()).get(TIMEOUT, TIMEOUT_UNIT);
 
     verify(taskService, only()).submitTask(updateGameFilesTask);
   }
