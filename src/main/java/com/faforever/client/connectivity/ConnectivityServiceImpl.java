@@ -1,6 +1,6 @@
 package com.faforever.client.connectivity;
 
-import com.faforever.client.fx.HostService;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.SocketAddressUtil;
 import com.faforever.client.notification.Action;
@@ -33,11 +33,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
@@ -72,7 +68,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
   @Resource
   PreferencesService preferencesService;
   @Resource
-  HostService hostService;
+  PlatformService platformService;
   @Resource
   I18n i18n;
   @Resource
@@ -302,7 +298,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
     List<Action> actions = Arrays.asList(
         new Action(
             i18n.get("portCheckTask.help"),
-            event -> hostService.showDocument(connectivityHelpUrl)
+            event -> platformService.showDocument(connectivityHelpUrl)
         ),
         new Action(
             i18n.get("portCheckTask.neverShowAgain"),

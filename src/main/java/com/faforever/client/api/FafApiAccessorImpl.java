@@ -7,21 +7,8 @@ import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.UriUtil;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
-import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
-import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
-import com.google.api.client.auth.oauth2.BearerToken;
-import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.auth.oauth2.TokenResponse;
-import com.google.api.client.http.FileContent;
-import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpHeaders;
-import com.google.api.client.http.HttpMediaType;
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.HttpStatusCodes;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.MultipartContent;
+import com.google.api.client.auth.oauth2.*;
+import com.google.api.client.http.*;
 import com.google.api.client.http.json.JsonHttpContent;
 import com.google.api.client.json.GenericJson;
 import com.google.api.client.json.JsonFactory;
@@ -109,16 +96,6 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   HttpRequestFactory requestFactory;
   private FileDataStoreFactory dataStoreFactory;
 
-  @PostConstruct
-  void postConstruct() throws IOException {
-    Path playServicesDirectory = preferencesService.getPreferencesDirectory().resolve("oauth");
-    dataStoreFactory = new FileDataStoreFactory(playServicesDirectory.toFile());
-
-    if (baseUrl.contains("faforever.com")) {
-      disableSslVerification();
-    }
-  }
-
   // FIXME remove as soon as test server has a proper HTTPS certificate
   private static void disableSslVerification() {
     noCatch(() -> {
@@ -146,6 +123,16 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
       HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
     });
+  }
+
+  @PostConstruct
+  void postConstruct() throws IOException {
+    Path playServicesDirectory = preferencesService.getPreferencesDirectory().resolve("oauth");
+    dataStoreFactory = new FileDataStoreFactory(playServicesDirectory.toFile());
+
+    if (baseUrl.contains("faforever.com")) {
+      disableSslVerification();
+    }
   }
 
   @Override
@@ -189,7 +176,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
           oAuthClientId,
           oAuthUrl)
           .setDataStoreFactory(dataStoreFactory)
-          .setScopes(Arrays.asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_READ_EVENTS, UPLOAD_MAP))
+          .setScopes(Arrays.asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_READ_EVENTS))
           .build();
 
       credential = authorize(flow, String.valueOf(playerId));

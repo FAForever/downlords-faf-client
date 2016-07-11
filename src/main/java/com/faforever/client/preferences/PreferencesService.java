@@ -32,13 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
@@ -56,7 +50,8 @@ public class PreferencesService {
   private static final String APP_DATA_SUB_FOLDER = "Forged Alliance Forever";
   private static final String USER_HOME_SUB_FOLDER = ".faforever";
   private static final String REPLAYS_SUB_FOLDER = "replays";
-  private static final String CORRUPTED_REPLAYS_SUB_FOLDER = "corrupt";
+  private static final String CORRUPTED_REPLAYS_SUB_FOLDER = "_corrupt";
+  private static final String CORRUPTED_MODS_SUB_FOLDER = "corrupt_mods";
   private static final String CACHE_SUB_FOLDER = "cache";
   private static final String CACHE_STYLESHEETS_SUB_FOLDER = Paths.get(CACHE_SUB_FOLDER, "stylesheets").toString();
   private static final Collection<Path> USUAL_GAME_PATHS = Arrays.asList(
@@ -115,6 +110,10 @@ public class PreferencesService {
         .registerTypeAdapter(Color.class, new ColorTypeAdapter())
         .registerTypeAdapter(Faction.class, FactionTypeAdapter.INSTANCE)
         .create();
+  }
+
+  public static void configureLogging() {
+    // This method call causes the class to be initialized (static initializers) which in turn causes the logger to initialize.
   }
 
   public Path getPreferencesDirectory() {
@@ -328,6 +327,10 @@ public class PreferencesService {
     return getReplaysDirectory().resolve(CORRUPTED_REPLAYS_SUB_FOLDER);
   }
 
+  public Path getCorruptedModsDirectory() {
+    return getCacheDirectory().resolve(CORRUPTED_MODS_SUB_FOLDER);
+  }
+
   public Path getReplaysDirectory() {
     return getFafDataDirectory().resolve(REPLAYS_SUB_FOLDER);
   }
@@ -358,9 +361,5 @@ public class PreferencesService {
 
   public Path getCacheStylesheetsDirectory() {
     return getFafDataDirectory().resolve(CACHE_STYLESHEETS_SUB_FOLDER);
-  }
-
-  public static void configureLogging() {
-    // This method call causes the class to be initialized (static initializers) which in turn causes the logger to initialize.
   }
 }

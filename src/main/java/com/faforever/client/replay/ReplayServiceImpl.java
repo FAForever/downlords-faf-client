@@ -1,16 +1,11 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameType;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.Action;
-import com.faforever.client.notification.DismissAction;
-import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.*;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
@@ -25,7 +20,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.Resource;
-import java.awt.Desktop;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -37,19 +31,13 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+import static com.faforever.client.notification.Severity.WARN;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 
 public class ReplayServiceImpl implements ReplayService {
 
@@ -85,7 +73,23 @@ public class ReplayServiceImpl implements ReplayService {
   ReplayServerAccessor replayServerAccessor;
   @Resource
   ApplicationContext applicationContext;
+  @Resource
+  PlatformService platformService;
 
+  @VisibleForTesting
+  static Integer parseSupComVersion(byte[] rawReplayBytes) {
+    int versionDelimiterIndex = Bytes.indexOf(rawReplayBytes, (byte) 0x00);
+    return Integer.parseInt(new String(rawReplayBytes, VERSION_OFFSET, versionDelimiterIndex - VERSION_OFFSET, US_ASCII));
+  }
+
+  @VisibleForTesting
+  static String guessModByFileName(String fileName) {
+    String[] splitFileName = fileName.split("\\.");
+    if (splitFileName.length > 2) {
+      return splitFileName[splitFileName.length - 2];
+    }
+    return GameType.DEFAULT.getString();
+  }
 
   @Override
   public Collection<ReplayInfoBean> getLocalReplays() throws IOException {
@@ -120,17 +124,9 @@ public class ReplayServiceImpl implements ReplayService {
     Files.move(replayFile, target);
 
     notificationService.addNotification(new PersistentNotification(
-        i18n.get("corruptedReplayFiles.notification"),
-        Severity.WARN,
-        Collections.singletonList(
-            new Action(i18n.get("corruptedReplayFiles.show"), event -> {
-              try {
-                // Argh, using AWT since JavaFX doesn't provide a proper method :-(
-                Desktop.getDesktop().open(corruptedReplaysDirectory.toFile());
-              } catch (IOException e) {
-                logger.warn("Could not reveal corrupted replay directory", e);
-              }
-            })
+        i18n.get("corruptedReplayFiles.notification"), WARN,
+        singletonList(
+            new Action(i18n.get("corruptedReplayFiles.show"), event -> platformService.reveal(replayFile))
         )
     ));
   }
@@ -213,7 +209,7 @@ public class ReplayServiceImpl implements ReplayService {
       notificationService.addNotification(new ImmediateNotification(
           i18n.get("errorTitle"),
           i18n.get("replayCouldNotBeStarted", path.getFileName()),
-          Severity.WARN, e, singletonList(new ReportAction(i18n, reportingService, e))
+          WARN, e, singletonList(new ReportAction(i18n, reportingService, e))
       ));
     }
   }
@@ -226,7 +222,7 @@ public class ReplayServiceImpl implements ReplayService {
               i18n.get("replaceCouldNotBeDownloaded.title"),
               i18n.get("replayCouldNotBeDownloaded.text", replayId),
               Severity.ERROR, throwable,
-              Collections.singletonList(new ReportAction(i18n, reportingService, throwable)))
+              singletonList(new ReportAction(i18n, reportingService, throwable)))
           );
 
           return null;
@@ -266,20 +262,5 @@ public class ReplayServiceImpl implements ReplayService {
     ReplayDownloadTask task = applicationContext.getBean(ReplayDownloadTask.class);
     task.setReplayId(replayId);
     return taskService.submitTask(task);
-  }
-
-  @VisibleForTesting
-  static Integer parseSupComVersion(byte[] rawReplayBytes) {
-    int versionDelimiterIndex = Bytes.indexOf(rawReplayBytes, (byte) 0x00);
-    return Integer.parseInt(new String(rawReplayBytes, VERSION_OFFSET, versionDelimiterIndex - VERSION_OFFSET, US_ASCII));
-  }
-
-  @VisibleForTesting
-  static String guessModByFileName(String fileName) {
-    String[] splitFileName = fileName.split("\\.");
-    if (splitFileName.length > 2) {
-      return splitFileName[splitFileName.length - 2];
-    }
-    return GameType.DEFAULT.getString();
   }
 }

@@ -1,6 +1,6 @@
 package com.faforever.client.update;
 
-import com.faforever.client.fx.HostService;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.Bytes;
 import com.faforever.client.notification.Action;
@@ -36,7 +36,7 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
   @Resource
   I18n i18n;
   @Resource
-  HostService hostService;
+  PlatformService platformService;
   @Resource
   ApplicationContext applicationContext;
 
@@ -71,7 +71,7 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
                   new Action(
                       i18n.get("clientUpdateAvailable.releaseNotes"),
                       Action.Type.OK_STAY,
-                      event -> hostService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
+                      event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
                   )
               )
           )
