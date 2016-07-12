@@ -10,7 +10,7 @@ import java.nio.file.Paths;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 public class PreferencesServiceTest {
 
@@ -55,7 +55,7 @@ public class PreferencesServiceTest {
 
   @Test
   public void testGetCorruptedReplaysDirectory() throws Exception {
-    assertThat(instance.getCorruptedReplaysDirectory(), is(instance.getReplaysDirectory().resolve("corrupt")));
+    assertThat(instance.getCorruptedReplaysDirectory(), is(instance.getReplaysDirectory().resolve("_corrupt")));
   }
 
   @Test
