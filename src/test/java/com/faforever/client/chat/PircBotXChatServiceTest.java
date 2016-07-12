@@ -906,7 +906,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(moderator.getUserLevels(defaultChannel)).thenReturn(ImmutableSortedSet.of(UserLevel.OWNER));
     joinChannel(defaultChannel, moderator);
 
-    instance.createOrGetChatUser(moderator);
+    firePircBotXEvent(createJoinEvent(defaultChannel, moderator));
 
     ChatUser chatUserModerator = instance.getOrCreateChatUser(moderator.getNick());
     assertTrue(chatUserModerator.moderatorInChannelsProperty().getValue().contains(DEFAULT_CHANNEL_NAME));
