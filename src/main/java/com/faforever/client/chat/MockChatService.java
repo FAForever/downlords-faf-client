@@ -119,7 +119,7 @@ public class MockChatService implements ChatService {
 
 
   @Override
-  public ChatUser getOrCreateChatUser(String username) {
+  public ChatUser getChatUser(String username) {
     return new ChatUser(username, Color.ALICEBLUE);
   }
 

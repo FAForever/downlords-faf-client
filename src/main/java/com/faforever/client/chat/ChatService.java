@@ -27,7 +27,7 @@ public interface ChatService {
    */
   Channel getOrCreateChannel(String channelName);
 
-  ChatUser getOrCreateChatUser(String username);
+  ChatUser getChatUser(String username);
 
   void addUsersListener(String channelName, MapChangeListener<String, ChatUser> listener);
 

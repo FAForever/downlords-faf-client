@@ -27,12 +27,14 @@ a {
   flex-direction: column;
 }
 
-#channelTopic {
+#channel-topic {
   color: white;
   background: #333;
 }
 
 #content {
+  flex: 1;
+  display: flex;
   overflow: auto;
 }
 

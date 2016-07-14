@@ -29,6 +29,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
+import netscape.javascript.JSObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -152,6 +153,10 @@ public class ChannelTabController extends AbstractChatTabController {
     searchFieldContainer.visibleProperty().bind(searchField.visibleProperty());
     closeSearchFieldButton.visibleProperty().bind(searchField.visibleProperty());
     addSearchFieldListener();
+
+    channel.topicProperty().addListener((observable, oldValue, newValue) -> {
+      setTopic(newValue);
+    });
   }
 
   private void updateUserCount(int count) {
@@ -253,6 +258,18 @@ public class ChannelTabController extends AbstractChatTabController {
   @Override
   protected TextInputControl getMessageTextField() {
     return messageTextField;
+  }
+
+  @Override
+  protected void onWebViewLoaded() {
+    setTopic(channel.getTopic());
+  }
+
+  private void setTopic(String topic) {
+    Platform.runLater(() ->
+        ((JSObject) getMessagesWebView().getEngine().executeScript("document.getElementById('channel-topic')"))
+            .setMember("innerHTML", convertUrlsToHyperlinks(topic))
+    );
   }
 
   @Override

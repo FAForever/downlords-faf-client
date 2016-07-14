@@ -356,6 +356,7 @@ public abstract class AbstractChatTabController {
           waitingMessages.forEach(AbstractChatTabController.this::appendMessage);
           waitingMessages.clear();
           isChatReady = true;
+          onWebViewLoaded();
         }
       }
     });
@@ -381,6 +382,9 @@ public abstract class AbstractChatTabController {
 
   protected JSObject getJsObject() {
     return (JSObject) engine.executeScript("window");
+  }
+
+  protected void onWebViewLoaded() {
   }
 
   /**
@@ -649,7 +653,7 @@ public abstract class AbstractChatTabController {
 
   @VisibleForTesting
   String getInlineStyle(String username) {
-    ChatUser chatUser = chatService.getOrCreateChatUser(username);
+    ChatUser chatUser = chatService.getChatUser(username);
     PlayerInfoBean player = playerService.getPlayerForUsername(username);
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     String color = "";
@@ -675,7 +679,7 @@ public abstract class AbstractChatTabController {
     return String.format("color: %s;", JavaFxUtil.toRgbCode(messageColor));
   }
 
-  private String convertUrlsToHyperlinks(String text) {
+  protected String convertUrlsToHyperlinks(String text) {
     return (String) engine.executeScript("link('" + text.replace("'", "\\'") + "')");
   }
 

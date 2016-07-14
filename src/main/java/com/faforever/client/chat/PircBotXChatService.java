@@ -401,7 +401,7 @@ public class PircBotXChatService implements ChatService {
   }
 
   @Override
-  public ChatUser getOrCreateChatUser(String username) {
+  public ChatUser getChatUser(String username) {
     synchronized (chatUsersByName) {
       String lowerUsername = username.toLowerCase(US);
       if (!chatUsersByName.containsKey(lowerUsername)) {

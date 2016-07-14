@@ -240,16 +240,18 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(chatPrefs.userToColorProperty()).thenReturn(userToColorProperty);
     when(chatPrefs.chatColorModeProperty()).thenReturn(chatColorMode);
 
-    chatUser1 = instance.getOrCreateChatUser("user1");
-    chatUser2 = instance.getOrCreateChatUser("user2");
 
-    when(user1.getNick()).thenReturn(chatUser1.getUsername());
+    when(user1.getNick()).thenReturn("user1");
     when(user1.getChannels()).thenReturn(ImmutableSortedSet.of(defaultChannel));
     when(user1.getUserLevels(defaultChannel)).thenReturn(ImmutableSortedSet.of(UserLevel.VOICE));
 
-    when(user2.getNick()).thenReturn(chatUser2.getUsername());
+    when(user2.getNick()).thenReturn("user2");
     when(user2.getChannels()).thenReturn(ImmutableSortedSet.of(defaultChannel));
     when(user2.getUserLevels(defaultChannel)).thenReturn(ImmutableSortedSet.of(UserLevel.VOICE));
+
+
+    chatUser1 = instance.createOrGetChatUser(user1);
+    chatUser2 = instance.createOrGetChatUser(user2);
 
     instance.postConstruct();
 
@@ -807,8 +809,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateOrGetChatUserStringPopulatedMap() throws Exception {
-    ChatUser addedUser = instance.getOrCreateChatUser(chatUser1.getUsername());
-    ChatUser returnedUser = instance.getOrCreateChatUser(chatUser1.getUsername());
+    ChatUser addedUser = instance.getChatUser(chatUser1.getUsername());
+    ChatUser returnedUser = instance.getChatUser(chatUser1.getUsername());
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
@@ -816,8 +818,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateOrGetChatUserUserObjectPopulatedMap() throws Exception {
-    ChatUser addedUser = instance.getOrCreateChatUser("chatUser1");
-    ChatUser returnedUser = instance.getOrCreateChatUser("chatUser1");
+    ChatUser addedUser = instance.createOrGetChatUser(user1);
+    ChatUser returnedUser = instance.createOrGetChatUser(user1);
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
@@ -908,7 +910,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     firePircBotXEvent(createJoinEvent(defaultChannel, moderator));
 
-    ChatUser chatUserModerator = instance.getOrCreateChatUser(moderator.getNick());
+    ChatUser chatUserModerator = instance.getChatUser(moderator.getNick());
     assertTrue(chatUserModerator.moderatorInChannelsProperty().getValue().contains(DEFAULT_CHANNEL_NAME));
   }
 }
