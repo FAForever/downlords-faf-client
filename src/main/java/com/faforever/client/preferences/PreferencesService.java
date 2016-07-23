@@ -50,7 +50,7 @@ public class PreferencesService {
   private static final String APP_DATA_SUB_FOLDER = "Forged Alliance Forever";
   private static final String USER_HOME_SUB_FOLDER = ".faforever";
   private static final String REPLAYS_SUB_FOLDER = "replays";
-  private static final String CORRUPTED_REPLAYS_SUB_FOLDER = "_corrupt";
+  private static final String CORRUPTED_REPLAYS_SUB_FOLDER = "corrupt";
   private static final String CORRUPTED_MODS_SUB_FOLDER = "corrupt_mods";
   private static final String CACHE_SUB_FOLDER = "cache";
   private static final String CACHE_STYLESHEETS_SUB_FOLDER = Paths.get(CACHE_SUB_FOLDER, "stylesheets").toString();

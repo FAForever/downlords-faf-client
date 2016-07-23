@@ -1,17 +1,15 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCopier;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 import javafx.collections.ObservableList;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.store.RAMDirectory;
@@ -31,12 +29,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -44,14 +37,10 @@ import java.util.function.Consumer;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
+import static org.mockito.Mockito.*;
 
 public class ModServiceImplTest extends AbstractPlainJavaFxTest {
 
@@ -64,6 +53,8 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Rule
   public TemporaryFolder modsDirectory = new TemporaryFolder();
+  @Rule
+  public TemporaryFolder corruptedModsDirectory = new TemporaryFolder();
   @Rule
   public TemporaryFolder faDataDirectory = new TemporaryFolder();
 
@@ -79,6 +70,10 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   private TaskService taskService;
   @Mock
   private FafService fafService;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private I18n i18n;
 
   private ModServiceImpl instance;
   private Path gamePrefsPath;
@@ -86,10 +81,12 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = new ModServiceImpl();
+    instance.i18n = i18n;
     instance.preferencesService = preferencesService;
     instance.applicationContext = applicationContext;
     instance.taskService = taskService;
     instance.fafService = fafService;
+    instance.notificationService = notificationService;
     instance.directory = new RAMDirectory();
     instance.analyzer = new SimpleAnalyzer();
 
@@ -100,6 +97,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     when(forgedAlliancePrefs.getPreferencesFile()).thenReturn(gamePrefsPath);
     when(forgedAlliancePrefs.getModsDirectory()).thenReturn(modsDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.modsDirectoryProperty()).thenReturn(new SimpleObjectProperty<>(modsDirectory.getRoot().toPath()));
+    when(preferencesService.getCorruptedModsDirectory()).thenReturn(corruptedModsDirectory.getRoot().toPath());
 
     copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
 

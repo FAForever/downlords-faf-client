@@ -14,7 +14,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,7 +37,7 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = loadController("upload_mod.fxml");
+    instance = loadController("mod_upload.fxml");
     instance.modService = modService;
     instance.notificationService = notificationService;
     instance.threadPoolExecutor = threadPoolExecutor;
