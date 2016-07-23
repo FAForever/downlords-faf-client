@@ -22,7 +22,6 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
 
   @Resource
   PreferencesService preferencesService;
-
   @Resource
   PlayerService playerService;
 
@@ -46,6 +45,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
     }
 
     List<String> launchCommand = LaunchCommandBuilder.create()
+        .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator())
         .executable(executable)
         .gameType(gameType)
         .uid(uid)
@@ -100,13 +100,18 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   }
 
   @NotNull
-  private Process launch(Path executable, List<String> launchCommand) throws IOException {
+  private Process launch(Path executablePath, List<String> launchCommand) throws IOException {
+    Path executeDirectory = preferencesService.getPreferences().getForgedAlliance().getExecutionDirectory();
+    if (executeDirectory == null) {
+      executeDirectory = executablePath.getParent();
+    }
+
     ProcessBuilder processBuilder = new ProcessBuilder();
     processBuilder.inheritIO();
-    processBuilder.directory(executable.getParent().toAbsolutePath().toFile());
+    processBuilder.directory(executeDirectory.toFile());
     processBuilder.command(launchCommand);
 
-    logger.info("Starting Forged Alliance with command: " + processBuilder.command());
+    logger.info("Starting Forged Alliance with command: {} in directory: {}", processBuilder.command(), executeDirectory);
 
     return processBuilder.start();
   }

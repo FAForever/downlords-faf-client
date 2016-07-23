@@ -12,12 +12,13 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 
+import java.net.URL;
 import java.nio.file.Files;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
-public class DownloadMapTaskTest extends AbstractPlainJavaFxTest {
+public class DownloadMapBeanTaskTest extends AbstractPlainJavaFxTest {
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -60,13 +61,13 @@ public class DownloadMapTaskTest extends AbstractPlainJavaFxTest {
     expectedException.expectMessage("technicalMapName");
     expectedException.expect(NullPointerException.class);
 
-    instance.setMapUrl("");
+    instance.setMapUrl(new URL("http://www.example.com"));
     instance.call();
   }
 
   @Test
   public void testCall() throws Exception {
-    instance.setMapUrl(getClass().getResource("/maps/theta_passage_5.v0001.zip").toURI().toURL().toExternalForm());
+    instance.setMapUrl(getClass().getResource("/maps/theta_passage_5.v0001.zip").toURI().toURL());
     instance.setTechnicalMapName("");
     instance.call();
 

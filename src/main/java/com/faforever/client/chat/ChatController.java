@@ -109,7 +109,7 @@ public class ChatController {
   }
 
   private void onLoggedOut() {
-    chatsTabPane.getTabs().clear();
+    Platform.runLater(() -> chatsTabPane.getTabs().clear());
   }
 
   private void removeTab(String playerOrChannelName) {

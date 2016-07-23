@@ -8,25 +8,9 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.apache.commons.compress.utils.IOUtils;
-import org.ice4j.ChannelDataMessageEvent;
-import org.ice4j.ResponseCollector;
-import org.ice4j.StunException;
-import org.ice4j.StunMessageEvent;
-import org.ice4j.StunResponseEvent;
-import org.ice4j.StunTimeoutEvent;
-import org.ice4j.Transport;
-import org.ice4j.TransportAddress;
-import org.ice4j.attribute.Attribute;
-import org.ice4j.attribute.DataAttribute;
-import org.ice4j.attribute.ErrorCodeAttribute;
-import org.ice4j.attribute.XorMappedAddressAttribute;
-import org.ice4j.attribute.XorPeerAddressAttribute;
-import org.ice4j.attribute.XorRelayedAddressAttribute;
-import org.ice4j.message.ChannelData;
-import org.ice4j.message.Message;
-import org.ice4j.message.MessageFactory;
-import org.ice4j.message.Request;
-import org.ice4j.message.Response;
+import org.ice4j.*;
+import org.ice4j.attribute.*;
+import org.ice4j.message.*;
 import org.ice4j.socket.IceUdpSocketWrapper;
 import org.ice4j.socket.MultiplexedDatagramSocket;
 import org.ice4j.socket.MultiplexingDatagramSocket;
@@ -59,10 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static com.github.nocatch.NoCatch.noCatch;
-import static org.ice4j.attribute.Attribute.ERROR_CODE;
-import static org.ice4j.attribute.Attribute.XOR_MAPPED_ADDRESS;
-import static org.ice4j.attribute.Attribute.XOR_PEER_ADDRESS;
-import static org.ice4j.attribute.Attribute.XOR_RELAYED_ADDRESS;
+import static org.ice4j.attribute.Attribute.*;
 import static org.ice4j.attribute.RequestedTransportAttribute.UDP;
 
 public class TurnServerAccessorImpl implements TurnServerAccessor {
@@ -411,9 +392,8 @@ public class TurnServerAccessorImpl implements TurnServerAccessor {
     refreshTask = scheduleRefresh(refreshInterval);
   }
 
-  @NotNull
   private ScheduledFuture<?> scheduleRefresh(int interval) {
-    return scheduledExecutorService.scheduleWithFixedDelay((Runnable) () -> {
+    return scheduledExecutorService.scheduleWithFixedDelay(() -> {
       logger.debug("Refreshing TURN allocation");
       sendBlockingStunRequest(MessageFactory.createRefreshRequest(interval));
 

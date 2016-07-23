@@ -62,6 +62,11 @@ public class UserServiceImpl implements UserService {
 
           fafApiAccessor.authorize(loginInfo.getId());
           loggedIn.set(true);
+        })
+        .exceptionally(throwable -> {
+          logger.warn("Error during login", throwable);
+          fafService.disconnect();
+          return null;
         });
   }
 

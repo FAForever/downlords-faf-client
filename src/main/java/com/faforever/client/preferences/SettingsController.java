@@ -1,18 +1,12 @@
 package com.faforever.client.preferences;
 
 import com.faforever.client.chat.ChatColorMode;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.ThemeService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Toggle;
-import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.*;
 import javafx.scene.layout.Region;
 import javafx.util.converter.NumberStringConverter;
 
@@ -20,8 +14,14 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.text.NumberFormat;
 
+import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
+
 public class SettingsController {
 
+  @FXML
+  TextField executableDecoratorField;
+  @FXML
+  TextField executionDirectoryField;
   @FXML
   ToggleGroup colorModeToggleGroup;
   @FXML
@@ -146,8 +146,11 @@ public class SettingsController {
 
     enableSoundsCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().soundsEnabledProperty());
     gamePortTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().portProperty(), new NumberStringConverter(integerNumberFormat));
-    gameLocationTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().pathProperty(), JavaFxUtil.PATH_STRING_CONVERTER);
+    gameLocationTextField.textProperty().bindBidirectional(preferences.getForgedAlliance().pathProperty(), PATH_STRING_CONVERTER);
     autoDownloadMapsCheckBox.selectedProperty().bindBidirectional(preferences.getForgedAlliance().autoDownloadMapsProperty());
+
+    executableDecoratorField.textProperty().bindBidirectional(preferences.getForgedAlliance().executableDecoratorProperty());
+    executionDirectoryField.textProperty().bindBidirectional(preferences.getForgedAlliance().executionDirectoryProperty(), PATH_STRING_CONVERTER);
   }
 
   private void setSelectedColorMode(ChatColorMode newValue) {

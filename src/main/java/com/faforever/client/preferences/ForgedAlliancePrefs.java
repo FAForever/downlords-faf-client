@@ -3,12 +3,7 @@ package com.faforever.client.preferences;
 import com.faforever.client.os.OperatingSystem;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,6 +38,17 @@ public class ForgedAlliancePrefs {
   private final IntegerProperty port;
   private final BooleanProperty autoDownloadMaps;
 
+  /**
+   * String format to use when building the launch command. Takes exact one parameter; the executable path. <p>
+   * Example:
+   * <pre>wine "%s"</pre>
+   * Results in:
+   * <pre>wine "C:\Game\ForgedAlliance.exe"</pre>
+   * </p>
+   */
+  private final StringProperty executableDecorator;
+  private final ObjectProperty<Path> executionDirectory;
+
   public ForgedAlliancePrefs() {
     port = new SimpleIntegerProperty(6112);
     path = new SimpleObjectProperty<>();
@@ -51,6 +57,8 @@ public class ForgedAlliancePrefs {
     modsDirectory = new SimpleObjectProperty<>(GPG_FA_PATH.resolve("mods"));
     preferencesFile = new SimpleObjectProperty<>(LOCAL_FA_DATA_PATH.resolve("game.prefs"));
     autoDownloadMaps = new SimpleBooleanProperty(true);
+    executableDecorator = new SimpleStringProperty("\"%s\"");
+    executionDirectory = new SimpleObjectProperty<>();
   }
 
   public Path getPreferencesFile() {
@@ -135,5 +143,29 @@ public class ForgedAlliancePrefs {
 
   public ObjectProperty<Path> officialMapsDirectoryProperty() {
     return officialMapsDirectory;
+  }
+
+  public String getExecutableDecorator() {
+    return executableDecorator.get();
+  }
+
+  public void setExecutableDecorator(String executableDecorator) {
+    this.executableDecorator.set(executableDecorator);
+  }
+
+  public StringProperty executableDecoratorProperty() {
+    return executableDecorator;
+  }
+
+  public Path getExecutionDirectory() {
+    return executionDirectory.get();
+  }
+
+  public void setExecutionDirectory(Path executionDirectory) {
+    this.executionDirectory.set(executionDirectory);
+  }
+
+  public ObjectProperty<Path> executionDirectoryProperty() {
+    return executionDirectory;
   }
 }

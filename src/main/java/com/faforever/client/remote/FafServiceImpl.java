@@ -7,6 +7,8 @@ import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
+import com.faforever.client.map.MapBean;
+import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.relay.GpgClientMessage;
 import com.faforever.client.remote.domain.GameEndedMessage;
@@ -144,6 +146,21 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
+  public List<MapBean> getMaps() {
+    return fafApiAccessor.getMaps();
+  }
+
+  @Override
+  public MapBean findMapByName(String mapName) {
+    return fafApiAccessor.findMapByName(mapName);
+  }
+
+  @Override
+  public List<ModInfoBean> getMods() {
+    return fafApiAccessor.getMods();
+  }
+
+  @Override
   public CompletableFuture<GameLaunchMessage> expectRehostCommand() {
     return fafServerAccessor.expectRehostCommand();
   }
@@ -151,5 +168,25 @@ public class FafServiceImpl implements FafService {
   @Override
   public void reconnect() {
     fafServerAccessor.reconnect();
+  }
+
+  @Override
+  public CompletableFuture<List<MapBean>> getMostDownloadedMaps(int count) {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getMostDownloadedMaps(count), threadPoolExecutor);
+  }
+
+  @Override
+  public CompletableFuture<List<MapBean>> getMostPlayedMaps(int count) {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getMostPlayedMaps(count), threadPoolExecutor);
+  }
+
+  @Override
+  public CompletableFuture<List<MapBean>> getMostLikedMaps(int count) {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getBestRatedMaps(count), threadPoolExecutor);
+  }
+
+  @Override
+  public CompletableFuture<List<MapBean>> getNewestMaps(int count) {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getNewestMaps(count), threadPoolExecutor);
   }
 }

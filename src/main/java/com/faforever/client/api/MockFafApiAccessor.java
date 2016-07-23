@@ -1,9 +1,10 @@
 package com.faforever.client.api;
 
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
+import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 
-import java.io.InputStream;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,6 +52,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
+  public MapBean findMapByName(String mapId) {
+    return null;
+  }
+
+  @Override
   public List<Ranked1v1EntryBean> getRanked1v1Entries() {
     return null;
   }
@@ -66,7 +72,37 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public void uploadMod(InputStream inputStream) {
+  public List<MapBean> getMaps() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<MapBean> getMostDownloadedMaps(int count) {
+    return null;
+  }
+
+  @Override
+  public List<MapBean> getMostPlayedMaps(int count) {
+    return null;
+  }
+
+  @Override
+  public List<MapBean> getBestRatedMaps(int count) {
+    return null;
+  }
+
+  @Override
+  public List<MapBean> getNewestMaps(int count) {
+    return null;
+  }
+
+  @Override
+  public void uploadMod(Path file) {
+
+  }
+
+  @Override
+  public void uploadMap(Path file, boolean isRanked) {
 
   }
 }

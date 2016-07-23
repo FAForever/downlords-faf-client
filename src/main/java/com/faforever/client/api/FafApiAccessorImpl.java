@@ -2,25 +2,15 @@ package com.faforever.client.api;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
+import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.UriUtil;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
-import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
-import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
-import com.google.api.client.auth.oauth2.BearerToken;
-import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.auth.oauth2.TokenResponse;
-import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpHeaders;
-import com.google.api.client.http.HttpMediaType;
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.HttpStatusCodes;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.InputStreamContent;
-import com.google.api.client.http.MultipartContent;
+import com.google.api.client.auth.oauth2.*;
+import com.google.api.client.http.*;
+import com.google.api.client.http.json.JsonHttpContent;
+import com.google.api.client.json.GenericJson;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonParser;
 import com.google.api.client.json.JsonToken;
@@ -30,6 +20,7 @@ import com.google.common.base.Joiner;
 import com.google.common.escape.Escaper;
 import com.google.common.net.MediaType;
 import com.google.common.net.UrlEscapers;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +35,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,6 +47,7 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -68,6 +64,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String SCOPE_READ_ACHIEVEMENTS = "read_achievements";
   private static final String SCOPE_READ_EVENTS = "read_events";
+  private static final String UPLOAD_MAP = "upload_map";
 
   @Resource
   JsonFactory jsonFactory;
@@ -99,10 +96,43 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   HttpRequestFactory requestFactory;
   private FileDataStoreFactory dataStoreFactory;
 
+  // FIXME remove as soon as test server has a proper HTTPS certificate
+  private static void disableSslVerification() {
+    noCatch(() -> {
+      TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+        @Override
+        public void checkClientTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws CertificateException {
+
+        }
+
+        @Override
+        public void checkServerTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws CertificateException {
+
+        }
+
+        @Override
+        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+          return new java.security.cert.X509Certificate[0];
+        }
+      }
+      };
+
+      SSLContext sc = SSLContext.getInstance("SSL");
+      sc.init(null, trustAllCerts, new java.security.SecureRandom());
+      HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+      HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
+    });
+  }
+
   @PostConstruct
   void postConstruct() throws IOException {
     Path playServicesDirectory = preferencesService.getPreferencesDirectory().resolve("oauth");
     dataStoreFactory = new FileDataStoreFactory(playServicesDirectory.toFile());
+
+    if (baseUrl.contains("faforever.com")) {
+      disableSslVerification();
+    }
   }
 
   @Override
@@ -165,6 +195,23 @@ public class FafApiAccessorImpl implements FafApiAccessor {
         .collect(Collectors.toList());
   }
 
+  private <T> List<T> getMany(String endpointPath, Class<T> type) {
+    List<T> result = new LinkedList<>();
+    List<T> current = null;
+    int page = 1;
+    while (current == null || !current.isEmpty()) {
+      current = getMany(endpointPath, type, page++);
+      result.addAll(current);
+    }
+    return result;
+  }
+
+  @Override
+  public MapBean findMapByName(String mapId) {
+    logger.debug("Searching map: {}", mapId);
+    return MapBean.fromMap(getSingle("/maps/" + mapId, com.faforever.client.api.Map.class));
+  }
+
   @Override
   @Cacheable(CacheNames.LEADERBOARD)
   public List<Ranked1v1EntryBean> getRanked1v1Entries() {
@@ -184,11 +231,74 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public void uploadMod(InputStream inputStream) {
-    upload("/mods/upload", inputStream);
+  @Cacheable(CacheNames.MAPS)
+  public List<MapBean> getMaps() {
+    logger.debug("Getting all maps");
+    // FIXME don't page 1
+    return requestMaps("/maps", 1);
   }
 
-  private void upload(String endpointPath, InputStream inputStream) {
+  @Override
+  @Cacheable(CacheNames.MAPS)
+  public List<MapBean> getMostDownloadedMaps(int count) {
+    logger.debug("Getting most downloaded maps");
+    return requestMaps(String.format("/maps?page[size]=%d&sort=-downloads", count), 1);
+  }
+
+  @Override
+  @Cacheable(CacheNames.MAPS)
+  public List<MapBean> getMostPlayedMaps(int count) {
+    logger.debug("Getting most played maps");
+    return requestMaps(String.format("/maps?page[size]=%d&sort=-times_played", count), 1);
+  }
+
+  @Override
+  @Cacheable(CacheNames.MAPS)
+  public List<MapBean> getBestRatedMaps(int count) {
+    logger.debug("Getting most liked maps");
+    return requestMaps(String.format("/maps?page[size]=%d&sort=-rating", count), 1);
+  }
+
+  @Override
+  public List<MapBean> getNewestMaps(int count) {
+    logger.debug("Getting most liked maps");
+    return requestMaps(String.format("/maps?page[size]=%d&sort=-create_time", count), 1);
+  }
+
+  @Override
+  public void uploadMod(Path file) {
+    MultipartContent multipartContent = createFileMultipart(file);
+    postMultipart("/mods/upload", multipartContent);
+  }
+
+  @Override
+  public void uploadMap(Path file, boolean isRanked) {
+    MultipartContent multipartContent = createFileMultipart(file);
+    multipartContent.addPart(new MultipartContent.Part(
+        new HttpHeaders().set("Content-Disposition", "form-data; name=\"metadata\";"),
+        new JsonHttpContent(jsonFactory, new GenericJson() {
+          {
+            set("is_ranked", isRanked);
+          }
+        })));
+
+    postMultipart("/maps/upload", multipartContent);
+  }
+
+  @NotNull
+  private MultipartContent createFileMultipart(Path file) {
+    HttpMediaType mediaType = new HttpMediaType("multipart/form-data").setParameter("boundary", "__END_OF_PART__");
+    MultipartContent multipartContent = new MultipartContent().setMediaType(mediaType);
+
+    String fileName = file.getFileName().toString();
+    multipartContent.addPart(new MultipartContent.Part(
+        new HttpHeaders().set("Content-Disposition", String.format("form-data; name=\"file\"; filename=\"%s\"", fileName)),
+        new FileContent(guessMediaType(fileName).toString(), file.toFile())
+    ));
+    return multipartContent;
+  }
+
+  private void postMultipart(String endpointPath, MultipartContent multipartContent) {
     if (requestFactory == null) {
       throw new IllegalStateException("authorize() must be called first");
     }
@@ -196,19 +306,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     String url = baseUrl + endpointPath;
     logger.trace("Posting to: {}", url);
     noCatch(() -> {
-
-      MultipartContent content = new MultipartContent().setMediaType(
-          new HttpMediaType("multipart/form-data")
-              .setParameter("boundary", "__END_OF_PART__"));
-
-      InputStreamContent fileContent = new InputStreamContent(MediaType.ZIP.toString(), inputStream);
-      MultipartContent.Part part = new MultipartContent.Part(fileContent);
-      part.setHeaders(new HttpHeaders().set(
-          "Content-Disposition",
-          "form-data; name=\"file\"; filename=\"tmp-mod-name.zip\""));
-      content.addPart(part);
-
-      HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), content);
+      HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), multipartContent);
       credential.initialize(request);
       int statusCode = request.execute().getStatusCode();
       if (statusCode != HttpStatusCodes.STATUS_CODE_OK) {
@@ -217,15 +315,20 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     });
   }
 
-  private <T> List<T> getMany(String endpointPath, Class<T> type) {
-    List<T> result = new LinkedList<>();
-    List<T> current = null;
-    int page = 1;
-    while (current == null || !current.isEmpty()) {
-      current = getMany(endpointPath, type, page++);
-      result.addAll(current);
+  @NotNull
+  private MediaType guessMediaType(String fileName) {
+    if (fileName.endsWith(".zip")) {
+      return MediaType.ZIP;
     }
-    return result;
+    return MediaType.OCTET_STREAM;
+  }
+
+  private List<MapBean> requestMaps(String query, int page) {
+    logger.debug("Loading available maps");
+    return getMany(query, Map.class, page)
+        .stream()
+        .map(MapBean::fromMap)
+        .collect(Collectors.toList());
   }
 
   private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {

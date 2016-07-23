@@ -2,15 +2,19 @@ package com.faforever.client.remote;
 
 import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.config.CacheNames;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
+import com.faforever.client.map.MapBean;
+import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.relay.GpgClientMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -62,7 +66,22 @@ public interface FafService {
 
   void notifyGameEnded();
 
+  @Cacheable(CacheNames.MAPS)
+  List<MapBean> getMaps();
+
+  MapBean findMapByName(String mapName);
+
+  List<ModInfoBean> getMods();
+
   CompletableFuture<GameLaunchMessage> expectRehostCommand();
 
   void reconnect();
+
+  CompletableFuture<List<MapBean>> getMostDownloadedMaps(int count);
+
+  CompletableFuture<List<MapBean>> getMostPlayedMaps(int count);
+
+  CompletableFuture<List<MapBean>> getMostLikedMaps(int count);
+
+  CompletableFuture<List<MapBean>> getNewestMaps(int count);
 }

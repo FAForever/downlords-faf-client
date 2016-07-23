@@ -1,6 +1,6 @@
 package com.faforever.client.connectivity;
 
-import com.faforever.client.fx.HostService;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
@@ -14,15 +14,11 @@ import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.relay.ProcessNatPacketMessage;
 import com.faforever.client.relay.SendNatPacketMessage;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,16 +44,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
 
@@ -70,7 +61,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private I18n i18n;
   @Mock
-  private HostService hostService;
+  private PlatformService platformService;
   @Mock
   private Preferences preferences;
   @Mock
@@ -92,8 +83,11 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Captor
   private ArgumentCaptor<Consumer<SendNatPacketMessage>> sendNatPacketMessageListenerCaptor;
+  @Captor
+  private ArgumentCaptor<Consumer<LoginMessage>> loginMessageListenerCaptor;
 
   private BooleanProperty loggedInProperty;
+  private ObjectProperty<ConnectionState> connectionStateProperty;
 
   @Before
   public void setUp() throws Exception {
@@ -101,7 +95,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     instance.taskService = taskService;
     instance.preferencesService = preferencesService;
     i18n = instance.i18n = i18n;
-    instance.hostService = hostService;
+    instance.platformService = platformService;
     instance.applicationContext = applicationContext;
     instance.notificationService = notificationService;
     instance.fafService = fafService;
@@ -111,14 +105,14 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     instance.userService = userService;
 
     IntegerProperty portProperty = new SimpleIntegerProperty(SocketUtils.findAvailableUdpPort());
-    SimpleObjectProperty<ConnectionState> fafConnectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
+    connectionStateProperty = new SimpleObjectProperty<>();
     loggedInProperty = new SimpleBooleanProperty();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPort()).thenReturn(portProperty.get());
     when(forgedAlliancePrefs.portProperty()).thenReturn(portProperty);
-    when(fafService.connectionStateProperty()).thenReturn(fafConnectionState);
+    when(fafService.connectionStateProperty()).thenReturn(connectionStateProperty);
     when(userService.loggedInProperty()).thenReturn(loggedInProperty);
 
     doAnswer(invocation -> {
@@ -129,6 +123,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     instance.postConstruct();
 
     verify(fafService).addOnMessageListener(eq(SendNatPacketMessage.class), sendNatPacketMessageListenerCaptor.capture());
+    verify(fafService).addOnMessageListener(eq(LoginMessage.class), loginMessageListenerCaptor.capture());
   }
 
   @Test
@@ -137,18 +132,33 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testConnectivityCheckTriggeredByUserLoggedInState() throws Exception {
+  public void testConnectivityCheckTriggeredByLoginMessage() throws Exception {
     assertThat(instance.getConnectivityState(), is(ConnectivityState.UNKNOWN));
     verifyZeroInteractions(taskService);
 
     UpnpPortForwardingTask upnpPortForwardingTask = mockUpnpPortForwardingTask();
     ConnectivityCheckTask connectivityCheckTask = mockConnectivityCheckTask();
 
-    loggedInProperty.set(true);
+    loginMessageListenerCaptor.getValue().accept(new LoginMessage());
 
     assertThat(instance.getConnectivityState(), is(ConnectivityState.UNKNOWN));
     verify(taskService).submitTask(upnpPortForwardingTask);
     verify(taskService).submitTask(connectivityCheckTask);
+  }
+
+  @Test
+  public void testConnectivityStateResetOnDisconnect() throws Exception {
+    mockUpnpPortForwardingTask();
+
+    ConnectivityCheckTask connectivityCheckTask = mockConnectivityCheckTask();
+    when(taskService.submitTask(connectivityCheckTask)).thenReturn(CompletableFuture.completedFuture(new ConnectivityStateMessage(ConnectivityState.PUBLIC, new InetSocketAddress(1337))));
+
+    instance.checkConnectivity();
+
+    assertThat(instance.getConnectivityState(), is(ConnectivityState.PUBLIC));
+    connectionStateProperty.set(ConnectionState.DISCONNECTED);
+
+    assertThat(instance.getConnectivityState(), is(ConnectivityState.UNKNOWN));
   }
 
   private UpnpPortForwardingTask mockUpnpPortForwardingTask() {

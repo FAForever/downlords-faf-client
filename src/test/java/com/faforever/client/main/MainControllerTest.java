@@ -25,13 +25,7 @@ import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.NotificationsPrefs;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.preferences.SettingsController;
-import com.faforever.client.preferences.ToastPosition;
-import com.faforever.client.preferences.WindowPrefs;
+import com.faforever.client.preferences.*;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.RatingRange;
@@ -42,12 +36,7 @@ import com.faforever.client.theme.ThemeService;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
@@ -73,15 +62,13 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class MainControllerTest extends AbstractPlainJavaFxTest {
 
@@ -225,6 +212,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getMainWindow()).thenReturn(mainWindowPrefs);
     when(mainWindowPrefs.getLastChildViews()).thenReturn(FXCollections.observableHashMap());
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
+    when(forgedAlliancePrefs.portProperty()).thenReturn(new SimpleIntegerProperty());
     when(preferences.getNotification()).thenReturn(notificationPrefs);
     when(notificationPrefs.toastPositionProperty()).thenReturn(new SimpleObjectProperty<>(ToastPosition.BOTTOM_RIGHT));
     when(notificationPrefs.getToastPosition()).thenReturn(ToastPosition.BOTTOM_RIGHT);
@@ -507,7 +495,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   public void testOnReplaysSelected() throws Exception {
     attachToRoot();
     when(replayVaultController.getRoot()).thenReturn(new Pane());
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.vaultButton.getItems().get(1).fire());
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.vaultButton.getItems().get(2).fire());
   }
 
   @Test

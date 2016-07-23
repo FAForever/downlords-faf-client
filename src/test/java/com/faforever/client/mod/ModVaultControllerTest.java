@@ -59,10 +59,10 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
     for (int i = 0; i < 5; i++) {
       mods.add(
           ModInfoBeanBuilder.create()
-              .name("Mod " + i)
               .defaultValues()
+              .name("Mod " + i)
               .uid(String.valueOf(i))
-              .uidMod(i < 2)
+              .uiMod(i < 2)
               .get()
       );
     }
@@ -77,27 +77,23 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> new Pane()).when(modTileController).getRoot();
 
     when(applicationContext.getBean(ModTileController.class)).thenReturn(modTileController);
-    CountDownLatch latch = new CountDownLatch(3);
 
-    instance.recommendedUiModsPane.getChildren().addListener((Observable observable) -> {
-      if (instance.recommendedUiModsPane.getChildren().size() == 2) {
-        latch.countDown();
-      }
-    });
-    instance.newestModsPane.getChildren().addListener((Observable observable) -> {
-      if (instance.newestModsPane.getChildren().size() == 5) {
-        latch.countDown();
-      }
-    });
-    instance.popularModsPane.getChildren().addListener((Observable observable) -> {
-      if (instance.popularModsPane.getChildren().size() == 5) {
-        latch.countDown();
-      }
-    });
+    CountDownLatch latch = new CountDownLatch(3);
+    waitUntilInitialized(instance.recommendedUiModsPane, latch);
+    waitUntilInitialized(instance.newestModsPane, latch);
+    waitUntilInitialized(instance.popularModsPane, latch);
 
     instance.setUpIfNecessary();
 
     assertTrue(latch.await(5000, TimeUnit.MILLISECONDS));
+  }
+
+  private void waitUntilInitialized(Pane pane, CountDownLatch latch) {
+    pane.getChildren().addListener((Observable observable) -> {
+      if (pane.getChildren().size() == 2) {
+        latch.countDown();
+      }
+    });
   }
 
   @Test

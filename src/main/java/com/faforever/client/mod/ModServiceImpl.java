@@ -1,6 +1,11 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.fx.PlatformService;
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.io.FileUtils;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
@@ -14,7 +19,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.Directory;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.luaj.vm2.LuaValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -22,23 +29,10 @@ import org.springframework.context.ApplicationContext;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.nio.file.*;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
@@ -48,10 +42,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.util.LuaUtil.stripQuotes;
+import static com.faforever.client.notification.Severity.WARN;
+import static com.faforever.client.util.LuaUtil.loadFile;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.nio.file.Files.createDirectories;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.util.Collections.singletonList;
 
 public class ModServiceImpl implements ModService {
 
@@ -70,13 +67,17 @@ public class ModServiceImpl implements ModService {
   @Resource
   ApplicationContext applicationContext;
   @Resource
-  FafApiAccessor fafApiAccessor;
-  @Resource
   ThreadPoolExecutor threadPoolExecutor;
   @Resource
   Analyzer analyzer;
   @Resource
   Directory directory;
+  @Resource
+  NotificationService notificationService;
+  @Resource
+  I18n i18n;
+  @Resource
+  PlatformService platformService;
 
   private Path modsDirectory;
   private Map<Path, ModInfoBean> pathToMod;
@@ -88,6 +89,29 @@ public class ModServiceImpl implements ModService {
     pathToMod = new HashMap<>();
     installedMods = FXCollections.observableArrayList();
     readOnlyInstalledMods = FXCollections.unmodifiableObservableList(installedMods);
+  }
+
+  private static Path extractIconPath(Path path, LuaValue luaValue) {
+    String icon = luaValue.get("icon").toString();
+    if ("nil".equals(icon) || StringUtils.isEmpty(icon)) {
+      return null;
+    }
+
+    if (icon.startsWith("/")) {
+      icon = icon.substring(1);
+    }
+
+    Path iconPath = Paths.get(icon);
+    // FIXME try-catch until I know exactly what's the value that causes #228
+    try {
+      // mods/BlackOpsUnleashed/icons/yoda_icon.bmp -> icons/yoda_icon.bmp
+      iconPath = iconPath.subpath(2, iconPath.getNameCount());
+    } catch (IllegalArgumentException e) {
+      logger.warn("Can't load icon for mod: {}, icon path: {}", path, iconPath);
+      return null;
+    }
+
+    return path.resolve(iconPath);
   }
 
   @PostConstruct
@@ -108,7 +132,7 @@ public class ModServiceImpl implements ModService {
 
   private void onModDirectoryReady() {
     try {
-      Files.createDirectories(modsDirectory);
+      createDirectories(modsDirectory);
       startDirectoryWatcher(modsDirectory);
     } catch (IOException | InterruptedException e) {
       logger.warn("Could not start mod directory watcher", e);
@@ -242,7 +266,7 @@ public class ModServiceImpl implements ModService {
   @Override
   public CompletableFuture<List<ModInfoBean>> getAvailableMods() {
     return CompletableFuture.supplyAsync(() -> {
-          List<ModInfoBean> availableMods = fafApiAccessor.getMods();
+          List<ModInfoBean> availableMods = fafService.getMods();
 
           try {
             ModInfoBeanIterator iterator = new ModInfoBeanIterator(availableMods.iterator());
@@ -284,7 +308,7 @@ public class ModServiceImpl implements ModService {
     return CompletableFuture.supplyAsync(() -> {
       try {
         LOOKUP_LOCK.lock();
-        ModInfoBeanIterator iterator = new ModInfoBeanIterator(fafApiAccessor.getMods().iterator());
+        ModInfoBeanIterator iterator = new ModInfoBeanIterator(fafService.getMods().iterator());
         suggester.build(iterator);
         return suggester.lookup(string, maxResults, true, false).stream()
             .map(lookupResult -> iterator.deserialize(lookupResult.payload.bytes))
@@ -300,31 +324,27 @@ public class ModServiceImpl implements ModService {
     });
   }
 
-  @Override
+  @NotNull
   public ModInfoBean extractModInfo(Path path) {
     ModInfoBean modInfoBean = new ModInfoBean();
 
     Path modInfoLua = path.resolve("mod_info.lua");
     if (Files.notExists(modInfoLua)) {
-      return null;
+      throw new ModLoadFailException("Missing mod_info.lua in: " + path.toAbsolutePath());
     }
 
     logger.debug("Reading mod {}", path);
-    noCatch(() -> {
-      try (InputStream inputStream = Files.newInputStream(modInfoLua)) {
-        Properties properties = new Properties();
-        properties.load(inputStream);
 
-        modInfoBean.setId(stripQuotes(properties.getProperty("uid")));
-        modInfoBean.setName(stripQuotes(properties.getProperty("name")));
-        modInfoBean.setDescription(stripQuotes(properties.getProperty("description")));
-        modInfoBean.setAuthor(stripQuotes(properties.getProperty("author")));
-        modInfoBean.setVersion(stripQuotes(properties.getProperty("version")));
-        modInfoBean.setSelectable(Boolean.parseBoolean(stripQuotes(properties.getProperty("selectable"))));
-        modInfoBean.setUiOnly(Boolean.parseBoolean(stripQuotes(properties.getProperty("ui_only"))));
-        modInfoBean.setImagePath(extractIconPath(path, properties));
-      }
-    });
+    LuaValue luaValue = noCatch(() -> loadFile(modInfoLua), ModLoadFailException.class);
+
+    modInfoBean.setId(luaValue.get("uid").toString());
+    modInfoBean.setName(luaValue.get("name").toString());
+    modInfoBean.setDescription(luaValue.get("description").toString());
+    modInfoBean.setAuthor(luaValue.get("author").toString());
+    modInfoBean.setVersion(luaValue.get("version").toString());
+    modInfoBean.setSelectable(luaValue.get("selectable").toboolean());
+    modInfoBean.setUiOnly(luaValue.get("ui_only").toboolean());
+    modInfoBean.setImagePath(extractIconPath(path, luaValue));
 
     return modInfoBean;
   }
@@ -408,43 +428,31 @@ public class ModServiceImpl implements ModService {
     installedMods.remove(pathToMod.remove(path));
   }
 
-  private void addMod(Path path) throws IOException {
-    ModInfoBean modInfoBean = extractModInfo(path);
-    if (modInfoBean == null) {
-      return;
-    }
-    pathToMod.put(path, modInfoBean);
-    if (!installedMods.contains(modInfoBean)) {
-      installedMods.add(modInfoBean);
+  private void addMod(Path path) {
+    try {
+      ModInfoBean modInfoBean = extractModInfo(path);
+      pathToMod.put(path, modInfoBean);
+      if (!installedMods.contains(modInfoBean)) {
+        installedMods.add(modInfoBean);
+      }
+    } catch (ModLoadFailException e) {
+      logger.debug("Corrupt mod: " + path, e);
+      moveCorruptMod(path);
     }
   }
 
-  private static Path extractIconPath(Path path, Properties properties) {
-    String icon = properties.getProperty("icon");
-    if (icon == null) {
-      return null;
-    }
+  private void moveCorruptMod(Path path) {
+    noCatch(() -> {
+      Path corruptedModsDirectory = preferencesService.getCorruptedModsDirectory();
+      createDirectories(corruptedModsDirectory);
 
-    icon = stripQuotes(icon);
+      logger.debug("Moving corrupted mod file from {} into {}", path, corruptedModsDirectory);
 
-    if (StringUtils.isEmpty(icon)) {
-      return null;
-    }
+      FileUtils.moveDirectoryInto(path, corruptedModsDirectory);
 
-    if (icon.startsWith("/")) {
-      icon = icon.substring(1);
-    }
-
-    Path iconPath = Paths.get(icon);
-    // FIXME try-catch until I know exactly what's the value that causes #228
-    try {
-      // mods/BlackOpsUnleashed/icons/yoda_icon.bmp -> icons/yoda_icon.bmp
-      iconPath = iconPath.subpath(2, iconPath.getNameCount());
-    } catch (IllegalArgumentException e) {
-      logger.warn("Can't load icon for mod: {}, icon path: {}", path, iconPath);
-      return null;
-    }
-
-    return path.resolve(iconPath);
+      notificationService.addNotification(new PersistentNotification(i18n.get("corruptedMods.notification"), WARN, singletonList(
+          new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(corruptedModsDirectory.resolve(path.getFileName())))
+      )));
+    });
   }
 }

@@ -29,6 +29,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
@@ -359,9 +361,10 @@ public class FafApiAccessorImplTest {
     instance.requestFactory = instance.httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
 
-    InputStream inputStream = new ByteArrayInputStream(new byte[0]);
+    Path file = Files.createTempFile("foo", null);
 
-    instance.uploadMod(inputStream);
+    // FIXME filename
+    instance.uploadMod(file);
 
     verify(httpTransport).buildRequest("POST", "http://api.example.com/mods/upload");
   }

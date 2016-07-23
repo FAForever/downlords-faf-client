@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.fx.HostService;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
@@ -54,7 +54,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private HostService hostService;
+  private PlatformService platformService;
   @Mock
   private Preferences preferences;
   @Mock
@@ -84,7 +84,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     instance.timeService = timeService;
     instance.notificationService = notificationService;
     instance.preferencesService = preferencesService;
-    instance.hostService = hostService;
+    instance.platformService = platformService;
     instance.i18n = i18n;
     instance.threadPoolExecutor = threadPoolExecutor;
     instance.filterUserController = filterUserController;

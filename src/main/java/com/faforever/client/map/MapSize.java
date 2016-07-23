@@ -1,4 +1,4 @@
-package com.faforever.client.game;
+package com.faforever.client.map;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -11,7 +11,11 @@ public class MapSize implements Comparable<MapSize> {
   private int width;
   private int height;
 
-  private MapSize(int width, int height) {
+  /**
+   * @param width in kilometers
+   * @param height in kilometers
+   */
+  public MapSize(int width, int height) {
     this.width = width;
     this.height = height;
   }

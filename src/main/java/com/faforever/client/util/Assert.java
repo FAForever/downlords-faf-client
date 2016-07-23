@@ -6,9 +6,9 @@ public final class Assert {
     throw new AssertionError("Not instantiatable");
   }
 
-  public static void checkNull(Object object, String message) {
+  public static void checkNullArgument(Object object, String message) {
     if (object == null) {
-      throw new NullPointerException(message);
+      throw new IllegalArgumentException(message);
     }
   }
 

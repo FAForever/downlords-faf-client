@@ -43,7 +43,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 /**
  * Utility class to fix some annoying JavaFX shortcomings.
  */
-public class JavaFxUtil {
+public final class JavaFxUtil {
 
   public static final StringConverter<Path> PATH_STRING_CONVERTER = new StringConverter<Path>() {
     @Override
@@ -66,7 +66,7 @@ public class JavaFxUtil {
   private static final double ZOOM_STEP = 0.2d;
 
   private JavaFxUtil() {
-    // Utility class
+    throw new AssertionError("Not instantiatable");
   }
 
   public static void makeSuggestionField(TextField textField,
@@ -166,7 +166,7 @@ public class JavaFxUtil {
    * See <a href="https://javafx-jira.kenai.com/browse/RT-19538">https://javafx-jira.kenai.com/browse/RT-19538</a>
    */
   public static void fixTooltipDuration() {
-    try {
+    noCatch(() -> {
       Field fieldBehavior = Tooltip.class.getDeclaredField("BEHAVIOR");
       fieldBehavior.setAccessible(true);
       Object objBehavior = fieldBehavior.get(null);
@@ -182,9 +182,7 @@ public class JavaFxUtil {
       objTimer = (Timeline) hideTimerField.get(objBehavior);
 
       objTimer.getKeyFrames().setAll(new KeyFrame(new Duration(100000)));
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    });
   }
 
   /**

@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -62,10 +63,8 @@ public class TimeServiceImpl implements TimeService {
   }
 
   @Override
-  public String asDate(Instant instant) {
-    return DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).format(
-        ZonedDateTime.ofInstant(instant, TimeZone.getDefault().toZoneId())
-    );
+  public String asDate(TemporalAccessor instant) {
+    return DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).format(ZonedDateTime.from(instant));
   }
 
   @Override

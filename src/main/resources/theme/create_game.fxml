@@ -74,14 +74,18 @@
                GridPane.columnIndex="3" GridPane.rowIndex="4" GridPane.rowSpan="3" GridPane.valignment="TOP"/>
     <VBox prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="3" GridPane.rowIndex="7">
       <children>
-        <Label styleClass="h1" text="%game.create.mapInfo"/>
-        <Label fx:id="mapNameLabel" contentDisplay="TOP" text="&lt;Map name&gt;"/>
+        <Label fx:id="mapNameLabel" contentDisplay="TOP" styleClass="h2" text="&lt;Map name&gt;"/>
         <Label fx:id="mapSizeLabel" text="&lt;Size&gt;"/>
         <Label fx:id="mapPlayersLabel" text="&lt;MaxPlayers&gt;"/>
-        <Label fx:id="mapAiMarkersLabel" text="&lt;AIMarkers&gt;"/>
+        <Separator>
+          <VBox.margin>
+            <Insets top="5.0"/>
+          </VBox.margin>
+        </Separator>
         <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
           <content>
-            <Label fx:id="mapDescriptionLabel" text="&lt;Description&gt;"/>
+            <Label fx:id="mapDescriptionLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                   text="&lt;Description&gt;" wrapText="true"/>
           </content>
         </ScrollPane>
       </children>

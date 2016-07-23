@@ -5,21 +5,23 @@ import org.junit.Test;
 
 import java.nio.file.Paths;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 public class LaunchCommandBuilderTest {
+
+  private static LaunchCommandBuilder defaultBuilder() {
+    return LaunchCommandBuilder.create()
+        .executable(Paths.get("test.exe"))
+        .logFile(Paths.get("game.log"))
+        .gameType(GameType.DEFAULT.getString())
+        .username("junit");
+  }
 
   @Test
   public void testAllSet() throws Exception {
     assertNotNull(defaultBuilder().build());
-  }
-
-  private static LaunchCommandBuilder defaultBuilder() {
-    return LaunchCommandBuilder.create()
-        .executable(Paths.get("."))
-        .logFile(Paths.get("."))
-        .gameType(GameType.DEFAULT.getString())
-        .username("junit");
   }
 
   @Test(expected = IllegalStateException.class)
@@ -75,5 +77,24 @@ public class LaunchCommandBuilderTest {
   @Test
   public void testClanNullThrowsNoException() throws Exception {
     defaultBuilder().clan(null).build();
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testCommandFormatNullNotAllowed() throws Exception {
+    defaultBuilder().executableDecorator(null).build();
+  }
+
+  @Test
+  public void testCommandFormat() throws Exception {
+    assertThat(
+        defaultBuilder()
+            .executableDecorator("/path/to/my/wineprefix primusrun wine %s")
+            .build(),
+        contains(
+            "/path/to/my/wineprefix", "primusrun", "wine", Paths.get("test.exe").toAbsolutePath().toString(),
+            "/init", "init_faf.lua",
+            "/nobugreport",
+            "/log", Paths.get("game.log").toAbsolutePath().toString()
+        ));
   }
 }
