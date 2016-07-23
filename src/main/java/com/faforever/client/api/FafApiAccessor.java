@@ -1,9 +1,10 @@
 package com.faforever.client.api;
 
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
+import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 
-import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -25,11 +26,25 @@ public interface FafApiAccessor {
 
   List<ModInfoBean> getMods();
 
+  MapBean findMapByName(String mapId);
+
   List<Ranked1v1EntryBean> getRanked1v1Entries();
 
   Ranked1v1Stats getRanked1v1Stats();
 
   Ranked1v1EntryBean getRanked1v1EntryForPlayer(int playerId);
 
-  void uploadMod(InputStream inputStream);
+  List<MapBean> getMaps();
+
+  List<MapBean> getMostDownloadedMaps(int count);
+
+  List<MapBean> getMostPlayedMaps(int count);
+
+  List<MapBean> getBestRatedMaps(int count);
+
+  List<MapBean> getNewestMaps(int count);
+
+  void uploadMod(Path file);
+
+  void uploadMap(Path file, boolean isRanked);
 }

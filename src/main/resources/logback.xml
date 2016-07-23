@@ -3,10 +3,10 @@
   <logger name="org.pircbotx" level="warn"/>
   <logger name="com.google.api.client.util.store.FileDataStoreFactory" level="error"/>
 
-  <logger name="com.faforever.client.api" level="info"/>
+  <logger name="com.faforever.client.api" level="trace"/>
   <logger name="com.faforever.client.connectivity" level="info"/>
   <logger name="com.faforever.client.preferences" level="info"/>
-  <logger name="com.faforever.client.map" level="info"/>
+  <logger name="com.faforever.client.map" level="debug"/>
   <logger name="com.faforever.client.mod" level="info"/>
   <logger name="com.faforever.client.net" level="info"/>
   <logger name="com.faforever.client.util" level="info"/>
@@ -21,6 +21,7 @@
   <logger name="com.faforever.client.task" level="info"/>
   <logger name="com.faforever.client.theme" level="info"/>
   <logger name="com.faforever.client.preferences" level="info"/>
+  <logger name="com.faforever.client.io" level="trace"/>
 
   <logger name="org.ice4j.stack" level="warn"/>
 

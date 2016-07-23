@@ -1,8 +1,8 @@
 package com.faforever.client;
 
 import com.faforever.client.config.*;
-import com.faforever.client.fx.JavaFxHostService;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformServiceImpl;
 import com.faforever.client.main.MainController;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.ThemeService;
@@ -39,7 +39,7 @@ public class Main extends Application {
   }
 
   private void initApplicationContext(Stage stage) {
-    context.getBeanFactory().registerSingleton("hostService", new JavaFxHostService(getHostServices()));
+    context.getBeanFactory().registerSingleton("hostService", new PlatformServiceImpl(getHostServices()));
     context.getBeanFactory().registerSingleton("stage", stage);
     context.register(BaseConfig.class, UiConfig.class, ServiceConfig.class, TaskConfig.class, CacheConfig.class, LuceneConfig.class);
     context.registerShutdownHook();

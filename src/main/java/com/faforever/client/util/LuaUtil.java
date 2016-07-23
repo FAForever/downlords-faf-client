@@ -1,26 +1,34 @@
 package com.faforever.client.util;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.google.common.io.CharStreams;
+import org.luaj.vm2.Globals;
+import org.luaj.vm2.LuaError;
+import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.lib.jse.JsePlatform;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public final class LuaUtil {
-
-  private static final Pattern QUOTED_TEXT_PATTERN = Pattern.compile("[\"'](.*?)[\"']");
 
   private LuaUtil() {
     throw new AssertionError("Not instantiatable");
   }
 
-  public static String stripQuotes(String string) {
-    if (string == null) {
-      return null;
-    }
+  public static LuaValue loadFile(Path file) throws IOException {
+    Globals globals = JsePlatform.standardGlobals();
+    globals.baselib.load(globals.load(CharStreams.toString(new InputStreamReader(LuaUtil.class.getResourceAsStream("/lua/faf.lua"), UTF_8))));
 
-    Matcher matcher = QUOTED_TEXT_PATTERN.matcher(string);
-    if (matcher.find()) {
-      return matcher.group(1);
+    try (InputStream inputStream = Files.newInputStream(file)) {
+      globals.load(inputStream, "@" + file.toAbsolutePath().toString(), "bt", globals).invoke();
+    } catch (LuaError e) {
+      throw new IOException("Could not load LUA file: " + file, e);
     }
-
-    return string;
+    return globals;
   }
 }

@@ -1,6 +1,6 @@
 package com.faforever.client.connectivity;
 
-import com.faforever.client.fx.HostService;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
@@ -61,7 +61,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private I18n i18n;
   @Mock
-  private HostService hostService;
+  private PlatformService platformService;
   @Mock
   private Preferences preferences;
   @Mock
@@ -95,7 +95,7 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     instance.taskService = taskService;
     instance.preferencesService = preferencesService;
     i18n = instance.i18n = i18n;
-    instance.hostService = hostService;
+    instance.platformService = platformService;
     instance.applicationContext = applicationContext;
     instance.notificationService = notificationService;
     instance.fafService = fafService;

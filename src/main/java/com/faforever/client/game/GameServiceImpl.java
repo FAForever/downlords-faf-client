@@ -160,7 +160,7 @@ public class GameServiceImpl implements GameService {
   private CompletableFuture<Void> downloadMapIfNecessary(String mapName) {
     CompletableFuture<Void> future = new CompletableFuture<>();
 
-    if (mapService.isAvailable(mapName)) {
+    if (mapService.isInstalled(mapName)) {
       future.complete(null);
     } else {
       return mapService.download(mapName);

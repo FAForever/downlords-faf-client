@@ -51,11 +51,13 @@ import com.faforever.client.login.LoginController;
 import com.faforever.client.main.MainController;
 import com.faforever.client.main.UserMenuController;
 import com.faforever.client.map.MapDetailController;
+import com.faforever.client.map.MapTileController;
+import com.faforever.client.map.MapUploadController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModDetailController;
 import com.faforever.client.mod.ModTileController;
+import com.faforever.client.mod.ModUploadController;
 import com.faforever.client.mod.ModVaultController;
-import com.faforever.client.mod.UploadModController;
 import com.faforever.client.news.NewsController;
 import com.faforever.client.news.NewsListItemController;
 import com.faforever.client.notification.ImmediateNotificationController;
@@ -129,8 +131,8 @@ public class UiConfig {
   }
 
   @Bean
-  MapDetailController mapPreviewLargeController() {
-    return loadController("map_preview_large.fxml");
+  MapDetailController mapDetailController() {
+    return loadController("map_detail.fxml");
   }
 
   @Bean
@@ -209,6 +211,12 @@ public class UiConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   ModTileController modTileController() {
     return loadController("mod_tile.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  MapTileController mapTileController() {
+    return loadController("map_tile.fxml");
   }
 
   @Bean
@@ -390,8 +398,14 @@ public class UiConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  UploadModController uploadModController() {
+  ModUploadController uploadModController() {
     return loadController("upload_mod.fxml");
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  MapUploadController uploadMapController() {
+    return loadController("upload_map.fxml");
   }
 
   @Bean

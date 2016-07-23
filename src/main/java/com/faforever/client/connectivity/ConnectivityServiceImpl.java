@@ -1,6 +1,6 @@
 package com.faforever.client.connectivity;
 
-import com.faforever.client.fx.HostService;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.net.SocketAddressUtil;
@@ -70,7 +70,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
   @Resource
   PreferencesService preferencesService;
   @Resource
-  HostService hostService;
+  PlatformService platformService;
   @Resource
   I18n i18n;
   @Resource
@@ -299,7 +299,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
     List<Action> actions = Arrays.asList(
         new Action(
             i18n.get("portCheckTask.help"),
-            event -> hostService.showDocument(connectivityHelpUrl)
+            event -> platformService.showDocument(connectivityHelpUrl)
         ),
         new Action(
             i18n.get("portCheckTask.neverShowAgain"),

@@ -12,6 +12,7 @@ public final class CacheNames {
   public static final String ACHIEVEMENTS = "achievements";
   public static final String MODS = "mods";
   public static final String LEADERBOARD = "leaderboard";
+  public static final String MAPS = "maps";
 
   private CacheNames() {
     throw new AssertionError("Not instantiatable");

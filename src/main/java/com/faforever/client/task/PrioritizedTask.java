@@ -19,4 +19,6 @@ public interface PrioritizedTask<V> extends Comparable<AbstractPrioritizedTask>,
   Throwable getException();
 
   String getTitle();
+
+  boolean cancel(boolean mayInterruptIfRunning);
 }

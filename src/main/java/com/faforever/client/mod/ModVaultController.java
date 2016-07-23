@@ -56,7 +56,7 @@ public class ModVaultController {
   @FXML
   Pane popularModsPane;
   @FXML
-  Pane mostLikedMods;
+  Pane mostLikedModsPane;
   @FXML
   Pane modVaultRoot;
 
@@ -103,7 +103,7 @@ public class ModVaultController {
   private void displayShowroomMods() {
     enterLoadingState();
     modService.getMostDownloadedMods(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateMods(modInfoBeans, popularModsPane))
-        .thenCompose(aVoid -> modService.getMostLikedMods(TOP_ELEMENT_COUNT)).thenAccept(modInfoBeans -> populateMods(modInfoBeans, mostLikedMods))
+        .thenCompose(aVoid -> modService.getMostLikedMods(TOP_ELEMENT_COUNT)).thenAccept(modInfoBeans -> populateMods(modInfoBeans, mostLikedModsPane))
         .thenCompose(aVoid -> modService.getNewestMods(TOP_ELEMENT_COUNT)).thenAccept(modInfoBeans -> populateMods(modInfoBeans, newestModsPane))
         .thenCompose(aVoid -> modService.getMostLikedUiMods(TOP_ELEMENT_COUNT)).thenAccept(modInfoBeans -> populateMods(modInfoBeans, recommendedUiModsPane))
         .thenRun(this::enterShowroomState)
@@ -223,15 +223,15 @@ public class ModVaultController {
   }
 
   private void openModUploadWindow(Path path) {
-    UploadModController uploadModController = applicationContext.getBean(UploadModController.class);
-    uploadModController.setModPath(path);
+    ModUploadController modUploadController = applicationContext.getBean(ModUploadController.class);
+    modUploadController.setModPath(path);
 
     Stage modUploadWindow = new Stage(StageStyle.TRANSPARENT);
     modUploadWindow.initModality(Modality.NONE);
     modUploadWindow.initOwner(getRoot().getScene().getWindow());
 
     WindowController windowController = applicationContext.getBean(WindowController.class);
-    windowController.configure(modUploadWindow, uploadModController.getRoot(), true, CLOSE);
+    windowController.configure(modUploadWindow, modUploadController.getRoot(), true, CLOSE);
 
     modUploadWindow.show();
   }

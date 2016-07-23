@@ -163,7 +163,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
-    when(mapService.isAvailable("map")).thenReturn(true);
+    when(mapService.isInstalled("map")).thenReturn(true);
     when(connectivityService.getExternalSocketAddress()).thenReturn(externalSocketAddress);
     when(fafService.requestJoinGame(gameInfoBean.getUid(), null)).thenReturn(completedFuture(gameLaunchMessage));
     when(localRelayServer.getPort()).thenReturn(111);
