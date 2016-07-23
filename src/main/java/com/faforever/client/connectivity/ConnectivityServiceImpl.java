@@ -2,6 +2,7 @@ package com.faforever.client.connectivity;
 
 import com.faforever.client.fx.HostService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.net.SocketAddressUtil;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
@@ -12,6 +13,7 @@ import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.relay.ProcessNatPacketMessage;
 import com.faforever.client.relay.SendNatPacketMessage;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.google.common.annotations.VisibleForTesting;
@@ -33,11 +35,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
@@ -104,10 +102,9 @@ public class ConnectivityServiceImpl implements ConnectivityService {
   @PostConstruct
   void postConstruct() {
     fafService.addOnMessageListener(SendNatPacketMessage.class, this::onSendNatPacket);
-    userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
-        checkConnectivity();
-      } else {
+    fafService.addOnMessageListener(LoginMessage.class, loginMessage -> checkConnectivity());
+    fafService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue != ConnectionState.CONNECTED) {
         connectivityState.set(ConnectivityState.UNKNOWN);
       }
     });

@@ -159,12 +159,11 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
+            connectionState.set(ConnectionState.DISCONNECTED);
             if (isCancelled()) {
               logger.debug("Connection to FAF server has been closed");
-              connectionState.set(ConnectionState.DISCONNECTED);
             } else {
               logger.warn("Lost connection to FAF server, trying to reconnect in " + RECONNECT_DELAY / 1000 + "s", e);
-              connectionState.set(ConnectionState.DISCONNECTED);
               Thread.sleep(RECONNECT_DELAY);
             }
           }
