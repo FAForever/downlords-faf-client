@@ -30,17 +30,8 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.*;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -60,31 +51,9 @@ import static java.util.Locale.US;
 
 public class MapServiceImpl implements MapService {
 
-  public enum OfficialMap {
-    SCMP_001, SCMP_002, SCMP_003, SCMP_004, SCMP_005, SCMP_006, SCMP_007, SCMP_008, SCMP_009, SCMP_010, SCMP_011,
-    SCMP_012, SCMP_013, SCMP_014, SCMP_015, SCMP_016, SCMP_017, SCMP_018, SCMP_019, SCMP_020, SCMP_021, SCMP_022,
-    SCMP_023, SCMP_024, SCMP_025, SCMP_026, SCMP_027, SCMP_028, SCMP_029, SCMP_030, SCMP_031, SCMP_032, SCMP_033,
-    SCMP_034, SCMP_035, SCMP_036, SCMP_037, SCMP_038, SCMP_039, SCMP_040, X1MP_001, X1MP_002, X1MP_003, X1MP_004,
-    X1MP_005, X1MP_006, X1MP_007, X1MP_008, X1MP_009, X1MP_010, X1MP_011, X1MP_012, X1MP_014, X1MP_017;
-
-    private static final Map<String, OfficialMap> fromString;
-
-    static {
-      fromString = new HashMap<>();
-      for (OfficialMap officialMap : values()) {
-        fromString.put(officialMap.name(), officialMap);
-      }
-    }
-
-    public static OfficialMap fromMapName(String mapName) {
-      return fromString.get(mapName.toUpperCase());
-    }
-  }
-
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final float MAP_SIZE_FACTOR = 102.4f;
   private static final Lock LOOKUP_LOCK = new ReentrantLock();
-
   @Resource
   PreferencesService preferencesService;
   @Resource
@@ -99,20 +68,17 @@ public class MapServiceImpl implements MapService {
   ThreadPoolExecutor threadPoolExecutor;
   @Resource
   FafService fafService;
-
   @Value("${vault.mapDownloadUrl}")
   String mapDownloadUrl;
   @Value("${vault.mapPreviewUrl.small}")
   String smallMapPreviewUrl;
   @Value("${vault.mapPreviewUrl.large}")
   String largeMapPreviewUrl;
-
   private Map<Path, MapBean> pathToMap;
   private AnalyzingInfixSuggester suggester;
   private Path mapsDirectory;
   private ObservableList<MapBean> installedMapBeans;
   private Map<String, MapBean> mapsByTechnicalName;
-
   public MapServiceImpl() {
     pathToMap = new HashMap<>();
     installedMapBeans = FXCollections.observableArrayList();
@@ -128,6 +94,10 @@ public class MapServiceImpl implements MapService {
         }
       }
     });
+  }
+
+  private static URL getMapUrl(String mapName, String baseUrl) {
+    return noCatch(() -> new URL(format(baseUrl, urlFragmentEscaper().escape(mapName.toLowerCase(US)))));
   }
 
   @PostConstruct
@@ -177,22 +147,27 @@ public class MapServiceImpl implements MapService {
     });
   }
 
-  // FIXME load asynchronously
-  public void loadInstalledMaps() {
-    try (DirectoryStream<Path> directoryStream = newDirectoryStream(mapsDirectory)) {
-      for (Path path : directoryStream) {
-        addMap(path);
+  private void loadInstalledMaps() {
+    CompletableFuture.runAsync(() -> {
+      try (DirectoryStream<Path> directoryStream = newDirectoryStream(mapsDirectory)) {
+        for (Path path : directoryStream) {
+          try {
+            addMap(path);
+          } catch (MapLoadException e) {
+            logger.warn("Map could not be read: " + mapsDirectory, e);
+          }
+        }
+      } catch (IOException e) {
+        logger.warn("Maps could not be read from: " + mapsDirectory, e);
       }
-    } catch (IOException e) {
-      logger.warn("Maps could not be read from: " + mapsDirectory, e);
-    }
+    }, threadPoolExecutor);
   }
 
-  private void removeMap(Path path) throws IOException {
+  private void removeMap(Path path) {
     installedMapBeans.remove(pathToMap.remove(path));
   }
 
-  private void addMap(Path path) throws IOException {
+  private void addMap(Path path) throws MapLoadException {
     MapBean mapBean = readMap(path);
     if (mapBean == null) {
       return;
@@ -205,7 +180,7 @@ public class MapServiceImpl implements MapService {
 
   @Override
   @Nullable
-  public MapBean readMap(Path mapFolder) {
+  public MapBean readMap(Path mapFolder) throws MapLoadException {
     if (!Files.isDirectory(mapFolder)) {
       logger.warn("Map does not exist: {}", mapFolder);
       return null;
@@ -214,7 +189,7 @@ public class MapServiceImpl implements MapService {
       Path scenarioLuaPath = noCatch(() -> list(mapFolder))
           .filter(file -> file.getFileName().toString().endsWith("_scenario.lua"))
           .findFirst()
-          .orElseThrow(() -> new MapLoadException("Map folder does not contain a *_scenario.lua"));
+          .orElseThrow(() -> new MapLoadException("Map folder does not contain a *_scenario.lua: " + mapFolder.toAbsolutePath()));
 
       LuaValue luaRoot = loadFile(scenarioLuaPath);
       LuaValue scenarioInfo = luaRoot.get("ScenarioInfo");
@@ -433,10 +408,6 @@ public class MapServiceImpl implements MapService {
         .thenAccept(aVoid -> noCatch(() -> addMap(getPathForMap(technicalName))));
   }
 
-  private static URL getMapUrl(String mapName, String baseUrl) {
-    return noCatch(() -> new URL(format(baseUrl, urlFragmentEscaper().escape(mapName.toLowerCase(US)))));
-  }
-
   @Nullable
   private Image fetchImageOrNull(URL url) {
     try {
@@ -449,6 +420,27 @@ public class MapServiceImpl implements MapService {
     } catch (IOException e) {
       logger.warn("Could not fetch map preview", e);
       return null;
+    }
+  }
+
+  public enum OfficialMap {
+    SCMP_001, SCMP_002, SCMP_003, SCMP_004, SCMP_005, SCMP_006, SCMP_007, SCMP_008, SCMP_009, SCMP_010, SCMP_011,
+    SCMP_012, SCMP_013, SCMP_014, SCMP_015, SCMP_016, SCMP_017, SCMP_018, SCMP_019, SCMP_020, SCMP_021, SCMP_022,
+    SCMP_023, SCMP_024, SCMP_025, SCMP_026, SCMP_027, SCMP_028, SCMP_029, SCMP_030, SCMP_031, SCMP_032, SCMP_033,
+    SCMP_034, SCMP_035, SCMP_036, SCMP_037, SCMP_038, SCMP_039, SCMP_040, X1MP_001, X1MP_002, X1MP_003, X1MP_004,
+    X1MP_005, X1MP_006, X1MP_007, X1MP_008, X1MP_009, X1MP_010, X1MP_011, X1MP_012, X1MP_014, X1MP_017;
+
+    private static final Map<String, OfficialMap> fromString;
+
+    static {
+      fromString = new HashMap<>();
+      for (OfficialMap officialMap : values()) {
+        fromString.put(officialMap.name(), officialMap);
+      }
+    }
+
+    public static OfficialMap fromMapName(String mapName) {
+      return fromString.get(mapName.toUpperCase());
     }
   }
 }
