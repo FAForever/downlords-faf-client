@@ -14,11 +14,9 @@ import org.mockito.MockitoAnnotations;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
 public class MapBeanServiceImplTest {
@@ -53,21 +51,6 @@ public class MapBeanServiceImplTest {
   }
 
   @Test
-  public void testLoadSmallPreview() throws Exception {
-
-  }
-
-  @Test
-  public void testLoadLargePreview() throws Exception {
-
-  }
-
-  @Test
-  public void testReadMapVaultInBackground() throws Exception {
-
-  }
-
-  @Test
   public void testGetLocalMapsNoMaps() throws Exception {
     assertThat(instance.getInstalledMaps(), hasSize(0));
   }
@@ -85,35 +68,5 @@ public class MapBeanServiceImplTest {
     assertThat(mapBean.getTechnicalName(), is("SCMP_001"));
     assertThat(mapBean.getDisplayName(), is("Burial Mounds"));
     assertThat(mapBean.getSize(), equalTo(new MapSize(10, 10)));
-  }
-
-  @Test
-  public void testGetMapInfoBeanLocallyFromName() throws Exception {
-
-  }
-
-  @Test
-  public void testGetMapInfoBeanFromVaultByName() throws Exception {
-
-  }
-
-  @Test
-  public void testIsOfficialMap() throws Exception {
-
-  }
-
-  @Test
-  public void testIsAvailable() throws Exception {
-
-  }
-
-  @Test
-  public void testDownload() throws Exception {
-
-  }
-
-  @Test
-  public void testGetComments() throws Exception {
-
   }
 }
