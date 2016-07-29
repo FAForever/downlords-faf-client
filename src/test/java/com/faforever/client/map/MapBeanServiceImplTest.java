@@ -7,18 +7,19 @@ import javafx.collections.ObservableList;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.luaj.vm2.LuaError;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
 public class MapBeanServiceImplTest {
@@ -27,6 +28,8 @@ public class MapBeanServiceImplTest {
   public TemporaryFolder customMapsDirectory = new TemporaryFolder();
   @Rule
   public TemporaryFolder gameDirectory = new TemporaryFolder();
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
   private MapServiceImpl instance;
   @Mock
@@ -53,21 +56,6 @@ public class MapBeanServiceImplTest {
   }
 
   @Test
-  public void testLoadSmallPreview() throws Exception {
-
-  }
-
-  @Test
-  public void testLoadLargePreview() throws Exception {
-
-  }
-
-  @Test
-  public void testReadMapVaultInBackground() throws Exception {
-
-  }
-
-  @Test
   public void testGetLocalMapsNoMaps() throws Exception {
     assertThat(instance.getInstalledMaps(), hasSize(0));
   }
@@ -88,32 +76,21 @@ public class MapBeanServiceImplTest {
   }
 
   @Test
-  public void testGetMapInfoBeanLocallyFromName() throws Exception {
+  public void testReadMapOfNonFolderThrowsException() throws Exception {
+    expectedException.expect(MapLoadException.class);
+    expectedException.expectMessage(startsWith("Not a folder"));
 
+    instance.readMap(mapsDirectory.resolve("something"));
   }
 
   @Test
-  public void testGetMapInfoBeanFromVaultByName() throws Exception {
+  public void testReadMapInvalidMap() throws Exception {
+    Path corruptMap = Files.createDirectory(mapsDirectory.resolve("corruptMap"));
+    Files.write(corruptMap.resolve("corruptMap_scenario.lua"), "{\"This is invalid\", \"}".getBytes(UTF_8));
 
-  }
+    expectedException.expect(MapLoadException.class);
+    expectedException.expectCause(instanceOf(LuaError.class));
 
-  @Test
-  public void testIsOfficialMap() throws Exception {
-
-  }
-
-  @Test
-  public void testIsAvailable() throws Exception {
-
-  }
-
-  @Test
-  public void testDownload() throws Exception {
-
-  }
-
-  @Test
-  public void testGetComments() throws Exception {
-
+    instance.readMap(corruptMap);
   }
 }
