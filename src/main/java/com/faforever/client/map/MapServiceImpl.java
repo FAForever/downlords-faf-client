@@ -16,7 +16,9 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.Directory;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +81,7 @@ public class MapServiceImpl implements MapService {
   private Path mapsDirectory;
   private ObservableList<MapBean> installedMapBeans;
   private Map<String, MapBean> mapsByTechnicalName;
+
   public MapServiceImpl() {
     pathToMap = new HashMap<>();
     installedMapBeans = FXCollections.observableArrayList();
@@ -169,9 +172,6 @@ public class MapServiceImpl implements MapService {
 
   private void addMap(Path path) throws MapLoadException {
     MapBean mapBean = readMap(path);
-    if (mapBean == null) {
-      return;
-    }
     pathToMap.put(path, mapBean);
     if (!installedMapBeans.contains(mapBean)) {
       installedMapBeans.add(mapBean);
@@ -179,19 +179,19 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  @Nullable
+  @NotNull
   public MapBean readMap(Path mapFolder) throws MapLoadException {
     if (!Files.isDirectory(mapFolder)) {
-      logger.warn("Map does not exist: {}", mapFolder);
-      return null;
+      throw new MapLoadException("Not a folder: " + mapFolder.toAbsolutePath());
     }
-    return noCatch(() -> {
-      Path scenarioLuaPath = noCatch(() -> list(mapFolder))
-          .filter(file -> file.getFileName().toString().endsWith("_scenario.lua"))
-          .findFirst()
-          .orElseThrow(() -> new MapLoadException("Map folder does not contain a *_scenario.lua: " + mapFolder.toAbsolutePath()));
 
-      LuaValue luaRoot = loadFile(scenarioLuaPath);
+    Path scenarioLuaPath = noCatch(() -> list(mapFolder))
+        .filter(file -> file.getFileName().toString().endsWith("_scenario.lua"))
+        .findFirst()
+        .orElseThrow(() -> new MapLoadException("Map folder does not contain a *_scenario.lua: " + mapFolder.toAbsolutePath()));
+
+    try {
+      LuaValue luaRoot = noCatch(() -> loadFile(scenarioLuaPath), MapLoadException.class);
       LuaValue scenarioInfo = luaRoot.get("ScenarioInfo");
       LuaValue size = scenarioInfo.get("size");
 
@@ -206,7 +206,9 @@ public class MapServiceImpl implements MapService {
       );
       mapBean.setPlayers(scenarioInfo.get("Configurations").get("standard").get("teams").get(1).get("armies").length());
       return mapBean;
-    }, MapLoadException.class);
+    } catch (LuaError e) {
+      throw new MapLoadException(e);
+    }
   }
 
   @Override
@@ -256,9 +258,7 @@ public class MapServiceImpl implements MapService {
     for (Path mapPath : mapPaths) {
       try {
         MapBean mapBean = readMap(mapPath);
-        if (mapBean != null) {
-          mapBeans.add(mapBean);
-        }
+        mapBeans.add(mapBean);
       } catch (MapLoadException e) {
         logger.warn("Map could not be read: " + mapPath, e);
       }

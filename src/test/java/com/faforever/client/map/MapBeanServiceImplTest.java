@@ -7,13 +7,16 @@ import javafx.collections.ObservableList;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.luaj.vm2.LuaError;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -25,6 +28,8 @@ public class MapBeanServiceImplTest {
   public TemporaryFolder customMapsDirectory = new TemporaryFolder();
   @Rule
   public TemporaryFolder gameDirectory = new TemporaryFolder();
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
   private MapServiceImpl instance;
   @Mock
@@ -68,5 +73,24 @@ public class MapBeanServiceImplTest {
     assertThat(mapBean.getTechnicalName(), is("SCMP_001"));
     assertThat(mapBean.getDisplayName(), is("Burial Mounds"));
     assertThat(mapBean.getSize(), equalTo(new MapSize(10, 10)));
+  }
+
+  @Test
+  public void testReadMapOfNonFolderThrowsException() throws Exception {
+    expectedException.expect(MapLoadException.class);
+    expectedException.expectMessage(startsWith("Not a folder"));
+
+    instance.readMap(mapsDirectory.resolve("something"));
+  }
+
+  @Test
+  public void testReadMapInvalidMap() throws Exception {
+    Path corruptMap = Files.createDirectory(mapsDirectory.resolve("corruptMap"));
+    Files.write(corruptMap.resolve("corruptMap_scenario.lua"), "{\"This is invalid\", \"}".getBytes(UTF_8));
+
+    expectedException.expect(MapLoadException.class);
+    expectedException.expectCause(instanceOf(LuaError.class));
+
+    instance.readMap(corruptMap);
   }
 }

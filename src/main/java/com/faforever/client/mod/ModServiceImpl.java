@@ -21,6 +21,7 @@ import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.Directory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -330,21 +331,25 @@ public class ModServiceImpl implements ModService {
 
     Path modInfoLua = path.resolve("mod_info.lua");
     if (Files.notExists(modInfoLua)) {
-      throw new ModLoadFailException("Missing mod_info.lua in: " + path.toAbsolutePath());
+      throw new ModLoadException("Missing mod_info.lua in: " + path.toAbsolutePath());
     }
 
     logger.debug("Reading mod {}", path);
 
-    LuaValue luaValue = noCatch(() -> loadFile(modInfoLua), ModLoadFailException.class);
+    try {
+      LuaValue luaValue = noCatch(() -> loadFile(modInfoLua), ModLoadException.class);
 
-    modInfoBean.setId(luaValue.get("uid").toString());
-    modInfoBean.setName(luaValue.get("name").toString());
-    modInfoBean.setDescription(luaValue.get("description").toString());
-    modInfoBean.setAuthor(luaValue.get("author").toString());
-    modInfoBean.setVersion(luaValue.get("version").toString());
-    modInfoBean.setSelectable(luaValue.get("selectable").toboolean());
-    modInfoBean.setUiOnly(luaValue.get("ui_only").toboolean());
-    modInfoBean.setImagePath(extractIconPath(path, luaValue));
+      modInfoBean.setId(luaValue.get("uid").toString());
+      modInfoBean.setName(luaValue.get("name").toString());
+      modInfoBean.setDescription(luaValue.get("description").toString());
+      modInfoBean.setAuthor(luaValue.get("author").toString());
+      modInfoBean.setVersion(luaValue.get("version").toString());
+      modInfoBean.setSelectable(luaValue.get("selectable").toboolean());
+      modInfoBean.setUiOnly(luaValue.get("ui_only").toboolean());
+      modInfoBean.setImagePath(extractIconPath(path, luaValue));
+    } catch (LuaError e) {
+      throw new ModLoadException(e);
+    }
 
     return modInfoBean;
   }
@@ -435,7 +440,7 @@ public class ModServiceImpl implements ModService {
       if (!installedMods.contains(modInfoBean)) {
         installedMods.add(modInfoBean);
       }
-    } catch (ModLoadFailException e) {
+    } catch (ModLoadException e) {
       logger.debug("Corrupt mod: " + path, e);
       moveCorruptMod(path);
     }
