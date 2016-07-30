@@ -142,7 +142,7 @@ public class PircBotXChatService implements ChatService {
     addEventListener(ConnectEvent.class, event -> connectionState.set(ConnectionState.CONNECTED));
     addEventListener(DisconnectEvent.class, event -> connectionState.set(ConnectionState.DISCONNECTED));
     addEventListener(UserListEvent.class, event -> onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers())));
-    addEventListener(JoinEvent.class, event -> onUserJoinedChannel(event.getChannel().getName(), createOrGetChatUser(event.getUser())));
+    addEventListener(JoinEvent.class, event -> onUserJoinedChannel(event.getChannel().getName(), getOrCreateChatUser(event.getUser())));
     addEventListener(PartEvent.class, event -> onChatUserLeftChannel(event.getChannel().getName(), event.getUser().getNick()));
     addEventListener(QuitEvent.class, event -> onChatUserQuit(event.getUser().getNick()));
     addEventListener(TopicEvent.class, event -> getOrCreateChannel(event.getChannel().getName()).
@@ -223,7 +223,7 @@ public class PircBotXChatService implements ChatService {
   }
 
   private List<ChatUser> chatUsers(ImmutableSortedSet<User> users) {
-    return users.stream().map(this::createOrGetChatUser).collect(Collectors.toList());
+    return users.stream().map(this::getOrCreateChatUser).collect(Collectors.toList());
   }
 
   private void onUserJoinedChannel(String channelName, ChatUser chatUser) {
@@ -401,7 +401,7 @@ public class PircBotXChatService implements ChatService {
   }
 
   @Override
-  public ChatUser getChatUser(String username) {
+  public ChatUser getOrCreateChatUser(String username) {
     synchronized (chatUsersByName) {
       String lowerUsername = username.toLowerCase(US);
       if (!chatUsersByName.containsKey(lowerUsername)) {
@@ -499,7 +499,7 @@ public class PircBotXChatService implements ChatService {
   }
 
   @Override
-  public ChatUser createOrGetChatUser(User user) {
+  public ChatUser getOrCreateChatUser(User user) {
     synchronized (chatUsersByName) {
       String lowerUsername = user.getNick().toLowerCase(US);
       if (!chatUsersByName.containsKey(lowerUsername)) {

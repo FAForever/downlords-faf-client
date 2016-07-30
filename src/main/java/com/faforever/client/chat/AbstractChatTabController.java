@@ -653,7 +653,7 @@ public abstract class AbstractChatTabController {
 
   @VisibleForTesting
   String getInlineStyle(String username) {
-    ChatUser chatUser = chatService.getChatUser(username);
+    ChatUser chatUser = chatService.getOrCreateChatUser(username);
     PlayerInfoBean player = playerService.getPlayerForUsername(username);
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     String color = "";

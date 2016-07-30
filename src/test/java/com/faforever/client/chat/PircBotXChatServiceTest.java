@@ -250,8 +250,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     when(user2.getUserLevels(defaultChannel)).thenReturn(ImmutableSortedSet.of(UserLevel.VOICE));
 
 
-    chatUser1 = instance.createOrGetChatUser(user1);
-    chatUser2 = instance.createOrGetChatUser(user2);
+    chatUser1 = instance.getOrCreateChatUser(user1);
+    chatUser2 = instance.getOrCreateChatUser(user2);
 
     instance.postConstruct();
 
@@ -809,8 +809,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateOrGetChatUserStringPopulatedMap() throws Exception {
-    ChatUser addedUser = instance.getChatUser(chatUser1.getUsername());
-    ChatUser returnedUser = instance.getChatUser(chatUser1.getUsername());
+    ChatUser addedUser = instance.getOrCreateChatUser(chatUser1.getUsername());
+    ChatUser returnedUser = instance.getOrCreateChatUser(chatUser1.getUsername());
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
@@ -818,8 +818,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateOrGetChatUserUserObjectPopulatedMap() throws Exception {
-    ChatUser addedUser = instance.createOrGetChatUser(user1);
-    ChatUser returnedUser = instance.createOrGetChatUser(user1);
+    ChatUser addedUser = instance.getOrCreateChatUser(user1);
+    ChatUser returnedUser = instance.getOrCreateChatUser(user1);
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
@@ -910,7 +910,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     firePircBotXEvent(createJoinEvent(defaultChannel, moderator));
 
-    ChatUser chatUserModerator = instance.getChatUser(moderator.getNick());
+    ChatUser chatUserModerator = instance.getOrCreateChatUser(moderator.getNick());
     assertTrue(chatUserModerator.moderatorInChannelsProperty().getValue().contains(DEFAULT_CHANNEL_NAME));
   }
 }

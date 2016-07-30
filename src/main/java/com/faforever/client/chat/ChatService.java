@@ -27,7 +27,7 @@ public interface ChatService {
    */
   Channel getOrCreateChannel(String channelName);
 
-  ChatUser getChatUser(String username);
+  ChatUser getOrCreateChatUser(String username);
 
   void addUsersListener(String channelName, MapChangeListener<String, ChatUser> listener);
 
@@ -47,8 +47,7 @@ public interface ChatService {
 
   void close();
 
-  // TODO: Refactor and use getOrCreateChatUser instead
-  ChatUser createOrGetChatUser(User user);
+  ChatUser getOrCreateChatUser(User user);
 
   ObjectProperty<ConnectionState> connectionStateProperty();
 

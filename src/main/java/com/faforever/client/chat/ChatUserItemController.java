@@ -150,7 +150,7 @@ public class ChatUserItemController {
 
     Color color = null;
     String lowerUsername = playerInfoBean.getUsername().toLowerCase(US);
-    ChatUser chatUser = chatService.getChatUser(lowerUsername);
+    ChatUser chatUser = chatService.getOrCreateChatUser(lowerUsername);
 
     if (chatPrefs.getChatColorMode() == CUSTOM) {
       if (chatPrefs.getUserToColor().containsKey(lowerUsername)) {
