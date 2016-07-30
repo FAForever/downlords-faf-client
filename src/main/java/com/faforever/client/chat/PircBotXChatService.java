@@ -74,15 +74,9 @@ import static javafx.collections.FXCollections.observableHashMap;
 
 public class PircBotXChatService implements ChatService {
 
-  interface ChatEventListener<T> {
-
-    void onEvent(T event);
-  }
-
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int SOCKET_TIMEOUT = 10000;
   private final Map<Class<? extends Event>, ArrayList<ChatEventListener>> eventListeners;
-
   /**
    * Maps channels by name.
    */
@@ -121,7 +115,6 @@ public class PircBotXChatService implements ChatService {
   private PircBotX pircBotX;
   private CountDownLatch chatConnectedLatch;
   private Task<Void> connectionTask;
-
   public PircBotXChatService() {
     connectionState = new SimpleObjectProperty<>();
     eventListeners = new ConcurrentHashMap<>();
@@ -263,9 +256,11 @@ public class PircBotXChatService implements ChatService {
         .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
         .setAutoSplitMessage(true)
         .setEncoding(UTF_8)
-        .setAutoReconnect(false)
         .addListener(this::onEvent)
         .setSocketTimeout(SOCKET_TIMEOUT)
+        .setMessageDelay(0)
+        .setAutoReconnectDelay(reconnectDelay)
+        .setAutoReconnect(true)
         .buildConfiguration();
 
     pircBotX = pircBotXFactory.createPircBotX(configuration);
@@ -357,10 +352,7 @@ public class PircBotXChatService implements ChatService {
             logger.info("Connecting to IRC at {}:{}", server.getHostname(), server.getPort());
             pircBotX.startBot();
           } catch (IOException | IrcException | RuntimeException e) {
-            // TODO PircBotX 2.1 supports reconnect delay
-            logger.warn("Lost connection to IRC server, trying to reconnect in " + reconnectDelay / 1000 + "s");
             connectionState.set(ConnectionState.DISCONNECTED);
-            Thread.sleep(reconnectDelay);
           }
         }
         return null;
@@ -386,7 +378,6 @@ public class PircBotXChatService implements ChatService {
       @Override
       protected String call() throws Exception {
         updateTitle(i18n.get("chat.sendMessageTask.title"));
-
         pircBotX.sendIRC().message(target, message);
         return message;
       }
@@ -435,7 +426,6 @@ public class PircBotXChatService implements ChatService {
       return chatUsersByName.get(lowerUsername);
     }
   }
-
 
   @Override
   public void addUsersListener(String channelName, MapChangeListener<String, ChatUser> listener) {
@@ -562,5 +552,10 @@ public class PircBotXChatService implements ChatService {
   @Override
   public ReadOnlyIntegerProperty unreadMessagesCount() {
     return unreadMessagesCount;
+  }
+
+  interface ChatEventListener<T> {
+
+    void onEvent(T event);
   }
 }
