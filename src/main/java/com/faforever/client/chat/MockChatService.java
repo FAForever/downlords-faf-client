@@ -167,6 +167,8 @@ public class MockChatService implements ChatService {
         channel.addUser(mockUser);
         channel.addUser(moderatorUser);
 
+        channel.onChannelTopic("oldTopic", "le wild channel topic appears", moderatorUser.getUsername(), System.currentTimeMillis(), true);
+
         return null;
       }
     });

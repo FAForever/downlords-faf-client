@@ -261,20 +261,23 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @Override
+  protected WebView getMessagesWebView() {
+    return messagesWebView;
+  }
+
+  @Override
   protected void onWebViewLoaded() {
     setTopic(channel.getTopic());
   }
 
   private void setTopic(String topic) {
-    Platform.runLater(() ->
-        ((JSObject) getMessagesWebView().getEngine().executeScript("document.getElementById('channel-topic')"))
-            .setMember("innerHTML", convertUrlsToHyperlinks(topic))
+    Platform.runLater(() -> {
+          ((JSObject) getMessagesWebView().getEngine().executeScript("document.getElementById('channel-topic')"))
+              .setMember("innerHTML", convertUrlsToHyperlinks(topic));
+          ((JSObject) getMessagesWebView().getEngine().executeScript("document.getElementById('channel-topic-shadow')"))
+              .setMember("innerHTML", convertUrlsToHyperlinks(topic));
+        }
     );
-  }
-
-  @Override
-  protected WebView getMessagesWebView() {
-    return messagesWebView;
   }
 
   @Override
