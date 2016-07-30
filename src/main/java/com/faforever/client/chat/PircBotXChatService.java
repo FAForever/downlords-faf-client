@@ -74,15 +74,9 @@ import static javafx.collections.FXCollections.observableHashMap;
 
 public class PircBotXChatService implements ChatService {
 
-  interface ChatEventListener<T> {
-
-    void onEvent(T event);
-  }
-
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int SOCKET_TIMEOUT = 10000;
   private final Map<Class<? extends Event>, ArrayList<ChatEventListener>> eventListeners;
-
   /**
    * Maps channels by name.
    */
@@ -121,7 +115,6 @@ public class PircBotXChatService implements ChatService {
   private PircBotX pircBotX;
   private CountDownLatch chatConnectedLatch;
   private Task<Void> connectionTask;
-
   public PircBotXChatService() {
     connectionState = new SimpleObjectProperty<>();
     eventListeners = new ConcurrentHashMap<>();
@@ -236,6 +229,9 @@ public class PircBotXChatService implements ChatService {
 
   private void onChatUserLeftChannel(String channelName, String username) {
     getOrCreateChannel(channelName).removeUser(username);
+    if (userService.getUsername().equalsIgnoreCase(username)) {
+      channels.remove(channelName);
+    }
   }
 
   private void onChatUserQuit(String username) {
@@ -436,7 +432,6 @@ public class PircBotXChatService implements ChatService {
     }
   }
 
-
   @Override
   public void addUsersListener(String channelName, MapChangeListener<String, ChatUser> listener) {
     getOrCreateChannel(channelName).addUsersListeners(listener);
@@ -562,5 +557,10 @@ public class PircBotXChatService implements ChatService {
   @Override
   public ReadOnlyIntegerProperty unreadMessagesCount() {
     return unreadMessagesCount;
+  }
+
+  interface ChatEventListener<T> {
+
+    void onEvent(T event);
   }
 }

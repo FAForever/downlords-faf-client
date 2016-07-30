@@ -303,7 +303,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     joinChannelLatch.countDown();
 
     SocialMessage socialMessage = new SocialMessage();
-    socialMessage.setChannels(Collections.singletonList(DEFAULT_CHANNEL_NAME));
+    socialMessage.setChannels(Collections.emptyList());
 
     socialMessageListenerCaptor.getValue().accept(socialMessage);
   }
@@ -846,19 +846,52 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnModeratorJoined() throws Exception {
+  public void testRejoinChannel() throws Exception {
+    OutputChannel outputChannel = mock(OutputChannel.class);
+
+    reset(taskService);
+    when(taskService.submitTask(any())).thenReturn(completedFuture(null));
+
+    String channelToJoin = OTHER_CHANNEL_NAME;
+    when(userService.getUsername()).thenReturn("user1");
+    when(userChannelDao.getChannel(channelToJoin)).thenReturn(otherChannel);
+    when(otherChannel.send()).thenReturn(outputChannel);
+    doAnswer(invocation -> {
+      firePircBotXEvent(createJoinEvent(otherChannel, user1));
+      return null;
+    }).when(outputIrc).joinChannel(channelToJoin);
+    doAnswer(invocation -> {
+      firePircBotXEvent(createPartEvent(otherChannel, user1));
+      return null;
+    }).when(outputChannel).part();
+
     connect();
+    botStartedFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
-    User moderator = mock(User.class);
+    instance.connectionStateProperty().set(ConnectionState.CONNECTED);
 
-    when(moderator.getNick()).thenReturn("moderator");
-    when(moderator.getChannels()).thenReturn(ImmutableSortedSet.of(defaultChannel));
-    when(moderator.getUserLevels(defaultChannel)).thenReturn(ImmutableSortedSet.of(UserLevel.OWNER));
-    joinChannel(defaultChannel, moderator);
+    CountDownLatch firstJoinLatch = new CountDownLatch(1);
+    CountDownLatch secondJoinLatch = new CountDownLatch(1);
+    CountDownLatch leaveLatch = new CountDownLatch(1);
+    instance.addChannelsListener(change -> {
+      if (change.wasAdded()) {
+        if (firstJoinLatch.getCount() > 0) {
+          firstJoinLatch.countDown();
+        } else {
+          secondJoinLatch.countDown();
+        }
+      } else if (change.wasRemoved()) {
+        leaveLatch.countDown();
+      }
+    });
 
-    instance.createOrGetChatUser(moderator);
+    instance.joinChannel(channelToJoin);
+    assertTrue(firstJoinLatch.await(TIMEOUT, TIMEOUT_UNIT));
 
-    ChatUser chatUserModerator = instance.getOrCreateChatUser(moderator.getNick());
-    assertTrue(chatUserModerator.moderatorInChannelsProperty().getValue().contains(DEFAULT_CHANNEL_NAME));
+    instance.leaveChannel(channelToJoin);
+    assertTrue(leaveLatch.await(TIMEOUT, TIMEOUT_UNIT));
+
+    instance.joinChannel(channelToJoin);
+    assertTrue(secondJoinLatch.await(TIMEOUT, TIMEOUT_UNIT));
   }
 }
