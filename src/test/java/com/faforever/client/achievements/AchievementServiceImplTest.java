@@ -13,8 +13,10 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievement;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.user.UserService;
 import com.google.api.client.json.JsonFactory;
+import javafx.scene.image.Image;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,9 +33,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static com.faforever.client.theme.ThemeService.DEFAULT_ACHIEVEMENT_IMAGE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -67,6 +70,8 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private FafApiAccessor fafApiAccessor;
   @Mock
+  private ThemeService themeService;
+  @Mock
   private FafService fafService;
   @Mock
   private ThreadPoolExecutor threadPoolExecutor;
@@ -83,6 +88,7 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
     instance.fafService = fafService;
     instance.playerService = playerService;
     instance.threadPoolExecutor = threadPoolExecutor;
+    instance.themeService = themeService;
 
     when(userService.getUid()).thenReturn(PLAYER_ID);
     when(userService.getUsername()).thenReturn(USERNAME);
@@ -101,8 +107,10 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
     Consumer<UpdatedAchievementsMessage> listener = onUpdatedAchievementsCaptor.getValue();
 
     AchievementDefinition achievementDefinition = new AchievementDefinition();
-    achievementDefinition.setUnlockedIconUrl(getClass().getResource("/images/tray_icon.png").toExternalForm());
+    achievementDefinition.setUnlockedIconUrl(getClass().getResource("/theme/images/tray_icon.png").toExternalForm());
     when(fafApiAccessor.getAchievementDefinition("123")).thenReturn(achievementDefinition);
+
+    when(themeService.getThemeImage(DEFAULT_ACHIEVEMENT_IMAGE)).thenReturn(new Image("/theme/images/default_achievement.png"));
 
     UpdatedAchievementsMessage updatedAchievementsMessage = new UpdatedAchievementsMessage();
     UpdatedAchievement updatedAchievement = new UpdatedAchievement();

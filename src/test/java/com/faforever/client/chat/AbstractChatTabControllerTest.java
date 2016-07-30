@@ -43,7 +43,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 
 import static com.faforever.client.chat.AbstractChatTabController.CSS_CLASS_CHAT_ONLY;
-import static com.faforever.client.chat.SocialStatus.*;
+import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.chat.SocialStatus.FRIEND;
+import static com.faforever.client.chat.SocialStatus.OTHER;
+import static com.faforever.client.chat.SocialStatus.SELF;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.core.Is.is;
@@ -52,7 +55,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
@@ -343,7 +348,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
         modifier = KeyCode.CONTROL;
     }
 
-    Image image = new Image(getClass().getResourceAsStream("/images/tray_icon.png"));
+    Image image = new Image(getClass().getResourceAsStream("/theme/images/tray_icon.png"));
 
     String url = "http://www.example.com/fake.png";
     when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));
@@ -363,7 +368,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPasteImageShiftInsert() throws Exception {
-    Image image = new Image(getClass().getResourceAsStream("/images/tray_icon.png"));
+    Image image = new Image(getClass().getResourceAsStream("/theme/images/tray_icon.png"));
 
     String url = "http://www.example.com/fake.png";
     when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));

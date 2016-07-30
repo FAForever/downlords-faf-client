@@ -15,6 +15,6 @@ public class AvatarServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testLoadAvatar() throws Exception {
-    instance.loadAvatar(getClass().getResource("/images/tray_icon.png").toURI().toURL().toString());
+    instance.loadAvatar(getClass().getResource("/theme/images/tray_icon.png").toURI().toURL().toString());
   }
 }
