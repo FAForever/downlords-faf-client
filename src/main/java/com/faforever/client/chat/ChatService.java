@@ -15,6 +15,8 @@ public interface ChatService {
 
   void addOnPrivateChatMessageListener(Consumer<ChatMessage> listener);
 
+  void setOnOpenPrivateChatListener(Consumer<String> chatUser);
+
 
   void connect();
 
@@ -48,6 +50,7 @@ public interface ChatService {
 
   void close();
 
+  // TODO: Refactor and use getOrCreateChatUser instead
   ChatUser createOrGetChatUser(User user);
 
   ObjectProperty<ConnectionState> connectionStateProperty();
