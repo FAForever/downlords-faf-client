@@ -82,7 +82,9 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -841,5 +843,22 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.getOrCreateChatUser(CHAT_USER_NAME);
 
     verify(notificationService, never()).addNotification(any(TransientNotification.class));
+  }
+
+  @Test
+  public void testOnModeratorJoined() throws Exception {
+    connect();
+
+    User moderator = mock(User.class);
+
+    when(moderator.getNick()).thenReturn("moderator");
+    when(moderator.getChannels()).thenReturn(ImmutableSortedSet.of(defaultChannel));
+    when(moderator.getUserLevels(defaultChannel)).thenReturn(ImmutableSortedSet.of(UserLevel.OWNER));
+    joinChannel(defaultChannel, moderator);
+
+    instance.createOrGetChatUser(moderator);
+
+    ChatUser chatUserModerator = instance.getOrCreateChatUser(moderator.getNick());
+    assertTrue(chatUserModerator.moderatorInChannelsProperty().getValue().contains(DEFAULT_CHANNEL_NAME));
   }
 }
