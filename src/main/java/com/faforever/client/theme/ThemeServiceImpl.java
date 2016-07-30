@@ -1,5 +1,6 @@
 package com.faforever.client.theme;
 
+import com.faforever.client.config.CacheNames;
 import com.faforever.client.preferences.PreferencesService;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
@@ -16,6 +17,8 @@ import javafx.stage.Stage;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
@@ -26,7 +29,6 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -88,6 +90,10 @@ public class ThemeServiceImpl implements ThemeService {
   ThreadPoolExecutor threadPoolExecutor;
   @Resource
   Locale locale;
+  @Resource
+  CacheManager cacheManager;
+  @Resource
+  ThemeService themeService;
 
   private WatchService watchService;
   private ObservableMap<String, Theme> themesByFolderName;
@@ -220,13 +226,21 @@ public class ThemeServiceImpl implements ThemeService {
 
   private String getSceneStyleSheet() {
     return getThemeFile(STYLE_CSS);
-  }  @Override
+  }
+
+  @Override
   public String getThemeFile(String relativeFile) {
     Path externalFile = getThemeDirectory(currentTheme.get()).resolve(relativeFile);
     if (Files.notExists(externalFile)) {
       return noCatch(() -> new ClassPathResource(DEFAULT_BASE_URL + relativeFile).getURL().toString());
     }
     return noCatch(() -> externalFile.toUri().toURL().toString());
+  }
+
+  @Override
+  @Cacheable(CacheNames.THEME_IMAGES)
+  public Image getThemeImage(String relativeImage) {
+    return new Image(getThemeFile(relativeImage), true);
   }
 
 
@@ -253,6 +267,7 @@ public class ThemeServiceImpl implements ThemeService {
     preferencesService.storeInBackground();
     reloadStylesheet();
     currentTheme.set(theme);
+    cacheManager.getCache(CacheNames.THEME_IMAGES).clear();
   }
 
   @Override
@@ -305,7 +320,7 @@ public class ThemeServiceImpl implements ThemeService {
   // TODO make this supporting multiple resolutions
   public void setApplicationIconBadgeNumber(Stage stage, int number) {
     if (number == 0) {
-      Platform.runLater(() -> stage.getIcons().set(0, new Image(getThemeFile(TRAY_ICON))));
+      Platform.runLater(() -> stage.getIcons().set(0, themeService.getThemeImage(TRAY_ICON)));
       return;
     }
 

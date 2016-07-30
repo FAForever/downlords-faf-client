@@ -194,20 +194,22 @@ public class ChatUserItemController {
   }
 
   public void setGameStatus(GameStatus gameStatus) {
+    Image statusImage;
     switch (gameStatus) {
       case PLAYING:
-        statusImageView.setImage(new Image(themeService.getThemeFile(ThemeService.PLAYING_STATUS_IMAGE)));
+        statusImage = themeService.getThemeImage(ThemeService.PLAYING_STATUS_IMAGE);
         break;
       case HOST:
-        statusImageView.setImage(new Image(themeService.getThemeFile(ThemeService.HOSTING_STATUS_IMAGE)));
+        statusImage = themeService.getThemeImage(ThemeService.HOSTING_STATUS_IMAGE);
         break;
       case LOBBY:
-        statusImageView.setImage(new Image(themeService.getThemeFile(ThemeService.LOBBY_STATUS_IMAGE)));
+        statusImage = themeService.getThemeImage(ThemeService.LOBBY_STATUS_IMAGE);
         break;
       default:
-        statusImageView.setImage(null);
+        statusImage = null;
     }
-    statusImageView.setVisible(true);
+    statusImageView.setImage(statusImage);
+    statusImageView.setVisible(statusImageView.getImage() != null);
   }
 
   public Pane getRoot() {
@@ -272,6 +274,7 @@ public class ChatUserItemController {
       return;
     }
 
+    // FIXME #294
     Tooltip tooltip = new Tooltip();
     Tooltip.install(clanLabel, tooltip);
     Tooltip.install(usernameLabel, tooltip);

@@ -1,7 +1,12 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.*;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
 import javafx.beans.binding.Bindings;
@@ -98,7 +103,7 @@ public class ModUploadController {
     thumbnailImageView.imageProperty().bind(
         Bindings.createObjectBinding(() -> {
           if (modInfo.getImagePath() != null && Files.isRegularFile(modInfo.getImagePath())) {
-            return new Image(modInfo.getImagePath().toUri().toString());
+            return new Image(modInfo.getImagePath().toUri().toString(), true);
           }
 
           return IdenticonUtil.createIdenticon(modInfo.getId());

@@ -4,7 +4,6 @@ import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WindowController;
-import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.user.UserService;
 import com.neovisionaries.i18n.CountryCode;
@@ -45,8 +44,6 @@ public class UserMenuController {
   @Resource
   UserService userService;
   @Resource
-  GravatarService gravatarService;
-  @Resource
   PlatformService platformService;
   @Resource
   ApplicationContext applicationContext;
@@ -76,12 +73,6 @@ public class UserMenuController {
   void onLogOutButtonClicked() {
     userService.logOut();
     userMenuRoot.getScene().getWindow().hide();
-  }
-
-  @FXML
-  void onUserImageClicked() {
-    // TODO no more email :-(
-//    hostService.showDocument(gravatarService.getProfileUrl(userService.getEmail()));
   }
 
   public void onShowProfileButtonClicked() {

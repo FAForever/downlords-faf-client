@@ -39,7 +39,7 @@ public class MapTileController {
     this.map = map;
     Image image;
     if (map.getSmallThumbnailUrl() != null) {
-      image = new Image(map.getSmallThumbnailUrl().toString());
+      image = mapService.loadSmallPreview(map);
     } else {
       image = IdenticonUtil.createIdenticon(map.getId());
     }

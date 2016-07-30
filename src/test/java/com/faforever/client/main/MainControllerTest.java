@@ -9,7 +9,6 @@ import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
-import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardController;
@@ -25,7 +24,13 @@ import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.*;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.NotificationsPrefs;
+import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.SettingsController;
+import com.faforever.client.preferences.ToastPosition;
+import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.RatingRange;
@@ -36,7 +41,12 @@ import com.faforever.client.theme.ThemeService;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import javafx.application.Platform;
-import javafx.beans.property.*;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
@@ -68,7 +78,10 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class MainControllerTest extends AbstractPlainJavaFxTest {
 
@@ -129,8 +142,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private UserMenuController userMenuController;
   @Mock
-  private GravatarService gravatarService;
-  @Mock
   private TransientNotificationsController transientNotificationsController;
   @Mock
   private NotificationsPrefs notificationPrefs;
@@ -180,7 +191,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.clientUpdateService = clientUpdateService;
     instance.gameService = gameService;
     instance.userMenuController = userMenuController;
-    instance.gravatarService = gravatarService;
     instance.transientNotificationsController = transientNotificationsController;
     instance.loginController = loginController;
     instance.chatService = chatService;

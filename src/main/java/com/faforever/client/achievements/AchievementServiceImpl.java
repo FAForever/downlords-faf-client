@@ -33,6 +33,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class AchievementServiceImpl implements AchievementService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final int ACHIEVEMENT_IMAGE_SIZE = 128;
   private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements;
   private final ObservableList<PlayerAchievement> playerAchievements;
 
@@ -86,21 +87,21 @@ public class AchievementServiceImpl implements AchievementService {
   }
 
   @Override
-  @Cacheable(CacheNames.ACHIEVEMENTS)
+  @Cacheable(CacheNames.ACHIEVEMENT_IMAGES)
   public Image getRevealedIcon(AchievementDefinition achievementDefinition) {
     if (Strings.isNullOrEmpty(achievementDefinition.getRevealedIconUrl())) {
-      return new Image(themeService.getThemeFile(ThemeService.DEFAULT_ACHIEVEMENT_IMAGE), true);
+      return themeService.getThemeImage(ThemeService.DEFAULT_ACHIEVEMENT_IMAGE);
     }
-    return new Image(achievementDefinition.getRevealedIconUrl(), true);
+    return new Image(achievementDefinition.getRevealedIconUrl(), ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE, true, true, true);
   }
 
   @Override
-  @Cacheable(CacheNames.ACHIEVEMENTS)
+  @Cacheable(CacheNames.ACHIEVEMENT_IMAGES)
   public Image getUnlockedIcon(AchievementDefinition achievementDefinition) {
     if (Strings.isNullOrEmpty(achievementDefinition.getUnlockedIconUrl())) {
-      return new Image(themeService.getThemeFile(ThemeService.DEFAULT_ACHIEVEMENT_IMAGE), true);
+      return themeService.getThemeImage(ThemeService.DEFAULT_ACHIEVEMENT_IMAGE);
     }
-    return new Image(achievementDefinition.getUnlockedIconUrl(), true);
+    return new Image(achievementDefinition.getUnlockedIconUrl(), ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE, true, true, true);
   }
 
   private void updatePlayerAchievementsFromServer() {
@@ -129,7 +130,7 @@ public class AchievementServiceImpl implements AchievementService {
     notificationService.addNotification(new TransientNotification(
             i18n.get("achievement.unlockedTitle"),
             achievementDefinition.getName(),
-            new Image(achievementDefinition.getUnlockedIconUrl())
+        getRevealedIcon(achievementDefinition)
         )
     );
   }

@@ -1,14 +1,8 @@
 package com.faforever.client.map;
 
 import com.google.common.io.LittleEndianDataInputStream;
-import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
@@ -34,7 +28,7 @@ import static java.nio.file.Files.isRegularFile;
 import static java.nio.file.Files.list;
 import static org.luaj.vm2.lib.jse.JsePlatform.standardGlobals;
 
-public final class PreviewGenerator extends Application {
+public final class PreviewGenerator {
 
   private static final double RESOURCE_ICON_RATIO = 0.01953125;
   private static final String MASS_IMAGE = "/images/map_markers/mass.png";
@@ -43,14 +37,6 @@ public final class PreviewGenerator extends Application {
 
   private PreviewGenerator() {
     throw new AssertionError("Not instantiatable");
-  }
-
-  @Override
-  public void start(Stage primaryStage) throws Exception {
-    Parent root = new VBox(new ImageView(generatePreview(Paths.get("C:\\Users\\miche\\Documents\\My Games\\Gas Powered Games\\Supreme Commander Forged Alliance\\Maps\\10 The Pass"),
-        1024, 1024)));
-    primaryStage.setScene(new Scene(root));
-    primaryStage.show();
   }
 
   public static javafx.scene.image.Image generatePreview(Path mapFolder, int width, int height) {

@@ -1,5 +1,6 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.FileUtils;
@@ -15,6 +16,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.scene.image.Image;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
@@ -25,6 +27,7 @@ import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
@@ -32,8 +35,19 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
@@ -364,6 +378,19 @@ public class ModServiceImpl implements ModService {
     uploadModTask.setFuture(uploadFuture);
 
     return uploadModTask;
+  }
+
+  @Override
+  @Cacheable(value = CacheNames.MOD_THUMBNAIL, unless = "#result == null")
+  public Image loadThumbnail(ModInfoBean mod) {
+    String url = mod.getThumbnailUrl();
+    if (url == null) {
+      return null;
+    }
+
+    logger.debug("Fetching thumbnail for mod {} from {}", mod.getName(), url);
+
+    return new Image(url, true);
   }
 
   private CompletableFuture<List<ModInfoBean>> getTopElements(Comparator<? super ModInfoBean> comparator, int count) {
