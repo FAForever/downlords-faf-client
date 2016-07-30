@@ -249,6 +249,7 @@ dependencies {
   }
   compile 'com.google.guava:guava:18.0'
   compile 'ch.qos.logback:logback-classic:1.0.13'
+  compile 'ch.qos.logback:logback-core:1.0.13'
   compile 'org.slf4j:slf4j-api:1.7.2'
   compile 'org.apache.commons:commons-compress:1.9'
   compile 'org.apache.httpcomponents:httpclient:4.4.1'
