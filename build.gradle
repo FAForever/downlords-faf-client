@@ -237,6 +237,7 @@ dependencies {
   testCompile "org.testfx:testfx-junit:4.0.+"
   testCompile "nl.jqno.equalsverifier:equalsverifier:1.7.3"
   testCompile 'org.springframework:spring-test:4.2.2.RELEASE'
+  testCompile 'com.natpryce.hamcrest:hamcrest-reflection:0.1-2'
 
   compile 'com.google.code.gson:gson:2.3.1'
   compile 'org.springframework:spring-beans:4.2.2.RELEASE'

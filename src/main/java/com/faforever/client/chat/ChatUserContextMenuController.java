@@ -13,6 +13,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.user.UserService;
+import com.google.common.eventbus.EventBus;
 import javafx.fxml.FXML;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContextMenu;
@@ -94,6 +95,8 @@ public class ChatUserContextMenuController {
   NotificationService notificationService;
   @Resource
   I18n i18n;
+  @Resource
+  EventBus eventBus;
 
   private PlayerInfoBean playerInfoBean;
 
@@ -174,7 +177,7 @@ public class ChatUserContextMenuController {
 
   @FXML
   void onSendPrivateMessage() {
-    // FIXME implement
+    eventBus.post(new InitiatePrivateChatEvent(playerInfoBean.getUsername()));
   }
 
   @FXML
