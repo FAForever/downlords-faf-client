@@ -16,6 +16,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.ThemeService;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
@@ -71,8 +72,6 @@ public class ChatUserItemController {
   @Resource
   CountryFlagService countryFlagService;
   @Resource
-  ChatController chatController;
-  @Resource
   GameService gameService;
   @Resource
   PreferencesService preferencesService;
@@ -92,6 +91,8 @@ public class ChatUserItemController {
   ReportingService reportingService;
   @Resource
   JoinGameHelper joinGameHelper;
+  @Resource
+  EventBus eventBus;
 
   private PlayerInfoBean playerInfoBean;
   private boolean colorsAllowedInPane;
@@ -116,7 +117,7 @@ public class ChatUserItemController {
   @FXML
   void onUsernameClicked(MouseEvent mouseEvent) {
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
-      chatController.openPrivateMessageTabForUser(playerInfoBean.getUsername());
+      eventBus.post(new InitiatePrivateChatEvent(playerInfoBean.getUsername()));
     }
   }
 

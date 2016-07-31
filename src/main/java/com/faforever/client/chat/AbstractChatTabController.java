@@ -8,7 +8,13 @@ import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCopier;
 import com.faforever.client.main.MainController;
-import com.faforever.client.notification.*;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -20,6 +26,7 @@ import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.google.common.eventbus.EventBus;
 import com.google.common.io.CharStreams;
 import com.sun.javafx.scene.control.skin.TabPaneSkin;
 import javafx.application.Platform;
@@ -32,7 +39,11 @@ import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextInputControl;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.KeyCode;
@@ -52,7 +63,11 @@ import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -63,7 +78,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.faforever.client.chat.SocialStatus.*;
+import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.chat.SocialStatus.FRIEND;
+import static com.faforever.client.chat.SocialStatus.SELF;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
@@ -140,6 +157,8 @@ public abstract class AbstractChatTabController {
   ThemeService themeService;
   @Resource
   AutoCompletionHelper autoCompletionHelper;
+  @Resource
+  EventBus eventBus;
 
   private boolean isChatReady;
   private WebEngine engine;
@@ -396,7 +415,7 @@ public abstract class AbstractChatTabController {
    * Called from JavaScript when user clicks on user name in chat
    */
   public void openPrivateMessageTab(String username) {
-    chatController.openPrivateMessageTabForUser(username);
+    eventBus.post(new InitiatePrivateChatEvent(username));
   }
 
   /**

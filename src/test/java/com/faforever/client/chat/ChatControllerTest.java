@@ -3,6 +3,8 @@ package com.faforever.client.chat;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -15,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
+import org.springframework.util.ReflectionUtils;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
@@ -23,11 +26,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -52,6 +56,8 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   private ApplicationContext applicationContext;
   @Mock
   private ChatService chatService;
+  @Mock
+  private EventBus eventBus;
   @Captor
   private ArgumentCaptor<MapChangeListener<String, Channel>> channelsListener;
   @Captor
@@ -70,6 +76,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     instance.userService = userService;
     instance.chatService = chatService;
     instance.applicationContext = applicationContext;
+    instance.eventBus = eventBus;
 
     connectionState = new SimpleObjectProperty<>();
     BooleanProperty loggedInProperty = new SimpleBooleanProperty();
@@ -126,19 +133,20 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
   @Test(expected = IllegalStateException.class)
   public void testOpenPrivateMessageTabForUserNotOnApplicationThread() throws Exception {
-    instance.openPrivateMessageTabForUser("user");
+    instance.onInitiatePrivateChatEvent(new InitiatePrivateChatEvent("user"));
   }
 
   @Test
   public void testOpenPrivateMessageTabForUser() throws Exception {
     when(privateChatTabController.getRoot()).thenReturn(new Tab());
-    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> instance.openPrivateMessageTabForUser("user"));
+    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () ->
+        instance.onInitiatePrivateChatEvent(new InitiatePrivateChatEvent("user")));
   }
 
   @Test
   public void testOpenPrivateMessageTabForSelf() throws Exception {
     when(privateChatTabController.getRoot()).thenReturn(new Tab());
-    instance.openPrivateMessageTabForUser(TEST_USER_NAME);
+    instance.onInitiatePrivateChatEvent(new InitiatePrivateChatEvent(TEST_USER_NAME));
   }
 
   @Test
@@ -194,5 +202,12 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
 
     assertThat(instance.chatsTabPane.getTabs(), hasSize(1));
     assertThat(instance.chatsTabPane.getTabs().get(0).getId(), is(TEST_CHANNEL_NAME));
+  }
+
+  @Test
+  public void testSubscribeAnnotations() {
+    assertThat(ReflectionUtils.findMethod(
+        ChatController.class, "onInitiatePrivateChatEvent", InitiatePrivateChatEvent.class),
+        hasAnnotation(Subscribe.class));
   }
 }

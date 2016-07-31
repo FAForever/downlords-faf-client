@@ -84,10 +84,6 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public void setOnOpenPrivateChatListener(Consumer<String> chatUser) {
-  }
-
-  @Override
   public void connect() {
     timer.schedule(new TimerTask() {
       @Override
