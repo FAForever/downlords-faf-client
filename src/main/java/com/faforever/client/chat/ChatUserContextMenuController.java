@@ -4,6 +4,7 @@ import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameStatus;
+import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -97,6 +98,8 @@ public class ChatUserContextMenuController {
   I18n i18n;
   @Resource
   EventBus eventBus;
+  @Resource
+  JoinGameHelper joinGameHelper;
 
   private PlayerInfoBean playerInfoBean;
 
@@ -241,12 +244,7 @@ public class ChatUserContextMenuController {
   @FXML
   void onJoinGame() {
     GameInfoBean gameInfoBean = gameService.getByUid(playerInfoBean.getGameUid());
-    gameService.joinGame(gameInfoBean, null)
-        .exceptionally(throwable -> {
-          // FIXME implement
-          logger.warn("Game could not be joined", throwable);
-          return null;
-        });
+    joinGameHelper.join(gameInfoBean);
   }
 
   @FXML

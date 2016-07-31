@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
+import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -22,7 +23,6 @@ import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
@@ -58,6 +58,8 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   I18n i18n;
   @Mock
   EventBus eventBus;
+  @Mock
+  JoinGameHelper joinGameHelper;
 
   private ChatUserContextMenuController instance;
   private PlayerInfoBean playerInfoBean;
@@ -76,6 +78,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
     instance.notificationService = notificationService;
     instance.i18n = i18n;
     instance.eventBus = eventBus;
+    instance.joinGameHelper = joinGameHelper;
 
     Preferences preferences = mock(Preferences.class);
     ChatPrefs chatPrefs = mock(ChatPrefs.class);
@@ -172,10 +175,9 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   public void testOnJoinGame() {
     GameInfoBean gameInfoBean = mock(GameInfoBean.class);
     when(gameService.getByUid(anyInt())).thenReturn(gameInfoBean);
-    when(gameService.joinGame(gameInfoBean, null)).thenReturn(mock(CompletableFuture.class));
 
     instance.onJoinGame();
 
-    verify(gameService).joinGame(gameInfoBean, null);
+    verify(joinGameHelper).join(gameInfoBean);
   }
 }
