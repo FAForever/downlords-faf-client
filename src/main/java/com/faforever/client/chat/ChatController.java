@@ -120,7 +120,10 @@ public class ChatController {
 
   private void removeTab(String playerOrChannelName) {
     nameToChatTabController.remove(playerOrChannelName);
-    chatsTabPane.getTabs().remove(nameToChatTabController.remove(playerOrChannelName).getRoot());
+
+    if (nameToChatTabController.containsKey(playerOrChannelName)) {
+      chatsTabPane.getTabs().remove(nameToChatTabController.remove(playerOrChannelName).getRoot());
+    }
   }
 
   private AbstractChatTabController getOrCreateChannelTab(String channelName) {

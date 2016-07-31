@@ -82,7 +82,9 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -301,7 +303,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     joinChannelLatch.countDown();
 
     SocialMessage socialMessage = new SocialMessage();
-    socialMessage.setChannels(Collections.singletonList(DEFAULT_CHANNEL_NAME));
+    socialMessage.setChannels(Collections.emptyList());
 
     socialMessageListenerCaptor.getValue().accept(socialMessage);
   }
@@ -841,5 +843,55 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.getOrCreateChatUser(CHAT_USER_NAME);
 
     verify(notificationService, never()).addNotification(any(TransientNotification.class));
+  }
+
+  @Test
+  public void testRejoinChannel() throws Exception {
+    OutputChannel outputChannel = mock(OutputChannel.class);
+
+    reset(taskService);
+    when(taskService.submitTask(any())).thenReturn(completedFuture(null));
+
+    String channelToJoin = OTHER_CHANNEL_NAME;
+    when(userService.getUsername()).thenReturn("user1");
+    when(userChannelDao.getChannel(channelToJoin)).thenReturn(otherChannel);
+    when(otherChannel.send()).thenReturn(outputChannel);
+    doAnswer(invocation -> {
+      firePircBotXEvent(createJoinEvent(otherChannel, user1));
+      return null;
+    }).when(outputIrc).joinChannel(channelToJoin);
+    doAnswer(invocation -> {
+      firePircBotXEvent(createPartEvent(otherChannel, user1));
+      return null;
+    }).when(outputChannel).part();
+
+    connect();
+    botStartedFuture.get(TIMEOUT, TIMEOUT_UNIT);
+
+    instance.connectionStateProperty().set(ConnectionState.CONNECTED);
+
+    CountDownLatch firstJoinLatch = new CountDownLatch(1);
+    CountDownLatch secondJoinLatch = new CountDownLatch(1);
+    CountDownLatch leaveLatch = new CountDownLatch(1);
+    instance.addChannelsListener(change -> {
+      if (change.wasAdded()) {
+        if (firstJoinLatch.getCount() > 0) {
+          firstJoinLatch.countDown();
+        } else {
+          secondJoinLatch.countDown();
+        }
+      } else if (change.wasRemoved()) {
+        leaveLatch.countDown();
+      }
+    });
+
+    instance.joinChannel(channelToJoin);
+    assertTrue(firstJoinLatch.await(TIMEOUT, TIMEOUT_UNIT));
+
+    instance.leaveChannel(channelToJoin);
+    assertTrue(leaveLatch.await(TIMEOUT, TIMEOUT_UNIT));
+
+    instance.joinChannel(channelToJoin);
+    assertTrue(secondJoinLatch.await(TIMEOUT, TIMEOUT_UNIT));
   }
 }

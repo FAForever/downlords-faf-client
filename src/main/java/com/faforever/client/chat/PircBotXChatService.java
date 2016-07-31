@@ -229,6 +229,9 @@ public class PircBotXChatService implements ChatService {
 
   private void onChatUserLeftChannel(String channelName, String username) {
     getOrCreateChannel(channelName).removeUser(username);
+    if (userService.getUsername().equalsIgnoreCase(username)) {
+      channels.remove(channelName);
+    }
   }
 
   private void onChatUserQuit(String username) {
