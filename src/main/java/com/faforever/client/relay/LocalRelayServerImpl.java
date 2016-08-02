@@ -8,6 +8,7 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
@@ -323,9 +324,12 @@ public class LocalRelayServerImpl implements LocalRelayServer {
                 Collections.singletonList(new ReportAction(i18n, reportingService, throwable))));
         return null;
       });
-    }
-    if (gpgClientMessage.getCommand() == GpgClientCommand.JSON_STATS) {
+    } else if (gpgClientMessage.getCommand() == GpgClientCommand.JSON_STATS) {
       logger.debug("Received game stats: {}", gpgClientMessage.getArgs().get(0));
+    } else if (gpgClientMessage.getCommand() == GpgClientCommand.GAME_FULL) {
+      //TODO: Add a preview map image to this notification
+      //TODO: Add an action which opens fa.exe
+      notificationService.addNotification(new TransientNotification(i18n.get("game.full"), i18n.get("game.full.action")));
     }
 
     fafService.sendGpgMessage(gpgClientMessage);
