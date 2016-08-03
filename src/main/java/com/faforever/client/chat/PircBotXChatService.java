@@ -226,7 +226,18 @@ public class PircBotXChatService implements ChatService {
   }
 
   private void onUserJoinedChannel(String channelName, ChatUser chatUser) {
+    String username = chatUser.getUsername();
     getOrCreateChannel(channelName).addUser(chatUser);
+    PlayerInfoBean player = playerService.getPlayerForUsername(username);
+    if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
+      notificationService.addNotification(
+          new TransientNotification(
+              i18n.get("friend.nowOnlineNotification.title", username),
+              i18n.get("friend.nowOnlineNotification.action"),
+              IdenticonUtil.createIdenticon(username),
+              event -> eventBus.post(new InitiatePrivateChatEvent(username))
+          ));
+    }
   }
 
   private void onChatUserLeftChannel(String channelName, String username) {
@@ -507,18 +518,6 @@ public class PircBotXChatService implements ChatService {
         }
 
         chatUsersByName.put(lowerUsername, ChatUser.fromIrcUser(user, color));
-
-        PlayerInfoBean player = playerService.getPlayerForUsername(username);
-        String identiconSource = player != null ? String.valueOf(player.getId()) : username;
-        if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
-          notificationService.addNotification(
-              new TransientNotification(
-                  i18n.get("friend.nowOnlineNotification.title", username),
-                  i18n.get("friend.nowOnlineNotification.action"),
-                  IdenticonUtil.createIdenticon(identiconSource),
-                  event -> eventBus.post(new InitiatePrivateChatEvent(username))
-              ));
-        }
       }
       return chatUsersByName.get(lowerUsername);
     }
