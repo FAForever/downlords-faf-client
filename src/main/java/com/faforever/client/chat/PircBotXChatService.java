@@ -112,6 +112,8 @@ public class PircBotXChatService implements ChatService {
   String defaultChannelName;
   @Value("${irc.reconnectDelay}")
   int reconnectDelay;
+  private boolean firstConnect;
+  private Consumer<String> onOpenPrivateChatListener;
   private Configuration configuration;
   private PircBotX pircBotX;
   private CountDownLatch chatConnectedLatch;
@@ -127,6 +129,7 @@ public class PircBotXChatService implements ChatService {
 
   @PostConstruct
   void postConstruct() {
+    firstConnect = true;
     fafService.addOnMessageListener(SocialMessage.class, this::onSocialMessage);
     connectionState.addListener((observable, oldValue, newValue) -> {
       switch (newValue) {
@@ -200,7 +203,15 @@ public class PircBotXChatService implements ChatService {
         .thenAccept(message -> {
           chatConnectedLatch.countDown();
           connectionState.set(ConnectionState.CONNECTED);
-          joinChannel(defaultChannelName);
+
+          if (firstConnect) {
+            joinChannel(defaultChannelName);
+            firstConnect = false;
+          } else {
+            channels.keySet().forEach(this::joinChannel);
+          }
+
+
         })
         .exceptionally(throwable -> {
           notificationService.addNotification(

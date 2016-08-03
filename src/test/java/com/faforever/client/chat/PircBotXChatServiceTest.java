@@ -615,10 +615,11 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     assertThat(configuration.getRealName(), is(CHAT_USER_NAME));
     assertThat(configuration.getServers().get(0).getHostname(), is(LOOPBACK_ADDRESS.getHostAddress()));
     assertThat(configuration.getServers().get(0).getPort(), is(IRC_SERVER_PORT));
+    verify(outputIrc).joinChannel(DEFAULT_CHANNEL_NAME);
   }
 
   @Test
-  public void testReconnect() throws Exception {
+  public void testAutoReconnectAfterDisconnect() throws Exception {
     CompletableFuture<Boolean> firstStartFuture = new CompletableFuture<>();
     CompletableFuture<Boolean> secondStartFuture = new CompletableFuture<>();
     doAnswer(invocation -> {
