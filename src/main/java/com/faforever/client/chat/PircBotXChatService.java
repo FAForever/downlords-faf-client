@@ -2,7 +2,6 @@ package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
@@ -17,6 +16,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.eventbus.EventBus;
 import com.google.common.hash.Hashing;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
@@ -102,6 +102,8 @@ public class PircBotXChatService implements ChatService {
   NotificationService notificationService;
   @Resource
   ThreadPoolExecutor threadPoolExecutor;
+  @Resource
+  EventBus eventBus;
   @Value("${irc.host}")
   String ircHost;
   @Value("${irc.port}")
@@ -110,11 +112,11 @@ public class PircBotXChatService implements ChatService {
   String defaultChannelName;
   @Value("${irc.reconnectDelay}")
   int reconnectDelay;
-  private Consumer<String> onOpenPrivateChatListener;
   private Configuration configuration;
   private PircBotX pircBotX;
   private CountDownLatch chatConnectedLatch;
   private Task<Void> connectionTask;
+
   public PircBotXChatService() {
     connectionState = new SimpleObjectProperty<>();
     eventListeners = new ConcurrentHashMap<>();
@@ -336,10 +338,6 @@ public class PircBotXChatService implements ChatService {
     );
   }
 
-  public void setOnOpenPrivateChatListener(Consumer<String> onOpenPrivateChatListener) {
-    this.onOpenPrivateChatListener = onOpenPrivateChatListener;
-  }
-
   @Override
   public void connect() {
     init();
@@ -420,9 +418,7 @@ public class PircBotXChatService implements ChatService {
                   i18n.get("friend.nowOnlineNotification.title", username),
                   i18n.get("friend.nowOnlineNotification.action"),
                   IdenticonUtil.createIdenticon(identiconSource),
-                  new Action(
-                      event -> onOpenPrivateChatListener.accept(username)
-                  )
+                  event -> eventBus.post(new InitiatePrivateChatEvent(username))
               ));
         }
       }
@@ -498,7 +494,8 @@ public class PircBotXChatService implements ChatService {
   @Override
   public ChatUser createOrGetChatUser(User user) {
     synchronized (chatUsersByName) {
-      String lowerUsername = user.getNick().toLowerCase(US);
+      String username = user.getNick();
+      String lowerUsername = username.toLowerCase(US);
       if (!chatUsersByName.containsKey(lowerUsername)) {
         ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
         Color color = null;
@@ -511,17 +508,15 @@ public class PircBotXChatService implements ChatService {
 
         chatUsersByName.put(lowerUsername, ChatUser.fromIrcUser(user, color));
 
-        PlayerInfoBean player = playerService.getPlayerForUsername(user.getNick());
-        String identiconSource = player != null ? String.valueOf(player.getId()) : user.getNick();
+        PlayerInfoBean player = playerService.getPlayerForUsername(username);
+        String identiconSource = player != null ? String.valueOf(player.getId()) : username;
         if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
           notificationService.addNotification(
               new TransientNotification(
-                  i18n.get("friend.nowOnlineNotification.title", user.getNick()),
+                  i18n.get("friend.nowOnlineNotification.title", username),
                   i18n.get("friend.nowOnlineNotification.action"),
                   IdenticonUtil.createIdenticon(identiconSource),
-                  new Action(
-                      event -> onOpenPrivateChatListener.accept(user.getNick())
-                  )
+                  event -> eventBus.post(new InitiatePrivateChatEvent(username))
               ));
         }
       }
