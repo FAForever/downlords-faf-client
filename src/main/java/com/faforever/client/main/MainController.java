@@ -17,7 +17,6 @@ import com.faforever.client.login.LoginController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
-import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.ImmediateNotificationController;
 import com.faforever.client.notification.NotificationService;
@@ -613,7 +612,7 @@ public class MainController implements OnChooseGameDirectoryListener {
         i18n.get("ranked1v1.notification.title"),
         i18n.get("ranked1v1.notification.message"),
         themeService.getThemeImage(ThemeService.RANKED_1V1_IMAGE),
-        new Action(this::onPlayRanked1v1Selected)
+        this::onPlayRanked1v1Selected
     ));
   }
 

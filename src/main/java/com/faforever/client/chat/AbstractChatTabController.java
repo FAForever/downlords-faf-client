@@ -8,7 +8,6 @@ import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCopier;
 import com.faforever.client.main.MainController;
-import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -624,11 +623,11 @@ public abstract class AbstractChatTabController {
         chatMessage.getUsername(),
         chatMessage.getMessage(),
         IdenticonUtil.createIdenticon(identiconSource),
-        new Action(event -> {
+        event -> {
           mainController.selectChatTab();
           stage.toFront();
           getRoot().getTabPane().getSelectionModel().select(getRoot());
-        }))
+        })
     );
   }
 

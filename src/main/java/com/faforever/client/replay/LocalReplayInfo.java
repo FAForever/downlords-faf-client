@@ -43,6 +43,7 @@ public class LocalReplayInfo {
     maxPlayers = gameInfoBean.getMaxPlayers();
     numPlayers = gameInfoBean.getNumPlayers();
     simMods = gameInfoBean.getSimMods();
+    // FIXME this (and all others here) should do a deep copy
     teams = gameInfoBean.getTeams();
     featuredModVersions = gameInfoBean.getFeaturedModVersions();
   }

@@ -1,5 +1,6 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.notification.Action.ActionCallback;
 import com.faforever.client.preferences.PreferencesService;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -35,7 +36,7 @@ public class TransientNotificationController {
   PreferencesService preferencesService;
 
   private ChangeListener<Number> animationListener;
-  private Action action;
+  private ActionCallback action;
   private Timeline timeline;
   private int toastDisplayTime;
 
@@ -95,7 +96,7 @@ public class TransientNotificationController {
     titleLabel.setText(notification.getTitle());
     messageLabel.setText(notification.getText());
     imageView.setImage(notification.getImage());
-    action = notification.getAction();
+    action = notification.getActionCallback();
   }
 
   @FXML

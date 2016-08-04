@@ -27,9 +27,9 @@ public enum GpgClientCommand {
   REHOST("Rehost"),
   DESYNC("Desync"),
   INIT_CONNECTIVITY_TEST("InitiateTest"),
-  // Yes, these are the only lower-cased in the protocol. Because fuck you.
-  CONNECTED_TO_HOST("connectedToHost"),
-  GAME_FULL("GameFull");
+  GAME_FULL("GameFull"),
+  // Yes, this is the only lower-cased command in the protocol. Because reasons.
+  CONNECTED_TO_HOST("connectedToHost");
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

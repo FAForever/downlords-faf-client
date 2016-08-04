@@ -7,14 +7,15 @@ import com.faforever.client.game.GameType;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.SocketAddressUtil;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.relay.event.GameFullEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import org.apache.commons.compress.utils.IOUtils;
@@ -34,7 +35,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -45,6 +45,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.contains;
@@ -102,6 +103,8 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private NotificationService notificationService;
   @Mock
   private I18n i18n;
+  @Mock
+  private EventBus eventBus;
 
   @Captor
   private ArgumentCaptor<Consumer<GameLaunchMessage>> gameLaunchMessageListenerCaptor;
@@ -129,6 +132,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     instance.threadPoolExecutor = threadPoolExecutor;
     instance.notificationService = notificationService;
     instance.i18n = i18n;
+    instance.eventBus = eventBus;
 
     ForgedAlliancePrefs forgedAlliancePrefs = mock(ForgedAlliancePrefs.class);
     Preferences preferences = mock(Preferences.class);
@@ -328,10 +332,9 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGameFull() throws Exception {
     when(i18n.get(anyString())).thenReturn("test");
-    sendFromGame(new GpgClientMessage(GpgClientCommand.GAME_FULL, new ArrayList<Object>()));
+    sendFromGame(new GpgClientMessage(GpgClientCommand.GAME_FULL, emptyList()));
 
-    GpgClientMessage gpgClientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(gpgClientMessage.getCommand(), is(GpgClientCommand.GAME_FULL));
-    verify(notificationService, timeout(TIMEOUT)).addNotification(any(TransientNotification.class));
+    verify(eventBus, timeout(1000)).post(any(GameFullEvent.class));
+    verify(fafService, never()).sendGpgMessage(any(GpgClientMessage.class));
   }
 }
