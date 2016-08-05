@@ -311,6 +311,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   }
 
   private void handleDataFromFa(GpgClientMessage gpgClientMessage) throws IOException {
+    GpgClientCommand command = gpgClientMessage.getCommand();
     if (isIdleLobbyMessage(gpgClientMessage)) {
       String username = userService.getUsername();
       if (lobbyMode == null) {
@@ -322,7 +323,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
       handleCreateLobby(new CreateLobbyServerMessage(lobbyMode, faGamePort, username, userService.getUid(), 1));
       gameUdpSocketFuture.complete(new InetSocketAddress(getLoopbackAddress(), faGamePort));
-    } else if (gpgClientMessage.getCommand() == GpgClientCommand.REHOST) {
+    } else if (command == GpgClientCommand.REHOST) {
       gameService.prepareForRehost().exceptionally(throwable -> {
         logger.warn("Game could not be rehosted", throwable);
         notificationService.addNotification(
@@ -334,10 +335,10 @@ public class LocalRelayServerImpl implements LocalRelayServer {
                 Collections.singletonList(new ReportAction(i18n, reportingService, throwable))));
         return null;
       });
-    } else if (gpgClientMessage.getCommand() == GpgClientCommand.JSON_STATS) {
+    } else if (command == GpgClientCommand.JSON_STATS) {
       logger.debug("Received game stats: {}", gpgClientMessage.getArgs().get(0));
-    } else if (gpgClientMessage.getCommand() == GpgClientCommand.GAME_FULL) {
-      eventBus.post(new GameFullEvent());
+    } else if (command == GpgClientCommand.GAME_FULL) {
+      eventBus.post(new GameFullEvent(null));
       return;
     }
 

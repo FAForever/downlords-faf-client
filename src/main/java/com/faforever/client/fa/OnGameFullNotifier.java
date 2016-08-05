@@ -23,8 +23,9 @@ import static java.lang.Thread.sleep;
 /**
  * Starts flashing the Forged Alliance window whenever a {@link com.faforever.client.relay.event.GameFullEvent} is
  * triggered and stops as soon as the window is focused.
+ * Also shows a transient notification.
  */
-public class OnGameFullFaWindowFlasher {
+public class OnGameFullNotifier {
 
   @Resource
   PlatformService platformService;
