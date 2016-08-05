@@ -5,7 +5,12 @@ import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.notification.*;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -16,13 +21,19 @@ import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.remote.domain.GameTypeMessage;
+import com.faforever.client.reporting.ReportingService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.collections.*;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -36,7 +47,13 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
@@ -44,7 +61,11 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.function.Consumer;
 
 import static com.github.nocatch.NoCatch.noCatch;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.synchronizedList;
+import static java.util.Collections.synchronizedMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class GameServiceImpl implements GameService {
@@ -57,6 +78,7 @@ public class GameServiceImpl implements GameService {
   // values as an observable list (in order to display it in the games table)
   private final ObservableList<GameInfoBean> gameInfoBeans;
   private final Map<Integer, GameInfoBean> uidToGameInfoBean;
+  private final SimpleObjectProperty<GameInfoBean> currentGame;
   @Resource
   FafService fafService;
   @Resource
@@ -81,6 +103,8 @@ public class GameServiceImpl implements GameService {
   ConnectivityService connectivityService;
   @Resource
   LocalRelayServer localRelayServer;
+  @Resource
+  ReportingService reportingService;
   @Value("${ranked1v1.search.maxRadius}")
   float ranked1v1SearchMaxRadius;
   @Value("${ranked1v1.search.radiusIncrement}")
@@ -93,14 +117,13 @@ public class GameServiceImpl implements GameService {
   private BooleanProperty searching1v1;
   private ScheduledFuture<?> searchExpansionFuture;
 
-
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
     uidToGameInfoBean = synchronizedMap(new HashMap<>());
     searching1v1 = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
-
-    gameInfoBeans = FXCollections.observableArrayList(
+    currentGame = new SimpleObjectProperty<>();
+    gameInfoBeans = FXCollections.observableList(synchronizedList(new ArrayList<>()),
         item -> new Observable[]{item.statusProperty()}
     );
   }
@@ -154,7 +177,12 @@ public class GameServiceImpl implements GameService {
         .thenRun(() -> connectivityService.connect())
         .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.requestJoinGame(gameInfoBean.getUid(), password))
-        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayServer.getPort()));
+        .thenAccept(gameLaunchInfo -> {
+          synchronized (currentGame) {
+            currentGame.set(gameInfoBean);
+          }
+          startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayServer.getPort());
+        });
   }
 
   private CompletableFuture<Void> downloadMapIfNecessary(String mapName) {
@@ -332,12 +360,31 @@ public class GameServiceImpl implements GameService {
     });
   }
 
+  @Nullable
+  @Override
+  public GameInfoBean getCurrentGame() {
+    synchronized (currentGame) {
+      return currentGame.get();
+    }
+  }
+
   private boolean isRunning() {
     return process != null && process.isAlive();
   }
 
   private CompletableFuture<Void> updateGameIfNecessary(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUids) {
     return gameUpdateService.updateInBackground(gameType, version, modVersions, simModUids);
+  }
+
+  @Override
+  public boolean isGameRunning() {
+    return gameRunning.get();
+  }
+
+  private void setGameRunning(boolean running) {
+    synchronized (gameRunning) {
+      gameRunning.set(running);
+    }
   }
 
   /**
@@ -362,7 +409,9 @@ public class GameServiceImpl implements GameService {
     } catch (IOException e) {
       logger.warn("Game could not be started", e);
       notificationService.addNotification(
-          new PersistentNotification(i18n.get("gameCouldNotBeStarted", e.getLocalizedMessage()), Severity.ERROR)
+          new ImmediateNotification(i18n.get("errorTitle"),
+              i18n.get("game.start.couldNotStart"), Severity.ERROR, e, Arrays.asList(
+              new ReportAction(i18n, reportingService, e), new DismissAction(i18n)))
       );
     }
   }
@@ -380,12 +429,6 @@ public class GameServiceImpl implements GameService {
       Collections.addAll(fixedArgs, split);
     }
     return fixedArgs;
-  }
-
-  private void setGameRunning(boolean running) {
-    synchronized (gameRunning) {
-      gameRunning.set(running);
-    }
   }
 
   @VisibleForTesting
@@ -428,14 +471,24 @@ public class GameServiceImpl implements GameService {
       return;
     }
 
+    final GameInfoBean gameInfoBean;
     if (!uidToGameInfoBean.containsKey(gameInfoMessage.getUid())) {
-      GameInfoBean gameInfoBean = new GameInfoBean(gameInfoMessage);
+      gameInfoBean = new GameInfoBean(gameInfoMessage);
 
       gameInfoBeans.add(gameInfoBean);
       uidToGameInfoBean.put(gameInfoMessage.getUid(), gameInfoBean);
     } else {
-      Platform.runLater(() -> uidToGameInfoBean.get(gameInfoMessage.getUid()).updateFromGameInfo(gameInfoMessage));
+      gameInfoBean = uidToGameInfoBean.get(gameInfoMessage.getUid());
+      Platform.runLater(() -> gameInfoBean.updateFromGameInfo(gameInfoMessage));
+    }
+
+    boolean currentPlayerInGame = gameInfoMessage.getTeams().values().stream()
+        .anyMatch(team -> team.contains(playerService.getCurrentPlayer().getUsername()));
+
+    if (currentPlayerInGame) {
+      synchronized (currentGame) {
+        currentGame.set(gameInfoBean);
+      }
     }
   }
 }
-

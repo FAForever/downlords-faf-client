@@ -1,31 +1,32 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.notification.Action.ActionCallback;
 import javafx.scene.image.Image;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
 /**
- * A notification that is displayed for a short amount of time, or until the user the user performs a suggested action
- * or dismisses it. The notification consist of a text, an optional image, an optional action and is always
- * rendered with a close button. The action is executed when the user clicks on the notification.
+ * A notification that is displayed for a short amount of time, or until the user the user performs a suggested actionCallback
+ * or dismisses it. The notification consist of a text, an optional image, an optional actionCallback and is always
+ * rendered with a close button. The actionCallback is executed when the user clicks on the notification.
  */
 public class TransientNotification implements Comparable<TransientNotification> {
 
   private final String title;
   private final String text;
   private final Image image;
-  private final Action action;
+  private final ActionCallback actionCallback;
 
   public TransientNotification(String title, String text) {
     this(title, text, null, null);
   }
 
-  public TransientNotification(String title, String text, Image image, Action action) {
+  public TransientNotification(String title, String text, Image image, ActionCallback actionCallback) {
     this.title = title;
     this.text = text;
     this.image = image;
-    this.action = action;
+    this.actionCallback = actionCallback;
   }
 
   public TransientNotification(String title, String text, Image image) {
@@ -44,8 +45,8 @@ public class TransientNotification implements Comparable<TransientNotification> 
     return image;
   }
 
-  public Action getAction() {
-    return action;
+  public ActionCallback getActionCallback() {
+    return actionCallback;
   }
 
   @Override
@@ -55,7 +56,7 @@ public class TransientNotification implements Comparable<TransientNotification> 
 
   @Override
   public int hashCode() {
-    return Objects.hash(title, text, image, action);
+    return Objects.hash(title, text, image, actionCallback);
   }
 
   @Override
@@ -70,6 +71,6 @@ public class TransientNotification implements Comparable<TransientNotification> 
     return Objects.equals(title, that.title) &&
         Objects.equals(text, that.text) &&
         Objects.equals(image, that.image) &&
-        Objects.equals(action, that.action);
+        Objects.equals(actionCallback, that.actionCallback);
   }
 }

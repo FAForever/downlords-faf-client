@@ -1,18 +1,22 @@
 package com.faforever.client.relay;
 
 import com.faforever.client.connectivity.DatagramGateway;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameType;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.relay.event.GameFullEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.user.UserService;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import org.apache.commons.compress.utils.IOUtils;
@@ -81,6 +85,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
    */
   private final Map<Integer, SocketAddress> originalAddressByUid;
   private final BooleanProperty started;
+
   @Resource
   UserService userService;
   @Resource
@@ -97,6 +102,13 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   I18n i18n;
   @Resource
   ReportingService reportingService;
+  @Resource
+  PlatformService platformService;
+  @Resource
+  MapService mapService;
+  @Resource
+  EventBus eventBus;
+
   private FaDataOutputStream gameOutputStream;
   private FaDataInputStream gameInputStream;
   private LobbyMode lobbyMode;
@@ -216,7 +228,6 @@ public class LocalRelayServerImpl implements LocalRelayServer {
    * socket is forwarded through its peer socket.
    *
    * @param originalSocketAddress the original address of the peer, to receive data from and send data to
-   *
    * @return the UDP socket the peer has been bound to
    */
   private DatagramSocket createOrGetRelaySocket(SocketAddress originalSocketAddress) {
@@ -300,6 +311,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   }
 
   private void handleDataFromFa(GpgClientMessage gpgClientMessage) throws IOException {
+    GpgClientCommand command = gpgClientMessage.getCommand();
     if (isIdleLobbyMessage(gpgClientMessage)) {
       String username = userService.getUsername();
       if (lobbyMode == null) {
@@ -311,7 +323,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
       handleCreateLobby(new CreateLobbyServerMessage(lobbyMode, faGamePort, username, userService.getUid(), 1));
       gameUdpSocketFuture.complete(new InetSocketAddress(getLoopbackAddress(), faGamePort));
-    } else if (gpgClientMessage.getCommand() == GpgClientCommand.REHOST) {
+    } else if (command == GpgClientCommand.REHOST) {
       gameService.prepareForRehost().exceptionally(throwable -> {
         logger.warn("Game could not be rehosted", throwable);
         notificationService.addNotification(
@@ -323,9 +335,11 @@ public class LocalRelayServerImpl implements LocalRelayServer {
                 Collections.singletonList(new ReportAction(i18n, reportingService, throwable))));
         return null;
       });
-    }
-    if (gpgClientMessage.getCommand() == GpgClientCommand.JSON_STATS) {
+    } else if (command == GpgClientCommand.JSON_STATS) {
       logger.debug("Received game stats: {}", gpgClientMessage.getArgs().get(0));
+    } else if (command == GpgClientCommand.GAME_FULL) {
+      eventBus.post(new GameFullEvent(null));
+      return;
     }
 
     fafService.sendGpgMessage(gpgClientMessage);

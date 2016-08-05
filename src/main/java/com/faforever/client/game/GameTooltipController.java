@@ -14,10 +14,8 @@ import javafx.scene.layout.VBox;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Resource;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class GameTooltipController {
 
@@ -46,14 +44,14 @@ public class GameTooltipController {
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList) {
-    // Copy to prevent concurrent modification exception
-    Set<Map.Entry<? extends String, ? extends List<String>>> teamEntries = new HashSet<>(teamsList.entrySet());
     Platform.runLater(() -> {
-      teamsPane.getChildren().clear();
-      for (Map.Entry<? extends String, ? extends List<String>> entry : teamEntries) {
-        TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
-        teamCardController.setPlayersInTeam(entry.getKey(), entry.getValue());
-        teamsPane.getChildren().add(teamCardController.getRoot());
+      synchronized (teamsList) {
+        teamsPane.getChildren().clear();
+        for (Map.Entry<? extends String, ? extends List<String>> entry : teamsList.entrySet()) {
+          TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
+          teamCardController.setPlayersInTeam(entry.getKey(), entry.getValue());
+          teamsPane.getChildren().add(teamCardController.getRoot());
+        }
       }
     });
   }

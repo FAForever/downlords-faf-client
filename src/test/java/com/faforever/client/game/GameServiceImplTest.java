@@ -4,6 +4,7 @@ import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
+import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
@@ -12,7 +13,6 @@ import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.remote.domain.GameTypeMessage;
 import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -39,15 +39,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.faforever.client.fa.RatingMode.GLOBAL;
+import static com.faforever.client.remote.domain.GameState.CLOSED;
+import static com.faforever.client.remote.domain.GameState.PLAYING;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.collection.IsEmptyCollection.emptyCollectionOf;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
@@ -306,18 +309,10 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   public void testOnGameInfoAdd() {
     assertThat(instance.getGameInfoBeans(), empty());
 
-    GameInfoMessage gameInfoMessage1 = new GameInfoMessage();
-    gameInfoMessage1.setUid(1);
-    gameInfoMessage1.setTitle("Game 1");
-    gameInfoMessage1.setState(GameState.OPEN);
-    gameInfoMessage1.setPasswordProtected(true);
+    GameInfoMessage gameInfoMessage1 = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage1);
 
-    GameInfoMessage gameInfoMessage2 = new GameInfoMessage();
-    gameInfoMessage2.setUid(2);
-    gameInfoMessage2.setTitle("Game 2");
-    gameInfoMessage2.setState(GameState.OPEN);
-    gameInfoMessage2.setPasswordProtected(true);
+    GameInfoMessage gameInfoMessage2 = GameInfoMessageBuilder.create(2).defaultValues().title("Game 2").get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage2);
 
     GameInfoBean gameInfoBean1 = new GameInfoBean(gameInfoMessage1);
@@ -327,14 +322,35 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testOnGameInfoMessageSetsCurrentGameIfUserIsIn() throws Exception {
+    assertThat(instance.getCurrentGame(), nullValue());
+
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBeanBuilder.create("PlayerName").get());
+
+    GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1234).defaultValues().addTeamMember("1", "PlayerName").get();
+    gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
+
+    assertThat(instance.getCurrentGame(), notNullValue());
+    assertThat(instance.getCurrentGame().getUid(), is(1234));
+  }
+
+  @Test
+  public void testOnGameInfoMessageDoesntSetCurrentGameIfUserDoesntMatch() throws Exception {
+    assertThat(instance.getCurrentGame(), nullValue());
+
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBeanBuilder.create("PlayerName").get());
+
+    GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1234).defaultValues().addTeamMember("1", "Other").get();
+    gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
+
+    assertThat(instance.getCurrentGame(), nullValue());
+  }
+
+  @Test
   public void testOnGameInfoModify() throws InterruptedException {
     assertThat(instance.getGameInfoBeans(), empty());
 
-    GameInfoMessage gameInfoMessage = new GameInfoMessage();
-    gameInfoMessage.setUid(1);
-    gameInfoMessage.setTitle("Game 1");
-    gameInfoMessage.setState(GameState.OPEN);
-    gameInfoMessage.setPasswordProtected(true);
+    GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").state(PLAYING).get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
     CountDownLatch changeLatch = new CountDownLatch(1);
@@ -343,11 +359,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
       changeLatch.countDown();
     });
 
-    gameInfoMessage = new GameInfoMessage();
-    gameInfoMessage.setUid(1);
-    gameInfoMessage.setTitle("Game 1 modified");
-    gameInfoMessage.setState(GameState.PLAYING);
-    gameInfoMessage.setPasswordProtected(true);
+    gameInfoMessage = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1 modified").state(PLAYING).get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
     changeLatch.await();
@@ -358,18 +370,10 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   public void testOnGameInfoRemove() {
     assertThat(instance.getGameInfoBeans(), empty());
 
-    GameInfoMessage gameInfoMessage = new GameInfoMessage();
-    gameInfoMessage.setUid(1);
-    gameInfoMessage.setTitle("Game 1");
-    gameInfoMessage.setState(GameState.OPEN);
-    gameInfoMessage.setPasswordProtected(true);
+    GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
-    gameInfoMessage = new GameInfoMessage();
-    gameInfoMessage.setUid(1);
-    gameInfoMessage.setTitle("Game 1 modified");
-    gameInfoMessage.setState(GameState.CLOSED);
-    gameInfoMessage.setPasswordProtected(true);
+    gameInfoMessage = GameInfoMessageBuilder.create(1).title("Game 1").defaultValues().state(CLOSED).get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
     assertThat(instance.getGameInfoBeans(), empty());
@@ -379,7 +383,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   public void testStartSearchRanked1v1() throws Exception {
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);
-    gameLaunchMessage.setArgs(Collections.<String>emptyList());
+    gameLaunchMessage.setArgs(Collections.emptyList());
     when(fafService.startSearchRanked1v1(Faction.CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
     when(gameUpdateService.updateInBackground(GameType.LADDER_1V1.getString(), null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
     when(applicationContext.getBean(SearchExpansionTask.class)).thenReturn(searchExpansionTask);
@@ -449,17 +453,17 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     ListChangeListener<GameInfoBean> listener = mock(ListChangeListener.class);
     instance.addOnGameInfoBeansChangeListener(listener);
 
-    GameInfoMessage gameInfoMessage = new GameInfoMessage();
-    gameInfoMessage.setUid(1);
-    gameInfoMessage.setHost("host");
-    gameInfoMessage.setTitle("title");
-    gameInfoMessage.setMapname("mapName");
-    gameInfoMessage.setFeaturedMod("mod");
-    gameInfoMessage.setNumPlayers(2);
-    gameInfoMessage.setMaxPlayers(4);
-    gameInfoMessage.setGameType(VictoryCondition.DOMINATION);
-    gameInfoMessage.setState(GameState.PLAYING);
-    gameInfoMessage.setPasswordProtected(false);
+    GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1).defaultValues()
+        .host("host")
+        .title("title")
+        .mapName("mapName")
+        .featuredMod("mod")
+        .numPlayers(2)
+        .maxPlayers(4)
+        .gameType(VictoryCondition.DOMINATION)
+        .state(PLAYING)
+        .passwordProtected(false)
+        .get();
 
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
@@ -478,6 +482,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(gameInfoBean.getMaxPlayers(), is(4));
     assertThat(gameInfoBean.getFeaturedMod(), is("mod"));
     assertThat(gameInfoBean.getVictoryCondition(), is(VictoryCondition.DOMINATION));
-    assertThat(gameInfoBean.getStatus(), is(GameState.PLAYING));
+    assertThat(gameInfoBean.getStatus(), is(PLAYING));
   }
 }

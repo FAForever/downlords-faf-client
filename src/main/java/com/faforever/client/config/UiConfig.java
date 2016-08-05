@@ -21,6 +21,7 @@ import com.faforever.client.chat.PrivateChatTabController;
 import com.faforever.client.chat.UrlPreviewResolver;
 import com.faforever.client.chat.UrlPreviewResolverImpl;
 import com.faforever.client.chat.UserInfoWindowController;
+import com.faforever.client.fa.OnGameFullNotifier;
 import com.faforever.client.fx.DialogFactory;
 import com.faforever.client.fx.DialogFactoryImpl;
 import com.faforever.client.fx.FxmlLoader;
@@ -86,6 +87,12 @@ public class UiConfig {
   @Resource
   BaseConfig baseConfig;
 
+  @Bean
+  OnGameFullNotifier onGameFullFaWindowFlasher() {
+    return new OnGameFullNotifier();
+  }
+
+  // TODO this seems obsolete, remove it
   @Bean
   DialogFactory dialogFactory() {
     return new DialogFactoryImpl();

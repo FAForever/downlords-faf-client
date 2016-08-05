@@ -17,12 +17,21 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.stage.*;
+import javafx.stage.Modality;
+import javafx.stage.Popup;
+import javafx.stage.PopupWindow;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationContext;
 
@@ -254,19 +263,22 @@ public class GamesController {
     if (currentGameInfoBean != null) {
       currentGameInfoBean.getTeams().removeListener(teamsChangeListener);
     }
+
     teamsChangeListener = observable -> createTeams(gameInfoBean.getTeams());
-    gameInfoBean.getTeams().addListener(teamsChangeListener);
     teamsChangeListener.invalidated(gameInfoBean.getTeams());
+    gameInfoBean.getTeams().addListener(teamsChangeListener);
 
     currentGameInfoBean = gameInfoBean;
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber) {
     teamListPane.getChildren().clear();
-    for (Map.Entry<? extends String, ? extends List<String>> entry : playersByTeamNumber.entrySet()) {
-      TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
-      teamCardController.setPlayersInTeam(entry.getKey(), entry.getValue());
-      teamListPane.getChildren().add(teamCardController.getRoot());
+    synchronized (playersByTeamNumber) {
+      for (Map.Entry<? extends String, ? extends List<String>> entry : playersByTeamNumber.entrySet()) {
+        TeamCardController teamCardController = applicationContext.getBean(TeamCardController.class);
+        teamCardController.setPlayersInTeam(entry.getKey(), entry.getValue());
+        teamListPane.getChildren().add(teamCardController.getRoot());
+      }
     }
   }
 }

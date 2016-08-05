@@ -467,10 +467,10 @@ public class ChannelTabController extends AbstractChatTabController {
       // User has not yet been added to this pane; no need to remove him
       return;
     }
-    Platform.runLater(() -> {
-      ChatUserItemController chatUserItemController = paneChatUserControlMap.remove(pane);
-      pane.getChildren().remove(chatUserItemController.getRoot());
-    });
+    Pane root = paneChatUserControlMap.remove(pane).getRoot();
+    if (root != null) {
+      Platform.runLater(() -> pane.getChildren().remove(root));
+    }
   }
 
   /**
@@ -479,8 +479,10 @@ public class ChannelTabController extends AbstractChatTabController {
    */
   private ChatUserItemController createChatUserControlForPlayerIfNecessary(Pane pane, PlayerInfoBean playerInfoBean) {
     String username = playerInfoBean.getUsername();
-    if (!userToChatUserControls.containsKey(username)) {
-      userToChatUserControls.put(username, new HashMap<>(1, 1));
+    synchronized (userToChatUserControls) {
+      if (!userToChatUserControls.containsKey(username)) {
+        userToChatUserControls.put(username, new HashMap<>(1, 1));
+      }
     }
 
     Map<Pane, ChatUserItemController> paneToChatUserControlMap = userToChatUserControls.get(username);
