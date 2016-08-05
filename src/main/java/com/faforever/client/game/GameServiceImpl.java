@@ -6,9 +6,10 @@ import com.faforever.client.fa.RatingMode;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
+import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
@@ -20,6 +21,7 @@ import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.remote.domain.GameTypeMessage;
+import com.faforever.client.reporting.ReportingService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
 import javafx.beans.Observable;
@@ -46,6 +48,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -100,6 +103,8 @@ public class GameServiceImpl implements GameService {
   ConnectivityService connectivityService;
   @Resource
   LocalRelayServer localRelayServer;
+  @Resource
+  ReportingService reportingService;
   @Value("${ranked1v1.search.maxRadius}")
   float ranked1v1SearchMaxRadius;
   @Value("${ranked1v1.search.radiusIncrement}")
@@ -404,7 +409,9 @@ public class GameServiceImpl implements GameService {
     } catch (IOException e) {
       logger.warn("Game could not be started", e);
       notificationService.addNotification(
-          new PersistentNotification(i18n.get("gameCouldNotBeStarted", e.getLocalizedMessage()), Severity.ERROR)
+          new ImmediateNotification(i18n.get("errorTitle"),
+              i18n.get("game.start.couldNotStart"), Severity.ERROR, e, Arrays.asList(
+              new ReportAction(i18n, reportingService, e), new DismissAction(i18n)))
       );
     }
   }
