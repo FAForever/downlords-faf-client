@@ -6,6 +6,7 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameStatus;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.game.JoinGameHelper;
+import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -308,6 +309,20 @@ public class ChatUserItemController {
     Tooltip statusTooltip = new Tooltip();
     statusTooltip.setGraphic(gameStatusTooltipController.getRoot());
     Tooltip.install(statusImageView, statusTooltip);
+  }
+
+  @FXML
+  void onMouseEnterUsername() {
+    if (playerInfoBean.getChatOnly()) {
+      return;
+    } else {
+      PlayerCardTooltipController playerCardTooltipController = applicationContext.getBean(PlayerCardTooltipController.class);
+      playerCardTooltipController.setPlayer(playerInfoBean);
+
+      Tooltip statusTooltip = new Tooltip();
+      statusTooltip.setGraphic(playerCardTooltipController.getRoot());
+      Tooltip.install(usernameLabel, statusTooltip);
+    }
   }
 
   @FXML
