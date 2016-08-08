@@ -1,8 +1,14 @@
 package com.faforever.client.map;
 
 import com.google.common.io.LittleEndianDataInputStream;
+import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;

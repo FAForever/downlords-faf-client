@@ -9,7 +9,11 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import javafx.beans.property.*;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.store.RAMDirectory;
@@ -29,7 +33,12 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -37,10 +46,14 @@ import java.util.function.Consumer;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 public class ModServiceImplTest extends AbstractPlainJavaFxTest {
 
@@ -54,9 +67,9 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   @Rule
   public TemporaryFolder modsDirectory = new TemporaryFolder();
   @Rule
-  public TemporaryFolder corruptedModsDirectory = new TemporaryFolder();
-  @Rule
   public TemporaryFolder faDataDirectory = new TemporaryFolder();
+  @Rule
+  public TemporaryFolder corruptedModsDirectory = new TemporaryFolder();
 
   @Mock
   PreferencesService preferencesService;
@@ -93,6 +106,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     gamePrefsPath = faDataDirectory.getRoot().toPath().resolve("game.prefs");
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(preferencesService.getCorruptedModsDirectory()).thenReturn(corruptedModsDirectory.getRoot().toPath());
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPreferencesFile()).thenReturn(gamePrefsPath);
     when(forgedAlliancePrefs.getModsDirectory()).thenReturn(modsDirectory.getRoot().toPath());

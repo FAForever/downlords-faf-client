@@ -32,8 +32,16 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -56,6 +64,7 @@ public class MapServiceImpl implements MapService {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final float MAP_SIZE_FACTOR = 102.4f;
   private static final Lock LOOKUP_LOCK = new ReentrantLock();
+
   @Resource
   PreferencesService preferencesService;
   @Resource
@@ -70,12 +79,14 @@ public class MapServiceImpl implements MapService {
   ThreadPoolExecutor threadPoolExecutor;
   @Resource
   FafService fafService;
+
   @Value("${vault.mapDownloadUrl}")
   String mapDownloadUrl;
   @Value("${vault.mapPreviewUrl.small}")
   String smallMapPreviewUrl;
   @Value("${vault.mapPreviewUrl.large}")
   String largeMapPreviewUrl;
+
   private Map<Path, MapBean> pathToMap;
   private AnalyzingInfixSuggester suggester;
   private Path mapsDirectory;
@@ -139,11 +150,9 @@ public class MapServiceImpl implements MapService {
 
         while (true) {
           WatchKey key = watcher.take();
-          for (WatchEvent<?> event : key.pollEvents()) {
-            if (event.kind() == ENTRY_DELETE) {
-              removeMap(mapsDirectory.resolve((Path) event.context()));
-            }
-          }
+          key.pollEvents().stream()
+              .filter(event -> event.kind() == ENTRY_DELETE)
+              .forEach(event -> removeMap(mapsDirectory.resolve((Path) event.context())));
           key.reset();
         }
       }
