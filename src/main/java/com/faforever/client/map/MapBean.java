@@ -11,7 +11,7 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class MapBean implements Comparable<MapBean> {
 
@@ -29,7 +29,7 @@ public class MapBean implements Comparable<MapBean> {
   private final ObjectProperty<URL> downloadUrl;
   private final ObjectProperty<URL> smallThumbnailUrl;
   private final ObjectProperty<URL> largeThumbnailUrl;
-  private final ObjectProperty<LocalDate> createTime;
+  private final ObjectProperty<LocalDateTime> createTime;
 
   public MapBean() {
     this.id = new SimpleStringProperty();
@@ -47,6 +47,24 @@ public class MapBean implements Comparable<MapBean> {
     this.downloadUrl = new SimpleObjectProperty<>();
     this.author = new SimpleStringProperty();
     this.createTime = new SimpleObjectProperty<>();
+  }
+
+  public static MapBean fromMap(com.faforever.client.api.Map map) {
+    MapBean mapBean = new MapBean();
+    mapBean.setDescription(map.getDescription());
+    mapBean.setDisplayName(map.getDisplayName());
+    mapBean.setTechnicalName(map.getTechnicalName());
+    mapBean.setSize(new MapSize(map.getSizeX(), map.getSizeY()));
+    mapBean.setDownloads(map.getDownloads());
+    mapBean.setId(map.getId());
+    mapBean.setPlayers(map.getMaxPlayers());
+    mapBean.setRating(map.getRating());
+    mapBean.setVersion(new ComparableVersion(map.getVersion()));
+    mapBean.setDownloadUrl(map.getDownloadUrl());
+    mapBean.setSmallThumbnailUrl(map.getThumbnailUrlSmall());
+    mapBean.setLargeThumbnailUrl(map.getThumbnailUrlLarge());
+    mapBean.setCreateTime(map.getCreateTime());
+    return mapBean;
   }
 
   public String getAuthor() {
@@ -222,32 +240,15 @@ public class MapBean implements Comparable<MapBean> {
     return smallThumbnailUrl;
   }
 
-  public LocalDate getCreateTime() {
+  public LocalDateTime getCreateTime() {
     return createTime.get();
   }
 
-  public void setCreateTime(LocalDate createTime) {
+  public void setCreateTime(LocalDateTime createTime) {
     this.createTime.set(createTime);
   }
 
-  public ObjectProperty<LocalDate> createTimeProperty() {
+  public ObjectProperty<LocalDateTime> createTimeProperty() {
     return createTime;
-  }
-
-  public static MapBean fromMap(com.faforever.client.api.Map map) {
-    MapBean mapBeanInfoBean = new MapBean();
-    mapBeanInfoBean.setDescription(map.getDescription());
-    mapBeanInfoBean.setDisplayName(map.getDisplayName());
-    mapBeanInfoBean.setTechnicalName(map.getTechnicalName());
-    mapBeanInfoBean.setSize(new MapSize(map.getSizeX(), map.getSizeY()));
-    mapBeanInfoBean.setDownloads(map.getDownloads());
-    mapBeanInfoBean.setId(map.getId());
-    mapBeanInfoBean.setPlayers(map.getMaxPlayers());
-    mapBeanInfoBean.setRating(map.getRating());
-    mapBeanInfoBean.setVersion(new ComparableVersion(map.getVersion()));
-    mapBeanInfoBean.setDownloadUrl(map.getDownloadUrl());
-    mapBeanInfoBean.setSmallThumbnailUrl(map.getThumbnailUrlSmall());
-    mapBeanInfoBean.setLargeThumbnailUrl(map.getThumbnailUrlLarge());
-    return mapBeanInfoBean;
   }
 }
