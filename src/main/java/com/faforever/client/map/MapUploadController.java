@@ -8,6 +8,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
@@ -23,15 +24,19 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import static com.faforever.client.io.Bytes.formatSize;
 import static java.util.Arrays.asList;
 
 public class MapUploadController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  @FXML
+  Label bytesLabel;
   @FXML
   Label sizeLabel;
   @FXML
@@ -159,9 +164,16 @@ public class MapUploadController {
   @FXML
   void onUploadClicked() {
     enterUploadingState();
+    Locale locale = i18n.getLocale();
+
     uploadProgressBar.setProgress(0);
     uploadProgressPane.setVisible(true);
-    uploadMapFuture = mapService.uploadMap(mapPath, progress -> uploadProgressBar.setProgress(progress), rankedCheckbox.isSelected())
+    uploadMapFuture = mapService.uploadMap(mapPath,
+        (written, total) -> {
+          uploadProgressBar.setProgress((double) written / total);
+          Platform.runLater(() -> bytesLabel.setText(i18n.get("bytesProgress", formatSize(written, locale), formatSize(total, locale))));
+        },
+        rankedCheckbox.isSelected())
         .thenAccept(aVoid -> enterUploadCompleteState())
         .exceptionally(throwable -> {
           if (!(throwable instanceof CancellationException)) {

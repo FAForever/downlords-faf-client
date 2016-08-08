@@ -3,7 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.Bytes;
 import com.google.common.net.MediaType;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
@@ -17,6 +16,8 @@ import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.faforever.client.io.Bytes.formatSize;
+
 public class UrlPreviewResolverImpl implements UrlPreviewResolver {
 
   private static final Pattern IMGUR_PATTERN = Pattern.compile("https?://imgur\\.com/gallery/(\\w+)");
@@ -29,6 +30,14 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
 
   @Resource
   I18n i18n;
+
+  private static boolean testUrl(String urlString) {
+    try {
+      return ((HttpURLConnection) new URL(urlString).openConnection()).getResponseCode() == HttpURLConnection.HTTP_OK;
+    } catch (IOException e) {
+      return false;
+    }
+  }
 
   @Override
   @Cacheable(CacheNames.URL_PREVIEW)
@@ -59,7 +68,7 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
         imageView.setImage(new Image(guessedUrl));
       }
 
-      String description = i18n.get("urlPreviewDescription", contentType, Bytes.formatSize(contentLength));
+      String description = i18n.get("urlPreviewDescription", contentType, formatSize(contentLength, i18n.getLocale()));
 
       return new Preview(imageView, description);
     } catch (IOException e) {
@@ -95,13 +104,5 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
     }
 
     return urlString;
-  }
-
-  private static boolean testUrl(String urlString) {
-    try {
-      return ((HttpURLConnection) new URL(urlString).openConnection()).getResponseCode() == HttpURLConnection.HTTP_OK;
-    } catch (IOException e) {
-      return false;
-    }
   }
 }

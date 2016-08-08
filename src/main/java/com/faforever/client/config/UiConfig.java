@@ -406,13 +406,13 @@ public class UiConfig {
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   ModUploadController uploadModController() {
-    return loadController("upload_mod.fxml");
+    return loadController("mod_upload.fxml");
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   MapUploadController uploadMapController() {
-    return loadController("upload_map.fxml");
+    return loadController("map_upload.fxml");
   }
 
   @Bean

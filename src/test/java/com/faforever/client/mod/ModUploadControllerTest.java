@@ -31,7 +31,7 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ReportingService reportingService;
   @Mock
-  private UploadModTask uploadModTask;
+  private ModUploadTask modUploadTask;
   @Mock
   private ThreadPoolExecutor threadPoolExecutor;
 
@@ -52,19 +52,19 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnCancelUploadClicked() throws Exception {
-    when(modService.uploadMod(any(), any())).thenReturn(uploadModTask);
-    when(uploadModTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
+    when(modService.uploadMod(any(), any())).thenReturn(modUploadTask);
+    when(modUploadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onUploadClicked();
     instance.onCancelUploadClicked();
 
-    verify(uploadModTask).cancel(true);
+    verify(modUploadTask).cancel(true);
   }
 
   @Test
   public void testOnUploadClicked() throws Exception {
-    when(modService.uploadMod(any(), any())).thenReturn(uploadModTask);
-    when(uploadModTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
+    when(modService.uploadMod(any(), any())).thenReturn(modUploadTask);
+    when(modUploadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onUploadClicked();
 

@@ -1,14 +1,28 @@
 package com.faforever.client.api;
 
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.io.ByteCountListener;
+import com.faforever.client.io.CountingFileContent;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.UriUtil;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
-import com.google.api.client.auth.oauth2.*;
-import com.google.api.client.http.*;
+import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
+import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
+import com.google.api.client.auth.oauth2.BearerToken;
+import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.TokenResponse;
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpHeaders;
+import com.google.api.client.http.HttpMediaType;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.HttpStatusCodes;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.MultipartContent;
 import com.google.api.client.http.json.JsonHttpContent;
 import com.google.api.client.json.GenericJson;
 import com.google.api.client.json.JsonFactory;
@@ -176,7 +190,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
           oAuthClientId,
           oAuthUrl)
           .setDataStoreFactory(dataStoreFactory)
-          .setScopes(Arrays.asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_READ_EVENTS))
+          .setScopes(Arrays.asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_READ_EVENTS, UPLOAD_MAP))
           .build();
 
       credential = authorize(flow, String.valueOf(playerId));
@@ -267,13 +281,14 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   public void uploadMod(Path file) {
-    MultipartContent multipartContent = createFileMultipart(file);
+    MultipartContent multipartContent = createFileMultipart(file, (written, total) -> {
+    });
     postMultipart("/mods/upload", multipartContent);
   }
 
   @Override
-  public void uploadMap(Path file, boolean isRanked) {
-    MultipartContent multipartContent = createFileMultipart(file);
+  public void uploadMap(Path file, boolean isRanked, ByteCountListener listener) {
+    MultipartContent multipartContent = createFileMultipart(file, listener);
     multipartContent.addPart(new MultipartContent.Part(
         new HttpHeaders().set("Content-Disposition", "form-data; name=\"metadata\";"),
         new JsonHttpContent(jsonFactory, new GenericJson() {
@@ -286,16 +301,16 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @NotNull
-  private MultipartContent createFileMultipart(Path file) {
+  private MultipartContent createFileMultipart(Path file, ByteCountListener listener) {
     HttpMediaType mediaType = new HttpMediaType("multipart/form-data").setParameter("boundary", "__END_OF_PART__");
     MultipartContent multipartContent = new MultipartContent().setMediaType(mediaType);
 
     String fileName = file.getFileName().toString();
-    multipartContent.addPart(new MultipartContent.Part(
-        new HttpHeaders().set("Content-Disposition", String.format("form-data; name=\"file\"; filename=\"%s\"", fileName)),
-        new FileContent(guessMediaType(fileName).toString(), file.toFile())
-    ));
-    return multipartContent;
+    CountingFileContent fileContent = new CountingFileContent(guessMediaType(fileName).toString(), file, listener);
+
+    HttpHeaders headers = new HttpHeaders().set("Content-Disposition", String.format("form-data; name=\"file\"; filename=\"%s\"", fileName));
+
+    return multipartContent.addPart(new MultipartContent.Part(headers, fileContent));
   }
 
   private void postMultipart(String endpointPath, MultipartContent multipartContent) {

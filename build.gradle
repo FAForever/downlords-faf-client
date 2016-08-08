@@ -38,7 +38,7 @@ apply plugin: 'distribution'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-version = '0.6.19.1-alpha'
+version = '0.6.19.3-alpha'
 
 class HttpBuilder extends HTTPBuilder {
 
@@ -108,7 +108,7 @@ def buildAssetList() {
   return file("build/install4j").list(new FilenameFilter() {
     @Override
     boolean accept(File dir, String name) {
-      return name =~ /\.exe|updates.xml/
+      return name =~ /\.exe/
     }
   }).collect({ file -> "build/install4j/${file}" })
 }

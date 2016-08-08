@@ -1,5 +1,6 @@
 package com.faforever.client.map;
 
+import com.faforever.client.io.ByteCountListener;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
@@ -10,7 +11,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.function.Consumer;
 
 public interface MapService {
 
@@ -58,5 +58,5 @@ public interface MapService {
 
   Path getPathForMap(String technicalName);
 
-  CompletableFuture<Void> uploadMap(Path mapPath, Consumer<Float> progressListener, boolean ranked);
+  CompletableFuture<Void> uploadMap(Path mapPath, ByteCountListener byteListener, boolean ranked);
 }

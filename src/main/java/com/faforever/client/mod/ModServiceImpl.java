@@ -369,15 +369,15 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public UploadModTask uploadMod(Path modPath, Consumer<Float> progressListener) {
-    UploadModTask uploadModTask = applicationContext.getBean(UploadModTask.class);
-    uploadModTask.setModPath(modPath);
-    uploadModTask.setProgressListener(progressListener);
+  public ModUploadTask uploadMod(Path modPath, Consumer<Float> progressListener) {
+    ModUploadTask modUploadTask = applicationContext.getBean(ModUploadTask.class);
+    modUploadTask.setModPath(modPath);
+    modUploadTask.setProgressListener(progressListener);
 
-    CompletableFuture<Void> uploadFuture = taskService.submitTask(uploadModTask);
-    uploadModTask.setFuture(uploadFuture);
+    CompletableFuture<Void> uploadFuture = taskService.submitTask(modUploadTask);
+    modUploadTask.setFuture(uploadFuture);
 
-    return uploadModTask;
+    return modUploadTask;
   }
 
   @Override

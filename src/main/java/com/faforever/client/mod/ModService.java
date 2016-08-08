@@ -54,7 +54,7 @@ public interface ModService {
 
   ModInfoBean extractModInfo(Path path) throws IOException;
 
-  UploadModTask uploadMod(Path modPath, Consumer<Float> progressListener);
+  ModUploadTask uploadMod(Path modPath, Consumer<Float> progressListener);
 
   Image loadThumbnail(ModInfoBean mod);
 }

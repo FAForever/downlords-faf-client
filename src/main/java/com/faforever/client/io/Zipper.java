@@ -18,11 +18,6 @@ import java.util.zip.ZipOutputStream;
 
 public final class Zipper {
 
-  public interface ByteCountListener {
-
-    void updateBytesWritten(long written, long total);
-  }
-
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final Path directoryToZip;
   private boolean zipContent;
@@ -45,6 +40,14 @@ public final class Zipper {
     // 4K
     bufferSize = 0x1000;
     byteCountInterval = 40;
+  }
+
+  public static Zipper of(Path path) {
+    return new Zipper(path, false);
+  }
+
+  public static Zipper contentOf(Path path) {
+    return new Zipper(path, true);
   }
 
   public Zipper to(ZipOutputStream zipOutputStream) {
@@ -123,13 +126,5 @@ public final class Zipper {
         lastCountUpdate = now;
       }
     }
-  }
-
-  public static Zipper of(Path path) {
-    return new Zipper(path, false);
-  }
-
-  public static Zipper contentOf(Path path) {
-    return new Zipper(path, true);
   }
 }

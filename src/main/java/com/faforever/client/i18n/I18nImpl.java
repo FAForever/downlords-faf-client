@@ -17,4 +17,9 @@ public class I18nImpl implements I18n {
   public String get(String key, Object... args) {
     return messageSource.getMessage(key, args, locale);
   }
+
+  @Override
+  public Locale getLocale() {
+    return locale;
+  }
 }
