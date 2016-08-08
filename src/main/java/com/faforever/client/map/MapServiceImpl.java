@@ -62,7 +62,7 @@ import static java.util.Locale.US;
 public class MapServiceImpl implements MapService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final float MAP_SIZE_FACTOR = 102.4f;
+  private static final float MAP_SIZE_FACTOR = 51.2f;
   private static final Lock LOOKUP_LOCK = new ReentrantLock();
 
   @Resource
