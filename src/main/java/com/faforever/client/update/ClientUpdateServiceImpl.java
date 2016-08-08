@@ -2,7 +2,6 @@ package com.faforever.client.update;
 
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.Bytes;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -19,6 +18,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.Arrays;
 
+import static com.faforever.client.io.Bytes.formatSize;
 import static com.faforever.client.notification.Severity.INFO;
 import static com.faforever.client.notification.Severity.WARN;
 import static java.util.Collections.singletonList;
@@ -61,7 +61,7 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
 
       notificationService.addNotification(
           new PersistentNotification(
-              i18n.get("clientUpdateAvailable.notification", updateInfo.getName(), Bytes.formatSize(updateInfo.getSize())),
+              i18n.get("clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getLocale())),
               INFO,
               Arrays.asList(
                   new Action(

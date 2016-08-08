@@ -12,16 +12,16 @@ import org.mockito.MockitoAnnotations;
 import java.nio.file.Paths;
 
 import static org.hamcrest.collection.IsArrayWithSize.emptyArray;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class UploadModTaskTest {
+public class ModUploadTaskTest {
 
   @Rule
   public TemporaryFolder tempFolder = new TemporaryFolder();
-  private UploadModTask instance;
+  private ModUploadTask instance;
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -31,7 +31,7 @@ public class UploadModTaskTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new UploadModTask();
+    instance = new ModUploadTask();
     instance.preferencesService = preferencesService;
     instance.fafApiAccessor = fafApiAccessor;
 

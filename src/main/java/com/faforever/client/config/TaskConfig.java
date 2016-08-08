@@ -5,11 +5,11 @@ import com.faforever.client.connectivity.FafConnectivityCheckTask;
 import com.faforever.client.connectivity.UpnpPortForwardingTask;
 import com.faforever.client.game.SearchExpansionTask;
 import com.faforever.client.map.DownloadMapTask;
+import com.faforever.client.map.MapUploadTask;
 import com.faforever.client.map.UninstallMapTask;
-import com.faforever.client.map.UploadMapTask;
 import com.faforever.client.mod.InstallModTask;
+import com.faforever.client.mod.ModUploadTask;
 import com.faforever.client.mod.UninstallModTask;
-import com.faforever.client.mod.UploadModTask;
 import com.faforever.client.patch.GitCheckGameUpdateTask;
 import com.faforever.client.patch.UpdateGameFilesTask;
 import com.faforever.client.replay.LoadLocalReplaysTask;
@@ -112,13 +112,13 @@ public class TaskConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  UploadModTask uploadModTask() {
-    return new UploadModTask();
+  ModUploadTask uploadModTask() {
+    return new ModUploadTask();
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  UploadMapTask uploadMapTask() {
-    return new UploadMapTask();
+  MapUploadTask uploadMapTask() {
+    return new MapUploadTask();
   }
 }

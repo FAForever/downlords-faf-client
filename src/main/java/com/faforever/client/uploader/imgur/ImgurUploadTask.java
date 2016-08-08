@@ -2,7 +2,6 @@ package com.faforever.client.uploader.imgur;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCopier;
-import com.faforever.client.io.Bytes;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.ResourceLocks;
 import com.google.common.io.BaseEncoding;
@@ -25,6 +24,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+
+import static com.faforever.client.io.Bytes.formatSize;
 
 public class ImgurUploadTask extends AbstractPrioritizedTask<String> {
 
@@ -59,7 +60,7 @@ public class ImgurUploadTask extends AbstractPrioritizedTask<String> {
     ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
 
     if (byteArrayOutputStream.size() > maxUploadSize) {
-      throw new IllegalArgumentException("Image exceeds max upload size of " + Bytes.formatSize(maxUploadSize));
+      throw new IllegalArgumentException("Image exceeds max upload size of " + formatSize(maxUploadSize, i18n.getLocale()));
     }
 
     String dataImage = BaseEncoding.base64().encode(byteArrayOutputStream.toByteArray());

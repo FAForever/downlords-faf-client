@@ -91,6 +91,7 @@
       <children>
         <Label contentDisplay="TOP" layoutX="108.0" layoutY="30.0" styleClass="h2" text="%mapVault.upload.uploading"/>
         <ProgressBar fx:id="uploadProgressBar" maxWidth="1.7976931348623157E308" progress="0.0"/>
+        <Label fx:id="bytesLabel" text="&lt;bytes&gt;"/>
         <Button mnemonicParsing="false" onAction="#onCancelUploadClicked" text="%cancel"/>
       </children>
     </VBox>

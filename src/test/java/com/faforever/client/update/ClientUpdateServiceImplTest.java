@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.notification.Severity.INFO;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -70,7 +70,7 @@ public class ClientUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     verify(notificationService).addNotification(captor.capture());
     PersistentNotification persistentNotification = captor.getValue();
 
-    verify(i18n).get("clientUpdateAvailable.notification", "v0.4.8.1-alpha", Bytes.formatSize(56079360L));
+    verify(i18n).get("clientUpdateAvailable.notification", "v0.4.8.1-alpha", Bytes.formatSize(56079360L, i18n.getLocale()));
     assertThat(persistentNotification.getSeverity(), is(INFO));
   }
 }

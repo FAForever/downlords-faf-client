@@ -1,5 +1,6 @@
 package com.faforever.client.api;
 
+import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
@@ -46,5 +47,5 @@ public interface FafApiAccessor {
 
   void uploadMod(Path file);
 
-  void uploadMap(Path file, boolean isRanked);
+  void uploadMap(Path file, boolean isRanked, ByteCountListener listener);
 }

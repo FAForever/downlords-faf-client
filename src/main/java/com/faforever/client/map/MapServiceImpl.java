@@ -1,6 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
@@ -47,7 +48,6 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.util.LuaUtil.loadFile;
@@ -389,14 +389,14 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public CompletableFuture<Void> uploadMap(Path mapPath, Consumer<Float> progressListener, boolean ranked) {
-    UploadMapTask uploadMapTask = applicationContext.getBean(UploadMapTask.class);
-    uploadMapTask.setMapPath(mapPath);
-    uploadMapTask.setProgressListener(progressListener);
-    uploadMapTask.setRanked(ranked);
+  public CompletableFuture<Void> uploadMap(Path mapPath, ByteCountListener byteListener, boolean ranked) {
+    MapUploadTask mapUploadTask = applicationContext.getBean(MapUploadTask.class);
+    mapUploadTask.setMapPath(mapPath);
+    mapUploadTask.setByteListener(byteListener);
+    mapUploadTask.setRanked(ranked);
 
-    CompletableFuture<Void> uploadFuture = taskService.submitTask(uploadMapTask);
-    uploadMapTask.setFuture(uploadFuture);
+    CompletableFuture<Void> uploadFuture = taskService.submitTask(mapUploadTask);
+    mapUploadTask.setFuture(uploadFuture);
 
     return uploadFuture;
   }

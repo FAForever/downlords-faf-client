@@ -15,11 +15,6 @@ import static java.nio.file.StandardOpenOption.CREATE;
 
 public final class Unzipper {
 
-  public interface ByteCountListener {
-
-    void updateBytesWritten(long written, long total);
-  }
-
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final ZipInputStream zipInputStream;
   private ByteCountListener byteCountListener;
@@ -34,6 +29,10 @@ public final class Unzipper {
     // 4K
     bufferSize = 0x1000;
     byteCountInterval = 40;
+  }
+
+  public static Unzipper from(ZipInputStream zipInputStream) {
+    return new Unzipper(zipInputStream);
   }
 
   public Unzipper to(Path targetDirectory) {
@@ -100,9 +99,5 @@ public final class Unzipper {
         }
       }
     }
-  }
-
-  public static Unzipper from(ZipInputStream zipInputStream) {
-    return new Unzipper(zipInputStream);
   }
 }

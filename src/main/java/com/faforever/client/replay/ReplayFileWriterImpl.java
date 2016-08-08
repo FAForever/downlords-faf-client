@@ -1,5 +1,6 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.Bytes;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.io.QtCompress;
@@ -28,6 +29,8 @@ public class ReplayFileWriterImpl implements ReplayFileWriter {
   Environment environment;
   @Resource
   PreferencesService preferencesService;
+  @Resource
+  I18n i18n;
 
   public ReplayFileWriterImpl() {
     gson = ReplayFiles.gson();
@@ -38,7 +41,7 @@ public class ReplayFileWriterImpl implements ReplayFileWriter {
     String fileName = String.format(environment.getProperty("replayFileFormat"), replayInfo.getUid(), replayInfo.getRecorder());
     Path replayFile = preferencesService.getReplaysDirectory().resolve(fileName);
 
-    logger.info("Writing replay file to {} ({})", replayFile, Bytes.formatSize(replayData.size()));
+    logger.info("Writing replay file to {} ({})", replayFile, Bytes.formatSize(replayData.size(), i18n.getLocale()));
 
     Files.createDirectories(replayFile.getParent());
 

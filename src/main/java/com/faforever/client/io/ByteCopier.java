@@ -6,11 +6,6 @@ import java.io.OutputStream;
 
 public final class ByteCopier {
 
-  public interface ByteCountListener {
-
-    void updateBytesWritten(long written, long total);
-  }
-
   private final InputStream inputStream;
   private ByteCountListener byteCountListener;
   private int byteCountInterval;
@@ -24,6 +19,10 @@ public final class ByteCopier {
     // 4K
     bufferSize = 0x1000;
     byteCountInterval = 40;
+  }
+
+  public static ByteCopier from(InputStream inputStream) {
+    return new ByteCopier(inputStream);
   }
 
   public ByteCopier to(OutputStream outputStream) {
@@ -70,9 +69,5 @@ public final class ByteCopier {
         lastCountUpdate = now;
       }
     }
-  }
-
-  public static ByteCopier from(InputStream inputStream) {
-    return new ByteCopier(inputStream);
   }
 }

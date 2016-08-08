@@ -387,9 +387,9 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testUploadMod() throws Exception {
-    UploadModTask uploadModTask = mock(UploadModTask.class);
+    ModUploadTask modUploadTask = mock(ModUploadTask.class);
 
-    when(applicationContext.getBean(UploadModTask.class)).thenReturn(uploadModTask);
+    when(applicationContext.getBean(ModUploadTask.class)).thenReturn(modUploadTask);
 
     Path modPath = Paths.get(".");
     Consumer<Float> progressListener = aFloat -> {
@@ -397,12 +397,12 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.uploadMod(modPath, progressListener);
 
-    verify(applicationContext).getBean(UploadModTask.class);
+    verify(applicationContext).getBean(ModUploadTask.class);
 
-    verify(uploadModTask).setModPath(modPath);
-    verify(uploadModTask).setProgressListener(progressListener);
-    verify(uploadModTask).setFuture(any());
+    verify(modUploadTask).setModPath(modPath);
+    verify(modUploadTask).setProgressListener(progressListener);
+    verify(modUploadTask).setFuture(any());
 
-    verify(taskService).submitTask(uploadModTask);
+    verify(taskService).submitTask(modUploadTask);
   }
 }

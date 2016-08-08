@@ -1,7 +1,12 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.*;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
 import javafx.beans.binding.Bindings;
@@ -59,7 +64,7 @@ public class ModUploadController {
   I18n i18n;
 
   private Path modPath;
-  private UploadModTask uploadModTask;
+  private ModUploadTask modUploadTask;
 
   @FXML
   void initialize() {
@@ -115,7 +120,7 @@ public class ModUploadController {
 
   @FXML
   void onCancelUploadClicked() {
-    uploadModTask.cancel(true);
+    modUploadTask.cancel(true);
     enterModInfoState();
   }
 
@@ -139,10 +144,10 @@ public class ModUploadController {
     enterUploadingState();
     uploadProgressBar.setProgress(0);
     uploadProgressPane.setVisible(true);
-    uploadModTask = modService.uploadMod(modPath,
+    modUploadTask = modService.uploadMod(modPath,
         progress -> uploadProgressBar.setProgress(progress)
     );
-    uploadModTask.getFuture()
+    modUploadTask.getFuture()
         .thenAccept(aVoid -> enterUploadCompleteState())
         .exceptionally(throwable -> {
           onUploadFailed(throwable);
