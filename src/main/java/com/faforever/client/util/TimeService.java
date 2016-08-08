@@ -16,7 +16,7 @@ public interface TimeService {
    */
   String lessThanOneDayAgo(Instant instant);
 
-  String asDate(TemporalAccessor instant);
+  String asDate(TemporalAccessor temporalAccessor);
 
   String asShortTime(Instant instant);
 

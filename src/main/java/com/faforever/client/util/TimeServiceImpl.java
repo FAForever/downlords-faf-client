@@ -63,8 +63,11 @@ public class TimeServiceImpl implements TimeService {
   }
 
   @Override
-  public String asDate(TemporalAccessor instant) {
-    return DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).format(ZonedDateTime.from(instant));
+  public String asDate(TemporalAccessor temporalAccessor) {
+    return DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
+        .withLocale(locale)
+        .withZone(TimeZone.getDefault().toZoneId())
+        .format(temporalAccessor);
   }
 
   @Override

@@ -6,11 +6,12 @@ import com.sun.jna.platform.win32.ShlObj;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 public class PreferencesServiceTest {
 
@@ -55,7 +56,9 @@ public class PreferencesServiceTest {
 
   @Test
   public void testGetCorruptedReplaysDirectory() throws Exception {
-    assertThat(instance.getCorruptedReplaysDirectory(), is(instance.getReplaysDirectory().resolve("corrupt")));
+    Path result = instance.getCorruptedReplaysDirectory();
+    Path expected = instance.getReplaysDirectory().resolve("corrupt");
+    assertThat(result, is(expected));
   }
 
   @Test

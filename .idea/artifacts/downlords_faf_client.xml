@@ -14,11 +14,12 @@
           </list>
         </option>
         <option name="description" value="" />
-        <option name="htmlParamFile" value="" />
+        <option name="htmlPlaceholderId" value="" />
         <option name="nativeBundle" value="msi" />
-        <option name="paramFile" value="-Djava.library.path=..\lib" />
+        <option name="paramFile" value="-Djava.library.path=../lib" />
         <option name="title" value="Downlord's FAF Client" />
         <option name="vendor" value="Michel Jung" />
+        <option name="version" value="" />
       </options>
     </properties>
     <root id="root">
