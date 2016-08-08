@@ -2,6 +2,9 @@ package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -79,11 +82,15 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -127,6 +134,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
+  private NotificationService notificationService;
+  @Mock
   private Preferences preferences;
   @Mock
   private ChatPrefs chatPrefs;
@@ -148,6 +157,10 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   private ChannelSnapshot defaultChannelSnapshot;
   @Mock
   private ChannelSnapshot otherChannelSnapshot;
+  @Mock
+  private PlayerService playerService;
+  @Mock
+  private PlayerInfoBean playerInfoBean;
 
   @Captor
   private ArgumentCaptor<Consumer<SocialMessage>> socialMessageListenerCaptor;
@@ -163,6 +176,8 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     instance.fafService = fafService;
     instance.userService = userService;
     instance.taskService = taskService;
+    instance.playerService = playerService;
+    instance.notificationService = notificationService;
     instance.i18n = i18n;
     instance.pircBotXFactory = pircBotXFactory;
     instance.preferencesService = preferencesService;
@@ -288,7 +303,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
     joinChannelLatch.countDown();
 
     SocialMessage socialMessage = new SocialMessage();
-    socialMessage.setChannels(Collections.singletonList(DEFAULT_CHANNEL_NAME));
+    socialMessage.setChannels(Collections.emptyList());
 
     socialMessageListenerCaptor.getValue().accept(socialMessage);
   }
@@ -806,5 +821,77 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
+  }
+
+  @Test
+  public void getOrCreateChatUserFriendNotification() throws Exception {
+    when(playerService.getPlayerForUsername(anyString())).thenReturn(playerInfoBean);
+    when(playerInfoBean.getSocialStatus()).thenReturn(SocialStatus.FRIEND);
+    when(playerInfoBean.getId()).thenReturn(1);
+
+    instance.getOrCreateChatUser(CHAT_USER_NAME);
+
+    verify(notificationService).addNotification(any(TransientNotification.class));
+  }
+
+  @Test
+  public void getOrCreateChatUserFoeNoNotification() throws Exception {
+    when(playerService.getPlayerForUsername(anyString())).thenReturn(playerInfoBean);
+    when(playerInfoBean.getSocialStatus()).thenReturn(SocialStatus.FOE);
+    when(playerInfoBean.getId()).thenReturn(1);
+
+    instance.getOrCreateChatUser(CHAT_USER_NAME);
+
+    verify(notificationService, never()).addNotification(any(TransientNotification.class));
+  }
+
+  @Test
+  public void testRejoinChannel() throws Exception {
+    OutputChannel outputChannel = mock(OutputChannel.class);
+
+    reset(taskService);
+    when(taskService.submitTask(any())).thenReturn(completedFuture(null));
+
+    String channelToJoin = OTHER_CHANNEL_NAME;
+    when(userService.getUsername()).thenReturn("user1");
+    when(userChannelDao.getChannel(channelToJoin)).thenReturn(otherChannel);
+    when(otherChannel.send()).thenReturn(outputChannel);
+    doAnswer(invocation -> {
+      firePircBotXEvent(createJoinEvent(otherChannel, user1));
+      return null;
+    }).when(outputIrc).joinChannel(channelToJoin);
+    doAnswer(invocation -> {
+      firePircBotXEvent(createPartEvent(otherChannel, user1));
+      return null;
+    }).when(outputChannel).part();
+
+    connect();
+    botStartedFuture.get(TIMEOUT, TIMEOUT_UNIT);
+
+    instance.connectionStateProperty().set(ConnectionState.CONNECTED);
+
+    CountDownLatch firstJoinLatch = new CountDownLatch(1);
+    CountDownLatch secondJoinLatch = new CountDownLatch(1);
+    CountDownLatch leaveLatch = new CountDownLatch(1);
+    instance.addChannelsListener(change -> {
+      if (change.wasAdded()) {
+        if (firstJoinLatch.getCount() > 0) {
+          firstJoinLatch.countDown();
+        } else {
+          secondJoinLatch.countDown();
+        }
+      } else if (change.wasRemoved()) {
+        leaveLatch.countDown();
+      }
+    });
+
+    instance.joinChannel(channelToJoin);
+    assertTrue(firstJoinLatch.await(TIMEOUT, TIMEOUT_UNIT));
+
+    instance.leaveChannel(channelToJoin);
+    assertTrue(leaveLatch.await(TIMEOUT, TIMEOUT_UNIT));
+
+    instance.joinChannel(channelToJoin);
+    assertTrue(secondJoinLatch.await(TIMEOUT, TIMEOUT_UNIT));
   }
 }

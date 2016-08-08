@@ -23,8 +23,8 @@
         <RowConstraints minHeight="10.0" vgrow="NEVER"/>
       </rowConstraints>
       <children>
-        <ImageView fx:id="userImageView" fitHeight="80.0" fitWidth="80.0" onMouseClicked="#onUserImageClicked"
-                   pickOnBounds="true" preserveRatio="true" styleClass="pointable" GridPane.rowSpan="2"/>
+          <ImageView fx:id="userImageView" fitHeight="80.0" fitWidth="80.0"
+                     pickOnBounds="true" preserveRatio="true" styleClass="pointable" GridPane.rowSpan="2"/>
         <Label fx:id="usernameLabel" styleClass="h1" text="&lt;Username&gt;" GridPane.columnIndex="1"
                GridPane.columnSpan="2147483647"/>
         <Label fx:id="countryLabel" text="&lt;Country&gt;" GridPane.columnIndex="1" GridPane.columnSpan="2147483647"

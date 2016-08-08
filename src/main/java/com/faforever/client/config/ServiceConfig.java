@@ -20,9 +20,6 @@ import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.ForgedAllianceServiceImpl;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameServiceImpl;
-import com.faforever.client.gravatar.GravatarService;
-import com.faforever.client.gravatar.GravatarServiceImpl;
-import com.faforever.client.gravatar.MockGravatarService;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.LeaderboardServiceImpl;
 import com.faforever.client.leaderboard.MockLeaderboardService;
@@ -323,14 +320,6 @@ public class ServiceConfig {
   @Bean
   EventService eventService() {
     return new EventServiceImpl();
-  }
-
-  @Bean
-  GravatarService gravatarService() {
-    if (environment.containsProperty("faf.testing")) {
-      return new MockGravatarService();
-    }
-    return new GravatarServiceImpl();
   }
 
   @Beta

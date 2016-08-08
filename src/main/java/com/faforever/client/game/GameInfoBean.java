@@ -89,19 +89,25 @@ public class GameInfoBean {
     status.set(gameInfoMessage.getState());
     passwordProtected.set(gameInfoMessage.getPasswordProtected());
 
-    simMods.clear();
-    if (gameInfoMessage.getSimMods() != null) {
-      simMods.putAll(gameInfoMessage.getSimMods());
+    synchronized (simMods.get()) {
+      simMods.clear();
+      if (gameInfoMessage.getSimMods() != null) {
+        simMods.putAll(gameInfoMessage.getSimMods());
+      }
     }
 
-    teams.clear();
-    if (gameInfoMessage.getTeams() != null) {
-      teams.putAll(gameInfoMessage.getTeams());
+    synchronized (teams.get()) {
+      teams.clear();
+      if (gameInfoMessage.getTeams() != null) {
+        teams.putAll(gameInfoMessage.getTeams());
+      }
     }
 
-    featuredModVersions.clear();
-    if (gameInfoMessage.getFeaturedModVersions() != null) {
-      featuredModVersions.putAll(gameInfoMessage.getFeaturedModVersions());
+    synchronized (featuredModVersions.get()) {
+      featuredModVersions.clear();
+      if (gameInfoMessage.getFeaturedModVersions() != null) {
+        featuredModVersions.putAll(gameInfoMessage.getFeaturedModVersions());
+      }
     }
 
     // TODO this can be removed as soon as we get server side support. Until then, let's be hacky
@@ -299,6 +305,10 @@ public class GameInfoBean {
     return simMods;
   }
 
+  /**
+   * Maps team names ("1", "2", ...) to a list of player names.
+   * <strong>Make sure to synchronize on the return value.</strong>
+   */
   public ObservableMap<String, List<String>> getTeams() {
     return teams.get();
   }

@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class TransientNotificationControllerTest extends AbstractPlainJavaFxTest {
 
@@ -21,7 +21,7 @@ public class TransientNotificationControllerTest extends AbstractPlainJavaFxTest
 
   @Test
   public void testSetNotificationWithoutActions() throws Exception {
-    Image image = new Image(getClass().getResource("/images/tray_icon.png").toExternalForm());
+    Image image = new Image(getClass().getResource("/theme/images/tray_icon.png").toExternalForm());
 
     TransientNotification notification = new TransientNotification("title", "text", image);
     instance.setNotification(notification);

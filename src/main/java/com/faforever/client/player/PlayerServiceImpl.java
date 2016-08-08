@@ -21,11 +21,18 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.faforever.client.chat.SocialStatus.*;
+import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.chat.SocialStatus.FRIEND;
+import static com.faforever.client.chat.SocialStatus.OTHER;
+import static com.faforever.client.chat.SocialStatus.SELF;
 
 public class PlayerServiceImpl implements PlayerService {
 
@@ -67,19 +74,25 @@ public class PlayerServiceImpl implements PlayerService {
     gameService.addOnGameInfoBeansChangeListener(listChange -> {
       while (listChange.next()) {
         for (GameInfoBean gameInfoBean : listChange.getRemoved()) {
-          gameInfoBean.getTeams().forEach((team, players) -> updateGameStateForPlayer(players, gameInfoBean));
+          updateGameStateForPlayers(gameInfoBean);
           gameInfoBean.statusProperty().removeListener(statusChangeListeners.remove(gameInfoBean.getUid()));
         }
 
         for (GameInfoBean gameInfoBean : listChange.getAddedSubList()) {
-          gameInfoBean.getTeams().forEach((team, players) -> updateGameStateForPlayer(players, gameInfoBean));
-
-          InvalidationListener statusChangeListener = statusChange -> gameInfoBean.getTeams().forEach((team, updatedPlayer) -> updateGameStateForPlayer(updatedPlayer, gameInfoBean));
+          updateGameStateForPlayers(gameInfoBean);
+          InvalidationListener statusChangeListener = statusChange -> updateGameStateForPlayers(gameInfoBean);
           statusChangeListeners.put(gameInfoBean.getUid(), statusChangeListener);
           gameInfoBean.statusProperty().addListener(new WeakInvalidationListener(statusChangeListener));
         }
       }
     });
+  }
+
+  private void updateGameStateForPlayers(GameInfoBean gameInfoBean) {
+    ObservableMap<String, List<String>> teams = gameInfoBean.getTeams();
+    synchronized (teams) {
+      teams.forEach((team, players) -> updateGameStateForPlayer(players, gameInfoBean));
+    }
   }
 
   //FIXME ugly fix until host can be resolved from gamestate

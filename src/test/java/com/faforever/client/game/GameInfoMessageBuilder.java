@@ -2,6 +2,10 @@ package com.faforever.client.game;
 
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.VictoryCondition;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class GameInfoMessageBuilder {
 
@@ -12,6 +16,10 @@ public class GameInfoMessageBuilder {
     gameInfoMessage.setUid(uid);
   }
 
+  public static GameInfoMessageBuilder create(Integer uid) {
+    return new GameInfoMessageBuilder(uid);
+  }
+
   public GameInfoMessageBuilder defaultValues() {
     gameInfoMessage.setHost("Some host");
     gameInfoMessage.setFeaturedMod(GameType.FAF.getString());
@@ -20,6 +28,7 @@ public class GameInfoMessageBuilder {
     gameInfoMessage.setNumPlayers(1);
     gameInfoMessage.setState(GameState.OPEN);
     gameInfoMessage.setTitle("Test game");
+    gameInfoMessage.setTeams(new HashMap<>());
     gameInfoMessage.setPasswordProtected(false);
     return this;
   }
@@ -28,7 +37,56 @@ public class GameInfoMessageBuilder {
     return gameInfoMessage;
   }
 
-  public static GameInfoMessageBuilder create(Integer uid) {
-    return new GameInfoMessageBuilder(uid);
+  public GameInfoMessageBuilder addTeamMember(String team, String playerName) {
+    if (!gameInfoMessage.getTeams().containsKey(team)) {
+      gameInfoMessage.getTeams().put(team, new ArrayList<>());
+    }
+    gameInfoMessage.getTeams().get(team).add(playerName);
+    return this;
+  }
+
+  public GameInfoMessageBuilder host(String host) {
+    gameInfoMessage.setHost(host);
+    return this;
+  }
+
+  public GameInfoMessageBuilder title(String title) {
+    gameInfoMessage.setTitle(title);
+    return this;
+  }
+
+  public GameInfoMessageBuilder mapName(String mapName) {
+    gameInfoMessage.setMapname(mapName);
+    return this;
+  }
+
+  public GameInfoMessageBuilder featuredMod(String mod) {
+    gameInfoMessage.setFeaturedMod(mod);
+    return this;
+  }
+
+  public GameInfoMessageBuilder numPlayers(int numPlayers) {
+    gameInfoMessage.setNumPlayers(numPlayers);
+    return this;
+  }
+
+  public GameInfoMessageBuilder maxPlayers(int maxPlayers) {
+    gameInfoMessage.setMaxPlayers(maxPlayers);
+    return this;
+  }
+
+  public GameInfoMessageBuilder gameType(VictoryCondition gameType) {
+    gameInfoMessage.setGameType(gameType);
+    return this;
+  }
+
+  public GameInfoMessageBuilder state(GameState state) {
+    gameInfoMessage.setState(state);
+    return this;
+  }
+
+  public GameInfoMessageBuilder passwordProtected(boolean passwordProtected) {
+    gameInfoMessage.setPasswordProtected(passwordProtected);
+    return this;
   }
 }

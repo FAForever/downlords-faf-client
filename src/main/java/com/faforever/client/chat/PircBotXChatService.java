@@ -5,6 +5,8 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
@@ -12,7 +14,9 @@ import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.task.AbstractPrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.IdenticonUtil;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.eventbus.EventBus;
 import com.google.common.hash.Hashing;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
@@ -70,15 +74,9 @@ import static javafx.collections.FXCollections.observableHashMap;
 
 public class PircBotXChatService implements ChatService {
 
-  interface ChatEventListener<T> {
-
-    void onEvent(T event);
-  }
-
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int SOCKET_TIMEOUT = 10000;
   private final Map<Class<? extends Event>, ArrayList<ChatEventListener>> eventListeners;
-
   /**
    * Maps channels by name.
    */
@@ -91,6 +89,8 @@ public class PircBotXChatService implements ChatService {
   @Resource
   UserService userService;
   @Resource
+  PlayerService playerService;
+  @Resource
   TaskService taskService;
   @Resource
   FafService fafService;
@@ -102,6 +102,8 @@ public class PircBotXChatService implements ChatService {
   NotificationService notificationService;
   @Resource
   ThreadPoolExecutor threadPoolExecutor;
+  @Resource
+  EventBus eventBus;
   @Value("${irc.host}")
   String ircHost;
   @Value("${irc.port}")
@@ -224,11 +226,25 @@ public class PircBotXChatService implements ChatService {
   }
 
   private void onUserJoinedChannel(String channelName, ChatUser chatUser) {
+    String username = chatUser.getUsername();
     getOrCreateChannel(channelName).addUser(chatUser);
+    PlayerInfoBean player = playerService.getPlayerForUsername(username);
+    if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
+      notificationService.addNotification(
+          new TransientNotification(
+              i18n.get("friend.nowOnlineNotification.title", username),
+              i18n.get("friend.nowOnlineNotification.action"),
+              IdenticonUtil.createIdenticon(username),
+              event -> eventBus.post(new InitiatePrivateChatEvent(username))
+          ));
+    }
   }
 
   private void onChatUserLeftChannel(String channelName, String username) {
     getOrCreateChannel(channelName).removeUser(username);
+    if (userService.getUsername().equalsIgnoreCase(username)) {
+      channels.remove(channelName);
+    }
   }
 
   private void onChatUserQuit(String username) {
@@ -256,9 +272,11 @@ public class PircBotXChatService implements ChatService {
         .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
         .setAutoSplitMessage(true)
         .setEncoding(UTF_8)
-        .setAutoReconnect(false)
         .addListener(this::onEvent)
         .setSocketTimeout(SOCKET_TIMEOUT)
+        .setMessageDelay(0)
+        .setAutoReconnectDelay(reconnectDelay)
+        .setAutoReconnect(true)
         .buildConfiguration();
 
     pircBotX = pircBotXFactory.createPircBotX(configuration);
@@ -346,10 +364,7 @@ public class PircBotXChatService implements ChatService {
             logger.info("Connecting to IRC at {}:{}", server.getHostname(), server.getPort());
             pircBotX.startBot();
           } catch (IOException | IrcException | RuntimeException e) {
-            // TODO PircBotX 2.1 supports reconnect delay
-            logger.warn("Lost connection to IRC server, trying to reconnect in " + reconnectDelay / 1000 + "s");
             connectionState.set(ConnectionState.DISCONNECTED);
-            Thread.sleep(reconnectDelay);
           }
         }
         return null;
@@ -375,7 +390,6 @@ public class PircBotXChatService implements ChatService {
       @Override
       protected String call() throws Exception {
         updateTitle(i18n.get("chat.sendMessageTask.title"));
-
         pircBotX.sendIRC().message(target, message);
         return message;
       }
@@ -406,6 +420,18 @@ public class PircBotXChatService implements ChatService {
         }
 
         chatUsersByName.put(lowerUsername, new ChatUser(username, color));
+
+        PlayerInfoBean player = playerService.getPlayerForUsername(username);
+        String identiconSource = player != null ? String.valueOf(player.getId()) : username;
+        if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
+          notificationService.addNotification(
+              new TransientNotification(
+                  i18n.get("friend.nowOnlineNotification.title", username),
+                  i18n.get("friend.nowOnlineNotification.action"),
+                  IdenticonUtil.createIdenticon(identiconSource),
+                  event -> eventBus.post(new InitiatePrivateChatEvent(username))
+              ));
+        }
       }
       return chatUsersByName.get(lowerUsername);
     }
@@ -479,7 +505,8 @@ public class PircBotXChatService implements ChatService {
   @Override
   public ChatUser createOrGetChatUser(User user) {
     synchronized (chatUsersByName) {
-      String lowerUsername = user.getNick().toLowerCase(US);
+      String username = user.getNick();
+      String lowerUsername = username.toLowerCase(US);
       if (!chatUsersByName.containsKey(lowerUsername)) {
         ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
         Color color = null;
@@ -522,5 +549,10 @@ public class PircBotXChatService implements ChatService {
   @Override
   public ReadOnlyIntegerProperty unreadMessagesCount() {
     return unreadMessagesCount;
+  }
+
+  interface ChatEventListener<T> {
+
+    void onEvent(T event);
   }
 }

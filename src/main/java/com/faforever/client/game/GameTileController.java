@@ -107,13 +107,20 @@ public class GameTileController {
 
     lockIconLabel.visibleProperty().bind(gameInfoBean.passwordProtectedProperty());
 
-    // TODO move tooltip Y position down 10 pixels
-    // TODO create on hover, not always
-    GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);
-    gameTooltipController.setGameInfoBean(gameInfoBean);
     Tooltip tooltip = new Tooltip();
-    tooltip.setGraphic(gameTooltipController.getRoot());
     Tooltip.install(gameTileRoot, tooltip);
+    tooltip.activatedProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);
+        gameTooltipController.setGameInfoBean(gameInfoBean);
+        tooltip.setGraphic(gameTooltipController.getRoot());
+      }
+    });
+    tooltip.showingProperty().addListener((observable, oldValue, newValue) -> {
+      if (!newValue) {
+        tooltip.setGraphic(null);
+      }
+    });
   }
 
   @FXML

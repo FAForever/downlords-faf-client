@@ -10,7 +10,6 @@ import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
-import com.faforever.client.gravatar.GravatarService;
 import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardController;
@@ -18,7 +17,14 @@ import com.faforever.client.login.LoginController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
-import com.faforever.client.notification.*;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.ImmediateNotificationController;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.PersistentNotificationsController;
+import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
@@ -53,13 +59,27 @@ import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
-import javafx.scene.control.*;
-import javafx.scene.image.Image;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBase;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.Labeled;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.SplitMenuButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.stage.*;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Modality;
+import javafx.stage.Popup;
+import javafx.stage.PopupWindow;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import org.bridj.Pointer;
 import org.bridj.PointerIO;
 import org.bridj.cpp.com.COMRuntime;
@@ -80,7 +100,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
 
-import static com.faforever.client.fx.WindowController.WindowButtonType.*;
+import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
+import static com.faforever.client.fx.WindowController.WindowButtonType.MAXIMIZE_RESTORE;
+import static com.faforever.client.fx.WindowController.WindowButtonType.MINIMIZE;
 import static com.faforever.client.os.OperatingSystem.WINDOWS;
 import static com.github.nocatch.NoCatch.noCatch;
 
@@ -164,8 +186,6 @@ public class MainController implements OnChooseGameDirectoryListener {
   I18n i18n;
   @Resource
   UserService userService;
-  @Resource
-  GravatarService gravatarService;
   @Resource
   TaskService taskService;
   @Resource
@@ -591,8 +611,8 @@ public class MainController implements OnChooseGameDirectoryListener {
     notificationService.addNotification(new TransientNotification(
         i18n.get("ranked1v1.notification.title"),
         i18n.get("ranked1v1.notification.message"),
-        new Image(themeService.getThemeFile(ThemeService.RANKED_1V1_IMAGE)),
-        new Action(this::onPlayRanked1v1Selected)
+        themeService.getThemeImage(ThemeService.RANKED_1V1_IMAGE),
+        this::onPlayRanked1v1Selected
     ));
   }
 

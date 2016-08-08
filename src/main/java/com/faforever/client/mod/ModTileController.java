@@ -71,7 +71,7 @@ public class ModTileController {
     this.mod = mod;
     Image image;
     if (StringUtils.isNotEmpty(mod.getThumbnailUrl())) {
-      image = new Image(mod.getThumbnailUrl());
+      image = modService.loadThumbnail(mod);
     } else {
       image = IdenticonUtil.createIdenticon(mod.getId());
     }

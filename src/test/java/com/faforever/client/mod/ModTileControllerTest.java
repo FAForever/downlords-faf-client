@@ -6,6 +6,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.image.Image;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -15,7 +16,7 @@ import java.util.function.Consumer;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -52,14 +53,16 @@ public class ModTileControllerTest extends AbstractPlainJavaFxTest {
         .defaultValues()
         .name("Mod name")
         .author("Mod author")
-        .thumbnailUrl(getClass().getResource("/images/tray_icon.png").toExternalForm())
+        .thumbnailUrl(getClass().getResource("/theme/images/tray_icon.png").toExternalForm())
         .get();
 
+    when(modService.loadThumbnail(mod)).thenReturn(new Image("/theme/images/tray_icon.png"));
     instance.setMod(mod);
 
     assertThat(instance.nameLabel.getText(), is("Mod name"));
     assertThat(instance.authorLabel.getText(), is("Mod author"));
     assertThat(instance.thumbnailImageView.getImage(), is(notNullValue()));
+    verify(modService).loadThumbnail(mod);
   }
 
   @Test

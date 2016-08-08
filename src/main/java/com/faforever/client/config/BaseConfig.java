@@ -6,6 +6,7 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
+import com.google.common.eventbus.EventBus;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
@@ -84,5 +85,10 @@ public class BaseConfig {
   @Bean
   ClientHttpRequestFactory clientHttpRequestFactory() {
     return new SimpleClientHttpRequestFactory();
+  }
+
+  @Bean
+  EventBus eventBus() {
+    return new EventBus();
   }
 }

@@ -3,6 +3,7 @@ package com.faforever.client.mod;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
+import javafx.scene.image.Image;
 
 import java.io.IOException;
 import java.net.URL;
@@ -54,4 +55,6 @@ public interface ModService {
   ModInfoBean extractModInfo(Path path) throws IOException;
 
   UploadModTask uploadMod(Path modPath, Consumer<Float> progressListener);
+
+  Image loadThumbnail(ModInfoBean mod);
 }

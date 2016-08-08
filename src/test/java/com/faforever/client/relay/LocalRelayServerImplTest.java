@@ -4,14 +4,18 @@ import com.faforever.client.connectivity.DatagramGateway;
 import com.faforever.client.connectivity.TurnServerAccessor;
 import com.faforever.client.game.GameLaunchMessageBuilder;
 import com.faforever.client.game.GameType;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.SocketAddressUtil;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.relay.event.GameFullEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import org.apache.commons.compress.utils.IOUtils;
@@ -41,6 +45,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.contains;
@@ -49,12 +54,15 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.util.SocketUtils.PORT_RANGE_MAX;
@@ -91,6 +99,12 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private ThreadPoolExecutor threadPoolExecutor;
   @Mock
   private DatagramGateway datagramGateway;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private I18n i18n;
+  @Mock
+  private EventBus eventBus;
 
   @Captor
   private ArgumentCaptor<Consumer<GameLaunchMessage>> gameLaunchMessageListenerCaptor;
@@ -116,6 +130,9 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     instance.preferencesService = preferencesService;
     instance.fafService = fafService;
     instance.threadPoolExecutor = threadPoolExecutor;
+    instance.notificationService = notificationService;
+    instance.i18n = i18n;
+    instance.eventBus = eventBus;
 
     ForgedAlliancePrefs forgedAlliancePrefs = mock(ForgedAlliancePrefs.class);
     Preferences preferences = mock(Preferences.class);
@@ -309,5 +326,15 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     GpgServerMessage receivedMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(receivedMessage.getMessageType(), is(GpgServerMessageType.DISCONNECT_FROM_PEER));
     assertThat(receivedMessage.getArgs(), contains(79359));
+  }
+
+
+  @Test
+  public void testGameFull() throws Exception {
+    when(i18n.get(anyString())).thenReturn("test");
+    sendFromGame(new GpgClientMessage(GpgClientCommand.GAME_FULL, emptyList()));
+
+    verify(eventBus, timeout(1000)).post(any(GameFullEvent.class));
+    verify(fafService, never()).sendGpgMessage(any(GpgClientMessage.class));
   }
 }

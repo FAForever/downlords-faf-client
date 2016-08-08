@@ -15,15 +15,17 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Arrays;
 
 import static com.faforever.client.config.CacheNames.ACHIEVEMENTS;
+import static com.faforever.client.config.CacheNames.ACHIEVEMENT_IMAGES;
 import static com.faforever.client.config.CacheNames.AVATARS;
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
-import static com.faforever.client.config.CacheNames.GRAVATAR;
 import static com.faforever.client.config.CacheNames.LARGE_MAP_PREVIEW;
 import static com.faforever.client.config.CacheNames.LEADERBOARD;
 import static com.faforever.client.config.CacheNames.MAPS;
 import static com.faforever.client.config.CacheNames.MODS;
+import static com.faforever.client.config.CacheNames.MOD_THUMBNAIL;
 import static com.faforever.client.config.CacheNames.SMALL_MAP_PREVIEW;
 import static com.faforever.client.config.CacheNames.STATISTICS;
+import static com.faforever.client.config.CacheNames.THEME_IMAGES;
 import static com.faforever.client.config.CacheNames.URL_PREVIEW;
 import static com.google.common.cache.CacheBuilder.newBuilder;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -38,18 +40,23 @@ public class CacheConfig implements CachingConfigurer {
   public CacheManager cacheManager() {
     SimpleCacheManager simpleCacheManager = new SimpleCacheManager();
     simpleCacheManager.setCaches(Arrays.asList(
-        new GuavaCache(LARGE_MAP_PREVIEW, newBuilder().maximumSize(30).build()),
-        new GuavaCache(SMALL_MAP_PREVIEW, newBuilder().maximumSize(30).build()),
-        new GuavaCache(COUNTRY_FLAGS, newBuilder().maximumSize(100).build()),
-        new GuavaCache(AVATARS, newBuilder().maximumSize(30).build()),
-        new GuavaCache(URL_PREVIEW, newBuilder().maximumSize(10).expireAfterAccess(30, MINUTES).build()),
         new GuavaCache(STATISTICS, newBuilder().maximumSize(10).expireAfterAccess(20, MINUTES).build()),
-        new GuavaCache(GRAVATAR, newBuilder().maximumSize(10).expireAfterAccess(120, MINUTES).build()),
         new GuavaCache(ACHIEVEMENTS, newBuilder().maximumSize(1).expireAfterAccess(120, MINUTES).build()),
         new GuavaCache(MODS, newBuilder().maximumSize(10).expireAfterAccess(120, MINUTES).build()),
         new GuavaCache(MAPS, newBuilder().maximumSize(10).expireAfterAccess(120, MINUTES).build()),
-        new GuavaCache(LEADERBOARD, newBuilder().maximumSize(1).expireAfterAccess(30, SECONDS).build())
-    ));
+        new GuavaCache(LEADERBOARD, newBuilder().maximumSize(1).expireAfterAccess(30, SECONDS).build()),
+
+        // Images should only be cached as long as they are in use. This avoids loading an image multiple times, while
+        // at the same time it doesn't prevent unused images from being garbage collected.
+        new GuavaCache(ACHIEVEMENT_IMAGES, newBuilder().weakValues().build()),
+        new GuavaCache(AVATARS, newBuilder().weakValues().build()),
+        new GuavaCache(URL_PREVIEW, newBuilder().weakValues().expireAfterAccess(30, MINUTES).build()),
+        new GuavaCache(LARGE_MAP_PREVIEW, newBuilder().weakValues().build()),
+        new GuavaCache(SMALL_MAP_PREVIEW, newBuilder().weakValues().build()),
+        new GuavaCache(COUNTRY_FLAGS, newBuilder().weakValues().build()),
+        new GuavaCache(THEME_IMAGES, newBuilder().weakValues().build()),
+        new GuavaCache(MOD_THUMBNAIL, newBuilder().weakValues().build()
+        )));
     return simpleCacheManager;
   }
 

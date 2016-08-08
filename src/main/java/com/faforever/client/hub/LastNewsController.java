@@ -7,7 +7,6 @@ import com.faforever.client.theme.ThemeService;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.jsoup.Jsoup;
 
@@ -53,6 +52,6 @@ public class LastNewsController {
     }
 
     // TODO only use this if there's no thumbnail. However, there's never a thumbnail ATM.
-    imageView.setImage(new Image(themeService.getThemeFile(ThemeService.DEFAULT_NEWS_IMAGE)));
+    imageView.setImage(themeService.getThemeImage(ThemeService.DEFAULT_NEWS_IMAGE));
   }
 }

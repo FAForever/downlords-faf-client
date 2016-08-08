@@ -14,7 +14,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
@@ -106,7 +105,7 @@ public class ModDetailController {
   public void setMod(ModInfoBean mod) {
     this.mod = mod;
     if (StringUtils.isNotEmpty(mod.getThumbnailUrl())) {
-      thumbnailImageView.setImage(new Image(mod.getThumbnailUrl()));
+      thumbnailImageView.setImage(modService.loadThumbnail(mod));
     } else {
       thumbnailImageView.setImage(IdenticonUtil.createIdenticon(mod.getId()));
     }

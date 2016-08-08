@@ -3,6 +3,8 @@ package com.faforever.client.chat;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ProgrammingError;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.collections.ListChangeListener;
@@ -30,6 +32,8 @@ public class ChatController {
   ApplicationContext applicationContext;
   @Resource
   UserService userService;
+  @Resource
+  EventBus eventBus;
 
   @FXML
   Node chatRoot;
@@ -48,6 +52,8 @@ public class ChatController {
 
   @PostConstruct
   void postConstruct() {
+    eventBus.register(this);
+
     chatService.addOnMessageListener(this::onChannelMessage);
     chatService.addOnPrivateChatMessageListener(this::onPrivateMessage);
     chatService.addChannelsListener(change -> {
@@ -114,7 +120,10 @@ public class ChatController {
 
   private void removeTab(String playerOrChannelName) {
     nameToChatTabController.remove(playerOrChannelName);
-    chatsTabPane.getTabs().remove(nameToChatTabController.remove(playerOrChannelName).getRoot());
+
+    if (nameToChatTabController.containsKey(playerOrChannelName)) {
+      chatsTabPane.getTabs().remove(nameToChatTabController.remove(playerOrChannelName).getRoot());
+    }
   }
 
   private AbstractChatTabController getOrCreateChannelTab(String channelName) {
@@ -172,7 +181,12 @@ public class ChatController {
     return chatRoot;
   }
 
-  public void openPrivateMessageTabForUser(String username) {
+  @Subscribe
+  public void onInitiatePrivateChatEvent(InitiatePrivateChatEvent event) {
+    openPrivateMessageTabForUser(event.getUsername());
+  }
+
+  void openPrivateMessageTabForUser(String username) {
     if (username.equalsIgnoreCase(userService.getUsername())) {
       return;
     }
