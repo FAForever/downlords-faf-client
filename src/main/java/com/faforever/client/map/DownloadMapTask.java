@@ -26,7 +26,7 @@ public class DownloadMapTask extends AbstractPrioritizedTask<Void> {
   I18n i18n;
 
   private URL mapUrl;
-  private String technicalMapName;
+  private String folderName;
 
   public DownloadMapTask() {
     super(Priority.HIGH);
@@ -35,10 +35,10 @@ public class DownloadMapTask extends AbstractPrioritizedTask<Void> {
   @Override
   protected Void call() throws Exception {
     Objects.requireNonNull(mapUrl, "mapUrl has not been set");
-    Objects.requireNonNull(technicalMapName, "technicalMapName has not been set");
+    Objects.requireNonNull(folderName, "folderName has not been set");
 
-    updateTitle(i18n.get("mapDownloadTask.title", technicalMapName));
-    logger.info("Downloading map {} from {}", technicalMapName, mapUrl);
+    updateTitle(i18n.get("mapDownloadTask.title", folderName));
+    logger.info("Downloading map {} from {}", folderName, mapUrl);
 
     URLConnection urlConnection = mapUrl.openConnection();
     int bytesToRead = urlConnection.getContentLength();
@@ -60,7 +60,7 @@ public class DownloadMapTask extends AbstractPrioritizedTask<Void> {
     this.mapUrl = mapUrl;
   }
 
-  public void setTechnicalMapName(String technicalMapName) {
-    this.technicalMapName = technicalMapName;
+  public void setFolderName(String folderName) {
+    this.folderName = folderName;
   }
 }

@@ -400,10 +400,10 @@ public class MapServiceImpl implements MapService {
     return uploadFuture;
   }
 
-  private CompletableFuture<Void> downloadAndInstallMap(String technicalName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
+  private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
     DownloadMapTask task = applicationContext.getBean(DownloadMapTask.class);
     task.setMapUrl(downloadUrl);
-    task.setTechnicalMapName(technicalName);
+    task.setFolderName(folderName);
 
     if (progressProperty != null) {
       progressProperty.bind(task.progressProperty());
@@ -413,7 +413,7 @@ public class MapServiceImpl implements MapService {
     }
 
     return taskService.submitTask(task)
-        .thenAccept(aVoid -> noCatch(() -> addMap(getPathForMap(technicalName))));
+        .thenAccept(aVoid -> noCatch(() -> addMap(getPathForMap(folderName))));
   }
 
   @Nullable
