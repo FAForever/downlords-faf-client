@@ -129,7 +129,7 @@ public class MapUploadController {
         () -> i18n.get("mapVault.upload.playersFormat", mapInfo.getPlayers()), mapInfo.playersProperty())
     );
 
-    Image image = PreviewGenerator.generatePreview(mapService.getPathForMap(mapInfo), 256, 256);
+    Image image = PreviewGenerator.generatePreview(mapPath, 256, 256);
     thumbnailImageView.setImage(image);
   }
 
