@@ -28,7 +28,7 @@
     </Label>
     <Label fx:id="playsLabel" text="1" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
       <graphic>
-        <Label styleClass="fontawesome" text=""/>
+        <Label styleClass="fontawesome" text=""/>
       </graphic>
     </Label>
     <Label text="%map.updated" GridPane.rowIndex="4"/>
