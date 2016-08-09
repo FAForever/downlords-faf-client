@@ -49,10 +49,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,7 +57,6 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -110,43 +105,10 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   HttpRequestFactory requestFactory;
   private FileDataStoreFactory dataStoreFactory;
 
-  // FIXME remove as soon as test server has a proper HTTPS certificate
-  private static void disableSslVerification() {
-    noCatch(() -> {
-      TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
-        @Override
-        public void checkClientTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws CertificateException {
-
-        }
-
-        @Override
-        public void checkServerTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws CertificateException {
-
-        }
-
-        @Override
-        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-          return new java.security.cert.X509Certificate[0];
-        }
-      }
-      };
-
-      SSLContext sc = SSLContext.getInstance("SSL");
-      sc.init(null, trustAllCerts, new java.security.SecureRandom());
-      HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-      HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
-    });
-  }
-
   @PostConstruct
   void postConstruct() throws IOException {
     Path playServicesDirectory = preferencesService.getPreferencesDirectory().resolve("oauth");
     dataStoreFactory = new FileDataStoreFactory(playServicesDirectory.toFile());
-
-    if (baseUrl.contains("faforever.com")) {
-      disableSslVerification();
-    }
   }
 
   @Override
