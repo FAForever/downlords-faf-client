@@ -32,7 +32,7 @@ public class UninstallMapTask extends AbstractPrioritizedTask<Void> {
   protected Void call() throws Exception {
     Objects.requireNonNull(map, "map has not been set");
 
-    logger.info("Uninstalling map '{}' ({})", map.getTechnicalName(), map.getId());
+    logger.info("Uninstalling map '{}' ({})", map.getFolderName(), map.getId());
     Path mapPath = mapService.getPathForMap(map);
 
     ResourceLocks.acquireDiskLock();

@@ -118,7 +118,7 @@ public class CreateGameController {
         filteredMapBeans.setPredicate(mapInfoBean -> true);
       } else {
         filteredMapBeans.setPredicate(mapInfoBean -> mapInfoBean.getDisplayName().toLowerCase().contains(newValue.toLowerCase())
-            || mapInfoBean.getTechnicalName().toLowerCase().contains(newValue.toLowerCase()));
+            || mapInfoBean.getFolderName().toLowerCase().contains(newValue.toLowerCase()));
       }
       if (!filteredMapBeans.isEmpty()) {
         mapListView.getSelectionModel().select(0);
@@ -235,10 +235,10 @@ public class CreateGameController {
         return;
       }
 
-      preferencesService.getPreferences().setLastMap(newValue.getTechnicalName());
+      preferencesService.getPreferences().setLastMap(newValue.getFolderName());
       preferencesService.storeInBackground();
 
-      Image largePreview = mapService.loadLargePreview(newValue.getTechnicalName());
+      Image largePreview = mapService.loadLargePreview(newValue.getFolderName());
       if (largePreview == null) {
         new Image(themeService.getThemeFile(ThemeService.UNKNOWN_MAP_IMAGE), true);
       }
@@ -285,7 +285,7 @@ public class CreateGameController {
   private void selectLastMap() {
     String lastMap = preferencesService.getPreferences().getLastMap();
     for (MapBean mapBean : mapListView.getItems()) {
-      if (mapBean.getTechnicalName().equalsIgnoreCase(lastMap)) {
+      if (mapBean.getFolderName().equalsIgnoreCase(lastMap)) {
         mapListView.getSelectionModel().select(mapBean);
         return;
       }
@@ -383,7 +383,7 @@ public class CreateGameController {
         titleTextField.getText(),
         Strings.emptyToNull(passwordTextField.getText()),
         gameTypeListView.getSelectionModel().getSelectedItem().getName(),
-        mapListView.getSelectionModel().getSelectedItem().getTechnicalName(),
+        mapListView.getSelectionModel().getSelectedItem().getFolderName(),
         null,
         simMods);
 

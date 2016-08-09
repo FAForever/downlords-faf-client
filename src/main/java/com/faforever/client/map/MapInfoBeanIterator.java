@@ -93,7 +93,7 @@ public class MapInfoBeanIterator implements InputIterator {
       return null;
     }
     currentMapBean = mapIterator.next();
-    return new BytesRef((currentMapBean.getDisplayName() + currentMapBean.getTechnicalName()).getBytes(StandardCharsets.UTF_8));
+    return new BytesRef((currentMapBean.getDisplayName() + currentMapBean.getFolderName()).getBytes(StandardCharsets.UTF_8));
   }
 
   public MapBean deserialize(byte[] bytes) {

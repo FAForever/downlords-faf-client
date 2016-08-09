@@ -76,7 +76,7 @@ public class MapServiceImplTest {
 
     MapBean mapBean = localMapBeans.get(0);
     assertThat(mapBean, notNullValue());
-    assertThat(mapBean.getTechnicalName(), is("SCMP_001"));
+    assertThat(mapBean.getFolderName(), is("SCMP_001"));
     assertThat(mapBean.getDisplayName(), is("Burial Mounds"));
     assertThat(mapBean.getSize(), equalTo(new MapSize(10, 10)));
   }
@@ -109,6 +109,6 @@ public class MapServiceImplTest {
     assertThat(mapBean.getDescription(), startsWith("Initial scans of the planet"));
     assertThat(mapBean.getSize(), is(new MapSize(20, 20)));
     assertThat(mapBean.getVersion(), is(1));
-    assertThat(mapBean.getTechnicalName(), is("SCMP_001"));
+    assertThat(mapBean.getFolderName(), is("SCMP_001"));
   }
 }

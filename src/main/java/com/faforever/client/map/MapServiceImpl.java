@@ -100,10 +100,10 @@ public class MapServiceImpl implements MapService {
     installedMapBeans.addListener((ListChangeListener<MapBean>) change -> {
       while (change.next()) {
         for (MapBean mapBean : change.getRemoved()) {
-          mapsByTechnicalName.remove(mapBean.getTechnicalName().toLowerCase());
+          mapsByTechnicalName.remove(mapBean.getFolderName().toLowerCase());
         }
         for (MapBean mapBean : change.getAddedSubList()) {
-          mapsByTechnicalName.put(mapBean.getTechnicalName().toLowerCase(), mapBean);
+          mapsByTechnicalName.put(mapBean.getFolderName().toLowerCase(), mapBean);
         }
       }
     });
@@ -204,7 +204,7 @@ public class MapServiceImpl implements MapService {
       LuaValue size = scenarioInfo.get("size");
 
       MapBean mapBean = new MapBean();
-      mapBean.setTechnicalName(mapFolder.getFileName().toString());
+      mapBean.setFolderName(mapFolder.getFileName().toString());
       mapBean.setDisplayName(scenarioInfo.get("name").toString());
       mapBean.setDescription(scenarioInfo.get("description").tojstring().replaceAll("<LOC .*?>", ""));
       mapBean.setVersion(scenarioInfo.get("map_version").toint());
@@ -310,7 +310,7 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public CompletableFuture<Void> downloadAndInstallMap(MapBean map, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
-    return downloadAndInstallMap(map.getTechnicalName(), map.getDownloadUrl(), progressProperty, titleProperty);
+    return downloadAndInstallMap(map.getFolderName(), map.getDownloadUrl(), progressProperty, titleProperty);
   }
 
   @Override
@@ -375,7 +375,7 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public Path getPathForMap(MapBean map) {
-    return getPathForMap(map.getTechnicalName());
+    return getPathForMap(map.getFolderName());
   }
 
   @Override

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 
 public class MapBean implements Comparable<MapBean> {
 
-  private final StringProperty technicalName;
+  private final StringProperty folderName;
   private final StringProperty displayName;
   private final SimpleFloatProperty rating;
   private final IntegerProperty plays;
@@ -33,7 +33,7 @@ public class MapBean implements Comparable<MapBean> {
   public MapBean() {
     this.id = new SimpleStringProperty();
     this.displayName = new SimpleStringProperty();
-    this.technicalName = new SimpleStringProperty();
+    this.folderName = new SimpleStringProperty();
     this.description = new SimpleStringProperty();
     this.plays = new SimpleIntegerProperty();
     this.downloads = new SimpleIntegerProperty();
@@ -52,7 +52,7 @@ public class MapBean implements Comparable<MapBean> {
     MapBean mapBean = new MapBean();
     mapBean.setDescription(map.getDescription());
     mapBean.setDisplayName(map.getDisplayName());
-    mapBean.setTechnicalName(map.getTechnicalName());
+    mapBean.setFolderName(map.getTechnicalName());
     mapBean.setSize(new MapSize(map.getSizeX(), map.getSizeY()));
     mapBean.setDownloads(map.getDownloads());
     mapBean.setId(map.getId());
@@ -203,16 +203,16 @@ public class MapBean implements Comparable<MapBean> {
     this.id.set(id);
   }
 
-  public String getTechnicalName() {
-    return technicalName.get();
+  public String getFolderName() {
+    return folderName.get();
   }
 
-  public void setTechnicalName(String technicalName) {
-    this.technicalName.set(technicalName);
+  public void setFolderName(String folderName) {
+    this.folderName.set(folderName);
   }
 
-  public StringProperty technicalNameProperty() {
-    return technicalName;
+  public StringProperty folderNameProperty() {
+    return folderName;
   }
 
   public URL getLargeThumbnailUrl() {
