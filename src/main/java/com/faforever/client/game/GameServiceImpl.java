@@ -21,6 +21,7 @@ import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.remote.domain.GameTypeMessage;
+import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
@@ -105,6 +106,9 @@ public class GameServiceImpl implements GameService {
   LocalRelayServer localRelayServer;
   @Resource
   ReportingService reportingService;
+  @Resource
+  ReplayService replayService;
+
   @Value("${ranked1v1.search.maxRadius}")
   float ranked1v1SearchMaxRadius;
   @Value("${ranked1v1.search.radiusIncrement}")
@@ -155,7 +159,10 @@ public class GameServiceImpl implements GameService {
         .thenRun(() -> connectivityService.connect())
         .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
-        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayServer.getPort()));
+        .thenAccept(gameLaunchInfo -> {
+          replayService.startReplayServer(gameLaunchInfo.getUid());
+          startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayServer.getPort());
+        });
   }
 
   @Override
@@ -173,7 +180,7 @@ public class GameServiceImpl implements GameService {
     Set<String> simModUIds = gameInfoBean.getSimMods().keySet();
 
     return updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
-        .thenCompose(aVoid -> downloadMapIfNecessary(gameInfoBean.getMapTechnicalName()))
+        .thenCompose(aVoid -> downloadMapIfNecessary(gameInfoBean.getFolderName()))
         .thenRun(() -> connectivityService.connect())
         .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.requestJoinGame(gameInfoBean.getUid(), password))
@@ -181,6 +188,7 @@ public class GameServiceImpl implements GameService {
           synchronized (currentGame) {
             currentGame.set(gameInfoBean);
           }
+          replayService.startReplayServer(gameLaunchInfo.getUid());
           startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayServer.getPort());
         });
   }

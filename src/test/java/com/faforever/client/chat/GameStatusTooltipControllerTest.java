@@ -25,10 +25,10 @@ public class GameStatusTooltipControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testSetGameInfoBean() {
     GameInfoBean gameInfoBean = new GameInfoBean();
-    gameInfoBean.setMapTechnicalName("testMap");
+    gameInfoBean.setFolderName("testMap");
 
-    when(mapService.loadSmallPreview(gameInfoBean.getMapTechnicalName())).thenReturn(null);
-    when(mapService.findMapByName(gameInfoBean.getMapTechnicalName())).thenReturn(null);
+    when(mapService.loadSmallPreview(gameInfoBean.getFolderName())).thenReturn(null);
+    when(mapService.findMapByName(gameInfoBean.getFolderName())).thenReturn(null);
 
 /*    boolean containsGameTooltipControllerInstance = false;
     for(Node node: ((Pane) instance.getRoot()).getChildren()) {

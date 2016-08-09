@@ -36,7 +36,7 @@ public class LocalReplayInfo {
     host = gameInfoBean.getHost();
     uid = gameInfoBean.getUid();
     title = gameInfoBean.getTitle();
-    mapname = gameInfoBean.getMapTechnicalName();
+    mapname = gameInfoBean.getFolderName();
     state = gameInfoBean.getStatus();
     gameType = gameInfoBean.getVictoryCondition();
     featuredMod = gameInfoBean.getFeaturedMod();

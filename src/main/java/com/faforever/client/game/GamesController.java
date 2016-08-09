@@ -180,7 +180,7 @@ public class GamesController {
     }
     mapDetailPopup = getMapDetailPopup();
     MapDetailController mapDetailController = applicationContext.getBean(MapDetailController.class);
-    MapBean mapBean = mapService.findMapByName(currentGameInfoBean.getMapTechnicalName());
+    MapBean mapBean = mapService.findMapByName(currentGameInfoBean.getFolderName());
     // FIXME implement
   }
 
@@ -238,11 +238,11 @@ public class GamesController {
 
     gameDetailPane.setVisible(true);
 
-    gameTitleLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
+    gameTitleLabel.textProperty().bind(gameInfoBean.folderNameProperty());
 
     mapImageView.imageProperty().bind(createObjectBinding(
-        () -> mapService.loadLargePreview(gameInfoBean.getMapTechnicalName()),
-        gameInfoBean.mapTechnicalNameProperty()
+        () -> mapService.loadLargePreview(gameInfoBean.getFolderName()),
+        gameInfoBean.folderNameProperty()
     ));
 
     numberOfPlayersLabel.textProperty().bind(createStringBinding(
@@ -252,7 +252,7 @@ public class GamesController {
     ));
 
     hostLabel.textProperty().bind(gameInfoBean.hostProperty());
-    mapLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
+    mapLabel.textProperty().bind(gameInfoBean.folderNameProperty());
 
     gameTypeLabel.textProperty().bind(createStringBinding(() -> {
       GameTypeBean gameType = gameService.getGameTypeByString(gameInfoBean.getFeaturedMod());

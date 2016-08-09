@@ -65,7 +65,7 @@ public class OnGameFullNotifier {
       throw new ProgrammingError("Got a GameFull notification but player is not in a game");
     }
     notificationService.addNotification(new TransientNotification(i18n.get("game.full"), i18n.get("game.full.action"),
-        mapService.loadSmallPreview(currentGame.getMapTechnicalName()),
+        mapService.loadSmallPreview(currentGame.getFolderName()),
         v -> platformService.showWindow(faWindowTitle)));
   }
 }

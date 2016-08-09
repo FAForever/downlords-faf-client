@@ -63,13 +63,13 @@ public class GameStatusTooltipController {
 
     gameTitleLabel.textProperty().bind(gameInfoBean.titleProperty());
     hostLabel.textProperty().bind(gameInfoBean.hostProperty());
-    gameMapLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
+    gameMapLabel.textProperty().bind(gameInfoBean.folderNameProperty());
     numberOfPlayersLabel.textProperty().bind(Bindings.createStringBinding(() -> i18n.get("game.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()), gameInfoBean.numPlayersProperty()));
-    modsLabel.textProperty().bind(Bindings.createStringBinding(() -> Joiner.on(i18n.get("textSeparator")).join(gameInfoBean.getSimMods().values()), gameInfoBean.mapTechnicalNameProperty()));
+    modsLabel.textProperty().bind(Bindings.createStringBinding(() -> Joiner.on(i18n.get("textSeparator")).join(gameInfoBean.getSimMods().values()), gameInfoBean.folderNameProperty()));
     lockIconLabel.visibleProperty().bind(gameInfoBean.passwordProtectedProperty());
 
     // TODO display "unknown map" image first since loading may take a while
-    mapImageView.imageProperty().bind(Bindings.createObjectBinding(() -> mapService.loadSmallPreview(gameInfoBean.getMapTechnicalName()), gameInfoBean.mapTechnicalNameProperty()));
+    mapImageView.imageProperty().bind(Bindings.createObjectBinding(() -> mapService.loadSmallPreview(gameInfoBean.getFolderName()), gameInfoBean.folderNameProperty()));
 
     GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);
     gameTooltipController.setGameInfoBean(gameInfoBean);

@@ -26,8 +26,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
+
+import static com.github.nocatch.NoCatch.noCatch;
 
 public class ReplayServerImpl implements ReplayServer {
 
@@ -54,32 +54,47 @@ public class ReplayServerImpl implements ReplayServer {
   ReplayFileWriter replayFileWriter;
   @Resource
   ClientUpdateService clientUpdateService;
-  @Resource
-  ThreadPoolExecutor threadPoolExecutor;
 
   private LocalReplayInfo replayInfo;
+  private ServerSocket serverSocket;
 
-  CompletableFuture<Void> start(int uid) {
-    return CompletableFuture.runAsync(() -> {
+  /**
+   * Returns the current millis the same way as python does since this is what's stored in the replay files *yay*.
+   */
+  private static double pythonTime() {
+    return System.currentTimeMillis() / 1000;
+  }
+
+  @Override
+  public void stop() {
+    if (serverSocket != null) {
+      throw new IllegalStateException("Server has never been started");
+    }
+    noCatch(() -> serverSocket.close());
+  }
+
+  @Override
+  public void start(int uid) {
+    new Thread(() -> {
       Integer localReplayServerPort = environment.getProperty("localReplayServer.port", Integer.class);
       String fafReplayServerHost = environment.getProperty("fafReplayServer.host");
       Integer fafReplayServerPort = environment.getProperty("fafReplayServer.port", Integer.class);
 
       logger.debug("Opening local replay server on port {}", localReplayServerPort);
 
-      try (ServerSocket serverSocket = new ServerSocket(localReplayServerPort);
+      try (ServerSocket serverSocket1 = new ServerSocket(localReplayServerPort);
            Socket fafReplayServerSocket = new Socket(fafReplayServerHost, fafReplayServerPort)) {
-        recordAndRelay(uid, serverSocket, new BufferedOutputStream(fafReplayServerSocket.getOutputStream()));
+        this.serverSocket = serverSocket1;
+        recordAndRelay(uid, serverSocket1, new BufferedOutputStream(fafReplayServerSocket.getOutputStream()));
       } catch (IOException e) {
         logger.warn("Error in replay server", e);
         notificationService.addNotification(new PersistentNotification(
                 i18n.get("replayServer.listeningFailed", localReplayServerPort),
-                Severity.WARN,
-                Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(uid)))
+            Severity.WARN, Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(uid)))
             )
         );
       }
-    }, threadPoolExecutor);
+    }).start();
   }
 
   private void initReplayInfo(int uid) {
@@ -137,12 +152,5 @@ public class ReplayServerImpl implements ReplayServer {
     replayInfo.setComplete(true);
     replayInfo.setState(GameState.CLOSED);
     replayInfo.updateFromGameInfoBean(gameInfoBean);
-  }
-
-  /**
-   * Returns the current millis the same way as python does since this is what's stored in the replay files *yay*.
-   */
-  private static double pythonTime() {
-    return System.currentTimeMillis() / 1000;
   }
 }

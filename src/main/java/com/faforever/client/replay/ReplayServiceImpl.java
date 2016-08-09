@@ -75,6 +75,8 @@ public class ReplayServiceImpl implements ReplayService {
   ApplicationContext applicationContext;
   @Resource
   PlatformService platformService;
+  @Resource
+  ReplayServer replayServer;
 
   @VisibleForTesting
   static Integer parseSupComVersion(byte[] rawReplayBytes) {
@@ -156,7 +158,7 @@ public class ReplayServiceImpl implements ReplayService {
     uriBuilder.setScheme(FAF_LIFE_PROTOCOL);
     uriBuilder.setHost(environment.getProperty("lobby.host"));
     uriBuilder.setPath("/" + gameId + "/" + playerId + SUP_COM_REPLAY_FILE_ENDING);
-    uriBuilder.addParameter("map", UrlEscapers.urlFragmentEscaper().escape(gameInfoBean.getMapTechnicalName()));
+    uriBuilder.addParameter("map", UrlEscapers.urlFragmentEscaper().escape(gameInfoBean.getFolderName()));
     uriBuilder.addParameter("mod", gameInfoBean.getFeaturedMod());
 
     try {
@@ -194,6 +196,11 @@ public class ReplayServiceImpl implements ReplayService {
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public void startReplayServer(int gameUid) {
+    replayServer.start(gameUid);
   }
 
   private void runReplayFile(Path path) {
