@@ -1,6 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.Observable;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
@@ -31,6 +32,8 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   private ApplicationContext applicationContext;
   @Mock
   private MapDetailController mapDetailController;
+  @Mock
+  private EventBus eventBus;
 
   private MapVaultController instance;
 
@@ -40,10 +43,16 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     instance.mapService = mapService;
     instance.applicationContext = applicationContext;
     instance.mapDetailController = mapDetailController;
+    instance.eventBus = eventBus;
 
     when(mapDetailController.getRoot()).thenReturn(new Pane());
 
     instance.postConstruct();
+  }
+
+  @Test
+  public void testEventBusRegistered() throws Exception {
+    verify(eventBus).register(instance);
   }
 
   @Test

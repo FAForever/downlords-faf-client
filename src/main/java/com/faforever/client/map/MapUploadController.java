@@ -1,6 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.event.MapUploadedEvent;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
@@ -8,6 +9,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
@@ -76,9 +78,12 @@ public class MapUploadController {
   ReportingService reportingService;
   @Resource
   I18n i18n;
+  @Resource
+  EventBus eventBus;
 
   private Path mapPath;
   private CompletableFuture<Void> uploadMapFuture;
+  private MapBean mapInfo;
 
   @FXML
   void initialize() {
@@ -114,6 +119,7 @@ public class MapUploadController {
   }
 
   private void setMapInfo(MapBean mapInfo) {
+    this.mapInfo = mapInfo;
     enterMapInfoState();
 
     mapNameLabel.textProperty().bind(mapInfo.displayNameProperty());
@@ -174,6 +180,7 @@ public class MapUploadController {
           Platform.runLater(() -> bytesLabel.setText(i18n.get("bytesProgress", formatSize(written, locale), formatSize(total, locale))));
         },
         rankedCheckbox.isSelected())
+        .thenAccept(v -> eventBus.post(new MapUploadedEvent(mapInfo)))
         .thenAccept(aVoid -> enterUploadCompleteState())
         .exceptionally(throwable -> {
           if (!(throwable instanceof CancellationException)) {

@@ -3,6 +3,9 @@ package com.faforever.client.map;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.event.MapUploadedEvent;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -65,6 +68,8 @@ public class MapVaultController {
   MapDetailController mapDetailController;
   @Resource
   I18n i18n;
+  @Resource
+  EventBus eventBus;
 
   private boolean initialized;
 
@@ -84,6 +89,8 @@ public class MapVaultController {
     AnchorPane.setBottomAnchor(mapDetailRoot, 0d);
     AnchorPane.setLeftAnchor(mapDetailRoot, 0d);
     mapDetailRoot.setVisible(false);
+
+    eventBus.register(this);
   }
 
   public void setUpIfNecessary() {
@@ -242,5 +249,14 @@ public class MapVaultController {
     windowController.configure(mapUploadWindow, mapUploadController.getRoot(), true, CLOSE);
 
     mapUploadWindow.show();
+  }
+
+  public void onRefreshClicked() {
+    displayShowroomMaps();
+  }
+
+  @Subscribe
+  public void onMapUploaded(MapUploadedEvent event) {
+    onRefreshClicked();
   }
 }
