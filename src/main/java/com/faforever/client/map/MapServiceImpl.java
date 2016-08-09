@@ -16,7 +16,6 @@ import javafx.scene.image.Image;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.Directory;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.luaj.vm2.LuaError;
@@ -208,7 +207,7 @@ public class MapServiceImpl implements MapService {
       mapBean.setTechnicalName(mapFolder.getFileName().toString());
       mapBean.setDisplayName(scenarioInfo.get("name").toString());
       mapBean.setDescription(scenarioInfo.get("description").tojstring().replaceAll("<LOC .*?>", ""));
-      mapBean.setVersion(new ComparableVersion(luaRoot.get("version").tojstring()));
+      mapBean.setVersion(scenarioInfo.get("map_version").toint());
       mapBean.setSize(new MapSize(
           (int) (size.get(1).toint() / MAP_SIZE_FACTOR),
           (int) (size.get(2).toint() / MAP_SIZE_FACTOR))

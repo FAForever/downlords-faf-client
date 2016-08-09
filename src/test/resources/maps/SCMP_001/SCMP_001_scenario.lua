@@ -7,6 +7,7 @@ ScenarioInfo = {
     preview = '',
     size = { 1024, 1024 },
     map = '/maps/SCMP_001/SCMP_001.scmap',
+    map_version = 1,
     save = '/maps/SCMP_001/SCMP_001_save.lua',
     script = '/maps/SCMP_001/SCMP_001_script.lua',
     norushradius = 90.000000,

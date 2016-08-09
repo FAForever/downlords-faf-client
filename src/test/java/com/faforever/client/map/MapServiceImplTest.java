@@ -15,14 +15,20 @@ import org.mockito.MockitoAnnotations;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
-public class MapBeanServiceImplTest {
+public class MapServiceImplTest {
 
   @Rule
   public TemporaryFolder customMapsDirectory = new TemporaryFolder();
@@ -92,5 +98,17 @@ public class MapBeanServiceImplTest {
     expectedException.expectCause(instanceOf(LuaError.class));
 
     instance.readMap(corruptMap);
+  }
+
+  @Test
+  public void testReadMap() throws Exception {
+    MapBean mapBean = instance.readMap(Paths.get(getClass().getResource("/maps/SCMP_001").toURI()));
+
+    assertThat(mapBean, notNullValue());
+    assertThat(mapBean.getId(), isEmptyOrNullString());
+    assertThat(mapBean.getDescription(), startsWith("Initial scans of the planet"));
+    assertThat(mapBean.getSize(), is(new MapSize(20, 20)));
+    assertThat(mapBean.getVersion(), is(1));
+    assertThat(mapBean.getTechnicalName(), is("SCMP_001"));
   }
 }

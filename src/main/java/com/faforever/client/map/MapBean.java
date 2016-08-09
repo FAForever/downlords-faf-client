@@ -7,7 +7,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
@@ -23,7 +22,7 @@ public class MapBean implements Comparable<MapBean> {
   private final IntegerProperty downloads;
   private final IntegerProperty players;
   private final ObjectProperty<MapSize> size;
-  private final ObjectProperty<ComparableVersion> version;
+  private final IntegerProperty version;
   private final StringProperty id;
   private final StringProperty author;
   private final ObjectProperty<URL> downloadUrl;
@@ -41,7 +40,7 @@ public class MapBean implements Comparable<MapBean> {
     this.rating = new SimpleFloatProperty();
     this.players = new SimpleIntegerProperty();
     this.size = new SimpleObjectProperty<>();
-    this.version = new SimpleObjectProperty<>();
+    this.version = new SimpleIntegerProperty();
     this.smallThumbnailUrl = new SimpleObjectProperty<>();
     this.largeThumbnailUrl = new SimpleObjectProperty<>();
     this.downloadUrl = new SimpleObjectProperty<>();
@@ -59,7 +58,7 @@ public class MapBean implements Comparable<MapBean> {
     mapBean.setId(map.getId());
     mapBean.setPlayers(map.getMaxPlayers());
     mapBean.setRating(map.getRating());
-    mapBean.setVersion(new ComparableVersion(map.getVersion()));
+    mapBean.setVersion(Integer.valueOf(map.getVersion()));
     mapBean.setDownloadUrl(map.getDownloadUrl());
     mapBean.setSmallThumbnailUrl(map.getThumbnailUrlSmall());
     mapBean.setLargeThumbnailUrl(map.getThumbnailUrlLarge());
@@ -167,15 +166,15 @@ public class MapBean implements Comparable<MapBean> {
     return players;
   }
 
-  public ComparableVersion getVersion() {
+  public int getVersion() {
     return version.get();
   }
 
-  public void setVersion(ComparableVersion version) {
+  public void setVersion(int version) {
     this.version.set(version);
   }
 
-  public ObjectProperty<ComparableVersion> versionProperty() {
+  public IntegerProperty versionProperty() {
     return version;
   }
 
