@@ -3,7 +3,7 @@ package com.faforever.client.relay;
 import com.faforever.client.connectivity.DatagramGateway;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 /**
  * A local relay server to which Forged Alliance can connect to. All GPG commands received from FA are forwarded to the
@@ -27,7 +27,7 @@ public interface LocalRelayServer {
    *
    * @param gateway the {@link DatagramGateway} to use for incoming/outgoing datagram packets
    */
-  CompletableFuture<Integer> start(DatagramGateway gateway);
+  CompletionStage<Integer> start(DatagramGateway gateway);
 
   /**
    * Returns the datagram socket address (IP/port) on which the game accepts packages.

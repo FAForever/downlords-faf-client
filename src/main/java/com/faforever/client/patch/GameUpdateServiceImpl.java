@@ -12,6 +12,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public class GameUpdateServiceImpl extends AbstractPatchService implements GameUpdateService {
 
@@ -25,7 +26,7 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
   private UpdateGameFilesTask updateTask;
 
   @Override
-  public CompletableFuture<Void> updateInBackground(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUids) {
+  public CompletionStage<Void> updateInBackground(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUids) {
     if (!checkDirectories()) {
       logger.warn("Aborted patching since directories aren't initialized properly");
       return CompletableFuture.completedFuture(null);
@@ -41,11 +42,11 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
     updateTask.setSimMods(simModUids);
     updateTask.setModVersions(modVersions);
 
-    return taskService.submitTask(updateTask);
+    return taskService.submitTask(updateTask).getFuture();
   }
 
   @Override
-  public CompletableFuture<Void> checkForUpdateInBackground() {
+  public CompletionStage<Void> checkForUpdateInBackground() {
     logger.info("Ignoring update check since the current server implementation doesn't allow to do so easily");
     return null;
   }

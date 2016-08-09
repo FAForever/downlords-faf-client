@@ -2,7 +2,7 @@ package com.faforever.client.patch;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public interface GameUpdateService {
 
@@ -11,9 +11,9 @@ public interface GameUpdateService {
    * to.
    * @param simModUids a list of sim mod UIDs to update
    */
-  CompletableFuture<Void> updateInBackground(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUids);
+  CompletionStage<Void> updateInBackground(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUids);
 
-  CompletableFuture<Void> checkForUpdateInBackground();
+  CompletionStage<Void> checkForUpdateInBackground();
 
 
 }

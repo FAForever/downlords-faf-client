@@ -24,6 +24,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
@@ -45,7 +46,7 @@ public class ReplayServerAccessorImpl extends AbstractServerAccessor implements 
   }
 
   @Override
-  public CompletableFuture<List<ReplayInfoBean>> requestOnlineReplays() {
+  public CompletionStage<List<ReplayInfoBean>> requestOnlineReplays() {
     replayListCallback = new CompletableFuture<>();
     writeToServer(new ListReplaysMessage());
     return replayListCallback;

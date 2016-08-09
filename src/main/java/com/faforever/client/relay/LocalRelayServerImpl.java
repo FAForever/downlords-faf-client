@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
@@ -157,7 +158,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   }
 
   @Override
-  public CompletableFuture<Integer> start(DatagramGateway gateway) {
+  public CompletionStage<Integer> start(DatagramGateway gateway) {
     synchronized (started) {
       if (started.get()) {
         logger.warn("Local relay server was already running, restarting");

@@ -19,6 +19,8 @@ import java.util.concurrent.CompletableFuture;
 import static com.faforever.client.notification.Severity.INFO;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,6 +46,8 @@ public class ClientUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     instance.i18n = i18n;
     instance.taskService = taskService;
     instance.applicationContext = applicationContext;
+
+    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
   }
 
   /**
@@ -59,7 +63,7 @@ public class ClientUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     when(applicationContext.getBean(CheckForUpdateTask.class)).thenReturn(taskMock);
 
     UpdateInfo updateInfo = new UpdateInfo("v0.4.8.1-alpha", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"));
-    when(taskService.submitTask(taskMock)).thenReturn(CompletableFuture.completedFuture(updateInfo));
+    when(taskMock.getFuture()).thenReturn(CompletableFuture.completedFuture(updateInfo));
 
     instance.checkForUpdateInBackground();
 

@@ -27,7 +27,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -157,32 +157,33 @@ public class ModVaultController {
     loadingPane.setVisible(false);
   }
 
-  private CompletableFuture<Set<Label>> createModSuggestions(String string) {
-    return modService.lookupMod(string, MAX_SUGGESTIONS).thenApply(new Function<List<ModInfoBean>, Set<Label>>() {
-      @Override
-      public Set<Label> apply(List<ModInfoBean> modInfoBeans) {
-        return modInfoBeans.stream()
-            .map(result -> {
-              String name = result.getName();
-              Label item = new Label(name) {
-                @Override
-                public int hashCode() {
-                  return getText().hashCode();
-                }
+  private CompletionStage<Set<Label>> createModSuggestions(String string) {
+    return modService.lookupMod(string, MAX_SUGGESTIONS)
+        .thenApply(new Function<List<ModInfoBean>, Set<Label>>() {
+          @Override
+          public Set<Label> apply(List<ModInfoBean> modInfoBeans) {
+            return modInfoBeans.stream()
+                .map(result -> {
+                  String name = result.getName();
+                  Label item = new Label(name) {
+                    @Override
+                    public int hashCode() {
+                      return getText().hashCode();
+                    }
 
-                @Override
-                public boolean equals(Object obj) {
-                  return obj != null
-                      && obj.getClass() == getClass()
-                      && getText().equals(((Label) obj).getText());
-                }
-              };
-              item.setUserData(name);
-              return item;
-            })
-            .collect(Collectors.toSet());
-      }
-    });
+                    @Override
+                    public boolean equals(Object obj) {
+                      return obj != null
+                          && obj.getClass() == getClass()
+                          && getText().equals(((Label) obj).getText());
+                    }
+                  };
+                  item.setUserData(name);
+                  return item;
+                })
+                .collect(Collectors.toSet());
+          }
+        });
   }
 
   private void enterShowroomState() {

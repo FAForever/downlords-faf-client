@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public interface ReplayService {
 
   Collection<ReplayInfoBean> getLocalReplays() throws IOException;
 
-  CompletableFuture<List<ReplayInfoBean>> getOnlineReplays();
+  CompletionStage<List<ReplayInfoBean>> getOnlineReplays();
 
   void runReplay(ReplayInfoBean item);
 

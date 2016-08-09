@@ -14,7 +14,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
 /**
@@ -26,9 +26,9 @@ public interface GameService {
 
   void addOnGameInfoBeansChangeListener(ListChangeListener<GameInfoBean> listener);
 
-  CompletableFuture<Void> hostGame(NewGameInfo name);
+  CompletionStage<Void> hostGame(NewGameInfo name);
 
-  CompletableFuture<Void> joinGame(GameInfoBean gameInfoBean, String password);
+  CompletionStage<Void> joinGame(GameInfoBean gameInfoBean, String password);
 
   List<GameTypeBean> getGameTypes();
 
@@ -39,7 +39,7 @@ public interface GameService {
    */
   void runWithReplay(Path path, @Nullable Integer replayId, String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simMods);
 
-  CompletableFuture<Void> runWithLiveReplay(URI replayUri, Integer gameId, String gameType, String mapName) throws IOException;
+  CompletionStage<Void> runWithLiveReplay(URI replayUri, Integer gameId, String gameType, String mapName) throws IOException;
 
   ObservableList<GameInfoBean> getGameInfoBeans();
 
@@ -50,13 +50,13 @@ public interface GameService {
 
   void addOnRankedMatchNotificationListener(Consumer<MatchmakerMessage> listener);
 
-  CompletableFuture<Void> startSearchRanked1v1(Faction faction);
+  CompletionStage<Void> startSearchRanked1v1(Faction faction);
 
   void stopSearchRanked1v1();
 
   BooleanProperty searching1v1Property();
 
-  CompletableFuture<Void> prepareForRehost();
+  CompletionStage<Void> prepareForRehost();
 
   /**
    * Returns the game the player is currently in. Returns {@code null} if not in a game.

@@ -34,13 +34,13 @@ import java.net.Socket;
 import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
 public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
@@ -123,7 +123,7 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testRequestPlayerStatistics() throws Exception {
     String username = "junit";
-    CompletableFuture<PlayerStatisticsMessage> future = instance.requestPlayerStatistics(StatisticsType.GLOBAL_90_DAYS, username);
+    CompletionStage<PlayerStatisticsMessage> future = instance.requestPlayerStatistics(StatisticsType.GLOBAL_90_DAYS, username);
 
     ClientMessage clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(clientMessage.getCommand(), is(ClientMessageType.STATISTICS));
@@ -134,7 +134,7 @@ public class StatisticsServerAccessorImplTest extends AbstractPlainJavaFxTest {
     playerStatisticsMessage.setValues(Arrays.asList(new RatingInfo(), new RatingInfo()));
     sendFromServer(playerStatisticsMessage);
 
-    PlayerStatisticsMessage result = future.get(TIMEOUT, TIMEOUT_UNIT);
+    PlayerStatisticsMessage result = future.toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(result.getValues(), hasSize(2));
     assertThat(result.getStatisticsType(), is(StatisticsType.GLOBAL_90_DAYS));

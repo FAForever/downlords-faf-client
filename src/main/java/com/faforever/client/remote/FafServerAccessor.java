@@ -11,7 +11,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
 /**
@@ -27,11 +27,11 @@ public interface FafServerAccessor {
 
   ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
 
-  CompletableFuture<LoginMessage> connectAndLogIn(String username, String password);
+  CompletionStage<LoginMessage> connectAndLogIn(String username, String password);
 
-  CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, @Nullable InetSocketAddress relayAddress, int externalPort);
+  CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, @Nullable InetSocketAddress relayAddress, int externalPort);
 
-  CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password, @Nullable InetSocketAddress relayAddress, int externalPort);
+  CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password, @Nullable InetSocketAddress relayAddress, int externalPort);
 
   void disconnect();
 
@@ -41,7 +41,7 @@ public interface FafServerAccessor {
 
   void addFoe(int playerId);
 
-  CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort, @Nullable InetSocketAddress relayAddress);
+  CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort, @Nullable InetSocketAddress relayAddress);
 
   void stopSearchingRanked();
 
@@ -54,7 +54,7 @@ public interface FafServerAccessor {
 
   void initConnectivityTest(int port);
 
-  CompletableFuture<GameLaunchMessage> expectRehostCommand();
+  CompletionStage<GameLaunchMessage> expectRehostCommand();
 
   void removeFriend(int playerId);
 

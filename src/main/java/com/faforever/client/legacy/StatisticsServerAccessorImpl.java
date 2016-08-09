@@ -35,6 +35,7 @@ import java.net.Socket;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.remote.domain.FafServerMessageType.STATS;
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
@@ -60,7 +61,7 @@ public class StatisticsServerAccessorImpl extends AbstractServerAccessor impleme
   }
 
   @Override
-  public CompletableFuture<PlayerStatisticsMessage> requestPlayerStatistics(StatisticsType type, String username) {
+  public CompletionStage<PlayerStatisticsMessage> requestPlayerStatistics(StatisticsType type, String username) {
     // FIXME this is not safe (as well aren't similar implementations in other accessors)
     playerStatisticsFuture = new CompletableFuture<>();
 

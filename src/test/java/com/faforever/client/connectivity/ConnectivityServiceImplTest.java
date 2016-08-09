@@ -25,6 +25,8 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.SocketUtils;
 import org.testfx.util.WaitForAsyncUtils;
@@ -40,6 +42,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
@@ -115,6 +118,8 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     when(fafService.connectionStateProperty()).thenReturn(connectionStateProperty);
     when(userService.loggedInProperty()).thenReturn(loggedInProperty);
 
+    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
+
     doAnswer(invocation -> {
       WaitForAsyncUtils.async(invocation.getArgumentAt(0, Runnable.class));
       return null;
@@ -151,7 +156,8 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     mockUpnpPortForwardingTask();
 
     ConnectivityCheckTask connectivityCheckTask = mockConnectivityCheckTask();
-    when(taskService.submitTask(connectivityCheckTask)).thenReturn(CompletableFuture.completedFuture(new ConnectivityStateMessage(ConnectivityState.PUBLIC, new InetSocketAddress(1337))));
+    when(connectivityCheckTask.getFuture()).thenReturn(completedFuture(new ConnectivityStateMessage(ConnectivityState.PUBLIC, new InetSocketAddress(1337))));
+    when(taskService.submitTask(connectivityCheckTask)).thenReturn(connectivityCheckTask);
 
     instance.checkConnectivity();
 
@@ -163,8 +169,8 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
 
   private UpnpPortForwardingTask mockUpnpPortForwardingTask() {
     UpnpPortForwardingTask upnpPortForwardingTask = mock(UpnpPortForwardingTask.class);
+    when(upnpPortForwardingTask.getFuture()).thenReturn(completedFuture(null));
     when(applicationContext.getBean(UpnpPortForwardingTask.class)).thenReturn(upnpPortForwardingTask);
-    when(taskService.submitTask(upnpPortForwardingTask)).thenReturn(CompletableFuture.completedFuture(null));
     return upnpPortForwardingTask;
   }
 
@@ -283,15 +289,13 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testCheckGamePortInBackgroundBlockedTriggersNotification() throws Exception {
     ConnectivityCheckTask connectivityCheckTask = mockConnectivityCheckTask();
-    when(taskService.submitTask(connectivityCheckTask)).thenReturn(
-        CompletableFuture.completedFuture(new ConnectivityStateMessage(
-            ConnectivityState.BLOCKED, new InetSocketAddress(51111)
-        ))
-    );
+    when(connectivityCheckTask.getFuture()).thenReturn(completedFuture(new ConnectivityStateMessage(
+        ConnectivityState.BLOCKED, new InetSocketAddress(51111)
+    )));
 
     UpnpPortForwardingTask upnpPortForwardingTask = mockUpnpPortForwardingTask();
 
-    instance.checkConnectivity().get(1, TimeUnit.SECONDS);
+    instance.checkConnectivity().toCompletableFuture().get(1, TimeUnit.SECONDS);
     assertThat(instance.getConnectivityState(), is(ConnectivityState.BLOCKED));
 
     verify(taskService).submitTask(connectivityCheckTask);
@@ -305,15 +309,15 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testCheckGamePortInBackgroundStunDoesntTriggerNotification() throws Exception {
     ConnectivityCheckTask connectivityCheckTask = mockConnectivityCheckTask();
-    when(taskService.submitTask(connectivityCheckTask)).thenReturn(
-        CompletableFuture.completedFuture(new ConnectivityStateMessage(
+    when(connectivityCheckTask.getFuture()).thenReturn(
+        completedFuture(new ConnectivityStateMessage(
             ConnectivityState.STUN, new InetSocketAddress(51111)
         ))
     );
 
     UpnpPortForwardingTask upnpPortForwardingTask = mockUpnpPortForwardingTask();
 
-    instance.checkConnectivity().get(1, TimeUnit.SECONDS);
+    instance.checkConnectivity().toCompletableFuture().get(1, TimeUnit.SECONDS);
     assertThat(instance.getConnectivityState(), is(ConnectivityState.STUN));
 
     verify(taskService).submitTask(connectivityCheckTask);
@@ -326,14 +330,12 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testCheckGamePortInBackgroundPublicDoesntTriggerNotification() throws Exception {
     ConnectivityCheckTask connectivityCheckTask = mockConnectivityCheckTask();
-    when(taskService.submitTask(connectivityCheckTask)).thenReturn(
-        CompletableFuture.completedFuture(new ConnectivityStateMessage(
-            ConnectivityState.PUBLIC, new InetSocketAddress(51111)
-        ))
+    when(connectivityCheckTask.getFuture()).thenReturn(completedFuture(
+        new ConnectivityStateMessage(ConnectivityState.PUBLIC, new InetSocketAddress(51111)))
     );
     UpnpPortForwardingTask upnpPortForwardingTask = mockUpnpPortForwardingTask();
 
-    instance.checkConnectivity().get(1, TimeUnit.SECONDS);
+    instance.checkConnectivity().toCompletableFuture().get(1, TimeUnit.SECONDS);
 
     verify(taskService).submitTask(connectivityCheckTask);
     verify(taskService).submitTask(upnpPortForwardingTask);
@@ -349,11 +351,11 @@ public class ConnectivityServiceImplTest extends AbstractPlainJavaFxTest {
     completableFuture.completeExceptionally(new Exception("junit test exception"));
 
     ConnectivityCheckTask connectivityCheckTask = mockConnectivityCheckTask();
-    when(taskService.submitTask(connectivityCheckTask)).thenReturn(completableFuture);
+    when(connectivityCheckTask.getFuture()).thenReturn(completableFuture);
 
     UpnpPortForwardingTask upnpPortForwardingTask = mockUpnpPortForwardingTask();
 
-    instance.checkConnectivity().get(1, TimeUnit.SECONDS);
+    instance.checkConnectivity().toCompletableFuture().get(1, TimeUnit.SECONDS);
 
     verify(taskService).submitTask(connectivityCheckTask);
     verify(taskService).submitTask(upnpPortForwardingTask);

@@ -13,13 +13,20 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
 
@@ -55,6 +62,7 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPath()).thenReturn(faDirectory.getRoot().toPath());
+    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
   }
 
   @Test
@@ -63,9 +71,10 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     UpdateGameFilesTask updateGameFilesTask = mock(UpdateGameFilesTask.class, withSettings().useConstructor());
     when(applicationContext.getBean(UpdateGameFilesTask.class)).thenReturn(updateGameFilesTask);
 
-    when(taskService.submitTask(eq(updateGameFilesTask))).thenReturn(CompletableFuture.completedFuture(null));
+    when(updateGameFilesTask.getFuture()).thenReturn(completedFuture(null));
 
-    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet()).get(TIMEOUT, TIMEOUT_UNIT);
+    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet())
+        .toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     verify(taskService).submitTask(updateGameFilesTask);
 
@@ -79,7 +88,8 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getFafBinDirectory()).thenReturn(null);
     when(forgedAlliancePrefs.getPath()).thenReturn(null);
 
-    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet()).get(TIMEOUT, TIMEOUT_UNIT);
+    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet())
+        .toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     verifyZeroInteractions(taskService);
   }
@@ -88,14 +98,13 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
   @SuppressWarnings("unchecked")
   public void testPatchInBackgroundAlreadyRunning() throws Exception {
     UpdateGameFilesTask updateGameFilesTask = mock(UpdateGameFilesTask.class, withSettings().useConstructor());
+    when(updateGameFilesTask.getFuture()).thenReturn(completedFuture(null));
     when(applicationContext.getBean(UpdateGameFilesTask.class)).thenReturn(updateGameFilesTask);
 
     when(updateGameFilesTask.isDone()).thenReturn(false);
 
-    when(taskService.submitTask(eq(updateGameFilesTask))).thenReturn(CompletableFuture.completedFuture(null));
-
-    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet()).get(TIMEOUT, TIMEOUT_UNIT);
-    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet()).get(TIMEOUT, TIMEOUT_UNIT);
+    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet()).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
+    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet()).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     verify(taskService, only()).submitTask(updateGameFilesTask);
   }

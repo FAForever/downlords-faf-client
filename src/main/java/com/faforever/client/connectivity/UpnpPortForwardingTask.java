@@ -1,13 +1,13 @@
 package com.faforever.client.connectivity;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.task.AbstractPrioritizedTask;
+import com.faforever.client.task.CompletableTask;
 import com.faforever.client.upnp.UpnpService;
 import com.faforever.client.util.Assert;
 
 import javax.annotation.Resource;
 
-public class UpnpPortForwardingTask extends AbstractPrioritizedTask<Void> {
+public class UpnpPortForwardingTask extends CompletableTask<Void> {
 
   @Resource
   I18n i18n;

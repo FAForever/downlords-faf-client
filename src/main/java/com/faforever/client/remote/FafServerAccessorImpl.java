@@ -12,14 +12,54 @@ import com.faforever.client.rankedmatch.StopSearchRanked1V1ClientMessage;
 import com.faforever.client.relay.GpgClientMessage;
 import com.faforever.client.relay.GpgClientMessageSerializer;
 import com.faforever.client.relay.GpgServerMessageType;
-import com.faforever.client.remote.domain.*;
-import com.faforever.client.remote.gson.*;
+import com.faforever.client.remote.domain.AddFoeMessage;
+import com.faforever.client.remote.domain.AddFriendMessage;
+import com.faforever.client.remote.domain.AuthenticationFailedMessage;
+import com.faforever.client.remote.domain.ClientMessage;
+import com.faforever.client.remote.domain.ClientMessageType;
+import com.faforever.client.remote.domain.FafServerMessageType;
+import com.faforever.client.remote.domain.GameAccess;
+import com.faforever.client.remote.domain.GameLaunchMessage;
+import com.faforever.client.remote.domain.GameState;
+import com.faforever.client.remote.domain.HostGameMessage;
+import com.faforever.client.remote.domain.InitSessionMessage;
+import com.faforever.client.remote.domain.JoinGameMessage;
+import com.faforever.client.remote.domain.LoginClientMessage;
+import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.MessageTarget;
+import com.faforever.client.remote.domain.Ranked1v1SearchExpansionMessage;
+import com.faforever.client.remote.domain.RatingRange;
+import com.faforever.client.remote.domain.RemoveFoeMessage;
+import com.faforever.client.remote.domain.RemoveFriendMessage;
+import com.faforever.client.remote.domain.SerializableMessage;
+import com.faforever.client.remote.domain.ServerCommand;
+import com.faforever.client.remote.domain.ServerMessage;
+import com.faforever.client.remote.domain.SessionMessage;
+import com.faforever.client.remote.domain.StatisticsType;
+import com.faforever.client.remote.domain.VictoryCondition;
+import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
+import com.faforever.client.remote.gson.ConnectivityStateTypeAdapter;
+import com.faforever.client.remote.gson.GameAccessTypeAdapter;
+import com.faforever.client.remote.gson.GameStateTypeAdapter;
+import com.faforever.client.remote.gson.GpgServerMessageTypeTypeAdapter;
+import com.faforever.client.remote.gson.InetSocketAddressTypeAdapter;
+import com.faforever.client.remote.gson.InitConnectivityTestMessage;
+import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
+import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
+import com.faforever.client.remote.gson.ServerMessageTypeAdapter;
+import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
+import com.faforever.client.remote.gson.StatisticsTypeTypeAdapter;
+import com.faforever.client.remote.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.update.ClientUpdateService;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import javafx.beans.property.*;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +81,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
@@ -126,7 +167,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletableFuture<LoginMessage> connectAndLogIn(String username, String password) {
+  public CompletionStage<LoginMessage> connectAndLogIn(String username, String password) {
     sessionFuture = new CompletableFuture<>();
     loginFuture = new CompletableFuture<>();
     this.username = username;
@@ -183,7 +224,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, @Nullable InetSocketAddress relayAddress, int externalPort) {
+  public CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, @Nullable InetSocketAddress relayAddress, int externalPort) {
     HostGameMessage hostGameMessage = new HostGameMessage(
         StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
         newGameInfo.getMap(),
@@ -202,7 +243,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password, @Nullable InetSocketAddress relayAddress, int externalPort) {
+  public CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password, @Nullable InetSocketAddress relayAddress, int externalPort) {
     JoinGameMessage joinGameMessage = new JoinGameMessage(
         gameId,
         externalPort,
@@ -238,7 +279,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort, @Nullable InetSocketAddress relayAddress) {
+  public CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort, @Nullable InetSocketAddress relayAddress) {
     gameLaunchFuture = new CompletableFuture<>();
     writeToServer(new SearchRanked1V1ClientMessage(gamePort, faction, relayAddress));
     return gameLaunchFuture;
@@ -271,7 +312,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> expectRehostCommand() {
+  public CompletionStage<GameLaunchMessage> expectRehostCommand() {
     logger.debug("Expecting rehost command from server");
     gameLaunchFuture = new CompletableFuture<>();
     return gameLaunchFuture;

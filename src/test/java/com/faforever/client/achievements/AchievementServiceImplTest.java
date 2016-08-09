@@ -149,7 +149,7 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
     when(playerService.getPlayerForUsername("foobar")).thenReturn(PlayerInfoBeanBuilder.create("foobar").id(PLAYER_ID).get());
     when(fafApiAccessor.getPlayerAchievements(PLAYER_ID)).thenReturn(achievements);
 
-    List<PlayerAchievement> playerAchievements = instance.getPlayerAchievements("foobar").get(5, TimeUnit.SECONDS);
+    List<PlayerAchievement> playerAchievements = instance.getPlayerAchievements("foobar").toCompletableFuture().get(5, TimeUnit.SECONDS);
 
     assertThat(playerAchievements, hasSize(2));
     assertThat(playerAchievements, is(achievements));

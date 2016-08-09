@@ -3,7 +3,7 @@ package com.faforever.client.update;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCopier;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.AbstractPrioritizedTask;
+import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-public class DownloadUpdateTask extends AbstractPrioritizedTask<Path> {
+public class DownloadUpdateTask extends CompletableTask<Path> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

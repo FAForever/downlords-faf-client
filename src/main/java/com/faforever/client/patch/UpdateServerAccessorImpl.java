@@ -201,7 +201,7 @@ public class UpdateServerAccessorImpl extends AbstractServerAccessor implements 
   }
 
   @Override
-  public CompletableFuture<String> requestSimPath(String uid) {
+  public CompletionStage<String> requestSimPath(String uid) {
     requestSimPathFuture = new CompletableFuture<>();
     writeToServer(new SimPathRequest(uid));
     return requestSimPathFuture;

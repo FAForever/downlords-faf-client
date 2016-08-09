@@ -18,7 +18,10 @@ import java.util.concurrent.TimeUnit;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -47,6 +50,8 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     instance.notificationService = notificationService;
     instance.replayService = replayService;
 
+    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
+
     instance.postConstruct();
   }
 
@@ -59,12 +64,13 @@ public class ReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testLoadLocalReplaysInBackground() throws Exception {
     LoadLocalReplaysTask task = mock(LoadLocalReplaysTask.class);
-    when(applicationContext.getBean(LoadLocalReplaysTask.class)).thenReturn(task);
-    when(taskService.submitTask(task)).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+    when(task.getFuture()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         ReplayInfoBeanBuilder.create().get(),
         ReplayInfoBeanBuilder.create().get(),
         ReplayInfoBeanBuilder.create().get()
     )));
+
+    when(applicationContext.getBean(LoadLocalReplaysTask.class)).thenReturn(task);
 
     CountDownLatch loadedLatch = new CountDownLatch(1);
     instance.localReplaysRoot.getChildren().addListener((InvalidationListener) observable -> loadedLatch.countDown());

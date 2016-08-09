@@ -5,15 +5,15 @@ import com.faforever.client.api.PlayerAchievement;
 import javafx.scene.image.Image;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public interface AchievementService {
 
-  CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(String username);
+  CompletionStage<List<PlayerAchievement>> getPlayerAchievements(String username);
 
-  CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions();
+  CompletionStage<List<AchievementDefinition>> getAchievementDefinitions();
 
-  CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId);
+  CompletionStage<AchievementDefinition> getAchievementDefinition(String achievementId);
 
   Image getRevealedIcon(AchievementDefinition achievementDefinition);
 

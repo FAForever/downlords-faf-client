@@ -2,13 +2,13 @@ package com.faforever.client.user;
 
 import javafx.beans.property.BooleanProperty;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public interface UserService {
 
   BooleanProperty loggedInProperty();
 
-  CompletableFuture<Void> login(String username, String password, boolean autoLogin);
+  CompletionStage<Void> login(String username, String password, boolean autoLogin);
 
   String getUsername();
 

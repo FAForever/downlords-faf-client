@@ -5,7 +5,13 @@ import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameType;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.*;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.ReportAction;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
@@ -31,13 +37,19 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.notification.Severity.WARN;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 
 public class ReplayServiceImpl implements ReplayService {
 
@@ -134,7 +146,7 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public CompletableFuture<List<ReplayInfoBean>> getOnlineReplays() {
+  public CompletionStage<List<ReplayInfoBean>> getOnlineReplays() {
     return replayServerAccessor.requestOnlineReplays();
   }
 
@@ -265,9 +277,9 @@ public class ReplayServiceImpl implements ReplayService {
     gameService.runWithReplay(path, null, gameType, version, emptyMap(), emptySet());
   }
 
-  private CompletableFuture<Path> downloadReplayToTemporaryDirectory(int replayId) {
+  private CompletionStage<Path> downloadReplayToTemporaryDirectory(int replayId) {
     ReplayDownloadTask task = applicationContext.getBean(ReplayDownloadTask.class);
     task.setReplayId(replayId);
-    return taskService.submitTask(task);
+    return taskService.submitTask(task).getFuture();
   }
 }

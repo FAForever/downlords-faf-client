@@ -9,6 +9,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.task.CompletableTask;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -37,6 +38,8 @@ import static java.util.Arrays.asList;
 public class MapUploadController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  @FXML
+  Label uploadTaskTitleLabel;
   @FXML
   Label bytesLabel;
   @FXML
@@ -82,8 +85,8 @@ public class MapUploadController {
   EventBus eventBus;
 
   private Path mapPath;
-  private CompletableFuture<Void> uploadMapFuture;
   private MapBean mapInfo;
+  private CompletableTask<Void> uploadMapTask;
 
   @FXML
   void initialize() {
@@ -148,7 +151,7 @@ public class MapUploadController {
 
   @FXML
   void onCancelUploadClicked() {
-    uploadMapFuture.cancel(true);
+    uploadMapTask.cancel(true);
     enterMapInfoState();
   }
 
@@ -174,12 +177,14 @@ public class MapUploadController {
 
     uploadProgressBar.setProgress(0);
     uploadProgressPane.setVisible(true);
-    uploadMapFuture = mapService.uploadMap(mapPath,
+    uploadMapTask = mapService.uploadMap(mapPath,
         (written, total) -> {
           uploadProgressBar.setProgress((double) written / total);
           Platform.runLater(() -> bytesLabel.setText(i18n.get("bytesProgress", formatSize(written, locale), formatSize(total, locale))));
         },
-        rankedCheckbox.isSelected())
+        rankedCheckbox.isSelected());
+
+    uploadMapTask.getFuture()
         .thenAccept(v -> eventBus.post(new MapUploadedEvent(mapInfo)))
         .thenAccept(aVoid -> enterUploadCompleteState())
         .exceptionally(throwable -> {

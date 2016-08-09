@@ -36,9 +36,9 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.util.SocketUtils.PORT_RANGE_MAX;
 import static org.springframework.util.SocketUtils.PORT_RANGE_MIN;
 
-public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
+public class ConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
 
-  private FafConnectivityCheckTask instance;
+  private ConnectivityCheckTask instance;
 
   @Mock
   private I18n i18n;
@@ -54,7 +54,7 @@ public class FafConnectivityCheckTaskTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new FafConnectivityCheckTask();
+    instance = new ConnectivityCheckTask();
     instance.i18n = i18n;
     instance.fafService = fafService;
     instance.connectivityCheckTimeout = 5000;

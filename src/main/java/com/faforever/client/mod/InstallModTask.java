@@ -4,7 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCopier;
 import com.faforever.client.io.Unzipper;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.AbstractPrioritizedTask;
+import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,9 +21,9 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.zip.ZipInputStream;
 
-import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
+import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 
-public class InstallModTask extends AbstractPrioritizedTask<Void> {
+public class InstallModTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

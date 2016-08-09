@@ -2,7 +2,7 @@ package com.faforever.client.uploader.imgur;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCopier;
-import com.faforever.client.task.AbstractPrioritizedTask;
+import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets;
 
 import static com.faforever.client.io.Bytes.formatSize;
 
-public class ImgurUploadTask extends AbstractPrioritizedTask<String> {
+public class ImgurUploadTask extends CompletableTask<String> {
 
   private final Gson gson;
   @Resource

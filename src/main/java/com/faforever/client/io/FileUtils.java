@@ -8,7 +8,10 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
 import static com.github.nocatch.NoCatch.noCatch;
-import static java.nio.file.Files.*;
+import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.delete;
+import static java.nio.file.Files.move;
+import static java.nio.file.Files.walkFileTree;
 
 public final class FileUtils {
 

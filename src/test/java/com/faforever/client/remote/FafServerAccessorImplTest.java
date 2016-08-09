@@ -188,7 +188,7 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     String password = "JunitPassword";
     long sessionId = 456;
 
-    CompletableFuture<LoginMessage> loginFuture = instance.connectAndLogIn(username, password);
+    CompletableFuture<LoginMessage> loginFuture = instance.connectAndLogIn(username, password).toCompletableFuture();
 
     String json = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     InitSessionMessage initSessionMessage = gson.fromJson(json, InitSessionMessage.class);
@@ -270,7 +270,7 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
   }
 
   private void connectAndLogIn() throws Exception {
-    CompletableFuture<LoginMessage> loginFuture = instance.connectAndLogIn("JUnit", "JUnitPassword");
+    CompletableFuture<LoginMessage> loginFuture = instance.connectAndLogIn("JUnit", "JUnitPassword").toCompletableFuture();
 
     assertNotNull(messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT));
 
@@ -314,7 +314,7 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     connectAndLogIn();
     InetSocketAddress relayAddress = InetSocketAddress.createUnresolved("foobar", 1235);
 
-    CompletableFuture<GameLaunchMessage> future = instance.startSearchRanked1v1(Faction.AEON, GAME_PORT, relayAddress);
+    CompletableFuture<GameLaunchMessage> future = instance.startSearchRanked1v1(Faction.AEON, GAME_PORT, relayAddress).toCompletableFuture();
 
     String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     SearchRanked1V1ClientMessage searchRanked1v1Message = gson.fromJson(clientMessage, SearchRanked1V1ClientMessage.class);

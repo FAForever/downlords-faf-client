@@ -6,7 +6,7 @@ import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.collections.MapChangeListener;
 import org.pircbotx.User;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
 public interface ChatService {
@@ -19,7 +19,7 @@ public interface ChatService {
 
   void disconnect();
 
-  CompletableFuture<String> sendMessageInBackground(String target, String message);
+  CompletionStage<String> sendMessageInBackground(String target, String message);
 
   /**
    * Gets the list of chat users for the given channel as soon as it is available. <p> <strong>IMPORTANT:</strong> All
@@ -39,7 +39,7 @@ public interface ChatService {
 
   void leaveChannel(String channelName);
 
-  CompletableFuture<String> sendActionInBackground(String target, String action);
+  CompletionStage<String> sendActionInBackground(String target, String action);
 
   void joinChannel(String channelName);
 

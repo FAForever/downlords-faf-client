@@ -35,8 +35,12 @@ import java.lang.invoke.MethodHandles;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
@@ -193,7 +197,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
   }
 
   @Override
-  public CompletableFuture<Void> checkConnectivity() {
+  public CompletionStage<Void> checkConnectivity() {
     this.connectivityState.set(ConnectivityState.UNKNOWN);
     resetPort();
 
@@ -204,8 +208,8 @@ public class ConnectivityServiceImpl implements ConnectivityService {
     connectivityCheckTask.setPublicPort(publicSocket.getLocalPort());
     connectivityCheckTask.setDatagramGateway(this);
 
-    return taskService.submitTask(upnpTask)
-        .thenCompose(aVoid -> taskService.submitTask(connectivityCheckTask))
+    return taskService.submitTask(upnpTask).getFuture()
+        .thenCompose(aVoid -> taskService.submitTask(connectivityCheckTask).getFuture())
         .thenAccept(result -> {
           ConnectivityState state = result.getState();
           switch (state) {

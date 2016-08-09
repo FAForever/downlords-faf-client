@@ -20,6 +20,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
@@ -46,7 +47,7 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
+  public CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
     return fafServerAccessor.requestHostGame(newGameInfo,
         connectivityService.getRelayAddress(),
         connectivityService.getExternalSocketAddress().getPort()
@@ -59,14 +60,14 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password) {
+  public CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password) {
     return fafServerAccessor.requestJoinGame(gameId, password,
         connectivityService.getRelayAddress(),
         connectivityService.getExternalSocketAddress().getPort());
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int port) {
+  public CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction, int port) {
     return fafServerAccessor.startSearchRanked1v1(faction, port, connectivityService.getRelayAddress());
   }
 
@@ -91,7 +92,7 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public CompletableFuture<LoginMessage> connectAndLogIn(String username, String password) {
+  public CompletionStage<LoginMessage> connectAndLogIn(String username, String password) {
     return fafServerAccessor.connectAndLogIn(username, password);
   }
 
@@ -126,17 +127,17 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public CompletableFuture<List<Ranked1v1EntryBean>> getRanked1v1Entries() {
+  public CompletionStage<List<Ranked1v1EntryBean>> getRanked1v1Entries() {
     return CompletableFuture.supplyAsync(() -> fafApiAccessor.getRanked1v1Entries(), threadPoolExecutor);
   }
 
   @Override
-  public CompletableFuture<Ranked1v1Stats> getRanked1v1Stats() {
+  public CompletionStage<Ranked1v1Stats> getRanked1v1Stats() {
     return CompletableFuture.supplyAsync(() -> fafApiAccessor.getRanked1v1Stats(), threadPoolExecutor);
   }
 
   @Override
-  public CompletableFuture<Ranked1v1EntryBean> getRanked1v1EntryForPlayer(int playerId) {
+  public CompletionStage<Ranked1v1EntryBean> getRanked1v1EntryForPlayer(int playerId) {
     return CompletableFuture.supplyAsync(() -> fafApiAccessor.getRanked1v1EntryForPlayer(playerId), threadPoolExecutor);
   }
 
@@ -161,7 +162,7 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> expectRehostCommand() {
+  public CompletionStage<GameLaunchMessage> expectRehostCommand() {
     return fafServerAccessor.expectRehostCommand();
   }
 
@@ -171,22 +172,22 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public CompletableFuture<List<MapBean>> getMostDownloadedMaps(int count) {
+  public CompletionStage<List<MapBean>> getMostDownloadedMaps(int count) {
     return CompletableFuture.supplyAsync(() -> fafApiAccessor.getMostDownloadedMaps(count), threadPoolExecutor);
   }
 
   @Override
-  public CompletableFuture<List<MapBean>> getMostPlayedMaps(int count) {
+  public CompletionStage<List<MapBean>> getMostPlayedMaps(int count) {
     return CompletableFuture.supplyAsync(() -> fafApiAccessor.getMostPlayedMaps(count), threadPoolExecutor);
   }
 
   @Override
-  public CompletableFuture<List<MapBean>> getMostLikedMaps(int count) {
+  public CompletionStage<List<MapBean>> getMostLikedMaps(int count) {
     return CompletableFuture.supplyAsync(() -> fafApiAccessor.getBestRatedMaps(count), threadPoolExecutor);
   }
 
   @Override
-  public CompletableFuture<List<MapBean>> getNewestMaps(int count) {
+  public CompletionStage<List<MapBean>> getNewestMaps(int count) {
     return CompletableFuture.supplyAsync(() -> fafApiAccessor.getNewestMaps(count), threadPoolExecutor);
   }
 }

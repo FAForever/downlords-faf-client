@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public class UserServiceImpl implements UserService {
 
@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public CompletableFuture<Void> login(String username, String password, boolean autoLogin) {
+  public CompletionStage<Void> login(String username, String password, boolean autoLogin) {
     preferencesService.getPreferences().getLogin()
         .setUsername(username)
         .setPassword(password)

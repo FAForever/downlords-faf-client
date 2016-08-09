@@ -1,7 +1,7 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.io.FileUtils;
-import com.faforever.client.task.AbstractPrioritizedTask;
+import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +11,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.Objects;
 
-public class UninstallModTask extends AbstractPrioritizedTask<Void> {
+public class UninstallModTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -21,7 +21,7 @@ public class UninstallModTask extends AbstractPrioritizedTask<Void> {
   private ModInfoBean mod;
 
   public UninstallModTask() {
-    super(AbstractPrioritizedTask.Priority.LOW);
+    super(CompletableTask.Priority.LOW);
   }
 
   public void setMod(ModInfoBean mod) {

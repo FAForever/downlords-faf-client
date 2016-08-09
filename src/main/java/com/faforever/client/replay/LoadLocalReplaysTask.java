@@ -1,12 +1,12 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.task.AbstractPrioritizedTask;
+import com.faforever.client.task.CompletableTask;
 
 import javax.annotation.Resource;
 import java.util.Collection;
 
-public class LoadLocalReplaysTask extends AbstractPrioritizedTask<Collection<ReplayInfoBean>> {
+public class LoadLocalReplaysTask extends CompletableTask<Collection<ReplayInfoBean>> {
 
   @Resource
   ReplayService replayService;

@@ -1,9 +1,9 @@
 package com.faforever.client.preferences;
 
 import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public interface OnChooseGameDirectoryListener {
 
-  CompletableFuture<Path> onChooseGameDirectory();
+  CompletionStage<Path> onChooseGameDirectory();
 }

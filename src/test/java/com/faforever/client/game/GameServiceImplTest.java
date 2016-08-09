@@ -176,7 +176,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(localRelayServer.getPort()).thenReturn(111);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
 
-    CompletableFuture<Void> future = instance.joinGame(gameInfoBean, null);
+    CompletableFuture<Void> future = instance.joinGame(gameInfoBean, null).toCompletableFuture();
 
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
     verify(mapService, never()).download(any());
@@ -264,7 +264,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(process).waitFor();
 
-    instance.hostGame(newGameInfo).get(TIMEOUT, TIME_UNIT);
+    instance.hostGame(newGameInfo).toCompletableFuture().get(TIMEOUT, TIME_UNIT);
     gameStartedLatch.await(TIMEOUT, TIME_UNIT);
     processLatch.countDown();
 
@@ -396,7 +396,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
     when(localRelayServer.getPort()).thenReturn(111);
 
-    CompletableFuture<Void> future = instance.startSearchRanked1v1(Faction.CYBRAN);
+    CompletableFuture<Void> future = instance.startSearchRanked1v1(Faction.CYBRAN).toCompletableFuture();
 
     verify(searchExpansionTask).setMaxRadius(SEARCH_MAX_RADIUS);
     verify(searchExpansionTask).setRadiusIncrement(SEARCH_RADIUS_INCREMENT);
