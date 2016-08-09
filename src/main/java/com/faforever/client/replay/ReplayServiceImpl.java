@@ -158,7 +158,7 @@ public class ReplayServiceImpl implements ReplayService {
     uriBuilder.setScheme(FAF_LIFE_PROTOCOL);
     uriBuilder.setHost(environment.getProperty("lobby.host"));
     uriBuilder.setPath("/" + gameId + "/" + playerId + SUP_COM_REPLAY_FILE_ENDING);
-    uriBuilder.addParameter("map", UrlEscapers.urlFragmentEscaper().escape(gameInfoBean.getFolderName()));
+    uriBuilder.addParameter("map", UrlEscapers.urlFragmentEscaper().escape(gameInfoBean.getMapFolderName()));
     uriBuilder.addParameter("mod", gameInfoBean.getFeaturedMod());
 
     try {

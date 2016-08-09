@@ -165,7 +165,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     simMods.put("123-456-789", "Fake mod name");
 
     gameInfoBean.setSimMods(simMods);
-    gameInfoBean.setFolderName("map");
+    gameInfoBean.setMapFolderName("map");
 
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     InetSocketAddress externalSocketAddress = new InetSocketAddress(123);

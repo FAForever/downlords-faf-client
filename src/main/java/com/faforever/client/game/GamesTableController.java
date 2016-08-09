@@ -81,12 +81,12 @@ public class GamesTableController {
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(fxmlLoader));
     mapPreviewColumn.setCellValueFactory(param -> new ObjectBinding<Image>() {
       {
-        bind(param.getValue().folderNameProperty());
+        bind(param.getValue().mapFolderNameProperty());
       }
 
       @Override
       protected Image computeValue() {
-        return mapService.loadSmallPreview(param.getValue().getFolderName());
+        return mapService.loadSmallPreview(param.getValue().getMapFolderName());
       }
     });
 

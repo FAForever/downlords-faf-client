@@ -180,7 +180,7 @@ public class GameServiceImpl implements GameService {
     Set<String> simModUIds = gameInfoBean.getSimMods().keySet();
 
     return updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
-        .thenCompose(aVoid -> downloadMapIfNecessary(gameInfoBean.getFolderName()))
+        .thenCompose(aVoid -> downloadMapIfNecessary(gameInfoBean.getMapFolderName()))
         .thenRun(() -> connectivityService.connect())
         .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.requestJoinGame(gameInfoBean.getUid(), password))

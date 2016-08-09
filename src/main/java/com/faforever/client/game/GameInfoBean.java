@@ -32,7 +32,7 @@ public class GameInfoBean {
 
   private final StringProperty host;
   private final StringProperty title;
-  private final StringProperty folderName;
+  private final StringProperty mapFolderName;
   private final StringProperty featuredMod;
   private final IntegerProperty uid;
   private final IntegerProperty numPlayers;
@@ -62,7 +62,7 @@ public class GameInfoBean {
     uid = new SimpleIntegerProperty();
     host = new SimpleStringProperty();
     title = new SimpleStringProperty();
-    folderName = new SimpleStringProperty();
+    mapFolderName = new SimpleStringProperty();
     featuredMod = new SimpleStringProperty();
     numPlayers = new SimpleIntegerProperty();
     maxPlayers = new SimpleIntegerProperty();
@@ -81,7 +81,7 @@ public class GameInfoBean {
     uid.set(gameInfoMessage.getUid());
     host.set(gameInfoMessage.getHost());
     title.set(StringEscapeUtils.unescapeHtml4(gameInfoMessage.getTitle()));
-    folderName.set(gameInfoMessage.getMapname());
+    mapFolderName.set(gameInfoMessage.getMapname());
     featuredMod.set(gameInfoMessage.getFeaturedMod());
     numPlayers.setValue(gameInfoMessage.getNumPlayers());
     maxPlayers.setValue(gameInfoMessage.getMaxPlayers());
@@ -182,16 +182,16 @@ public class GameInfoBean {
     return title;
   }
 
-  public String getFolderName() {
-    return folderName.get();
+  public String getMapFolderName() {
+    return mapFolderName.get();
   }
 
-  public void setFolderName(String folderName) {
-    this.folderName.set(folderName);
+  public void setMapFolderName(String mapFolderName) {
+    this.mapFolderName.set(mapFolderName);
   }
 
-  public StringProperty folderNameProperty() {
-    return folderName;
+  public StringProperty mapFolderNameProperty() {
+    return mapFolderName;
   }
 
   public String getFeaturedMod() {
