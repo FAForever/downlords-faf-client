@@ -171,7 +171,6 @@ public class MapUploadController {
   void onUploadClicked() {
     enterUploadingState();
 
-    uploadProgressBar.setProgress(0);
     uploadProgressPane.setVisible(true);
     uploadMapTask = mapService.uploadMap(mapPath, rankedCheckbox.isSelected());
     uploadTaskTitleLabel.textProperty().bind(uploadMapTask.titleProperty());
