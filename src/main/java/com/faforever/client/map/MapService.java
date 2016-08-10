@@ -1,6 +1,5 @@
 package com.faforever.client.map;
 
-import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.task.CompletableTask;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
@@ -58,5 +57,5 @@ public interface MapService {
 
   Path getPathForMap(String technicalName);
 
-  CompletableTask<Void> uploadMap(Path mapPath, ByteCountListener byteListener, boolean ranked);
+  CompletableTask<Void> uploadMap(Path mapPath, boolean ranked);
 }

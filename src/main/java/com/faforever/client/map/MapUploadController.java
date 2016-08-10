@@ -11,7 +11,6 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
@@ -27,21 +26,19 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
-import java.util.Locale;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import static com.faforever.client.io.Bytes.formatSize;
 import static java.util.Arrays.asList;
 
 public class MapUploadController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @FXML
-  Label uploadTaskTitleLabel;
+  Label uploadTaskMessageLabel;
   @FXML
-  Label bytesLabel;
+  Label uploadTaskTitleLabel;
   @FXML
   Label sizeLabel;
   @FXML
@@ -173,16 +170,13 @@ public class MapUploadController {
   @FXML
   void onUploadClicked() {
     enterUploadingState();
-    Locale locale = i18n.getLocale();
 
     uploadProgressBar.setProgress(0);
     uploadProgressPane.setVisible(true);
-    uploadMapTask = mapService.uploadMap(mapPath,
-        (written, total) -> {
-          uploadProgressBar.setProgress((double) written / total);
-          Platform.runLater(() -> bytesLabel.setText(i18n.get("bytesProgress", formatSize(written, locale), formatSize(total, locale))));
-        },
-        rankedCheckbox.isSelected());
+    uploadMapTask = mapService.uploadMap(mapPath, rankedCheckbox.isSelected());
+    uploadTaskTitleLabel.textProperty().bind(uploadMapTask.titleProperty());
+    uploadTaskMessageLabel.textProperty().bind(uploadMapTask.messageProperty());
+    uploadProgressBar.progressProperty().bind(uploadMapTask.progressProperty());
 
     uploadMapTask.getFuture()
         .thenAccept(v -> eventBus.post(new MapUploadedEvent(mapInfo)))

@@ -1,7 +1,6 @@
 package com.faforever.client.map;
 
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
@@ -389,10 +388,9 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public CompletableTask<Void> uploadMap(Path mapPath, ByteCountListener byteListener, boolean ranked) {
+  public CompletableTask<Void> uploadMap(Path mapPath, boolean ranked) {
     MapUploadTask mapUploadTask = applicationContext.getBean(MapUploadTask.class);
     mapUploadTask.setMapPath(mapPath);
-    mapUploadTask.setByteListener(byteListener);
     mapUploadTask.setRanked(ranked);
 
     return taskService.submitTask(mapUploadTask);

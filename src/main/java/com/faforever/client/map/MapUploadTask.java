@@ -17,8 +17,10 @@ import java.io.BufferedOutputStream;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.zip.ZipOutputStream;
 
+import static com.faforever.client.io.Bytes.formatSize;
 import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.newOutputStream;
 
@@ -35,7 +37,6 @@ public class MapUploadTask extends CompletableTask<Void> {
 
   private Path mapPath;
   private Boolean isRanked;
-  private ByteCountListener byteListener;
 
   public MapUploadTask() {
     super(Priority.HIGH);
@@ -49,7 +50,6 @@ public class MapUploadTask extends CompletableTask<Void> {
   @Override
   protected Void call() throws Exception {
     Validator.notNull(mapPath, "mapPath must not be null");
-    Validator.notNull(byteListener, "byteListener must not be null");
     Validator.notNull(isRanked, "isRanked must not be null");
 
     ResourceLocks.acquireUploadLock();
@@ -59,7 +59,13 @@ public class MapUploadTask extends CompletableTask<Void> {
 
     try {
       logger.debug("Zipping map {} to {}", mapPath, tmpFile);
-      updateMessage(i18n.get("mapVault.upload.compressing"));
+      updateTitle(i18n.get("mapVault.upload.compressing"));
+
+      Locale locale = i18n.getLocale();
+      ByteCountListener byteListener = (written, total) -> {
+        updateMessage(i18n.get("bytesProgress", formatSize(written, locale), formatSize(total, locale)));
+        updateProgress(written, total);
+      };
 
       try (ZipOutputStream zipOutputStream = new ZipOutputStream(new BufferedOutputStream(newOutputStream(tmpFile)))) {
         Zipper.of(mapPath)
@@ -69,7 +75,7 @@ public class MapUploadTask extends CompletableTask<Void> {
       }
 
       logger.debug("Uploading map {}", mapPath, tmpFile);
-      updateMessage(i18n.get("mapVault.upload.uploading"));
+      updateTitle(i18n.get("mapVault.upload.uploading"));
 
       fafApiAccessor.uploadMap(tmpFile, isRanked, byteListener);
       return null;
@@ -85,9 +91,5 @@ public class MapUploadTask extends CompletableTask<Void> {
 
   public void setRanked(boolean ranked) {
     isRanked = ranked;
-  }
-
-  public void setByteListener(ByteCountListener byteListener) {
-    this.byteListener = byteListener;
   }
 }
