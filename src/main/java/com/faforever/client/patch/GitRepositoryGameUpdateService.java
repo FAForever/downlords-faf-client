@@ -22,44 +22,25 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public class GitRepositoryGameUpdateService extends AbstractPatchService implements GameUpdateService {
 
   @VisibleForTesting
-  enum InstallType {
-    RETAIL("retail.json"),
-    STEAM("steam.json");
-
-    final String migrationDataFileName;
-
-    InstallType(String migrationDataFileName) {
-      this.migrationDataFileName = migrationDataFileName;
-    }
-  }
-
-  @VisibleForTesting
   static final String REPO_NAME = "binary-patch";
-
   @VisibleForTesting
   static final String STEAM_API_DLL = "steam_api.dll";
-
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   @Resource
   TaskService taskService;
-
   @Resource
   NotificationService notificationService;
-
   @Resource
   I18n i18n;
-
   @Resource
   GitWrapper gitWrapper;
-
   @Resource
   ApplicationContext applicationContext;
-
   /**
    * Path to the local binary-patch Git repository.
    */
@@ -76,7 +57,7 @@ public class GitRepositoryGameUpdateService extends AbstractPatchService impleme
   }
 
   @Override
-  public CompletableFuture<Void> updateInBackground(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUids) {
+  public CompletionStage<Void> updateInBackground(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUids) {
     if (!checkDirectories()) {
       logger.warn("Aborted patching since directories aren't initialized properly");
       return CompletableFuture.completedFuture(null);
@@ -86,7 +67,7 @@ public class GitRepositoryGameUpdateService extends AbstractPatchService impleme
     task.setBinaryPatchRepoDirectory(binaryPatchRepoDirectory);
     task.setMigrationDataFile(getMigrationDataFile());
 
-    return taskService.submitTask(task).thenAccept(aVoid -> notificationService.addNotification(
+    return taskService.submitTask(task).getFuture().thenAccept(aVoid -> notificationService.addNotification(
         new PersistentNotification(
             i18n.get("faUpdateSucceeded.notification"),
             Severity.INFO
@@ -106,12 +87,12 @@ public class GitRepositoryGameUpdateService extends AbstractPatchService impleme
   }
 
   @Override
-  public CompletableFuture<Void> checkForUpdateInBackground() {
+  public CompletionStage<Void> checkForUpdateInBackground() {
     GitCheckGameUpdateTask task = applicationContext.getBean(GitCheckGameUpdateTask.class);
     task.setBinaryPatchRepoDirectory(binaryPatchRepoDirectory);
     task.setMigrationDataFile(getMigrationDataFile());
 
-    return taskService.submitTask(task).thenAccept(needsPatching -> {
+    return taskService.submitTask(task).getFuture().thenAccept(needsPatching -> {
       if (needsPatching) {
         notificationService.addNotification(
             new PersistentNotification(
@@ -155,6 +136,18 @@ public class GitRepositoryGameUpdateService extends AbstractPatchService impleme
       return InstallType.STEAM;
     } else {
       return InstallType.RETAIL;
+    }
+  }
+
+  @VisibleForTesting
+  enum InstallType {
+    RETAIL("retail.json"),
+    STEAM("steam.json");
+
+    final String migrationDataFileName;
+
+    InstallType(String migrationDataFileName) {
+      this.migrationDataFileName = migrationDataFileName;
     }
   }
 }

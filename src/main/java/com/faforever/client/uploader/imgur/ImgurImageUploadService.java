@@ -6,7 +6,7 @@ import javafx.scene.image.Image;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Resource;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public class ImgurImageUploadService implements ImageUploadService {
 
@@ -17,9 +17,9 @@ public class ImgurImageUploadService implements ImageUploadService {
   ApplicationContext applicationContext;
 
   @Override
-  public CompletableFuture<String> uploadImageInBackground(Image image) {
+  public CompletionStage<String> uploadImageInBackground(Image image) {
     ImgurUploadTask imgurUploadTask = applicationContext.getBean(ImgurUploadTask.class);
     imgurUploadTask.setImage(image);
-    return taskService.submitTask(imgurUploadTask);
+    return taskService.submitTask(imgurUploadTask).getFuture();
   }
 }

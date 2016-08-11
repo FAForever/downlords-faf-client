@@ -32,8 +32,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CompletionStage;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
@@ -174,7 +180,7 @@ public class PreferencesService {
    * Completes the returned future with the game path selected by the user. Returns {@code null} if the user selected no
    * path.
    */
-  public CompletableFuture<Path> letUserChooseGameDirectory() {
+  public CompletionStage<Path> letUserChooseGameDirectory() {
     if (onChooseGameDirectoryListener == null) {
       throw new IllegalStateException("No listener has been specified");
     }

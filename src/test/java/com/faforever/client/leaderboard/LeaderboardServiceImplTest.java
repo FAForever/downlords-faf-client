@@ -38,7 +38,7 @@ public class LeaderboardServiceImplTest {
     List<Ranked1v1EntryBean> ranked1v1EntryBeans = Collections.emptyList();
     when(fafService.getRanked1v1Entries()).thenReturn(CompletableFuture.completedFuture(ranked1v1EntryBeans));
 
-    List<Ranked1v1EntryBean> result = instance.getRanked1v1Entries().get(2, TimeUnit.SECONDS);
+    List<Ranked1v1EntryBean> result = instance.getRanked1v1Entries().toCompletableFuture().get(2, TimeUnit.SECONDS);
 
     verify(fafService).getRanked1v1Entries();
     assertThat(result, is(ranked1v1EntryBeans));
@@ -49,7 +49,7 @@ public class LeaderboardServiceImplTest {
     Ranked1v1Stats ranked1v1Stats = new Ranked1v1Stats();
     when(fafService.getRanked1v1Stats()).thenReturn(CompletableFuture.completedFuture(ranked1v1Stats));
 
-    Ranked1v1Stats result = instance.getRanked1v1Stats().get(2, TimeUnit.SECONDS);
+    Ranked1v1Stats result = instance.getRanked1v1Stats().toCompletableFuture().get(2, TimeUnit.SECONDS);
     verify(fafService).getRanked1v1Stats();
     assertThat(result, is(ranked1v1Stats));
   }
@@ -59,7 +59,7 @@ public class LeaderboardServiceImplTest {
     Ranked1v1EntryBean entry = new Ranked1v1EntryBean();
     when(fafService.getRanked1v1EntryForPlayer(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(entry));
 
-    Ranked1v1EntryBean result = instance.getEntryForPlayer(PLAYER_ID).get(2, TimeUnit.SECONDS);
+    Ranked1v1EntryBean result = instance.getEntryForPlayer(PLAYER_ID).toCompletableFuture().get(2, TimeUnit.SECONDS);
     verify(fafService).getRanked1v1EntryForPlayer(PLAYER_ID);
     assertThat(result, is(entry));
   }

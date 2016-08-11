@@ -1,7 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.io.FileUtils;
-import com.faforever.client.task.AbstractPrioritizedTask;
+import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +11,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.Objects;
 
-public class UninstallMapTask extends AbstractPrioritizedTask<Void> {
+public class UninstallMapTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -32,7 +32,7 @@ public class UninstallMapTask extends AbstractPrioritizedTask<Void> {
   protected Void call() throws Exception {
     Objects.requireNonNull(map, "map has not been set");
 
-    logger.info("Uninstalling map '{}' ({})", map.getTechnicalName(), map.getId());
+    logger.info("Uninstalling map '{}' ({})", map.getFolderName(), map.getId());
     Path mapPath = mapService.getPathForMap(map);
 
     ResourceLocks.acquireDiskLock();

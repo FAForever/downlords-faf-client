@@ -1,5 +1,6 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.task.CompletableTask;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
@@ -10,7 +11,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
 public interface ModService {
@@ -19,11 +20,11 @@ public interface ModService {
 
   ObservableList<ModInfoBean> getInstalledMods();
 
-  CompletableFuture<Void> downloadAndInstallMod(URL url);
+  CompletionStage<Void> downloadAndInstallMod(URL url);
 
-  CompletableFuture<Void> downloadAndInstallMod(URL url, DoubleProperty progressProperty, StringProperty titleProperty);
+  CompletionStage<Void> downloadAndInstallMod(URL url, DoubleProperty progressProperty, StringProperty titleProperty);
 
-  CompletableFuture<Void> downloadAndInstallMod(ModInfoBean modInfoBean, DoubleProperty progressProperty, StringProperty titleProperty);
+  CompletionStage<Void> downloadAndInstallMod(ModInfoBean modInfoBean, DoubleProperty progressProperty, StringProperty titleProperty);
 
   Set<String> getInstalledModUids();
 
@@ -33,28 +34,28 @@ public interface ModService {
 
   boolean isModInstalled(String uid);
 
-  CompletableFuture<Void> uninstallMod(ModInfoBean mod);
+  CompletionStage<Void> uninstallMod(ModInfoBean mod);
 
   Path getPathForMod(ModInfoBean mod);
 
   /**
    * Returns mods available on the server.
    */
-  CompletableFuture<List<ModInfoBean>> getAvailableMods();
+  CompletionStage<List<ModInfoBean>> getAvailableMods();
 
-  CompletableFuture<List<ModInfoBean>> getMostDownloadedMods(int count);
+  CompletionStage<List<ModInfoBean>> getMostDownloadedMods(int count);
 
-  CompletableFuture<List<ModInfoBean>> getMostLikedMods(int count);
+  CompletionStage<List<ModInfoBean>> getMostLikedMods(int count);
 
-  CompletableFuture<List<ModInfoBean>> getNewestMods(int count);
+  CompletionStage<List<ModInfoBean>> getNewestMods(int count);
 
-  CompletableFuture<List<ModInfoBean>> getMostLikedUiMods(int count);
+  CompletionStage<List<ModInfoBean>> getMostLikedUiMods(int count);
 
-  CompletableFuture<List<ModInfoBean>> lookupMod(String string, int maxSuggestions);
+  CompletionStage<List<ModInfoBean>> lookupMod(String string, int maxSuggestions);
 
   ModInfoBean extractModInfo(Path path) throws IOException;
 
-  ModUploadTask uploadMod(Path modPath, Consumer<Float> progressListener);
+  CompletableTask<Void> uploadMod(Path modPath, Consumer<Float> progressListener);
 
   Image loadThumbnail(ModInfoBean mod);
 }

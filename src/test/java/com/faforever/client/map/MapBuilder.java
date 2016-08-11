@@ -8,6 +8,10 @@ public class MapBuilder {
     mapBean = new MapBean();
   }
 
+  public static MapBuilder create() {
+    return new MapBuilder();
+  }
+
   public MapBuilder defaultValues() {
     return displayName("Map name")
         .technicalName("map_name.v001")
@@ -20,7 +24,7 @@ public class MapBuilder {
   }
 
   public MapBuilder technicalName(String technicalName) {
-    mapBean.setTechnicalName(technicalName);
+    mapBean.setFolderName(technicalName);
     return this;
   }
 
@@ -31,9 +35,5 @@ public class MapBuilder {
 
   public MapBean get() {
     return mapBean;
-  }
-
-  public static MapBuilder create() {
-    return new MapBuilder();
   }
 }

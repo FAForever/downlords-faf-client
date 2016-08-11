@@ -2,10 +2,10 @@ package com.faforever.client.stats;
 
 import com.faforever.client.remote.domain.StatisticsType;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public interface StatisticsService {
 
-  CompletableFuture<PlayerStatisticsMessage> getStatisticsForPlayer(StatisticsType type, String username);
+  CompletionStage<PlayerStatisticsMessage> getStatisticsForPlayer(StatisticsType type, String username);
 
 }

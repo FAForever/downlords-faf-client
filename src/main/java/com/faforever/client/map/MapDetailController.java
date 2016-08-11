@@ -73,13 +73,13 @@ public class MapDetailController {
     installStatusChangeListener = change -> {
       while (change.next()) {
         for (MapBean mapBean : change.getAddedSubList()) {
-          if (map.getTechnicalName().equalsIgnoreCase(mapBean.getTechnicalName())) {
+          if (map.getFolderName().equalsIgnoreCase(mapBean.getFolderName())) {
             setInstalled(true);
             return;
           }
         }
         for (MapBean mapBean : change.getRemoved()) {
-          if (map.getTechnicalName().equals(mapBean.getTechnicalName())) {
+          if (map.getFolderName().equals(mapBean.getFolderName())) {
             setInstalled(false);
             return;
           }
@@ -111,13 +111,13 @@ public class MapDetailController {
     nameLabel.setText(map.getDisplayName());
     authorLabel.setText(map.getAuthor());
 
-    boolean mapInstalled = mapService.isInstalled(map.getTechnicalName());
+    boolean mapInstalled = mapService.isInstalled(map.getFolderName());
     installButton.setVisible(!mapInstalled);
     uninstallButton.setVisible(mapInstalled);
 
     mapDescriptionLabel.textProperty().bind(map.descriptionProperty());
     mapService.getInstalledMaps().addListener(new WeakListChangeListener<>(installStatusChangeListener));
-    setInstalled(mapService.isInstalled(map.getTechnicalName()));
+    setInstalled(mapService.isInstalled(map.getFolderName()));
   }
 
   @FXML

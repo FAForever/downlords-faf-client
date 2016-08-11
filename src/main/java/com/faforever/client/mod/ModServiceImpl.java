@@ -9,6 +9,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ConcurrentUtil;
 import javafx.beans.property.DoubleProperty;
@@ -49,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -194,12 +196,12 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableFuture<Void> downloadAndInstallMod(URL url) {
+  public CompletionStage<Void> downloadAndInstallMod(URL url) {
     return downloadAndInstallMod(url, null, null);
   }
 
   @Override
-  public CompletableFuture<Void> downloadAndInstallMod(URL url, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
+  public CompletionStage<Void> downloadAndInstallMod(URL url, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
     InstallModTask task = applicationContext.getBean(InstallModTask.class);
     task.setUrl(url);
     if (progressProperty != null) {
@@ -209,12 +211,12 @@ public class ModServiceImpl implements ModService {
       titleProperty.bind(task.titleProperty());
     }
 
-    return taskService.submitTask(task)
+    return taskService.submitTask(task).getFuture()
         .thenAccept(aVoid -> loadInstalledMods());
   }
 
   @Override
-  public CompletableFuture<Void> downloadAndInstallMod(ModInfoBean modInfoBean, @Nullable DoubleProperty progressProperty, StringProperty titleProperty) {
+  public CompletionStage<Void> downloadAndInstallMod(ModInfoBean modInfoBean, @Nullable DoubleProperty progressProperty, StringProperty titleProperty) {
     return downloadAndInstallMod(modInfoBean.getDownloadUrl(), progressProperty, titleProperty);
   }
 
@@ -260,10 +262,10 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableFuture<Void> uninstallMod(ModInfoBean mod) {
+  public CompletionStage<Void> uninstallMod(ModInfoBean mod) {
     UninstallModTask task = applicationContext.getBean(UninstallModTask.class);
     task.setMod(mod);
-    return taskService.submitTask(task);
+    return taskService.submitTask(task).getFuture();
   }
 
   @Override
@@ -279,7 +281,7 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableFuture<List<ModInfoBean>> getAvailableMods() {
+  public CompletionStage<List<ModInfoBean>> getAvailableMods() {
     return CompletableFuture.supplyAsync(() -> {
           List<ModInfoBean> availableMods = fafService.getMods();
 
@@ -295,22 +297,22 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableFuture<List<ModInfoBean>> getMostDownloadedMods(int count) {
+  public CompletionStage<List<ModInfoBean>> getMostDownloadedMods(int count) {
     return getTopElements(ModInfoBean.DOWNLOADS_COMPARATOR, count);
   }
 
   @Override
-  public CompletableFuture<List<ModInfoBean>> getMostLikedMods(int count) {
+  public CompletionStage<List<ModInfoBean>> getMostLikedMods(int count) {
     return getTopElements(ModInfoBean.LIKES_COMPARATOR, count);
   }
 
   @Override
-  public CompletableFuture<List<ModInfoBean>> getNewestMods(int count) {
+  public CompletionStage<List<ModInfoBean>> getNewestMods(int count) {
     return getTopElements(ModInfoBean.PUBLISH_DATE_COMPARATOR, count);
   }
 
   @Override
-  public CompletableFuture<List<ModInfoBean>> getMostLikedUiMods(int count) {
+  public CompletionStage<List<ModInfoBean>> getMostLikedUiMods(int count) {
     return getAvailableMods().thenApply(modInfoBeans -> modInfoBeans.stream()
         .filter(ModInfoBean::getUiOnly)
         .sorted(ModInfoBean.LIKES_COMPARATOR.reversed())
@@ -319,7 +321,7 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableFuture<List<ModInfoBean>> lookupMod(String string, int maxResults) {
+  public CompletionStage<List<ModInfoBean>> lookupMod(String string, int maxResults) {
     return CompletableFuture.supplyAsync(() -> {
       try {
         LOOKUP_LOCK.lock();
@@ -369,15 +371,12 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public ModUploadTask uploadMod(Path modPath, Consumer<Float> progressListener) {
+  public CompletableTask<Void> uploadMod(Path modPath, Consumer<Float> progressListener) {
     ModUploadTask modUploadTask = applicationContext.getBean(ModUploadTask.class);
     modUploadTask.setModPath(modPath);
     modUploadTask.setProgressListener(progressListener);
 
-    CompletableFuture<Void> uploadFuture = taskService.submitTask(modUploadTask);
-    modUploadTask.setFuture(uploadFuture);
-
-    return modUploadTask;
+    return taskService.submitTask(modUploadTask);
   }
 
   @Override
@@ -393,7 +392,7 @@ public class ModServiceImpl implements ModService {
     return new Image(url, true);
   }
 
-  private CompletableFuture<List<ModInfoBean>> getTopElements(Comparator<? super ModInfoBean> comparator, int count) {
+  private CompletionStage<List<ModInfoBean>> getTopElements(Comparator<? super ModInfoBean> comparator, int count) {
     return getAvailableMods().thenApply(modInfoBeans -> modInfoBeans.stream()
         .sorted(comparator)
         .limit(count)

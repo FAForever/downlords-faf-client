@@ -10,7 +10,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.SocialMessage;
-import com.faforever.client.task.PrioritizedTask;
+import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
@@ -68,13 +68,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
@@ -212,11 +210,10 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     doAnswer((InvocationOnMock invocation) -> {
       @SuppressWarnings("unchecked")
-      PrioritizedTask<Boolean> prioritizedTask = invocation.getArgumentAt(0, PrioritizedTask.class);
-      prioritizedTask.run();
-
-      Future<Boolean> result = WaitForAsyncUtils.asyncFx(prioritizedTask::getValue);
-      return completedFuture(result.get(1, TimeUnit.SECONDS));
+      CompletableTask<Void> task = invocation.getArgumentAt(0, CompletableTask.class);
+      task.run();
+      task.getFuture().complete(WaitForAsyncUtils.waitForAsyncFx(1000, task::getValue));
+      return task;
     }).when(instance.taskService).submitTask(any());
 
     botStartedFuture = new CompletableFuture<>();
@@ -646,7 +643,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     String message = "test message";
 
-    CompletableFuture<String> future = instance.sendMessageInBackground(DEFAULT_CHANNEL_NAME, message);
+    CompletableFuture<String> future = instance.sendMessageInBackground(DEFAULT_CHANNEL_NAME, message).toCompletableFuture();
 
     assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(message));
     verify(outputIrc).message(DEFAULT_CHANNEL_NAME, message);
@@ -719,7 +716,7 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
 
     String action = "test action";
 
-    CompletableFuture<String> future = instance.sendActionInBackground(DEFAULT_CHANNEL_NAME, action);
+    CompletableFuture<String> future = instance.sendActionInBackground(DEFAULT_CHANNEL_NAME, action).toCompletableFuture();
 
     assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(action));
     verify(outputIrc).action(DEFAULT_CHANNEL_NAME, action);
@@ -755,7 +752,13 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testJoinChannel() throws Exception {
     reset(taskService);
-    when(taskService.submitTask(any())).thenReturn(completedFuture(null));
+
+    doAnswer((InvocationOnMock invocation) -> {
+      @SuppressWarnings("unchecked")
+      CompletableTask<Void> task = invocation.getArgumentAt(0, CompletableTask.class);
+      task.getFuture().complete(null);
+      return task;
+    }).when(instance.taskService).submitTask(any());
 
     connect();
     botStartedFuture.get(TIMEOUT, TIMEOUT_UNIT);
@@ -849,8 +852,12 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   public void testRejoinChannel() throws Exception {
     OutputChannel outputChannel = mock(OutputChannel.class);
 
-    reset(taskService);
-    when(taskService.submitTask(any())).thenReturn(completedFuture(null));
+    doAnswer((InvocationOnMock invocation) -> {
+      @SuppressWarnings("unchecked")
+      CompletableTask<Void> task = invocation.getArgumentAt(0, CompletableTask.class);
+      task.getFuture().complete(null);
+      return task;
+    }).when(instance.taskService).submitTask(any());
 
     String channelToJoin = OTHER_CHANNEL_NAME;
     when(userService.getUsername()).thenReturn("user1");

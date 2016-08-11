@@ -1,14 +1,8 @@
 package com.faforever.client.map;
 
 import com.google.common.io.LittleEndianDataInputStream;
-import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
@@ -36,10 +30,11 @@ import static org.luaj.vm2.lib.jse.JsePlatform.standardGlobals;
 
 public final class PreviewGenerator {
 
-  private static final double RESOURCE_ICON_RATIO = 0.01953125;
+  private static final double RESOURCE_ICON_RATIO = 20 / 1024d;
   private static final String MASS_IMAGE = "/images/map_markers/mass.png";
   private static final String HYDRO_IMAGE = "/images/map_markers/hydro.png";
   private static final String ARMY_IMAGE = "/images/map_markers/army.png";
+  private static final String ARMY_PREFIX = "ARMY_";
 
   private PreviewGenerator() {
     throw new AssertionError("Not instantiatable");
@@ -139,6 +134,9 @@ public final class PreviewGenerator {
           addMarker(hydroImage, mapData, markerData, previewImage);
           break;
         case "Blank Marker":
+          if (!key.tojstring().startsWith(ARMY_PREFIX)) {
+            continue;
+          }
           addMarker(armyImage, mapData, markerData, previewImage);
           break;
       }

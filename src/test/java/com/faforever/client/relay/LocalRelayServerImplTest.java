@@ -169,7 +169,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     gameLaunchMessage.setMod(GameType.DEFAULT.getString());
     gameLaunchMessageListenerCaptor.getValue().accept(gameLaunchMessage);
 
-    instance.start(datagramGateway).get(2, TimeUnit.SECONDS);
+    instance.start(datagramGateway).toCompletableFuture().get(2, TimeUnit.SECONDS);
 
     startFakeGameProcess();
     gameConnectedLatch.await(TIMEOUT, TIMEOUT_UNIT);

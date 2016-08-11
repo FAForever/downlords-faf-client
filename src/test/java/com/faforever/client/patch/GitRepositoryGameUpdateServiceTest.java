@@ -27,8 +27,10 @@ import java.util.concurrent.TimeUnit;
 import static com.faforever.client.patch.GitRepositoryGameUpdateService.STEAM_API_DLL;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -82,6 +84,7 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPath()).thenReturn(faDirectory.getRoot().toPath());
     when(applicationContext.getBean(GitCheckGameUpdateTask.class)).thenReturn(gameUpdateTask);
+    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
 
     faBinDirectory = faDirectory.getRoot().toPath().resolve("bin");
     Files.createDirectories(faBinDirectory);
@@ -105,12 +108,9 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
 
     CompletableFuture<Void> future = new CompletableFuture<>();
     future.completeExceptionally(new Exception("This exception mimicks that something went wrong"));
+    when(task.getFuture()).thenReturn(future);
 
-    when(taskService.submitTask(task)).thenReturn(future);
-
-    future = instance.updateInBackground(GameType.FAF.getString(), null, null, null);
-
-    future.get(TIMEOUT, TIMEOUT_UNIT);
+    instance.updateInBackground(GameType.FAF.getString(), null, null, null).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     ArgumentCaptor<PersistentNotification> captor = ArgumentCaptor.forClass(PersistentNotification.class);
     verify(notificationService).addNotification(captor.capture());
@@ -120,9 +120,11 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
   @Test
   @SuppressWarnings("unchecked")
   public void testCheckForUpdatesInBackgroundPatchingIsNeeded() throws Exception {
-    when(taskService.submitTask(any())).thenReturn(CompletableFuture.completedFuture(true));
+    GitCheckGameUpdateTask task = mock(GitCheckGameUpdateTask.class);
+    when(task.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
+    when(applicationContext.getBean(GitCheckGameUpdateTask.class)).thenReturn(task);
 
-    CompletableFuture<Void> future = instance.checkForUpdateInBackground();
+    CompletableFuture<Void> future = instance.checkForUpdateInBackground().toCompletableFuture();
 
     assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(nullValue()));
     assertThat(future.isCompletedExceptionally(), is(false));
@@ -136,9 +138,9 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
     CompletableFuture<Boolean> exceptionFuture = new CompletableFuture<>();
     exceptionFuture.completeExceptionally(new Exception("This exception mimicks that something went wrong"));
 
-    when(taskService.submitTask(task)).thenReturn(exceptionFuture);
+    when(task.getFuture()).thenReturn(exceptionFuture);
 
-    CompletableFuture<Void> future = instance.checkForUpdateInBackground();
+    CompletableFuture<Void> future = instance.checkForUpdateInBackground().toCompletableFuture();
 
     future.get(TIMEOUT, TIMEOUT_UNIT);
 

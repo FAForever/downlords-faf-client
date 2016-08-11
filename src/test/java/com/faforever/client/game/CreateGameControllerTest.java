@@ -120,7 +120,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     instance.mapSearchTextField.setText("Test");
 
     assertThat(instance.filteredMapBeans.get(0).getDisplayName(), is("Test1"));
-    assertThat(instance.filteredMapBeans.get(1).getTechnicalName(), is("test2"));
+    assertThat(instance.filteredMapBeans.get(1).getFolderName(), is("test2"));
   }
 
   @Test

@@ -17,7 +17,11 @@ import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import org.jetbrains.annotations.NotNull;
 
@@ -81,12 +85,12 @@ public class GamesTableController {
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(fxmlLoader));
     mapPreviewColumn.setCellValueFactory(param -> new ObjectBinding<Image>() {
       {
-        bind(param.getValue().mapTechnicalNameProperty());
+        bind(param.getValue().mapFolderNameProperty());
       }
 
       @Override
       protected Image computeValue() {
-        return mapService.loadSmallPreview(param.getValue().getMapTechnicalName());
+        return mapService.loadSmallPreview(param.getValue().getMapFolderName());
       }
     });
 

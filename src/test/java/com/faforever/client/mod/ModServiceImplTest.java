@@ -39,10 +39,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.contains;
@@ -50,6 +50,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -112,6 +113,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     when(forgedAlliancePrefs.getModsDirectory()).thenReturn(modsDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.modsDirectoryProperty()).thenReturn(new SimpleObjectProperty<>(modsDirectory.getRoot().toPath()));
     when(preferencesService.getCorruptedModsDirectory()).thenReturn(corruptedModsDirectory.getRoot().toPath());
+    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
 
     copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
 
@@ -166,15 +168,15 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getInstalledMods().size(), is(1));
 
     InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
+    when(task.getFuture()).thenReturn(completedFuture(null));
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
-    when(taskService.submitTask(task)).thenReturn(CompletableFuture.completedFuture(null));
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
 
     copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    instance.downloadAndInstallMod(modUrl).get(TIMEOUT, TIMEOUT_UNIT);
+    instance.downloadAndInstallMod(modUrl).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     verify(task).setUrl(modUrl);
     assertThat(instance.getInstalledMods().size(), is(2));
@@ -185,8 +187,8 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getInstalledMods().size(), is(1));
 
     InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
+    when(task.getFuture()).thenReturn(completedFuture(null));
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
-    when(taskService.submitTask(task)).thenReturn(CompletableFuture.completedFuture(null));
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
 
@@ -196,7 +198,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     StringProperty stringProperty = new SimpleStringProperty();
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
-    instance.downloadAndInstallMod(modUrl, doubleProperty, stringProperty).get(TIMEOUT, TIMEOUT_UNIT);
+    instance.downloadAndInstallMod(modUrl, doubleProperty, stringProperty).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
@@ -210,8 +212,8 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getInstalledMods().size(), is(1));
 
     InstallModTask task = mock(InstallModTask.class, withSettings().useConstructor());
+    when(task.getFuture()).thenReturn(completedFuture(null));
     when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
-    when(taskService.submitTask(task)).thenReturn(CompletableFuture.completedFuture(null));
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
 
@@ -222,7 +224,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
     ModInfoBean modInfoBean = ModInfoBeanBuilder.create().defaultValues().downloadUrl(modUrl).get();
-    instance.downloadAndInstallMod(modInfoBean, doubleProperty, stringProperty).get(TIMEOUT, TIMEOUT_UNIT);
+    instance.downloadAndInstallMod(modInfoBean, doubleProperty, stringProperty).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
@@ -401,7 +403,6 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
 
     verify(modUploadTask).setModPath(modPath);
     verify(modUploadTask).setProgressListener(progressListener);
-    verify(modUploadTask).setFuture(any());
 
     verify(taskService).submitTask(modUploadTask);
   }

@@ -2,9 +2,9 @@ package com.faforever.client.uploader;
 
 import javafx.scene.image.Image;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public interface ImageUploadService {
 
-  CompletableFuture<String> uploadImageInBackground(Image image);
+  CompletionStage<String> uploadImageInBackground(Image image);
 }

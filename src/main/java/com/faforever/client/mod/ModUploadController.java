@@ -8,6 +8,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.task.CompletableTask;
 import com.faforever.client.util.IdenticonUtil;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
@@ -64,7 +65,7 @@ public class ModUploadController {
   I18n i18n;
 
   private Path modPath;
-  private ModUploadTask modUploadTask;
+  private CompletableTask<Void> modUploadTask;
 
   @FXML
   void initialize() {

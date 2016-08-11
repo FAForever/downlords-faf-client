@@ -12,12 +12,16 @@ public class GameInfoBeanBuilder {
     gameInfoBean = new GameInfoBean();
   }
 
+  public static GameInfoBeanBuilder create() {
+    return new GameInfoBeanBuilder();
+  }
+
   public GameInfoBeanBuilder defaultValues() {
     gameInfoBean.setFeaturedMod("faf");
     gameInfoBean.setFeaturedModVersions(FXCollections.emptyObservableMap());
     gameInfoBean.setVictoryCondition(VictoryCondition.DEMORALIZATION);
     gameInfoBean.setHost("Host");
-    gameInfoBean.setMapTechnicalName("mapName");
+    gameInfoBean.setMapFolderName("mapName");
     gameInfoBean.setNumPlayers(1);
     gameInfoBean.setNumPlayers(2);
     gameInfoBean.setSimMods(FXCollections.emptyObservableMap());
@@ -30,9 +34,5 @@ public class GameInfoBeanBuilder {
 
   public GameInfoBean get() {
     return gameInfoBean;
-  }
-
-  public static GameInfoBeanBuilder create() {
-    return new GameInfoBeanBuilder();
   }
 }

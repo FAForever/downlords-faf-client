@@ -1,7 +1,6 @@
 package com.faforever.client.config;
 
 import com.faforever.client.connectivity.ConnectivityCheckTask;
-import com.faforever.client.connectivity.FafConnectivityCheckTask;
 import com.faforever.client.connectivity.UpnpPortForwardingTask;
 import com.faforever.client.game.SearchExpansionTask;
 import com.faforever.client.map.DownloadMapTask;
@@ -41,7 +40,7 @@ public class TaskConfig {
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   ConnectivityCheckTask portCheckTask() {
-    return new FafConnectivityCheckTask();
+    return new ConnectivityCheckTask();
   }
 
   @Bean

@@ -8,7 +8,7 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.AbstractPrioritizedTask;
+import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.google.common.hash.Hashing;
 import javafx.beans.Observable;
@@ -27,7 +27,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -45,9 +44,10 @@ import java.util.stream.Collectors;
 
 import static com.faforever.client.game.GameType.FAF;
 import static com.faforever.client.game.GameType.LADDER_1V1;
+import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
 
-public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implements UpdateServerResponseListener {
+public class UpdateGameFilesTask extends CompletableTask<Void> implements UpdateServerResponseListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final long TIMEOUT = 30;
@@ -179,18 +179,19 @@ public class UpdateGameFilesTask extends AbstractPrioritizedTask<Void> implement
     logger.debug("File group '{}' for game type '{}' has been updated", fileGroup, gameType);
   }
 
-  private void downloadMod(String uid) throws ExecutionException, InterruptedException, TimeoutException, MalformedURLException {
-    String modPath = updateServerAccessor.requestSimPath(uid).get(TIMEOUT, TIMEOUT_UNIT);
-    URL url = new URL(environment.getProperty("vault.modRoot") + urlPathSegmentEscaper().escape(modPath.replace("mods/", "")));
+  private void downloadMod(String uid) {
+    noCatch(() -> {
+      String modPath = updateServerAccessor.requestSimPath(uid).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
+      URL url = new URL(environment.getProperty("vault.modRoot") + urlPathSegmentEscaper().escape(modPath.replace("mods/", "")));
 
-    modService.downloadAndInstallMod(url)
-        .exceptionally(throwable -> {
-          logger.warn("Mod '" + uid + "' could not be downloaded", throwable);
-          return null;
-        })
-        .get();
+      modService.downloadAndInstallMod(url)
+          .exceptionally(throwable -> {
+            logger.warn("Mod '" + uid + "' could not be downloaded", throwable);
+            return null;
+          }).toCompletableFuture().get();
 
-    updateServerAccessor.incrementModDownloadCount(uid);
+      updateServerAccessor.incrementModDownloadCount(uid);
+    });
   }
 
   private void requestFiles(String targetDirectoryName, String fileGroup) throws IOException {

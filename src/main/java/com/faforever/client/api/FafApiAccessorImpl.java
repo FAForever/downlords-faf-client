@@ -20,12 +20,14 @@ import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpMediaType;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.HttpStatusCodes;
+import com.google.api.client.http.HttpResponse;
+import com.google.api.client.http.HttpResponseException;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.MultipartContent;
 import com.google.api.client.http.json.JsonHttpContent;
 import com.google.api.client.json.GenericJson;
 import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.json.JsonParser;
 import com.google.api.client.json.JsonToken;
 import com.google.api.client.util.store.FileDataStoreFactory;
@@ -49,10 +51,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,15 +59,12 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static com.github.nocatch.NoCatch.noCatch;
 
 public class FafApiAccessorImpl implements FafApiAccessor {
 
@@ -110,43 +105,10 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   HttpRequestFactory requestFactory;
   private FileDataStoreFactory dataStoreFactory;
 
-  // FIXME remove as soon as test server has a proper HTTPS certificate
-  private static void disableSslVerification() {
-    noCatch(() -> {
-      TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
-        @Override
-        public void checkClientTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws CertificateException {
-
-        }
-
-        @Override
-        public void checkServerTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws CertificateException {
-
-        }
-
-        @Override
-        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-          return new java.security.cert.X509Certificate[0];
-        }
-      }
-      };
-
-      SSLContext sc = SSLContext.getInstance("SSL");
-      sc.init(null, trustAllCerts, new java.security.SecureRandom());
-      HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-      HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
-    });
-  }
-
   @PostConstruct
   void postConstruct() throws IOException {
     Path playServicesDirectory = preferencesService.getPreferencesDirectory().resolve("oauth");
     dataStoreFactory = new FileDataStoreFactory(playServicesDirectory.toFile());
-
-    if (baseUrl.contains("faforever.com")) {
-      disableSslVerification();
-    }
   }
 
   @Override
@@ -280,14 +242,14 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public void uploadMod(Path file) {
+  public void uploadMod(Path file) throws IOException {
     MultipartContent multipartContent = createFileMultipart(file, (written, total) -> {
     });
     postMultipart("/mods/upload", multipartContent);
   }
 
   @Override
-  public void uploadMap(Path file, boolean isRanked, ByteCountListener listener) {
+  public void uploadMap(Path file, boolean isRanked, ByteCountListener listener) throws IOException {
     MultipartContent multipartContent = createFileMultipart(file, listener);
     multipartContent.addPart(new MultipartContent.Part(
         new HttpHeaders().set("Content-Disposition", "form-data; name=\"metadata\";"),
@@ -313,21 +275,24 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     return multipartContent.addPart(new MultipartContent.Part(headers, fileContent));
   }
 
-  private void postMultipart(String endpointPath, MultipartContent multipartContent) {
+  private void postMultipart(String endpointPath, MultipartContent multipartContent) throws IOException {
     if (requestFactory == null) {
       throw new IllegalStateException("authorize() must be called first");
     }
 
     String url = baseUrl + endpointPath;
     logger.trace("Posting to: {}", url);
-    noCatch(() -> {
-      HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), multipartContent);
-      credential.initialize(request);
-      int statusCode = request.execute().getStatusCode();
-      if (statusCode != HttpStatusCodes.STATUS_CODE_OK) {
-        throw new RuntimeException("Request failed with status code: " + statusCode);
-      }
-    });
+    HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), multipartContent)
+        .setThrowExceptionOnExecuteError(false)
+        .setParser(new JsonObjectParser(jsonFactory));
+    credential.initialize(request);
+    HttpResponse httpResponse = request.execute();
+
+    if (httpResponse.getStatusCode() == 400) {
+      throw new ApiException(httpResponse.parseAs(ErrorResponse.class));
+    } else if (!httpResponse.isSuccessStatusCode()) {
+      throw new HttpResponseException(httpResponse);
+    }
   }
 
   @NotNull

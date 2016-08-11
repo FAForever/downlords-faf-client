@@ -4,13 +4,11 @@ import javafx.concurrent.Worker;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 
-public interface PrioritizedTask<V> extends Comparable<AbstractPrioritizedTask>, Worker<V>, Runnable {
+import java.util.concurrent.RunnableFuture;
 
-  EventHandler<WorkerStateEvent> getOnSucceeded();
+public interface PrioritizedTask<V> extends Comparable<CompletableTask>, Worker<V>, Runnable, RunnableFuture<V> {
 
   void setOnSucceeded(EventHandler<WorkerStateEvent> value);
-
-  EventHandler<WorkerStateEvent> getOnFailed();
 
   void setOnFailed(EventHandler<WorkerStateEvent> value);
 

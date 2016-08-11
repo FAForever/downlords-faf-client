@@ -42,7 +42,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
 public class ReplayVaultController {
@@ -254,10 +254,10 @@ public class ReplayVaultController {
     return new SimpleObjectProperty<>(Duration.between(startTime, endTime));
   }
 
-  public CompletableFuture<Void> loadLocalReplaysInBackground() {
+  public CompletionStage<Void> loadLocalReplaysInBackground() {
     LoadLocalReplaysTask task = applicationContext.getBean(LoadLocalReplaysTask.class);
 
-    return taskService.submitTask(task)
+    return taskService.submitTask(task).getFuture()
         .thenAccept(this::addLocalReplays)
         .exceptionally(throwable -> {
               logger.warn("Error while loading local replays", throwable);

@@ -2,7 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.task.AbstractPrioritizedTask;
+import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
@@ -26,10 +26,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
-import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
+import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 
 // NOSONAR
 public class MockChatService implements ChatService {
@@ -99,8 +99,8 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public CompletableFuture<String> sendMessageInBackground(String target, String message) {
-    return taskService.submitTask(new AbstractPrioritizedTask<String>(HIGH) {
+  public CompletionStage<String> sendMessageInBackground(String target, String message) {
+    return taskService.submitTask(new CompletableTask<String>(HIGH) {
       @Override
       protected String call() throws Exception {
         updateTitle(i18n.get("chat.sendMessageTask.title"));
@@ -108,7 +108,7 @@ public class MockChatService implements ChatService {
         Thread.sleep(200);
         return message;
       }
-    });
+    }).getFuture();
   }
 
   @Override
@@ -149,7 +149,7 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public CompletableFuture<String> sendActionInBackground(String target, String action) {
+  public CompletionStage<String> sendActionInBackground(String target, String action) {
     return sendMessageInBackground(target, action);
   }
 

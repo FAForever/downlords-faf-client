@@ -15,6 +15,7 @@ import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameTypeMessage;
 import com.faforever.client.remote.domain.VictoryCondition;
+import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -98,6 +99,8 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   private ConnectivityService connectivityService;
   @Mock
   private ScheduledExecutorService scheduledExecutorService;
+  @Mock
+  private ReplayService replayService;
   @Captor
   private ArgumentCaptor<Consumer<Void>> gameLaunchedListenerCaptor;
   @Captor
@@ -120,6 +123,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.playerService = playerService;
     instance.scheduledExecutorService = scheduledExecutorService;
     instance.localRelayServer = localRelayServer;
+    instance.replayService = replayService;
 
     instance.ranked1v1SearchExpansionDelay = SEARCH_EXPANSION_DELAY;
     instance.ranked1v1SearchMaxRadius = SEARCH_MAX_RADIUS;
@@ -161,7 +165,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     simMods.put("123-456-789", "Fake mod name");
 
     gameInfoBean.setSimMods(simMods);
-    gameInfoBean.setMapTechnicalName("map");
+    gameInfoBean.setMapFolderName("map");
 
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
@@ -172,10 +176,11 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(localRelayServer.getPort()).thenReturn(111);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
 
-    CompletableFuture<Void> future = instance.joinGame(gameInfoBean, null);
+    CompletableFuture<Void> future = instance.joinGame(gameInfoBean, null).toCompletableFuture();
 
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
     verify(mapService, never()).download(any());
+    verify(replayService).startReplayServer(gameInfoBean.getUid());
   }
 
   @Test
@@ -259,7 +264,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(process).waitFor();
 
-    instance.hostGame(newGameInfo).get(TIMEOUT, TIME_UNIT);
+    instance.hostGame(newGameInfo).toCompletableFuture().get(TIMEOUT, TIME_UNIT);
     gameStartedLatch.await(TIMEOUT, TIME_UNIT);
     processLatch.countDown();
 
@@ -267,6 +272,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, Arrays.asList("/foo", "bar", "/bar", "foo"), GLOBAL,
         gpgPort);
+    verify(replayService).startReplayServer(gameLaunchMessage.getUid());
   }
 
   @Test
@@ -390,7 +396,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
     when(localRelayServer.getPort()).thenReturn(111);
 
-    CompletableFuture<Void> future = instance.startSearchRanked1v1(Faction.CYBRAN);
+    CompletableFuture<Void> future = instance.startSearchRanked1v1(Faction.CYBRAN).toCompletableFuture();
 
     verify(searchExpansionTask).setMaxRadius(SEARCH_MAX_RADIUS);
     verify(searchExpansionTask).setRadiusIncrement(SEARCH_RADIUS_INCREMENT);

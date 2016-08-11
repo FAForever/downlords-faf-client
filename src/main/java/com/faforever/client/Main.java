@@ -1,6 +1,11 @@
 package com.faforever.client;
 
-import com.faforever.client.config.*;
+import com.faforever.client.config.BaseConfig;
+import com.faforever.client.config.CacheConfig;
+import com.faforever.client.config.LuceneConfig;
+import com.faforever.client.config.ServiceConfig;
+import com.faforever.client.config.TaskConfig;
+import com.faforever.client.config.UiConfig;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformServiceImpl;
 import com.faforever.client.main.MainController;

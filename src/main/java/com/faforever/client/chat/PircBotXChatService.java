@@ -11,7 +11,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.SocialMessage;
-import com.faforever.client.task.AbstractPrioritizedTask;
+import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.IdenticonUtil;
@@ -57,7 +57,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -66,7 +66,7 @@ import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
-import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
+import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Locale.US;
@@ -385,15 +385,15 @@ public class PircBotXChatService implements ChatService {
   }
 
   @Override
-  public CompletableFuture<String> sendMessageInBackground(String target, String message) {
-    return taskService.submitTask(new AbstractPrioritizedTask<String>(HIGH) {
+  public CompletionStage<String> sendMessageInBackground(String target, String message) {
+    return taskService.submitTask(new CompletableTask<String>(HIGH) {
       @Override
       protected String call() throws Exception {
         updateTitle(i18n.get("chat.sendMessageTask.title"));
         pircBotX.sendIRC().message(target, message);
         return message;
       }
-    });
+    }).getFuture();
   }
 
   @Override
@@ -467,8 +467,8 @@ public class PircBotXChatService implements ChatService {
   }
 
   @Override
-  public CompletableFuture<String> sendActionInBackground(String target, String action) {
-    return taskService.submitTask(new AbstractPrioritizedTask<String>(HIGH) {
+  public CompletionStage<String> sendActionInBackground(String target, String action) {
+    return taskService.submitTask(new CompletableTask<String>(HIGH) {
       @Override
       protected String call() throws Exception {
         updateTitle(i18n.get("chat.sendActionTask.title"));
@@ -476,7 +476,7 @@ public class PircBotXChatService implements ChatService {
         pircBotX.sendIRC().action(target, action);
         return action;
       }
-    });
+    }).getFuture();
   }
 
   @Override

@@ -7,7 +7,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
@@ -15,7 +14,7 @@ import java.time.LocalDateTime;
 
 public class MapBean implements Comparable<MapBean> {
 
-  private final StringProperty technicalName;
+  private final StringProperty folderName;
   private final StringProperty displayName;
   private final SimpleFloatProperty rating;
   private final IntegerProperty plays;
@@ -23,7 +22,7 @@ public class MapBean implements Comparable<MapBean> {
   private final IntegerProperty downloads;
   private final IntegerProperty players;
   private final ObjectProperty<MapSize> size;
-  private final ObjectProperty<ComparableVersion> version;
+  private final IntegerProperty version;
   private final StringProperty id;
   private final StringProperty author;
   private final ObjectProperty<URL> downloadUrl;
@@ -34,14 +33,14 @@ public class MapBean implements Comparable<MapBean> {
   public MapBean() {
     this.id = new SimpleStringProperty();
     this.displayName = new SimpleStringProperty();
-    this.technicalName = new SimpleStringProperty();
+    this.folderName = new SimpleStringProperty();
     this.description = new SimpleStringProperty();
     this.plays = new SimpleIntegerProperty();
     this.downloads = new SimpleIntegerProperty();
     this.rating = new SimpleFloatProperty();
     this.players = new SimpleIntegerProperty();
     this.size = new SimpleObjectProperty<>();
-    this.version = new SimpleObjectProperty<>();
+    this.version = new SimpleIntegerProperty();
     this.smallThumbnailUrl = new SimpleObjectProperty<>();
     this.largeThumbnailUrl = new SimpleObjectProperty<>();
     this.downloadUrl = new SimpleObjectProperty<>();
@@ -53,13 +52,13 @@ public class MapBean implements Comparable<MapBean> {
     MapBean mapBean = new MapBean();
     mapBean.setDescription(map.getDescription());
     mapBean.setDisplayName(map.getDisplayName());
-    mapBean.setTechnicalName(map.getTechnicalName());
+    mapBean.setFolderName(map.getTechnicalName());
     mapBean.setSize(new MapSize(map.getSizeX(), map.getSizeY()));
     mapBean.setDownloads(map.getDownloads());
     mapBean.setId(map.getId());
     mapBean.setPlayers(map.getMaxPlayers());
     mapBean.setRating(map.getRating());
-    mapBean.setVersion(new ComparableVersion(map.getVersion()));
+    mapBean.setVersion(Integer.valueOf(map.getVersion()));
     mapBean.setDownloadUrl(map.getDownloadUrl());
     mapBean.setSmallThumbnailUrl(map.getThumbnailUrlSmall());
     mapBean.setLargeThumbnailUrl(map.getThumbnailUrlLarge());
@@ -167,15 +166,15 @@ public class MapBean implements Comparable<MapBean> {
     return players;
   }
 
-  public ComparableVersion getVersion() {
+  public int getVersion() {
     return version.get();
   }
 
-  public void setVersion(ComparableVersion version) {
+  public void setVersion(int version) {
     this.version.set(version);
   }
 
-  public ObjectProperty<ComparableVersion> versionProperty() {
+  public IntegerProperty versionProperty() {
     return version;
   }
 
@@ -204,16 +203,16 @@ public class MapBean implements Comparable<MapBean> {
     this.id.set(id);
   }
 
-  public String getTechnicalName() {
-    return technicalName.get();
+  public String getFolderName() {
+    return folderName.get();
   }
 
-  public void setTechnicalName(String technicalName) {
-    this.technicalName.set(technicalName);
+  public void setFolderName(String folderName) {
+    this.folderName.set(folderName);
   }
 
-  public StringProperty technicalNameProperty() {
-    return technicalName;
+  public StringProperty folderNameProperty() {
+    return folderName;
   }
 
   public URL getLargeThumbnailUrl() {

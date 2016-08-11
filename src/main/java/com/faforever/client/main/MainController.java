@@ -37,7 +37,6 @@ import com.faforever.client.rankedmatch.Ranked1v1Controller;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.replay.ReplayVaultController;
-import com.faforever.client.task.PrioritizedTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.update.ClientUpdateService;
@@ -52,6 +51,7 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -97,6 +97,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
 
@@ -275,7 +276,7 @@ public class MainController implements OnChooseGameDirectoryListener {
   /**
    * @param task the task to set, {@code null} to unset
    */
-  private void setCurrentTaskInStatusBar(PrioritizedTask<?> task) {
+  private void setCurrentTaskInStatusBar(Task<?> task) {
     Platform.runLater(() -> {
       if (task == null) {
         taskProgressBar.setVisible(false);
@@ -469,7 +470,7 @@ public class MainController implements OnChooseGameDirectoryListener {
     );
 
     taskService.getActiveTasks().addListener((Observable observable) -> {
-      Collection<PrioritizedTask<?>> runningTasks = taskService.getActiveTasks();
+      Collection<Task<?>> runningTasks = taskService.getActiveTasks();
       if (runningTasks.isEmpty()) {
         setCurrentTaskInStatusBar(null);
       } else {
@@ -792,7 +793,7 @@ public class MainController implements OnChooseGameDirectoryListener {
   }
 
   @Override
-  public CompletableFuture<Path> onChooseGameDirectory() {
+  public CompletionStage<Path> onChooseGameDirectory() {
     CompletableFuture<Path> future = new CompletableFuture<>();
     Platform.runLater(() -> {
       DirectoryChooser directoryChooser = new DirectoryChooser();

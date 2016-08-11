@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
 <StackPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapVaultRoot" xmlns="http://javafx.com/javafx/8.0.60"
            fx:controller="com.faforever.client.map.MapVaultController">
     <children>
@@ -23,8 +31,9 @@
                                                 <Insets left="20.0" right="20.0"/>
                                             </padding>
                                         </Button>
-                                        <Button defaultButton="true" maxHeight="1.7976931348623157E308" mnemonicParsing="false"
-                                                onAction="#onSearchMapButtonClicked" styleClass="fontawesome" text="">
+                                        <Button defaultButton="true" maxHeight="1.7976931348623157E308"
+                                                mnemonicParsing="false" onAction="#onSearchMapButtonClicked"
+                                                styleClass="fontawesome" text="">
                                             <padding>
                                                 <Insets left="20.0" right="20.0"/>
                                             </padding>
@@ -34,8 +43,22 @@
                                         <Insets bottom="20.0" top="20.0"/>
                                     </VBox.margin>
                                 </HBox>
-                                <Button mnemonicParsing="false" onAction="#onUploadMapButtonClicked"
-                                        text="%mapVault.upload"/>
+                                <HBox spacing="10.0">
+                                    <children>
+                                        <Button mnemonicParsing="false" onAction="#onUploadMapButtonClicked"
+                                                text="%mapVault.upload">
+                                            <graphic>
+                                                <Label styleClass="fontawesome" text=""/>
+                                            </graphic>
+                                        </Button>
+                                        <Button mnemonicParsing="false" text="%mapVault.refresh"
+                                                onAction="#onRefreshClicked">
+                                            <graphic>
+                                                <Label styleClass="fontawesome" text=""/>
+                                            </graphic>
+                                        </Button>
+                                    </children>
+                                </HBox>
                                 <VBox fx:id="showroomGroup" spacing="5.0">
                                     <children>
                                         <Label styleClass="h2" text="%mapVault.recommendedMap">
@@ -43,8 +66,9 @@
                                                 <Insets top="20.0"/>
                                             </VBox.margin>
                                         </Label>
-                                        <FlowPane fx:id="recommendedMapsPane" hgap="10.0" maxWidth="1.7976931348623157E308"
-                                                  prefWrapLength="1500.0" vgap="10.0"/>
+                                        <FlowPane fx:id="recommendedMapsPane" hgap="10.0"
+                                                  maxWidth="1.7976931348623157E308" prefWrapLength="1500.0"
+                                                  vgap="10.0"/>
                                         <Label styleClass="h2" text="%mapVault.newestMaps">
                                             <VBox.margin>
                                                 <Insets top="20.0"/>

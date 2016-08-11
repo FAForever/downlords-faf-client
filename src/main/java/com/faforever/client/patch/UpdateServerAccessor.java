@@ -2,7 +2,6 @@ package com.faforever.client.patch;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 public interface UpdateServerAccessor {
@@ -25,7 +24,7 @@ public interface UpdateServerAccessor {
 
   void update(String targetDirectoryName, String filename, String actualMd5);
 
-  CompletableFuture<String> requestSimPath(String uid);
+  CompletionStage<String> requestSimPath(String uid);
 
   void incrementModDownloadCount(String uid);
 

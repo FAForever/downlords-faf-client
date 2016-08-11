@@ -17,7 +17,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
 public interface FafService {
@@ -28,13 +28,13 @@ public interface FafService {
   @SuppressWarnings("unchecked")
   <T extends ServerMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener);
 
-  CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo);
+  CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo);
 
   ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
 
-  CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password);
+  CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password);
 
-  CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int port);
+  CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction, int port);
 
   void stopSearchingRanked();
 
@@ -44,7 +44,7 @@ public interface FafService {
 
   void expand1v1Search(float radius);
 
-  CompletableFuture<LoginMessage> connectAndLogIn(String username, String password);
+  CompletionStage<LoginMessage> connectAndLogIn(String username, String password);
 
   void disconnect();
 
@@ -58,11 +58,11 @@ public interface FafService {
 
   Long getSessionId();
 
-  CompletableFuture<List<Ranked1v1EntryBean>> getRanked1v1Entries();
+  CompletionStage<List<Ranked1v1EntryBean>> getRanked1v1Entries();
 
-  CompletableFuture<Ranked1v1Stats> getRanked1v1Stats();
+  CompletionStage<Ranked1v1Stats> getRanked1v1Stats();
 
-  CompletableFuture<Ranked1v1EntryBean> getRanked1v1EntryForPlayer(int playerId);
+  CompletionStage<Ranked1v1EntryBean> getRanked1v1EntryForPlayer(int playerId);
 
   void notifyGameEnded();
 
@@ -73,15 +73,15 @@ public interface FafService {
 
   List<ModInfoBean> getMods();
 
-  CompletableFuture<GameLaunchMessage> expectRehostCommand();
+  CompletionStage<GameLaunchMessage> expectRehostCommand();
 
   void reconnect();
 
-  CompletableFuture<List<MapBean>> getMostDownloadedMaps(int count);
+  CompletionStage<List<MapBean>> getMostDownloadedMaps(int count);
 
-  CompletableFuture<List<MapBean>> getMostPlayedMaps(int count);
+  CompletionStage<List<MapBean>> getMostPlayedMaps(int count);
 
-  CompletableFuture<List<MapBean>> getMostLikedMaps(int count);
+  CompletionStage<List<MapBean>> getMostLikedMaps(int count);
 
-  CompletableFuture<List<MapBean>> getNewestMaps(int count);
+  CompletionStage<List<MapBean>> getNewestMaps(int count);
 }

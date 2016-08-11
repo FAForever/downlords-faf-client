@@ -113,11 +113,6 @@ public class GamesController {
   private GameInfoBean currentGameInfoBean;
   private InvalidationListener teamsChangeListener;
 
-  @FXML
-  void initialize() {
-    gameDetailPane.managedProperty().bind(gameDetailPane.visibleProperty());
-  }
-
   @PostConstruct
   void postConstruct() {
     createGamePopup = new Popup();
@@ -142,6 +137,8 @@ public class GamesController {
       preferencesService.getPreferences().setGamesViewMode(((ToggleButton) newValue).getId());
       preferencesService.storeInBackground();
     });
+
+    setSelectedGame(null);
   }
 
   @FXML
@@ -180,7 +177,7 @@ public class GamesController {
     }
     mapDetailPopup = getMapDetailPopup();
     MapDetailController mapDetailController = applicationContext.getBean(MapDetailController.class);
-    MapBean mapBean = mapService.findMapByName(currentGameInfoBean.getMapTechnicalName());
+    MapBean mapBean = mapService.findMapByName(currentGameInfoBean.getMapFolderName());
     // FIXME implement
   }
 
@@ -238,11 +235,11 @@ public class GamesController {
 
     gameDetailPane.setVisible(true);
 
-    gameTitleLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
+    gameTitleLabel.textProperty().bind(gameInfoBean.titleProperty());
 
     mapImageView.imageProperty().bind(createObjectBinding(
-        () -> mapService.loadLargePreview(gameInfoBean.getMapTechnicalName()),
-        gameInfoBean.mapTechnicalNameProperty()
+        () -> mapService.loadLargePreview(gameInfoBean.getMapFolderName()),
+        gameInfoBean.mapFolderNameProperty()
     ));
 
     numberOfPlayersLabel.textProperty().bind(createStringBinding(
@@ -252,7 +249,7 @@ public class GamesController {
     ));
 
     hostLabel.textProperty().bind(gameInfoBean.hostProperty());
-    mapLabel.textProperty().bind(gameInfoBean.mapTechnicalNameProperty());
+    mapLabel.textProperty().bind(gameInfoBean.mapFolderNameProperty());
 
     gameTypeLabel.textProperty().bind(createStringBinding(() -> {
       GameTypeBean gameType = gameService.getGameTypeByString(gameInfoBean.getFeaturedMod());

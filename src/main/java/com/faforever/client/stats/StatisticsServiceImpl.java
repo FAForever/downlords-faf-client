@@ -4,7 +4,7 @@ import com.faforever.client.legacy.StatisticsServerAccessor;
 import com.faforever.client.remote.domain.StatisticsType;
 
 import javax.annotation.Resource;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public class StatisticsServiceImpl implements StatisticsService {
 
@@ -12,7 +12,7 @@ public class StatisticsServiceImpl implements StatisticsService {
   StatisticsServerAccessor statisticsServerAccessor;
 
   @Override
-  public CompletableFuture<PlayerStatisticsMessage> getStatisticsForPlayer(StatisticsType type, String username) {
+  public CompletionStage<PlayerStatisticsMessage> getStatisticsForPlayer(StatisticsType type, String username) {
     return statisticsServerAccessor.requestPlayerStatistics(type, username);
   }
 }

@@ -66,15 +66,16 @@ public class GamesControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSetSelectedGameHidesDetailPane() throws Exception {
-    assertTrue(instance.gameDetailPane.isVisible());
-    instance.setSelectedGame(null);
+  public void testSetSelectedGameShowsDetailPane() throws Exception {
     assertFalse(instance.gameDetailPane.isVisible());
+    instance.setSelectedGame(GameInfoBeanBuilder.create().defaultValues().get());
+    assertTrue(instance.gameDetailPane.isVisible());
   }
 
   @Test
   public void testSetSelectedGameNullHidesDetailPane() throws Exception {
     instance.setSelectedGame(GameInfoBeanBuilder.create().defaultValues().get());
+    assertTrue(instance.gameDetailPane.isVisible());
     instance.setSelectedGame(null);
     assertFalse(instance.gameDetailPane.isVisible());
   }

@@ -2,7 +2,7 @@ package com.faforever.client.patch;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.AbstractPrioritizedTask;
+import com.faforever.client.task.CompletableTask;
 import com.google.common.hash.Hashing;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -20,7 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
-public class GitCheckGameUpdateTask extends AbstractPrioritizedTask<Boolean> {
+public class GitCheckGameUpdateTask extends CompletableTask<Boolean> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

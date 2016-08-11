@@ -52,7 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.api.AchievementState.UNLOCKED;
 import static com.faforever.client.events.EventService.EVENT_AEON_PLAYS;
@@ -174,6 +174,10 @@ public class UserInfoWindowController {
   public UserInfoWindowController() {
     achievementItemById = new HashMap<>();
     achievementDefinitionById = new HashMap<>();
+  }
+
+  private static boolean isUnlocked(PlayerAchievement playerAchievement) {
+    return UNLOCKED == playerAchievement.getState();
   }
 
   @FXML
@@ -397,16 +401,12 @@ public class UserInfoWindowController {
     achievementsPane.setVisible(true);
   }
 
-  private static boolean isUnlocked(PlayerAchievement playerAchievement) {
-    return UNLOCKED == playerAchievement.getState();
-  }
-
   @FXML
   void onRatingOver90DaysButtonClicked() {
     loadStatistics(StatisticsType.GLOBAL_90_DAYS);
   }
 
-  private CompletableFuture<Void> loadStatistics(StatisticsType type) {
+  private CompletionStage<Void> loadStatistics(StatisticsType type) {
     return statisticsService.getStatisticsForPlayer(type, playerInfoBean.getUsername())
         .thenAccept(playerStatistics -> Platform.runLater(() -> plotPlayerRatingGraph(playerStatistics)))
         .exceptionally(throwable -> {

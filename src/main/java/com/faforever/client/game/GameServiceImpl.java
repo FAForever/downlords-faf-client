@@ -21,6 +21,7 @@ import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.remote.domain.GameTypeMessage;
+import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
@@ -56,6 +57,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.Consumer;
@@ -105,6 +107,9 @@ public class GameServiceImpl implements GameService {
   LocalRelayServer localRelayServer;
   @Resource
   ReportingService reportingService;
+  @Resource
+  ReplayService replayService;
+
   @Value("${ranked1v1.search.maxRadius}")
   float ranked1v1SearchMaxRadius;
   @Value("${ranked1v1.search.radiusIncrement}")
@@ -139,7 +144,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public CompletableFuture<Void> hostGame(NewGameInfo newGameInfo) {
+  public CompletionStage<Void> hostGame(NewGameInfo newGameInfo) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring host request");
       return CompletableFuture.completedFuture(null);
@@ -155,11 +160,14 @@ public class GameServiceImpl implements GameService {
         .thenRun(() -> connectivityService.connect())
         .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
-        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayServer.getPort()));
+        .thenAccept(gameLaunchInfo -> {
+          replayService.startReplayServer(gameLaunchInfo.getUid());
+          startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayServer.getPort());
+        });
   }
 
   @Override
-  public CompletableFuture<Void> joinGame(GameInfoBean gameInfoBean, String password) {
+  public CompletionStage<Void> joinGame(GameInfoBean gameInfoBean, String password) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring join request");
       return CompletableFuture.completedFuture(null);
@@ -173,7 +181,7 @@ public class GameServiceImpl implements GameService {
     Set<String> simModUIds = gameInfoBean.getSimMods().keySet();
 
     return updateGameIfNecessary(gameInfoBean.getFeaturedMod(), null, simModVersions, simModUIds)
-        .thenCompose(aVoid -> downloadMapIfNecessary(gameInfoBean.getMapTechnicalName()))
+        .thenCompose(aVoid -> downloadMapIfNecessary(gameInfoBean.getMapFolderName()))
         .thenRun(() -> connectivityService.connect())
         .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.requestJoinGame(gameInfoBean.getUid(), password))
@@ -181,11 +189,12 @@ public class GameServiceImpl implements GameService {
           synchronized (currentGame) {
             currentGame.set(gameInfoBean);
           }
+          replayService.startReplayServer(gameLaunchInfo.getUid());
           startGame(gameLaunchInfo, null, RatingMode.GLOBAL, localRelayServer.getPort());
         });
   }
 
-  private CompletableFuture<Void> downloadMapIfNecessary(String mapName) {
+  private CompletionStage<Void> downloadMapIfNecessary(String mapName) {
     CompletableFuture<Void> future = new CompletableFuture<>();
 
     if (mapService.isInstalled(mapName)) {
@@ -241,7 +250,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) throws IOException {
+  public CompletionStage<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) throws IOException {
     if (isRunning()) {
       logger.warn("Forged Alliance is already running, not starting live replay");
       return CompletableFuture.completedFuture(null);
@@ -291,7 +300,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public CompletableFuture<Void> startSearchRanked1v1(Faction faction) {
+  public CompletionStage<Void> startSearchRanked1v1(Faction faction) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring 1v1 search request");
       return CompletableFuture.completedFuture(null);
@@ -348,7 +357,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public CompletableFuture<Void> prepareForRehost() {
+  public CompletionStage<Void> prepareForRehost() {
     return fafService.expectRehostCommand().thenAccept(gameLaunchMessage -> {
       logger.debug("Received game launch command, waiting for FA to terminate");
       noCatch(() -> process.waitFor());
@@ -372,7 +381,7 @@ public class GameServiceImpl implements GameService {
     return process != null && process.isAlive();
   }
 
-  private CompletableFuture<Void> updateGameIfNecessary(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUids) {
+  private CompletionStage<Void> updateGameIfNecessary(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUids) {
     return gameUpdateService.updateInBackground(gameType, version, modVersions, simModUids);
   }
 

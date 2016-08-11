@@ -1,14 +1,16 @@
 package com.faforever.client.map;
 
+import com.faforever.client.api.ApiException;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.event.MapUploadedEvent;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
-import javafx.application.Platform;
+import com.faforever.client.task.CompletableTask;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
@@ -24,19 +26,20 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
-import java.util.Locale;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import static com.faforever.client.io.Bytes.formatSize;
+import static com.faforever.client.notification.Severity.ERROR;
 import static java.util.Arrays.asList;
 
 public class MapUploadController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @FXML
-  Label bytesLabel;
+  Label uploadTaskMessageLabel;
+  @FXML
+  Label uploadTaskTitleLabel;
   @FXML
   Label sizeLabel;
   @FXML
@@ -76,9 +79,12 @@ public class MapUploadController {
   ReportingService reportingService;
   @Resource
   I18n i18n;
+  @Resource
+  EventBus eventBus;
 
   private Path mapPath;
-  private CompletableFuture<Void> uploadMapFuture;
+  private MapBean mapInfo;
+  private CompletableTask<Void> uploadMapTask;
 
   @FXML
   void initialize() {
@@ -114,6 +120,7 @@ public class MapUploadController {
   }
 
   private void setMapInfo(MapBean mapInfo) {
+    this.mapInfo = mapInfo;
     enterMapInfoState();
 
     mapNameLabel.textProperty().bind(mapInfo.displayNameProperty());
@@ -129,7 +136,7 @@ public class MapUploadController {
         () -> i18n.get("mapVault.upload.playersFormat", mapInfo.getPlayers()), mapInfo.playersProperty())
     );
 
-    Image image = PreviewGenerator.generatePreview(mapService.getPathForMap(mapInfo), 256, 256);
+    Image image = PreviewGenerator.generatePreview(mapPath, 256, 256);
     thumbnailImageView.setImage(image);
   }
 
@@ -142,42 +149,48 @@ public class MapUploadController {
 
   @FXML
   void onCancelUploadClicked() {
-    uploadMapFuture.cancel(true);
+    uploadMapTask.cancel(true);
     enterMapInfoState();
   }
 
   private void onUploadFailed(Throwable throwable) {
     enterMapInfoState();
-    notificationService.addNotification(new ImmediateNotification(
-        i18n.get("errorTitle"),
-        i18n.get("mapVault.upload.failed"),
-        Severity.ERROR,
-        throwable,
-        asList(
-            new Action(i18n.get("mapVault.upload.retry"), event -> onUploadClicked()),
-            new ReportAction(i18n, reportingService, throwable),
-            new DismissAction(i18n)
-        )
-    ));
+    if (throwable instanceof ApiException) {
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("errorTitle"), i18n.get("mapVault.upload.failed", throwable.getLocalizedMessage()), ERROR,
+          asList(
+              new Action(i18n.get("mapVault.upload.retry"), event -> onUploadClicked()),
+              new DismissAction(i18n)
+          )
+      ));
+    } else {
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("errorTitle"), i18n.get("mapVault.upload.failed", throwable.getLocalizedMessage()), ERROR, throwable,
+          asList(
+              new Action(i18n.get("mapVault.upload.retry"), event -> onUploadClicked()),
+              new ReportAction(i18n, reportingService, throwable),
+              new DismissAction(i18n)
+          )
+      ));
+    }
   }
 
   @FXML
   void onUploadClicked() {
     enterUploadingState();
-    Locale locale = i18n.getLocale();
 
-    uploadProgressBar.setProgress(0);
     uploadProgressPane.setVisible(true);
-    uploadMapFuture = mapService.uploadMap(mapPath,
-        (written, total) -> {
-          uploadProgressBar.setProgress((double) written / total);
-          Platform.runLater(() -> bytesLabel.setText(i18n.get("bytesProgress", formatSize(written, locale), formatSize(total, locale))));
-        },
-        rankedCheckbox.isSelected())
+    uploadMapTask = mapService.uploadMap(mapPath, rankedCheckbox.isSelected());
+    uploadTaskTitleLabel.textProperty().bind(uploadMapTask.titleProperty());
+    uploadTaskMessageLabel.textProperty().bind(uploadMapTask.messageProperty());
+    uploadProgressBar.progressProperty().bind(uploadMapTask.progressProperty());
+
+    uploadMapTask.getFuture()
+        .thenAccept(v -> eventBus.post(new MapUploadedEvent(mapInfo)))
         .thenAccept(aVoid -> enterUploadCompleteState())
         .exceptionally(throwable -> {
           if (!(throwable instanceof CancellationException)) {
-            onUploadFailed(throwable);
+            onUploadFailed(throwable.getCause());
           }
           return null;
         });

@@ -12,6 +12,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="mapUploadRoot" minHeight="100.0" minWidth="100.0"
       styleClass="dialog-window" xmlns="http://javafx.com/javafx/8.0.60"
       fx:controller="com.faforever.client.map.MapUploadController">
@@ -89,9 +90,10 @@
     <VBox fx:id="uploadProgressPane" alignment="CENTER" layoutX="20.0" layoutY="520.0"
           maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="20.0" VBox.vgrow="ALWAYS">
       <children>
-        <Label contentDisplay="TOP" layoutX="108.0" layoutY="30.0" styleClass="h2" text="%mapVault.upload.uploading"/>
+        <Label fx:id="uploadTaskTitleLabel" contentDisplay="TOP" layoutX="108.0" layoutY="30.0" styleClass="h2"
+               text="%mapVault.upload.uploading"/>
         <ProgressBar fx:id="uploadProgressBar" maxWidth="1.7976931348623157E308" progress="0.0"/>
-        <Label fx:id="bytesLabel" text="&lt;bytes&gt;"/>
+        <Label fx:id="uploadTaskMessageLabel" text="&lt;bytes&gt;"/>
         <Button mnemonicParsing="false" onAction="#onCancelUploadClicked" text="%cancel"/>
       </children>
     </VBox>

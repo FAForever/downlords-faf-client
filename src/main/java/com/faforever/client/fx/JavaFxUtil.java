@@ -34,7 +34,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -70,7 +70,7 @@ public final class JavaFxUtil {
   }
 
   public static void makeSuggestionField(TextField textField,
-                                         Function<String, CompletableFuture<Set<Label>>> itemsFactory,
+                                         Function<String, CompletionStage<Set<Label>>> itemsFactory,
                                          Consumer<Void> onAction) {
     ListView<Label> listView = new ListView<>();
     listView.prefWidthProperty().bind(textField.widthProperty());

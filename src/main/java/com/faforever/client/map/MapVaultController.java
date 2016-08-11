@@ -3,6 +3,9 @@ package com.faforever.client.map;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.event.MapUploadedEvent;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -26,7 +29,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -65,6 +68,8 @@ public class MapVaultController {
   MapDetailController mapDetailController;
   @Resource
   I18n i18n;
+  @Resource
+  EventBus eventBus;
 
   private boolean initialized;
 
@@ -84,6 +89,8 @@ public class MapVaultController {
     AnchorPane.setBottomAnchor(mapDetailRoot, 0d);
     AnchorPane.setLeftAnchor(mapDetailRoot, 0d);
     mapDetailRoot.setVisible(false);
+
+    eventBus.register(this);
   }
 
   public void setUpIfNecessary() {
@@ -153,32 +160,33 @@ public class MapVaultController {
     loadingPane.setVisible(false);
   }
 
-  private CompletableFuture<Set<Label>> createMapSuggestions(String string) {
-    return mapService.lookupMap(string, MAX_SUGGESTIONS).thenApply(new Function<List<MapBean>, Set<Label>>() {
-      @Override
-      public Set<Label> apply(List<MapBean> mapBeans) {
-        return mapBeans.stream()
-            .map(result -> {
-              String name = result.getDisplayName();
-              Label item = new Label(name) {
-                @Override
-                public int hashCode() {
-                  return getText().hashCode();
-                }
+  private CompletionStage<Set<Label>> createMapSuggestions(String string) {
+    return mapService.lookupMap(string, MAX_SUGGESTIONS)
+        .thenApply(new Function<List<MapBean>, Set<Label>>() {
+          @Override
+          public Set<Label> apply(List<MapBean> mapBeans) {
+            return mapBeans.stream()
+                .map(result -> {
+                  String name = result.getDisplayName();
+                  Label item = new Label(name) {
+                    @Override
+                    public int hashCode() {
+                      return getText().hashCode();
+                    }
 
-                @Override
-                public boolean equals(Object obj) {
-                  return obj != null
-                      && obj.getClass() == getClass()
-                      && getText().equals(((Label) obj).getText());
-                }
-              };
-              item.setUserData(name);
-              return item;
-            })
-            .collect(Collectors.toSet());
-      }
-    });
+                    @Override
+                    public boolean equals(Object obj) {
+                      return obj != null
+                          && obj.getClass() == getClass()
+                          && getText().equals(((Label) obj).getText());
+                    }
+                  };
+                  item.setUserData(name);
+                  return item;
+                })
+                .collect(Collectors.toSet());
+          }
+        });
   }
 
   private void enterShowroomState() {
@@ -242,5 +250,14 @@ public class MapVaultController {
     windowController.configure(mapUploadWindow, mapUploadController.getRoot(), true, CLOSE);
 
     mapUploadWindow.show();
+  }
+
+  public void onRefreshClicked() {
+    displayShowroomMaps();
+  }
+
+  @Subscribe
+  public void onMapUploaded(MapUploadedEvent event) {
+    onRefreshClicked();
   }
 }

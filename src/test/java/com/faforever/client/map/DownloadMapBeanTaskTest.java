@@ -52,13 +52,13 @@ public class DownloadMapBeanTaskTest extends AbstractPlainJavaFxTest {
     expectedException.expectMessage("mapUrl");
     expectedException.expect(NullPointerException.class);
 
-    instance.setTechnicalMapName("");
+    instance.setFolderName("");
     instance.call();
   }
 
   @Test
   public void testCallWithoutTechnicalMapNameThrowsException() throws Exception {
-    expectedException.expectMessage("technicalMapName");
+    expectedException.expectMessage("folderName");
     expectedException.expect(NullPointerException.class);
 
     instance.setMapUrl(new URL("http://www.example.com"));
@@ -68,7 +68,7 @@ public class DownloadMapBeanTaskTest extends AbstractPlainJavaFxTest {
   @Test
   public void testCall() throws Exception {
     instance.setMapUrl(getClass().getResource("/maps/theta_passage_5.v0001.zip").toURI().toURL());
-    instance.setTechnicalMapName("");
+    instance.setFolderName("");
     instance.call();
 
     assertTrue(Files.exists(customMapsDirectory.getRoot().toPath().resolve("theta_passage_5.v0001").resolve("theta_passage_5_scenario.lua")));

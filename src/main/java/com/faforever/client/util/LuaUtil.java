@@ -2,7 +2,6 @@ package com.faforever.client.util;
 
 import com.google.common.io.CharStreams;
 import org.luaj.vm2.Globals;
-import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.jse.JsePlatform;
 

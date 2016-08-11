@@ -1,6 +1,6 @@
 package com.faforever.client.map;
 
-import com.faforever.client.io.ByteCountListener;
+import com.faforever.client.task.CompletableTask;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
@@ -9,7 +9,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 public interface MapService {
@@ -34,19 +33,19 @@ public interface MapService {
    */
   boolean isInstalled(String technicalName);
 
-  CompletableFuture<Void> download(String technicalMapName);
+  CompletionStage<Void> download(String technicalMapName);
 
-  CompletableFuture<Void> downloadAndInstallMap(MapBean map, DoubleProperty progressProperty, StringProperty titleProperty);
+  CompletionStage<Void> downloadAndInstallMap(MapBean map, DoubleProperty progressProperty, StringProperty titleProperty);
 
-  CompletableFuture<List<MapBean>> lookupMap(String string, int maxResults);
+  CompletionStage<List<MapBean>> lookupMap(String string, int maxResults);
 
-  CompletableFuture<List<MapBean>> getMostDownloadedMaps(int count);
+  CompletionStage<List<MapBean>> getMostDownloadedMaps(int count);
 
-  CompletableFuture<List<MapBean>> getMostLikedMaps(int count);
+  CompletionStage<List<MapBean>> getMostLikedMaps(int count);
 
-  CompletableFuture<List<MapBean>> getNewestMaps(int count);
+  CompletionStage<List<MapBean>> getNewestMaps(int count);
 
-  CompletableFuture<List<MapBean>> getMostPlayedMaps(int count);
+  CompletionStage<List<MapBean>> getMostPlayedMaps(int count);
 
   Image loadSmallPreview(MapBean map);
 
@@ -58,5 +57,5 @@ public interface MapService {
 
   Path getPathForMap(String technicalName);
 
-  CompletableFuture<Void> uploadMap(Path mapPath, ByteCountListener byteListener, boolean ranked);
+  CompletableTask<Void> uploadMap(Path mapPath, boolean ranked);
 }

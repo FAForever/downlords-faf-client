@@ -36,6 +36,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -106,6 +107,7 @@ public class ReplayServiceImplTest {
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
     when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
     when(environment.getProperty("replayFileGlob")).thenReturn("*.fafreplay");
+    doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
   }
 
   @Test
@@ -245,6 +247,7 @@ public class ReplayServiceImplTest {
     Path replayFile = replayDirectory.newFile("replay.fafreplay").toPath();
 
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
+    when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
     ReplayInfoBean replayInfoBean = new ReplayInfoBean();
 
@@ -256,7 +259,6 @@ public class ReplayServiceImplTest {
 
     when(replayFileReader.readReplayInfo(replayFile)).thenReturn(replayInfo);
     when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
-    when(taskService.submitTask(replayDownloadTask)).thenReturn(CompletableFuture.completedFuture(replayFile));
 
     instance.runReplay(replayInfoBean);
 
@@ -270,11 +272,12 @@ public class ReplayServiceImplTest {
     Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
 
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
+    when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
+
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
     ReplayInfoBean replayInfoBean = new ReplayInfoBean();
 
     when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
-    when(taskService.submitTask(replayDownloadTask)).thenReturn(CompletableFuture.completedFuture(replayFile));
 
     instance.runReplay(replayInfoBean);
 
@@ -289,10 +292,9 @@ public class ReplayServiceImplTest {
     doThrow(new IOException("Junit test exception")).when(replayFileReader).readReplayInfo(replayFile);
 
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
+    when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
     ReplayInfoBean replayInfoBean = new ReplayInfoBean();
-
-    when(taskService.submitTask(replayDownloadTask)).thenReturn(CompletableFuture.completedFuture(replayFile));
 
     instance.runReplay(replayInfoBean);
 

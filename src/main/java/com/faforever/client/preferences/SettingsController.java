@@ -6,7 +6,12 @@ import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.ThemeService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Region;
 import javafx.util.converter.NumberStringConverter;
 

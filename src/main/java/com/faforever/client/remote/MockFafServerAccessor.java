@@ -21,7 +21,7 @@ import com.faforever.client.remote.domain.Player;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.ServerMessage;
-import com.faforever.client.task.AbstractPrioritizedTask;
+import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import javafx.beans.property.ObjectProperty;
@@ -42,11 +42,12 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
 import static com.faforever.client.remote.domain.GameAccess.PASSWORD;
 import static com.faforever.client.remote.domain.GameAccess.PUBLIC;
-import static com.faforever.client.task.AbstractPrioritizedTask.Priority.HIGH;
+import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 import static java.util.Collections.singletonList;
 
 public class MockFafServerAccessor implements FafServerAccessor {
@@ -90,8 +91,8 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<LoginMessage> connectAndLogIn(String username, String password) {
-    return taskService.submitTask(new AbstractPrioritizedTask<LoginMessage>(HIGH) {
+  public CompletionStage<LoginMessage> connectAndLogIn(String username, String password) {
+    return taskService.submitTask(new CompletableTask<LoginMessage>(HIGH) {
       @Override
       protected LoginMessage call() throws Exception {
         updateTitle(i18n.get("login.progress.message"));
@@ -146,7 +147,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
                 Severity.INFO,
                 Arrays.asList(
                     new Action("Execute", event ->
-                        taskService.submitTask(new AbstractPrioritizedTask<Void>(HIGH) {
+                        taskService.submitTask(new CompletableTask<Void>(HIGH) {
                           @Override
                           protected Void call() throws Exception {
                             updateTitle("Mock task");
@@ -168,12 +169,12 @@ public class MockFafServerAccessor implements FafServerAccessor {
         sessionInfo.setLogin("MockUser");
         return sessionInfo;
       }
-    });
+    }).getFuture();
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, InetSocketAddress relayAddress, int externalPort) {
-    return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchMessage>(HIGH) {
+  public CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, InetSocketAddress relayAddress, int externalPort) {
+    return taskService.submitTask(new CompletableTask<GameLaunchMessage>(HIGH) {
       @Override
       protected GameLaunchMessage call() throws Exception {
         updateTitle(i18n.get("requestNewGameTask.title"));
@@ -184,12 +185,12 @@ public class MockFafServerAccessor implements FafServerAccessor {
         gameLaunchMessage.setUid(1234);
         return gameLaunchMessage;
       }
-    });
+    }).getFuture();
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password, InetSocketAddress relayAddress, int externalPort) {
-    return taskService.submitTask(new AbstractPrioritizedTask<GameLaunchMessage>(HIGH) {
+  public CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password, InetSocketAddress relayAddress, int externalPort) {
+    return taskService.submitTask(new CompletableTask<GameLaunchMessage>(HIGH) {
       @Override
       protected GameLaunchMessage call() throws Exception {
         updateTitle(i18n.get("requestJoinGameTask.title"));
@@ -200,7 +201,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
         gameLaunchMessage.setUid(1234);
         return gameLaunchMessage;
       }
-    });
+    }).getFuture();
   }
 
   @Override
@@ -224,7 +225,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort, InetSocketAddress relayAddress) {
+  public CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort, InetSocketAddress relayAddress) {
     logger.debug("Searching 1v1 match with faction: {}", faction);
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);
@@ -257,7 +258,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> expectRehostCommand() {
+  public CompletionStage<GameLaunchMessage> expectRehostCommand() {
     return CompletableFuture.completedFuture(null);
   }
 

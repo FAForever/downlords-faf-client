@@ -28,6 +28,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class AchievementServiceImpl implements AchievementService {
@@ -60,7 +61,7 @@ public class AchievementServiceImpl implements AchievementService {
   }
 
   @Override
-  public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(String username) {
+  public CompletionStage<List<PlayerAchievement>> getPlayerAchievements(String username) {
     if (userService.getUsername().equalsIgnoreCase(username)) {
       if (readOnlyPlayerAchievements.isEmpty()) {
         updatePlayerAchievementsFromServer();
@@ -77,12 +78,12 @@ public class AchievementServiceImpl implements AchievementService {
   }
 
   @Override
-  public CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions() {
+  public CompletionStage<List<AchievementDefinition>> getAchievementDefinitions() {
     return CompletableFuture.supplyAsync(() -> fafApiAccessor.getAchievementDefinitions(), threadPoolExecutor);
   }
 
   @Override
-  public CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId) {
+  public CompletionStage<AchievementDefinition> getAchievementDefinition(String achievementId) {
     return CompletableFuture.supplyAsync(() -> fafApiAccessor.getAchievementDefinition(achievementId), threadPoolExecutor);
   }
 

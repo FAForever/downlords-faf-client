@@ -3,7 +3,7 @@ package com.faforever.client.map;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.Unzipper;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.AbstractPrioritizedTask;
+import com.faforever.client.task.CompletableTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +16,7 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.zip.ZipInputStream;
 
-public class DownloadMapTask extends AbstractPrioritizedTask<Void> {
+public class DownloadMapTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -26,7 +26,7 @@ public class DownloadMapTask extends AbstractPrioritizedTask<Void> {
   I18n i18n;
 
   private URL mapUrl;
-  private String technicalMapName;
+  private String folderName;
 
   public DownloadMapTask() {
     super(Priority.HIGH);
@@ -35,10 +35,10 @@ public class DownloadMapTask extends AbstractPrioritizedTask<Void> {
   @Override
   protected Void call() throws Exception {
     Objects.requireNonNull(mapUrl, "mapUrl has not been set");
-    Objects.requireNonNull(technicalMapName, "technicalMapName has not been set");
+    Objects.requireNonNull(folderName, "folderName has not been set");
 
-    updateTitle(i18n.get("mapDownloadTask.title", technicalMapName));
-    logger.info("Downloading map {} from {}", technicalMapName, mapUrl);
+    updateTitle(i18n.get("mapDownloadTask.title", folderName));
+    logger.info("Downloading map {} from {}", folderName, mapUrl);
 
     URLConnection urlConnection = mapUrl.openConnection();
     int bytesToRead = urlConnection.getContentLength();
@@ -60,7 +60,7 @@ public class DownloadMapTask extends AbstractPrioritizedTask<Void> {
     this.mapUrl = mapUrl;
   }
 
-  public void setTechnicalMapName(String technicalMapName) {
-    this.technicalMapName = technicalMapName;
+  public void setFolderName(String folderName) {
+    this.folderName = folderName;
   }
 }
