@@ -20,12 +20,14 @@ import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpMediaType;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.HttpStatusCodes;
+import com.google.api.client.http.HttpResponse;
+import com.google.api.client.http.HttpResponseException;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.MultipartContent;
 import com.google.api.client.http.json.JsonHttpContent;
 import com.google.api.client.json.GenericJson;
 import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.json.JsonParser;
 import com.google.api.client.json.JsonToken;
 import com.google.api.client.util.store.FileDataStoreFactory;
@@ -63,8 +65,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static com.github.nocatch.NoCatch.noCatch;
 
 public class FafApiAccessorImpl implements FafApiAccessor {
 
@@ -242,14 +242,14 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public void uploadMod(Path file) {
+  public void uploadMod(Path file) throws IOException {
     MultipartContent multipartContent = createFileMultipart(file, (written, total) -> {
     });
     postMultipart("/mods/upload", multipartContent);
   }
 
   @Override
-  public void uploadMap(Path file, boolean isRanked, ByteCountListener listener) {
+  public void uploadMap(Path file, boolean isRanked, ByteCountListener listener) throws IOException {
     MultipartContent multipartContent = createFileMultipart(file, listener);
     multipartContent.addPart(new MultipartContent.Part(
         new HttpHeaders().set("Content-Disposition", "form-data; name=\"metadata\";"),
@@ -275,21 +275,24 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     return multipartContent.addPart(new MultipartContent.Part(headers, fileContent));
   }
 
-  private void postMultipart(String endpointPath, MultipartContent multipartContent) {
+  private void postMultipart(String endpointPath, MultipartContent multipartContent) throws IOException {
     if (requestFactory == null) {
       throw new IllegalStateException("authorize() must be called first");
     }
 
     String url = baseUrl + endpointPath;
     logger.trace("Posting to: {}", url);
-    noCatch(() -> {
-      HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), multipartContent);
-      credential.initialize(request);
-      int statusCode = request.execute().getStatusCode();
-      if (statusCode != HttpStatusCodes.STATUS_CODE_OK) {
-        throw new RuntimeException("Request failed with status code: " + statusCode);
-      }
-    });
+    HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), multipartContent)
+        .setThrowExceptionOnExecuteError(false)
+        .setParser(new JsonObjectParser(jsonFactory));
+    credential.initialize(request);
+    HttpResponse httpResponse = request.execute();
+
+    if (httpResponse.getStatusCode() == 400) {
+      throw new ApiException(httpResponse.parseAs(ErrorResponse.class));
+    } else if (!httpResponse.isSuccessStatusCode()) {
+      throw new HttpResponseException(httpResponse);
+    }
   }
 
   @NotNull

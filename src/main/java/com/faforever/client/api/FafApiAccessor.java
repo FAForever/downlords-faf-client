@@ -5,6 +5,7 @@ import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -45,7 +46,7 @@ public interface FafApiAccessor {
 
   List<MapBean> getNewestMaps(int count);
 
-  void uploadMod(Path file);
+  void uploadMod(Path file) throws IOException;
 
-  void uploadMap(Path file, boolean isRanked, ByteCountListener listener);
+  void uploadMap(Path file, boolean isRanked, ByteCountListener listener) throws IOException;
 }
