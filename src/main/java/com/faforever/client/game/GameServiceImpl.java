@@ -316,6 +316,10 @@ public class GameServiceImpl implements GameService {
         .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.startSearchRanked1v1(faction, port))
         .thenAccept((gameLaunchInfo) -> {
+          gameLaunchInfo.setArgs(new ArrayList<>(gameLaunchInfo.getArgs()));
+          gameLaunchInfo.getArgs().add("/team 1");
+          gameLaunchInfo.getArgs().add("/players 2");
+
           searchExpansionFuture.cancel(true);
           startGame(gameLaunchInfo, faction, RatingMode.RANKED_1V1, localRelayServer.getPort());
         })
