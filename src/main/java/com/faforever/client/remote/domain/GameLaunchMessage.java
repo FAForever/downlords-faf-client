@@ -13,7 +13,7 @@ public class GameLaunchMessage extends FafServerMessage {
   }
 
   /**
-   * Stores game launch arguments, like "/ratingcolor d8d8d8d8 /numgames 236".
+   * Stores game launch arguments, like "/ratingcolor d8d8d8d8", "/numgames 236".
    */
   public List<String> getArgs() {
     return args;

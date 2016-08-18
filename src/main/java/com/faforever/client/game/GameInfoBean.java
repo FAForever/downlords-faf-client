@@ -28,7 +28,6 @@ public class GameInfoBean {
   private static final Pattern MAX_RATING_PATTERN = Pattern.compile("<\\s*(" + RATING_NUMBER + ")");
   private static final Pattern ABOUT_RATING_PATTERN = Pattern.compile("~\\s*(" + RATING_NUMBER + ")");
   private static final Pattern BETWEEN_RATING_PATTERN = Pattern.compile("(" + RATING_NUMBER + ")\\s*-\\s*(" + RATING_NUMBER + ")");
-  private static final Pattern INTEGER_PATTERN_MATCHER = Pattern.compile("\\d+");
 
   private final StringProperty host;
   private final StringProperty title;
@@ -144,10 +143,9 @@ public class GameInfoBean {
   }
 
   private int parseRating(String string) {
-    Matcher matcher = INTEGER_PATTERN_MATCHER.matcher(string);
-    if (matcher.matches()) {
+    try {
       return Integer.parseInt(string);
-    } else {
+    } catch (NumberFormatException e) {
       int rating;
       String[] split = string.replace("k", "").split("\\.");
       rating = Integer.parseInt(split[0]) * 1000;
