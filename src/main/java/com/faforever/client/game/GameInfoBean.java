@@ -148,11 +148,15 @@ public class GameInfoBean {
     } catch (NumberFormatException e) {
       int rating;
       String[] split = string.replace("k", "").split("\\.");
-      rating = Integer.parseInt(split[0]) * 1000;
-      if (split.length == 2) {
-        rating += Integer.parseInt(split[1]) * 100;
+      try {
+        rating = Integer.parseInt(split[0]) * 1000;
+        if (split.length == 2) {
+          rating += Integer.parseInt(split[1]) * 100;
+        }
+        return rating;
+      } catch (NumberFormatException e1) {
+        return Integer.MAX_VALUE;
       }
-      return rating;
     }
   }
 
