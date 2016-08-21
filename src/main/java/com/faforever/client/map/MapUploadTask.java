@@ -74,7 +74,7 @@ public class MapUploadTask extends CompletableTask<Void> {
             .zip();
       }
 
-      logger.debug("Uploading map {}", mapPath, tmpFile);
+      logger.debug("Uploading map {} as {}", mapPath, tmpFile);
       updateTitle(i18n.get("mapVault.upload.uploading"));
 
       fafApiAccessor.uploadMap(tmpFile, isRanked, byteListener);
