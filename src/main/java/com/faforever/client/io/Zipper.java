@@ -4,6 +4,7 @@ import com.faforever.client.util.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -19,6 +20,7 @@ import java.util.zip.ZipOutputStream;
 public final class Zipper {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final char PATH_SEPARATOR = File.separatorChar;
   private final Path directoryToZip;
   private boolean zipContent;
   private ByteCountListener byteCountListener;
@@ -89,9 +91,9 @@ public final class Zipper {
         logger.trace("Zipping file {}", file.toAbsolutePath());
 
         if (zipContent) {
-          zipOutputStream.putNextEntry(new ZipEntry(directoryToZip.relativize(file).toString()));
+          zipOutputStream.putNextEntry(new ZipEntry(directoryToZip.relativize(file).toString().replace(PATH_SEPARATOR, '/')));
         } else {
-          zipOutputStream.putNextEntry(new ZipEntry(directoryToZip.getParent().relativize(file).toString()));
+          zipOutputStream.putNextEntry(new ZipEntry(directoryToZip.getParent().relativize(file).toString().replace(PATH_SEPARATOR, '/')));
         }
 
         try (InputStream inputStream = Files.newInputStream(file)) {
