@@ -3,8 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
@@ -28,9 +26,11 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
+import org.pircbotx.UserHostmask;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.Event;
@@ -39,11 +39,13 @@ import org.pircbotx.hooks.events.ConnectEvent;
 import org.pircbotx.hooks.events.DisconnectEvent;
 import org.pircbotx.hooks.events.JoinEvent;
 import org.pircbotx.hooks.events.MessageEvent;
+import org.pircbotx.hooks.events.NoticeEvent;
 import org.pircbotx.hooks.events.OpEvent;
 import org.pircbotx.hooks.events.PartEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
 import org.pircbotx.hooks.events.QuitEvent;
 import org.pircbotx.hooks.events.UserListEvent;
+import org.pircbotx.hooks.types.GenericEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,15 +70,17 @@ import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 import static com.github.nocatch.NoCatch.noCatch;
+import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Locale.US;
 import static javafx.collections.FXCollections.observableHashMap;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 
 public class PircBotXChatService implements ChatService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int SOCKET_TIMEOUT = 10000;
-  private final Map<Class<? extends Event>, ArrayList<ChatEventListener>> eventListeners;
+  private final Map<Class<? extends GenericEvent>, ArrayList<ChatEventListener>> eventListeners;
   /**
    * Maps channels by name.
    */
@@ -114,8 +118,16 @@ public class PircBotXChatService implements ChatService {
   int reconnectDelay;
   private Configuration configuration;
   private PircBotX pircBotX;
-  private CountDownLatch chatConnectedLatch;
+  private CountDownLatch identifiedLatch;
   private Task<Void> connectionTask;
+  /**
+   * A list of channels the server wants us to join.
+   */
+  private List<String> autoChannels;
+  /**
+   * Indicates whether the "auto channels" already have been joined. This is needed because we don't want to auto join channels after a reconnect that the user left before the reconnect.
+   */
+  private boolean autoChannelsJoined;
 
   public PircBotXChatService() {
     connectionState = new SimpleObjectProperty<>();
@@ -134,12 +146,10 @@ public class PircBotXChatService implements ChatService {
         case CONNECTING:
           onDisconnected();
           break;
-        case CONNECTED:
-          onConnected();
-          break;
       }
     });
 
+    addEventListener(NoticeEvent.class, this::onNotice);
     addEventListener(ConnectEvent.class, event -> connectionState.set(ConnectionState.CONNECTED));
     addEventListener(DisconnectEvent.class, event -> connectionState.set(ConnectionState.DISCONNECTED));
     addEventListener(UserListEvent.class, event -> onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers())));
@@ -189,28 +199,47 @@ public class PircBotXChatService implements ChatService {
     });
   }
 
+  private void onNotice(NoticeEvent event) {
+    Configuration config = event.getBot().getConfiguration();
+    UserHostmask hostmask = event.getUserHostmask();
+
+    if (config.getNickservOnSuccess() != null && containsIgnoreCase(hostmask.getHostmask(), config.getNickservNick())) {
+      String message = event.getMessage();
+      if (containsIgnoreCase(message, config.getNickservOnSuccess()) || containsIgnoreCase(message, "registered under your account")) {
+        onIdentified();
+      } else if (message.contains("isn't registered")) {
+        sendMessageInBackground("NickServ", format("register %s %s@users.faforever.com", getPassword(), userService.getUsername()));
+      }
+    }
+  }
+
+  private void onIdentified() {
+    identifiedLatch.countDown();
+
+    if (!autoChannelsJoined) {
+      joinAutoChannels();
+    } else {
+      synchronized (channels) {
+        channels.keySet().forEach(this::joinChannel);
+      }
+    }
+  }
+
+  private void joinAutoChannels() {
+    if (autoChannels == null) {
+      return;
+    }
+    autoChannels.forEach(this::joinChannel);
+    autoChannelsJoined = true;
+  }
+
   private void onDisconnected() {
     synchronized (channels) {
       channels.values().forEach(Channel::clearUsers);
     }
   }
 
-  private void onConnected() {
-    sendMessageInBackground("NICKSERV", "IDENTIFY " + Hashing.md5().hashString(userService.getPassword(), UTF_8))
-        .thenAccept(message -> {
-          chatConnectedLatch.countDown();
-          connectionState.set(ConnectionState.CONNECTED);
-          joinChannel(defaultChannelName);
-        })
-        .exceptionally(throwable -> {
-          notificationService.addNotification(
-              new PersistentNotification(i18n.get("chat.identificationFailed", throwable.getLocalizedMessage()), Severity.WARN)
-          );
-          return null;
-        });
-  }
-
-  private <T extends Event> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
+  private <T extends GenericEvent> void addEventListener(Class<T> eventClass, ChatEventListener<T> listener) {
     if (!eventListeners.containsKey(eventClass)) {
       eventListeners.put(eventClass, new ArrayList<>());
     }
@@ -260,7 +289,6 @@ public class PircBotXChatService implements ChatService {
     getOrCreateChannel(channelName).setModerator(username);
   }
 
-  @SuppressWarnings("unchecked")
   private void init() {
     String username = userService.getUsername();
 
@@ -276,14 +304,24 @@ public class PircBotXChatService implements ChatService {
         .setSocketTimeout(SOCKET_TIMEOUT)
         .setMessageDelay(0)
         .setAutoReconnectDelay(reconnectDelay)
+        .setNickservPassword(getPassword())
         .setAutoReconnect(true)
         .buildConfiguration();
 
     pircBotX = pircBotXFactory.createPircBotX(configuration);
   }
 
+  @NotNull
+  private String getPassword() {
+    return Hashing.md5().hashString(userService.getPassword(), UTF_8).toString();
+  }
+
   private void onSocialMessage(SocialMessage socialMessage) {
-    socialMessage.getChannels().forEach(this::joinChannel);
+    if (!autoChannelsJoined) {
+      this.autoChannels = new ArrayList<>(socialMessage.getChannels());
+      autoChannels.add(defaultChannelName);
+      joinAutoChannels();
+    }
   }
 
   @SuppressWarnings("unchecked")
@@ -353,7 +391,7 @@ public class PircBotXChatService implements ChatService {
   public void connect() {
     init();
 
-    chatConnectedLatch = new CountDownLatch(1);
+    identifiedLatch = new CountDownLatch(1);
     connectionTask = new Task<Void>() {
       @Override
       protected Void call() throws Exception {
@@ -481,7 +519,7 @@ public class PircBotXChatService implements ChatService {
 
   @Override
   public void joinChannel(String channelName) {
-    noCatch(() -> chatConnectedLatch.await());
+    noCatch(() -> identifiedLatch.await());
     pircBotX.sendIRC().joinChannel(channelName);
   }
 
