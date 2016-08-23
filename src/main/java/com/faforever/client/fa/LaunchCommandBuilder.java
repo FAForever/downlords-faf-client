@@ -137,11 +137,11 @@ public class LaunchCommandBuilder {
     if (gameType == null) {
       throw new IllegalStateException("gameType has not been set");
     }
-    if (username == null) {
-      throw new IllegalStateException("username has not been set");
-    }
     if (replayUri != null && uid != null) {
       throw new IllegalStateException("uid and replayUri cannot be set at the same time");
+    }
+    if (uid != null && username == null) {
+      throw new IllegalStateException("username has not been set");
     }
 
 

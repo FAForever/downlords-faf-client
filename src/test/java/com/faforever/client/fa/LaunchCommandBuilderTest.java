@@ -50,8 +50,13 @@ public class LaunchCommandBuilderTest {
   }
 
   @Test(expected = IllegalStateException.class)
-  public void testUsernameNullNotAllowed() throws Exception {
-    defaultBuilder().username(null).build();
+  public void testUsernameNullNotAllowedIfUidSet() throws Exception {
+    defaultBuilder().uid(123).username(null).build();
+  }
+
+  @Test
+  public void testUsernameNullAllowedIfUidNotSet() throws Exception {
+    defaultBuilder().uid(null).username(null).build();
   }
 
   @Test
