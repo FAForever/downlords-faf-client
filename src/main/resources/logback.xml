@@ -1,57 +1,57 @@
 <configuration scan="true" scanPeriod="30 seconds">
 
-    <logger name="org.pircbotx" level="info"/>
-  <logger name="com.google.api.client.util.store.FileDataStoreFactory" level="error"/>
+    <logger name="org.pircbotx" level="warn"/>
+    <logger name="com.google.api.client.util.store.FileDataStoreFactory" level="error"/>
 
-  <logger name="com.faforever.client.api" level="trace"/>
-  <logger name="com.faforever.client.connectivity" level="info"/>
-  <logger name="com.faforever.client.preferences" level="info"/>
+    <logger name="com.faforever.client.api" level="trace"/>
+    <logger name="com.faforever.client.connectivity" level="info"/>
+    <logger name="com.faforever.client.preferences" level="info"/>
     <logger name="com.faforever.client.map" level="info"/>
-  <logger name="com.faforever.client.mod" level="info"/>
-  <logger name="com.faforever.client.net" level="info"/>
-  <logger name="com.faforever.client.util" level="info"/>
-  <logger name="com.faforever.client.patch" level="info"/>
-  <logger name="com.faforever.client.events" level="info"/>
-  <logger name="com.faforever.client.legacy" level="info"/>
+    <logger name="com.faforever.client.mod" level="info"/>
+    <logger name="com.faforever.client.net" level="info"/>
+    <logger name="com.faforever.client.util" level="info"/>
+    <logger name="com.faforever.client.patch" level="info"/>
+    <logger name="com.faforever.client.events" level="info"/>
+    <logger name="com.faforever.client.legacy" level="info"/>
     <logger name="com.faforever.client.remote" level="info"/>
-  <logger name="com.faforever.client.replay" level="info"/>
-  <logger name="com.faforever.client.relay" level="info"/>
-  <logger name="com.faforever.client.chat" level="info"/>
-  <logger name="com.faforever.client.game" level="info"/>
-  <logger name="com.faforever.client.task" level="info"/>
-  <logger name="com.faforever.client.theme" level="info"/>
-  <logger name="com.faforever.client.preferences" level="info"/>
+    <logger name="com.faforever.client.replay" level="info"/>
+    <logger name="com.faforever.client.relay" level="info"/>
+    <logger name="com.faforever.client.chat" level="info"/>
+    <logger name="com.faforever.client.game" level="info"/>
+    <logger name="com.faforever.client.task" level="info"/>
+    <logger name="com.faforever.client.theme" level="info"/>
+    <logger name="com.faforever.client.preferences" level="info"/>
     <logger name="com.faforever.client.io" level="info"/>
 
-  <logger name="org.ice4j.stack" level="warn"/>
+    <logger name="org.ice4j.stack" level="warn"/>
 
-  <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
-    <resetJUL>true</resetJUL>
-  </contextListener>
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+        <resetJUL>true</resetJUL>
+    </contextListener>
 
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-    </encoder>
-  </appender>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
 
-  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${logDirectory}/downlords-faf-client.log</file>
-    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-      <fileNamePattern>${logDirectory}/downlords-faf-client.%i.log.zip</fileNamePattern>
-      <minIndex>1</minIndex>
-      <maxIndex>5</maxIndex>
-    </rollingPolicy>
-    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-      <maxFileSize>5MB</maxFileSize>
-    </triggeringPolicy>
-    <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-    </encoder>
-  </appender>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logDirectory}/downlords-faf-client.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${logDirectory}/downlords-faf-client.%i.log.zip</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>5</maxIndex>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>5MB</maxFileSize>
+        </triggeringPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
 
-  <root level="info">
-    <appender-ref ref="STDOUT"/>
-    <appender-ref ref="FILE"/>
-  </root>
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
 </configuration>

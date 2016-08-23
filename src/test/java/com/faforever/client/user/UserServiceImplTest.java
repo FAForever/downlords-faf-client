@@ -4,6 +4,7 @@ import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
+import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -25,6 +26,8 @@ public class UserServiceImplTest {
   private PreferencesService preferencesService;
   @Mock
   private LoginPrefs login;
+  @Mock
+  private EventBus eventBus;
 
   private UserServiceImpl instance;
 
@@ -33,6 +36,7 @@ public class UserServiceImplTest {
     MockitoAnnotations.initMocks(this);
 
     instance = new UserServiceImpl();
+    instance.eventBus = eventBus;
     instance.fafService = fafService;
     instance.preferencesService = preferencesService;
 

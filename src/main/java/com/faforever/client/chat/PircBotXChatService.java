@@ -135,6 +135,7 @@ public class PircBotXChatService implements ChatService {
     channels = observableHashMap();
     chatUsersByName = observableHashMap();
     unreadMessagesCount = new SimpleIntegerProperty();
+    identifiedLatch = new CountDownLatch(1);
   }
 
   @PostConstruct
@@ -168,6 +169,7 @@ public class PircBotXChatService implements ChatService {
         connect();
       } else {
         disconnect();
+        autoChannelsJoined = false;
       }
     });
 
@@ -319,7 +321,7 @@ public class PircBotXChatService implements ChatService {
   private void onSocialMessage(SocialMessage socialMessage) {
     if (!autoChannelsJoined) {
       this.autoChannels = new ArrayList<>(socialMessage.getChannels());
-      autoChannels.add(defaultChannelName);
+      autoChannels.add(0, defaultChannelName);
       joinAutoChannels();
     }
   }
@@ -391,7 +393,6 @@ public class PircBotXChatService implements ChatService {
   public void connect() {
     init();
 
-    identifiedLatch = new CountDownLatch(1);
     connectionTask = new Task<Void>() {
       @Override
       protected Void call() throws Exception {
@@ -415,11 +416,14 @@ public class PircBotXChatService implements ChatService {
   public void disconnect() {
     logger.info("Disconnecting from IRC");
     if (connectionTask != null) {
-      connectionTask.cancel();
+      connectionTask.cancel(false);
     }
     if (pircBotX.isConnected()) {
+      pircBotX.stopBotReconnect();
       pircBotX.sendIRC().quitServer();
+      channels.clear();
     }
+    identifiedLatch = new CountDownLatch(1);
   }
 
   @Override
