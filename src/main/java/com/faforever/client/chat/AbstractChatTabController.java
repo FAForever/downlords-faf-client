@@ -385,6 +385,7 @@ public abstract class AbstractChatTabController {
   }
 
   protected void onWebViewLoaded() {
+    // Default implementation does nothing, can be overridden by subclass.
   }
 
   /**

@@ -122,6 +122,10 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   public void setChannel(Channel channel) {
+    if (this.channel != null) {
+      throw new IllegalStateException("channel has already been set");
+    }
+
     this.channel = channel;
     String channelName = channel.getName();
     setReceiver(channelName);
