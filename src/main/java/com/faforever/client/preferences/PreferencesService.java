@@ -57,7 +57,6 @@ public class PreferencesService {
   private static final String USER_HOME_SUB_FOLDER = ".faforever";
   private static final String REPLAYS_SUB_FOLDER = "replays";
   private static final String CORRUPTED_REPLAYS_SUB_FOLDER = "corrupt";
-  private static final String CORRUPTED_MODS_SUB_FOLDER = "corrupt_mods";
   private static final String CACHE_SUB_FOLDER = "cache";
   private static final String CACHE_STYLESHEETS_SUB_FOLDER = Paths.get(CACHE_SUB_FOLDER, "stylesheets").toString();
   private static final Collection<Path> USUAL_GAME_PATHS = Arrays.asList(
@@ -337,10 +336,6 @@ public class PreferencesService {
 
   public Path getCorruptedReplaysDirectory() {
     return getReplaysDirectory().resolve(CORRUPTED_REPLAYS_SUB_FOLDER);
-  }
-
-  public Path getCorruptedModsDirectory() {
-    return getCacheDirectory().resolve(CORRUPTED_MODS_SUB_FOLDER);
   }
 
   public Path getReplaysDirectory() {
