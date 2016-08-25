@@ -13,7 +13,6 @@
              styleClass="chat-user-control-country" HBox.hgrow="NEVER"/>
   <Label fx:id="clanLabel" minWidth="0.0" styleClass="chat-user-control-clan"/>
   <Label fx:id="usernameLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" onMouseClicked="#onUsernameClicked"
-         onMouseEntered="#onMouseEnterUsername"
          styleClass="chat-user-control-username" text="&lt;Username&gt;" HBox.hgrow="ALWAYS"/>
   <ImageView fx:id="statusImageView" fitHeight="16.0" fitWidth="16.0" onMouseClicked="#onMouseClickGameStatus"
              onMouseEntered="#onMouseEnterGameStatus" pickOnBounds="true" preserveRatio="true"

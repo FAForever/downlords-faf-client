@@ -276,10 +276,18 @@ public class ChatUserItemController {
       return;
     }
 
-    // FIXME #294
+    // Create the username tooltip
+    PlayerCardTooltipController playerCardTooltipController = applicationContext.getBean(PlayerCardTooltipController.class);
+    playerCardTooltipController.setPlayer(playerInfoBean);
+
+    Tooltip statusTooltip = new Tooltip();
+    statusTooltip.setGraphic(playerCardTooltipController.getRoot());
+    Tooltip.install(usernameLabel, statusTooltip);
+
+    // Create the clantag tooltip
+    // FIXME #310
     Tooltip tooltip = new Tooltip();
     Tooltip.install(clanLabel, tooltip);
-    Tooltip.install(usernameLabel, tooltip);
 
     Bindings.createStringBinding(
         () -> i18n.get("userInfo.ratingFormat", getGlobalRating(playerInfoBean), getLeaderboardRating(playerInfoBean)),
@@ -309,20 +317,6 @@ public class ChatUserItemController {
     Tooltip statusTooltip = new Tooltip();
     statusTooltip.setGraphic(gameStatusTooltipController.getRoot());
     Tooltip.install(statusImageView, statusTooltip);
-  }
-
-  @FXML
-  void onMouseEnterUsername() {
-    if (playerInfoBean.getChatOnly()) {
-      return;
-    } else {
-      PlayerCardTooltipController playerCardTooltipController = applicationContext.getBean(PlayerCardTooltipController.class);
-      playerCardTooltipController.setPlayer(playerInfoBean);
-
-      Tooltip statusTooltip = new Tooltip();
-      statusTooltip.setGraphic(playerCardTooltipController.getRoot());
-      Tooltip.install(usernameLabel, statusTooltip);
-    }
   }
 
   @FXML
