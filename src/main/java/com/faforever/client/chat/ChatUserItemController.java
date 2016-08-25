@@ -102,6 +102,7 @@ public class ChatUserItemController {
   private ChangeListener<String> avatarChangeListener;
   private ChangeListener<String> clanChangeListener;
   private ChangeListener<GameStatus> gameStatusChangeListener;
+  private PlayerCardTooltipController playerCardTooltipController;
 
   @FXML
   void initialize() {
@@ -276,18 +277,10 @@ public class ChatUserItemController {
       return;
     }
 
-    // Create the username tooltip
-    PlayerCardTooltipController playerCardTooltipController = applicationContext.getBean(PlayerCardTooltipController.class);
-    playerCardTooltipController.setPlayer(playerInfoBean);
-
-    Tooltip statusTooltip = new Tooltip();
-    statusTooltip.setGraphic(playerCardTooltipController.getRoot());
-    Tooltip.install(usernameLabel, statusTooltip);
-
-    // Create the clantag tooltip
-    // FIXME #310
+    // FIXME #294
     Tooltip tooltip = new Tooltip();
     Tooltip.install(clanLabel, tooltip);
+    Tooltip.install(usernameLabel, tooltip);
 
     Bindings.createStringBinding(
         () -> i18n.get("userInfo.ratingFormat", getGlobalRating(playerInfoBean), getLeaderboardRating(playerInfoBean)),
@@ -317,6 +310,24 @@ public class ChatUserItemController {
     Tooltip statusTooltip = new Tooltip();
     statusTooltip.setGraphic(gameStatusTooltipController.getRoot());
     Tooltip.install(statusImageView, statusTooltip);
+  }
+
+  @FXML
+  void onMouseEnterUsername() {
+    if (playerInfoBean.getChatOnly()) {
+      return;
+    }
+
+    if (playerCardTooltipController != null) {
+      return;
+    }
+
+    playerCardTooltipController = applicationContext.getBean(PlayerCardTooltipController.class);
+    playerCardTooltipController.setPlayer(playerInfoBean);
+
+    Tooltip statusTooltip = new Tooltip();
+    statusTooltip.setGraphic(playerCardTooltipController.getRoot());
+    Tooltip.install(usernameLabel, statusTooltip);
   }
 
   @FXML
