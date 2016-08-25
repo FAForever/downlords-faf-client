@@ -1,8 +1,6 @@
 package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapBean;
-import com.faforever.client.map.MapDetailController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
@@ -168,17 +166,6 @@ public class GamesController {
 
     Bounds screenBounds = createGameButton.localToScreen(createGameButton.getBoundsInLocal());
     createGamePopup.show(button.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());
-  }
-
-  @FXML
-  void onMapLargePreview() {
-    if (currentGameInfoBean == null) {
-      return;
-    }
-    mapDetailPopup = getMapDetailPopup();
-    MapDetailController mapDetailController = applicationContext.getBean(MapDetailController.class);
-    MapBean mapBean = mapService.findMapByName(currentGameInfoBean.getMapFolderName());
-    // FIXME implement
   }
 
   private Stage getMapDetailPopup() {
