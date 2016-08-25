@@ -44,6 +44,7 @@ import org.pircbotx.hooks.events.OpEvent;
 import org.pircbotx.hooks.events.PartEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
 import org.pircbotx.hooks.events.QuitEvent;
+import org.pircbotx.hooks.events.TopicEvent;
 import org.pircbotx.hooks.events.UserListEvent;
 import org.pircbotx.hooks.types.GenericEvent;
 import org.slf4j.Logger;
@@ -153,9 +154,11 @@ public class PircBotXChatService implements ChatService {
     addEventListener(ConnectEvent.class, event -> connectionState.set(ConnectionState.CONNECTED));
     addEventListener(DisconnectEvent.class, event -> connectionState.set(ConnectionState.DISCONNECTED));
     addEventListener(UserListEvent.class, event -> onChatUserList(event.getChannel().getName(), chatUsers(event.getUsers())));
-    addEventListener(JoinEvent.class, event -> onUserJoinedChannel(event.getChannel().getName(), createOrGetChatUser(event.getUser())));
+    addEventListener(JoinEvent.class, event -> onUserJoinedChannel(event.getChannel().getName(), getOrCreateChatUser(event.getUser())));
     addEventListener(PartEvent.class, event -> onChatUserLeftChannel(event.getChannel().getName(), event.getUser().getNick()));
     addEventListener(QuitEvent.class, event -> onChatUserQuit(event.getUser().getNick()));
+    addEventListener(TopicEvent.class, event -> getOrCreateChannel(event.getChannel().getName()).
+        onChannelTopic(event.getOldTopic(), event.getTopic(), event.getUser().getNick(), event.getDate(), event.isChanged()));
     addEventListener(OpEvent.class, event -> {
       User recipient = event.getRecipient();
       if (recipient != null) {
@@ -251,7 +254,7 @@ public class PircBotXChatService implements ChatService {
   }
 
   private List<ChatUser> chatUsers(ImmutableSortedSet<User> users) {
-    return users.stream().map(this::createOrGetChatUser).collect(Collectors.toList());
+    return users.stream().map(this::getOrCreateChatUser).collect(Collectors.toList());
   }
 
   private void onUserJoinedChannel(String channelName, ChatUser chatUser) {
@@ -541,7 +544,7 @@ public class PircBotXChatService implements ChatService {
   }
 
   @Override
-  public ChatUser createOrGetChatUser(User user) {
+  public ChatUser getOrCreateChatUser(User user) {
     synchronized (chatUsersByName) {
       String username = user.getNick();
       String lowerUsername = username.toLowerCase(US);

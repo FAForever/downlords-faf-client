@@ -355,6 +355,7 @@ public abstract class AbstractChatTabController {
           waitingMessages.forEach(AbstractChatTabController.this::appendMessage);
           waitingMessages.clear();
           isChatReady = true;
+          onWebViewLoaded();
         }
       }
     });
@@ -380,6 +381,10 @@ public abstract class AbstractChatTabController {
 
   protected JSObject getJsObject() {
     return (JSObject) engine.executeScript("window");
+  }
+
+  protected void onWebViewLoaded() {
+    // Default implementation does nothing, can be overridden by subclass.
   }
 
   /**
@@ -674,7 +679,7 @@ public abstract class AbstractChatTabController {
     return String.format("color: %s;", JavaFxUtil.toRgbCode(messageColor));
   }
 
-  private String convertUrlsToHyperlinks(String text) {
+  protected String convertUrlsToHyperlinks(String text) {
     return (String) engine.executeScript("link('" + text.replace("'", "\\'") + "')");
   }
 
