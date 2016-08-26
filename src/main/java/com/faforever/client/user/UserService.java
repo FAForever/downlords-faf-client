@@ -1,6 +1,7 @@
 package com.faforever.client.user;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 
 import java.util.concurrent.CompletionStage;
 
@@ -20,4 +21,5 @@ public interface UserService {
 
   void logOut();
 
+  ReadOnlyStringProperty currentUserProperty();
 }

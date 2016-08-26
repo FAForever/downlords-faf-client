@@ -6,18 +6,31 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.user.UserService;
+import com.faforever.client.user.event.LoginSuccessEvent;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.util.ReflectionUtils;
 
 import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -30,6 +43,8 @@ public class PlayerServiceImplTest {
   FafService fafService;
   @Mock
   UserService userService;
+  @Mock
+  EventBus eventBus;
 
   private PlayerServiceImpl instance;
 
@@ -38,16 +53,17 @@ public class PlayerServiceImplTest {
     MockitoAnnotations.initMocks(this);
 
     instance = new PlayerServiceImpl();
+    instance.eventBus = eventBus;
     instance.fafService = fafService;
     instance.userService = userService;
     instance.gameService = gameService;
+
+    instance.postConstruct();
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testInit() throws Exception {
-    instance.init();
-
+  public void testPostConstruct() throws Exception {
     verify(fafService).addOnMessageListener(eq(PlayersMessage.class), any(Consumer.class));
     verify(fafService).addOnMessageListener(eq(SocialMessage.class), any(Consumer.class));
   }
@@ -182,23 +198,29 @@ public class PlayerServiceImplTest {
     assertFalse("Property 'friend' was not set to false", player.getSocialStatus() == FRIEND);
   }
 
-  @Test
-  public void testOnPlayerInfo() throws Exception {
-
-  }
-
-  @Test
-  public void testOnFoeList() throws Exception {
-
-  }
-
-  @Test
-  public void testOnFriendList() throws Exception {
-
+  @Test(expected = IllegalStateException.class)
+  public void testGetCurrentPlayerNullThrowsIllegalStateException() throws Exception {
+    instance.getCurrentPlayer();
   }
 
   @Test
   public void testGetCurrentPlayer() throws Exception {
+    LoginSuccessEvent event = new LoginSuccessEvent("junit");
+    instance.onLoginSuccess(event);
 
+    PlayerInfoBean currentPlayer = instance.getCurrentPlayer();
+
+    assertThat(currentPlayer.getUsername(), is("junit"));
+  }
+
+  @Test
+  public void testSubscribeAnnotations() {
+    assertThat(ReflectionUtils.findMethod(instance.getClass(), "onLoginSuccess", LoginSuccessEvent.class),
+        hasAnnotation(Subscribe.class));
+  }
+
+  @Test
+  public void testEventBusRegistered() throws Exception {
+    verify(eventBus).register(instance);
   }
 }

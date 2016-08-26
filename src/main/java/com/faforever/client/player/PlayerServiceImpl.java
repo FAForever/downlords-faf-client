@@ -1,15 +1,19 @@
 package com.faforever.client.player;
 
 import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.chat.SocialStatus;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameStatus;
+import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.Player;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ObjectProperty;
@@ -26,8 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
@@ -36,22 +38,19 @@ import static com.faforever.client.chat.SocialStatus.SELF;
 
 public class PlayerServiceImpl implements PlayerService {
 
-  private static final Lock CURRENT_PLAYER_LOCK = new ReentrantLock();
-
   private final ObservableMap<String, PlayerInfoBean> playersByName;
   private final ObservableMap<Integer, PlayerInfoBean> playersById;
   private final List<Integer> foeList;
   private final List<Integer> friendList;
-
+  private final ObjectProperty<PlayerInfoBean> currentPlayer;
   @Resource
   FafService fafService;
   @Resource
   UserService userService;
   @Resource
   GameService gameService;
-
-  private ObjectProperty<PlayerInfoBean> currentPlayer;
-
+  @Resource
+  EventBus eventBus;
   /**
    * Maps game IDs to status change listeners.
    */
@@ -67,7 +66,8 @@ public class PlayerServiceImpl implements PlayerService {
   }
 
   @PostConstruct
-  void init() {
+  void postConstruct() {
+    eventBus.register(this);
     fafService.addOnMessageListener(PlayersMessage.class, this::onPlayersInfo);
     fafService.addOnMessageListener(SocialMessage.class, this::onFoeList);
 
@@ -87,6 +87,14 @@ public class PlayerServiceImpl implements PlayerService {
       }
     });
   }
+
+  @Subscribe
+  public void onLoginSuccess(LoginSuccessEvent event) {
+    synchronized (currentPlayer) {
+      currentPlayer.set(createAndGetPlayerForUsername(event.getUsername()));
+    }
+  }
+
 
   private void updateGameStateForPlayers(GameInfoBean gameInfoBean) {
     ObservableMap<String, List<String>> teams = gameInfoBean.getTeams();
@@ -185,15 +193,12 @@ public class PlayerServiceImpl implements PlayerService {
 
   @Override
   public PlayerInfoBean getCurrentPlayer() {
-    CURRENT_PLAYER_LOCK.lock();
-    try {
+    synchronized (currentPlayer) {
       if (currentPlayer.get() == null) {
-        currentPlayer.set(createAndGetPlayerForUsername(userService.getUsername()));
+        throw new IllegalStateException("Current player has not yet been set");
       }
-    } finally {
-      CURRENT_PLAYER_LOCK.unlock();
+      return currentPlayer.get();
     }
-    return currentPlayer.get();
   }
 
   @Override
@@ -211,28 +216,22 @@ public class PlayerServiceImpl implements PlayerService {
   }
 
   private void onFoeList(List<Integer> foes) {
-    foeList.clear();
-    foeList.addAll(foes);
-
-    synchronized (playersById) {
-      for (Integer foeId : foes) {
-        PlayerInfoBean playerInfoBean = playersById.get(foeId);
-        if (playerInfoBean != null) {
-          playerInfoBean.setSocialStatus(FOE);
-        }
-      }
-    }
+    updateSocialList(foeList, foes, FOE);
   }
 
   private void onFriendList(List<Integer> friends) {
-    friendList.clear();
-    friendList.addAll(friends);
+    updateSocialList(friendList, friends, FRIEND);
+  }
+
+  private void updateSocialList(List<Integer> socialList, List<Integer> newValues, SocialStatus socialStatus) {
+    socialList.clear();
+    socialList.addAll(newValues);
 
     synchronized (playersById) {
-      for (Integer friendId : friendList) {
-        PlayerInfoBean playerInfoBean = playersById.get(friendId);
+      for (Integer userId : socialList) {
+        PlayerInfoBean playerInfoBean = playersById.get(userId);
         if (playerInfoBean != null) {
-          playerInfoBean.setSocialStatus(FRIEND);
+          playerInfoBean.setSocialStatus(socialStatus);
         }
       }
     }

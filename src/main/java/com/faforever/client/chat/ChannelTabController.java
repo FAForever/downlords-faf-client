@@ -189,9 +189,11 @@ public class ChannelTabController extends AbstractChatTabController {
   private void filterChatUserControlsBySearchString() {
     synchronized (userToChatUserControls) {
       for (Map<Pane, ChatUserItemController> chatUserControlMap : userToChatUserControls.values()) {
-        for (Map.Entry<Pane, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
-          ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
-          chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
+        synchronized (chatUserControlMap) {
+          for (Map.Entry<Pane, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
+            ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
+            chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
+          }
         }
       }
     }
@@ -469,10 +471,14 @@ public class ChannelTabController extends AbstractChatTabController {
       return;
     }
 
-    for (Map.Entry<Pane, ChatUserItemController> entry : paneToChatUserControlMap.entrySet()) {
-      Platform.runLater(() -> entry.getKey().getChildren().remove(entry.getValue().getRoot()));
-    }
-    paneToChatUserControlMap.clear();
+    Platform.runLater(() -> {
+      synchronized (paneToChatUserControlMap) {
+        for (Map.Entry<Pane, ChatUserItemController> entry : paneToChatUserControlMap.entrySet()) {
+          entry.getKey().getChildren().remove(entry.getValue().getRoot());
+        }
+        paneToChatUserControlMap.clear();
+      }
+    });
     userToChatUserControls.remove(username);
   }
 
@@ -486,9 +492,11 @@ public class ChannelTabController extends AbstractChatTabController {
       // User has not yet been added to this pane; no need to remove him
       return;
     }
-    Pane root = paneChatUserControlMap.remove(pane).getRoot();
-    if (root != null) {
-      Platform.runLater(() -> pane.getChildren().remove(root));
+    synchronized (paneChatUserControlMap) {
+      Pane root = paneChatUserControlMap.remove(pane).getRoot();
+      if (root != null) {
+        Platform.runLater(() -> pane.getChildren().remove(root));
+      }
     }
   }
 

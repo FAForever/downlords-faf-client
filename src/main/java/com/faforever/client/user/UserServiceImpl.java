@@ -4,8 +4,13 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.user.event.LoginSuccessEvent;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,21 +22,22 @@ import java.util.concurrent.CompletionStage;
 public class UserServiceImpl implements UserService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  private final StringProperty username;
+  private final BooleanProperty loggedIn;
   @Resource
   FafService fafService;
   @Resource
   PreferencesService preferencesService;
   @Resource
   FafApiAccessor fafApiAccessor;
-
-  private String username;
+  @Resource
+  EventBus eventBus;
   private String password;
   private Integer uid;
-  private BooleanProperty loggedIn;
 
   public UserServiceImpl() {
     loggedIn = new SimpleBooleanProperty();
+    username = new SimpleStringProperty();
   }
 
   @Override
@@ -47,7 +53,6 @@ public class UserServiceImpl implements UserService {
         .setAutoLogin(autoLogin);
     preferencesService.storeInBackground();
 
-    this.username = username;
     this.password = password;
 
     return fafService.connectAndLogIn(username, password)
@@ -55,13 +60,15 @@ public class UserServiceImpl implements UserService {
           uid = loginInfo.getId();
 
           // Because of different case (upper/lower)
-          UserServiceImpl.this.username = loginInfo.getLogin();
+          String login = loginInfo.getLogin();
+          UserServiceImpl.this.username.set(login);
 
-          preferencesService.getPreferences().getLogin().setUsername(username);
+          preferencesService.getPreferences().getLogin().setUsername(login);
           preferencesService.storeInBackground();
 
           fafApiAccessor.authorize(loginInfo.getId());
           loggedIn.set(true);
+          eventBus.post(new LoginSuccessEvent(login));
         })
         .exceptionally(throwable -> {
           logger.warn("Error during login", throwable);
@@ -72,7 +79,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public String getUsername() {
-    return username;
+    return username.get();
   }
 
   @Override
@@ -95,6 +102,11 @@ public class UserServiceImpl implements UserService {
     logger.info("Logging out");
     fafService.disconnect();
     loggedIn.set(false);
+  }
+
+  @Override
+  public ReadOnlyStringProperty currentUserProperty() {
+    return username;
   }
 
   @PostConstruct
