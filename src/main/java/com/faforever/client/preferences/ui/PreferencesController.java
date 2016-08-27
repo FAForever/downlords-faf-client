@@ -1,17 +1,15 @@
-package com.faforever.client.preferences;
+package com.faforever.client.preferences.ui;
 
 import com.faforever.client.chat.ChatColorMode;
-import com.faforever.client.fx.StringListCell;
-import com.faforever.client.theme.Theme;
+import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.ThemeService;
-import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.util.converter.NumberStringConverter;
 
@@ -21,8 +19,10 @@ import java.text.NumberFormat;
 
 import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
 
-public class SettingsController {
+public class PreferencesController {
 
+  @FXML
+  AnchorPane pageContent;
   @FXML
   TextField executableDecoratorField;
   @FXML
@@ -42,27 +42,13 @@ public class SettingsController {
   @FXML
   TextField gameLocationTextField;
   @FXML
-  Button gameLocationButton;
-  @FXML
   CheckBox autoDownloadMapsCheckBox;
-  @FXML
-  ComboBox<String> languageComboBox;
-  @FXML
-  ComboBox<Theme> themeComboBox;
-  @FXML
-  CheckBox rememberLastTabCheckBox;
-  @FXML
-  Button resetNotificationsButton;
   @FXML
   TextField maxMessagesTextField;
   @FXML
   CheckBox imagePreviewCheckBox;
   @FXML
   CheckBox enableToastsCheckBox;
-  @FXML
-  ComboBox toastPositionComboBox;
-  @FXML
-  ComboBox toastScreenComboBox;
   @FXML
   CheckBox enableSoundsCheckBox;
   @FXML
@@ -95,25 +81,12 @@ public class SettingsController {
   @Resource
   ThemeService themeService;
 
-  void initialize() {
-    themeComboBox.setButtonCell(new StringListCell<>(Theme::getDisplayName));
-    themeComboBox.setCellFactory(param -> new StringListCell<>(Theme::getDisplayName));
-  }
-
   @PostConstruct
   void postConstruct() {
     NumberFormat integerNumberFormat = NumberFormat.getIntegerInstance();
     integerNumberFormat.setGroupingUsed(false);
 
     Preferences preferences = preferencesService.getPreferences();
-
-    languageComboBox.setItems(FXCollections.singletonObservableList("English"));
-    languageComboBox.getSelectionModel().select(0);
-
-    themeComboBox.setItems(FXCollections.observableArrayList(themeService.getAvailableThemes()));
-    themeComboBox.getSelectionModel().select(0);
-
-    rememberLastTabCheckBox.selectedProperty().bindBidirectional(preferences.rememberLastTabProperty());
     maxMessagesTextField.textProperty().bindBidirectional(preferences.getChat().maxMessagesProperty(), new NumberStringConverter(integerNumberFormat));
     imagePreviewCheckBox.selectedProperty().bindBidirectional(preferences.getChat().previewImageUrlsProperty());
     enableToastsCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().toastsEnabledProperty());

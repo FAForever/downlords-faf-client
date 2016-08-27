@@ -31,7 +31,7 @@ import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.OnChooseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.preferences.SettingsController;
+import com.faforever.client.preferences.ui.PreferencesController;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.rankedmatch.Ranked1v1Controller;
@@ -200,7 +200,7 @@ public class MainController implements OnChooseGameDirectoryListener {
   @Resource
   NotificationService notificationService;
   @Resource
-  SettingsController settingsController;
+  PreferencesController preferencesController;
   @Resource
   ApplicationContext applicationContext;
   @Resource
@@ -798,7 +798,7 @@ public class MainController implements OnChooseGameDirectoryListener {
     stage.initOwner(mainRoot.getScene().getWindow());
 
     WindowController windowController = applicationContext.getBean(WindowController.class);
-    windowController.configure(stage, settingsController.getRoot(), true, CLOSE);
+    windowController.configure(stage, preferencesController.getRoot(), true, CLOSE);
 
     stage.setTitle(i18n.get("settings.windowTitle"));
     stage.show();

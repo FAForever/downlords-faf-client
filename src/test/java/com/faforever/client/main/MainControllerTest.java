@@ -28,7 +28,7 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.preferences.SettingsController;
+import com.faforever.client.preferences.ui.PreferencesController;
 import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
@@ -115,7 +115,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ChatController chatController;
   @Mock
-  private SettingsController settingsController;
+  private PreferencesController preferencesController;
   @Mock
   private UserInfoWindowController userInfoWindowController;
   @Mock
@@ -186,7 +186,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.castsController = castsController;
     instance.newsController = newsController;
     instance.communityHubController = communityHubController;
-    instance.settingsController = settingsController;
+    instance.preferencesController = preferencesController;
     instance.chatController = chatController;
     instance.persistentNotificationsController = persistentNotificationsController;
     instance.notificationService = notificationService;
@@ -410,7 +410,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   public void testOnSettingsItemSelected() throws Exception {
     attachToRoot();
     Pane root = new Pane();
-    when(settingsController.getRoot()).thenReturn(root);
+    when(preferencesController.getRoot()).thenReturn(root);
     WaitForAsyncUtils.waitForAsyncFx(1000, instance::onSettingsItemSelected);
 
     verify(windowController).configure(

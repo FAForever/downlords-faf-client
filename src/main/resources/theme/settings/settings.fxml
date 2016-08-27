@@ -6,7 +6,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="settingsRoot" maxHeight="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.preferences.ui.PreferencesController">
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="settingsRoot" maxHeight="1.7976931348623157E308"
+      xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.preferences.ui.PreferencesController">
   <children>
     <HBox styleClass="settings-head">
       <children>
@@ -14,6 +15,7 @@
       </children>
     </HBox>
     <Separator prefWidth="200.0" />
-      <AnchorPane fx:id="pageContent" prefHeight="200.0" prefWidth="200.0" />
+    <AnchorPane fx:id="pageContent" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                minHeight="100.0" minWidth="100.0"/>
   </children>
 </VBox>

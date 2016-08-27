@@ -72,7 +72,7 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
     instance.preferencesService = preferencesService;
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getTheme()).thenReturn("default");
+    when(preferences.getThemeName()).thenReturn("default");
 
     PlayerStatisticsMessage playerStatisticsMessage = new PlayerStatisticsMessage();
     playerStatisticsMessage.setPlayer(PLAYER_NAME);

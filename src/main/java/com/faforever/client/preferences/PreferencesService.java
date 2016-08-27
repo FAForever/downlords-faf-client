@@ -97,15 +97,16 @@ public class PreferencesService {
    */
   private final Timer timer;
   private final Collection<PreferenceUpdateListener> updateListeners;
+  private final Preferences preferences;
   @Resource
   I18n i18n;
   @Resource
   NotificationService notificationService;
-  private Preferences preferences;
   private TimerTask storeInBackgroundTask;
   private OnChooseGameDirectoryListener onChooseGameDirectoryListener;
 
   public PreferencesService() {
+    preferences = new Preferences();
     updateListeners = new ArrayList<>();
     this.preferencesFilePath = getPreferencesDirectory().resolve(PREFS_FILE_NAME);
     timer = new Timer("PrefTimer", true);
@@ -137,8 +138,6 @@ public class PreferencesService {
     if (Files.exists(preferencesFilePath)) {
       deleteFileIfEmpty();
       readExistingFile(preferencesFilePath);
-    } else {
-      initDefaultPreferences();
     }
 
     Path gamePrefs = preferences.getForgedAlliance().getPreferencesFile();
@@ -258,15 +257,6 @@ public class PreferencesService {
 
   public Path getFafReposDirectory() {
     return getFafDataDirectory().resolve("repos");
-  }
-
-  private void initDefaultPreferences() {
-    if (preferences != null) {
-      throw new IllegalStateException("Preferences have already been initialized");
-    }
-
-    logger.debug("Initializing default user preferences");
-    preferences = new Preferences();
   }
 
   private void readExistingFile(Path path) {
