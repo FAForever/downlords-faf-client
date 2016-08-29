@@ -39,6 +39,7 @@ public class GameInfoBean {
   private final IntegerProperty minRating;
   private final IntegerProperty maxRating;
   private final BooleanProperty passwordProtected;
+  private final StringProperty password;
   private final ObjectProperty<GameVisibility> visibility;
   private final ObjectProperty<GameState> status;
   private final ObjectProperty<VictoryCondition> victoryCondition;
@@ -68,6 +69,7 @@ public class GameInfoBean {
     minRating = new SimpleIntegerProperty(0);
     maxRating = new SimpleIntegerProperty(3000);
     passwordProtected = new SimpleBooleanProperty();
+    password = new SimpleStringProperty();
     victoryCondition = new SimpleObjectProperty<>();
     visibility = new SimpleObjectProperty<>();
     simMods = new SimpleMapProperty<>(FXCollections.observableHashMap());
@@ -360,5 +362,17 @@ public class GameInfoBean {
 
   public BooleanProperty passwordProtectedProperty() {
     return passwordProtected;
+  }
+
+  public String getPassword() {
+    return password.get();
+  }
+
+  public void setPassword(String password) {
+    this.password.set(password);
+  }
+
+  public StringProperty passwordProperty() {
+    return password;
   }
 }

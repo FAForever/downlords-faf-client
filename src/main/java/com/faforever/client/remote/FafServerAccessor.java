@@ -54,8 +54,6 @@ public interface FafServerAccessor {
 
   void initConnectivityTest(int port);
 
-  CompletionStage<GameLaunchMessage> expectRehostCommand();
-
   void removeFriend(int playerId);
 
   void removeFoe(int playerId);

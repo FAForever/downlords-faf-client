@@ -28,6 +28,7 @@ public enum GpgClientCommand {
   DESYNC("Desync"),
   INIT_CONNECTIVITY_TEST("InitiateTest"),
   GAME_FULL("GameFull"),
+  ENDED("Ended"),
   // Yes, this is the only lower-cased command in the protocol. Because reasons.
   CONNECTED_TO_HOST("connectedToHost");
 

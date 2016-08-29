@@ -162,11 +162,6 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> expectRehostCommand() {
-    return fafServerAccessor.expectRehostCommand();
-  }
-
-  @Override
   public void reconnect() {
     fafServerAccessor.reconnect();
   }

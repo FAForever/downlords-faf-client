@@ -73,8 +73,6 @@ public interface FafService {
 
   List<ModInfoBean> getMods();
 
-  CompletionStage<GameLaunchMessage> expectRehostCommand();
-
   void reconnect();
 
   CompletionStage<List<MapBean>> getMostDownloadedMaps(int count);

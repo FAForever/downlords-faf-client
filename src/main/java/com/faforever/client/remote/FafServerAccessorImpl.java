@@ -249,7 +249,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
         new boolean[0],
         newGameInfo.getGameType(),
         newGameInfo.getPassword(),
-        newGameInfo.getVersion(),
+        null,
         relayAddress
     );
 
@@ -325,13 +325,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   @Override
   public void initConnectivityTest(int port) {
     writeToServer(new InitConnectivityTestMessage(port));
-  }
-
-  @Override
-  public CompletionStage<GameLaunchMessage> expectRehostCommand() {
-    logger.debug("Expecting rehost command from server");
-    gameLaunchFuture = new CompletableFuture<>();
-    return gameLaunchFuture;
   }
 
   @Override

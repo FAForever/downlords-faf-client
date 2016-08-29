@@ -102,4 +102,17 @@ public class LaunchCommandBuilderTest {
             "/log", Paths.get("game.log").toAbsolutePath().toString()
         ));
   }
+
+  @Test
+  public void testRehost() throws Exception {
+    assertThat(
+        defaultBuilder().rehost(true).build(),
+        contains(
+            Paths.get("test.exe").toAbsolutePath().toString(),
+            "/init", "init_faf.lua",
+            "/nobugreport",
+            "/log", Paths.get("game.log").toAbsolutePath().toString(),
+            "/rehost"
+        ));
+  }
 }

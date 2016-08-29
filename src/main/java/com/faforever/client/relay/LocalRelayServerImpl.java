@@ -6,12 +6,10 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameType;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.relay.event.GameFullEvent;
+import com.faforever.client.relay.event.RehostRequestEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.reporting.ReportingService;
@@ -40,7 +38,6 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -325,17 +322,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
       handleCreateLobby(new CreateLobbyServerMessage(lobbyMode, faGamePort, username, userService.getUid(), 1));
       gameUdpSocketFuture.complete(new InetSocketAddress(getLoopbackAddress(), faGamePort));
     } else if (command == GpgClientCommand.REHOST) {
-      gameService.prepareForRehost().exceptionally(throwable -> {
-        logger.warn("Game could not be rehosted", throwable);
-        notificationService.addNotification(
-            new ImmediateNotification(
-                i18n.get("errorTitle"),
-                i18n.get("game.create.failed"),
-                Severity.ERROR,
-                throwable,
-                Collections.singletonList(new ReportAction(i18n, reportingService, throwable))));
-        return null;
-      });
+      eventBus.post(new RehostRequestEvent());
     } else if (command == GpgClientCommand.JSON_STATS) {
       logger.debug("Received game stats: {}", gpgClientMessage.getArgs().get(0));
     } else if (command == GpgClientCommand.GAME_FULL) {

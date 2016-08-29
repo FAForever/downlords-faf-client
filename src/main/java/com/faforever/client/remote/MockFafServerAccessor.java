@@ -258,11 +258,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> expectRehostCommand() {
-    return CompletableFuture.completedFuture(null);
-  }
-
-  @Override
   public void removeFriend(int playerId) {
 
   }
