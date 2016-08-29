@@ -448,11 +448,13 @@ public class GameServiceImpl implements GameService {
       try {
         rehostRequested = false;
         int exitCode = process.waitFor();
+        logger.info("Forged Alliance terminated with exit code {}", exitCode);
+
         synchronized (gameRunning) {
           gameRunning.set(false);
           localRelayServer.close();
           fafService.notifyGameEnded();
-          logger.info("Forged Alliance terminated with exit code {}", exitCode);
+          replayService.stopReplayServer();
 
           if (rehostRequested) {
             rehost();

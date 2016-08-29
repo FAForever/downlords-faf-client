@@ -36,6 +36,9 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.Popup;
+import javafx.stage.PopupWindow;
+import javafx.stage.Window;
 import javafx.util.Callback;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -110,6 +113,8 @@ public class CreateGameController {
   ReportingService reportingService;
   @Resource
   ConnectivityService connectivityService;
+
+  private Popup createGamePopup;
 
   @FXML
   void initialize() {
@@ -397,6 +402,8 @@ public class CreateGameController {
               Collections.singletonList(new ReportAction(i18n, reportingService, throwable))));
       return null;
     });
+
+
   }
 
   public Node getRoot() {
@@ -421,5 +428,14 @@ public class CreateGameController {
   @FXML
   void onReloadModsButtonClicked(ActionEvent event) {
     modService.loadInstalledMods();
+  }
+
+  public void show(Window window, double minX, double maxY) {
+    createGamePopup = new Popup();
+    createGamePopup.setAutoFix(false);
+    createGamePopup.setAutoHide(true);
+    createGamePopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
+    createGamePopup.getContent().setAll(createGameRoot);
+    createGamePopup.show(window, minX, maxY);
   }
 }
