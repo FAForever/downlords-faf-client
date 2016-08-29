@@ -1,6 +1,6 @@
 package com.faforever.client.fa;
 
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.player.Player;
 import com.faforever.client.game.Faction;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -31,7 +31,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs, RatingMode ratingMode, int gpgPort, boolean rehost) throws IOException {
     Path executable = getExecutable();
 
-    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer();
 
     float deviation;
     float mean;
@@ -83,7 +83,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   public Process startReplay(URI replayUri, Integer replayId) throws IOException {
     Path executable = getExecutable();
 
-    PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
+    Player currentPlayer = playerService.getCurrentPlayer();
     List<String> launchCommand = LaunchCommandBuilder.create()
         .executable(executable)
         .replayUri(replayUri)

@@ -25,7 +25,7 @@ public interface GameService {
 
   CompletionStage<Void> hostGame(NewGameInfo name);
 
-  CompletionStage<Void> joinGame(GameInfoBean gameInfoBean, String password);
+  CompletionStage<Void> joinGame(Game game, String password);
 
   /**
    * @param path a replay file that is readable by the game without any further conversion
@@ -35,9 +35,9 @@ public interface GameService {
 
   CompletionStage<Void> runWithLiveReplay(URI replayUri, Integer gameId, String gameType, String mapName) throws IOException;
 
-  ObservableList<GameInfoBean> getGameInfoBeans();
+  ObservableList<Game> getGames();
 
-  GameInfoBean getByUid(int uid);
+  Game getByUid(int uid);
 
   void addOnRankedMatchNotificationListener(Consumer<MatchmakerMessage> listener);
 
@@ -51,7 +51,7 @@ public interface GameService {
    * Returns the game the player is currently in. Returns {@code null} if not in a game.
    */
   @Nullable
-  GameInfoBean getCurrentGame();
+  Game getCurrentGame();
 
   boolean isGameRunning();
 }

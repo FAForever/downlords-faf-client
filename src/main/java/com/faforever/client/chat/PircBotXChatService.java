@@ -4,6 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -261,7 +262,7 @@ public class PircBotXChatService implements ChatService {
   private void onUserJoinedChannel(String channelName, ChatUser chatUser) {
     String username = chatUser.getUsername();
     getOrCreateChannel(channelName).addUser(chatUser);
-    PlayerInfoBean player = playerService.getPlayerForUsername(username);
+    Player player = playerService.getPlayerForUsername(username);
     if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
       notificationService.addNotification(
           new TransientNotification(
@@ -287,7 +288,7 @@ public class PircBotXChatService implements ChatService {
     synchronized (chatUsersByName) {
       chatUsersByName.remove(username);
     }
-    PlayerInfoBean player = playerService.getPlayerForUsername(username);
+    Player player = playerService.getPlayerForUsername(username);
     if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
       notificationService.addNotification(
           new TransientNotification(
@@ -392,6 +393,7 @@ public class PircBotXChatService implements ChatService {
             logger.warn("Private message without user: {}", event);
             return;
           }
+          logger.debug("Received private message: {}", event);
           listener.accept(
               new ChatMessage(user.getNick(), Instant.ofEpochMilli(event.getTimestamp()), user.getNick(), event.getMessage())
           );

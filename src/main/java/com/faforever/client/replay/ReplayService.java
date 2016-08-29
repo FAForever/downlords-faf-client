@@ -22,4 +22,6 @@ public interface ReplayService {
   CompletableFuture<Void> startReplayServer(int gameUid);
 
   void stopReplayServer();
+
+  void runReplay(Integer replayId);
 }

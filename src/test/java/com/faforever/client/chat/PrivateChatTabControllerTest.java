@@ -4,6 +4,7 @@ import com.faforever.client.audio.AudioController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -60,12 +61,12 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForAsyncFx(3000, () -> instance.stage = new Stage());
 
     playerName = "testUser";
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
+    Player player = new Player(playerName);
     instance.setReceiver(playerName);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getChat()).thenReturn(chatPrefs);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
 
     TabPane tabPane = new TabPane();
     tabPane.setSkin(new TabPaneSkin(tabPane));

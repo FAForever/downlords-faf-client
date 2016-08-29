@@ -2,7 +2,7 @@ package com.faforever.client.events;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.PlayerEvent;
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 
 import javax.annotation.Resource;
@@ -26,7 +26,7 @@ public class EventServiceImpl implements EventService {
 
   @Override
   public CompletionStage<Map<String, PlayerEvent>> getPlayerEvents(String username) {
-    PlayerInfoBean playerForUsername = playerService.getPlayerForUsername(username);
+    Player playerForUsername = playerService.getPlayerForUsername(username);
     if (playerForUsername == null) {
       return CompletableFuture.completedFuture(Collections.emptyMap());
     }

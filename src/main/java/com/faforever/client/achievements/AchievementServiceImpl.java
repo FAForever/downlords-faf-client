@@ -3,7 +3,7 @@ package com.faforever.client.achievements;
 import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.PlayerAchievement;
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.player.Player;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -69,7 +69,7 @@ public class AchievementServiceImpl implements AchievementService {
       return CompletableFuture.completedFuture(readOnlyPlayerAchievements);
     }
 
-    PlayerInfoBean playerForUsername = playerService.getPlayerForUsername(username);
+    Player playerForUsername = playerService.getPlayerForUsername(username);
     if (playerForUsername == null) {
       return CompletableFuture.completedFuture(Collections.emptyList());
     }

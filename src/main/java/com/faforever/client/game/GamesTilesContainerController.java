@@ -27,24 +27,24 @@ public class GamesTilesContainerController {
   ApplicationContext applicationContext;
 
   private Map<Integer, Node> uidToGameCard;
-  private ObjectProperty<GameInfoBean> selectedGame;
+  private ObjectProperty<Game> selectedGame;
 
   public GamesTilesContainerController() {
     selectedGame = new SimpleObjectProperty<>();
   }
 
-  public ReadOnlyObjectProperty<GameInfoBean> selectedGameProperty() {
+  public ReadOnlyObjectProperty<Game> selectedGameProperty() {
     return this.selectedGame;
   }
 
-  public void createTiledFlowPane(ObservableList<GameInfoBean> gameInfoBeans) {
+  public void createTiledFlowPane(ObservableList<Game> games) {
     uidToGameCard = new HashMap<>();
-    gameInfoBeans.forEach(this::addGameCard);
+    games.forEach(this::addGameCard);
 
-    gameInfoBeans.addListener((ListChangeListener<GameInfoBean>) change -> Platform.runLater(() -> {
+    games.addListener((ListChangeListener<Game>) change -> Platform.runLater(() -> {
       synchronized (change.getList()) {
         while (change.next()) {
-          change.getRemoved().forEach(gameInfoBean -> tiledFlowPane.getChildren().remove(uidToGameCard.remove(gameInfoBean.getUid())));
+          change.getRemoved().forEach(gameInfoBean -> tiledFlowPane.getChildren().remove(uidToGameCard.remove(gameInfoBean.getId())));
           change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
         }
       }
@@ -55,19 +55,19 @@ public class GamesTilesContainerController {
   private void selectFirstGame() {
     ObservableList<Node> cards = tiledFlowPane.getChildren();
     if (!cards.isEmpty()) {
-      selectedGame.set((GameInfoBean) cards.get(0).getUserData());
+      selectedGame.set((Game) cards.get(0).getUserData());
     }
   }
 
-  private void addGameCard(GameInfoBean gameInfoBean) {
+  private void addGameCard(Game game) {
     GameTileController gameTileController = applicationContext.getBean(GameTileController.class);
-    gameTileController.setGameInfoBean(gameInfoBean);
+    gameTileController.setGame(game);
     gameTileController.setOnSelectedListener(gameInfoBean1 -> selectedGame.set(gameInfoBean1));
 
     Node root = gameTileController.getRoot();
-    root.setUserData(gameInfoBean);
+    root.setUserData(game);
     tiledFlowPane.getChildren().add(root);
-    uidToGameCard.put(gameInfoBean.getUid(), root);
+    uidToGameCard.put(game.getId(), root);
   }
 
   public Node getRoot() {

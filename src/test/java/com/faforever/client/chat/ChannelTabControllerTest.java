@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -134,10 +135,10 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
     Channel channel = new Channel(CHANNEL_NAME);
     String playerName = "junit";
 
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    playerInfoBean.moderatorForChannelsProperty().set(FXCollections.observableSet(CHANNEL_NAME));
+    Player player = new Player(playerName);
+    player.moderatorForChannelsProperty().set(FXCollections.observableSet(CHANNEL_NAME));
     instance.setChannel(channel);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
     assertEquals(instance.getMessageCssClass(playerName), ChannelTabController.CSS_CLASS_MODERATOR);
   }
 

@@ -14,6 +14,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -397,8 +398,8 @@ public abstract class AbstractChatTabController {
    * Called from JavaScript when user hovers over a user name.
    */
   public void playerInfo(String username) {
-    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(username);
-    if (playerInfoBean == null || playerInfoBean.isChatOnly()) {
+    Player player = playerService.getPlayerForUsername(username);
+    if (player == null || player.isChatOnly()) {
       return;
     }
 
@@ -408,9 +409,9 @@ public abstract class AbstractChatTabController {
     playerInfoPopup.getContent().setAll(label);
 
     label.textProperty().bind(Bindings.createStringBinding(
-        () -> i18n.get("userInfo.ratingFormat", getGlobalRating(playerInfoBean), getLeaderboardRating(playerInfoBean)),
-        playerInfoBean.leaderboardRatingMeanProperty(), playerInfoBean.leaderboardRatingDeviationProperty(),
-        playerInfoBean.globalRatingMeanProperty(), playerInfoBean.globalRatingDeviationProperty()
+        () -> i18n.get("userInfo.ratingFormat", getGlobalRating(player), getLeaderboardRating(player)),
+        player.leaderboardRatingMeanProperty(), player.leaderboardRatingDeviationProperty(),
+        player.globalRatingMeanProperty(), player.globalRatingDeviationProperty()
     ));
 
     playerInfoPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
@@ -569,7 +570,7 @@ public abstract class AbstractChatTabController {
   }
 
   private void appendMessage(ChatMessage chatMessage) {
-    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(chatMessage.getUsername());
+    Player player = playerService.getPlayerForUsername(chatMessage.getUsername());
 
     try (Reader reader = new InputStreamReader(MESSAGE_ITEM_HTML_RESOURCE.getInputStream())) {
       String login = chatMessage.getUsername();
@@ -577,11 +578,11 @@ public abstract class AbstractChatTabController {
 
       String avatarUrl = "";
       String clanTag = "";
-      if (playerInfoBean != null) {
-        avatarUrl = playerInfoBean.getAvatarUrl();
+      if (player != null) {
+        avatarUrl = player.getAvatarUrl();
 
-        if (StringUtils.isNotEmpty(playerInfoBean.getClan())) {
-          clanTag = i18n.get("chat.clanTagFormat", playerInfoBean.getClan());
+        if (StringUtils.isNotEmpty(player.getClan())) {
+          clanTag = i18n.get("chat.clanTagFormat", player.getClan());
         }
       }
 
@@ -634,7 +635,7 @@ public abstract class AbstractChatTabController {
       return;
     }
 
-    PlayerInfoBean player = playerService.getPlayerForUsername(chatMessage.getUsername());
+    Player player = playerService.getPlayerForUsername(chatMessage.getUsername());
     String identiconSource = player != null ? String.valueOf(player.getId()) : chatMessage.getUsername();
 
     notificationService.addNotification(new TransientNotification(
@@ -651,14 +652,14 @@ public abstract class AbstractChatTabController {
 
   protected String getMessageCssClass(String login) {
     String cssClass;
-    PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(login);
-    if (playerInfoBean == null) {
+    Player player = playerService.getPlayerForUsername(login);
+    if (player == null) {
       return CSS_CLASS_CHAT_ONLY;
     } else {
-      cssClass = playerInfoBean.getSocialStatus().getCssClass();
+      cssClass = player.getSocialStatus().getCssClass();
     }
 
-    if (cssClass.equals("") && playerInfoBean.isChatOnly()) {
+    if (cssClass.equals("") && player.isChatOnly()) {
       cssClass = CSS_CLASS_CHAT_ONLY;
     }
     return cssClass;
@@ -667,7 +668,7 @@ public abstract class AbstractChatTabController {
   @VisibleForTesting
   String getInlineStyle(String username) {
     ChatUser chatUser = chatService.getOrCreateChatUser(username);
-    PlayerInfoBean player = playerService.getPlayerForUsername(username);
+    Player player = playerService.getPlayerForUsername(username);
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     String color = "";
     String display = "";

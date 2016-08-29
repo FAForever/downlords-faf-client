@@ -1,7 +1,7 @@
 package com.faforever.client.fa;
 
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.GameInfoBean;
+import com.faforever.client.game.Game;
 import com.faforever.client.game.GameInfoBeanBuilder;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -66,8 +66,8 @@ public class OnGameFullNotifierTest {
 
   @Test
   public void testOnGameFull() throws Exception {
-    GameInfoBean gameInfoBean = GameInfoBeanBuilder.create().defaultValues().get();
-    when(gameService.getCurrentGame()).thenReturn(gameInfoBean);
+    Game game = GameInfoBeanBuilder.create().defaultValues().get();
+    when(gameService.getCurrentGame()).thenReturn(game);
     when(platformService.getForegroundWindowTitle()).thenReturn("Some window");
 
     CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -86,8 +86,8 @@ public class OnGameFullNotifierTest {
 
   @Test
   public void testAlreadyFocusedDoesntTriggerNotification() throws Exception {
-    GameInfoBean gameInfoBean = GameInfoBeanBuilder.create().defaultValues().get();
-    when(gameService.getCurrentGame()).thenReturn(gameInfoBean);
+    Game game = GameInfoBeanBuilder.create().defaultValues().get();
+    when(gameService.getCurrentGame()).thenReturn(game);
     when(platformService.getForegroundWindowTitle()).thenReturn("Forged Alliance");
 
     instance.onGameFull(new GameFullEvent());

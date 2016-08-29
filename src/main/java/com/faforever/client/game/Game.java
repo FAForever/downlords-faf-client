@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GameInfoBean {
+public class Game {
 
   private static final String RATING_NUMBER = "\\d+(?:\\.\\d+)?k?";
   private static final Pattern MIN_RATING_PATTERN = Pattern.compile(">\\s*(" + RATING_NUMBER + ")|(" + RATING_NUMBER + ")\\s*\\+");
@@ -33,7 +33,7 @@ public class GameInfoBean {
   private final StringProperty title;
   private final StringProperty mapFolderName;
   private final StringProperty featuredMod;
-  private final IntegerProperty uid;
+  private final IntegerProperty id;
   private final IntegerProperty numPlayers;
   private final IntegerProperty maxPlayers;
   private final IntegerProperty minRating;
@@ -53,13 +53,13 @@ public class GameInfoBean {
    */
   private final MapProperty<String, Integer> featuredModVersions;
 
-  public GameInfoBean(GameInfoMessage gameInfoMessage) {
+  public Game(GameInfoMessage gameInfoMessage) {
     this();
     updateFromGameInfo(gameInfoMessage);
   }
 
-  public GameInfoBean() {
-    uid = new SimpleIntegerProperty();
+  public Game() {
+    id = new SimpleIntegerProperty();
     host = new SimpleStringProperty();
     title = new SimpleStringProperty();
     mapFolderName = new SimpleStringProperty();
@@ -79,7 +79,7 @@ public class GameInfoBean {
   }
 
   public void updateFromGameInfo(GameInfoMessage gameInfoMessage) {
-    uid.set(gameInfoMessage.getUid());
+    id.set(gameInfoMessage.getUid());
     host.set(gameInfoMessage.getHost());
     title.set(StringEscapeUtils.unescapeHtml4(gameInfoMessage.getTitle()));
     mapFolderName.set(gameInfoMessage.getMapname());
@@ -210,16 +210,16 @@ public class GameInfoBean {
     return featuredMod;
   }
 
-  public int getUid() {
-    return uid.get();
+  public int getId() {
+    return id.get();
   }
 
-  public void setUid(int uid) {
-    this.uid.set(uid);
+  public void setId(int id) {
+    this.id.set(id);
   }
 
-  public IntegerProperty uidProperty() {
-    return uid;
+  public IntegerProperty idProperty() {
+    return id;
   }
 
   public int getNumPlayers() {
@@ -339,13 +339,13 @@ public class GameInfoBean {
 
   @Override
   public int hashCode() {
-    return uid.getValue().hashCode();
+    return id.getValue().hashCode();
   }
 
   @Override
   public boolean equals(Object obj) {
-    return obj instanceof GameInfoBean
-        && uid.getValue().equals(((GameInfoBean) obj).uid.getValue());
+    return obj instanceof Game
+        && id.getValue().equals(((Game) obj).id.getValue());
   }
 
   public GameVisibility getVisibility() {

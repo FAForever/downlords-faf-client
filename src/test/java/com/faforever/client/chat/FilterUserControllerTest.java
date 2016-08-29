@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.player.Player;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +22,7 @@ public class FilterUserControllerTest extends AbstractPlainJavaFxTest {
   ChatUserItemController chatUserItemController;
 
   @Mock
-  PlayerInfoBean playerInfoBean;
+  Player player;
 
   @Mock
   ChannelTabController channelTabController;
@@ -37,7 +38,7 @@ public class FilterUserControllerTest extends AbstractPlainJavaFxTest {
     instance.channelTabController = loadController("channel_tab.fxml");
     instance.i18n = i18n;
 
-    when(chatUserItemController.getPlayerInfoBean()).thenReturn(playerInfoBean);
+    when(chatUserItemController.getPlayer()).thenReturn(player);
   }
 
   @Test
@@ -49,7 +50,7 @@ public class FilterUserControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testIsInClan() throws Exception {
     String testClan = "testClan";
-    when(playerInfoBean.getClan()).thenReturn(testClan);
+    when(player.getClan()).thenReturn(testClan);
     instance.clanFilterField.setText(testClan);
 
     assertTrue(instance.isInClan(chatUserItemController));
@@ -57,8 +58,8 @@ public class FilterUserControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testIsBoundedByRatingWithinBounds() throws Exception {
-    when(playerInfoBean.getGlobalRatingMean()).thenReturn((float) 500);
-    when(playerInfoBean.getGlobalRatingDeviation()).thenReturn((float) 0);
+    when(player.getGlobalRatingMean()).thenReturn((float) 500);
+    when(player.getGlobalRatingDeviation()).thenReturn((float) 0);
     instance.minRatingFilterField.setText("300");
     instance.maxRatingFilterField.setText("700");
 
@@ -67,8 +68,8 @@ public class FilterUserControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testIsBoundedByRatingNotWithinBounds() throws Exception {
-    when(playerInfoBean.getGlobalRatingMean()).thenReturn((float) 500);
-    when(playerInfoBean.getGlobalRatingDeviation()).thenReturn((float) 0);
+    when(player.getGlobalRatingMean()).thenReturn((float) 500);
+    when(player.getGlobalRatingDeviation()).thenReturn((float) 0);
     instance.minRatingFilterField.setText("600");
     instance.maxRatingFilterField.setText("300");
 
@@ -77,7 +78,7 @@ public class FilterUserControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testIsGameStatusMatchPlaying() throws Exception {
-    when(playerInfoBean.getGameStatus()).thenReturn(PLAYING);
+    when(player.getGameStatus()).thenReturn(PLAYING);
     instance.gameStatusFilter = PLAYING;
 
     assertTrue(instance.isGameStatusMatch(chatUserItemController));
@@ -85,12 +86,12 @@ public class FilterUserControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testIsGameStatusMatchLobby() throws Exception {
-    when(playerInfoBean.getGameStatus()).thenReturn(HOST);
+    when(player.getGameStatus()).thenReturn(HOST);
     instance.gameStatusFilter = HOST;
 
     assertTrue(instance.isGameStatusMatch(chatUserItemController));
 
-    when(playerInfoBean.getGameStatus()).thenReturn(LOBBY);
+    when(player.getGameStatus()).thenReturn(LOBBY);
     instance.gameStatusFilter = LOBBY;
 
     assertTrue(instance.isGameStatusMatch(chatUserItemController));

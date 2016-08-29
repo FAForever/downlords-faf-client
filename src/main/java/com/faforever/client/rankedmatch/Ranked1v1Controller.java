@@ -1,7 +1,7 @@
 package com.faforever.client.rankedmatch;
 
 import com.faforever.client.api.Ranked1v1Stats;
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.player.Player;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -214,7 +214,7 @@ public class Ranked1v1Controller {
     initialized = true;
   }
 
-  private void setCurrentPlayer(PlayerInfoBean player) {
+  private void setCurrentPlayer(Player player) {
     playerRatingListener = ratingObservable -> Platform.runLater(() -> updateRating(player));
 
     player.leaderboardRatingDeviationProperty().addListener(new WeakInvalidationListener(playerRatingListener));
@@ -223,7 +223,7 @@ public class Ranked1v1Controller {
     updateOtherValues(player);
   }
 
-  private void updateRating(PlayerInfoBean player) {
+  private void updateRating(Player player) {
     int rating = RatingUtil.getLeaderboardRating(player);
     int beta = environment.getProperty("rating.beta", int.class);
     float deviation = player.getLeaderboardRatingDeviation();
@@ -258,7 +258,7 @@ public class Ranked1v1Controller {
         });
   }
 
-  private void updateOtherValues(PlayerInfoBean currentPlayer) {
+  private void updateOtherValues(Player currentPlayer) {
     leaderboardService.getEntryForPlayer(currentPlayer.getId()).thenAccept(leaderboardEntryBean -> Platform.runLater(() -> {
       rankingLabel.setText(i18n.get("ranked1v1.rankingFormat", leaderboardEntryBean.getRank()));
       gamesPlayedLabel.setText(String.format("%d", leaderboardEntryBean.getGamesPlayed()));
@@ -284,7 +284,7 @@ public class Ranked1v1Controller {
   }
 
   @SuppressWarnings("unchecked")
-  private void plotRatingDistributions(Ranked1v1Stats ranked1v1Stats, PlayerInfoBean player) {
+  private void plotRatingDistributions(Ranked1v1Stats ranked1v1Stats, Player player) {
     XYChart.Series<String, Integer> series = new XYChart.Series<>();
     series.setName(i18n.get("ranked1v1.players"));
     series.getData().addAll(ranked1v1Stats.getRatingDistribution().entrySet().stream()

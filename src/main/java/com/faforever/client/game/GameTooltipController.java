@@ -36,11 +36,11 @@ public class GameTooltipController {
     modsPane.managedProperty().bind(modsPane.visibleProperty());
   }
 
-  public void setGameInfoBean(GameInfoBean gameInfoBean) {
-    createTeams(gameInfoBean.getTeams());
-    createModsList(gameInfoBean.getSimMods());
-    gameInfoBean.getTeams().addListener((MapChangeListener<String, List<String>>) change -> createTeams(change.getMap()));
-    gameInfoBean.getSimMods().addListener((MapChangeListener<String, String>) change -> createModsList(change.getMap()));
+  public void setGameInfoBean(Game game) {
+    createTeams(game.getTeams());
+    createModsList(game.getSimMods());
+    game.getTeams().addListener((MapChangeListener<String, List<String>>) change -> createTeams(change.getMap()));
+    game.getSimMods().addListener((MapChangeListener<String, String>) change -> createModsList(change.getMap()));
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList) {

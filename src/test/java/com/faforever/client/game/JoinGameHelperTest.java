@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.player.Player;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.ImmediateNotification;
@@ -49,9 +49,9 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
   @Mock
   ReportingService reportingService;
   @Mock
-  PlayerInfoBean playerInfoBean;
+  Player player;
   @Mock
-  GameInfoBean gameInfoBean;
+  Game game;
   @Mock
   ForgedAlliancePrefs forgedAlliancePrefs;
   private JoinGameHelper instance;
@@ -72,12 +72,12 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
     instance.notificationService = notificationService;
     instance.setParentNode(this.getRoot());
 
-    when(playerService.getCurrentPlayer()).thenReturn(playerInfoBean);
-    when(playerInfoBean.getGlobalRatingMean()).thenReturn(1000.0f);
-    when(playerInfoBean.getGlobalRatingDeviation()).thenReturn(0.0f);
+    when(playerService.getCurrentPlayer()).thenReturn(player);
+    when(player.getGlobalRatingMean()).thenReturn(1000.0f);
+    when(player.getGlobalRatingDeviation()).thenReturn(0.0f);
 
-    when(gameInfoBean.getMinRating()).thenReturn(0);
-    when(gameInfoBean.getMaxRating()).thenReturn(1000);
+    when(game.getMinRating()).thenReturn(0);
+    when(game.getMaxRating()).thenReturn(1000);
 
     when(gameService.joinGame(any(), any())).thenReturn(new CompletableFuture<Void>());
 
@@ -92,8 +92,8 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
    */
   @Test
   public void testJoinGameSuccess() throws Exception {
-    instance.join(gameInfoBean);
-    verify(gameService).joinGame(gameInfoBean, null);
+    instance.join(game);
+    verify(gameService).joinGame(game, null);
   }
 
   /**
@@ -104,7 +104,7 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
     when(preferencesService.isGamePathValid()).thenReturn(false).thenReturn(true);
     when(preferencesService.letUserChooseGameDirectory()).thenReturn(CompletableFuture.completedFuture(Paths.get("")));
 
-    instance.join(gameInfoBean);
+    instance.join(game);
 
     verify(preferencesService, times(1)).letUserChooseGameDirectory();
     verify(gameService).joinGame(any(), any());
@@ -122,7 +122,7 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
         .thenReturn(CompletableFuture.completedFuture(Paths.get("")))
         .thenReturn(CompletableFuture.completedFuture(null));
 
-    instance.join(gameInfoBean);
+    instance.join(game);
 
     verify(preferencesService, times(2)).letUserChooseGameDirectory();
     verify(gameService, never()).joinGame(any(), any());
@@ -133,8 +133,8 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
    */
   @Test
   public void testJoinGamePasswordProtected() throws Exception {
-    when(gameInfoBean.getPasswordProtected()).thenReturn(true);
-    instance.join(gameInfoBean);
+    when(game.getPasswordProtected()).thenReturn(true);
+    instance.join(game);
     verify(instance.enterPasswordController).showPasswordDialog(getRoot().getScene().getWindow());
   }
 
@@ -143,10 +143,10 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
    */
   @Test
   public void testJoinGameIgnoreRatings() throws Exception {
-    when(gameInfoBean.getMinRating()).thenReturn(5000);
-    when(gameInfoBean.getMaxRating()).thenReturn(100);
-    instance.join(gameInfoBean, "haha", true);
-    verify(gameService).joinGame(gameInfoBean, "haha");
+    when(game.getMinRating()).thenReturn(5000);
+    when(game.getMaxRating()).thenReturn(100);
+    instance.join(game, "haha", true);
+    verify(gameService).joinGame(game, "haha");
     verify(notificationService, never()).addNotification(any(ImmediateNotification.class));
   }
 
@@ -155,8 +155,8 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
    */
   @Test
   public void testJoinGameRatingToLow() throws Exception {
-    when(gameInfoBean.getMinRating()).thenReturn(5000);
-    instance.join(gameInfoBean);
+    when(game.getMinRating()).thenReturn(5000);
+    instance.join(game);
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 
@@ -165,8 +165,8 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
    */
   @Test
   public void testJoinGameRatingToHigh() throws Exception {
-    when(gameInfoBean.getMaxRating()).thenReturn(100);
-    instance.join(gameInfoBean);
+    when(game.getMaxRating()).thenReturn(100);
+    instance.join(game);
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 }

@@ -1,10 +1,5 @@
 package com.faforever.client.fa.relay.ice;
 
-import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.fa.relay.ice.event.GpgGameMessageEvent;
-import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.fa.relay.ConnectToPeerMessage;
 import com.faforever.client.fa.relay.DisconnectFromPeerMessage;
 import com.faforever.client.fa.relay.GpgClientCommand;
@@ -14,6 +9,11 @@ import com.faforever.client.fa.relay.JoinGameMessage;
 import com.faforever.client.fa.relay.LobbyMode;
 import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
+import com.faforever.client.fa.relay.ice.event.GpgGameMessageEvent;
+import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
+import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.SdpRecordServerMessage;
@@ -116,7 +116,7 @@ public class IceAdapterImpl implements IceAdapter {
       int adapterPort = SocketUtils.findAvailableTcpPort();
       int gpgPort = SocketUtils.findAvailableTcpPort();
 
-      PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
+      Player currentPlayer = playerService.getCurrentPlayer();
       String[] cmd = new String[]{
           // FIXME make linux compatible
           Paths.get(uidDir, "faf-ice-adapter.exe").toAbsolutePath().toString(),

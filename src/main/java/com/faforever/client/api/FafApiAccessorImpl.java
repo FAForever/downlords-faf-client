@@ -1,6 +1,7 @@
 package com.faforever.client.api;
 
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.coop.CoopMission;
 import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.io.CountingFileContent;
@@ -72,7 +73,8 @@ import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.api.client.auth.oauth2.BearerToken.authorizationHeaderAccessMethod;
@@ -195,7 +197,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     logger.debug("Loading available mods");
     return getMany("/mods", Mod.class).stream()
         .map(ModInfoBean::fromModInfo)
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
   @Override
@@ -227,7 +229,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   public List<Ranked1v1EntryBean> getRanked1v1Entries() {
     return getMany("/leaderboards/1v1", LeaderboardEntry.class).stream()
         .map(Ranked1v1EntryBean::fromLeaderboardEntry)
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
   @Override
@@ -332,6 +334,19 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     return getMany(format("/featured_mods/%s/files/%s", featuredModBean.getId(), innerVersion), FeaturedModFile.class);
   }
 
+  @Override
+  @Cacheable(CacheNames.COOP_MAPS)
+  public List<CoopMission> getCoopMissions() {
+    logger.debug("Loading available coop missions");
+    return getMany("/coop/missions", com.faforever.client.api.CoopMission.class).stream().map(CoopMission::fromCoopInfo).collect(toList());
+  }
+
+  @Override
+  @Cacheable(CacheNames.COOP_LEADERBOARD)
+  public List<CoopLeaderboardEntry> getCoopLeaderboard(String missionId, int numberOfPlayers) {
+    return getMany(String.format("/coop/leaderboards/%s/%d?page[size]=100", missionId, numberOfPlayers), CoopLeaderboardEntry.class);
+  }
+
   @NotNull
   private MultipartContent createFileMultipart(Path file, ByteCountListener listener) {
     HttpMediaType mediaType = new HttpMediaType("multipart/form-data").setParameter("boundary", "__END_OF_PART__");
@@ -376,7 +391,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     return getMany(query, Map.class, page)
         .stream()
         .map(MapBean::fromMap)
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
   private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {

@@ -37,10 +37,10 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
   private GameTooltipController gameTooltipController;
-  private GameInfoBean gameInfoBean;
+  private Game game;
 
   @Mock
-  private Consumer<GameInfoBean> onSelectedConsumer;
+  private Consumer<Game> onSelectedConsumer;
 
   @Before
   public void setUp() throws Exception {
@@ -51,12 +51,12 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
     instance.mapService = mapService;
     instance.joinGameHelper = joinGameHelper;
 
-    gameInfoBean = GameInfoBeanBuilder.create().defaultValues().get();
+    game = GameInfoBeanBuilder.create().defaultValues().get();
 
     when(applicationContext.getBean(GameTooltipController.class)).thenReturn(gameTooltipController);
     when(gameTooltipController.getRoot()).thenReturn(new Pane());
     when(i18n.get(anyString())).thenReturn("test");
-    when(modService.getFeaturedMod(gameInfoBean.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(
         FeaturedModBeanBuilder.create().defaultValues().get()
     ));
 
@@ -64,20 +64,20 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
     instance.postConstruct();
 
     instance.setOnSelectedListener(onSelectedConsumer);
-    instance.setGameInfoBean(gameInfoBean);
+    instance.setGame(game);
   }
 
   @Test
   public void testOnLeftDoubleClick() {
     instance.onClick(MouseEvents.generateClick(MouseButton.PRIMARY, 2));
     verify(joinGameHelper).join(any());
-    verify(onSelectedConsumer).accept(gameInfoBean);
+    verify(onSelectedConsumer).accept(game);
   }
 
   @Test
   public void testOnLeftSingleClick() {
     instance.onClick(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
     verify(joinGameHelper, never()).join(any());
-    verify(onSelectedConsumer).accept(gameInfoBean);
+    verify(onSelectedConsumer).accept(game);
   }
 }

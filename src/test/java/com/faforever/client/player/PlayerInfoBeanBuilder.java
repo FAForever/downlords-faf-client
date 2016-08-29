@@ -1,15 +1,15 @@
 package com.faforever.client.player;
 
-import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.SocialStatus;
 import com.faforever.client.chat.avatar.AvatarBean;
+import com.faforever.client.game.Game;
 
 public class PlayerInfoBeanBuilder {
 
-  private final PlayerInfoBean playerInfoBean;
+  private final Player player;
 
   private PlayerInfoBeanBuilder(String username) {
-    playerInfoBean = new PlayerInfoBean(username);
+    player = new Player(username);
   }
 
   public static PlayerInfoBeanBuilder create(String username) {
@@ -17,42 +17,42 @@ public class PlayerInfoBeanBuilder {
   }
 
   public PlayerInfoBeanBuilder id(int id) {
-    playerInfoBean.setId(id);
+    player.setId(id);
     return this;
   }
 
-  public PlayerInfoBean get() {
-    return playerInfoBean;
+  public Player get() {
+    return player;
   }
 
   public PlayerInfoBeanBuilder chatOnly(boolean chatOnly) {
-    playerInfoBean.setChatOnly(chatOnly);
+    player.setChatOnly(chatOnly);
     return this;
   }
 
   public PlayerInfoBeanBuilder socialStatus(SocialStatus socialStatus) {
-    playerInfoBean.setSocialStatus(socialStatus);
+    player.setSocialStatus(socialStatus);
     return this;
   }
 
   public PlayerInfoBeanBuilder leaderboardRatingMean(float mean) {
-    playerInfoBean.setLeaderboardRatingMean(mean);
+    player.setLeaderboardRatingMean(mean);
     return this;
   }
 
   public PlayerInfoBeanBuilder leaderboardRatingDeviation(float deviation) {
-    playerInfoBean.setLeaderboardRatingDeviation(deviation);
+    player.setLeaderboardRatingDeviation(deviation);
     return this;
   }
 
-  public PlayerInfoBeanBuilder gameUid(int gameUid) {
-    playerInfoBean.setGameUid(gameUid);
+  public PlayerInfoBeanBuilder game(Game game) {
+    player.setGame(game);
     return this;
   }
 
   public PlayerInfoBeanBuilder avatar(AvatarBean avatar) {
-    playerInfoBean.setAvatarUrl(avatar == null ? null : avatar.getUrl().toExternalForm());
-    playerInfoBean.setAvatarTooltip(avatar == null ? null : avatar.getDescription());
+    player.setAvatarUrl(avatar == null ? null : avatar.getUrl().toExternalForm());
+    player.setAvatarTooltip(avatar == null ? null : avatar.getDescription());
     return this;
   }
 }

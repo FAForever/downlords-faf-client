@@ -1,15 +1,13 @@
 package com.faforever.client.player;
 
-import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.SocialStatus;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
-import com.faforever.client.game.GameInfoBean;
+import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameStatus;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.Player;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.user.UserService;
@@ -43,11 +41,11 @@ import static com.faforever.client.chat.SocialStatus.SELF;
 
 public class PlayerServiceImpl implements PlayerService {
 
-  private final ObservableMap<String, PlayerInfoBean> playersByName;
-  private final ObservableMap<Integer, PlayerInfoBean> playersById;
+  private final ObservableMap<String, Player> playersByName;
+  private final ObservableMap<Integer, Player> playersById;
   private final List<Integer> foeList;
   private final List<Integer> friendList;
-  private final ObjectProperty<PlayerInfoBean> currentPlayer;
+  private final ObjectProperty<Player> currentPlayer;
   @Resource
   FafService fafService;
   @Resource
@@ -77,11 +75,11 @@ public class PlayerServiceImpl implements PlayerService {
     fafService.addOnMessageListener(PlayersMessage.class, this::onPlayersInfo);
     fafService.addOnMessageListener(SocialMessage.class, this::onFoeList);
 
-    gameService.getGameInfoBeans().addListener((ListChangeListener<? super GameInfoBean>) listChange -> {
+    gameService.getGames().addListener((ListChangeListener<? super Game>) listChange -> {
       while (listChange.next()) {
-        for (GameInfoBean gameInfoBean : listChange.getRemoved()) {
-          updateGameStateForPlayers(gameInfoBean);
-          gameInfoBean.statusProperty().removeListener(statusChangeListeners.remove(gameInfoBean.getUid()));
+        for (Game game : listChange.getRemoved()) {
+          updateGameStateForPlayers(game);
+          game.statusProperty().removeListener(statusChangeListeners.remove(game.getId()));
         }
 
         if (listChange.wasUpdated()) {
@@ -90,11 +88,11 @@ public class PlayerServiceImpl implements PlayerService {
           }
         }
 
-        for (GameInfoBean gameInfoBean : listChange.getAddedSubList()) {
-          updateGameStateForPlayers(gameInfoBean);
-          InvalidationListener statusChangeListener = statusChange -> updateGameStateForPlayers(gameInfoBean);
-          statusChangeListeners.put(gameInfoBean.getUid(), statusChangeListener);
-          gameInfoBean.statusProperty().addListener(new WeakInvalidationListener(statusChangeListener));
+        for (Game game : listChange.getAddedSubList()) {
+          updateGameStateForPlayers(game);
+          InvalidationListener statusChangeListener = statusChange -> updateGameStateForPlayers(game);
+          statusChangeListeners.put(game.getId(), statusChangeListener);
+          game.statusProperty().addListener(new WeakInvalidationListener(statusChangeListener));
         }
       }
     });
@@ -107,7 +105,7 @@ public class PlayerServiceImpl implements PlayerService {
 
   @Subscribe
   public void onAvatarChanged(AvatarChangedEvent event) {
-    PlayerInfoBean player = getCurrentPlayer();
+    Player player = getCurrentPlayer();
 
     AvatarBean avatar = event.getAvatar();
     if (avatar == null) {
@@ -120,52 +118,52 @@ public class PlayerServiceImpl implements PlayerService {
   }
 
 
-  private void updateGameStateForPlayers(GameInfoBean gameInfoBean) {
-    ObservableMap<String, List<String>> teams = gameInfoBean.getTeams();
+  private void updateGameStateForPlayers(Game game) {
+    ObservableMap<String, List<String>> teams = game.getTeams();
     synchronized (teams) {
-      teams.forEach((team, players) -> updateGameStateForPlayer(players, gameInfoBean));
+      teams.forEach((team, players) -> updateGameStateForPlayer(players, game));
     }
   }
 
   //FIXME ugly fix until host can be resolved from gamestate
-  private void updateGameStateForPlayer(List<String> players, GameInfoBean gameInfoBean) {
+  private void updateGameStateForPlayer(List<String> players, Game game) {
     for (String player : players) {
-      PlayerInfoBean playerInfoBean = getPlayerForUsername(player);
+      Player playerInfoBean = getPlayerForUsername(player);
       if (playerInfoBean == null) {
         continue;
       }
-      playerInfoBean.setGameUid(gameInfoBean.getUid());
-      updatePlayerGameStatus(playerInfoBean, GameStatus.fromGameState(gameInfoBean.getStatus()));
+      playerInfoBean.setGame(game);
+      updatePlayerGameStatus(playerInfoBean, GameStatus.fromGameState(game.getStatus()));
     }
-    if (GameStatus.fromGameState(gameInfoBean.getStatus()) == GameStatus.LOBBY) {
-      PlayerInfoBean host = getPlayerForUsername(gameInfoBean.getHost());
+    if (GameStatus.fromGameState(game.getStatus()) == GameStatus.LOBBY) {
+      Player host = getPlayerForUsername(game.getHost());
       updatePlayerGameStatus(host, GameStatus.HOST);
     }
   }
 
-  private void updatePlayerGameStatus(PlayerInfoBean playerInfoBean, GameStatus gameStatus) {
-    if (playerInfoBean != null && playerInfoBean.getGameStatus() != gameStatus) {
+  private void updatePlayerGameStatus(Player player, GameStatus gameStatus) {
+    if (player != null && player.getGameStatus() != gameStatus) {
       //FIXME until api, host is set twice or ugly code, I chose to set twice
-      playerInfoBean.setGameStatus(gameStatus);
+      player.setGameStatus(gameStatus);
 
-      if (playerInfoBean.getSocialStatus() == FRIEND && (gameStatus == GameStatus.HOST || gameStatus == GameStatus.LOBBY)) {
-        eventBus.post(new FriendJoinedGameEvent(playerInfoBean));
+      if (player.getSocialStatus() == FRIEND && (gameStatus == GameStatus.HOST || gameStatus == GameStatus.LOBBY)) {
+        eventBus.post(new FriendJoinedGameEvent(player));
       }
     }
   }
 
   @Override
-  public PlayerInfoBean getPlayerForUsername(String username) {
+  public Player getPlayerForUsername(String username) {
     return playersByName.get(username);
   }
 
   @Override
-  public PlayerInfoBean createAndGetPlayerForUsername(@NotNull String username) {
+  public Player createAndGetPlayerForUsername(@NotNull String username) {
     Assert.checkNullArgument(username, "username must not be null");
 
     synchronized (playersByName) {
       if (!playersByName.containsKey(username)) {
-        PlayerInfoBean player = new PlayerInfoBean(username);
+        Player player = new Player(username);
         player.idProperty().addListener((observable, oldValue, newValue) -> {
           synchronized (playersById) {
             playersById.remove(oldValue.intValue());
@@ -185,7 +183,7 @@ public class PlayerServiceImpl implements PlayerService {
   }
 
   @Override
-  public void addFriend(PlayerInfoBean player) {
+  public void addFriend(Player player) {
     playersByName.get(player.getUsername()).setSocialStatus(FRIEND);
     friendList.add(player.getId());
     foeList.remove((Integer) player.getId());
@@ -194,7 +192,7 @@ public class PlayerServiceImpl implements PlayerService {
   }
 
   @Override
-  public void removeFriend(PlayerInfoBean player) {
+  public void removeFriend(Player player) {
     playersByName.get(player.getUsername()).setSocialStatus(OTHER);
     friendList.remove((Integer) player.getId());
 
@@ -202,7 +200,7 @@ public class PlayerServiceImpl implements PlayerService {
   }
 
   @Override
-  public void addFoe(PlayerInfoBean player) {
+  public void addFoe(Player player) {
     playersByName.get(player.getUsername()).setSocialStatus(FOE);
     foeList.add(player.getId());
     friendList.remove((Integer) player.getId());
@@ -211,7 +209,7 @@ public class PlayerServiceImpl implements PlayerService {
   }
 
   @Override
-  public void removeFoe(PlayerInfoBean player) {
+  public void removeFoe(Player player) {
     playersByName.get(player.getUsername()).setSocialStatus(OTHER);
     foeList.remove((Integer) player.getId());
 
@@ -219,13 +217,13 @@ public class PlayerServiceImpl implements PlayerService {
   }
 
   @Override
-  public PlayerInfoBean getCurrentPlayer() {
+  public Player getCurrentPlayer() {
     Assert.checkNullIllegalState(currentPlayer.get(), "currentPlayer has not yet been set");
     return currentPlayer.get();
   }
 
   @Override
-  public ReadOnlyObjectProperty<PlayerInfoBean> currentPlayerProperty() {
+  public ReadOnlyObjectProperty<Player> currentPlayerProperty() {
     return currentPlayer;
   }
 
@@ -252,21 +250,21 @@ public class PlayerServiceImpl implements PlayerService {
 
     synchronized (playersById) {
       for (Integer userId : socialList) {
-        PlayerInfoBean playerInfoBean = playersById.get(userId);
-        if (playerInfoBean != null) {
-          playerInfoBean.setSocialStatus(socialStatus);
+        Player player = playersById.get(userId);
+        if (player != null) {
+          player.setSocialStatus(socialStatus);
         }
       }
     }
   }
 
-  private void onPlayerInfo(Player player) {
+  private void onPlayerInfo(com.faforever.client.remote.domain.Player player) {
     if (player.getLogin().equalsIgnoreCase(userService.getUsername())) {
-      PlayerInfoBean playerInfoBean = getCurrentPlayer();
+      Player playerInfoBean = getCurrentPlayer();
       playerInfoBean.updateFromPlayerInfo(player);
       playerInfoBean.setSocialStatus(SELF);
     } else {
-      PlayerInfoBean playerInfoBean = createAndGetPlayerForUsername(player.getLogin());
+      Player playerInfoBean = createAndGetPlayerForUsername(player.getLogin());
 
       if (friendList.contains(player.getId())) {
         playerInfoBean.setSocialStatus(FRIEND);

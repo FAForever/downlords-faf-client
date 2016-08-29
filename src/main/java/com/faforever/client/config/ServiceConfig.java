@@ -10,6 +10,8 @@ import com.faforever.client.chat.MockChatService;
 import com.faforever.client.chat.PircBotXChatService;
 import com.faforever.client.chat.PircBotXFactory;
 import com.faforever.client.chat.PircBotXFactoryImpl;
+import com.faforever.client.coop.CoopService;
+import com.faforever.client.coop.CoopServiceImpl;
 import com.faforever.client.events.EventService;
 import com.faforever.client.events.EventServiceImpl;
 import com.faforever.client.fa.ForgedAllianceService;
@@ -302,5 +304,10 @@ public class ServiceConfig {
   @Bean
   FaInitGenerator faInitGenerator() {
     return new FaInitGenerator();
+  }
+
+  @Bean
+  CoopService coopService() {
+    return new CoopServiceImpl();
   }
 }

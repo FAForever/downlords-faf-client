@@ -54,7 +54,7 @@ public class GamesController {
       KnownFeaturedMod.MATCHMAKER.getString()
   );
 
-  private static final Predicate<GameInfoBean> OPEN_CUSTOM_GAMES_PREDICATE = gameInfoBean ->
+  private static final Predicate<Game> OPEN_CUSTOM_GAMES_PREDICATE = gameInfoBean ->
       gameInfoBean.getStatus() == GameState.OPEN
           && !HIDDEN_FEATURED_MODS.contains(gameInfoBean.getFeaturedMod());
 
@@ -106,18 +106,18 @@ public class GamesController {
   @Resource
   ModService modService;
 
-  private FilteredList<GameInfoBean> filteredItems;
+  private FilteredList<Game> filteredItems;
   private Stage mapDetailPopup;
 
-  private GameInfoBean currentGameInfoBean;
+  private Game currentGame;
   private InvalidationListener teamsChangeListener;
 
   @PostConstruct
   void postConstruct() {
 
-    ObservableList<GameInfoBean> gameInfoBeans = gameService.getGameInfoBeans();
+    ObservableList<Game> games = gameService.getGames();
 
-    filteredItems = new FilteredList<>(gameInfoBeans);
+    filteredItems = new FilteredList<>(games);
     filteredItems.setPredicate(OPEN_CUSTOM_GAMES_PREDICATE);
 
     if (tilesButton.getId().equals(preferencesService.getPreferences().getGamesViewMode())) {
@@ -208,45 +208,45 @@ public class GamesController {
   }
 
   @VisibleForTesting
-  void setSelectedGame(GameInfoBean gameInfoBean) {
-    if (gameInfoBean == null) {
+  void setSelectedGame(Game game) {
+    if (game == null) {
       gameDetailPane.setVisible(false);
       return;
     }
 
     gameDetailPane.setVisible(true);
 
-    gameTitleLabel.textProperty().bind(gameInfoBean.titleProperty());
+    gameTitleLabel.textProperty().bind(game.titleProperty());
 
     mapImageView.imageProperty().bind(createObjectBinding(
-        () -> mapService.loadPreview(gameInfoBean.getMapFolderName(), PreviewSize.LARGE),
-        gameInfoBean.mapFolderNameProperty()
+        () -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE),
+        game.mapFolderNameProperty()
     ));
 
     numberOfPlayersLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("game.detail.players.format", gameInfoBean.getNumPlayers(), gameInfoBean.getMaxPlayers()),
-        gameInfoBean.numPlayersProperty(),
-        gameInfoBean.maxPlayersProperty()
+        () -> i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers()),
+        game.numPlayersProperty(),
+        game.maxPlayersProperty()
     ));
 
-    hostLabel.textProperty().bind(gameInfoBean.hostProperty());
-    mapLabel.textProperty().bind(gameInfoBean.mapFolderNameProperty());
+    hostLabel.textProperty().bind(game.hostProperty());
+    mapLabel.textProperty().bind(game.mapFolderNameProperty());
 
     gameTypeLabel.textProperty().bind(createStringBinding(() -> {
-      FeaturedModBean gameType = modService.getFeaturedMod(gameInfoBean.getFeaturedMod()).get();
+      FeaturedModBean gameType = modService.getFeaturedMod(game.getFeaturedMod()).get();
       String fullName = gameType != null ? gameType.getDisplayName() : null;
       return StringUtils.defaultString(fullName);
-    }, gameInfoBean.featuredModProperty()));
+    }, game.featuredModProperty()));
 
-    if (currentGameInfoBean != null) {
-      currentGameInfoBean.getTeams().removeListener(teamsChangeListener);
+    if (currentGame != null) {
+      currentGame.getTeams().removeListener(teamsChangeListener);
     }
 
-    teamsChangeListener = observable -> createTeams(gameInfoBean.getTeams());
-    teamsChangeListener.invalidated(gameInfoBean.getTeams());
-    gameInfoBean.getTeams().addListener(teamsChangeListener);
+    teamsChangeListener = observable -> createTeams(game.getTeams());
+    teamsChangeListener.invalidated(game.getTeams());
+    game.getTeams().addListener(teamsChangeListener);
 
-    currentGameInfoBean = gameInfoBean;
+    currentGame = game;
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> playersByTeamNumber) {

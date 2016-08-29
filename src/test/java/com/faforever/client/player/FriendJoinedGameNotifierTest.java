@@ -1,10 +1,8 @@
 package com.faforever.client.player;
 
 import com.faforever.client.audio.AudioController;
-import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.game.GameInfoBean;
+import com.faforever.client.game.Game;
 import com.faforever.client.game.GameInfoBeanBuilder;
-import com.faforever.client.game.GameService;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -45,8 +43,6 @@ public class FriendJoinedGameNotifierTest {
   @Mock
   private JoinGameHelper joinGameHelper;
   @Mock
-  private GameService gameService;
-  @Mock
   private PreferencesService preferencesService;
   @Mock
   private Preferences preferences;
@@ -64,7 +60,6 @@ public class FriendJoinedGameNotifierTest {
     instance.eventBus = eventBus;
     instance.i18n = i18n;
     instance.joinGameHelper = joinGameHelper;
-    instance.gameService = gameService;
     instance.preferencesService = preferencesService;
     instance.audioController = audioController;
 
@@ -83,11 +78,10 @@ public class FriendJoinedGameNotifierTest {
 
   @Test
   public void onFriendJoinedGame() throws Exception {
-    PlayerInfoBean player = PlayerInfoBeanBuilder.create("junit").id(1).gameUid(124).get();
-    GameInfoBean game = GameInfoBeanBuilder.create().defaultValues().title("My Game").get();
+    Game game = GameInfoBeanBuilder.create().defaultValues().title("My Game").get();
+    Player player = PlayerInfoBeanBuilder.create("junit").id(1).game(game).get();
 
     when(notification.isFriendJoinsGameToastEnabled()).thenReturn(true);
-    when(gameService.getByUid(124)).thenReturn(game);
     when(i18n.get("friend.joinedGameNotification.title", "junit", "My Game")).thenReturn("junit joined My Game");
     when(i18n.get("friend.joinedGameNotification.action")).thenReturn("Click to join");
 

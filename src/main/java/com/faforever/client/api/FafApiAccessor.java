@@ -1,9 +1,10 @@
 package com.faforever.client.api;
 
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.coop.CoopMission;
 import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
+import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.replay.ReplayInfoBean;
 
@@ -56,6 +57,10 @@ public interface FafApiAccessor {
   void uploadMod(Path file, ByteCountListener listener) throws IOException;
 
   void uploadMap(Path file, boolean isRanked, ByteCountListener listener) throws IOException;
+
+  List<CoopMission> getCoopMissions();
+
+  List<CoopLeaderboardEntry> getCoopLeaderboard(String missionId, int numberOfPlayers);
 
   void changePassword(String currentPasswordHash, String newPasswordHash) throws IOException;
 

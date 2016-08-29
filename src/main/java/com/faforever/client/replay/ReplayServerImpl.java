@@ -1,6 +1,6 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.game.GameInfoBean;
+import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
@@ -166,12 +166,12 @@ public class ReplayServerImpl implements ReplayServer {
   }
 
   private void finishReplayInfo() {
-    GameInfoBean gameInfoBean = gameService.getByUid(replayInfo.getUid());
+    Game game = gameService.getByUid(replayInfo.getUid());
 
     replayInfo.setGameEnd(pythonTime());
     replayInfo.setRecorder(userService.getUsername());
     replayInfo.setComplete(true);
     replayInfo.setState(GameState.CLOSED);
-    replayInfo.updateFromGameInfoBean(gameInfoBean);
+    replayInfo.updateFromGameInfoBean(game);
   }
 }

@@ -1,5 +1,6 @@
 package com.faforever.client.api;
 
+import com.faforever.client.coop.CoopMission;
 import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
@@ -150,6 +151,16 @@ public class MockFafApiAccessor implements FafApiAccessor {
   @Override
   public void changePassword(String currentPasswordHash, String newPasswordHash) {
 
+  }
+
+  @Override
+  public List<CoopMission> getCoopMissions() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<CoopLeaderboardEntry> getCoopLeaderboard(String missionId, int numberOfPlayers) {
+    return Collections.emptyList();
   }
 
 }

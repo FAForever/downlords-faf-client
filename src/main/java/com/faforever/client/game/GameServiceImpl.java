@@ -78,13 +78,13 @@ public class GameServiceImpl implements GameService {
   @VisibleForTesting
   final BooleanProperty gameRunning;
   @VisibleForTesting
-  final SimpleObjectProperty<GameInfoBean> currentGame;
+  final SimpleObjectProperty<Game> currentGame;
 
   /**
    * An observable copy of {@link #uidToGameInfoBean}. <strong>Do not modify its content directly</strong>.
    */
-  private final ObservableList<GameInfoBean> gameInfoBeans;
-  private final ObservableMap<Integer, GameInfoBean> uidToGameInfoBean;
+  private final ObservableList<Game> games;
+  private final ObservableMap<Integer, Game> uidToGameInfoBean;
 
   @Resource
   FafService fafService;
@@ -129,10 +129,10 @@ public class GameServiceImpl implements GameService {
     searching1v1 = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
     currentGame = new SimpleObjectProperty<>();
-    gameInfoBeans = FXCollections.observableList(new ArrayList<>(),
+    games = FXCollections.observableList(new ArrayList<>(),
         item -> new Observable[]{item.statusProperty()}
     );
-    JavaFxUtil.attachListToMap(gameInfoBeans, uidToGameInfoBean);
+    JavaFxUtil.attachListToMap(games, uidToGameInfoBean);
   }
 
   @Override
@@ -150,44 +150,42 @@ public class GameServiceImpl implements GameService {
     stopSearchRanked1v1();
 
     return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, emptyMap(), newGameInfo.getSimMods())
+        .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
         .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
         .thenAccept(gameLaunchMessage -> startGame(gameLaunchMessage, null, RatingMode.GLOBAL));
   }
 
   @Override
-  public CompletionStage<Void> joinGame(GameInfoBean gameInfoBean, String password) {
+  public CompletionStage<Void> joinGame(Game game, String password) {
     if (isRunning()) {
       logger.debug("Game is running, ignoring join request");
       return completedFuture(null);
     }
 
-    logger.info("Joining game: {} ({})", gameInfoBean.getTitle(), gameInfoBean.getUid());
+    logger.info("Joining game: {} ({})", game.getTitle(), game.getId());
 
     stopSearchRanked1v1();
 
-    Map<String, Integer> featuredModVersions = gameInfoBean.getFeaturedModVersions();
-    Set<String> simModUIds = gameInfoBean.getSimMods().keySet();
+    Map<String, Integer> featuredModVersions = game.getFeaturedModVersions();
+    Set<String> simModUIds = game.getSimMods().keySet();
 
-    return modService.getFeaturedMod(gameInfoBean.getFeaturedMod())
+    return modService.getFeaturedMod(game.getFeaturedMod())
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, featuredModVersions, simModUIds))
-        .thenCompose(aVoid -> downloadMapIfNecessary(gameInfoBean.getMapFolderName()))
-        .thenCompose(aVoid -> fafService.requestJoinGame(gameInfoBean.getUid(), password))
+        .thenCompose(aVoid -> downloadMapIfNecessary(game.getMapFolderName()))
+        .thenCompose(aVoid -> fafService.requestJoinGame(game.getId(), password))
         .thenAccept(gameLaunchMessage -> {
           synchronized (currentGame) {
             // Store password in case we rehost
-            gameInfoBean.setPassword(password);
-            currentGame.set(gameInfoBean);
+            game.setPassword(password);
+            currentGame.set(game);
           }
           startGame(gameLaunchMessage, null, RatingMode.GLOBAL);
         });
   }
 
   private CompletionStage<Void> downloadMapIfNecessary(String mapFolderName) {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-
     if (mapService.isInstalled(mapFolderName)) {
-      future.complete(null);
-      return future;
+      return completedFuture(null);
     }
     return mapService.download(mapFolderName);
   }
@@ -233,7 +231,7 @@ public class GameServiceImpl implements GameService {
       return completedFuture(null);
     }
 
-    GameInfoBean gameBean = getByUid(gameId);
+    Game gameBean = getByUid(gameId);
 
     Map<String, Integer> modVersions = gameBean.getFeaturedModVersions();
     Set<String> simModUids = gameBean.getSimMods().keySet();
@@ -250,17 +248,17 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public ObservableList<GameInfoBean> getGameInfoBeans() {
-    return gameInfoBeans;
+  public ObservableList<Game> getGames() {
+    return games;
   }
 
   @Override
-  public GameInfoBean getByUid(int uid) {
-    GameInfoBean gameInfoBean = uidToGameInfoBean.get(uid);
-    if (gameInfoBean == null) {
+  public Game getByUid(int uid) {
+    Game game = uidToGameInfoBean.get(uid);
+    if (game == null) {
       logger.warn("Can't find {} in gameInfoBean map", uid);
     }
-    return gameInfoBean;
+    return game;
   }
 
   @Override
@@ -316,7 +314,7 @@ public class GameServiceImpl implements GameService {
 
   @Nullable
   @Override
-  public GameInfoBean getCurrentGame() {
+  public Game getCurrentGame() {
     synchronized (currentGame) {
       return currentGame.get();
     }
@@ -416,15 +414,15 @@ public class GameServiceImpl implements GameService {
   }
 
   private void rehost() {
-    GameInfoBean gameInfoBean = currentGame.get();
+    Game game = currentGame.get();
 
-    modService.getFeaturedMod(gameInfoBean.getFeaturedMod())
+    modService.getFeaturedMod(game.getFeaturedMod())
         .thenAccept(featuredModBean -> hostGame(new NewGameInfo(
-            gameInfoBean.getTitle(),
-            gameInfoBean.getPassword(),
+            game.getTitle(),
+            game.getPassword(),
             featuredModBean,
-            gameInfoBean.getMapFolderName(),
-            new HashSet<>(gameInfoBean.getSimMods().values())
+            game.getMapFolderName(),
+            new HashSet<>(game.getSimMods().values())
         )));
   }
 
@@ -456,14 +454,14 @@ public class GameServiceImpl implements GameService {
       return;
     }
 
-    final GameInfoBean gameInfoBean;
+    final Game game;
     Integer gameId = gameInfoMessage.getUid();
     if (!uidToGameInfoBean.containsKey(gameId)) {
-      gameInfoBean = new GameInfoBean(gameInfoMessage);
-      uidToGameInfoBean.put(gameId, gameInfoBean);
+      game = new Game(gameInfoMessage);
+      uidToGameInfoBean.put(gameId, game);
     } else {
-      gameInfoBean = uidToGameInfoBean.get(gameId);
-      Platform.runLater(() -> gameInfoBean.updateFromGameInfo(gameInfoMessage));
+      game = uidToGameInfoBean.get(gameId);
+      Platform.runLater(() -> game.updateFromGameInfo(gameInfoMessage));
 
       if (GameState.CLOSED == gameInfoMessage.getState()) {
         synchronized (uidToGameInfoBean) {
@@ -478,7 +476,7 @@ public class GameServiceImpl implements GameService {
 
     if (currentPlayerInGame && GameState.OPEN == gameInfoMessage.getState()) {
       synchronized (currentGame) {
-        currentGame.set(gameInfoBean);
+        currentGame.set(game);
       }
     }
   }

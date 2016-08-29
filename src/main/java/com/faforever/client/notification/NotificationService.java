@@ -33,4 +33,6 @@ public interface NotificationService {
   void removeNotification(PersistentNotification notification);
 
   void addImmediateNotificationListener(OnImmediateNotificationListener listener);
+
+  void addPersistentErrorNotification(Throwable throwable, String messageKey, Object... args);
 }

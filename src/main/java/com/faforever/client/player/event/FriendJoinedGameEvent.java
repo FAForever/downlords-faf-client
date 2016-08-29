@@ -1,15 +1,15 @@
 package com.faforever.client.player.event;
 
-import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.player.Player;
 
 public class FriendJoinedGameEvent {
-  private PlayerInfoBean playerInfoBean;
+  private Player player;
 
-  public FriendJoinedGameEvent(PlayerInfoBean playerInfoBean) {
-    this.playerInfoBean = playerInfoBean;
+  public FriendJoinedGameEvent(Player player) {
+    this.player = player;
   }
 
-  public PlayerInfoBean getPlayerInfoBean() {
-    return playerInfoBean;
+  public Player getPlayer() {
+    return player;
   }
 }

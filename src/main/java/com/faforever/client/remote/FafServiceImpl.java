@@ -1,13 +1,14 @@
 package com.faforever.client.remote;
 
+import com.faforever.client.api.CoopLeaderboardEntry;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.FeaturedModFile;
 import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.api.RatingType;
-import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.coop.CoopMission;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.game.Faction;
 import com.faforever.client.mod.FeaturedModBean;
@@ -16,6 +17,7 @@ import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.player.Player;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.GameEndedMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
@@ -103,22 +105,22 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public void addFriend(PlayerInfoBean player) {
+  public void addFriend(Player player) {
     fafServerAccessor.addFriend(player.getId());
   }
 
   @Override
-  public void addFoe(PlayerInfoBean player) {
+  public void addFoe(Player player) {
     fafServerAccessor.addFoe(player.getId());
   }
 
   @Override
-  public void removeFriend(PlayerInfoBean player) {
+  public void removeFriend(Player player) {
     fafServerAccessor.removeFriend(player.getId());
   }
 
   @Override
-  public void removeFoe(PlayerInfoBean player) {
+  public void removeFoe(Player player) {
     fafServerAccessor.removeFoe(player.getId());
   }
 
@@ -193,6 +195,11 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
+  public CompletableFuture<List<CoopMission>> getCoopMaps() {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getCoopMissions());
+  }
+
+  @Override
   public CompletionStage<List<AvatarBean>> getAvailableAvatars() {
     return CompletableFuture.supplyAsync(() -> fafServerAccessor.getAvailableAvatars())
         .thenApply(avatars -> avatars.stream()
@@ -210,6 +217,11 @@ public class FafServiceImpl implements FafService {
   @CacheEvict(CacheNames.MODS)
   public void evictModsCache() {
     // Nothing to see, please move along
+  }
+
+  @Override
+  public CompletableFuture<List<CoopLeaderboardEntry>> getCoopLeaderboard(CoopMission mission, int numberOfPlayers) {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getCoopLeaderboard(mission.getId(), numberOfPlayers));
   }
 
   @Override

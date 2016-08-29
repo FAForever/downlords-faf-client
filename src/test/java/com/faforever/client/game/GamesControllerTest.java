@@ -54,7 +54,7 @@ public class GamesControllerTest extends AbstractPlainJavaFxTest {
 
     when(enterPasswordController.getRoot()).thenReturn(new Pane());
     when(createGameController.getRoot()).thenReturn(new Pane());
-    when(gameService.getGameInfoBeans()).thenReturn(FXCollections.observableArrayList());
+    when(gameService.getGames()).thenReturn(FXCollections.observableArrayList());
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getGamesViewMode()).thenReturn("tableButton");
     when(applicationContext.getBean(GamesTilesContainerController.class)).thenReturn(gamesTilesContainerController);

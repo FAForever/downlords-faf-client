@@ -31,21 +31,21 @@ import javax.annotation.Resource;
 
 public class GamesTableController {
 
-  private final ObjectProperty<GameInfoBean> selectedGame;
+  private final ObjectProperty<Game> selectedGame;
   @FXML
-  TableView<GameInfoBean> gamesTable;
+  TableView<Game> gamesTable;
   @FXML
-  TableColumn<GameInfoBean, Image> mapPreviewColumn;
+  TableColumn<Game, Image> mapPreviewColumn;
   @FXML
-  TableColumn<GameInfoBean, String> gameTitleColumn;
+  TableColumn<Game, String> gameTitleColumn;
   @FXML
-  TableColumn<GameInfoBean, PlayerFill> playersColumn;
+  TableColumn<Game, PlayerFill> playersColumn;
   @FXML
-  TableColumn<GameInfoBean, RatingRange> ratingColumn;
+  TableColumn<Game, RatingRange> ratingColumn;
   @FXML
-  TableColumn<GameInfoBean, String> hostColumn;
+  TableColumn<Game, String> hostColumn;
   @FXML
-  TableColumn<GameInfoBean, Boolean> passwordProtectionColumn;
+  TableColumn<Game, Boolean> passwordProtectionColumn;
   @Resource
   FxmlLoader fxmlLoader;
   @Resource
@@ -59,7 +59,7 @@ public class GamesTableController {
     this.selectedGame = new SimpleObjectProperty<>();
   }
 
-  public ObjectProperty<GameInfoBean> selectedGameProperty() {
+  public ObjectProperty<Game> selectedGameProperty() {
     return selectedGame;
   }
 
@@ -72,8 +72,8 @@ public class GamesTableController {
     return gamesTable;
   }
 
-  public void initializeGameTable(ObservableList<GameInfoBean> gameInfoBeans) {
-    SortedList<GameInfoBean> sortedList = new SortedList<>(gameInfoBeans);
+  public void initializeGameTable(ObservableList<Game> games) {
+    SortedList<Game> sortedList = new SortedList<>(games);
     sortedList.comparatorProperty().bind(gamesTable.comparatorProperty());
     gamesTable.setPlaceholder(new Label(i18n.get("games.noGamesAvailable")));
     gamesTable.setRowFactory(param1 -> gamesRowFactory());
@@ -113,36 +113,36 @@ public class GamesTableController {
   }
 
   private void selectFirstGame() {
-    TableView.TableViewSelectionModel<GameInfoBean> selectionModel = gamesTable.getSelectionModel();
+    TableView.TableViewSelectionModel<Game> selectionModel = gamesTable.getSelectionModel();
     if (selectionModel.getSelectedItem() == null && !gamesTable.getItems().isEmpty()) {
       Platform.runLater(() -> selectionModel.select(0));
     }
   }
 
   @NotNull
-  private TableRow<GameInfoBean> gamesRowFactory() {
-    TableRow<GameInfoBean> row = new TableRow<>();
+  private TableRow<Game> gamesRowFactory() {
+    TableRow<Game> row = new TableRow<>();
     row.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
-        GameInfoBean gameInfoBean = row.getItem();
-        joinGameHelper.join(gameInfoBean);
+        Game game = row.getItem();
+        joinGameHelper.join(game);
       }
     });
     return row;
   }
 
-  private TableCell<GameInfoBean, Boolean> passwordIndicatorColumn() {
+  private TableCell<Game, Boolean> passwordIndicatorColumn() {
     return new StringCell<>(
         isPasswordProtected -> isPasswordProtected ? i18n.get("game.protected.symbol") : "",
         Pos.CENTER, ThemeService.CSS_CLASS_FONTAWESOME);
   }
 
-  private TableCell<GameInfoBean, PlayerFill> playersCell() {
+  private TableCell<Game, PlayerFill> playersCell() {
     return new StringCell<>(playerFill -> i18n.get("game.players.format",
         playerFill.getPlayers(), playerFill.getMaxPlayers()), Pos.CENTER);
   }
 
-  private TableCell<GameInfoBean, RatingRange> ratingTableCell() {
+  private TableCell<Game, RatingRange> ratingTableCell() {
     return new StringCell<>(ratingRange -> {
       if (ratingRange.getMin() == null && ratingRange.getMax() == null) {
         return "";

@@ -5,6 +5,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
@@ -221,8 +222,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testPlayerInfo() throws Exception {
     String playerName = "somePlayer";
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    Player player = new Player(playerName);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
 
     WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> instance.playerInfo(playerName));
 
@@ -237,8 +238,8 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testHidePlayerInfo() throws Exception {
     String playerName = "somePlayer";
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    Player player = new Player(playerName);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
 
     WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       instance.playerInfo(playerName);
@@ -379,37 +380,37 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void getMessageCssClassFriend() throws Exception {
     String playerName = "somePlayer";
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    playerInfoBean.setSocialStatus(FRIEND);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    Player player = new Player(playerName);
+    player.setSocialStatus(FRIEND);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
     assertEquals(instance.getMessageCssClass(playerName), SocialStatus.FRIEND.getCssClass());
   }
 
   @Test
   public void getMessageCssClassFoe() throws Exception {
     String playerName = "somePlayer";
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    playerInfoBean.setSocialStatus(FOE);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    Player player = new Player(playerName);
+    player.setSocialStatus(FOE);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
     assertEquals(instance.getMessageCssClass(playerName), SocialStatus.FOE.getCssClass());
   }
 
   @Test
   public void getMessageCssClassChatOnly() throws Exception {
     String playerName = "somePlayer";
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    playerInfoBean.setSocialStatus(OTHER);
-    playerInfoBean.setChatOnly(true);
+    Player player = new Player(playerName);
+    player.setSocialStatus(OTHER);
+    player.setChatOnly(true);
     assertEquals(instance.getMessageCssClass(playerName), CSS_CLASS_CHAT_ONLY);
   }
 
   @Test
   public void getMessageCssClassSelf() throws Exception {
     String playerName = "junit";
-    PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
-    playerInfoBean.setSocialStatus(SELF);
-    playerInfoBean.setChatOnly(false);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
+    Player player = new Player(playerName);
+    player.setSocialStatus(SELF);
+    player.setChatOnly(false);
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(player);
     assertEquals(instance.getMessageCssClass(playerName), SocialStatus.SELF.getCssClass());
   }
 
