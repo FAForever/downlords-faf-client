@@ -64,6 +64,10 @@ public class OnGameFullNotifier {
     if (currentGame == null) {
       throw new ProgrammingError("Got a GameFull notification but player is not in a game");
     }
+    if (faWindowTitle.equals(platformService.getForegroundWindowTitle())) {
+      return;
+    }
+
     notificationService.addNotification(new TransientNotification(i18n.get("game.full"), i18n.get("game.full.action"),
         mapService.loadSmallPreview(currentGame.getMapFolderName()),
         v -> platformService.showWindow(faWindowTitle)));

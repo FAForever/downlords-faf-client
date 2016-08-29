@@ -21,6 +21,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class OnGameFullNotifierTest {
@@ -67,7 +68,7 @@ public class OnGameFullNotifierTest {
   public void testOnGameFull() throws Exception {
     GameInfoBean gameInfoBean = GameInfoBeanBuilder.create().defaultValues().get();
     when(gameService.getCurrentGame()).thenReturn(gameInfoBean);
-    when(platformService.getForegroundWindowTitle()).thenReturn("Forged Alliance");
+    when(platformService.getForegroundWindowTitle()).thenReturn("Some window");
 
     CountDownLatch countDownLatch = new CountDownLatch(1);
     doAnswer(invocation -> {
@@ -81,5 +82,16 @@ public class OnGameFullNotifierTest {
     verify(threadPoolExecutor).submit(any(Runnable.class));
     verify(platformService).startFlashingWindow("Forged Alliance");
     verify(platformService).stopFlashingWindow("Forged Alliance");
+  }
+
+  @Test
+  public void testAlreadyFocusedDoesntTriggerNotification() throws Exception {
+    GameInfoBean gameInfoBean = GameInfoBeanBuilder.create().defaultValues().get();
+    when(gameService.getCurrentGame()).thenReturn(gameInfoBean);
+    when(platformService.getForegroundWindowTitle()).thenReturn("Forged Alliance");
+
+    instance.onGameFull(new GameFullEvent(gameInfoBean));
+
+    verifyZeroInteractions(notificationService);
   }
 }
