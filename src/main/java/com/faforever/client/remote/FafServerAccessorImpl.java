@@ -3,9 +3,12 @@ package com.faforever.client.remote;
 import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.UidService;
 import com.faforever.client.login.LoginFailedException;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.SearchRanked1V1ClientMessage;
 import com.faforever.client.rankedmatch.StopSearchRanked1V1ClientMessage;
@@ -27,6 +30,7 @@ import com.faforever.client.remote.domain.JoinGameMessage;
 import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.MessageTarget;
+import com.faforever.client.remote.domain.NoticeMessage;
 import com.faforever.client.remote.domain.Ranked1v1SearchExpansionMessage;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.RemoveFoeMessage;
@@ -99,6 +103,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   UidService uidService;
   @Resource
   ClientUpdateService clientUpdateService;
+  @Resource
+  NotificationService notificationService;
+  @Resource
+  I18n i18n;
 
   @Value("${lobby.host}")
   String lobbyHost;
@@ -140,10 +148,18 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
         .registerTypeAdapter(RatingRange.class, RatingRangeTypeAdapter.INSTANCE)
         .create();
 
+    addOnMessageListener(NoticeMessage.class, this::onNotice);
     addOnMessageListener(SessionMessage.class, this::onSessionInitiated);
     addOnMessageListener(LoginMessage.class, this::onFafLoginSucceeded);
     addOnMessageListener(GameLaunchMessage.class, this::onGameLaunchInfo);
     addOnMessageListener(AuthenticationFailedMessage.class, this::dispatchAuthenticationFailed);
+  }
+
+  private void onNotice(NoticeMessage noticeMessage) {
+    if (noticeMessage.getText() == null) {
+      return;
+    }
+    notificationService.addNotification(new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), noticeMessage.getSeverity()));
   }
 
   @Override

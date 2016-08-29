@@ -1,9 +1,13 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.game.Faction;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.FactionDeserializer;
 import com.faforever.client.legacy.ServerMessageSerializer;
 import com.faforever.client.legacy.UidService;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -20,6 +24,7 @@ import com.faforever.client.remote.domain.InitSessionMessage;
 import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.MessageTarget;
+import com.faforever.client.remote.domain.NoticeMessage;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.SessionMessage;
 import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
@@ -40,6 +45,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,10 +72,13 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
@@ -103,6 +112,10 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
   private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
   private ClientUpdateService clientUpdateService;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private I18n i18n;
 
   private FafServerAccessorImpl instance;
   private ServerSocket fafLobbyServerSocket;
@@ -120,6 +133,8 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     startFakeFafLobbyServer();
 
     instance = new FafServerAccessorImpl();
+    instance.i18n = i18n;
+    instance.notificationService = notificationService;
     instance.preferencesService = preferencesService;
     instance.uidService = uidService;
     instance.lobbyHost = LOOPBACK_ADDRESS.getHostAddress();
@@ -307,6 +322,29 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     MatchmakerMessage matchmakerServerMessage = serviceStateDoneFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(matchmakerServerMessage.getQueues(), not(empty()));
+  }
+
+
+  @Test
+  public void testOnNotice() throws Exception {
+    connectAndLogIn();
+
+    NoticeMessage noticeMessage = new NoticeMessage();
+    noticeMessage.setText("foo bar");
+    noticeMessage.setStyle("warning");
+
+    when(i18n.get("messageFromServer")).thenReturn("Message from Server");
+
+    sendFromServer(noticeMessage);
+
+    ArgumentCaptor<ImmediateNotification> captor = ArgumentCaptor.forClass(ImmediateNotification.class);
+    verify(notificationService, timeout(1000)).addNotification(captor.capture());
+
+    ImmediateNotification notification = captor.getValue();
+    assertThat(notification.getSeverity(), is(Severity.WARN));
+    assertThat(notification.getText(), is("foo bar"));
+    assertThat(notification.getTitle(), is("Message from Server"));
+    verify(i18n).get("messageFromServer");
   }
 
   @Test
