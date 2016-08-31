@@ -11,6 +11,10 @@ public class PlayerInfoBeanBuilder {
     playerInfoBean = new PlayerInfoBean(username);
   }
 
+  public static PlayerInfoBeanBuilder create(String username) {
+    return new PlayerInfoBeanBuilder(username);
+  }
+
   public PlayerInfoBeanBuilder id(int id) {
     playerInfoBean.setId(id);
     return this;
@@ -40,7 +44,8 @@ public class PlayerInfoBeanBuilder {
     return this;
   }
 
-  public static PlayerInfoBeanBuilder create(String username) {
-    return new PlayerInfoBeanBuilder(username);
+  public PlayerInfoBeanBuilder gameUid(int gameUid) {
+    playerInfoBean.setGameUid(gameUid);
+    return this;
   }
 }

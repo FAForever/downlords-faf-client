@@ -35,4 +35,9 @@ public class GameInfoBeanBuilder {
   public GameInfoBean get() {
     return gameInfoBean;
   }
+
+  public GameInfoBeanBuilder title(String title) {
+    gameInfoBean.setTitle(title);
+    return this;
+  }
 }

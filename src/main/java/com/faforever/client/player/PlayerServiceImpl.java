@@ -5,12 +5,13 @@ import com.faforever.client.chat.SocialStatus;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameStatus;
-import com.faforever.client.user.event.LoginSuccessEvent;
+import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.Player;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.user.UserService;
+import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.util.Assert;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -119,11 +120,14 @@ public class PlayerServiceImpl implements PlayerService {
     }
   }
 
-  @Override
-  public void updatePlayerGameStatus(PlayerInfoBean playerInfoBean, GameStatus gameStatus) {
+  private void updatePlayerGameStatus(PlayerInfoBean playerInfoBean, GameStatus gameStatus) {
     if (playerInfoBean != null && playerInfoBean.getGameStatus() != gameStatus) {
       //FIXME until api, host is set twice or ugly code, I chose to set twice
       playerInfoBean.setGameStatus(gameStatus);
+
+      if (playerInfoBean.getSocialStatus() == FRIEND && (gameStatus == GameStatus.HOST || gameStatus == GameStatus.LOBBY)) {
+        eventBus.post(new FriendJoinedGameEvent(playerInfoBean));
+      }
     }
   }
 

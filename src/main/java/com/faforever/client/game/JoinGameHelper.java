@@ -116,4 +116,8 @@ public class JoinGameHelper {
         )
     ));
   }
+
+  public void join(int gameId) {
+    join(gameService.getByUid(gameId));
+  }
 }
