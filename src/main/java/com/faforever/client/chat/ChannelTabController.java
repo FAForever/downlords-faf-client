@@ -277,8 +277,8 @@ public class ChannelTabController extends AbstractChatTabController {
     Platform.runLater(() -> {
       String value = convertUrlsToHyperlinks(topic);
       WebEngine engine = getMessagesWebView().getEngine();
-      ((JSObject) engine.executeScript("document.getElementById('channel-topic')")).setMember("innerHTML", value);
-      ((JSObject) engine.executeScript("document.getElementById('channel-topic-shadow')")).setMember("innerHTML", value);
+      ((JSObject) engine.executeScript("document.getElementById('" + CHANNEL_TOPIC_CONTAINER_ID + "')")).setMember("innerHTML", value);
+      ((JSObject) engine.executeScript("document.getElementById('" + CHANNEL_TOPIC_SHADOW_CONTAINER_ID + "')")).setMember("innerHTML", value);
         }
     );
   }
