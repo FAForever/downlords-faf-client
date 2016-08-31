@@ -2,6 +2,7 @@ package com.faforever.client.player;
 
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.SocialStatus;
+import com.faforever.client.chat.avatar.AvatarBean;
 
 public class PlayerInfoBeanBuilder {
 
@@ -46,6 +47,12 @@ public class PlayerInfoBeanBuilder {
 
   public PlayerInfoBeanBuilder gameUid(int gameUid) {
     playerInfoBean.setGameUid(gameUid);
+    return this;
+  }
+
+  public PlayerInfoBeanBuilder avatar(AvatarBean avatar) {
+    playerInfoBean.setAvatarUrl(avatar == null ? null : avatar.getUrl().toExternalForm());
+    playerInfoBean.setAvatarTooltip(avatar == null ? null : avatar.getDescription());
     return this;
   }
 }

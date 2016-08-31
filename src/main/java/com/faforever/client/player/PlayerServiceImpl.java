@@ -2,6 +2,8 @@ package com.faforever.client.player;
 
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.SocialStatus;
+import com.faforever.client.chat.avatar.AvatarBean;
+import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameStatus;
@@ -30,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
@@ -93,6 +96,22 @@ public class PlayerServiceImpl implements PlayerService {
   public void onLoginSuccess(LoginSuccessEvent event) {
     synchronized (currentPlayer) {
       currentPlayer.set(createAndGetPlayerForUsername(event.getUsername()));
+    }
+  }
+
+  @Subscribe
+  public void onAvatarChanged(AvatarChangedEvent event) {
+    synchronized (currentPlayer) {
+      PlayerInfoBean player = currentPlayer.get();
+
+      AvatarBean avatar = event.getAvatar();
+      if (avatar == null) {
+        player.setAvatarTooltip(null);
+        player.setAvatarUrl(null);
+      } else {
+        player.setAvatarTooltip(avatar.getDescription());
+        player.setAvatarUrl(Objects.toString(avatar.getUrl(), null));
+      }
     }
   }
 

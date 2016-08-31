@@ -4,6 +4,7 @@ import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.relay.GpgClientMessage;
+import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
@@ -11,6 +12,8 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.InetSocketAddress;
+import java.net.URL;
+import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
@@ -57,4 +60,8 @@ public interface FafServerAccessor {
   void removeFriend(int playerId);
 
   void removeFoe(int playerId);
+
+  void selectAvatar(URL url);
+
+  List<Avatar> getAvailableAvatars();
 }

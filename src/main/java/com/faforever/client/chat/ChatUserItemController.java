@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;

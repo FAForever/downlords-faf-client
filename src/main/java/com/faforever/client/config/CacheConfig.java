@@ -16,6 +16,7 @@ import java.util.Arrays;
 
 import static com.faforever.client.config.CacheNames.ACHIEVEMENTS;
 import static com.faforever.client.config.CacheNames.ACHIEVEMENT_IMAGES;
+import static com.faforever.client.config.CacheNames.AVAILABLE_AVATARS;
 import static com.faforever.client.config.CacheNames.AVATARS;
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
 import static com.faforever.client.config.CacheNames.LARGE_MAP_PREVIEW;
@@ -45,6 +46,7 @@ public class CacheConfig implements CachingConfigurer {
         new GuavaCache(MODS, newBuilder().maximumSize(10).expireAfterAccess(120, MINUTES).build()),
         new GuavaCache(MAPS, newBuilder().maximumSize(10).expireAfterAccess(120, MINUTES).build()),
         new GuavaCache(LEADERBOARD, newBuilder().maximumSize(1).expireAfterAccess(30, SECONDS).build()),
+        new GuavaCache(AVAILABLE_AVATARS, newBuilder().expireAfterAccess(5, SECONDS).build()),
 
         // Images should only be cached as long as they are in use. This avoids loading an image multiple times, while
         // at the same time it doesn't prevent unused images from being garbage collected.

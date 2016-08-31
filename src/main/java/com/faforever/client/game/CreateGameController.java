@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
@@ -148,30 +149,10 @@ public class CreateGameController {
       mapListView.scrollTo(newMapIndex);
     });
 
-    gameTypeListView.setCellFactory(param -> gameTypeCell());
+    gameTypeListView.setCellFactory(param -> new StringListCell<>(GameTypeBean::getFullName));
 
     JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH);
     JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH);
-  }
-
-  @NotNull
-  private ListCell<GameTypeBean> gameTypeCell() {
-    return new ListCell<GameTypeBean>() {
-
-      @Override
-      protected void updateItem(GameTypeBean item, boolean empty) {
-        super.updateItem(item, empty);
-
-        Platform.runLater(() -> {
-          if (empty || item == null) {
-            setText(null);
-            setGraphic(null);
-          } else {
-            setText(item.getFullName());
-          }
-        });
-      }
-    };
   }
 
   @PostConstruct
@@ -233,7 +214,7 @@ public class CreateGameController {
     filteredMapBeans = new FilteredList<>(localMapBeans);
 
     mapListView.setItems(filteredMapBeans);
-    mapListView.setCellFactory(mapListCellFactory());
+    mapListView.setCellFactory(param -> new StringListCell<>(MapBean::getDisplayName));
     mapListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == null) {
         Platform.runLater(() -> mapNameLabel.setText(""));
@@ -307,20 +288,7 @@ public class CreateGameController {
   @NotNull
   private Callback<ListView<ModInfoBean>, ListCell<ModInfoBean>> modListCellFactory() {
     return param -> {
-      ListCell<ModInfoBean> cell = new ListCell<ModInfoBean>() {
-
-        @Override
-        protected void updateItem(ModInfoBean item, boolean empty) {
-          super.updateItem(item, empty);
-
-          if (empty || item == null) {
-            setText(null);
-            setGraphic(null);
-          } else {
-            setText(item.getName());
-          }
-        }
-      };
+      ListCell<ModInfoBean> cell = new StringListCell<>(ModInfoBean::getName);
       cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
         modListView.requestFocus();
         MultipleSelectionModel<ModInfoBean> selectionModel = modListView.getSelectionModel();
@@ -335,23 +303,6 @@ public class CreateGameController {
         }
       });
       return cell;
-    };
-  }
-
-  @NotNull
-  private javafx.util.Callback<ListView<MapBean>, ListCell<MapBean>> mapListCellFactory() {
-    return param -> new ListCell<MapBean>() {
-      @Override
-      protected void updateItem(MapBean item, boolean empty) {
-        super.updateItem(item, empty);
-
-        if (empty || item == null) {
-          setText(null);
-          setGraphic(null);
-        } else {
-          setText(item.getDisplayName());
-        }
-      }
     };
   }
 

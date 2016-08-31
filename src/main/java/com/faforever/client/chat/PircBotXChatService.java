@@ -158,8 +158,7 @@ public class PircBotXChatService implements ChatService {
     addEventListener(JoinEvent.class, event -> onUserJoinedChannel(event.getChannel().getName(), getOrCreateChatUser(event.getUser())));
     addEventListener(PartEvent.class, event -> onChatUserLeftChannel(event.getChannel().getName(), event.getUser().getNick()));
     addEventListener(QuitEvent.class, event -> onChatUserQuit(event.getUser().getNick()));
-    addEventListener(TopicEvent.class, event -> getOrCreateChannel(event.getChannel().getName()).
-        onChannelTopic(event.getOldTopic(), event.getTopic(), event.getUser().getNick(), event.getDate(), event.isChanged()));
+    addEventListener(TopicEvent.class, event -> getOrCreateChannel(event.getChannel().getName()).setTopic(event.getTopic()));
     addEventListener(OpEvent.class, event -> {
       User recipient = event.getRecipient();
       if (recipient != null) {

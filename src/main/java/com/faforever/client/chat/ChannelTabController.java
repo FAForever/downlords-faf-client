@@ -26,6 +26,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
@@ -145,9 +146,7 @@ public class ChannelTabController extends AbstractChatTabController {
     chatService.addUsersListener(channelName, usersChangeListener);
 
     // Maybe there already were some users; fetch them
-    threadPoolExecutor.execute(() -> {
-      channel.getUsers().forEach(ChannelTabController.this::onUserJoinedChannel);
-    });
+    threadPoolExecutor.execute(() -> channel.getUsers().forEach(ChannelTabController.this::onUserJoinedChannel));
 
     channelTabRoot.setOnCloseRequest(event -> {
       chatService.leaveChannel(channel.getName());
@@ -158,9 +157,7 @@ public class ChannelTabController extends AbstractChatTabController {
     closeSearchFieldButton.visibleProperty().bind(searchField.visibleProperty());
     addSearchFieldListener();
 
-    channel.topicProperty().addListener((observable, oldValue, newValue) -> {
-      setTopic(newValue);
-    });
+    channel.topicProperty().addListener((observable, oldValue, newValue) -> setTopic(newValue));
   }
 
   private void updateUserCount(int count) {
@@ -278,10 +275,10 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private void setTopic(String topic) {
     Platform.runLater(() -> {
-          ((JSObject) getMessagesWebView().getEngine().executeScript("document.getElementById('channel-topic')"))
-              .setMember("innerHTML", convertUrlsToHyperlinks(topic));
-          ((JSObject) getMessagesWebView().getEngine().executeScript("document.getElementById('channel-topic-shadow')"))
-              .setMember("innerHTML", convertUrlsToHyperlinks(topic));
+      String value = convertUrlsToHyperlinks(topic);
+      WebEngine engine = getMessagesWebView().getEngine();
+      ((JSObject) engine.executeScript("document.getElementById('channel-topic')")).setMember("innerHTML", value);
+      ((JSObject) engine.executeScript("document.getElementById('channel-topic-shadow')")).setMember("innerHTML", value);
         }
     );
   }
@@ -493,7 +490,11 @@ public class ChannelTabController extends AbstractChatTabController {
       return;
     }
     synchronized (paneChatUserControlMap) {
-      Pane root = paneChatUserControlMap.remove(pane).getRoot();
+      ChatUserItemController controller = paneChatUserControlMap.remove(pane);
+      if (controller == null) {
+        return;
+      }
+      Pane root = controller.getRoot();
       if (root != null) {
         Platform.runLater(() -> pane.getChildren().remove(root));
       }

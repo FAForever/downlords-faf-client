@@ -1,5 +1,6 @@
 package com.faforever.client.remote;
 
+import com.faforever.client.config.CacheNames;
 import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
@@ -18,6 +19,8 @@ import com.faforever.client.relay.GpgServerMessageType;
 import com.faforever.client.remote.domain.AddFoeMessage;
 import com.faforever.client.remote.domain.AddFriendMessage;
 import com.faforever.client.remote.domain.AuthenticationFailedMessage;
+import com.faforever.client.remote.domain.Avatar;
+import com.faforever.client.remote.domain.AvatarMessage;
 import com.faforever.client.remote.domain.ClientMessage;
 import com.faforever.client.remote.domain.ClientMessageType;
 import com.faforever.client.remote.domain.FafServerMessageType;
@@ -27,6 +30,7 @@ import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.remote.domain.HostGameMessage;
 import com.faforever.client.remote.domain.InitSessionMessage;
 import com.faforever.client.remote.domain.JoinGameMessage;
+import com.faforever.client.remote.domain.ListPersonalAvatarsMessage;
 import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.MessageTarget;
@@ -35,6 +39,7 @@ import com.faforever.client.remote.domain.Ranked1v1SearchExpansionMessage;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.RemoveFoeMessage;
 import com.faforever.client.remote.domain.RemoveFriendMessage;
+import com.faforever.client.remote.domain.SelectAvatarMessage;
 import com.faforever.client.remote.domain.SerializableMessage;
 import com.faforever.client.remote.domain.ServerCommand;
 import com.faforever.client.remote.domain.ServerMessage;
@@ -55,6 +60,7 @@ import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.remote.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.update.ClientUpdateService;
+import com.github.nocatch.NoCatch;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -70,6 +76,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -80,12 +87,15 @@ import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
@@ -125,6 +135,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private String password;
   private ObjectProperty<ConnectionState> connectionState;
   private Socket fafServerSocket;
+  private CompletableFuture<List<Avatar>> avatarsFuture;
 
   public FafServerAccessorImpl() {
     messageListeners = new HashMap<>();
@@ -153,6 +164,11 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     addOnMessageListener(LoginMessage.class, this::onFafLoginSucceeded);
     addOnMessageListener(GameLaunchMessage.class, this::onGameLaunchInfo);
     addOnMessageListener(AuthenticationFailedMessage.class, this::dispatchAuthenticationFailed);
+    addOnMessageListener(AvatarMessage.class, this::onAvatarMessage);
+  }
+
+  private void onAvatarMessage(AvatarMessage avatarMessage) {
+    avatarsFuture.complete(avatarMessage.getAvatarList());
   }
 
   private void onNotice(NoticeMessage noticeMessage) {
@@ -335,6 +351,19 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   @Override
   public void removeFoe(int playerId) {
     writeToServer(new RemoveFoeMessage(playerId));
+  }
+
+  @Override
+  public void selectAvatar(URL url) {
+    writeToServer(new SelectAvatarMessage(url));
+  }
+
+  @Override
+  @Cacheable(CacheNames.AVAILABLE_AVATARS)
+  public List<Avatar> getAvailableAvatars() {
+    avatarsFuture = new CompletableFuture<>();
+    writeToServer(new ListPersonalAvatarsMessage());
+    return NoCatch.noCatch(() -> avatarsFuture.get(10, TimeUnit.SECONDS));
   }
 
   private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {

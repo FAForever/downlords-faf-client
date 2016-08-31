@@ -26,6 +26,10 @@ public class Channel {
     return topic.get();
   }
 
+  public void setTopic(String topic) {
+    this.topic.set(topic);
+  }
+
   public StringProperty topicProperty() {
     return topic;
   }
@@ -70,12 +74,6 @@ public class Channel {
 
   public ChatUser getUser(String username) {
     return users.get(username);
-  }
-
-  public void onChannelTopic(String oldTopic, String topic, String username, long date, boolean changed) {
-    if (this.topic.getValue() == null || changed) {
-      this.topic.setValue(topic);
-    }
   }
 
   public String getName() {
