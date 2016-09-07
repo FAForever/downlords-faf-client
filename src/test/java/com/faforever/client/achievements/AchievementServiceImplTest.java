@@ -1,22 +1,18 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.UpdatedAchievement;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.user.UserService;
 import com.google.api.client.json.JsonFactory;
-import javafx.scene.image.Image;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,18 +23,15 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static com.faforever.client.theme.ThemeService.DEFAULT_ACHIEVEMENT_IMAGE;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -99,42 +92,6 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
     }).when(threadPoolExecutor).execute(any(Runnable.class));
 
     instance.postConstruct();
-  }
-
-  @Test
-  public void testOnUpdatedAchievementsNewlyUnlockedTriggersNotification() {
-    verify(fafService).addOnMessageListener(eq(UpdatedAchievementsMessage.class), onUpdatedAchievementsCaptor.capture());
-    Consumer<UpdatedAchievementsMessage> listener = onUpdatedAchievementsCaptor.getValue();
-
-    AchievementDefinition achievementDefinition = new AchievementDefinition();
-    achievementDefinition.setUnlockedIconUrl(getClass().getResource("/theme/images/tray_icon.png").toExternalForm());
-    when(fafApiAccessor.getAchievementDefinition("123")).thenReturn(achievementDefinition);
-
-    when(themeService.getThemeImage(DEFAULT_ACHIEVEMENT_IMAGE)).thenReturn(new Image("/theme/images/default_achievement.png"));
-
-    UpdatedAchievementsMessage updatedAchievementsMessage = new UpdatedAchievementsMessage();
-    UpdatedAchievement updatedAchievement = new UpdatedAchievement();
-    updatedAchievement.setAchievementId("123");
-    updatedAchievement.setNewlyUnlocked(true);
-
-    updatedAchievementsMessage.setUpdatedAchievements(Collections.singletonList(updatedAchievement));
-    listener.accept(updatedAchievementsMessage);
-
-    verify(notificationService).addNotification(any(TransientNotification.class));
-  }
-
-  @Test
-  public void testOnUpdatedAchievementsAlreadyUnlockedDoesntTriggerNotification() {
-    verify(fafService).addOnMessageListener(eq(UpdatedAchievementsMessage.class), onUpdatedAchievementsCaptor.capture());
-    Consumer<UpdatedAchievementsMessage> listener = onUpdatedAchievementsCaptor.getValue();
-
-    UpdatedAchievementsMessage updatedAchievementsMessage = new UpdatedAchievementsMessage();
-    updatedAchievementsMessage.setUpdatedAchievements(Collections.singletonList(new UpdatedAchievement()));
-    listener.accept(updatedAchievementsMessage);
-
-    verifyZeroInteractions(notificationService);
-    verify(fafApiAccessor).getPlayerAchievements(123);
-    verifyNoMoreInteractions(fafApiAccessor);
   }
 
   @Test

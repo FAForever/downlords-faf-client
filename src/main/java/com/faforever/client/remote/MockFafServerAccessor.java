@@ -55,6 +55,7 @@ import static java.util.Collections.singletonList;
 public class MockFafServerAccessor implements FafServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String USER_NAME = "MockUser";
   private final Timer timer;
   private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners;
   @Resource
@@ -108,7 +109,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
         messageListeners.getOrDefault(gameTypeMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(gameTypeMessage));
 
         Player player = new Player();
-        player.setLogin(userService.getUsername());
+        player.setLogin(USER_NAME);
         player.setClan("ABC");
         player.setCountry("A1");
         player.setGlobalRating(new float[]{1500, 220});
@@ -119,6 +120,19 @@ public class MockFafServerAccessor implements FafServerAccessor {
         playersMessage.setPlayers(singletonList(player));
 
         messageListeners.getOrDefault(playersMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(playersMessage));
+
+        timer.schedule(new TimerTask() {
+          @Override
+          public void run() {
+            UpdatedAchievementsMessage updatedAchievementsMessage = new UpdatedAchievementsMessage();
+            UpdatedAchievement updatedAchievement = new UpdatedAchievement();
+            updatedAchievement.setAchievementId("50260d04-90ff-45c8-816b-4ad8d7b97ecd");
+            updatedAchievement.setNewlyUnlocked(true);
+            updatedAchievementsMessage.setUpdatedAchievements(Arrays.asList(updatedAchievement));
+
+            messageListeners.getOrDefault(updatedAchievementsMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(updatedAchievementsMessage));
+          }
+        }, 7000);
 
         timer.schedule(new TimerTask() {
           @Override
@@ -168,7 +182,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
         LoginMessage sessionInfo = new LoginMessage();
         sessionInfo.setId(123);
-        sessionInfo.setLogin("MockUser");
+        sessionInfo.setLogin(USER_NAME);
         return sessionInfo;
       }
     }).getFuture();
