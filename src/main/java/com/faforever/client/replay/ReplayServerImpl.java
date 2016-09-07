@@ -57,6 +57,7 @@ public class ReplayServerImpl implements ReplayServer {
 
   private LocalReplayInfo replayInfo;
   private ServerSocket serverSocket;
+  private boolean stoppedGracefully;
 
   /**
    * Returns the current millis the same way as python does since this is what's stored in the replay files *yay*.
@@ -67,14 +68,16 @@ public class ReplayServerImpl implements ReplayServer {
 
   @Override
   public void stop() {
-    if (serverSocket != null) {
+    if (serverSocket == null) {
       throw new IllegalStateException("Server has never been started");
     }
+    stoppedGracefully = true;
     noCatch(() -> serverSocket.close());
   }
 
   @Override
   public void start(int uid) {
+    stoppedGracefully = false;
     new Thread(() -> {
       Integer localReplayServerPort = environment.getProperty("localReplayServer.port", Integer.class);
       String fafReplayServerHost = environment.getProperty("fafReplayServer.host");
@@ -87,6 +90,9 @@ public class ReplayServerImpl implements ReplayServer {
         this.serverSocket = serverSocket1;
         recordAndRelay(uid, serverSocket1, new BufferedOutputStream(fafReplayServerSocket.getOutputStream()));
       } catch (IOException e) {
+        if (stoppedGracefully) {
+          return;
+        }
         logger.warn("Error in replay server", e);
         notificationService.addNotification(new PersistentNotification(
                 i18n.get("replayServer.listeningFailed", localReplayServerPort),

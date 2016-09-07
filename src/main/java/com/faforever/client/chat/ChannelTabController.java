@@ -26,9 +26,11 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
+import netscape.javascript.JSObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -106,7 +108,7 @@ public class ChannelTabController extends AbstractChatTabController {
   @Resource
   ThreadPoolExecutor threadPoolExecutor;
 
-  private String channelName;
+  private Channel channel;
   private Popup filterUserPopup;
   private MapChangeListener<String, ChatUser> usersChangeListener;
   private ChangeListener<ChatColorMode> chatColorModeChangeListener;
@@ -120,15 +122,16 @@ public class ChannelTabController extends AbstractChatTabController {
     return userToChatUserControls;
   }
 
-  public void setChannelName(String channelName) {
-    if (this.channelName != null) {
-      throw new IllegalStateException("channelName has already been set");
+  public void setChannel(Channel channel) {
+    if (this.channel != null) {
+      throw new IllegalStateException("channel has already been set");
     }
-    this.channelName = channelName;
+
+    this.channel = channel;
+    String channelName = channel.getName();
     setReceiver(channelName);
     channelTabRoot.setId(channelName);
     channelTabRoot.setText(channelName);
-
 
     usersChangeListener = change -> {
       if (change.wasAdded()) {
@@ -138,24 +141,23 @@ public class ChannelTabController extends AbstractChatTabController {
       }
       updateUserCount(change.getMap().size());
     };
-    updateUserCount(chatService.getOrCreateChannel(channelName).getUsers().size());
+    updateUserCount(channel.getUsers().size());
 
     chatService.addUsersListener(channelName, usersChangeListener);
 
     // Maybe there already were some users; fetch them
-    threadPoolExecutor.execute(() -> {
-      Channel channel = chatService.getOrCreateChannel(channelName);
-      channel.getUsers().forEach(ChannelTabController.this::onUserJoinedChannel);
-    });
+    threadPoolExecutor.execute(() -> channel.getUsers().forEach(ChannelTabController.this::onUserJoinedChannel));
 
     channelTabRoot.setOnCloseRequest(event -> {
-      chatService.leaveChannel(channelName);
+      chatService.leaveChannel(channel.getName());
       chatService.removeUsersListener(channelName, usersChangeListener);
     });
 
     searchFieldContainer.visibleProperty().bind(searchField.visibleProperty());
     closeSearchFieldButton.visibleProperty().bind(searchField.visibleProperty());
     addSearchFieldListener();
+
+    channel.topicProperty().addListener((observable, oldValue, newValue) -> setTopic(newValue));
   }
 
   private void updateUserCount(int count) {
@@ -184,16 +186,17 @@ public class ChannelTabController extends AbstractChatTabController {
   private void filterChatUserControlsBySearchString() {
     synchronized (userToChatUserControls) {
       for (Map<Pane, ChatUserItemController> chatUserControlMap : userToChatUserControls.values()) {
-        for (Map.Entry<Pane, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
-          ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
-          chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
+        synchronized (chatUserControlMap) {
+          for (Map.Entry<Pane, ChatUserItemController> chatUserControlEntry : chatUserControlMap.entrySet()) {
+            ChatUserItemController chatUserItemController = chatUserControlEntry.getValue();
+            chatUserItemController.setVisible(isUsernameMatch(chatUserItemController));
+          }
         }
       }
     }
   }
 
   private void setAllMessageColors() {
-    Channel channel = chatService.getOrCreateChannel(channelName);
     Map<String, String> userToColor = new HashMap<>();
     channel.getUsers().stream().filter(chatUser -> chatUser.getColor() != null).forEach(chatUser
         -> userToColor.put(chatUser.getUsername(), JavaFxUtil.toRgbCode(chatUser.getColor())));
@@ -266,6 +269,21 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @Override
+  protected void onWebViewLoaded() {
+    setTopic(channel.getTopic());
+  }
+
+  private void setTopic(String topic) {
+    Platform.runLater(() -> {
+      String value = convertUrlsToHyperlinks(topic);
+      WebEngine engine = getMessagesWebView().getEngine();
+      ((JSObject) engine.executeScript("document.getElementById('" + CHANNEL_TOPIC_CONTAINER_ID + "')")).setMember("innerHTML", value);
+      ((JSObject) engine.executeScript("document.getElementById('" + CHANNEL_TOPIC_SHADOW_CONTAINER_ID + "')")).setMember("innerHTML", value);
+        }
+    );
+  }
+
+  @Override
   protected void onMention(ChatMessage chatMessage) {
     if (!hasFocus()) {
       audioController.playChatMentionSound();
@@ -280,7 +298,7 @@ public class ChannelTabController extends AbstractChatTabController {
     PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(login);
     if (playerInfoBean != null
         && !playerInfoBean.equals(playerService.getCurrentPlayer())
-        && playerInfoBean.getModeratorForChannels().contains(channelName)) {
+        && playerInfoBean.getModeratorForChannels().contains(channel.getName())) {
       return CSS_CLASS_MODERATOR;
     }
 
@@ -450,10 +468,14 @@ public class ChannelTabController extends AbstractChatTabController {
       return;
     }
 
-    for (Map.Entry<Pane, ChatUserItemController> entry : paneToChatUserControlMap.entrySet()) {
-      Platform.runLater(() -> entry.getKey().getChildren().remove(entry.getValue().getRoot()));
-    }
-    paneToChatUserControlMap.clear();
+    Platform.runLater(() -> {
+      synchronized (paneToChatUserControlMap) {
+        for (Map.Entry<Pane, ChatUserItemController> entry : paneToChatUserControlMap.entrySet()) {
+          entry.getKey().getChildren().remove(entry.getValue().getRoot());
+        }
+        paneToChatUserControlMap.clear();
+      }
+    });
     userToChatUserControls.remove(username);
   }
 
@@ -467,9 +489,15 @@ public class ChannelTabController extends AbstractChatTabController {
       // User has not yet been added to this pane; no need to remove him
       return;
     }
-    Pane root = paneChatUserControlMap.remove(pane).getRoot();
-    if (root != null) {
-      Platform.runLater(() -> pane.getChildren().remove(root));
+    synchronized (paneChatUserControlMap) {
+      ChatUserItemController controller = paneChatUserControlMap.remove(pane);
+      if (controller == null) {
+        return;
+      }
+      Pane root = controller.getRoot();
+      if (root != null) {
+        Platform.runLater(() -> pane.getChildren().remove(root));
+      }
     }
   }
 
@@ -512,7 +540,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private Collection<Pane> getTargetPanesForUser(PlayerInfoBean playerInfoBean) {
     ArrayList<Pane> panes = new ArrayList<>(3);
 
-    if (playerInfoBean.getModeratorForChannels().contains(channelName)) {
+    if (playerInfoBean.getModeratorForChannels().contains(channel.getName())) {
       panes.add(moderatorsPane);
     }
 

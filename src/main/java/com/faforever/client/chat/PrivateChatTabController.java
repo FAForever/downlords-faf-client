@@ -60,6 +60,8 @@ public class PrivateChatTabController extends AbstractChatTabController {
       }
 
     });
+
+
   }
 
   @Override
@@ -70,6 +72,12 @@ public class PrivateChatTabController extends AbstractChatTabController {
   @Override
   protected WebView getMessagesWebView() {
     return messagesWebView;
+  }
+
+  @Override
+  protected void onWebViewLoaded() {
+    getMessagesWebView().getEngine().executeScript("document.getElementById('" + CHANNEL_TOPIC_CONTAINER_ID + "').style.display = \"none\";");
+    getMessagesWebView().getEngine().executeScript("document.getElementById('" + CHANNEL_TOPIC_SHADOW_CONTAINER_ID + "').style.display = \"none\";");
   }
 
   @Override

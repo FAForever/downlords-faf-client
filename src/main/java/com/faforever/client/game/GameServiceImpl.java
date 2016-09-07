@@ -16,6 +16,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.relay.LocalRelayServer;
+import com.faforever.client.relay.event.RehostRequestEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
@@ -24,6 +25,8 @@ import com.faforever.client.remote.domain.GameTypeMessage;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
@@ -52,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,7 +66,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.Consumer;
 
-import static com.github.nocatch.NoCatch.noCatch;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
@@ -75,12 +78,13 @@ public class GameServiceImpl implements GameService {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @VisibleForTesting
   final BooleanProperty gameRunning;
+  @VisibleForTesting
+  final SimpleObjectProperty<GameInfoBean> currentGame;
   private final ObservableMap<String, GameTypeBean> gameTypeBeans;
   // It is indeed ugly to keep references in both, a list and a map, however I don't see how I can populate the map
   // values as an observable list (in order to display it in the games table)
   private final ObservableList<GameInfoBean> gameInfoBeans;
   private final Map<Integer, GameInfoBean> uidToGameInfoBean;
-  private final SimpleObjectProperty<GameInfoBean> currentGame;
   @Resource
   FafService fafService;
   @Resource
@@ -109,6 +113,8 @@ public class GameServiceImpl implements GameService {
   ReportingService reportingService;
   @Resource
   ReplayService replayService;
+  @Resource
+  EventBus eventBus;
 
   @Value("${ranked1v1.search.maxRadius}")
   float ranked1v1SearchMaxRadius;
@@ -121,6 +127,7 @@ public class GameServiceImpl implements GameService {
   private Process process;
   private BooleanProperty searching1v1;
   private ScheduledFuture<?> searchExpansionFuture;
+  private boolean rehostRequested;
 
   public GameServiceImpl() {
     gameTypeBeans = FXCollections.observableHashMap();
@@ -152,11 +159,7 @@ public class GameServiceImpl implements GameService {
 
     stopSearchRanked1v1();
 
-    return updateGameIfNecessary(
-        newGameInfo.getGameType(),
-        newGameInfo.getVersion(), emptyMap(),
-        newGameInfo.getSimModUidsToVersions()
-    )
+    return updateGameIfNecessary(newGameInfo.getGameType(), null, emptyMap(), newGameInfo.getSimMods())
         .thenRun(() -> connectivityService.connect())
         .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
@@ -175,6 +178,9 @@ public class GameServiceImpl implements GameService {
 
     logger.info("Joining game: {} ({})", gameInfoBean.getTitle(), gameInfoBean.getUid());
 
+    // Store password in case we rehost later
+    gameInfoBean.setPassword(password);
+
     stopSearchRanked1v1();
 
     Map<String, Integer> simModVersions = gameInfoBean.getFeaturedModVersions();
@@ -187,6 +193,8 @@ public class GameServiceImpl implements GameService {
         .thenCompose(aVoid -> fafService.requestJoinGame(gameInfoBean.getUid(), password))
         .thenAccept(gameLaunchInfo -> {
           synchronized (currentGame) {
+            // Store password in case we rehost
+            gameInfoBean.setPassword(password);
             currentGame.set(gameInfoBean);
           }
           replayService.startReplayServer(gameLaunchInfo.getUid());
@@ -315,15 +323,16 @@ public class GameServiceImpl implements GameService {
     return updateGameIfNecessary(GameType.LADDER_1V1.getString(), null, emptyMap(), emptySet())
         .thenRun(() -> localRelayServer.start(connectivityService))
         .thenCompose(aVoid -> fafService.startSearchRanked1v1(faction, port))
-        .thenAccept((gameLaunchInfo) -> {
-          // TODO this should be sent by the server!
-          gameLaunchInfo.setArgs(new ArrayList<>(gameLaunchInfo.getArgs()));
-          gameLaunchInfo.getArgs().add("/team 1");
-          gameLaunchInfo.getArgs().add("/players 2");
+        .thenAccept((gameLaunchInfo) -> downloadMapIfNecessary(gameLaunchInfo.getMapname())
+            .thenRun(() -> {
+              // TODO this should be sent by the server!
+              gameLaunchInfo.setArgs(new ArrayList<>(gameLaunchInfo.getArgs()));
+              gameLaunchInfo.getArgs().add("/team 1");
+              gameLaunchInfo.getArgs().add("/players 2");
 
-          searchExpansionFuture.cancel(true);
-          startGame(gameLaunchInfo, faction, RatingMode.RANKED_1V1, localRelayServer.getPort());
-        })
+              searchExpansionFuture.cancel(true);
+              startGame(gameLaunchInfo, faction, RatingMode.RANKED_1V1, localRelayServer.getPort());
+            }))
         .exceptionally(throwable -> {
           if (throwable instanceof CancellationException) {
             logger.info("Ranked1v1 search has been cancelled");
@@ -361,19 +370,6 @@ public class GameServiceImpl implements GameService {
     return searching1v1;
   }
 
-  @Override
-  public CompletionStage<Void> prepareForRehost() {
-    return fafService.expectRehostCommand().thenAccept(gameLaunchMessage -> {
-      logger.debug("Received game launch command, waiting for FA to terminate");
-      noCatch(() -> process.waitFor());
-      localRelayServer.close();
-
-      localRelayServer.start(connectivityService);
-      connectivityService.connect();
-      startGame(gameLaunchMessage, null, RatingMode.GLOBAL, localRelayServer.getPort());
-    });
-  }
-
   @Nullable
   @Override
   public GameInfoBean getCurrentGame() {
@@ -392,7 +388,9 @@ public class GameServiceImpl implements GameService {
 
   @Override
   public boolean isGameRunning() {
-    return gameRunning.get();
+    synchronized (gameRunning) {
+      return gameRunning.get();
+    }
   }
 
   private void setGameRunning(boolean running) {
@@ -415,7 +413,7 @@ public class GameServiceImpl implements GameService {
     List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
     try {
       localRelayServer.getPort();
-      process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), faction, args, ratingMode, localRelayPort);
+      process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), faction, args, ratingMode, localRelayPort, rehostRequested);
       setGameRunning(true);
 
       this.ratingMode = ratingMode;
@@ -449,19 +447,51 @@ public class GameServiceImpl implements GameService {
   void spawnTerminationListener(Process process) {
     CompletableFuture.runAsync(() -> {
       try {
+        rehostRequested = false;
         int exitCode = process.waitFor();
-        setGameRunning(false);
-        localRelayServer.close();
-        fafService.notifyGameEnded();
         logger.info("Forged Alliance terminated with exit code {}", exitCode);
+
+        synchronized (gameRunning) {
+          gameRunning.set(false);
+          localRelayServer.close();
+          fafService.notifyGameEnded();
+          replayService.stopReplayServer();
+
+          if (rehostRequested) {
+            rehost();
+          }
+        }
       } catch (InterruptedException e) {
         logger.warn("Error during post-game processing", e);
       }
     }, scheduledExecutorService);
   }
 
+  private void rehost() {
+    GameInfoBean gameInfoBean = currentGame.get();
+
+    hostGame(new NewGameInfo(
+        gameInfoBean.getTitle(),
+        gameInfoBean.getPassword(),
+        gameInfoBean.getFeaturedMod(),
+        gameInfoBean.getMapFolderName(),
+        new HashSet<>(gameInfoBean.getSimMods().values())));
+  }
+
+  @Subscribe
+  public void onRehostRequest(RehostRequestEvent event) {
+    this.rehostRequested = true;
+    synchronized (gameRunning) {
+      if (!gameRunning.get()) {
+        // If the game already has terminated, the rehost is issued here. Otherwise it will be issued after termination
+        rehost();
+      }
+    }
+  }
+
   @PostConstruct
   void postConstruct() {
+    eventBus.register(this);
     fafService.addOnMessageListener(GameTypeMessage.class, this::onGameTypeInfo);
     fafService.addOnMessageListener(GameInfoMessage.class, this::onGameInfo);
   }

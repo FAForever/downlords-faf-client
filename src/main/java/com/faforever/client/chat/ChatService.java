@@ -47,8 +47,7 @@ public interface ChatService {
 
   void close();
 
-  // TODO: Refactor and use getOrCreateChatUser instead
-  ChatUser createOrGetChatUser(User user);
+  ChatUser getOrCreateChatUser(User user);
 
   ObjectProperty<ConnectionState> connectionStateProperty();
 

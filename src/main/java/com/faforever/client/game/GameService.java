@@ -56,8 +56,6 @@ public interface GameService {
 
   BooleanProperty searching1v1Property();
 
-  CompletionStage<Void> prepareForRehost();
-
   /**
    * Returns the game the player is currently in. Returns {@code null} if not in a game.
    */

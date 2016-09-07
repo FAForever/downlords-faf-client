@@ -50,8 +50,13 @@ public class LaunchCommandBuilderTest {
   }
 
   @Test(expected = IllegalStateException.class)
-  public void testUsernameNullNotAllowed() throws Exception {
-    defaultBuilder().username(null).build();
+  public void testUsernameNullNotAllowedIfUidSet() throws Exception {
+    defaultBuilder().uid(123).username(null).build();
+  }
+
+  @Test
+  public void testUsernameNullAllowedIfUidNotSet() throws Exception {
+    defaultBuilder().uid(null).username(null).build();
   }
 
   @Test
@@ -95,6 +100,19 @@ public class LaunchCommandBuilderTest {
             "/init", "init_faf.lua",
             "/nobugreport",
             "/log", Paths.get("game.log").toAbsolutePath().toString()
+        ));
+  }
+
+  @Test
+  public void testRehost() throws Exception {
+    assertThat(
+        defaultBuilder().rehost(true).build(),
+        contains(
+            Paths.get("test.exe").toAbsolutePath().toString(),
+            "/init", "init_faf.lua",
+            "/nobugreport",
+            "/log", Paths.get("game.log").toAbsolutePath().toString(),
+            "/rehost"
         ));
   }
 }

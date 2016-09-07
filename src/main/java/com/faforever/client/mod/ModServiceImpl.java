@@ -3,7 +3,6 @@ package com.faforever.client.mod;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.FileUtils;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -468,22 +467,10 @@ public class ModServiceImpl implements ModService {
       }
     } catch (ModLoadException e) {
       logger.debug("Corrupt mod: " + path, e);
-      moveCorruptMod(path);
-    }
-  }
 
-  private void moveCorruptMod(Path path) {
-    noCatch(() -> {
-      Path corruptedModsDirectory = preferencesService.getCorruptedModsDirectory();
-      createDirectories(corruptedModsDirectory);
-
-      logger.debug("Moving corrupted mod file from {} into {}", path, corruptedModsDirectory);
-
-      FileUtils.moveDirectoryInto(path, corruptedModsDirectory);
-
-      notificationService.addNotification(new PersistentNotification(i18n.get("corruptedMods.notification"), WARN, singletonList(
-          new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(corruptedModsDirectory.resolve(path.getFileName())))
+      notificationService.addNotification(new PersistentNotification(i18n.get("corruptedMods.notification", path.getFileName()), WARN, singletonList(
+          new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(path))
       )));
-    });
+    }
   }
 }

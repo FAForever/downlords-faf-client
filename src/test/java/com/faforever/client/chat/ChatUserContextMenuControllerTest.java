@@ -1,11 +1,14 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.chat.avatar.AvatarBean;
+import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -19,14 +22,23 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableMap;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.faforever.client.chat.SocialStatus.OTHER;
+import static com.faforever.client.chat.SocialStatus.SELF;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doThrow;
@@ -60,6 +72,8 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   EventBus eventBus;
   @Mock
   JoinGameHelper joinGameHelper;
+  @Mock
+  AvatarService avatarService;
 
   private ChatUserContextMenuController instance;
   private PlayerInfoBean playerInfoBean;
@@ -79,6 +93,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
     instance.i18n = i18n;
     instance.eventBus = eventBus;
     instance.joinGameHelper = joinGameHelper;
+    instance.avatarService = avatarService;
 
     Preferences preferences = mock(Preferences.class);
     ChatPrefs chatPrefs = mock(ChatPrefs.class);
@@ -88,8 +103,13 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getChat()).thenReturn(chatPrefs);
     when(chatPrefs.getUserToColor()).thenReturn(mock(ObservableMap.class));
     when(chatPrefs.chatColorModeProperty()).thenReturn(chatColorModeObjectProperty);
+    when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+        new AvatarBean(new URL("http://www.example.com/avatar1.png"), "Avatar Number #1"),
+        new AvatarBean(new URL("http://www.example.com/avatar2.png"), "Avatar Number #2"),
+        new AvatarBean(new URL("http://www.example.com/avatar3.png"), "Avatar Number #3")
+    )));
 
-    playerInfoBean = new PlayerInfoBean(TEST_USER_NAME);
+    playerInfoBean = PlayerInfoBeanBuilder.create(TEST_USER_NAME).socialStatus(SELF).avatar(null).get();
     instance.setPlayerInfoBean(playerInfoBean);
   }
 
@@ -101,7 +121,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnAddFriend_WITH_FOE() {
+  public void testOnAddFriendWithFoe() {
     playerInfoBean.setSocialStatus(FOE);
 
     instance.onAddFriend();
@@ -111,7 +131,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnAddFriend_WITH_NEUTRAL() {
+  public void testOnAddFriendWithNeutral() {
     playerInfoBean.setSocialStatus(OTHER);
 
     instance.onAddFriend();
@@ -128,7 +148,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnAddFoe_WITH_FRIEND() {
+  public void testOnAddFoeWithFriend() {
     playerInfoBean.setSocialStatus(FRIEND);
 
     instance.onAddFoe();
@@ -138,7 +158,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnAddFoe_WITH_NEUTRAL() {
+  public void testOnAddFoeWithNeutral() {
     playerInfoBean.setSocialStatus(OTHER);
 
     instance.onAddFoe();
@@ -162,7 +182,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnWatchGame_Throws_IOException() throws Exception {
+  public void testOnWatchGameThrowsIoExceptionTriggersNotification() throws Exception {
     doThrow(new IOException("Error in runLiveReplay"))
         .when(replayService).runLiveReplay(anyInt(), anyInt());
 
@@ -179,5 +199,19 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
     instance.onJoinGame();
 
     verify(joinGameHelper).join(gameInfoBean);
+  }
+
+  @Test
+  public void onSelectAvatar() throws Exception {
+    instance.avatarComboBox.show();
+
+    WaitForAsyncUtils.waitForAsyncFx(100000, () -> instance.avatarComboBox.getSelectionModel().select(2));
+
+    ArgumentCaptor<AvatarBean> captor = ArgumentCaptor.forClass(AvatarBean.class);
+    verify(avatarService).changeAvatar(captor.capture());
+
+    AvatarBean avatarBean = captor.getValue();
+    assertThat(avatarBean.getUrl(), equalTo(new URL("http://www.example.com/avatar2.png")));
+    assertThat(avatarBean.getDescription(), is("Avatar Number #2"));
   }
 }

@@ -107,12 +107,10 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     gamePrefsPath = faDataDirectory.getRoot().toPath().resolve("game.prefs");
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferencesService.getCorruptedModsDirectory()).thenReturn(corruptedModsDirectory.getRoot().toPath());
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPreferencesFile()).thenReturn(gamePrefsPath);
     when(forgedAlliancePrefs.getModsDirectory()).thenReturn(modsDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.modsDirectoryProperty()).thenReturn(new SimpleObjectProperty<>(modsDirectory.getRoot().toPath()));
-    when(preferencesService.getCorruptedModsDirectory()).thenReturn(corruptedModsDirectory.getRoot().toPath());
     doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
 
     copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);

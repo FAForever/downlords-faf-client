@@ -10,13 +10,16 @@ public class NewGameInfoBuilder {
     newGameInfo = new NewGameInfo();
   }
 
+  public static NewGameInfoBuilder create() {
+    return new NewGameInfoBuilder();
+  }
+
   public NewGameInfoBuilder defaultValues() {
     newGameInfo.setMap("map");
     newGameInfo.setGameType("mod");
     newGameInfo.setPassword("password");
     newGameInfo.setTitle("title");
-    newGameInfo.setVersion(1);
-    newGameInfo.setSimModUidsToVersions(new HashSet<String>() {{
+    newGameInfo.setSimMods(new HashSet<String>() {{
       add("111-456-789");
       add("222-456-789");
       add("333-456-789");
@@ -26,10 +29,6 @@ public class NewGameInfoBuilder {
 
   public NewGameInfo get() {
     return newGameInfo;
-  }
-
-  public static NewGameInfoBuilder create() {
-    return new NewGameInfoBuilder();
   }
 
 

@@ -19,7 +19,8 @@ public enum FafServerMessageType implements ServerMessageType {
   AUTHENTICATION_FAILED("authentication_failed", AuthenticationFailedMessage.class),
   STATS("stats", StatisticsMessage.class),
   UPDATED_ACHIEVEMENTS("updated_achievements", UpdatedAchievementsMessage.class),
-  NOTICE("notice", NoticeMessage.class);
+  NOTICE("notice", NoticeMessage.class),
+  AVATAR("avatar", AvatarMessage.class);
 
   private static final Map<String, FafServerMessageType> fromString;
 
@@ -38,6 +39,10 @@ public enum FafServerMessageType implements ServerMessageType {
     this.type = type;
   }
 
+  public static FafServerMessageType fromString(String string) {
+    return fromString.get(string);
+  }
+
   @Override
   public String getString() {
     return string;
@@ -47,10 +52,6 @@ public enum FafServerMessageType implements ServerMessageType {
   @SuppressWarnings("unchecked")
   public <T extends ServerMessage> Class<T> getType() {
     return (Class<T>) type;
-  }
-
-  public static FafServerMessageType fromString(String string) {
-    return fromString.get(string);
   }
 
 }

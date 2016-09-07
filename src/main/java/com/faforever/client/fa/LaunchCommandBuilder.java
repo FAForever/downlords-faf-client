@@ -31,6 +31,7 @@ public class LaunchCommandBuilder {
   private String gameType;
   private Faction faction;
   private String executableDecorator;
+  private boolean rehost;
 
   private LaunchCommandBuilder() {
     executableDecorator = "\"%s\"";
@@ -124,6 +125,11 @@ public class LaunchCommandBuilder {
     return this;
   }
 
+  public LaunchCommandBuilder rehost(boolean rehost) {
+    this.rehost = rehost;
+    return this;
+  }
+
   public List<String> build() {
     if (executableDecorator == null) {
       throw new IllegalStateException("executableDecorator has not been set");
@@ -137,11 +143,11 @@ public class LaunchCommandBuilder {
     if (gameType == null) {
       throw new IllegalStateException("gameType has not been set");
     }
-    if (username == null) {
-      throw new IllegalStateException("username has not been set");
-    }
     if (replayUri != null && uid != null) {
       throw new IllegalStateException("uid and replayUri cannot be set at the same time");
+    }
+    if (uid != null && username == null) {
+      throw new IllegalStateException("username has not been set");
     }
 
 
@@ -202,6 +208,10 @@ public class LaunchCommandBuilder {
     if (replayId != null) {
       command.add("/replayid");
       command.add(String.valueOf(replayId));
+    }
+
+    if (rehost) {
+      command.add("/rehost");
     }
 
     if (additionalArgs != null) {

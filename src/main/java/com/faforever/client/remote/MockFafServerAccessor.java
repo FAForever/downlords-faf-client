@@ -11,6 +11,7 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.relay.GpgClientMessage;
+import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -53,6 +55,7 @@ import static java.util.Collections.singletonList;
 public class MockFafServerAccessor implements FafServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String USER_NAME = "MockUser";
   private final Timer timer;
   private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners;
   @Resource
@@ -106,7 +109,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
         messageListeners.getOrDefault(gameTypeMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(gameTypeMessage));
 
         Player player = new Player();
-        player.setLogin(userService.getUsername());
+        player.setLogin(USER_NAME);
         player.setClan("ABC");
         player.setCountry("A1");
         player.setGlobalRating(new float[]{1500, 220});
@@ -117,6 +120,19 @@ public class MockFafServerAccessor implements FafServerAccessor {
         playersMessage.setPlayers(singletonList(player));
 
         messageListeners.getOrDefault(playersMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(playersMessage));
+
+        timer.schedule(new TimerTask() {
+          @Override
+          public void run() {
+            UpdatedAchievementsMessage updatedAchievementsMessage = new UpdatedAchievementsMessage();
+            UpdatedAchievement updatedAchievement = new UpdatedAchievement();
+            updatedAchievement.setAchievementId("50260d04-90ff-45c8-816b-4ad8d7b97ecd");
+            updatedAchievement.setNewlyUnlocked(true);
+            updatedAchievementsMessage.setUpdatedAchievements(Arrays.asList(updatedAchievement));
+
+            messageListeners.getOrDefault(updatedAchievementsMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(updatedAchievementsMessage));
+          }
+        }, 7000);
 
         timer.schedule(new TimerTask() {
           @Override
@@ -166,7 +182,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
         LoginMessage sessionInfo = new LoginMessage();
         sessionInfo.setId(123);
-        sessionInfo.setLogin("MockUser");
+        sessionInfo.setLogin(USER_NAME);
         return sessionInfo;
       }
     }).getFuture();
@@ -258,11 +274,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> expectRehostCommand() {
-    return CompletableFuture.completedFuture(null);
-  }
-
-  @Override
   public void removeFriend(int playerId) {
 
   }
@@ -270,6 +281,16 @@ public class MockFafServerAccessor implements FafServerAccessor {
   @Override
   public void removeFoe(int playerId) {
 
+  }
+
+  @Override
+  public void selectAvatar(URL url) {
+
+  }
+
+  @Override
+  public List<Avatar> getAvailableAvatars() {
+    return null;
   }
 
   private GameInfoMessage createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {

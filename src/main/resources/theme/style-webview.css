@@ -6,7 +6,7 @@ All the following applies to the content of a WebViews (chat, news), therefore i
 
 html, body {
   background-color: transparent;
-  margin: 0, 0, 0, 5px;
+  margin: 0;
   padding: 0;
   /* Use same as -fx-light-text-color */
   color: #BFBEBA;
@@ -17,6 +17,37 @@ a {
   /* Use same as -fx-accent */
   color: #609e15;
   text-decoration: none;
+}
+
+/***************** Header / Channel topic *****************/
+
+#wrapper {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#channel-topic {
+  position: fixed;
+}
+
+#channel-topic, #channel-topic-shadow {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 5px;
+  color: white;
+  background: #333;
+}
+
+#content {
+  flex: 1;
+  display: flex;
+  overflow: auto;
+  padding: 0px 5px;
+}
+
+#chat-table {
+  margin-top: 5px;
 }
 
 /***************** Search (WebView) *****************/

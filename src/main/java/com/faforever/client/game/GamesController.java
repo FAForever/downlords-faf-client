@@ -1,8 +1,6 @@
 package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapBean;
-import com.faforever.client.map.MapDetailController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
@@ -28,8 +26,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
-import javafx.stage.Popup;
-import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.apache.commons.lang3.StringUtils;
@@ -105,8 +101,6 @@ public class GamesController {
   @Resource
   NotificationService notificationService;
 
-
-  private Popup createGamePopup;
   private FilteredList<GameInfoBean> filteredItems;
   private Stage mapDetailPopup;
 
@@ -115,11 +109,6 @@ public class GamesController {
 
   @PostConstruct
   void postConstruct() {
-    createGamePopup = new Popup();
-    createGamePopup.setAutoFix(false);
-    createGamePopup.setAutoHide(true);
-    createGamePopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
-    createGamePopup.getContent().setAll(createGameController.getRoot());
 
     ObservableList<GameInfoBean> gameInfoBeans = gameService.getGameInfoBeans();
 
@@ -154,8 +143,6 @@ public class GamesController {
 
   @FXML
   void onCreateGameButtonClicked(ActionEvent actionEvent) {
-    Button button = (Button) actionEvent.getSource();
-
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
       preferencesService.letUserChooseGameDirectory()
           .thenAccept(path -> {
@@ -167,18 +154,7 @@ public class GamesController {
     }
 
     Bounds screenBounds = createGameButton.localToScreen(createGameButton.getBoundsInLocal());
-    createGamePopup.show(button.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());
-  }
-
-  @FXML
-  void onMapLargePreview() {
-    if (currentGameInfoBean == null) {
-      return;
-    }
-    mapDetailPopup = getMapDetailPopup();
-    MapDetailController mapDetailController = applicationContext.getBean(MapDetailController.class);
-    MapBean mapBean = mapService.findMapByName(currentGameInfoBean.getMapFolderName());
-    // FIXME implement
+    createGameController.show(gamesRoot.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());
   }
 
   private Stage getMapDetailPopup() {

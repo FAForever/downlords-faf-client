@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.CustomMenuItem?>
 <?import javafx.scene.control.MenuItem?>
@@ -26,10 +27,19 @@
     <SeparatorMenuItem mnemonicParsing="false" />
       <MenuItem fx:id="joinGameItem" mnemonicParsing="false" onAction="#onJoinGame" text="%chat.userContext.joinGame" />
     <MenuItem fx:id="watchGameItem" mnemonicParsing="false" onAction="#onWatchGame" text="%chat.userContext.viewLiveReplay" />
-    <MenuItem fx:id="viewReplaysItem" mnemonicParsing="false" onAction="#onViewReplays" text="%chat.userContext.viewReplays" />
-    <MenuItem fx:id="inviteItem" mnemonicParsing="false" onAction="#onInviteToGame" text="%chat.userContext.inviteToGame" />
+    <MenuItem fx:id="viewReplaysItem" disable="true" mnemonicParsing="false" onAction="#onViewReplays"
+              text="%chat.userContext.viewReplays"/>
+    <MenuItem fx:id="inviteItem" mnemonicParsing="false" disable="true" onAction="#onInviteToGame"
+              text="%chat.userContext.inviteToGame"/>
     <SeparatorMenuItem fx:id="moderatorActionSeparator" mnemonicParsing="false" />
-    <MenuItem fx:id="kickItem" mnemonicParsing="false" onAction="#onKick" text="%chat.userContext.kick" />
-    <MenuItem fx:id="banItem" mnemonicParsing="false" onAction="#onBan" text="%chat.userContext.ban" />
+    <MenuItem fx:id="kickItem" mnemonicParsing="false" disable="true" onAction="#onKick" text="%chat.userContext.kick"/>
+    <MenuItem fx:id="banItem" mnemonicParsing="false" disable="true" onAction="#onBan" text="%chat.userContext.ban"/>
+    <CustomMenuItem fx:id="avatarPickerMenuItem" hideOnClick="false" mnemonicParsing="false">
+      <content>
+      </content>
+      <content>
+        <ComboBox fx:id="avatarComboBox" maxWidth="1.7976931348623157E308"/>
+      </content>
+    </CustomMenuItem>
   </items>
 </ContextMenu>

@@ -68,7 +68,7 @@ public class JoinGameHelper {
     Objects.requireNonNull(parentNode, "parentNode has not been set");
 
     PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
-    int playerRating = RatingUtil.getGlobalRating(currentPlayer);
+    int playerRating = RatingUtil.getRoundedGlobalRating(currentPlayer);
 
     if (!preferencesService.isGamePathValid()) {
       preferencesService.letUserChooseGameDirectory()
@@ -115,5 +115,9 @@ public class JoinGameHelper {
             new Action(i18n.get("game.cancel"))
         )
     ));
+  }
+
+  public void join(int gameId) {
+    join(gameService.getByUid(gameId));
   }
 }

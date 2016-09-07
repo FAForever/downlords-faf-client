@@ -92,6 +92,10 @@ import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
 public abstract class AbstractChatTabController {
 
   protected static final String CSS_CLASS_CHAT_ONLY = "chat_only";
+  protected static final String MESSAGE_CONTAINER_ID = "chat-container";
+  protected static final String MESSAGE_ITEM_CLASS = "chat-message";
+  protected static final String CHANNEL_TOPIC_CONTAINER_ID = "channel-topic";
+  protected static final String CHANNEL_TOPIC_SHADOW_CONTAINER_ID = "channel-topic-shadow";
   private static final PseudoClass UNREAD_PSEUDO_STATE = PseudoClass.getPseudoClass("unread");
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final org.springframework.core.io.Resource CHAT_HTML_RESOURCE = new ClassPathResource("/theme/chat_container.html");
@@ -100,8 +104,6 @@ public abstract class AbstractChatTabController {
   private static final org.springframework.core.io.Resource JQUERY_JS_RESOURCE = new ClassPathResource("js/jquery-2.1.4.min.js");
   private static final org.springframework.core.io.Resource JQUERY_HIGHLIGHT_JS_RESOURCE = new ClassPathResource("js/jquery.highlight-5.closure.js");
   private static final org.springframework.core.io.Resource MESSAGE_ITEM_HTML_RESOURCE = new ClassPathResource("/theme/chat_message.html");
-  private static final String MESSAGE_CONTAINER_ID = "chat-container";
-  private static final String MESSAGE_ITEM_CLASS = "chat-message";
   /**
    * This is the member name within the JavaScript code that provides access to this chat tab instance.
    */
@@ -355,6 +357,7 @@ public abstract class AbstractChatTabController {
           waitingMessages.forEach(AbstractChatTabController.this::appendMessage);
           waitingMessages.clear();
           isChatReady = true;
+          onWebViewLoaded();
         }
       }
     });
@@ -380,6 +383,10 @@ public abstract class AbstractChatTabController {
 
   protected JSObject getJsObject() {
     return (JSObject) engine.executeScript("window");
+  }
+
+  protected void onWebViewLoaded() {
+    // Default implementation does nothing, can be overridden by subclass.
   }
 
   /**
@@ -674,7 +681,7 @@ public abstract class AbstractChatTabController {
     return String.format("color: %s;", JavaFxUtil.toRgbCode(messageColor));
   }
 
-  private String convertUrlsToHyperlinks(String text) {
+  protected String convertUrlsToHyperlinks(String text) {
     return (String) engine.executeScript("link('" + text.replace("'", "\\'") + "')");
   }
 

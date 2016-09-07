@@ -131,7 +131,7 @@ public class ChatController {
 
     if (!nameToChatTabController.containsKey(channelName)) {
       ChannelTabController tab = applicationContext.getBean(ChannelTabController.class);
-      tab.setChannelName(channelName);
+      tab.setChannel(chatService.getOrCreateChannel(channelName));
       addTab(channelName, tab);
     }
     return nameToChatTabController.get(channelName);

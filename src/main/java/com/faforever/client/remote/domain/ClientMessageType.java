@@ -12,7 +12,8 @@ public enum ClientMessageType {
   SOCIAL_REMOVE("social_remove"),
   STATISTICS("stats"),
   LOGIN("hello"),
-  GAME_MATCH_MAKING("game_matchmaking");
+  GAME_MATCH_MAKING("game_matchmaking"),
+  AVATAR("avatar");
 
   private static Map<String, ClientMessageType> fromString;
 
@@ -29,11 +30,11 @@ public enum ClientMessageType {
     this.string = string;
   }
 
-  public String getString() {
-    return string;
-  }
-
   public static ClientMessageType fromString(String string) {
     return fromString.get(string);
+  }
+
+  public String getString() {
+    return string;
   }
 }

@@ -1,0 +1,110 @@
+package com.faforever.client.achievements;
+
+import com.faforever.client.api.AchievementDefinition;
+import com.faforever.client.api.AchievementType;
+import com.faforever.client.audio.AudioController;
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.NotificationServiceImpl;
+import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.UpdatedAchievement;
+import com.faforever.client.remote.UpdatedAchievementsMessage;
+import javafx.scene.image.Image;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+
+public class AchievementUnlockedNotifierTest {
+  @Mock
+  private AchievementUnlockedNotifier instance;
+  @Mock
+  private NotificationServiceImpl notificationService;
+  @Mock
+  private I18n i18n;
+  @Mock
+  private AchievementService achievementService;
+  @Mock
+  private FafService fafService;
+  @Mock
+  private AudioController audioController;
+
+  @Captor
+  private ArgumentCaptor<Consumer<UpdatedAchievementsMessage>> listenerCaptor;
+
+  @Before
+  public void setUp() throws Exception {
+    MockitoAnnotations.initMocks(this);
+
+    instance = new AchievementUnlockedNotifier();
+    instance.achievementService = achievementService;
+    instance.audioController = audioController;
+    instance.fafService = fafService;
+    instance.i18n = i18n;
+    instance.notificationService = notificationService;
+
+    instance.postConstruct();
+
+    verify(fafService).addOnMessageListener(eq(UpdatedAchievementsMessage.class), listenerCaptor.capture());
+  }
+
+  @Test
+  public void newlyUnlocked() throws Exception {
+    AchievementDefinition achievementDefinition = new AchievementDefinition();
+    achievementDefinition.setType(AchievementType.STANDARD);
+    achievementDefinition.setName("Test Achievement");
+    triggerUpdatedAchievementsMessage(achievementDefinition, true);
+
+    verify(audioController).playAchievementUnlockedSound();
+
+    ArgumentCaptor<TransientNotification> notificationCaptor = ArgumentCaptor.forClass(TransientNotification.class);
+    verify(notificationService).addNotification(notificationCaptor.capture());
+
+    TransientNotification notification = notificationCaptor.getValue();
+
+    assertThat(notification.getImage(), notNullValue());
+    assertThat(notification.getTitle(), is("Achievement unlocked"));
+    assertThat(notification.getText(), is("Test Achievement"));
+  }
+
+  @Test
+  public void alreadyUnlocked() {
+    AchievementDefinition achievementDefinition = new AchievementDefinition();
+    achievementDefinition.setType(AchievementType.STANDARD);
+    achievementDefinition.setName("Test Achievement");
+    triggerUpdatedAchievementsMessage(achievementDefinition, false);
+
+    verifyZeroInteractions(audioController);
+    verifyZeroInteractions(notificationService);
+  }
+
+  private void triggerUpdatedAchievementsMessage(AchievementDefinition achievementDefinition, boolean newlyUnlocked) {
+    when(achievementService.getAchievementDefinition("1234")).thenReturn(CompletableFuture.completedFuture(achievementDefinition));
+
+    when(i18n.get("achievement.unlockedTitle")).thenReturn("Achievement unlocked");
+    when(achievementService.getRevealedIcon(achievementDefinition)).thenReturn(mock(Image.class));
+
+    UpdatedAchievementsMessage message = new UpdatedAchievementsMessage();
+    UpdatedAchievement updatedAchievement = new UpdatedAchievement();
+    updatedAchievement.setNewlyUnlocked(newlyUnlocked);
+    updatedAchievement.setAchievementId("1234");
+    message.setUpdatedAchievements(Collections.singletonList(updatedAchievement));
+
+    listenerCaptor.getValue().accept(message);
+  }
+}

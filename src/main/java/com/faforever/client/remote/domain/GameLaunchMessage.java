@@ -7,6 +7,7 @@ public class GameLaunchMessage extends FafServerMessage {
   private List<String> args;
   private int uid;
   private String mod;
+  private String mapname;
 
   public GameLaunchMessage() {
     super(FafServerMessageType.GAME_LAUNCH);
@@ -37,5 +38,13 @@ public class GameLaunchMessage extends FafServerMessage {
 
   public void setMod(String mod) {
     this.mod = mod;
+  }
+
+  public String getMapname() {
+    return mapname;
+  }
+
+  public void setMapname(String mapname) {
+    this.mapname = mapname;
   }
 }

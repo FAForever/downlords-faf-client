@@ -166,6 +166,7 @@ public class MockChatService implements ChatService {
         channel.addUser(chatUser);
         channel.addUser(mockUser);
         channel.addUser(moderatorUser);
+        channel.setTopic("le wild channel topic appears");
 
         return null;
       }
@@ -200,7 +201,7 @@ public class MockChatService implements ChatService {
   }
 
   @Override
-  public ChatUser createOrGetChatUser(User user) {
+  public ChatUser getOrCreateChatUser(User user) {
     return null;
   }
 

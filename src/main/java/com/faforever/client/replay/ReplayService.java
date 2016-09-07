@@ -19,4 +19,6 @@ public interface ReplayService {
   void runLiveReplay(URI uri) throws IOException;
 
   void startReplayServer(int gameUid);
+
+  void stopReplayServer();
 }

@@ -1,14 +1,13 @@
 package com.faforever.client.config;
 
 import com.faforever.client.achievements.AchievementItemController;
+import com.faforever.client.achievements.AchievementUnlockedNotifier;
 import com.faforever.client.audio.AudioClipPlayer;
 import com.faforever.client.audio.AudioClipPlayerImpl;
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.audio.AudioControllerImpl;
 import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.AutoCompletionHelper;
-import com.faforever.client.chat.AvatarService;
-import com.faforever.client.chat.AvatarServiceImpl;
 import com.faforever.client.chat.ChannelTabController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatUserContextMenuController;
@@ -21,6 +20,8 @@ import com.faforever.client.chat.PrivateChatTabController;
 import com.faforever.client.chat.UrlPreviewResolver;
 import com.faforever.client.chat.UrlPreviewResolverImpl;
 import com.faforever.client.chat.UserInfoWindowController;
+import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.chat.avatar.AvatarServiceImpl;
 import com.faforever.client.fa.OnGameFullNotifier;
 import com.faforever.client.fx.DialogFactory;
 import com.faforever.client.fx.DialogFactoryImpl;
@@ -66,6 +67,7 @@ import com.faforever.client.notification.PersistentNotificationController;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.TransientNotificationController;
 import com.faforever.client.notification.TransientNotificationsController;
+import com.faforever.client.player.FriendJoinedGameNotifier;
 import com.faforever.client.preferences.SettingsController;
 import com.faforever.client.rankedmatch.Ranked1v1Controller;
 import com.faforever.client.replay.ReplayVaultController;
@@ -90,6 +92,16 @@ public class UiConfig {
   @Bean
   OnGameFullNotifier onGameFullFaWindowFlasher() {
     return new OnGameFullNotifier();
+  }
+
+  @Bean
+  FriendJoinedGameNotifier friendJoinedGameNotifier() {
+    return new FriendJoinedGameNotifier();
+  }
+
+  @Bean
+  AchievementUnlockedNotifier achievementUnlockedNotifier() {
+    return new AchievementUnlockedNotifier();
   }
 
   // TODO this seems obsolete, remove it

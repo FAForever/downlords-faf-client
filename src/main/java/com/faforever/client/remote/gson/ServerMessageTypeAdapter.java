@@ -8,6 +8,7 @@ import com.faforever.client.remote.domain.ServerMessageType;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 
@@ -25,7 +26,7 @@ public class ServerMessageTypeAdapter implements JsonDeserializer<ServerMessage>
     JsonElement targetElement = jsonObject.get("target");
 
     String target = null;
-    if (targetElement != null) {
+    if (targetElement != null && targetElement != JsonNull.INSTANCE) {
       target = targetElement.getAsString();
     }
 

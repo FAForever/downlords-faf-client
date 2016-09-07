@@ -47,7 +47,7 @@
           <content>
             <VBox maxHeight="1.7976931348623157E308" maxWidth="300.0" minHeight="0.0" minWidth="0.0">
               <children>
-                <ImageView fx:id="mapImageView" fitWidth="256.0" onMouseClicked="#onMapLargePreview" pickOnBounds="true"
+                <ImageView fx:id="mapImageView" fitWidth="256.0" pickOnBounds="true"
                            preserveRatio="true" styleClass="map-preview">
                   <VBox.margin>
                     <Insets bottom="20.0"/>

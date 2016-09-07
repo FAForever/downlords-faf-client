@@ -2,6 +2,7 @@ package com.faforever.client.remote;
 
 import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
@@ -73,8 +74,6 @@ public interface FafService {
 
   List<ModInfoBean> getMods();
 
-  CompletionStage<GameLaunchMessage> expectRehostCommand();
-
   void reconnect();
 
   CompletionStage<List<MapBean>> getMostDownloadedMaps(int count);
@@ -84,4 +83,8 @@ public interface FafService {
   CompletionStage<List<MapBean>> getMostLikedMaps(int count);
 
   CompletionStage<List<MapBean>> getNewestMaps(int count);
+
+  CompletionStage<List<AvatarBean>> getAvailableAvatars();
+
+  void selectAvatar(AvatarBean avatar);
 }

@@ -30,7 +30,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public AchievementDefinition getAchievementDefinition(String achievementId) {
-    return null;
+    AchievementDefinition achievementDefinition = new AchievementDefinition();
+    achievementDefinition.setName("Mock achievement");
+    achievementDefinition.setDescription("Congratulations! You read this text.");
+    achievementDefinition.setType(AchievementType.STANDARD);
+    return achievementDefinition;
   }
 
   @Override

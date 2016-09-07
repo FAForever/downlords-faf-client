@@ -1,5 +1,8 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.chat.avatar.AvatarBean;
+import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
@@ -15,8 +18,12 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.MenuItem;
@@ -24,6 +31,7 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -31,6 +39,8 @@ import org.springframework.context.ApplicationContext;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.net.URL;
+import java.util.Objects;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
 import static com.faforever.client.chat.SocialStatus.FOE;
@@ -43,6 +53,10 @@ public class ChatUserContextMenuController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  @FXML
+  ComboBox<AvatarBean> avatarComboBox;
+  @FXML
+  CustomMenuItem avatarPickerMenuItem;
   @FXML
   MenuItem sendPrivateMessageItem;
   @FXML
@@ -100,8 +114,29 @@ public class ChatUserContextMenuController {
   EventBus eventBus;
   @Resource
   JoinGameHelper joinGameHelper;
+  @Resource
+  AvatarService avatarService;
 
   private PlayerInfoBean playerInfoBean;
+
+  @FXML
+  void initialize() {
+    avatarComboBox.setCellFactory(param -> avatarCell());
+    avatarComboBox.setButtonCell(avatarCell());
+  }
+
+  @NotNull
+  private StringListCell<AvatarBean> avatarCell() {
+    return new StringListCell<>(
+        AvatarBean::getDescription,
+        avatarBean -> {
+          URL url = avatarBean.getUrl();
+          if (url == null) {
+            return null;
+          }
+          return avatarService.loadAvatar(url.toString());
+        });
+  }
 
   public ContextMenu getContextMenu() {
     return contextMenu;
@@ -137,6 +172,12 @@ public class ChatUserContextMenuController {
         .isEqualTo(CUSTOM)
         .and(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF)));
 
+    if (playerInfoBean.getSocialStatus() != SocialStatus.SELF) {
+      avatarPickerMenuItem.setVisible(false);
+    } else {
+      loadAvailableAvatars();
+    }
+
     kickItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF));
     banItem.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF));
     moderatorActionSeparator.visibleProperty().bind(playerInfoBean.socialStatusProperty().isNotEqualTo(SELF));
@@ -161,6 +202,32 @@ public class ChatUserContextMenuController {
         removeFriendItem.visibleProperty().or(
             addFoeItem.visibleProperty().or(
                 removeFoeItem.visibleProperty()))));
+  }
+
+  private void loadAvailableAvatars() {
+    avatarService.getAvailableAvatars().thenAccept(avatars -> {
+      ObservableList<AvatarBean> items = FXCollections.observableArrayList(avatars);
+      items.add(0, new AvatarBean(null, i18n.get("chat.userContext.noAvatar")));
+
+
+      String currentAvatarUrl = playerInfoBean.getAvatarUrl();
+      Platform.runLater(() -> {
+        avatarComboBox.setItems(items);
+        avatarComboBox.getSelectionModel().select(items.stream()
+            .filter(avatarBean -> Objects.equals(Objects.toString(avatarBean.getUrl(), null), currentAvatarUrl))
+            .findFirst()
+            .orElse(null));
+
+        // Only after the box has been populated and we selected the current value, we add the listener.
+        // Otherwise the code above already triggers a changeAvatar()
+        avatarComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+          playerInfoBean.setAvatarTooltip(newValue == null ? null : newValue.getDescription());
+          playerInfoBean.setAvatarUrl(newValue == null ? null : Objects.toString(newValue.getUrl(), null));
+          avatarService.changeAvatar(newValue);
+        });
+      });
+
+    });
   }
 
   @FXML

@@ -1,11 +1,13 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameStatus;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.game.JoinGameHelper;
+import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -101,6 +103,7 @@ public class ChatUserItemController {
   private ChangeListener<String> avatarChangeListener;
   private ChangeListener<String> clanChangeListener;
   private ChangeListener<GameStatus> gameStatusChangeListener;
+  private PlayerCardTooltipController playerCardTooltipController;
 
   @FXML
   void initialize() {
@@ -308,6 +311,24 @@ public class ChatUserItemController {
     Tooltip statusTooltip = new Tooltip();
     statusTooltip.setGraphic(gameStatusTooltipController.getRoot());
     Tooltip.install(statusImageView, statusTooltip);
+  }
+
+  @FXML
+  void onMouseEnterUsername() {
+    if (playerInfoBean.getChatOnly()) {
+      return;
+    }
+
+    if (playerCardTooltipController != null) {
+      return;
+    }
+
+    playerCardTooltipController = applicationContext.getBean(PlayerCardTooltipController.class);
+    playerCardTooltipController.setPlayer(playerInfoBean);
+
+    Tooltip statusTooltip = new Tooltip();
+    statusTooltip.setGraphic(playerCardTooltipController.getRoot());
+    Tooltip.install(usernameLabel, statusTooltip);
   }
 
   @FXML

@@ -215,6 +215,11 @@ public class ReplayServiceImpl implements ReplayService {
     replayServer.start(gameUid);
   }
 
+  @Override
+  public void stopReplayServer() {
+    replayServer.stop();
+  }
+
   private void runReplayFile(Path path) {
     try {
       String fileName = path.getFileName().toString();
@@ -238,8 +243,8 @@ public class ReplayServiceImpl implements ReplayService {
         .thenAccept(this::runReplayFile)
         .exceptionally(throwable -> {
           notificationService.addNotification(new ImmediateNotification(
-              i18n.get("replaceCouldNotBeDownloaded.title"),
-              i18n.get("replayCouldNotBeDownloaded.text", replayId),
+              i18n.get("errorTitle"),
+              i18n.get("replayCouldNotBeDownloaded", replayId),
               Severity.ERROR, throwable,
               singletonList(new ReportAction(i18n, reportingService, throwable)))
           );
@@ -260,7 +265,8 @@ public class ReplayServiceImpl implements ReplayService {
     String gameType = replayInfo.getFeaturedMod();
     Integer replayId = replayInfo.getUid();
     Map<String, Integer> modVersions = replayInfo.getFeaturedModVersions();
-    Set<String> simMods = replayInfo.getSimMods().keySet();
+
+    Set<String> simMods = replayInfo.getSimMods() != null ? replayInfo.getSimMods().keySet() : emptySet();
 
     Integer version = parseSupComVersion(rawReplayBytes);
 

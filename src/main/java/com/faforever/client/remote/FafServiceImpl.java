@@ -3,6 +3,8 @@ package com.faforever.client.remote;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.chat.avatar.AvatarBean;
+import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
@@ -15,6 +17,7 @@ import com.faforever.client.remote.domain.GameEndedMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
 
 import javax.annotation.Resource;
@@ -23,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class FafServiceImpl implements FafService {
 
@@ -34,6 +38,8 @@ public class FafServiceImpl implements FafService {
   ConnectivityService connectivityService;
   @Resource
   ThreadPoolExecutor threadPoolExecutor;
+  @Resource
+  EventBus eventBus;
 
   @Override
   public <T extends ServerMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
@@ -162,11 +168,6 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> expectRehostCommand() {
-    return fafServerAccessor.expectRehostCommand();
-  }
-
-  @Override
   public void reconnect() {
     fafServerAccessor.reconnect();
   }
@@ -189,5 +190,19 @@ public class FafServiceImpl implements FafService {
   @Override
   public CompletionStage<List<MapBean>> getNewestMaps(int count) {
     return CompletableFuture.supplyAsync(() -> fafApiAccessor.getNewestMaps(count), threadPoolExecutor);
+  }
+
+  @Override
+  public CompletionStage<List<AvatarBean>> getAvailableAvatars() {
+    return CompletableFuture.supplyAsync(() -> fafServerAccessor.getAvailableAvatars())
+        .thenApply(avatars -> avatars.stream()
+            .map(AvatarBean::fromAvatar)
+            .collect(Collectors.toList()));
+  }
+
+  @Override
+  public void selectAvatar(AvatarBean avatar) {
+    fafServerAccessor.selectAvatar(avatar == null ? null : avatar.getUrl());
+    eventBus.post(new AvatarChangedEvent(avatar));
   }
 }

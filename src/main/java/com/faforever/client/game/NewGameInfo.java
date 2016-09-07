@@ -6,20 +6,18 @@ public class NewGameInfo {
 
   private String title;
   private String password;
-  private String mod;
+  private String gameType;
   private String map;
-  private Integer version;
   private Set<String> simMods;
 
   public NewGameInfo() {
   }
 
-  public NewGameInfo(String title, String password, String mod, String map, Integer version, Set<String> simMods) {
+  public NewGameInfo(String title, String password, String mod, String map, Set<String> simMods) {
     this.title = title;
     this.password = password;
-    this.mod = mod;
+    this.gameType = mod;
     this.map = map;
-    this.version = version;
     this.simMods = simMods;
   }
 
@@ -39,14 +37,6 @@ public class NewGameInfo {
     this.password = password;
   }
 
-  public String getGameType() {
-    return mod;
-  }
-
-  public void setGameType(String mod) {
-    this.mod = mod;
-  }
-
   public String getMap() {
     return map;
   }
@@ -55,27 +45,19 @@ public class NewGameInfo {
     this.map = map;
   }
 
-  public Integer getVersion() {
-    return version;
+  public String getGameType() {
+    return gameType;
   }
 
-  public void setVersion(Integer version) {
-    this.version = version;
+  public void setGameType(String gameType) {
+    this.gameType = gameType;
   }
 
-  public String getMod() {
-    return mod;
-  }
-
-  public void setMod(String mod) {
-    this.mod = mod;
-  }
-
-  public Set<String> getSimModUidsToVersions() {
+  public Set<String> getSimMods() {
     return simMods;
   }
 
-  public void setSimModUidsToVersions(Set<String> simMods) {
+  public void setSimMods(Set<String> simMods) {
     this.simMods = simMods;
   }
 }

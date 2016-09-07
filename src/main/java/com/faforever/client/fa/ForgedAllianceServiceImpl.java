@@ -26,7 +26,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   PlayerService playerService;
 
   @Override
-  public Process startGame(int uid, @NotNull String gameType, @Nullable Faction faction, @Nullable List<String> additionalArgs, RatingMode ratingMode, int gpgPort) throws IOException {
+  public Process startGame(int uid, @NotNull String gameType, @Nullable Faction faction, @Nullable List<String> additionalArgs, RatingMode ratingMode, int gpgPort, boolean rehost) throws IOException {
     Path executable = getExecutable();
 
     PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
@@ -58,6 +58,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .additionalArgs(additionalArgs)
         .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
         .localGpgPort(gpgPort)
+        .rehost(rehost)
         .build();
 
     return launch(executable, launchCommand);
