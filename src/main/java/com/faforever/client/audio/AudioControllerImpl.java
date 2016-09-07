@@ -12,6 +12,7 @@ import java.io.IOException;
 
 public class AudioControllerImpl implements AudioController {
 
+  private static final String ACHIEVEMENT_UNLOCKED_SOUND = "sounds/achievement_unlocked.mp3";
   private static final String INFO_SOUND = "sounds/info.mp3";
   private static final String MENTION_SOUND = "sounds/mention.mp3";
   private static final String PRIVATE_MESSAGE_SOUND = "sounds/pm.mp3";
@@ -26,6 +27,7 @@ public class AudioControllerImpl implements AudioController {
   ThemeService themeService;
 
   private AudioClip chatMentionSound;
+  private AudioClip achievementUnlockedSound;
   private AudioClip errorNotificationSound;
   private AudioClip infoNotificationSound;
   private AudioClip warnNotificationSound;
@@ -49,6 +51,7 @@ public class AudioControllerImpl implements AudioController {
   }
 
   private void loadSounds() throws IOException {
+    achievementUnlockedSound = loadSound(ACHIEVEMENT_UNLOCKED_SOUND);
     infoNotificationSound = loadSound(INFO_SOUND);
     errorNotificationSound = loadSound(INFO_SOUND);
     warnNotificationSound = loadSound(INFO_SOUND);
@@ -98,6 +101,11 @@ public class AudioControllerImpl implements AudioController {
       return;
     }
     playSound(errorNotificationSound);
+  }
+
+  @Override
+  public void playAchievementUnlockedSound() {
+    playSound(achievementUnlockedSound);
   }
 
   void playSound(AudioClip audioClip) {

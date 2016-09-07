@@ -7,10 +7,8 @@ import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.UpdatedAchievement;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.user.UserService;
@@ -18,13 +16,10 @@ import com.google.common.base.Strings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -33,7 +28,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public class AchievementServiceImpl implements AchievementService {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int ACHIEVEMENT_IMAGE_SIZE = 128;
   private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements;
   private final ObservableList<PlayerAchievement> playerAchievements;
@@ -64,7 +58,7 @@ public class AchievementServiceImpl implements AchievementService {
   public CompletionStage<List<PlayerAchievement>> getPlayerAchievements(String username) {
     if (userService.getUsername().equalsIgnoreCase(username)) {
       if (readOnlyPlayerAchievements.isEmpty()) {
-        updatePlayerAchievementsFromServer();
+        reloadAchievements();
       }
       return CompletableFuture.completedFuture(readOnlyPlayerAchievements);
     }
@@ -105,34 +99,12 @@ public class AchievementServiceImpl implements AchievementService {
     return new Image(achievementDefinition.getUnlockedIconUrl(), ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE, true, true, true);
   }
 
-  private void updatePlayerAchievementsFromServer() {
+  private void reloadAchievements() {
     playerAchievements.setAll(fafApiAccessor.getPlayerAchievements(userService.getUid()));
   }
 
   @PostConstruct
   void postConstruct() {
-    fafService.addOnMessageListener(UpdatedAchievementsMessage.class, this::onUpdatedAchievements);
-  }
-
-  private void onUpdatedAchievements(UpdatedAchievementsMessage updatedAchievementsMessage) {
-    updatedAchievementsMessage.getUpdatedAchievements().stream()
-        .filter(UpdatedAchievement::getNewlyUnlocked)
-        .forEachOrdered(updatedAchievement -> getAchievementDefinition(updatedAchievement.getAchievementId())
-            .thenAccept(this::notifyAboutUnlockedAchievement)
-            .exceptionally(throwable -> {
-              logger.warn("Could not get achievement definition for achievement: {}", updatedAchievement.getAchievementId());
-              return null;
-            })
-        );
-    updatePlayerAchievementsFromServer();
-  }
-
-  private void notifyAboutUnlockedAchievement(AchievementDefinition achievementDefinition) {
-    notificationService.addNotification(new TransientNotification(
-            i18n.get("achievement.unlockedTitle"),
-            achievementDefinition.getName(),
-        getRevealedIcon(achievementDefinition)
-        )
-    );
+    fafService.addOnMessageListener(UpdatedAchievementsMessage.class, updatedAchievementsMessage -> reloadAchievements());
   }
 }

@@ -11,4 +11,6 @@ public interface AudioController {
   void playWarnNotificationSound();
 
   void playErrorNotificationSound();
+
+  void playAchievementUnlockedSound();
 }
