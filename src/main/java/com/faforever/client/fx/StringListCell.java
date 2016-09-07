@@ -38,7 +38,9 @@ public class StringListCell<T> extends ListCell<T> {
       setText(null);
       setGraphic(null);
     } else {
-      setGraphic(new ImageView(imageFunction.apply(item)));
+      if (imageFunction != null) {
+        setGraphic(new ImageView(imageFunction.apply(item)));
+      }
       setText(Objects.toString(function.apply(item), ""));
       setAlignment(alignment);
       getStyleClass().addAll(cssClasses);
