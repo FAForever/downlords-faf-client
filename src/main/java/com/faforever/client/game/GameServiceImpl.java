@@ -178,9 +178,6 @@ public class GameServiceImpl implements GameService {
 
     logger.info("Joining game: {} ({})", gameInfoBean.getTitle(), gameInfoBean.getUid());
 
-    // Store password in case we rehost later
-    gameInfoBean.setPassword(password);
-
     stopSearchRanked1v1();
 
     Map<String, Integer> simModVersions = gameInfoBean.getFeaturedModVersions();
@@ -202,16 +199,14 @@ public class GameServiceImpl implements GameService {
         });
   }
 
-  private CompletionStage<Void> downloadMapIfNecessary(String mapName) {
+  private CompletionStage<Void> downloadMapIfNecessary(String mapFolderName) {
     CompletableFuture<Void> future = new CompletableFuture<>();
 
-    if (mapService.isInstalled(mapName)) {
+    if (mapService.isInstalled(mapFolderName)) {
       future.complete(null);
-    } else {
-      return mapService.download(mapName);
+      return future;
     }
-
-    return future;
+    return mapService.download(mapFolderName);
   }
 
   @Override
@@ -529,7 +524,7 @@ public class GameServiceImpl implements GameService {
     boolean currentPlayerInGame = gameInfoMessage.getTeams().values().stream()
         .anyMatch(team -> team.contains(playerService.getCurrentPlayer().getUsername()));
 
-    if (currentPlayerInGame) {
+    if (currentPlayerInGame && GameState.PLAYING == gameInfoMessage.getState()) {
       synchronized (currentGame) {
         currentGame.set(gameInfoBean);
       }

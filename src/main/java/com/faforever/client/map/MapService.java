@@ -30,8 +30,9 @@ public interface MapService {
 
   /**
    * Returns {@code true} if the given map is available locally, {@code false} otherwise.
+   * @param mapFolderName
    */
-  boolean isInstalled(String technicalName);
+  boolean isInstalled(String mapFolderName);
 
   CompletionStage<Void> download(String technicalMapName);
 
