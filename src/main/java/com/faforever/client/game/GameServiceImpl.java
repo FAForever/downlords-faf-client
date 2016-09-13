@@ -524,7 +524,7 @@ public class GameServiceImpl implements GameService {
     boolean currentPlayerInGame = gameInfoMessage.getTeams().values().stream()
         .anyMatch(team -> team.contains(playerService.getCurrentPlayer().getUsername()));
 
-    if (currentPlayerInGame && GameState.PLAYING == gameInfoMessage.getState()) {
+    if (currentPlayerInGame && GameState.OPEN == gameInfoMessage.getState()) {
       synchronized (currentGame) {
         currentGame.set(gameInfoBean);
       }
