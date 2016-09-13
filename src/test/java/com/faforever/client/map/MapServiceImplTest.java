@@ -3,7 +3,13 @@ package com.faforever.client.map;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.TaskService;
+import com.faforever.client.test.AbstractPlainJavaFxTest;
+import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
+import org.apache.lucene.analysis.core.SimpleAnalyzer;
+import org.apache.lucene.store.RAMDirectory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -11,11 +17,12 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.luaj.vm2.LuaError;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.equalTo;
@@ -26,9 +33,11 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
-public class MapServiceImplTest {
+public class MapServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Rule
   public TemporaryFolder customMapsDirectory = new TemporaryFolder();
@@ -44,21 +53,41 @@ public class MapServiceImplTest {
   private Preferences preferences;
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
+  @Mock
+  private ObjectProperty<Path> customMapsDirectoryProperty;
+  @Mock
+  private ThreadPoolExecutor threadPoolExecutor;
+  @Mock
+  private TaskService taskService;
+
   private Path mapsDirectory;
 
   @Before
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
-
     instance = new MapServiceImpl();
     instance.preferencesService = preferencesService;
+    instance.threadPoolExecutor = threadPoolExecutor;
+    instance.taskService = taskService;
+    instance.directory = new RAMDirectory();
+    instance.analyzer = new SimpleAnalyzer();
 
     mapsDirectory = gameDirectory.newFolder("maps").toPath();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getCustomMapsDirectory()).thenReturn(customMapsDirectory.getRoot().toPath());
+    when(forgedAlliancePrefs.customMapsDirectoryProperty()).thenReturn(customMapsDirectoryProperty);
     when(forgedAlliancePrefs.getPath()).thenReturn(gameDirectory.getRoot().toPath());
+
+    doAnswer(invocation -> {
+      @SuppressWarnings("unchecked")
+      CompletableTask<Void> task = invocation.getArgumentAt(0, CompletableTask.class);
+      WaitForAsyncUtils.asyncFx(task::run);
+      task.getFuture().get();
+      return task;
+    }).when(taskService).submitTask(any());
+
+    instance.postConstruct();
   }
 
   @Test
@@ -70,6 +99,8 @@ public class MapServiceImplTest {
   public void testGetLocalMapsOfficialMap() throws Exception {
     Path scmp001 = Files.createDirectory(mapsDirectory.resolve("SCMP_001"));
     Files.copy(getClass().getResourceAsStream("/maps/SCMP_001/SCMP_001_scenario.lua"), scmp001.resolve("SCMP_001_scenario.lua"));
+
+    instance.postConstruct();
 
     ObservableList<MapBean> localMapBeans = instance.getInstalledMaps();
     assertThat(localMapBeans, hasSize(1));

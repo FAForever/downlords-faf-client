@@ -7,13 +7,11 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.ConcurrentUtil;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.scene.image.Image;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
@@ -143,21 +141,18 @@ public class MapServiceImpl implements MapService {
   }
 
   private void startDirectoryWatcher(Path mapsDirectory) throws IOException, InterruptedException {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        WatchService watcher = mapsDirectory.getFileSystem().newWatchService();
-        MapServiceImpl.this.mapsDirectory.register(watcher, ENTRY_DELETE);
+    threadPoolExecutor.execute(() -> noCatch(() -> {
+      WatchService watcher = mapsDirectory.getFileSystem().newWatchService();
+      MapServiceImpl.this.mapsDirectory.register(watcher, ENTRY_DELETE);
 
-        while (true) {
-          WatchKey key = watcher.take();
-          key.pollEvents().stream()
-              .filter(event -> event.kind() == ENTRY_DELETE)
-              .forEach(event -> removeMap(mapsDirectory.resolve((Path) event.context())));
-          key.reset();
-        }
+      while (!Thread.interrupted()) {
+        WatchKey key = watcher.take();
+        key.pollEvents().stream()
+            .filter(event -> event.kind() == ENTRY_DELETE)
+            .forEach(event -> removeMap(mapsDirectory.resolve((Path) event.context())));
+        key.reset();
       }
-    });
+    }));
   }
 
   private void loadInstalledMaps() {
