@@ -111,6 +111,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     when(forgedAlliancePrefs.getPreferencesFile()).thenReturn(gamePrefsPath);
     when(forgedAlliancePrefs.getModsDirectory()).thenReturn(modsDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.modsDirectoryProperty()).thenReturn(new SimpleObjectProperty<>(modsDirectory.getRoot().toPath()));
+    // FIXME how did that happen... I see this line many times but it doesn't seem to do anything useful
     doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
 
     copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);

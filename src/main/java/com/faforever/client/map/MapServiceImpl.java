@@ -1,17 +1,17 @@
 package com.faforever.client.map;
 
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.ConcurrentUtil;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.scene.image.Image;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
@@ -32,14 +32,13 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -54,9 +53,8 @@ import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.common.net.UrlEscapers.urlFragmentEscaper;
 import static java.lang.String.format;
 import static java.nio.file.Files.list;
-import static java.nio.file.Files.newDirectoryStream;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.util.Locale.US;
+import static java.util.stream.Collectors.toCollection;
 
 public class MapServiceImpl implements MapService {
 
@@ -85,6 +83,8 @@ public class MapServiceImpl implements MapService {
   String smallMapPreviewUrl;
   @Value("${vault.mapPreviewUrl.large}")
   String largeMapPreviewUrl;
+  @Resource
+  I18n i18n;
 
   private Map<Path, MapBean> pathToMap;
   private AnalyzingInfixSuggester suggester;
@@ -100,17 +100,17 @@ public class MapServiceImpl implements MapService {
     installedMapBeans.addListener((ListChangeListener<MapBean>) change -> {
       while (change.next()) {
         for (MapBean mapBean : change.getRemoved()) {
-          mapsByTechnicalName.remove(mapBean.getFolderName().toLowerCase());
+          mapsByTechnicalName.remove(mapBean.getFolderName());
         }
         for (MapBean mapBean : change.getAddedSubList()) {
-          mapsByTechnicalName.put(mapBean.getFolderName().toLowerCase(), mapBean);
+          mapsByTechnicalName.put(mapBean.getFolderName(), mapBean);
         }
       }
     });
   }
 
   private static URL getMapUrl(String mapName, String baseUrl) {
-    return noCatch(() -> new URL(format(baseUrl, urlFragmentEscaper().escape(mapName.toLowerCase(US)))));
+    return noCatch(() -> new URL(format(baseUrl, urlFragmentEscaper().escape(mapName))));
   }
 
   @PostConstruct
@@ -141,37 +141,46 @@ public class MapServiceImpl implements MapService {
   }
 
   private void startDirectoryWatcher(Path mapsDirectory) throws IOException, InterruptedException {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        WatchService watcher = mapsDirectory.getFileSystem().newWatchService();
-        MapServiceImpl.this.mapsDirectory.register(watcher, ENTRY_DELETE);
+    threadPoolExecutor.execute(() -> noCatch(() -> {
+      WatchService watcher = mapsDirectory.getFileSystem().newWatchService();
+      MapServiceImpl.this.mapsDirectory.register(watcher, ENTRY_DELETE);
 
-        while (true) {
-          WatchKey key = watcher.take();
-          key.pollEvents().stream()
-              .filter(event -> event.kind() == ENTRY_DELETE)
-              .forEach(event -> removeMap(mapsDirectory.resolve((Path) event.context())));
-          key.reset();
-        }
+      while (!Thread.interrupted()) {
+        WatchKey key = watcher.take();
+        key.pollEvents().stream()
+            .filter(event -> event.kind() == ENTRY_DELETE)
+            .forEach(event -> removeMap(mapsDirectory.resolve((Path) event.context())));
+        key.reset();
       }
-    });
+    }));
   }
 
   private void loadInstalledMaps() {
-    CompletableFuture.runAsync(() -> {
-      try (DirectoryStream<Path> directoryStream = newDirectoryStream(mapsDirectory)) {
-        for (Path path : directoryStream) {
-          try {
-            addMap(path);
-          } catch (MapLoadException e) {
-            logger.warn("Map could not be read: " + mapsDirectory, e);
+    taskService.submitTask(new CompletableTask<Void>(Priority.LOW) {
+      @Override
+      protected Void call() throws Exception {
+        updateTitle(i18n.get("mapVault.loadingMaps"));
+        Path officialMapsPath = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("maps");
+
+        try {
+          List<Path> mapPaths = new ArrayList<>();
+          Files.list(mapsDirectory).collect(toCollection(() -> mapPaths));
+          Arrays.stream(OfficialMap.values())
+              .map(map -> officialMapsPath.resolve(map.name()))
+              .collect(toCollection(() -> mapPaths));
+
+          long totalMaps = mapPaths.size();
+          long mapsRead = 0;
+          for (Path mapPath : mapPaths) {
+            updateProgress(++mapsRead, totalMaps);
+            addMap(mapPath);
           }
+        } catch (IOException e) {
+          logger.warn("Maps could not be read from: " + mapsDirectory, e);
         }
-      } catch (IOException e) {
-        logger.warn("Maps could not be read from: " + mapsDirectory, e);
+        return null;
       }
-    }, threadPoolExecutor);
+    });
   }
 
   private void removeMap(Path path) {
@@ -179,10 +188,14 @@ public class MapServiceImpl implements MapService {
   }
 
   private void addMap(Path path) throws MapLoadException {
-    MapBean mapBean = readMap(path);
-    pathToMap.put(path, mapBean);
-    if (!installedMapBeans.contains(mapBean)) {
-      installedMapBeans.add(mapBean);
+    try {
+      MapBean mapBean = readMap(path);
+      pathToMap.put(path, mapBean);
+      if (!installedMapBeans.contains(mapBean)) {
+        installedMapBeans.add(mapBean);
+      }
+    } catch (MapLoadException e) {
+      logger.warn("Map could not be read: " + mapsDirectory, e);
     }
   }
 
@@ -241,38 +254,7 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public ObservableList<MapBean> getInstalledMaps() {
-    Path officialMapsPath = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("maps");
-
-    Collection<Path> mapPaths = new LinkedList<>();
-
-    for (OfficialMap officialMap : OfficialMap.values()) {
-      mapPaths.add(officialMapsPath.resolve(officialMap.name()));
-    }
-
-    Path customMapsPath = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
-    if (Files.notExists(customMapsPath)) {
-      logger.warn("Custom map directory does not exist: {}", customMapsPath);
-    } else {
-      try (DirectoryStream<Path> stream = newDirectoryStream(customMapsPath)) {
-        for (Path mapPath : stream) {
-          mapPaths.add(mapPath);
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    ObservableList<MapBean> mapBeans = FXCollections.observableArrayList();
-    for (Path mapPath : mapPaths) {
-      try {
-        MapBean mapBean = readMap(mapPath);
-        mapBeans.add(mapBean);
-      } catch (MapLoadException e) {
-        logger.warn("Map could not be read: " + mapPath, e);
-      }
-    }
-
-    return mapBeans;
+    return installedMapBeans;
   }
 
   @Override
@@ -298,8 +280,8 @@ public class MapServiceImpl implements MapService {
   }
 
   @Override
-  public boolean isInstalled(String technicalName) {
-    return mapsByTechnicalName.containsKey(technicalName.toLowerCase());
+  public boolean isInstalled(String mapFolderName) {
+    return mapsByTechnicalName.containsKey(mapFolderName);
   }
 
   @Override

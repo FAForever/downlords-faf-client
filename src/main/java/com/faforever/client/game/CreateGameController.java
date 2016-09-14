@@ -209,9 +209,7 @@ public class CreateGameController {
   }
 
   private void initMapSelection() {
-    ObservableList<MapBean> localMapBeans = mapService.getInstalledMaps();
-
-    filteredMapBeans = new FilteredList<>(localMapBeans);
+    filteredMapBeans = new FilteredList<>(mapService.getInstalledMaps());
 
     mapListView.setItems(filteredMapBeans);
     mapListView.setCellFactory(param -> new StringListCell<>(MapBean::getDisplayName));

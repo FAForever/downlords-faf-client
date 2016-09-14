@@ -47,6 +47,7 @@ import static com.faforever.client.fa.RatingMode.RANKED_1V1;
 import static com.faforever.client.game.Faction.AEON;
 import static com.faforever.client.game.Faction.CYBRAN;
 import static com.faforever.client.remote.domain.GameState.CLOSED;
+import static com.faforever.client.remote.domain.GameState.OPEN;
 import static com.faforever.client.remote.domain.GameState.PLAYING;
 import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
 import static java.util.Arrays.asList;
@@ -342,16 +343,32 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnGameInfoMessageSetsCurrentGameIfUserIsIn() throws Exception {
+  public void testOnGameInfoMessageSetsCurrentGameIfUserIsInAndStatusOpen() throws Exception {
     assertThat(instance.getCurrentGame(), nullValue());
 
     when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBeanBuilder.create("PlayerName").get());
 
-    GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1234).defaultValues().addTeamMember("1", "PlayerName").get();
+    GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1234).defaultValues()
+        .state(OPEN)
+        .addTeamMember("1", "PlayerName").get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
 
     assertThat(instance.getCurrentGame(), notNullValue());
     assertThat(instance.getCurrentGame().getUid(), is(1234));
+  }
+
+  @Test
+  public void testOnGameInfoMessageDoesntSetCurrentGameIfUserIsInAndStatusNotOpen() throws Exception {
+    assertThat(instance.getCurrentGame(), nullValue());
+
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBeanBuilder.create("PlayerName").get());
+
+    GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1234).defaultValues()
+        .state(PLAYING)
+        .addTeamMember("1", "PlayerName").get();
+    gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
+
+    assertThat(instance.getCurrentGame(), nullValue());
   }
 
   @Test
