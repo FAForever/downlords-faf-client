@@ -1,5 +1,6 @@
 package com.faforever.client.map;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -59,6 +60,8 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
   private ThreadPoolExecutor threadPoolExecutor;
   @Mock
   private TaskService taskService;
+  @Mock
+  private I18n i18n;
 
   private Path mapsDirectory;
 
@@ -70,6 +73,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     instance.taskService = taskService;
     instance.directory = new RAMDirectory();
     instance.analyzer = new SimpleAnalyzer();
+    instance.i18n = i18n;
 
     mapsDirectory = gameDirectory.newFolder("maps").toPath();
 
@@ -82,7 +86,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> {
       @SuppressWarnings("unchecked")
       CompletableTask<Void> task = invocation.getArgumentAt(0, CompletableTask.class);
-      WaitForAsyncUtils.asyncFx(task::run);
+      WaitForAsyncUtils.asyncFx(task);
       task.getFuture().get();
       return task;
     }).when(taskService).submitTask(any());
