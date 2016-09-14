@@ -35,9 +35,9 @@ import java.lang.invoke.MethodHandles;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
@@ -47,6 +47,7 @@ import java.util.function.Consumer;
 import static com.faforever.client.net.SocketUtil.readSocket;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.util.Collections.singletonList;
 import static org.ice4j.Transport.UDP;
 
 /**
@@ -113,9 +114,9 @@ public class ConnectivityServiceImpl implements ConnectivityService {
       }
     });
 
-    preferencesService.getPreferences().getForgedAlliance().portProperty().addListener((observable, oldValue, newValue) -> {
-      initPublicSocket(newValue.intValue());
-    });
+    preferencesService.getPreferences().getForgedAlliance().portProperty().addListener((observable, oldValue, newValue) ->
+        initPublicSocket(newValue.intValue())
+    );
     initPublicSocket(preferencesService.getPreferences().getForgedAlliance().getPort());
   }
 
@@ -191,9 +192,18 @@ public class ConnectivityServiceImpl implements ConnectivityService {
   private void initPublicSocket(int port) {
     IOUtils.closeQuietly(publicSocket);
 
-    publicSocket = noCatch(() -> new DatagramSocket(port));
-    readSocket(threadPoolExecutor, publicSocket, packetConsumer);
-    logger.info("Opened public UDP socket: {}", publicSocket.getLocalSocketAddress());
+    try {
+      publicSocket = new DatagramSocket(port);
+      readSocket(threadPoolExecutor, publicSocket, packetConsumer);
+      logger.info("Opened public UDP socket: {}", publicSocket.getLocalSocketAddress());
+    } catch (SocketException e) {
+      notificationService.addNotification(
+          new PersistentNotification(i18n.get("portCheckTask.portOccupied", port), Severity.WARN, singletonList(
+              new Action(i18n.get("portCheckTask.retry"), event -> initPublicSocket(port))
+              // TODO add action that allows the user to change the port
+          ))
+      );
+    }
   }
 
   @Override
@@ -229,11 +239,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
           this.connectivityState.set(ConnectivityState.UNKNOWN);
           notificationService.addNotification(
               new PersistentNotification(i18n.get("portCheckTask.serverUnreachable"), Severity.WARN,
-                  Collections.singletonList(
-                      new Action(
-                          i18n.get("portCheckTask.retry"),
-                          event -> checkConnectivity()
-                      ))
+                  singletonList(new Action(i18n.get("portCheckTask.retry"), event -> checkConnectivity()))
               ));
           return null;
         });
