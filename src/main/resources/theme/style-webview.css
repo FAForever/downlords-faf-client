@@ -5,7 +5,7 @@ All the following applies to the content of a WebViews (chat, news), therefore i
 *****************/
 
 html, body {
-  background-color: transparent;
+  background-color: #0e0e0e;
   margin: 0;
   padding: 0;
   /* Use same as -fx-light-text-color */
