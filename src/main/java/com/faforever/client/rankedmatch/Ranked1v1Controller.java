@@ -260,7 +260,7 @@ public class Ranked1v1Controller {
 
   private void updateOtherValues(PlayerInfoBean currentPlayer) {
     leaderboardService.getEntryForPlayer(currentPlayer.getId()).thenAccept(leaderboardEntryBean -> Platform.runLater(() -> {
-      rankingLabel.setText(i18n.get("ranked1v1.rankingFormat", leaderboardEntryBean.getRating()));
+      rankingLabel.setText(i18n.get("ranked1v1.rankingFormat", leaderboardEntryBean.getRank()));
       gamesPlayedLabel.setText(String.format("%d", leaderboardEntryBean.getGamesPlayed()));
       winLossRationLabel.setText(i18n.get("percentage", leaderboardEntryBean.getWinLossRatio() * 100));
     })).exceptionally(throwable -> {
