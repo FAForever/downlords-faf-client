@@ -438,6 +438,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     verify(scheduledExecutorService).scheduleWithFixedDelay(searchExpansionTask, SEARCH_EXPANSION_DELAY, SEARCH_EXPANSION_DELAY, TimeUnit.MILLISECONDS);
     verify(fafService).startSearchRanked1v1(CYBRAN, GAME_PORT);
     verify(mapService).download("scmp_037");
+    verify(replayService).startReplayServer(123);
     verify(forgedAllianceService, timeout(100)).startGame(eq(123), eq("ladder1v1"), eq(CYBRAN), eq(asList("/team", "1", "/players", "2")), eq(RANKED_1V1), anyInt(), eq(false));
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
   }

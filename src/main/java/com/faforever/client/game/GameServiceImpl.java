@@ -326,6 +326,7 @@ public class GameServiceImpl implements GameService {
               gameLaunchInfo.getArgs().add("/players 2");
 
               searchExpansionFuture.cancel(true);
+              replayService.startReplayServer(gameLaunchInfo.getUid());
               startGame(gameLaunchInfo, faction, RatingMode.RANKED_1V1, localRelayServer.getPort());
             }))
         .exceptionally(throwable -> {
