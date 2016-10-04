@@ -53,7 +53,6 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -297,17 +296,22 @@ public class ModServiceImpl implements ModService {
 
   @Override
   public CompletionStage<List<ModInfoBean>> getMostDownloadedMods(int count) {
-    return getTopElements(ModInfoBean.DOWNLOADS_COMPARATOR, count);
+    return getTopElements(ModInfoBean.DOWNLOADS_COMPARATOR.reversed(), count);
   }
 
   @Override
   public CompletionStage<List<ModInfoBean>> getMostLikedMods(int count) {
-    return getTopElements(ModInfoBean.LIKES_COMPARATOR, count);
+    return getTopElements(ModInfoBean.LIKES_COMPARATOR.reversed(), count);
+  }
+
+  @Override
+  public CompletionStage<List<ModInfoBean>> getMostPlayedMods(int count) {
+    return getTopElements(ModInfoBean.TIMES_PLAYED_COMPARATOR.reversed(), count);
   }
 
   @Override
   public CompletionStage<List<ModInfoBean>> getNewestMods(int count) {
-    return getTopElements(ModInfoBean.PUBLISH_DATE_COMPARATOR, count);
+    return getTopElements(ModInfoBean.PUBLISH_DATE_COMPARATOR.reversed(), count);
   }
 
   @Override
@@ -370,10 +374,10 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableTask<Void> uploadMod(Path modPath, Consumer<Float> progressListener) {
+  public CompletableTask<Void> uploadMod(Path modPath, boolean ranked) {
     ModUploadTask modUploadTask = applicationContext.getBean(ModUploadTask.class);
     modUploadTask.setModPath(modPath);
-    modUploadTask.setProgressListener(progressListener);
+    modUploadTask.setRanked(ranked);
 
     return taskService.submitTask(modUploadTask);
   }

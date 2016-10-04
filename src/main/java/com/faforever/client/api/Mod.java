@@ -11,22 +11,24 @@ public class Mod {
   private String id;
   @Key
   private String author;
-  @Key
-  private String name;
+  @Key("display_name")
+  private String displayName;
   @Key
   private String description;
   @Key
   private int downloads;
   @Key
   private int likes;
+  @Key("times_played")
+  private int timesPlayed;
   @Key("download_url")
   private String downloadUrl;
   @Key("thumbnail_url")
   private String thumbnailUrl;
   @Key("is_ranked")
   private boolean isRanked;
-  @Key("is_ui")
-  private boolean isUi;
+  @Key("type")
+  private String type;
   @Key
   private String version;
   @Key("create_time")
@@ -35,9 +37,9 @@ public class Mod {
   public Mod() {
   }
 
-  public Mod(String id, String name, String description, String author, LocalDateTime createTime) {
+  public Mod(String id, String displayName, String description, String author, LocalDateTime createTime) {
     this.id = id;
-    this.name = name;
+    this.displayName = displayName;
     this.description = description;
     this.author = author;
     setCreateTime(createTime);
@@ -59,12 +61,12 @@ public class Mod {
     this.author = author;
   }
 
-  public String getName() {
-    return name;
+  public String getDisplayName() {
+    return displayName;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
   }
 
   public String getDescription() {
@@ -107,14 +109,6 @@ public class Mod {
     isRanked = ranked;
   }
 
-  public boolean isUi() {
-    return isUi;
-  }
-
-  public void setUi(boolean ui) {
-    isUi = ui;
-  }
-
   public String getVersion() {
     return version;
   }
@@ -137,5 +131,21 @@ public class Mod {
 
   public void setCreateTime(LocalDateTime createTime) {
     this.createTime = DateTimeFormatter.ISO_DATE_TIME.format(createTime);
+  }
+
+  public int getTimesPlayed() {
+    return timesPlayed;
+  }
+
+  public void setTimesPlayed(int timesPlayed) {
+    this.timesPlayed = timesPlayed;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
   }
 }

@@ -47,15 +47,17 @@ public interface ModService {
 
   CompletionStage<List<ModInfoBean>> getMostLikedMods(int count);
 
+  CompletionStage<List<ModInfoBean>> getMostPlayedMods(int count);
+
   CompletionStage<List<ModInfoBean>> getNewestMods(int count);
 
   CompletionStage<List<ModInfoBean>> getMostLikedUiMods(int count);
 
   CompletionStage<List<ModInfoBean>> lookupMod(String string, int maxSuggestions);
 
-  ModInfoBean extractModInfo(Path path) throws IOException;
+  ModInfoBean extractModInfo(Path path);
 
-  CompletableTask<Void> uploadMod(Path modPath, Consumer<Float> progressListener);
+  CompletableTask<Void> uploadMod(Path modPath, boolean ranked);
 
   Image loadThumbnail(ModInfoBean mod);
 }
