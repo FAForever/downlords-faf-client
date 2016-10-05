@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.web.WebView?>
+
+
+<WebView xmlns:fx="http://javafx.com/fxml/1" fx:id="unitsRoot"
+         fx:controller="com.faforever.client.units.UnitsController" minHeight="200.0" minWidth="200.0" prefHeight="-1.0"
+         prefWidth="-1.0" xmlns="http://javafx.com/javafx/8.0.60"/>

@@ -39,6 +39,7 @@ import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.ThemeService;
+import com.faforever.client.units.UnitsController;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.IdenticonUtil;
@@ -167,6 +168,8 @@ public class MainController implements OnChooseGameDirectoryListener {
   NewsController newsController;
   @Resource
   ChatController chatController;
+  @Resource
+  UnitsController unitsController;
   @Resource
   GamesController gamesController;
   @Resource
@@ -871,6 +874,13 @@ public class MainController implements OnChooseGameDirectoryListener {
   void onChatSelected(ActionEvent event) {
     setActiveNavigationButton((ButtonBase) event.getSource());
     setContent(chatController.getRoot());
+  }
+
+  @FXML
+  void onUnitsSelected(ActionEvent event) {
+    setActiveNavigationButton((ButtonBase) event.getSource());
+    unitsController.setUpIfNecessary();
+    setContent(unitsController.getRoot());
   }
 
   @FXML
