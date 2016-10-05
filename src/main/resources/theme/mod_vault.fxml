@@ -41,8 +41,7 @@
                               <Insets bottom="20.0" top="20.0"/>
                            </VBox.margin>
                         </HBox>
-                        <Button mnemonicParsing="false" onAction="#onUploadModButtonClicked" text="%modVault.upload"
-                                disable="true"/>
+                        <Button mnemonicParsing="false" onAction="#onUploadModButtonClicked" text="%modVault.upload" />
                         <VBox fx:id="showroomGroup" spacing="5.0">
                            <children>
                               <Label styleClass="h2" text="%modVault.recommendedUidMods">

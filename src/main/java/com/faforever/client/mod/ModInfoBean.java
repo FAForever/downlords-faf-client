@@ -25,6 +25,7 @@ import java.util.Comparator;
 import java.util.Objects;
 
 public class ModInfoBean {
+  public static final Comparator<? super ModInfoBean> TIMES_PLAYED_COMPARATOR = (o1, o2) -> Integer.compare(o1.getPlayed(), o2.getPlayed());
   public static final Comparator<? super ModInfoBean> LIKES_COMPARATOR = (o1, o2) -> Integer.compare(o1.getLikes(), o2.getLikes());
   public static final Comparator<? super ModInfoBean> PUBLISH_DATE_COMPARATOR = (o1, o2) -> o1.getPublishDate().compareTo(o2.getPublishDate());
   public static final Comparator<? super ModInfoBean> DOWNLOADS_COMPARATOR = (o1, o2) -> Integer.compare(o1.getDownloads(), o2.getDownloads());
@@ -63,6 +64,29 @@ public class ModInfoBean {
     thumbnailUrl = new SimpleStringProperty();
     comments = new SimpleListProperty<>(FXCollections.observableArrayList());
     downloadUrl = new SimpleObjectProperty<>();
+  }
+
+  public static ModInfoBean fromModInfo(Mod mod) {
+    ModInfoBean modInfoBean = new ModInfoBean();
+    modInfoBean.setUiOnly("UI".equals(mod.getType()));
+    modInfoBean.setName(mod.getDisplayName());
+    modInfoBean.setAuthor(mod.getAuthor());
+    modInfoBean.setVersion(mod.getVersion());
+    modInfoBean.setLikes(mod.getLikes());
+//    modInfoBean.setPlayed(mod.getPlayed());
+    modInfoBean.setPublishDate(mod.getCreateTime());
+    modInfoBean.setDescription(mod.getDescription());
+    modInfoBean.setId(mod.getId());
+    modInfoBean.setDownloads(mod.getDownloads());
+    modInfoBean.setThumbnailUrl(mod.getThumbnailUrl());
+//    modInfoBean.getComments().setAll(mod.getComments());
+    try {
+      modInfoBean.setDownloadUrl(new URL(mod.getDownloadUrl()));
+    } catch (MalformedURLException e) {
+      logger.warn("Mod '{}' has an invalid downloadUrl: {}", mod.getId(), mod.getDownloadUrl());
+      modInfoBean.setDownloadUrl(null);
+    }
+    return modInfoBean;
   }
 
   public URL getDownloadUrl() {
@@ -272,28 +296,5 @@ public class ModInfoBean {
 
   public void setComments(ObservableList<String> comments) {
     this.comments.set(comments);
-  }
-
-  public static ModInfoBean fromModInfo(Mod mod) {
-    ModInfoBean modInfoBean = new ModInfoBean();
-    modInfoBean.setUiOnly(mod.isUi());
-    modInfoBean.setName(mod.getName());
-    modInfoBean.setAuthor(mod.getAuthor());
-    modInfoBean.setVersion(mod.getVersion());
-    modInfoBean.setLikes(mod.getLikes());
-//    modInfoBean.setPlayed(mod.getPlayed());
-    modInfoBean.setPublishDate(mod.getCreateTime());
-    modInfoBean.setDescription(mod.getDescription());
-    modInfoBean.setId(mod.getId());
-    modInfoBean.setDownloads(mod.getDownloads());
-    modInfoBean.setThumbnailUrl(mod.getThumbnailUrl());
-//    modInfoBean.getComments().setAll(mod.getComments());
-    try {
-      modInfoBean.setDownloadUrl(new URL(mod.getDownloadUrl()));
-    } catch (MalformedURLException e) {
-      logger.warn("Mod '{}' has an invalid downloadUrl: {}", mod.getId(), mod.getDownloadUrl());
-      modInfoBean.setDownloadUrl(null);
-    }
-    return modInfoBean;
   }
 }

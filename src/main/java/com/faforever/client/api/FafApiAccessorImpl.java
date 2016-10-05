@@ -74,6 +74,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private static final String SCOPE_READ_ACHIEVEMENTS = "read_achievements";
   private static final String SCOPE_READ_EVENTS = "read_events";
   private static final String UPLOAD_MAP = "upload_map";
+  private static final String UPLOAD_MOD = "upload_mod";
 
   @Resource
   JsonFactory jsonFactory;
@@ -152,7 +153,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
           oAuthClientId,
           oAuthUrl)
           .setDataStoreFactory(dataStoreFactory)
-          .setScopes(Arrays.asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_READ_EVENTS, UPLOAD_MAP))
+          .setScopes(Arrays.asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_READ_EVENTS, UPLOAD_MAP, UPLOAD_MOD))
           .build();
 
       credential = authorize(flow, String.valueOf(playerId));
@@ -242,9 +243,16 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public void uploadMod(Path file) throws IOException {
-    MultipartContent multipartContent = createFileMultipart(file, (written, total) -> {
-    });
+  public void uploadMod(Path file, boolean isRanked, ByteCountListener listener) throws IOException {
+    MultipartContent multipartContent = createFileMultipart(file, listener);
+    multipartContent.addPart(new MultipartContent.Part(
+        new HttpHeaders().set("Content-Disposition", "form-data; name=\"metadata\";"),
+        new JsonHttpContent(jsonFactory, new GenericJson() {
+          {
+            set("is_ranked", isRanked);
+          }
+        })));
+
     postMultipart("/mods/upload", multipartContent);
   }
 
