@@ -257,6 +257,7 @@ public class ReplayVaultController {
   public CompletionStage<Void> loadLocalReplaysInBackground() {
     LoadLocalReplaysTask task = applicationContext.getBean(LoadLocalReplaysTask.class);
 
+    localReplaysRoot.getChildren().clear();
     return taskService.submitTask(task).getFuture()
         .thenAccept(this::addLocalReplays)
         .exceptionally(throwable -> {
