@@ -31,6 +31,7 @@ public class LocalReplayInfo {
   private Map<String, String> versionInfo;
   private double gameEnd;
   private double gameTime;
+  private double launchedAt;
 
   public void updateFromGameInfoBean(GameInfoBean gameInfoBean) {
     host = gameInfoBean.getHost();
@@ -184,11 +185,25 @@ public class LocalReplayInfo {
     this.gameEnd = gameEnd;
   }
 
+  /**
+   * If 0.0, then {@code launchedAt} should be available instead.
+   */
   public double getGameTime() {
     return gameTime;
   }
 
   public void setGameTime(double gameTime) {
     this.gameTime = gameTime;
+  }
+
+  /**
+   * If 0.0, then {@code gameTime} should be available instead.
+   */
+  public double getLaunchedAt() {
+    return launchedAt;
+  }
+
+  public void setLaunchedAt(double launchedAt) {
+    this.launchedAt = launchedAt;
   }
 }

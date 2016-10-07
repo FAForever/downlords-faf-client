@@ -106,7 +106,7 @@ public class ReplayServerImpl implements ReplayServer {
   private void initReplayInfo(int uid) {
     replayInfo = new LocalReplayInfo();
     replayInfo.setUid(uid);
-    replayInfo.setGameTime(pythonTime());
+    replayInfo.setLaunchedAt(pythonTime());
     replayInfo.setVersionInfo(new HashMap<>());
     replayInfo.getVersionInfo().put("lobby",
         String.format("dfaf-%s", clientUpdateService.getCurrentVersion().getCanonical())

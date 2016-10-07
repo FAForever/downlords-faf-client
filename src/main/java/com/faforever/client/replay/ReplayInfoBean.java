@@ -49,7 +49,7 @@ public class ReplayInfoBean {
     this();
     id.set(replayInfo.getUid());
     title.set(StringEscapeUtils.unescapeHtml4(replayInfo.getTitle()));
-    startTime.set(fromPythonTime(replayInfo.getGameTime()));
+    startTime.set(fromPythonTime(replayInfo.getGameTime() > 0 ? replayInfo.getGameTime() : replayInfo.getLaunchedAt()));
     endTime.set(fromPythonTime(replayInfo.getGameEnd()));
     gameType.set(replayInfo.getFeaturedMod());
     map.set(replayInfo.getMapname());
