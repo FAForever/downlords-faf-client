@@ -179,7 +179,7 @@ public class ModServiceImpl implements ModService {
 
   @Override
   public void loadInstalledMods() {
-    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(modsDirectory)) {
+    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(modsDirectory, entry -> Files.isDirectory(entry))) {
       for (Path path : directoryStream) {
         addMod(path);
       }
