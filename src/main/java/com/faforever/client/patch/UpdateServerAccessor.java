@@ -18,9 +18,9 @@ public interface UpdateServerAccessor {
 
   void requestPath(String targetDirectoryName, String filename);
 
-  void patchTo(String targetDirectoryName, String filename, String targetVersion);
+  void patchTo(String targetDirectoryName, String filename, String currentMd5, String targetVersion);
 
-  void modPatchTo(String targetDirectoryName, String filename, Map<String, Integer> modVersions);
+  void modPatchTo(String targetDirectoryName, String filename, String currentMd5, Map<String, Integer> modVersions);
 
   void update(String targetDirectoryName, String filename, String actualMd5);
 

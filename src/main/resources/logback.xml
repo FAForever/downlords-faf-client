@@ -10,7 +10,7 @@
     <logger name="com.faforever.client.mod" level="info"/>
     <logger name="com.faforever.client.net" level="info"/>
     <logger name="com.faforever.client.util" level="info"/>
-    <logger name="com.faforever.client.patch" level="info"/>
+    <logger name="com.faforever.client.patch" level="debug"/>
     <logger name="com.faforever.client.events" level="info"/>
     <logger name="com.faforever.client.legacy" level="info"/>
     <logger name="com.faforever.client.remote" level="debug"/>

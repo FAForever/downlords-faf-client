@@ -42,6 +42,10 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
     updateTask.setSimMods(simModUids);
     updateTask.setModVersions(modVersions);
 
+    if (version != null) {
+      updateTask.setGameVersion(String.valueOf(version));
+    }
+
     return taskService.submitTask(updateTask).getFuture();
   }
 

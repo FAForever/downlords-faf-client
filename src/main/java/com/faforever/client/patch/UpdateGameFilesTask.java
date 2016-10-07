@@ -12,7 +12,6 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.google.common.hash.Hashing;
 import javafx.beans.Observable;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import net.dongliu.vcdiff.VcdiffDecoder;
 import net.dongliu.vcdiff.exception.VcdiffDecodeException;
@@ -46,14 +45,14 @@ import static com.faforever.client.game.GameType.FAF;
 import static com.faforever.client.game.GameType.LADDER_1V1;
 import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
+import static javafx.collections.FXCollections.observableArrayList;
 
 public class UpdateGameFilesTask extends CompletableTask<Void> implements UpdateServerResponseListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final long TIMEOUT = 30;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.SECONDS;
-  private static final Object FILES_TO_UPDATE_LOCK = new Object();
-
+  private final ObservableList<String> filesToUpdate;
   @Resource
   I18n i18n;
   @Resource
@@ -66,17 +65,16 @@ public class UpdateGameFilesTask extends CompletableTask<Void> implements Update
   PreferencesService preferencesService;
   @Resource
   Environment environment;
-
   private String targetDirectoryName;
   private String gameType;
   private Set<String> simMods;
-  private String targetVersion;
-  private ObservableList<String> filesToUpdate;
   private Map<String, Integer> modVersions;
   private int numberOfFilesToUpdate;
+  private String gameVersion;
 
   public UpdateGameFilesTask() {
     super(Priority.HIGH);
+    filesToUpdate = observableArrayList();
   }
 
   @Override
@@ -162,16 +160,18 @@ public class UpdateGameFilesTask extends CompletableTask<Void> implements Update
           return null;
         });
 
-    filesToUpdate = FXCollections.observableList(filesToUpdateFuture.get(TIMEOUT, TIMEOUT_UNIT));
-    requestFiles(targetDirectoryName, fileGroup);
-
+    filesToUpdate.setAll(filesToUpdateFuture.get(TIMEOUT, TIMEOUT_UNIT));
     numberOfFilesToUpdate = filesToUpdate.size();
+
+    requestFiles(targetDirectoryName, fileGroup);
 
     CountDownLatch filesUpdatedLatch = new CountDownLatch(1);
     filesToUpdate.addListener((Observable observable) -> {
-      updateTitle(i18n.get("updatingGameTask.updatingFile", numberOfFilesToUpdate - filesToUpdate.size(), numberOfFilesToUpdate));
-      if (filesToUpdate.isEmpty()) {
-        filesUpdatedLatch.countDown();
+      synchronized (filesToUpdate) {
+        updateTitle(i18n.get("updatingGameTask.updatingFile", numberOfFilesToUpdate - filesToUpdate.size(), numberOfFilesToUpdate));
+        if (filesToUpdate.isEmpty()) {
+          filesUpdatedLatch.countDown();
+        }
       }
     });
     filesUpdatedLatch.await();
@@ -198,16 +198,16 @@ public class UpdateGameFilesTask extends CompletableTask<Void> implements Update
     this.targetDirectoryName = targetDirectoryName;
     Path targetDirectory = preferencesService.getFafDataDirectory().resolve(targetDirectoryName);
 
-    synchronized (FILES_TO_UPDATE_LOCK) {
+    synchronized (filesToUpdate) {
       for (String filename : filesToUpdate) {
         Path fileToPatch = targetDirectory.resolve(filename);
 
         logger.debug("Updating file {}", fileToPatch.toAbsolutePath());
 
         if (Files.notExists(fileToPatch)) {
-          if (targetVersion != null) {
+          if (gameVersion != null) {
             if (FAF.getString().equals(gameType) || LADDER_1V1.getString().equals(gameType) || fileGroup.equals("FAF") || fileGroup.equals("FAFGAMEDATA")) {
-              updateServerAccessor.requestVersion(targetDirectoryName, filename, targetVersion);
+              updateServerAccessor.requestVersion(targetDirectoryName, filename, gameVersion);
             } else {
               updateServerAccessor.requestModVersion(targetDirectoryName, filename, modVersions);
             }
@@ -215,14 +215,14 @@ public class UpdateGameFilesTask extends CompletableTask<Void> implements Update
             updateServerAccessor.requestPath(targetDirectoryName, filename);
           }
         } else {
-          if (targetVersion != null) {
+          String currentMd5 = com.google.common.io.Files.hash(fileToPatch.toFile(), Hashing.md5()).toString();
+          if (gameVersion != null) {
             if (FAF.getString().equals(gameType) || LADDER_1V1.getString().equals(gameType) || fileGroup.equals("FAF") || fileGroup.equals("FAFGAMEDATA")) {
-              updateServerAccessor.patchTo(targetDirectoryName, filename, targetVersion);
+              updateServerAccessor.patchTo(targetDirectoryName, filename, currentMd5, gameVersion);
             } else {
-              updateServerAccessor.modPatchTo(targetDirectoryName, filename, modVersions);
+              updateServerAccessor.modPatchTo(targetDirectoryName, filename, currentMd5, modVersions);
             }
           } else {
-            String currentMd5 = com.google.common.io.Files.hash(fileToPatch.toFile(), Hashing.md5()).toString();
             updateServerAccessor.update(targetDirectoryName, filename, currentMd5);
           }
         }
@@ -233,7 +233,7 @@ public class UpdateGameFilesTask extends CompletableTask<Void> implements Update
   @Override
   public void onFileUpToDate(String file) {
     logger.debug("File is already up to date: {}", file);
-    synchronized (FILES_TO_UPDATE_LOCK) {
+    synchronized (filesToUpdate) {
       filesToUpdate.remove(file);
     }
   }
@@ -243,7 +243,7 @@ public class UpdateGameFilesTask extends CompletableTask<Void> implements Update
     Path targetFile = preferencesService.getFafDataDirectory().resolve(targetDirectoryName).resolve(fileToCopy);
     try {
       downloadFile(new URL(url), targetFile);
-      synchronized (FILES_TO_UPDATE_LOCK) {
+      synchronized (filesToUpdate) {
         filesToUpdate.remove(fileToCopy);
       }
     } catch (IOException e) {
@@ -259,7 +259,7 @@ public class UpdateGameFilesTask extends CompletableTask<Void> implements Update
     try {
       downloadFile(new URL(url), patchFile);
       applyPatch(patchFile, targetFile);
-      synchronized (FILES_TO_UPDATE_LOCK) {
+      synchronized (filesToUpdate) {
         filesToUpdate.remove(fileToUpdate);
       }
     } catch (IOException e) {
@@ -269,7 +269,7 @@ public class UpdateGameFilesTask extends CompletableTask<Void> implements Update
 
   @Override
   public void onVersionPatchNotFound(String response) {
-    updateServerAccessor.requestVersion(targetDirectoryName, response, targetVersion);
+    updateServerAccessor.requestVersion(targetDirectoryName, response, gameVersion);
   }
 
   @Override
@@ -340,7 +340,7 @@ public class UpdateGameFilesTask extends CompletableTask<Void> implements Update
     this.gameType = gameType;
   }
 
-  public void setTargetVersion(@NotNull String targetVersion) {
-    this.targetVersion = targetVersion;
+  public void setGameVersion(String gameVersion) {
+    this.gameVersion = gameVersion;
   }
 }
