@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -146,4 +147,15 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     assertThat(mapBean.getVersion(), is(1));
     assertThat(mapBean.getFolderName(), is("SCMP_001"));
   }
+
+  @Test
+  public void testInstalledOfficialMapIgnoreCase() throws Exception {
+    Path scmp001 = Files.createDirectory(mapsDirectory.resolve("SCMP_001"));
+    Files.copy(getClass().getResourceAsStream("/maps/SCMP_001/SCMP_001_scenario.lua"), scmp001.resolve("SCMP_001_scenario.lua"));
+
+    instance.postConstruct();
+
+    assertTrue(instance.isInstalled("ScMp_001"));
+  }
 }
+

@@ -100,10 +100,10 @@ public class MapServiceImpl implements MapService {
     installedMapBeans.addListener((ListChangeListener<MapBean>) change -> {
       while (change.next()) {
         for (MapBean mapBean : change.getRemoved()) {
-          mapsByTechnicalName.remove(mapBean.getFolderName());
+          mapsByTechnicalName.remove(mapBean.getFolderName().toLowerCase());
         }
         for (MapBean mapBean : change.getAddedSubList()) {
-          mapsByTechnicalName.put(mapBean.getFolderName(), mapBean);
+          mapsByTechnicalName.put(mapBean.getFolderName().toLowerCase(), mapBean);
         }
       }
     });
@@ -281,7 +281,7 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public boolean isInstalled(String mapFolderName) {
-    return mapsByTechnicalName.containsKey(mapFolderName);
+    return mapsByTechnicalName.containsKey(mapFolderName.toLowerCase());
   }
 
   @Override
