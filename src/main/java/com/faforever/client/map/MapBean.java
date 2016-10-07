@@ -11,6 +11,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MapBean implements Comparable<MapBean> {
 
@@ -29,6 +31,7 @@ public class MapBean implements Comparable<MapBean> {
   private final ObjectProperty<URL> smallThumbnailUrl;
   private final ObjectProperty<URL> largeThumbnailUrl;
   private final ObjectProperty<LocalDateTime> createTime;
+  private final ObjectProperty<Type> type;
 
   public MapBean() {
     this.id = new SimpleStringProperty();
@@ -46,6 +49,7 @@ public class MapBean implements Comparable<MapBean> {
     this.downloadUrl = new SimpleObjectProperty<>();
     this.author = new SimpleStringProperty();
     this.createTime = new SimpleObjectProperty<>();
+    this.type = new SimpleObjectProperty<>();
   }
 
   public static MapBean fromMap(com.faforever.client.api.Map map) {
@@ -249,5 +253,45 @@ public class MapBean implements Comparable<MapBean> {
 
   public ObjectProperty<LocalDateTime> createTimeProperty() {
     return createTime;
+  }
+
+  public Type getType() {
+    return type.get();
+  }
+
+  public void setType(Type type) {
+    this.type.set(type);
+  }
+
+  public ObjectProperty<Type> typeProperty() {
+    return type;
+  }
+
+  public enum Type {
+    SKIRMISH("skirmish"),
+    COOP("campaign_coop"),
+    OTHER(null);
+
+    private static final Map<String, Type> fromString;
+
+    static {
+      fromString = new HashMap<>();
+      for (Type type : values()) {
+        fromString.put(type.string, type);
+      }
+    }
+
+    private String string;
+
+    Type(String string) {
+      this.string = string;
+    }
+
+    public static Type fromString(String type) {
+      if (fromString.containsKey(type)) {
+        return fromString.get(type);
+      }
+      return OTHER;
+    }
   }
 }
