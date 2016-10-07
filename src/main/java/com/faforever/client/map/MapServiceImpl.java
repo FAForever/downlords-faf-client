@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -111,7 +112,7 @@ public class MapServiceImpl implements MapService {
   }
 
   private static URL getMapUrl(String mapName, String baseUrl) {
-    return noCatch(() -> new URL(format(baseUrl, urlFragmentEscaper().escape(mapName))));
+    return noCatch(() -> new URL(format(baseUrl, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US))));
   }
 
   @PostConstruct
@@ -247,11 +248,11 @@ public class MapServiceImpl implements MapService {
   @Override
   @Cacheable(value = CacheNames.LARGE_MAP_PREVIEW, unless = "#result == null")
   public Image loadLargePreview(String mapName) {
-    URL urlString = getMapUrl(mapName, largeMapPreviewUrl);
+    URL url = getMapUrl(mapName, largeMapPreviewUrl);
 
-    logger.debug("Fetching large preview for map {} from {}", mapName, urlString);
+    logger.debug("Fetching large preview for map {} from {}", mapName, url);
 
-    return fetchImageOrNull(urlString);
+    return fetchImageOrNull(url);
   }
 
   @Override
