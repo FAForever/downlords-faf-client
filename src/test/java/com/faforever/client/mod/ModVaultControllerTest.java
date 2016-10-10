@@ -1,6 +1,7 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.Observable;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
@@ -34,6 +35,8 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   private ApplicationContext applicationContext;
   @Mock
   private ModDetailController modDetailController;
+  @Mock
+  private EventBus eventBus;
 
   @Before
   public void setUp() throws Exception {
@@ -41,6 +44,7 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
     instance.modService = modService;
     instance.applicationContext = applicationContext;
     instance.modDetailController = modDetailController;
+    instance.eventBus = eventBus;
 
     when(modDetailController.getRoot()).thenReturn(new Pane());
 

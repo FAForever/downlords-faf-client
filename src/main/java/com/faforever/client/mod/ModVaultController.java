@@ -3,7 +3,10 @@ package com.faforever.client.mod;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.preferences.PreferencesService;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -71,6 +74,8 @@ public class ModVaultController {
   I18n i18n;
   @Resource
   PreferencesService preferencesService;
+  @Resource
+  EventBus eventBus;
 
   private boolean initialized;
 
@@ -90,6 +95,8 @@ public class ModVaultController {
     AnchorPane.setBottomAnchor(modDetailRoot, 0d);
     AnchorPane.setLeftAnchor(modDetailRoot, 0d);
     modDetailRoot.setVisible(false);
+
+    eventBus.register(this);
   }
 
   public void setUpIfNecessary() {
@@ -243,5 +250,10 @@ public class ModVaultController {
 
   public void onRefreshClicked() {
     displayShowroomMods();
+  }
+
+  @Subscribe
+  public void onModUploaded(ModUploadedEvent event) {
+    onRefreshClicked();
   }
 }
