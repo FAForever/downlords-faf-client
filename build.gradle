@@ -38,7 +38,7 @@ apply plugin: 'distribution'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-version = '0.6.27-alpha'
+version = '0.6.28-alpha'
 
 class HttpBuilder extends HTTPBuilder {
 
@@ -152,7 +152,7 @@ jar {
 distributions {
   main {
     contents {
-      from { [configurations.runtime, file('src/main/native'), jar, webviewPatcherJar] }
+      from { [configurations.runtime, file('src/main/native'), jar] }
     }
   }
 }
@@ -163,15 +163,6 @@ task proguardJar(type: ProGuardTask) {
 
   injars(jar.archivePath.getPath())
   outjars(libsDir.path + project.name + '_obfuscated.jar')
-}
-
-task webviewPatcherJar(type: Jar) {
-  manifest {
-    attributes "Premain-Class": "com.faforever.client.fx.TransparentWebViewPatch"
-  }
-  archiveName = 'webview-patch-agent.jar'
-  from sourceSets.main.output
-  include 'com/faforever/client/fx/TransparentWebViewPatch.class'
 }
 
 install4j {

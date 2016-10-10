@@ -41,7 +41,7 @@
           <versionLine x="370" y="273" text="v${compiler:sys.version}" fontSize="16" fontColor="255,255,255" bold="true" />
         </text>
       </splashScreen>
-      <java mainClass="com.faforever.client.Main" vmParameters="-javaagent:lib/webview-patch-agent.jar -Duid.dir=lib" arguments="" allowVMPassthroughParameters="true" preferredVM="client" bundleRuntime="true">
+      <java mainClass="com.faforever.client.Main" vmParameters="-Duid.dir=lib" arguments="" allowVMPassthroughParameters="true" preferredVM="client" bundleRuntime="true">
         <classPath>
           <scanDirectory location="lib" failOnError="true" />
         </classPath>

@@ -209,7 +209,7 @@ public class ModVaultController {
   public void onUploadModButtonClicked(ActionEvent actionEvent) {
     Platform.runLater(() -> {
       DirectoryChooser directoryChooser = new DirectoryChooser();
-      directoryChooser.setTitle(i18n.get("modVault.upload.choseDirectory"));
+      directoryChooser.setTitle(i18n.get("modVault.upload.chooseDirectory"));
       File result = directoryChooser.showDialog(getRoot().getScene().getWindow());
 
       if (result == null) {

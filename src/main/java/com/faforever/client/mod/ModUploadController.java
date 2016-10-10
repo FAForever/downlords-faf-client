@@ -1,6 +1,9 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapBean;
+import com.faforever.client.map.event.MapUploadedEvent;
+import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
@@ -10,18 +13,24 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.util.IdenticonUtil;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -30,6 +39,14 @@ import static java.util.Arrays.asList;
 
 public class ModUploadController {
 
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  @FXML
+  Label rankedCheckBoxLabel;
+  @FXML
+  Label uploadTaskMessageLabel;
+  @FXML
+  Label uploadTaskTitleLabel;
   @FXML
   Pane parseProgressPane;
   @FXML
@@ -52,6 +69,8 @@ public class ModUploadController {
   ImageView thumbnailImageView;
   @FXML
   Region modUploadRoot;
+  @FXML
+  CheckBox rankedCheckbox;
 
   @Resource
   ModService modService;
@@ -63,9 +82,12 @@ public class ModUploadController {
   ReportingService reportingService;
   @Resource
   I18n i18n;
+  @Resource
+  EventBus eventBus;
 
   private Path modPath;
   private CompletableTask<Void> modUploadTask;
+  private ModInfoBean modInfo;
 
   @FXML
   void initialize() {
@@ -78,14 +100,19 @@ public class ModUploadController {
     uploadProgressPane.setVisible(false);
     parseProgressPane.setVisible(false);
     uploadCompletePane.setVisible(false);
+
+    rankedCheckBoxLabel.setLabelFor(rankedCheckbox);
   }
 
   public void setModPath(Path modPath) {
     this.modPath = modPath;
     enterParsingState();
-    CompletableFuture.supplyAsync(() -> noCatch(() -> modService.extractModInfo(modPath)), threadPoolExecutor)
-        .thenAccept(this::setModInfo);
-    // FIXME show error if any
+    CompletableFuture.supplyAsync(() -> modService.extractModInfo(modPath), threadPoolExecutor)
+        .thenAccept(this::setModInfo)
+        .exceptionally(throwable -> {
+          logger.warn("Mod could not be read", throwable);
+          return null;
+        });
   }
 
   private void enterParsingState() {
@@ -96,6 +123,8 @@ public class ModUploadController {
   }
 
   private void setModInfo(ModInfoBean modInfo) {
+    this.modInfo = modInfo;
+
     enterModInfoState();
     modNameLabel.textProperty().bind(modInfo.nameProperty());
     descriptionLabel.textProperty().bind(modInfo.descriptionProperty());
@@ -143,15 +172,20 @@ public class ModUploadController {
   @FXML
   void onUploadClicked() {
     enterUploadingState();
-    uploadProgressBar.setProgress(0);
+
     uploadProgressPane.setVisible(true);
-    modUploadTask = modService.uploadMod(modPath,
-        progress -> uploadProgressBar.setProgress(progress)
-    );
+    modUploadTask = modService.uploadMod(modPath, rankedCheckbox.isSelected());
+    uploadTaskTitleLabel.textProperty().bind(modUploadTask.titleProperty());
+    uploadTaskMessageLabel.textProperty().bind(modUploadTask.messageProperty());
+    uploadProgressBar.progressProperty().bind(modUploadTask.progressProperty());
+
     modUploadTask.getFuture()
+        .thenAccept(v -> eventBus.post(new ModUploadedEvent(modInfo)))
         .thenAccept(aVoid -> enterUploadCompleteState())
         .exceptionally(throwable -> {
-          onUploadFailed(throwable);
+          if (!(throwable instanceof CancellationException)) {
+            onUploadFailed(throwable.getCause());
+          }
           return null;
         });
   }

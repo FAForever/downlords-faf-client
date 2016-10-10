@@ -66,8 +66,6 @@ public class MapUploadController {
   Region mapUploadRoot;
   @FXML
   CheckBox rankedCheckbox;
-  @FXML
-  Label rankedLabel;
 
   @Resource
   MapService mapService;
@@ -97,8 +95,6 @@ public class MapUploadController {
     uploadProgressPane.setVisible(false);
     parseProgressPane.setVisible(false);
     uploadCompletePane.setVisible(false);
-
-    rankedLabel.setLabelFor(rankedCheckbox);
   }
 
   public void setMapPath(Path mapPath) {

@@ -112,6 +112,9 @@ public class ReplayServiceImpl implements ReplayService {
     String replayFileGlob = environment.getProperty("replayFileGlob");
 
     Path replaysDirectory = preferencesService.getReplaysDirectory();
+    if (!Files.notExists(replaysDirectory)) {
+      Files.createDirectories(replaysDirectory);
+    }
     try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(replaysDirectory, replayFileGlob)) {
       for (Path replayFile : directoryStream) {
         try {

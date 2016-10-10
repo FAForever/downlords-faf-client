@@ -4,8 +4,10 @@ import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
+import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
@@ -44,6 +46,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
+
+import static java.util.Arrays.asList;
 
 public class ReplayVaultController {
 
@@ -257,14 +261,14 @@ public class ReplayVaultController {
   public CompletionStage<Void> loadLocalReplaysInBackground() {
     LoadLocalReplaysTask task = applicationContext.getBean(LoadLocalReplaysTask.class);
 
+    localReplaysRoot.getChildren().clear();
     return taskService.submitTask(task).getFuture()
         .thenAccept(this::addLocalReplays)
         .exceptionally(throwable -> {
               logger.warn("Error while loading local replays", throwable);
               notificationService.addNotification(new PersistentNotification(
                   i18n.get("replays.loadingLocalTask.failed"),
-                  Severity.ERROR,
-                  Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(throwable)))
+                  Severity.ERROR, asList(new ReportAction(i18n, reportingService, throwable), new DismissAction(i18n))
               ));
               return null;
             }

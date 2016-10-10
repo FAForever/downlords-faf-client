@@ -2,6 +2,7 @@ package com.faforever.client.map;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapBean.Type;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
@@ -40,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -89,28 +91,28 @@ public class MapServiceImpl implements MapService {
   private Map<Path, MapBean> pathToMap;
   private AnalyzingInfixSuggester suggester;
   private Path mapsDirectory;
-  private ObservableList<MapBean> installedMapBeans;
+  private ObservableList<MapBean> installedSkirmishMaps;
   private Map<String, MapBean> mapsByTechnicalName;
 
   public MapServiceImpl() {
     pathToMap = new HashMap<>();
-    installedMapBeans = FXCollections.observableArrayList();
+    installedSkirmishMaps = FXCollections.observableArrayList();
     mapsByTechnicalName = new HashMap<>();
 
-    installedMapBeans.addListener((ListChangeListener<MapBean>) change -> {
+    installedSkirmishMaps.addListener((ListChangeListener<MapBean>) change -> {
       while (change.next()) {
         for (MapBean mapBean : change.getRemoved()) {
-          mapsByTechnicalName.remove(mapBean.getFolderName());
+          mapsByTechnicalName.remove(mapBean.getFolderName().toLowerCase());
         }
         for (MapBean mapBean : change.getAddedSubList()) {
-          mapsByTechnicalName.put(mapBean.getFolderName(), mapBean);
+          mapsByTechnicalName.put(mapBean.getFolderName().toLowerCase(), mapBean);
         }
       }
     });
   }
 
   private static URL getMapUrl(String mapName, String baseUrl) {
-    return noCatch(() -> new URL(format(baseUrl, urlFragmentEscaper().escape(mapName))));
+    return noCatch(() -> new URL(format(baseUrl, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US))));
   }
 
   @PostConstruct
@@ -173,7 +175,7 @@ public class MapServiceImpl implements MapService {
           long mapsRead = 0;
           for (Path mapPath : mapPaths) {
             updateProgress(++mapsRead, totalMaps);
-            addMap(mapPath);
+            addSkirmishMap(mapPath);
           }
         } catch (IOException e) {
           logger.warn("Maps could not be read from: " + mapsDirectory, e);
@@ -184,15 +186,15 @@ public class MapServiceImpl implements MapService {
   }
 
   private void removeMap(Path path) {
-    installedMapBeans.remove(pathToMap.remove(path));
+    installedSkirmishMaps.remove(pathToMap.remove(path));
   }
 
-  private void addMap(Path path) throws MapLoadException {
+  private void addSkirmishMap(Path path) throws MapLoadException {
     try {
       MapBean mapBean = readMap(path);
       pathToMap.put(path, mapBean);
-      if (!installedMapBeans.contains(mapBean)) {
-        installedMapBeans.add(mapBean);
+      if (!installedSkirmishMaps.contains(mapBean) && mapBean.getType() == Type.SKIRMISH) {
+        installedSkirmishMaps.add(mapBean);
       }
     } catch (MapLoadException e) {
       logger.warn("Map could not be read: " + mapsDirectory, e);
@@ -221,6 +223,7 @@ public class MapServiceImpl implements MapService {
       mapBean.setDisplayName(scenarioInfo.get("name").toString());
       mapBean.setDescription(scenarioInfo.get("description").tojstring().replaceAll("<LOC .*?>", ""));
       mapBean.setVersion(scenarioInfo.get("map_version").toint());
+      mapBean.setType(Type.fromString(scenarioInfo.get("type").toString()));
       mapBean.setSize(new MapSize(
           (int) (size.get(1).toint() / MAP_SIZE_FACTOR),
           (int) (size.get(2).toint() / MAP_SIZE_FACTOR))
@@ -245,16 +248,16 @@ public class MapServiceImpl implements MapService {
   @Override
   @Cacheable(value = CacheNames.LARGE_MAP_PREVIEW, unless = "#result == null")
   public Image loadLargePreview(String mapName) {
-    URL urlString = getMapUrl(mapName, largeMapPreviewUrl);
+    URL url = getMapUrl(mapName, largeMapPreviewUrl);
 
-    logger.debug("Fetching large preview for map {} from {}", mapName, urlString);
+    logger.debug("Fetching large preview for map {} from {}", mapName, url);
 
-    return fetchImageOrNull(urlString);
+    return fetchImageOrNull(url);
   }
 
   @Override
   public ObservableList<MapBean> getInstalledMaps() {
-    return installedMapBeans;
+    return installedSkirmishMaps;
   }
 
   @Override
@@ -281,7 +284,7 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public boolean isInstalled(String mapFolderName) {
-    return mapsByTechnicalName.containsKey(mapFolderName);
+    return mapsByTechnicalName.containsKey(mapFolderName.toLowerCase());
   }
 
   @Override
@@ -391,7 +394,7 @@ public class MapServiceImpl implements MapService {
     }
 
     return taskService.submitTask(task).getFuture()
-        .thenAccept(aVoid -> noCatch(() -> addMap(getPathForMap(folderName))));
+        .thenAccept(aVoid -> noCatch(() -> addSkirmishMap(getPathForMap(folderName))));
   }
 
   @Nullable

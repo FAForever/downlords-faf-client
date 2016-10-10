@@ -169,8 +169,8 @@ public class UpdateServerAccessorImpl extends AbstractServerAccessor implements 
   }
 
   @Override
-  public void requestVersion(String targetDirectoryName, String filename, String targetVersion) {
-    writeToServer(new VersionRequest(targetDirectoryName, filename, targetVersion));
+  public void requestVersion(String targetDirectoryName, String filename, String gameVersion) {
+    writeToServer(new VersionRequest(targetDirectoryName, filename, gameVersion));
   }
 
   @Override
@@ -185,14 +185,14 @@ public class UpdateServerAccessorImpl extends AbstractServerAccessor implements 
   }
 
   @Override
-  public void patchTo(String targetDirectoryName, String filename, String targetVersion) {
-    writeToServer(new PatchRequest(targetDirectoryName, filename, targetVersion));
+  public void patchTo(String targetDirectoryName, String filename, String currentMd5, String gameVersion) {
+    writeToServer(new PatchRequest(targetDirectoryName, filename, currentMd5, gameVersion));
   }
 
   @Override
-  public void modPatchTo(String targetDirectoryName, String filename, Map<String, Integer> modVersions) {
+  public void modPatchTo(String targetDirectoryName, String filename, String currentMd5, Map<String, Integer> modVersions) {
     String modVersionsJson = gson.toJson(modVersions);
-    writeToServer(new ModPatchRequest(targetDirectoryName, filename, modVersionsJson));
+    writeToServer(new ModPatchRequest(targetDirectoryName, filename, currentMd5, modVersionsJson));
   }
 
   @Override

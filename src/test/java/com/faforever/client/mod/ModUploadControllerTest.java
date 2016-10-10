@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Answers;
 import org.mockito.Mock;
 
 import java.util.concurrent.CompletableFuture;
@@ -16,6 +17,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -23,7 +26,9 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
 
   @Rule
   public TemporaryFolder modFolder = new TemporaryFolder();
+
   private ModUploadController instance;
+
   @Mock
   private ModService modService;
   @Mock
@@ -31,9 +36,9 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ReportingService reportingService;
   @Mock
-  private ModUploadTask modUploadTask;
-  @Mock
   private ThreadPoolExecutor threadPoolExecutor;
+
+  private ModUploadTask modUploadTask;
 
   @Before
   public void setUp() throws Exception {
@@ -42,6 +47,13 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
     instance.notificationService = notificationService;
     instance.threadPoolExecutor = threadPoolExecutor;
     instance.reportingService = reportingService;
+
+    modUploadTask = new ModUploadTask() {
+      @Override
+      protected Void call() throws Exception {
+        return null;
+      }
+    };
   }
 
   @Test
@@ -52,23 +64,23 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnCancelUploadClicked() throws Exception {
-    when(modService.uploadMod(any(), any())).thenReturn(modUploadTask);
-    when(modUploadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
+    when(modService.uploadMod(any(), anyBoolean())).thenReturn(modUploadTask);
+    modUploadTask.getFuture().complete(null);
 
     instance.onUploadClicked();
     instance.onCancelUploadClicked();
 
-    verify(modUploadTask).cancel(true);
+    assertThat(modUploadTask.isCancelled(), is(true));
   }
 
   @Test
   public void testOnUploadClicked() throws Exception {
-    when(modService.uploadMod(any(), any())).thenReturn(modUploadTask);
-    when(modUploadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
+    when(modService.uploadMod(any(), anyBoolean())).thenReturn(modUploadTask);
+    modUploadTask.getFuture().complete(null);
 
     instance.onUploadClicked();
 
-    verify(modService).uploadMod(any(), any());
+    verify(modService).uploadMod(any(), anyBoolean());
   }
 
   @Test

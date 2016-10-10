@@ -74,6 +74,9 @@
                               onAction="#onLeaderboardRanked1v1Selected" text="%main.leaderboard.ranked1v1"/>
                   </items>
                 </SplitMenuButton>
+                <SplitMenuButton fx:id="unitsButton" focusTraversable="false" mnemonicParsing="false"
+                                 onAction="#onUnitsSelected" text="%main.units">
+                </SplitMenuButton>
               </children>
             </HBox>
             <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"/>

@@ -364,7 +364,7 @@ public class FafApiAccessorImplTest {
     Path file = Files.createTempFile("foo", null);
 
     // FIXME filename
-    instance.uploadMod(file);
+    instance.uploadMod(file, false, (written, total) -> {});
 
     verify(httpTransport).buildRequest("POST", "http://api.example.com/mods/upload");
   }

@@ -393,15 +393,12 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     when(applicationContext.getBean(ModUploadTask.class)).thenReturn(modUploadTask);
 
     Path modPath = Paths.get(".");
-    Consumer<Float> progressListener = aFloat -> {
-    };
 
-    instance.uploadMod(modPath, progressListener);
+    instance.uploadMod(modPath, false);
 
     verify(applicationContext).getBean(ModUploadTask.class);
 
     verify(modUploadTask).setModPath(modPath);
-    verify(modUploadTask).setProgressListener(progressListener);
 
     verify(taskService).submitTask(modUploadTask);
   }
