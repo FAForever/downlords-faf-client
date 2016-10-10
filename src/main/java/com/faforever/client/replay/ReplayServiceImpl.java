@@ -121,7 +121,7 @@ public class ReplayServiceImpl implements ReplayService {
           LocalReplayInfo replayInfo = replayFileReader.readReplayInfo(replayFile);
           replayInfos.add(new ReplayInfoBean(replayInfo, replayFile));
         } catch (Exception e) {
-          logger.warn("Could not read replay file {}", replayFile);
+          logger.warn("Could not read replay file {} ({})", replayFile, e.getMessage());
           moveCorruptedReplayFile(replayFile);
         }
       }
