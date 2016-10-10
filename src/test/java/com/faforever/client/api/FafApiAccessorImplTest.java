@@ -293,8 +293,8 @@ public class FafApiAccessorImplTest {
     );
 
     assertThat(instance.getRanked1v1Entries(), equalTo(result));
-    verify(httpTransport).buildRequest("GET", "http://api.example.com/ranked1v1?filter%5Bis_active%5D=true&page%5Bnumber%5D=1");
-    verify(httpTransport).buildRequest("GET", "http://api.example.com/ranked1v1?filter%5Bis_active%5D=true&page%5Bnumber%5D=2");
+    verify(httpTransport).buildRequest("GET", "http://api.example.com/leaderboards/1v1?page%5Bnumber%5D=1");
+    verify(httpTransport).buildRequest("GET", "http://api.example.com/leaderboards/1v1?page%5Bnumber%5D=2");
   }
 
   @Test
@@ -305,7 +305,7 @@ public class FafApiAccessorImplTest {
 
     mockResponse("{'data': [" +
             " {" +
-            "   'id': '/ranked1v1/stats'," +
+            "   'id': '/leaderboards/1v1/stats'," +
             "   'attributes': {" +
             "     '100': 1," +
             "     '1200': 5," +
@@ -316,10 +316,10 @@ public class FafApiAccessorImplTest {
         "{'data': []}");
 
     Ranked1v1Stats ranked1v1Stats = new Ranked1v1Stats();
-    ranked1v1Stats.setId("/ranked1v1/stats");
+    ranked1v1Stats.setId("/leaderboards/1v1/stats");
 
     assertThat(instance.getRanked1v1Stats(), equalTo(ranked1v1Stats));
-    verify(httpTransport).buildRequest("GET", "http://api.example.com/ranked1v1/stats");
+    verify(httpTransport).buildRequest("GET", "http://api.example.com/leaderboards/1v1/stats");
   }
 
   @Test
@@ -342,7 +342,7 @@ public class FafApiAccessorImplTest {
     Ranked1v1EntryBean entry = Ranked1v1EntryBeanBuilder.create().defaultValues().username("user1").get();
 
     assertThat(instance.getRanked1v1EntryForPlayer(123), equalTo(entry));
-    verify(httpTransport).buildRequest("GET", "http://api.example.com/ranked1v1/123");
+    verify(httpTransport).buildRequest("GET", "http://api.example.com/leaderboards/1v1/123");
   }
 
   @Test
