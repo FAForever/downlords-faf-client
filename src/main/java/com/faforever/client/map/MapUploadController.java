@@ -36,6 +36,9 @@ import static java.util.Arrays.asList;
 public class MapUploadController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  @FXML
+  Label rankedLabel;
   @FXML
   Label uploadTaskMessageLabel;
   @FXML
@@ -95,6 +98,8 @@ public class MapUploadController {
     uploadProgressPane.setVisible(false);
     parseProgressPane.setVisible(false);
     uploadCompletePane.setVisible(false);
+
+    rankedLabel.setLabelFor(rankedCheckbox);
   }
 
   public void setMapPath(Path mapPath) {

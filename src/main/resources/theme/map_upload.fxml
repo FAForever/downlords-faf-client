@@ -62,8 +62,8 @@
             <Insets top="10.0"/>
           </VBox.margin>
         </GridPane>
-        <Label labelFor="rankedCheckbox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-               text="%mapVault.upload.rankedConfirm" wrapText="true">
+          <Label fx:id="rankedLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                 text="%mapVault.upload.rankedConfirm" wrapText="true">
           <graphic>
             <CheckBox fx:id="rankedCheckbox" mnemonicParsing="false" selected="true"/>
           </graphic>
