@@ -46,6 +46,12 @@
                                  <Label styleClass="fontawesome" text=""/>
                              </graphic>
                          </Button>
+                        <Button mnemonicParsing="false" text="%modVault.refresh"
+                                onAction="#onRefreshClicked">
+                           <graphic>
+                              <Label styleClass="fontawesome" text=""/>
+                           </graphic>
+                        </Button>
                         <VBox fx:id="showroomGroup" spacing="5.0">
                            <children>
                               <Label styleClass="h2" text="%modVault.recommendedUidMods">

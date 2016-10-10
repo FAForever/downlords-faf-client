@@ -240,4 +240,8 @@ public class ModVaultController {
 
     modUploadWindow.show();
   }
+
+  public void onRefreshClicked() {
+    displayShowroomMods();
+  }
 }
