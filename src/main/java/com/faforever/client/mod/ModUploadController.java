@@ -1,5 +1,6 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.api.ApiException;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.notification.Action;
@@ -7,7 +8,6 @@ import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.util.IdenticonUtil;
@@ -31,6 +31,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import static com.faforever.client.notification.Severity.ERROR;
 import static java.util.Arrays.asList;
 
 public class ModUploadController {
@@ -146,17 +147,24 @@ public class ModUploadController {
 
   private void onUploadFailed(Throwable throwable) {
     enterModInfoState();
-    notificationService.addNotification(new ImmediateNotification(
-        i18n.get("errorTitle"),
-        i18n.get("modVault.upload.failed"),
-        Severity.ERROR,
-        throwable,
-        asList(
-            new Action(i18n.get("modVault.upload.retry"), event -> onUploadClicked()),
-            new ReportAction(i18n, reportingService, throwable),
-            new DismissAction(i18n)
-        )
-    ));
+    if (throwable instanceof ApiException) {
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("errorTitle"), i18n.get("modVault.upload.failed", throwable.getLocalizedMessage()), ERROR,
+          asList(
+              new Action(i18n.get("modVault.upload.retry"), event -> onUploadClicked()),
+              new DismissAction(i18n)
+          )
+      ));
+    } else {
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("errorTitle"), i18n.get("modVault.upload.failed", throwable.getLocalizedMessage()), ERROR, throwable,
+          asList(
+              new Action(i18n.get("modVault.upload.retry"), event -> onUploadClicked()),
+              new ReportAction(i18n, reportingService, throwable),
+              new DismissAction(i18n)
+          )
+      ));
+    }
   }
 
   @FXML

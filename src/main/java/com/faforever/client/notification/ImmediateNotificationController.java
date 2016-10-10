@@ -62,6 +62,11 @@ public class ImmediateNotificationController {
         break;
     }
 
+    // Until implemented
+    if (action instanceof ReportAction) {
+      button.setDisable(true);
+    }
+
     return button;
   }
 
