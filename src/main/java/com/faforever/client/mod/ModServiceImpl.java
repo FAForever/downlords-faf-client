@@ -374,10 +374,9 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletableTask<Void> uploadMod(Path modPath, boolean ranked) {
+  public CompletableTask<Void> uploadMod(Path modPath) {
     ModUploadTask modUploadTask = applicationContext.getBean(ModUploadTask.class);
     modUploadTask.setModPath(modPath);
-    modUploadTask.setRanked(ranked);
 
     return taskService.submitTask(modUploadTask);
   }

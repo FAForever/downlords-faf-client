@@ -192,19 +192,19 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   @Cacheable(CacheNames.LEADERBOARD)
   public List<Ranked1v1EntryBean> getRanked1v1Entries() {
-    return getMany("/ranked1v1?filter[is_active]=true", LeaderboardEntry.class).stream()
+    return getMany("/leaderboards/1v1", LeaderboardEntry.class).stream()
         .map(Ranked1v1EntryBean::fromLeaderboardEntry)
         .collect(Collectors.toList());
   }
 
   @Override
   public Ranked1v1Stats getRanked1v1Stats() {
-    return getSingle("/ranked1v1/stats", Ranked1v1Stats.class);
+    return getSingle("/leaderboards/1v1/stats", Ranked1v1Stats.class);
   }
 
   @Override
   public Ranked1v1EntryBean getRanked1v1EntryForPlayer(int playerId) {
-    return Ranked1v1EntryBean.fromLeaderboardEntry(getSingle("/ranked1v1/" + playerId, LeaderboardEntry.class));
+    return Ranked1v1EntryBean.fromLeaderboardEntry(getSingle("/leaderboards/1v1/" + playerId, LeaderboardEntry.class));
   }
 
   @Override
@@ -243,16 +243,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public void uploadMod(Path file, boolean isRanked, ByteCountListener listener) throws IOException {
+  public void uploadMod(Path file, ByteCountListener listener) throws IOException {
     MultipartContent multipartContent = createFileMultipart(file, listener);
-    multipartContent.addPart(new MultipartContent.Part(
-        new HttpHeaders().set("Content-Disposition", "form-data; name=\"metadata\";"),
-        new JsonHttpContent(jsonFactory, new GenericJson() {
-          {
-            set("is_ranked", isRanked);
-          }
-        })));
-
     postMultipart("/mods/upload", multipartContent);
   }
 

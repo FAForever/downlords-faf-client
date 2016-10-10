@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
-import java.util.function.Consumer;
 
 public interface ModService {
 
@@ -57,7 +56,7 @@ public interface ModService {
 
   ModInfoBean extractModInfo(Path path);
 
-  CompletableTask<Void> uploadMod(Path modPath, boolean ranked);
+  CompletableTask<Void> uploadMod(Path modPath);
 
   Image loadThumbnail(ModInfoBean mod);
 }

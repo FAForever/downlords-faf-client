@@ -7,18 +7,14 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Answers;
 import org.mockito.Mock;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -64,7 +60,7 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnCancelUploadClicked() throws Exception {
-    when(modService.uploadMod(any(), anyBoolean())).thenReturn(modUploadTask);
+    when(modService.uploadMod(any())).thenReturn(modUploadTask);
     modUploadTask.getFuture().complete(null);
 
     instance.onUploadClicked();
@@ -75,12 +71,12 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnUploadClicked() throws Exception {
-    when(modService.uploadMod(any(), anyBoolean())).thenReturn(modUploadTask);
+    when(modService.uploadMod(any())).thenReturn(modUploadTask);
     modUploadTask.getFuture().complete(null);
 
     instance.onUploadClicked();
 
-    verify(modService).uploadMod(any(), anyBoolean());
+    verify(modService).uploadMod(any());
   }
 
   @Test

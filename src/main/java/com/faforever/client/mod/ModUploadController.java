@@ -1,8 +1,6 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapBean;
-import com.faforever.client.map.event.MapUploadedEvent;
 import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
@@ -16,7 +14,6 @@ import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
@@ -34,15 +31,12 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import static com.github.nocatch.NoCatch.noCatch;
 import static java.util.Arrays.asList;
 
 public class ModUploadController {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @FXML
-  Label rankedCheckBoxLabel;
   @FXML
   Label uploadTaskMessageLabel;
   @FXML
@@ -69,8 +63,6 @@ public class ModUploadController {
   ImageView thumbnailImageView;
   @FXML
   Region modUploadRoot;
-  @FXML
-  CheckBox rankedCheckbox;
 
   @Resource
   ModService modService;
@@ -100,8 +92,6 @@ public class ModUploadController {
     uploadProgressPane.setVisible(false);
     parseProgressPane.setVisible(false);
     uploadCompletePane.setVisible(false);
-
-    rankedCheckBoxLabel.setLabelFor(rankedCheckbox);
   }
 
   public void setModPath(Path modPath) {
@@ -174,7 +164,7 @@ public class ModUploadController {
     enterUploadingState();
 
     uploadProgressPane.setVisible(true);
-    modUploadTask = modService.uploadMod(modPath, rankedCheckbox.isSelected());
+    modUploadTask = modService.uploadMod(modPath);
     uploadTaskTitleLabel.textProperty().bind(modUploadTask.titleProperty());
     uploadTaskMessageLabel.textProperty().bind(modUploadTask.messageProperty());
     uploadProgressBar.progressProperty().bind(modUploadTask.progressProperty());

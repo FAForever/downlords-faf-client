@@ -40,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
@@ -394,7 +393,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
 
     Path modPath = Paths.get(".");
 
-    instance.uploadMod(modPath, false);
+    instance.uploadMod(modPath);
 
     verify(applicationContext).getBean(ModUploadTask.class);
 

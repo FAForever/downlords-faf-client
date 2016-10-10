@@ -46,7 +46,7 @@ public interface FafApiAccessor {
 
   List<MapBean> getNewestMaps(int count);
 
-  void uploadMod(Path file, boolean isRanked, ByteCountListener listener) throws IOException;
+  void uploadMod(Path file, ByteCountListener listener) throws IOException;
 
   void uploadMap(Path file, boolean isRanked, ByteCountListener listener) throws IOException;
 }

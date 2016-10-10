@@ -103,7 +103,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public void uploadMod(Path file, boolean isRanked, ByteCountListener listener) throws IOException {
+  public void uploadMod(Path file, ByteCountListener listener) throws IOException {
 
   }
 

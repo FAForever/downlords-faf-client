@@ -35,7 +35,6 @@ public class ModUploadTask extends CompletableTask<Void> {
   I18n i18n;
 
   private Path modPath;
-  private boolean isRanked;
 
   public ModUploadTask() {
     super(Priority.HIGH);
@@ -44,7 +43,6 @@ public class ModUploadTask extends CompletableTask<Void> {
   @Override
   protected Void call() throws Exception {
     Validator.notNull(modPath, "modPath must not be null");
-    Validator.notNull(isRanked, "isRanked must not be null");
 
     ResourceLocks.acquireUploadLock();
     Path cacheDirectory = preferencesService.getCacheDirectory();
@@ -71,7 +69,7 @@ public class ModUploadTask extends CompletableTask<Void> {
       logger.debug("Uploading mod {} as {}", modPath, tmpFile);
       updateTitle(i18n.get("modVault.upload.uploading"));
 
-      fafApiAccessor.uploadMod(tmpFile, isRanked, byteListener);
+      fafApiAccessor.uploadMod(tmpFile, byteListener);
       return null;
     } finally {
       Files.delete(tmpFile);
@@ -81,9 +79,5 @@ public class ModUploadTask extends CompletableTask<Void> {
 
   public void setModPath(Path modPath) {
     this.modPath = modPath;
-  }
-
-  public void setRanked(boolean ranked) {
-    this.isRanked = ranked;
   }
 }

@@ -47,19 +47,8 @@ import static org.mockito.Mockito.when;
 
 public class FafApiAccessorImplTest {
 
-  static class SpyableHttpTransport extends HttpTransport {
-
-    LowLevelHttpRequest lowLevelHttpRequest;
-
-    @Override
-    public LowLevelHttpRequest buildRequest(String method, String url) throws IOException {
-      return lowLevelHttpRequest;
-    }
-  }
-
   @Rule
   public TemporaryFolder preferencesDirectory = new TemporaryFolder();
-
   private FafApiAccessorImpl instance;
   @Mock
   private PreferencesService preferencesService;
@@ -364,8 +353,19 @@ public class FafApiAccessorImplTest {
     Path file = Files.createTempFile("foo", null);
 
     // FIXME filename
-    instance.uploadMod(file, false, (written, total) -> {});
+    instance.uploadMod(file, (written, total) -> {
+    });
 
     verify(httpTransport).buildRequest("POST", "http://api.example.com/mods/upload");
+  }
+
+  static class SpyableHttpTransport extends HttpTransport {
+
+    LowLevelHttpRequest lowLevelHttpRequest;
+
+    @Override
+    public LowLevelHttpRequest buildRequest(String method, String url) throws IOException {
+      return lowLevelHttpRequest;
+    }
   }
 }
