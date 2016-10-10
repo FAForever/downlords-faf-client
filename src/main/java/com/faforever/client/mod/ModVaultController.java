@@ -3,6 +3,7 @@ package com.faforever.client.mod;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.PreferencesService;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -68,6 +69,8 @@ public class ModVaultController {
   ModDetailController modDetailController;
   @Resource
   I18n i18n;
+  @Resource
+  PreferencesService preferencesService;
 
   private boolean initialized;
 
@@ -209,6 +212,7 @@ public class ModVaultController {
   public void onUploadModButtonClicked(ActionEvent actionEvent) {
     Platform.runLater(() -> {
       DirectoryChooser directoryChooser = new DirectoryChooser();
+      directoryChooser.setInitialDirectory(preferencesService.getPreferences().getForgedAlliance().getModsDirectory().toFile());
       directoryChooser.setTitle(i18n.get("modVault.upload.chooseDirectory"));
       File result = directoryChooser.showDialog(getRoot().getScene().getWindow());
 

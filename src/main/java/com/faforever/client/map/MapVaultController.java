@@ -4,6 +4,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.event.MapUploadedEvent;
+import com.faforever.client.preferences.PreferencesService;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
@@ -70,6 +71,8 @@ public class MapVaultController {
   I18n i18n;
   @Resource
   EventBus eventBus;
+  @Resource
+  PreferencesService preferencesService;
 
   private boolean initialized;
 
@@ -224,6 +227,7 @@ public class MapVaultController {
   public void onUploadMapButtonClicked() {
     Platform.runLater(() -> {
       DirectoryChooser directoryChooser = new DirectoryChooser();
+      directoryChooser.setInitialDirectory(preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory().toFile());
       directoryChooser.setTitle(i18n.get("mapVault.upload.chooseDirectory"));
       File result = directoryChooser.showDialog(getRoot().getScene().getWindow());
 
