@@ -62,7 +62,7 @@ public class MapBean implements Comparable<MapBean> {
     mapBean.setId(map.getId());
     mapBean.setPlayers(map.getMaxPlayers());
     mapBean.setRating(map.getRating());
-    mapBean.setVersion(Integer.valueOf(map.getVersion()));
+    mapBean.setVersion(map.getVersion());
     mapBean.setDownloadUrl(map.getDownloadUrl());
     mapBean.setSmallThumbnailUrl(map.getThumbnailUrlSmall());
     mapBean.setLargeThumbnailUrl(map.getThumbnailUrlLarge());

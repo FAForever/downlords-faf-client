@@ -43,7 +43,7 @@ public class Map {
   @Key("times_played")
   private int timesPlayed;
   @Key("version")
-  private String version;
+  private int version;
   @Key("width")
   private int sizeX;
   @Key("height")
@@ -186,11 +186,11 @@ public class Map {
     this.timesPlayed = timesPlayed;
   }
 
-  public String getVersion() {
+  public int getVersion() {
     return version;
   }
 
-  public void setVersion(String version) {
+  public void setVersion(int version) {
     this.version = version;
   }
 
