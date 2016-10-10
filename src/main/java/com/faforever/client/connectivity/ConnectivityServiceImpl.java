@@ -292,7 +292,7 @@ public class ConnectivityServiceImpl implements ConnectivityService {
 
   private void resetPort() {
     int gamePort = preferencesService.getPreferences().getForgedAlliance().getPort();
-    if (publicSocket.getLocalPort() != gamePort) {
+    if (publicSocket == null || publicSocket.getLocalPort() != gamePort) {
       initPublicSocket(gamePort);
     }
   }
