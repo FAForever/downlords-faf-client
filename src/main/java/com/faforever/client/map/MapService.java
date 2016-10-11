@@ -59,4 +59,6 @@ public interface MapService {
   Path getPathForMap(String technicalName);
 
   CompletableTask<Void> uploadMap(Path mapPath, boolean ranked);
+
+  void evictCache();
 }

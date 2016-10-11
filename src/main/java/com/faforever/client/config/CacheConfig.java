@@ -42,11 +42,11 @@ public class CacheConfig implements CachingConfigurer {
     SimpleCacheManager simpleCacheManager = new SimpleCacheManager();
     simpleCacheManager.setCaches(Arrays.asList(
         new GuavaCache(STATISTICS, newBuilder().maximumSize(10).expireAfterAccess(20, MINUTES).build()),
-        new GuavaCache(ACHIEVEMENTS, newBuilder().maximumSize(1).expireAfterAccess(120, MINUTES).build()),
-        new GuavaCache(MODS, newBuilder().maximumSize(10).expireAfterAccess(120, MINUTES).build()),
-        new GuavaCache(MAPS, newBuilder().maximumSize(10).expireAfterAccess(120, MINUTES).build()),
-        new GuavaCache(LEADERBOARD, newBuilder().maximumSize(1).expireAfterAccess(30, SECONDS).build()),
-        new GuavaCache(AVAILABLE_AVATARS, newBuilder().expireAfterAccess(5, SECONDS).build()),
+        new GuavaCache(ACHIEVEMENTS, newBuilder().expireAfterAccess(10, MINUTES).build()),
+        new GuavaCache(MODS, newBuilder().expireAfterAccess(10, MINUTES).build()),
+        new GuavaCache(MAPS, newBuilder().expireAfterAccess(10, MINUTES).build()),
+        new GuavaCache(LEADERBOARD, newBuilder().maximumSize(1).expireAfterAccess(1, MINUTES).build()),
+        new GuavaCache(AVAILABLE_AVATARS, newBuilder().expireAfterAccess(30, SECONDS).build()),
 
         // Images should only be cached as long as they are in use. This avoids loading an image multiple times, while
         // at the same time it doesn't prevent unused images from being garbage collected.

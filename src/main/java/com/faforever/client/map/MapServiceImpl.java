@@ -24,6 +24,7 @@ import org.luaj.vm2.LuaValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 
@@ -379,6 +380,12 @@ public class MapServiceImpl implements MapService {
     mapUploadTask.setRanked(ranked);
 
     return taskService.submitTask(mapUploadTask);
+  }
+
+  @Override
+  @CacheEvict(CacheNames.MAPS)
+  public void evictCache() {
+    // Nothing to see here
   }
 
   private CompletionStage<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {

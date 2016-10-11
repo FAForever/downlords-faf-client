@@ -13,7 +13,7 @@
     <logger name="com.faforever.client.patch" level="debug"/>
     <logger name="com.faforever.client.events" level="info"/>
     <logger name="com.faforever.client.legacy" level="info"/>
-    <logger name="com.faforever.client.remote" level="debug"/>
+    <logger name="com.faforever.client.remote" level="info"/>
     <logger name="com.faforever.client.replay" level="info"/>
     <logger name="com.faforever.client.relay" level="info"/>
     <logger name="com.faforever.client.chat" level="info"/>

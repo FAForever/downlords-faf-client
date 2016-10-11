@@ -5,6 +5,7 @@ import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
+import com.faforever.client.config.CacheNames;
 import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
@@ -19,6 +20,8 @@ import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -153,6 +156,7 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
+  @Cacheable(CacheNames.MAPS)
   public List<MapBean> getMaps() {
     return fafApiAccessor.getMaps();
   }
@@ -163,6 +167,7 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
+  @Cacheable(CacheNames.MODS)
   public List<ModInfoBean> getMods() {
     return fafApiAccessor.getMods();
   }
@@ -204,5 +209,11 @@ public class FafServiceImpl implements FafService {
   public void selectAvatar(AvatarBean avatar) {
     fafServerAccessor.selectAvatar(avatar == null ? null : avatar.getUrl());
     eventBus.post(new AvatarChangedEvent(avatar));
+  }
+
+  @Override
+  @CacheEvict(CacheNames.MODS)
+  public void evictModsCache() {
+    // Nothing to see, please move along
   }
 }

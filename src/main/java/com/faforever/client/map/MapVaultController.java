@@ -257,6 +257,7 @@ public class MapVaultController {
   }
 
   public void onRefreshClicked() {
+    mapService.evictCache();
     displayShowroomMaps();
   }
 

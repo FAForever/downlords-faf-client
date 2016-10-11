@@ -394,6 +394,11 @@ public class ModServiceImpl implements ModService {
     return new Image(url, true);
   }
 
+  @Override
+  public void evictModsCache() {
+    fafService.evictModsCache();
+  }
+
   private CompletionStage<List<ModInfoBean>> getTopElements(Comparator<? super ModInfoBean> comparator, int count) {
     return getAvailableMods().thenApply(modInfoBeans -> modInfoBeans.stream()
         .sorted(comparator)

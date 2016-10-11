@@ -164,7 +164,6 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  @Cacheable(CacheNames.MODS)
   public List<ModInfoBean> getMods() {
     logger.debug("Loading available mods");
     return getMany("/mods", Mod.class).stream()

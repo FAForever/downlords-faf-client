@@ -59,4 +59,6 @@ public interface ModService {
   CompletableTask<Void> uploadMod(Path modPath);
 
   Image loadThumbnail(ModInfoBean mod);
+
+  void evictModsCache();
 }

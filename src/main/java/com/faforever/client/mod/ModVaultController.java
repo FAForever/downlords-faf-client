@@ -249,6 +249,7 @@ public class ModVaultController {
   }
 
   public void onRefreshClicked() {
+    modService.evictModsCache();
     displayShowroomMods();
   }
 

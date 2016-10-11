@@ -3,7 +3,6 @@ package com.faforever.client.remote;
 import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.avatar.AvatarBean;
-import com.faforever.client.config.CacheNames;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
@@ -15,7 +14,6 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;
@@ -67,7 +65,6 @@ public interface FafService {
 
   void notifyGameEnded();
 
-  @Cacheable(CacheNames.MAPS)
   List<MapBean> getMaps();
 
   MapBean findMapByName(String mapName);
@@ -87,4 +84,6 @@ public interface FafService {
   CompletionStage<List<AvatarBean>> getAvailableAvatars();
 
   void selectAvatar(AvatarBean avatar);
+
+  void evictModsCache();
 }
