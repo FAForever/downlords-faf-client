@@ -226,18 +226,6 @@ public final class JavaFxUtil {
       }
     });
 
-    // Transparent WebView workaround https://bugs.openjdk.java.net/browse/JDK-8090547
-    webView.getEngine().documentProperty().addListener((observable, oldValue, newValue) -> {
-      noCatch(() -> {
-        WebEngine webEngine = webView.getEngine();
-        Field field = webEngine.getClass().getDeclaredField("page");
-        field.setAccessible(true);
-        // Breaks portability :-(
-        com.sun.webkit.WebPage page = (com.sun.webkit.WebPage) field.get(webEngine);
-        page.setBackgroundColor(new java.awt.Color(0, 0, 0, 0).getRGB());
-      });
-    });
-
     WebEngine engine = webView.getEngine();
     engine.setUserDataDirectory(preferencesService.getCacheDirectory().toFile());
     themeService.registerWebView(webView);
