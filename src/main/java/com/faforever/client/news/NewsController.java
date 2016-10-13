@@ -4,6 +4,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.ThemeService;
+import com.google.common.eventbus.EventBus;
 import com.google.common.io.CharStreams;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -39,6 +40,8 @@ public class NewsController {
   NewsService newsService;
   @Resource
   ThemeService themeService;
+  @Resource
+  EventBus eventBus;
 
   public void setUpIfNecessary() {
     if (!newsListPane.getChildren().isEmpty()) {
@@ -60,6 +63,8 @@ public class NewsController {
       newsListPane.getChildren().add(newsListItemController.getRoot());
 
       if (!firstItemSelected) {
+        preferencesService.getPreferences().getNews().setLastReadNewsUrl(newsItem.getLink());
+        preferencesService.storeInBackground();
         newsListItemController.onMouseClicked();
         firstItemSelected = true;
       }
@@ -67,6 +72,8 @@ public class NewsController {
   }
 
   private void displayNewsItem(NewsItem newsItem) {
+    eventBus.post(new UnreadNewsEvent(false));
+
     try (Reader reader = new InputStreamReader(NEWS_DETAIL_HTML_RESOURCE.getInputStream())) {
       String html = CharStreams.toString(reader);
 

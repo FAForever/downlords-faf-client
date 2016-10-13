@@ -40,6 +40,7 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
+import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -155,6 +156,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private WindowController windowController;
   @Mock
   private ThemeService themeService;
+  @Mock
+  private EventBus eventBus;
 
   private MainController instance;
   private CountDownLatch mainControllerInitializedLatch;
@@ -197,6 +200,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.threadPoolExecutor = threadPoolExecutor;
     instance.windowController = windowController;
     instance.themeService = themeService;
+    instance.eventBus = eventBus;
     instance.ratingBeta = 250;
 
     connectionStateProperty = new SimpleObjectProperty<>();
@@ -256,7 +260,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
     when(communityHubController.getRoot()).thenReturn(new Pane());
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
-    when(mainWindowPrefs.getLastView()).thenReturn(instance.communityButton.getId());
+    when(mainWindowPrefs.getLastView()).thenReturn(instance.newsButton.getId());
 
     verify(gameUpdateService).checkForUpdateInBackground();
     assertTrue(getStage().isShowing());
@@ -429,7 +433,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   public void testOnCommunitySelected() throws Exception {
     attachToRoot();
     when(communityHubController.getRoot()).thenReturn(new Pane());
-    WaitForAsyncUtils.waitForAsyncFx(1000, instance.communityButton::fire);
+    WaitForAsyncUtils.waitForAsyncFx(1000, instance.newsButton::fire);
   }
 
   @Test
@@ -462,23 +466,12 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Ignore("CommunityHub is not yet available")
   public void testOnCommunityHubSelected() throws Exception {
     when(communityHubController.getRoot()).thenReturn(new Pane());
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.communityButton.getItems().get(0).fire());
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.newsButton.getItems().get(0).fire());
   }
 
   @Test
   public void testOnNewsSelected() throws Exception {
-    attachToRoot();
-    when(newsController.getRoot()).thenReturn(new Pane());
-    // TODO when community hub is added, this index needs to be 1
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.communityButton.getItems().get(0).fire());
-  }
-
-  @Test
-  public void testOnCastsSelected() throws Exception {
-    attachToRoot();
-    when(castsController.getRoot()).thenReturn(new Pane());
-    // TODO when community hub is added, this index needs to be 2
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.communityButton.getItems().get(1).fire());
+    WaitForAsyncUtils.waitForAsyncFx(1000, instance.newsButton::fire);
   }
 
   @Test

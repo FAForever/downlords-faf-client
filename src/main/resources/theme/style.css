@@ -174,6 +174,7 @@
   -fx-tile-background: #FFFFFF11;
   -fx-transparent-hover: rgba(255, 255, 255, .1);
   -fx-drop-shadow: dropshadow(gaussian, #ffffff66, 5, 0.5, 0, 0);
+  -fx-highlighted-drop-shadow: dropshadow(gaussian, -fx-accent, 10, 0.75, 0, 0);
   -fx-dim-color: #00000099;
 }
 
@@ -486,18 +487,10 @@
   -fx-max-height: 32px;
 }
 
-.main-menu-button:hover {
-  -fx-effect: -fx-drop-shadow;
-}
-
 .username-button {
   -fx-padding: 0;
   -fx-focus-color: transparent;
   -fx-background-color: transparent;
-}
-
-.username-button:hover {
-  -fx-effect: -fx-drop-shadow;
 }
 
 .username-button > .label {
@@ -524,29 +517,31 @@
 .main-navigation > .split-menu-button {
   -fx-background-color: transparent;
   -fx-border-color: transparent;
+  -fx-text-base-color: -fx-mid-text-color;
 }
 
 .main-navigation > .split-menu-button > .label {
   -fx-font-size: 1.5em;
-  -fx-text-fill: -fx-dark-text-color;
   -fx-background-color: transparent;
 }
 
 .split-menu-button > .arrow-button {
-  -fx-background-color: transparent;
   -fx-background-insets: 0;
   -fx-background-radius: 0;
   -fx-padding: 0;
 }
 
-.main-navigation > .split-menu-button:hover > .label {
-  -fx-text-fill: -fx-mid-text-color;
-  -fx-effect: -fx-drop-shadow;
+.main-navigation > .split-menu-button:hover > .label > .text {
+  -fx-text-base-color: -fx-light-text-color;
 }
 
 .main-navigation > .split-menu-button:active > .label {
-  -fx-text-fill: -fx-light-text-color;
-  -fx-effect: -fx-drop-shadow;
+  -fx-background-color: -fx-control-inner-background;
+  -fx-text-base-color: -fx-light-text-color;
+}
+
+.main-navigation > .split-menu-button:highlighted > .label > .text {
+  -fx-effect: -fx-highlighted-drop-shadow;
 }
 
 /***************** Status bar *****************/
