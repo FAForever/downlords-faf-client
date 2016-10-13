@@ -156,11 +156,13 @@ public class ChatUserItemController {
     ChatUser chatUser = chatService.getOrCreateChatUser(lowerUsername);
 
     if (chatPrefs.getChatColorMode() == CUSTOM) {
-      if (chatPrefs.getUserToColor().containsKey(lowerUsername)) {
-        color = chatPrefs.getUserToColor().get(lowerUsername);
-      }
+      synchronized (chatPrefs.getUserToColor()) {
+        if (chatPrefs.getUserToColor().containsKey(lowerUsername)) {
+          color = chatPrefs.getUserToColor().get(lowerUsername);
+        }
 
-      chatPrefs.getUserToColor().addListener(new WeakMapChangeListener<>(colorPerUserMapChangeListener));
+        chatPrefs.getUserToColor().addListener(new WeakMapChangeListener<>(colorPerUserMapChangeListener));
+      }
     } else if (chatPrefs.getChatColorMode() == ChatColorMode.RANDOM && colorsAllowedInPane) {
       color = ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode());
     }
