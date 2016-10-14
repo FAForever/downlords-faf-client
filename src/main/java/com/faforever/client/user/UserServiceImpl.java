@@ -70,10 +70,11 @@ public class UserServiceImpl implements UserService {
           loggedIn.set(true);
           eventBus.post(new LoginSuccessEvent(login));
         })
-        .exceptionally(throwable -> {
-          logger.warn("Error during login", throwable);
-          fafService.disconnect();
-          return null;
+        .whenComplete((aVoid, throwable) -> {
+          if (throwable != null) {
+            logger.warn("Error during login", throwable);
+            fafService.disconnect();
+          }
         });
   }
 

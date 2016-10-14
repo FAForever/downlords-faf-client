@@ -445,11 +445,9 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     logIn(username, password);
   }
 
-  private CompletableFuture<LoginMessage> logIn(String username, String password) {
+  private void logIn(String username, String password) {
     String uniqueId = uidService.generate(String.valueOf(sessionId.get()), preferencesService.getFafDataDirectory().resolve("uid.log"));
     writeToServer(new LoginClientMessage(username, password, sessionId.get(), uniqueId, localIp));
-
-    return loginFuture;
   }
 
   private void onGameLaunchInfo(GameLaunchMessage gameLaunchMessage) {
