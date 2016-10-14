@@ -4,6 +4,7 @@ package com.faforever.client.game;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.util.RatingUtil;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.TitledPane;
@@ -33,16 +34,7 @@ public class TeamCardController {
   I18n i18n;
 
   public void setPlayersInTeam(String team, List<String> playerList) {
-    String localizedTeamTile;
-    if ("1".equals(team) || "-1".equals(team)) {
-      localizedTeamTile = i18n.get("game.tooltip.teamTitleNoTeam");
-    } else if ("null".equals(team)) {
-      localizedTeamTile = i18n.get("game.tooltip.observers");
-    } else {
-      localizedTeamTile = i18n.get("game.tooltip.teamTitle", Integer.valueOf(team) - 1);
-    }
-    teamPaneRoot.setText(localizedTeamTile);
-
+    int totalRating = 0;
     for (String player : playerList) {
       PlayerInfoBean playerInfoBean = playerService.getPlayerForUsername(player);
       if (playerInfoBean == null) {
@@ -53,7 +45,18 @@ public class TeamCardController {
       playerCardTooltipController.setPlayer(playerInfoBean);
 
       teamPane.getChildren().add(playerCardTooltipController.getRoot());
+      totalRating += RatingUtil.getRoundedGlobalRating(playerInfoBean);
     }
+
+    String teamTitle;
+    if ("1".equals(team) || "-1".equals(team)) {
+      teamTitle = i18n.get("game.tooltip.teamTitleNoTeam");
+    } else if ("null".equals(team)) {
+      teamTitle = i18n.get("game.tooltip.observers");
+    } else {
+      teamTitle = i18n.get("game.tooltip.teamTitle", Integer.valueOf(team) - 1, totalRating);
+    }
+    teamPaneRoot.setText(teamTitle);
   }
 
   public Node getRoot() {

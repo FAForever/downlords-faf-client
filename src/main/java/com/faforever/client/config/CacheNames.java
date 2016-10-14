@@ -16,6 +16,7 @@ public final class CacheNames {
   public static final String THEME_IMAGES = "themeImages";
   public static final String MOD_THUMBNAIL = "modThumbnail";
   public static final String AVAILABLE_AVATARS = "availableAvatars";
+  public static final String NEWS = "news";
 
   private CacheNames() {
     throw new AssertionError("Not instantiatable");

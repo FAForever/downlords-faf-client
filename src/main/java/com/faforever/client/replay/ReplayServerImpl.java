@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Collections;
 import java.util.HashMap;
 
@@ -85,10 +86,10 @@ public class ReplayServerImpl implements ReplayServer {
 
       logger.debug("Opening local replay server on port {}", localReplayServerPort);
 
-      try (ServerSocket serverSocket1 = new ServerSocket(localReplayServerPort);
+      try (ServerSocket serverSocket = new ServerSocket(localReplayServerPort);
            Socket fafReplayServerSocket = new Socket(fafReplayServerHost, fafReplayServerPort)) {
-        this.serverSocket = serverSocket1;
-        recordAndRelay(uid, serverSocket1, new BufferedOutputStream(fafReplayServerSocket.getOutputStream()));
+        this.serverSocket = serverSocket;
+        recordAndRelay(uid, serverSocket, new BufferedOutputStream(fafReplayServerSocket.getOutputStream()));
       } catch (IOException e) {
         if (stoppedGracefully) {
           return;
@@ -121,6 +122,7 @@ public class ReplayServerImpl implements ReplayServer {
 
     ByteArrayOutputStream replayData = new ByteArrayOutputStream();
 
+    boolean connectionToServerLost = false;
     byte[] buffer = new byte[REPLAY_BUFFER_SIZE];
     try (InputStream inputStream = socket.getInputStream()) {
       int bytesRead;
@@ -132,7 +134,15 @@ public class ReplayServerImpl implements ReplayServer {
           replayData.write(buffer, 0, bytesRead);
         }
 
-        fafReplayOutputStream.write(buffer, 0, bytesRead);
+        if (!connectionToServerLost) {
+          try {
+            fafReplayOutputStream.write(buffer, 0, bytesRead);
+          } catch (SocketException e) {
+            // In case we lose connection to the replay server, just stop writing to it
+            logger.warn("Connection to replay server lost ({})", e.getMessage());
+            connectionToServerLost = true;
+          }
+        }
       }
     } catch (Exception e) {
       logger.warn("Error while recording replay", e);

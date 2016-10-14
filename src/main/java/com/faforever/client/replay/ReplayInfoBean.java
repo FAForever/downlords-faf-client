@@ -62,6 +62,7 @@ public class ReplayInfoBean {
   public ReplayInfoBean(ServerReplayInfo replayInfo) {
     this();
     id.setValue(replayInfo.id);
+    title.setValue(replayInfo.name);
     gameType.setValue(replayInfo.mod);
     map.setValue(replayInfo.map);
     startTime.setValue(Instant.ofEpochMilli(replayInfo.start * 1000));
