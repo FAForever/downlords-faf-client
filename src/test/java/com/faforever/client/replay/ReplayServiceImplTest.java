@@ -31,7 +31,8 @@ import static java.util.Collections.emptySet;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -48,20 +49,25 @@ import static org.mockito.Mockito.when;
 public class ReplayServiceImplTest {
 
   /**
-   * First 64 bytes of a SCFAReplay file with version 3632. ASCII representation:
+   * First 64 bytes of a SCFAReplay file with version 3599. ASCII representation:
    * <pre>
    * Supreme Commande
-   * r v1.50.3632....
+   * r v1.50.3599....
    * Replay v1.9../ma
-   * ps/SCMP_012/SCMP
+   * ps/forbidden pas
+   * s.v0001/forbidde
+   * n pass.scmap....
    * </pre>
    */
   private static final byte[] REPLAY_FIRST_BYTES = new byte[]{
       0x53, 0x75, 0x70, 0x72, 0x65, 0x6D, 0x65, 0x20, 0x43, 0x6F, 0x6D, 0x6D, 0x61, 0x6E, 0x64, 0x65,
-      0x72, 0x20, 0x76, 0x31, 0x2E, 0x35, 0x30, 0x2E, 0x33, 0x36, 0x33, 0x32, 0x00, 0x0D, 0x0A, 0x00,
+      0x72, 0x20, 0x76, 0x31, 0x2E, 0x35, 0x30, 0x2E, 0x33, 0x35, 0x39, 0x39, 0x00, 0x0D, 0x0A, 0x00,
       0x52, 0x65, 0x70, 0x6C, 0x61, 0x79, 0x20, 0x76, 0x31, 0x2E, 0x39, 0x0D, 0x0A, 0x2F, 0x6D, 0x61,
-      0x70, 0x73, 0x2F, 0x53, 0x43, 0x4D, 0x50, 0x5F, 0x30, 0x31, 0x32, 0x2F, 0x53, 0x43, 0x4D, 0x50
+      0x70, 0x73, 0x2F, 0x66, 0x6F, 0x72, 0x62, 0x69, 0x64, 0x64, 0x65, 0x6E, 0x20, 0x70, 0x61, 0x73,
+      0x73, 0x2E, 0x76, 0x30, 0x30, 0x30, 0x31, 0x2F, 0x66, 0x6F, 0x72, 0x62, 0x69, 0x64, 0x64, 0x65,
+      0x6E, 0x20, 0x70, 0x61, 0x73, 0x73, 0x2E, 0x73, 0x63, 0x6D, 0x61, 0x70, 0x00, 0x0D, 0x0A, 0x1A
   };
+  private static final String TEST_MAP_NAME = "forbidden pass.v0001";
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
   @Rule
@@ -114,7 +120,14 @@ public class ReplayServiceImplTest {
   public void testParseSupComVersion() throws Exception {
     Integer version = ReplayServiceImpl.parseSupComVersion(REPLAY_FIRST_BYTES);
 
-    assertEquals((Integer) 3632, version);
+    assertEquals((Integer) 3599, version);
+  }
+
+  @Test
+  public void testParseMapName() throws Exception {
+    String mapName = ReplayServiceImpl.parseMapName(REPLAY_FIRST_BYTES);
+
+    assertEquals(TEST_MAP_NAME, mapName);
   }
 
   @Test
@@ -192,7 +205,7 @@ public class ReplayServiceImplTest {
 
     instance.runReplay(replayInfoBean);
 
-    verify(gameService).runWithReplay(any(), eq(123), eq("faf"), eq(3632), eq(emptyMap()), eq(emptySet()));
+    verify(gameService).runWithReplay(any(), eq(123), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME));
     verifyZeroInteractions(notificationService);
   }
 
@@ -207,7 +220,7 @@ public class ReplayServiceImplTest {
 
     instance.runReplay(replayInfoBean);
 
-    verify(gameService).runWithReplay(any(), eq(null), eq("faf"), eq(3632), eq(emptyMap()), eq(emptySet()));
+    verify(gameService).runWithReplay(any(), eq(null), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME));
     verifyZeroInteractions(notificationService);
   }
 
@@ -263,7 +276,7 @@ public class ReplayServiceImplTest {
     instance.runReplay(replayInfoBean);
 
     verify(taskService).submitTask(replayDownloadTask);
-    verify(gameService).runWithReplay(any(), eq(123), eq("faf"), eq(3632), eq(emptyMap()), eq(emptySet()));
+    verify(gameService).runWithReplay(any(), eq(123), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME));
     verifyZeroInteractions(notificationService);
   }
 
@@ -282,7 +295,7 @@ public class ReplayServiceImplTest {
     instance.runReplay(replayInfoBean);
 
     verify(taskService).submitTask(replayDownloadTask);
-    verify(gameService).runWithReplay(replayFile, null, "faf", 3632, emptyMap(), emptySet());
+    verify(gameService).runWithReplay(replayFile, null, "faf", 3599, emptyMap(), emptySet(), TEST_MAP_NAME);
     verifyZeroInteractions(notificationService);
   }
 

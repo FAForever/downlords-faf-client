@@ -36,8 +36,9 @@ public interface GameService {
 
   /**
    * @param path a replay file that is readable by the game without any further conversion
+   * @param mapName
    */
-  void runWithReplay(Path path, @Nullable Integer replayId, String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simMods);
+  void runWithReplay(Path path, @Nullable Integer replayId, String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simMods, String mapName);
 
   CompletionStage<Void> runWithLiveReplay(URI replayUri, Integer gameId, String gameType, String mapName) throws IOException;
 

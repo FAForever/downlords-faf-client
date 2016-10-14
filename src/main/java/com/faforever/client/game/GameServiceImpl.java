@@ -220,13 +220,14 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public void runWithReplay(Path path, @Nullable Integer replayId, String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simMods) {
+  public void runWithReplay(Path path, @Nullable Integer replayId, String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simMods, String mapName) {
     if (isRunning()) {
       logger.warn("Forged Alliance is already running, not starting replay");
       return;
     }
 
     updateGameIfNecessary(gameType, version, modVersions, simMods)
+        .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
         .thenRun(() -> {
           try {
             process = forgedAllianceService.startReplay(path, replayId, gameType);

@@ -59,6 +59,7 @@ public class ReplayServiceImpl implements ReplayService {
    * Byte offset at which a SupCom replay's version number starts.
    */
   private static final int VERSION_OFFSET = 0x18;
+  private static final int MAP_NAME_OFFSET = 0x2D;
   private static final String FAF_REPLAY_FILE_ENDING = ".fafreplay";
   private static final String SUP_COM_REPLAY_FILE_ENDING = ".scfareplay";
   private static final String FAF_LIFE_PROTOCOL = "faflive";
@@ -94,6 +95,13 @@ public class ReplayServiceImpl implements ReplayService {
   static Integer parseSupComVersion(byte[] rawReplayBytes) {
     int versionDelimiterIndex = Bytes.indexOf(rawReplayBytes, (byte) 0x00);
     return Integer.parseInt(new String(rawReplayBytes, VERSION_OFFSET, versionDelimiterIndex - VERSION_OFFSET, US_ASCII));
+  }
+
+  @VisibleForTesting
+  static String parseMapName(byte[] rawReplayBytes) {
+    int mapDelimiterIndex = Bytes.indexOf(rawReplayBytes, new byte[]{0x00, 0x0D, 0x0A, 0x1A});
+    String mapPath = new String(rawReplayBytes, MAP_NAME_OFFSET, mapDelimiterIndex - MAP_NAME_OFFSET, US_ASCII);
+    return mapPath.split("/")[2];
   }
 
   @VisibleForTesting
@@ -268,22 +276,24 @@ public class ReplayServiceImpl implements ReplayService {
     String gameType = replayInfo.getFeaturedMod();
     Integer replayId = replayInfo.getUid();
     Map<String, Integer> modVersions = replayInfo.getFeaturedModVersions();
+    String mapName = replayInfo.getMapname();
 
     Set<String> simMods = replayInfo.getSimMods() != null ? replayInfo.getSimMods().keySet() : emptySet();
 
     Integer version = parseSupComVersion(rawReplayBytes);
 
-    gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods);
+    gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods, mapName);
   }
 
   private void runSupComReplayFile(Path path) {
     byte[] rawReplayBytes = replayFileReader.readReplayData(path);
 
     Integer version = parseSupComVersion(rawReplayBytes);
+    String mapName = parseMapName(rawReplayBytes);
     String fileName = path.getFileName().toString();
     String gameType = guessModByFileName(fileName);
 
-    gameService.runWithReplay(path, null, gameType, version, emptyMap(), emptySet());
+    gameService.runWithReplay(path, null, gameType, version, emptyMap(), emptySet(), mapName);
   }
 
   private CompletionStage<Path> downloadReplayToTemporaryDirectory(int replayId) {
