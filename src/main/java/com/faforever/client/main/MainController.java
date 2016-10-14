@@ -17,6 +17,7 @@ import com.faforever.client.login.LoginController;
 import com.faforever.client.map.MapVaultController;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.news.NewsController;
+import com.faforever.client.news.UnreadNewsEvent;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.ImmediateNotificationController;
 import com.faforever.client.notification.NotificationService;
@@ -44,6 +45,8 @@ import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -108,6 +111,7 @@ import static com.faforever.client.fx.WindowController.WindowButtonType.MINIMIZE
 import static com.faforever.client.os.OperatingSystem.WINDOWS;
 import static com.github.nocatch.NoCatch.noCatch;
 
+// TODO divide and conquer
 public class MainController implements OnChooseGameDirectoryListener {
 
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_CLASS = PseudoClass.getPseudoClass("info");
@@ -120,6 +124,7 @@ public class MainController implements OnChooseGameDirectoryListener {
   private static final PseudoClass CONNECTIVITY_UNKNOWN_PSEUDO_CLASS = PseudoClass.getPseudoClass("unknown");
   private static final PseudoClass CONNECTIVITY_CONNECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("connected");
   private static final PseudoClass CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("disconnected");
+  private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
 
   @FXML
   Label chatConnectionStatusIcon;
@@ -138,7 +143,7 @@ public class MainController implements OnChooseGameDirectoryListener {
   @FXML
   Pane contentPane;
   @FXML
-  SplitMenuButton communityButton;
+  SplitMenuButton newsButton;
   @FXML
   SplitMenuButton chatButton;
   @FXML
@@ -232,6 +237,8 @@ public class MainController implements OnChooseGameDirectoryListener {
   WindowController windowController;
   @Resource
   ThemeService themeService;
+  @Resource
+  EventBus eventBus;
 
   @Value("${mainWindowTitle}")
   String mainWindowTitle;
@@ -254,7 +261,7 @@ public class MainController implements OnChooseGameDirectoryListener {
     taskProgressLabel.managedProperty().bind(taskProgressLabel.visibleProperty());
 
     addHoverListener(playButton);
-    addHoverListener(communityButton);
+    addHoverListener(newsButton);
     addHoverListener(chatButton);
     addHoverListener(vaultButton);
     addHoverListener(leaderboardButton);
@@ -338,6 +345,8 @@ public class MainController implements OnChooseGameDirectoryListener {
 
   @PostConstruct
   void postConstruct() {
+    eventBus.register(this);
+
     // We need to initialize all skins, so initially add the chat root to the scene graph.
     setContent(chatController.getRoot());
 
@@ -495,6 +504,11 @@ public class MainController implements OnChooseGameDirectoryListener {
         onLoggedOut();
       }
     });
+  }
+
+  @Subscribe
+  public void onUnreadNews(UnreadNewsEvent event) {
+    Platform.runLater(() -> newsButton.pseudoClassStateChanged(HIGHLIGHTED, event.hasUnreadNews()));
   }
 
   private void setContent(Node node) {
@@ -738,7 +752,7 @@ public class MainController implements OnChooseGameDirectoryListener {
           .filter(button -> lastView.equals(button.getId()))
           .forEach(button -> ((ButtonBase) button).fire());
     } else {
-      communityButton.fire();
+      newsButton.fire();
     }
   }
 
@@ -819,7 +833,7 @@ public class MainController implements OnChooseGameDirectoryListener {
   @FXML
   void onCommunitySelected(ActionEvent event) {
     setActiveNavigationButton((ButtonBase) event.getSource());
-    selectLastChildOrFirstItem(communityButton);
+    selectLastChildOrFirstItem(newsButton);
   }
 
   /**
@@ -915,9 +929,9 @@ public class MainController implements OnChooseGameDirectoryListener {
 
   @FXML
   void onNewsSelected(ActionEvent event) {
+    setActiveNavigationButton((ButtonBase) event.getSource());
     newsController.setUpIfNecessary();
     setContent(newsController.getRoot());
-    setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
 
   @FXML

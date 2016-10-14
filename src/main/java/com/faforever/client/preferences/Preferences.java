@@ -31,7 +31,8 @@ public class Preferences {
   private final IntegerProperty lastGameMinRating;
   private final IntegerProperty lastGameMaxRating;
   private final StringProperty gamesViewMode;
-  private Ranked1v1Prefs ranked1v1;
+  private final Ranked1v1Prefs ranked1v1;
+  private final NewsPrefs newsPrefs;
 
   public Preferences() {
     chat = new ChatPrefs();
@@ -49,6 +50,7 @@ public class Preferences {
     lastGameMaxRating = new SimpleIntegerProperty(1300);
     ranked1v1 = new Ranked1v1Prefs();
     gamesViewMode = new SimpleStringProperty();
+    newsPrefs = new NewsPrefs();
   }
 
   public String getGamesViewMode() {
@@ -181,5 +183,9 @@ public class Preferences {
 
   public Ranked1v1Prefs getRanked1v1() {
     return ranked1v1;
+  }
+
+  public NewsPrefs getNews() {
+    return newsPrefs;
   }
 }

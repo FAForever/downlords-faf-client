@@ -104,6 +104,7 @@ public class PreferencesService {
   private Preferences preferences;
   private TimerTask storeInBackgroundTask;
   private OnChooseGameDirectoryListener onChooseGameDirectoryListener;
+
   public PreferencesService() {
     updateListeners = new ArrayList<>();
     this.preferencesFilePath = getPreferencesDirectory().resolve(PREFS_FILE_NAME);

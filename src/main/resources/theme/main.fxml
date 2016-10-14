@@ -15,8 +15,9 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
+
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="mainRoot" minHeight="500.0" minWidth="600.0"
-      xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.main.MainController">
+      xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.main.MainController">
   <children>
     <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
           VBox.vgrow="ALWAYS">
@@ -36,15 +37,8 @@
             </MenuButton>
             <HBox fx:id="mainNavigation" styleClass="main-navigation">
               <children>
-                <SplitMenuButton fx:id="communityButton" focusTraversable="false" mnemonicParsing="false"
-                                 onAction="#onCommunitySelected" text="%main.community">
-                  <items>
-                    <MenuItem fx:id="newsButton" mnemonicParsing="false" onAction="#onNewsSelected"
-                              text="%main.community.news"/>
-                    <MenuItem fx:id="castsButton" mnemonicParsing="false" onAction="#onCastsSelected"
-                              text="%main.community.casts"/>
-                  </items>
-                </SplitMenuButton>
+                <SplitMenuButton fx:id="newsButton" focusTraversable="false" mnemonicParsing="false"
+                                 onAction="#onNewsSelected" text="%main.community.news"/>
                 <SplitMenuButton fx:id="chatButton" focusTraversable="false" mnemonicParsing="false"
                                  onAction="#onChatSelected" text="%main.chat"/>
                 <SplitMenuButton fx:id="playButton" focusTraversable="false" mnemonicParsing="false"
