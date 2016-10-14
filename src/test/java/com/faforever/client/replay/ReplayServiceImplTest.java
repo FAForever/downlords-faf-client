@@ -199,6 +199,7 @@ public class ReplayServiceImplTest {
     replayInfo.setSimMods(Collections.emptyMap());
     replayInfo.setFeaturedModVersions(emptyMap());
     replayInfo.setFeaturedMod("faf");
+    replayInfo.setMapname(TEST_MAP_NAME);
 
     when(replayFileReader.readReplayInfo(replayFile)).thenReturn(replayInfo);
     when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
@@ -269,6 +270,7 @@ public class ReplayServiceImplTest {
     replayInfo.setSimMods(Collections.emptyMap());
     replayInfo.setFeaturedModVersions(emptyMap());
     replayInfo.setFeaturedMod("faf");
+    replayInfo.setMapname(TEST_MAP_NAME);
 
     when(replayFileReader.readReplayInfo(replayFile)).thenReturn(replayInfo);
     when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
