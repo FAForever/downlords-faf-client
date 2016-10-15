@@ -10,7 +10,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
-<Tab xmlns:fx="http://javafx.com/fxml/1" fx:id="channelTabRoot" xmlns="http://javafx.com/javafx/8.0.40"
+
+<Tab xmlns:fx="http://javafx.com/fxml/1" fx:id="channelTabRoot" xmlns="http://javafx.com/javafx/8.0.60"
      fx:controller="com.faforever.client.chat.ChannelTabController">
   <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
         onKeyReleased="#onKeyReleased">
@@ -26,8 +27,8 @@
                     AnchorPane.topAnchor="0.0">
                 <children>
                   <Button fx:id="closeSearchFieldButton" contentDisplay="RIGHT" focusTraversable="false"
-                          mnemonicParsing="false" onMouseClicked="#onSearchFieldClose"
-                          styleClass="close-search-text-button" visible="false"/>
+                          maxHeight="1.7976931348623157E308" mnemonicParsing="false"
+                          onMouseClicked="#onSearchFieldClose" styleClass="close-search-text-button" visible="false"/>
                   <TextField fx:id="searchField" promptText="%chat.filter.prompt" visible="false"/>
                 </children>
               </HBox>
@@ -35,14 +36,15 @@
           </AnchorPane>
           <VBox fx:id="channelTabScrollPaneVBox" maxHeight="1.7976931348623157E308" SplitPane.resizableWithParent="false">
             <children>
-              <AnchorPane>
+              <HBox alignment="CENTER">
                 <children>
-                  <TextField fx:id="userSearchTextField" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"/>
+                  <TextField fx:id="userSearchTextField" minWidth="10.0" prefColumnCount="5" HBox.hgrow="ALWAYS"/>
                   <Button fx:id="advancedUserFilter" mnemonicParsing="false" onAction="#onAdvancedUserFilter"
-                          styleClass="fontawesome" text="" AnchorPane.rightAnchor="0.0"/>
+                          styleClass="fontawesome" text="" HBox.hgrow="NEVER"/>
                 </children>
-              </AnchorPane>
-              <ScrollPane fitToWidth="true" focusTraversable="false" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+              </HBox>
+              <ScrollPane fitToWidth="true" focusTraversable="false" hbarPolicy="NEVER" styleClass="chat-user-list"
+                          VBox.vgrow="ALWAYS">
                 <content>
                   <VBox fx:id="usersVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                     <children>

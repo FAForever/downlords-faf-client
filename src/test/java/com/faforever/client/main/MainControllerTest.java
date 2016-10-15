@@ -28,7 +28,7 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.preferences.SettingsController;
+import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
@@ -517,7 +517,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private void prepareTestMatchmakerMessageTest(float deviation) {
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
-    when(notificationPrefs.getDisplayRanked1v1Toast()).thenReturn(true);
+    when(notificationPrefs.isRanked1v1ToastEnabled()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(
         PlayerInfoBeanBuilder.create("JUnit").leaderboardRatingMean(1500).leaderboardRatingDeviation(deviation).get()
     );
@@ -567,7 +567,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   public void testOnMatchMakerMessageDisplaysNotificationWithQueuesButDisabled() {
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Consumer<MatchmakerMessage>> matchmakerMessageCaptor = ArgumentCaptor.forClass(Consumer.class);
-    when(notificationPrefs.getDisplayRanked1v1Toast()).thenReturn(false);
+    when(notificationPrefs.isRanked1v1ToastEnabled()).thenReturn(false);
     when(playerService.getCurrentPlayer()).thenReturn(
         PlayerInfoBeanBuilder.create("JUnit").leaderboardRatingMean(1500).leaderboardRatingDeviation(100).get()
     );

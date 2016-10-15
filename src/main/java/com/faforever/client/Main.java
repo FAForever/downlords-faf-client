@@ -36,6 +36,7 @@ public class Main extends Application {
   @Override
   public void start(Stage stage) {
     Font.loadFont(getClass().getResourceAsStream("/font/fontawesome-webfont.ttf"), 0);
+    Font.loadFont(getClass().getResourceAsStream("/font/weblysleekuil.ttf"), 0);
     JavaFxUtil.fixTooltipDuration();
 
     initApplicationContext(stage);

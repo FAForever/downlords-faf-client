@@ -40,7 +40,7 @@ public class AudioControllerImplTest extends AbstractPlainJavaFxTest {
     when(instance.mainController.getRoot()).thenReturn(getRoot());
     when(preferences.getNotification()).thenReturn(notificationsPrefs);
     when(preferences.getChat()).thenReturn(chatPrefs);
-    when(preferences.getTheme()).thenReturn("default");
+    when(preferences.getThemeName()).thenReturn("default");
     when(instance.preferencesService.getPreferences()).thenReturn(preferences);
     when(instance.themeService.getThemeFileUrl(any())).thenReturn(getThemeFileUrl(ThemeService.MENTION_SOUND));
 
@@ -51,8 +51,8 @@ public class AudioControllerImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPlayChatMentionSound() throws Exception {
-    when(notificationsPrefs.getSoundsEnabled()).thenReturn(true);
-    when(notificationsPrefs.getMentionSoundEnabled()).thenReturn(true);
+    when(notificationsPrefs.isSoundsEnabled()).thenReturn(true);
+    when(notificationsPrefs.isMentionSoundEnabled()).thenReturn(true);
 
     instance.playChatMentionSound();
 
@@ -61,8 +61,8 @@ public class AudioControllerImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPlayPrivateMessageSound() throws Exception {
-    when(notificationsPrefs.getSoundsEnabled()).thenReturn(true);
-    when(notificationsPrefs.getPrivateMessageSoundEnabled()).thenReturn(true);
+    when(notificationsPrefs.isSoundsEnabled()).thenReturn(true);
+    when(notificationsPrefs.isPrivateMessageSoundEnabled()).thenReturn(true);
 
     instance.playPrivateMessageSound();
 
@@ -71,8 +71,8 @@ public class AudioControllerImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPlayInfoNotificationSound() throws Exception {
-    when(notificationsPrefs.getSoundsEnabled()).thenReturn(true);
-    when(notificationsPrefs.getInfoSoundEnabled()).thenReturn(true);
+    when(notificationsPrefs.isSoundsEnabled()).thenReturn(true);
+    when(notificationsPrefs.isInfoSoundEnabled()).thenReturn(true);
 
     instance.playInfoNotificationSound();
 
@@ -81,8 +81,8 @@ public class AudioControllerImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPlayWarnNotificationSound() throws Exception {
-    when(notificationsPrefs.getSoundsEnabled()).thenReturn(true);
-    when(notificationsPrefs.getWarnSoundEnabled()).thenReturn(true);
+    when(notificationsPrefs.isSoundsEnabled()).thenReturn(true);
+    when(notificationsPrefs.isWarnSoundEnabled()).thenReturn(true);
 
     instance.playWarnNotificationSound();
 
@@ -91,8 +91,8 @@ public class AudioControllerImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPlayErrorNotificationSound() throws Exception {
-    when(notificationsPrefs.getSoundsEnabled()).thenReturn(true);
-    when(notificationsPrefs.getErrorSoundEnabled()).thenReturn(true);
+    when(notificationsPrefs.isSoundsEnabled()).thenReturn(true);
+    when(notificationsPrefs.isErrorSoundEnabled()).thenReturn(true);
 
     instance.playErrorNotificationSound();
 

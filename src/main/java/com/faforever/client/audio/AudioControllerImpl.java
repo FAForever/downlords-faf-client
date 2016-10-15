@@ -32,6 +32,10 @@ public class AudioControllerImpl implements AudioController {
   private AudioClip infoNotificationSound;
   private AudioClip warnNotificationSound;
   private AudioClip privateMessageSound;
+  private AudioClip friendOnlineSound;
+  private AudioClip friendOfflineSound;
+  private AudioClip friendJoinsGameSound;
+  private AudioClip friendPlaysGameSound;
 
   private boolean playSounds;
   private NotificationsPrefs notificationsPrefs;
@@ -57,6 +61,11 @@ public class AudioControllerImpl implements AudioController {
     warnNotificationSound = loadSound(INFO_SOUND);
     chatMentionSound = loadSound(MENTION_SOUND);
     privateMessageSound = loadSound(PRIVATE_MESSAGE_SOUND);
+    // TODO implement
+//    friendOnlineSound = loadSound(FRIEND_ONLINE_SOUND);
+//    friendOfflineSound = loadSound(FRIEND_OFFLINE_SOUND);
+//    friendJoinsGameSound = loadSound(FRIEND_JOINS_GAME_SOUND);
+//    friendPlaysGameSound = loadSound(FRIEND_PLAYS_GAME_SOUND);
   }
 
   private AudioClip loadSound(String sound) throws IOException {
@@ -65,7 +74,7 @@ public class AudioControllerImpl implements AudioController {
 
   @Override
   public void playChatMentionSound() {
-    if (!notificationsPrefs.getMentionSoundEnabled()) {
+    if (!notificationsPrefs.isMentionSoundEnabled()) {
       return;
     }
     playSound(chatMentionSound);
@@ -73,7 +82,7 @@ public class AudioControllerImpl implements AudioController {
 
   @Override
   public void playPrivateMessageSound() {
-    if (!notificationsPrefs.getPrivateMessageSoundEnabled()) {
+    if (!notificationsPrefs.isPrivateMessageSoundEnabled()) {
       return;
     }
     playSound(privateMessageSound);
@@ -81,7 +90,7 @@ public class AudioControllerImpl implements AudioController {
 
   @Override
   public void playInfoNotificationSound() {
-    if (!notificationsPrefs.getInfoSoundEnabled()) {
+    if (!notificationsPrefs.isInfoSoundEnabled()) {
       return;
     }
     playSound(infoNotificationSound);
@@ -89,7 +98,7 @@ public class AudioControllerImpl implements AudioController {
 
   @Override
   public void playWarnNotificationSound() {
-    if (!notificationsPrefs.getWarnSoundEnabled()) {
+    if (!notificationsPrefs.isWarnSoundEnabled()) {
       return;
     }
     playSound(warnNotificationSound);
@@ -97,7 +106,7 @@ public class AudioControllerImpl implements AudioController {
 
   @Override
   public void playErrorNotificationSound() {
-    if (!notificationsPrefs.getErrorSoundEnabled()) {
+    if (!notificationsPrefs.isErrorSoundEnabled()) {
       return;
     }
     playSound(errorNotificationSound);
@@ -108,7 +117,39 @@ public class AudioControllerImpl implements AudioController {
     playSound(achievementUnlockedSound);
   }
 
-  void playSound(AudioClip audioClip) {
+  @Override
+  public void playFriendOnlineSound() {
+    if (!notificationsPrefs.isFriendOnlineSoundEnabled()) {
+      return;
+    }
+    playSound(friendOnlineSound);
+  }
+
+  @Override
+  public void playFriendOfflineSound() {
+    if (!notificationsPrefs.isFriendOfflineSoundEnabled()) {
+      return;
+    }
+    playSound(friendOfflineSound);
+  }
+
+  @Override
+  public void playFriendJoinsGameSound() {
+    if (!notificationsPrefs.isFriendJoinsGameSoundEnabled()) {
+      return;
+    }
+    playSound(friendJoinsGameSound);
+  }
+
+  @Override
+  public void playFriendPlaysGameSound() {
+    if (!notificationsPrefs.isFriendPlaysGameSoundEnabled()) {
+      return;
+    }
+    playSound(friendPlaysGameSound);
+  }
+
+  private void playSound(AudioClip audioClip) {
     if (!playSounds) {
       return;
     }

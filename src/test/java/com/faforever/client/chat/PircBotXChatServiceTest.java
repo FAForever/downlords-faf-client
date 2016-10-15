@@ -842,17 +842,6 @@ public class PircBotXChatServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void getOrCreateChatUserFriendNotification() throws Exception {
-    when(playerService.getPlayerForUsername(anyString())).thenReturn(playerInfoBean);
-    when(playerInfoBean.getSocialStatus()).thenReturn(SocialStatus.FRIEND);
-    when(playerInfoBean.getId()).thenReturn(1);
-
-    instance.getOrCreateChatUser(CHAT_USER_NAME);
-
-    verify(notificationService).addNotification(any(TransientNotification.class));
-  }
-
-  @Test
   public void getOrCreateChatUserFoeNoNotification() throws Exception {
     when(playerService.getPlayerForUsername(anyString())).thenReturn(playerInfoBean);
     when(playerInfoBean.getSocialStatus()).thenReturn(SocialStatus.FOE);

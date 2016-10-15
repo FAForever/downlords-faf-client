@@ -4,6 +4,7 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.preferences.PreferencesService;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -42,6 +43,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -72,14 +74,6 @@ public class ThemeServiceImpl implements ThemeService {
    */
   private static final int THEME_VERSION = 1;
   private static final String METADATA_FILE_NAME = "theme.properties";
-  private static final Theme DEFAULT_THEME = new Theme() {
-    {
-      setAuthor("Downlord");
-      setCompatibilityVersion(1);
-      setDisplayName("Default");
-      setThemeVersion("1.0");
-    }
-  };
   private static final String DEFAULT_BASE_URL = "/theme/";
   private final Set<Scene> scenes;
   private final Set<WebView> webViews;
@@ -129,7 +123,7 @@ public class ThemeServiceImpl implements ThemeService {
     }
     loadThemes();
 
-    String storedTheme = preferencesService.getPreferences().getTheme();
+    String storedTheme = preferencesService.getPreferences().getThemeName();
     setTheme(themesByFolderName.get(storedTheme));
   }
 
@@ -259,10 +253,10 @@ public class ThemeServiceImpl implements ThemeService {
     stopWatchingTheme(theme);
 
     if (theme == DEFAULT_THEME) {
-      preferencesService.getPreferences().setTheme(DEFAULT_THEME_NAME);
+      preferencesService.getPreferences().setThemeName(DEFAULT_THEME_NAME);
     } else {
       watchTheme(theme);
-      preferencesService.getPreferences().setTheme(getThemeDirectory(theme).getFileName().toString());
+      preferencesService.getPreferences().setThemeName(getThemeDirectory(theme).getFileName().toString());
     }
     preferencesService.storeInBackground();
     reloadStylesheet();
@@ -313,7 +307,7 @@ public class ThemeServiceImpl implements ThemeService {
 
   @Override
   public Collection<Theme> getAvailableThemes() {
-    return themesByFolderName.values();
+    return new ArrayList<>(themesByFolderName.values());
   }
 
   @Override
@@ -352,6 +346,11 @@ public class ThemeServiceImpl implements ThemeService {
     WritableImage fxIcon = new WritableImage(appIcon.getWidth(), appIcon.getHeight());
     SwingFXUtils.toFXImage(appIcon, fxIcon);
     Platform.runLater(() -> stage.getIcons().set(0, fxIcon));
+  }
+
+  @Override
+  public ReadOnlyObjectProperty<Theme> currentThemeProperty() {
+    return currentTheme;
   }
 
   private Path getThemeDirectory(Theme theme) {
