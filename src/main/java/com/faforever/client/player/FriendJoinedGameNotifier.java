@@ -47,7 +47,6 @@ public class FriendJoinedGameNotifier {
     }
 
     PlayerInfoBean player = event.getPlayerInfoBean();
-    // FIXME if this event is triggered before the game has been added to the game service, GameInfoBean is null
     GameInfoBean game = gameService.getByUid(player.getGameUid());
 
     notificationService.addNotification(new TransientNotification(
