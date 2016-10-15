@@ -31,8 +31,8 @@ import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.OnChooseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.preferences.ui.PreferencesController;
 import com.faforever.client.preferences.WindowPrefs;
+import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.rankedmatch.Ranked1v1Controller;
 import com.faforever.client.remote.FafService;
@@ -200,7 +200,7 @@ public class MainController implements OnChooseGameDirectoryListener {
   @Resource
   NotificationService notificationService;
   @Resource
-  PreferencesController preferencesController;
+  SettingsController settingsController;
   @Resource
   ApplicationContext applicationContext;
   @Resource
@@ -457,7 +457,8 @@ public class MainController implements OnChooseGameDirectoryListener {
         }, preferencesService.getPreferences().getNotification().toastPositionProperty()
     ));
     transientNotificationsController.getRoot().getChildren().addListener((InvalidationListener) observable -> {
-      if (!transientNotificationsController.getRoot().getChildren().isEmpty()) {
+      boolean enabled = preferencesService.getPreferences().getNotification().isTransientNotificationsEnabled();
+      if (!transientNotificationsController.getRoot().getChildren().isEmpty() && enabled) {
         Rectangle2D visualBounds = getTransientNotificationAreaBounds();
         transientNotificationsPopup.show(mainRoot.getScene().getWindow(), visualBounds.getMaxX(), visualBounds.getMaxY());
       } else {
@@ -587,7 +588,7 @@ public class MainController implements OnChooseGameDirectoryListener {
   private void onMatchmakerMessage(MatchmakerMessage message) {
     if (message.getQueues() == null
         || gameService.gameRunningProperty().get()
-        || !preferencesService.getPreferences().getNotification().getDisplayRanked1v1Toast()) {
+        || !preferencesService.getPreferences().getNotification().isRanked1v1ToastEnabled()) {
       return;
     }
 
@@ -735,8 +736,7 @@ public class MainController implements OnChooseGameDirectoryListener {
     gameUpdateService.checkForUpdateInBackground();
     clientUpdateService.checkForUpdateInBackground();
 
-    final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
-    restoreLastView(mainWindowPrefs);
+    restoreLastView();
 
     usernameButton.setText(userService.getUsername());
     // TODO no more e-mail address :(
@@ -744,9 +744,10 @@ public class MainController implements OnChooseGameDirectoryListener {
     userImageView.setImage(IdenticonUtil.createIdenticon(userService.getUid()));
   }
 
-  private void restoreLastView(WindowPrefs mainWindowPrefs) {
+  private void restoreLastView() {
+    final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
     String lastView = mainWindowPrefs.getLastView();
-    if (lastView != null) {
+    if (preferencesService.getPreferences().getRememberLastTab() && lastView != null) {
       mainNavigation.getChildren().stream()
           .filter(button -> button instanceof ButtonBase)
           .filter(button -> lastView.equals(button.getId()))
@@ -798,7 +799,7 @@ public class MainController implements OnChooseGameDirectoryListener {
     stage.initOwner(mainRoot.getScene().getWindow());
 
     WindowController windowController = applicationContext.getBean(WindowController.class);
-    windowController.configure(stage, preferencesController.getRoot(), true, CLOSE);
+    windowController.configure(stage, settingsController.getRoot(), true, CLOSE);
 
     stage.setTitle(i18n.get("settings.windowTitle"));
     stage.show();

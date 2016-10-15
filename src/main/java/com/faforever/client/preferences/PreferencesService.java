@@ -97,16 +97,15 @@ public class PreferencesService {
    */
   private final Timer timer;
   private final Collection<PreferenceUpdateListener> updateListeners;
-  private final Preferences preferences;
   @Resource
   I18n i18n;
   @Resource
   NotificationService notificationService;
+  private Preferences preferences;
   private TimerTask storeInBackgroundTask;
   private OnChooseGameDirectoryListener onChooseGameDirectoryListener;
 
   public PreferencesService() {
-    preferences = new Preferences();
     updateListeners = new ArrayList<>();
     this.preferencesFilePath = getPreferencesDirectory().resolve(PREFS_FILE_NAME);
     timer = new Timer("PrefTimer", true);
@@ -138,6 +137,8 @@ public class PreferencesService {
     if (Files.exists(preferencesFilePath)) {
       deleteFileIfEmpty();
       readExistingFile(preferencesFilePath);
+    } else {
+      preferences = new Preferences();
     }
 
     Path gamePrefs = preferences.getForgedAlliance().getPreferencesFile();

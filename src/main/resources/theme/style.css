@@ -1,6 +1,6 @@
 .root {
   -fx-font-size: 14px;
-  -fx-font-family: "Segoe UI", "Arial", "Tahoma", "sans-serif";
+  -fx-font-family: "Webly", "Segoe UI", "Arial", "Tahoma", "sans-serif";
 
   /***************************************************************************
    *                                                                         *
@@ -75,10 +75,10 @@
   CHART_COLOR_8: #C84F80;
   /* Chart Color Palette Semi-Transparent
    * These are used by charts that need semi transparent versions of the above colors, such as BubbleChart. They
-   * are exactly the same colors as above just with alpha
-   *
-   * 20% opacity
-   */
+     * are exactly the same colors as above just with alpha
+     *
+     * 20% opacity
+     */
   CHART_COLOR_1_TRANS_20: #609E1533;
   CHART_COLOR_2_TRANS_20: #9BD45433;
   CHART_COLOR_3_TRANS_20: #117D3C33;
@@ -178,7 +178,7 @@
   -fx-dim-color: #00000099;
 }
 
-.text {
+Text {
   -fx-fill: -fx-text-base-color;
 }
 
@@ -201,6 +201,12 @@
 
 .dialog-window {
   -fx-padding: 10;
+}
+
+/***************** Chat User List*****************/
+
+.chat-user-list .titled-pane > .title {
+  -fx-font-weight: normal;
 }
 
 /***************** ChatUser *****************/
@@ -230,7 +236,6 @@
   -fx-padding: 5;
 }
 
-
 /***************** Headings *****************/
 
 .h1 {
@@ -242,9 +247,8 @@
 }
 
 .h3 {
-  -fx-font-weight: 700;
+  -fx-font-weight: bold;
 }
-
 
 /***************** Text variations *****************/
 
@@ -420,17 +424,19 @@
 /***************** Split pane *****************/
 
 .split-pane > .split-pane-divider {
-    -fx-padding: 0 1 0 0;
+  -fx-padding: 0 1 0 0;
 }
+
 /* horizontal the two nodes are placed to the left/right of each other. */
 .split-pane:horizontal > .split-pane-divider {
-   -fx-background-color: -fx-box-border;
-   -fx-background-insets: 0;
+  -fx-background-color: -fx-box-border;
+  -fx-background-insets: 0;
 }
+
 /* vertical the two nodes are placed on top of each other. */
 .split-pane:vertical > .split-pane-divider {
-   -fx-background-color: -fx-box-border;
-   -fx-background-insets: 0;
+  -fx-background-color: -fx-box-border;
+  -fx-background-insets: 0;
 }
 
 /***************** Progress indicator *****************/
@@ -572,28 +578,28 @@
   -fx-shape: "M0 1 L1 1 L.5 0 Z";
 }
 
-.port-check-status:public .text {
-  -fx-fill: -fx-accent;
+.port-check-status:public {
+  -fx-text-fill: -fx-accent;
 }
 
-.port-check-status:stun .text {
-  -fx-fill: #e2932c;
+.port-check-status:stun {
+  -fx-text-fill: #e2932c;
 }
 
-.port-check-status:blocked .text {
-  -fx-fill: #cb3d3d;
+.port-check-status:blocked {
+  -fx-text-fill: #cb3d3d;
 }
 
-.port-check-status:unknown .text {
-  -fx-fill: #e2932c;
+.port-check-status:unknown {
+  -fx-text-fill: #e2932c;
 }
 
-.connection-status:connected .text {
-  -fx-fill: -fx-accent;
+.connection-status:connected {
+  -fx-text-fill: -fx-accent;
 }
 
-.connection-status:disconnected .text {
-  -fx-fill: #cb3d3d;
+.connection-status:disconnected {
+  -fx-text-fill: #cb3d3d;
 }
 
 /***************** 1v1 match buttons *****************/
@@ -637,13 +643,14 @@
 
 /***************** Titled pane *****************/
 
-.titled-pane > *.title {
+.titled-pane > .title {
   -fx-background-color: transparent;
-  -fx-border-width: 0 0 1 0;
+  -fx-border-width: 0 0 0 0;
   -fx-border-color: -fx-box-border;
+  -fx-font-weight: bold;
 }
 
-.titled-pane > *.content {
+.titled-pane > .content {
   -fx-border-color: transparent;
 }
 
@@ -789,7 +796,7 @@
 }
 
 .tab:selected {
-    -fx-background-color: -fx-outer-border, -fx-inner-border, derive(-fx-body-color, 30%);
+  -fx-background-color: -fx-outer-border, -fx-inner-border, derive(-fx-body-color, 30%);
 }
 
 .tab:unread {
@@ -1054,6 +1061,53 @@
   -fx-max-width: 48px;
 }
 
+/***************** Left tabs *****************/
+
+.tab-pane:left > .tab-header-area {
+  -fx-padding: 0;
+}
+
+.tab-pane:left > .tab-header-area {
+  -fx-border-width: 0;
+}
+
+.tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
+  -fx-border-width: 0;
+}
+
+.tab:left {
+  -fx-background-color: transparent;
+}
+
+.tab:left .label {
+  -fx-padding: 0 0 0 1em;
+}
+
+.tab:left .label {
+  -fx-text-fill: -fx-dark-text-color;
+}
+
+.tab:left:hover {
+  /* Since the text is rotated 90°, these values are as well (right is top, width is height) */
+  -fx-border-width: 4 0 0 0;
+  -fx-border-color: -fx-selection-bar-non-focused;
+  -fx-text-fill: -fx-light-text-color;
+}
+
+.tab:left:hover .label {
+  -fx-text-fill: -fx-light-text-color;
+}
+
+.tab:left:selected {
+  /* Since the text is rotated 90°, these values are as well (right is top, width is height) */
+  -fx-border-color: -fx-accent;
+  -fx-border-width: 4 0 0 0;
+}
+
+.tab:left:selected .label {
+  -fx-text-fill: -fx-light-text-color;
+}
+
 /***************** Settings window *****************/
 
 .settings-head {
@@ -1061,22 +1115,14 @@
   -fx-padding: 1em;
 }
 
-.settings .titled-pane > .title > .text {
-  -fx-font-size: 1.4em;
-}
-
-.settings .titled-pane > *.content {
-  -fx-padding: 0 0 0 0.5em;
-}
-
-.settings .tab {
-  /* Since the text is rotated 90°, these values are as well (right is top, width is height) */
-  -fx-pref-height: 20em;
-  -fx-vpos: top;
-}
-
 .settings-content {
   -fx-padding: 1.5em;
+}
+
+.settings-content * {
+  -fx-spacing: 10px;
+  -fx-hgap: 10px;
+  -fx-vgap: 10px;
 }
 
 /***************** Axis (chart) *****************/

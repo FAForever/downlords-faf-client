@@ -43,7 +43,7 @@ public class Preferences {
     lastGameType = new SimpleStringProperty(GameType.DEFAULT.getString());
     ignoredNotifications = new SimpleListProperty<>(observableArrayList());
     notification = new NotificationsPrefs();
-    rememberLastTab = new SimpleBooleanProperty(false);
+    rememberLastTab = new SimpleBooleanProperty(true);
     lastGameTitle = new SimpleStringProperty();
     lastMap = new SimpleStringProperty();
     lastGameMinRating = new SimpleIntegerProperty(800);

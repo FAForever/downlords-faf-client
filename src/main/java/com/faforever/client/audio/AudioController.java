@@ -13,4 +13,12 @@ public interface AudioController {
   void playErrorNotificationSound();
 
   void playAchievementUnlockedSound();
+
+  void playFriendOnlineSound();
+
+  void playFriendOfflineSound();
+
+  void playFriendJoinsGameSound();
+
+  void playFriendPlaysGameSound();
 }

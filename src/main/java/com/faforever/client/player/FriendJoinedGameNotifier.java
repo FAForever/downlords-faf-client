@@ -1,5 +1,6 @@
 package com.faforever.client.player;
 
+import com.faforever.client.audio.AudioController;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
@@ -34,6 +35,8 @@ public class FriendJoinedGameNotifier {
   GameService gameService;
   @Resource
   PreferencesService preferencesService;
+  @Resource
+  AudioController audioController;
 
   @PostConstruct
   void postConstruct() {
@@ -42,21 +45,21 @@ public class FriendJoinedGameNotifier {
 
   @Subscribe
   public void onFriendJoinedGame(FriendJoinedGameEvent event) {
-    if (!preferencesService.getPreferences().getNotification().getFriendJoinsGameToastEnabled()) {
-      return;
-    }
-
     PlayerInfoBean player = event.getPlayerInfoBean();
     GameInfoBean game = gameService.getByUid(player.getGameUid());
 
-    notificationService.addNotification(new TransientNotification(
-        i18n.get("friend.joinedGameNotification.title", player.getUsername(), game.getTitle()),
-        i18n.get("friend.joinedGameNotification.action"),
-        IdenticonUtil.createIdenticon(player.getId()),
-        event1 -> {
-          joinGameHelper.setParentNode((Node) event1.getTarget());
-          joinGameHelper.join(player.getGameUid());
-        }
-    ));
+    audioController.playFriendJoinsGameSound();
+
+    if (preferencesService.getPreferences().getNotification().isFriendJoinsGameToastEnabled()) {
+      notificationService.addNotification(new TransientNotification(
+          i18n.get("friend.joinedGameNotification.title", player.getUsername(), game.getTitle()),
+          i18n.get("friend.joinedGameNotification.action"),
+          IdenticonUtil.createIdenticon(player.getId()),
+          event1 -> {
+            joinGameHelper.setParentNode((Node) event1.getTarget());
+            joinGameHelper.join(player.getGameUid());
+          }
+      ));
+    }
   }
 }
