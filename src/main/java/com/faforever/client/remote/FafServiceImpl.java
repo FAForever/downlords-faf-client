@@ -96,11 +96,6 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public void expand1v1Search(float radius) {
-    fafServerAccessor.expand1v1Search(radius);
-  }
-
-  @Override
   public CompletionStage<LoginMessage> connectAndLogIn(String username, String password) {
     return fafServerAccessor.connectAndLogIn(username, password);
   }

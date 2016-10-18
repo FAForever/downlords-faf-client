@@ -42,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
@@ -63,7 +62,6 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.function.Consumer;
 
 import static java.util.Collections.emptyMap;
@@ -71,7 +69,6 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.synchronizedList;
 import static java.util.Collections.synchronizedMap;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class GameServiceImpl implements GameService {
 
@@ -116,17 +113,10 @@ public class GameServiceImpl implements GameService {
   @Resource
   EventBus eventBus;
 
-  @Value("${ranked1v1.search.maxRadius}")
-  float ranked1v1SearchMaxRadius;
-  @Value("${ranked1v1.search.radiusIncrement}")
-  float ranked1v1SearchRadiusIncrement;
-  @Value("${ranked1v1.search.expansionDelay}")
-  int ranked1v1SearchExpansionDelay;
   @VisibleForTesting
   RatingMode ratingMode;
   private Process process;
   private BooleanProperty searching1v1;
-  private ScheduledFuture<?> searchExpansionFuture;
   private boolean rehostRequested;
 
   public GameServiceImpl() {
@@ -312,8 +302,6 @@ public class GameServiceImpl implements GameService {
 
     searching1v1.set(true);
 
-    searchExpansionFuture = scheduleSearchExpansionTask();
-
     int port = preferencesService.getPreferences().getForgedAlliance().getPort();
 
     return updateGameIfNecessary(GameType.LADDER_1V1.getString(), null, emptyMap(), emptySet())
@@ -326,7 +314,6 @@ public class GameServiceImpl implements GameService {
               gameLaunchInfo.getArgs().add("/team 1");
               gameLaunchInfo.getArgs().add("/players 2");
 
-              searchExpansionFuture.cancel(true);
               replayService.startReplayServer(gameLaunchInfo.getUid());
               startGame(gameLaunchInfo, faction, RatingMode.RANKED_1V1, localRelayServer.getPort());
             }))
@@ -336,26 +323,12 @@ public class GameServiceImpl implements GameService {
           } else {
             logger.warn("Ranked1v1 could not be started", throwable);
           }
-          searchExpansionFuture.cancel(true);
           return null;
         });
   }
 
-  @NotNull
-  private ScheduledFuture<?> scheduleSearchExpansionTask() {
-    SearchExpansionTask expansionTask = applicationContext.getBean(SearchExpansionTask.class);
-    expansionTask.setMaxRadius(ranked1v1SearchMaxRadius);
-    expansionTask.setRadiusIncrement(ranked1v1SearchRadiusIncrement);
-
-    Integer delay = ranked1v1SearchExpansionDelay;
-    return scheduledExecutorService.scheduleWithFixedDelay(expansionTask, delay, delay, MILLISECONDS);
-  }
-
   @Override
   public void stopSearchRanked1v1() {
-    if (searchExpansionFuture != null) {
-      searchExpansionFuture.cancel(true);
-    }
     if (searching1v1.get()) {
       fafService.stopSearchingRanked();
       searching1v1.set(false);

@@ -79,9 +79,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
   private static final int GAME_PORT = 1234;
-  private static final int SEARCH_EXPANSION_DELAY = 3000;
-  private static final float SEARCH_MAX_RADIUS = .10f;
-  private static final float SEARCH_RADIUS_INCREMENT = .01f;
 
   private GameServiceImpl instance;
 
@@ -101,8 +98,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
   private ApplicationContext applicationContext;
-  @Mock
-  private SearchExpansionTask searchExpansionTask;
   @Mock
   private LocalRelayServer localRelayServer;
   @Mock
@@ -139,10 +134,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.localRelayServer = localRelayServer;
     instance.replayService = replayService;
     instance.eventBus = eventBus;
-
-    instance.ranked1v1SearchExpansionDelay = SEARCH_EXPANSION_DELAY;
-    instance.ranked1v1SearchMaxRadius = SEARCH_MAX_RADIUS;
-    instance.ranked1v1SearchRadiusIncrement = SEARCH_RADIUS_INCREMENT;
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
@@ -425,7 +416,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameLaunchMessage.setMapname("scmp_037");
     when(fafService.startSearchRanked1v1(CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
     when(gameUpdateService.updateInBackground(GameType.LADDER_1V1.getString(), null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
-    when(applicationContext.getBean(SearchExpansionTask.class)).thenReturn(searchExpansionTask);
     when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
     when(localRelayServer.getPort()).thenReturn(111);
     when(mapService.isInstalled("scmp_037")).thenReturn(false);
@@ -433,9 +423,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     CompletableFuture<Void> future = instance.startSearchRanked1v1(CYBRAN).toCompletableFuture();
 
-    verify(searchExpansionTask).setMaxRadius(SEARCH_MAX_RADIUS);
-    verify(searchExpansionTask).setRadiusIncrement(SEARCH_RADIUS_INCREMENT);
-    verify(scheduledExecutorService).scheduleWithFixedDelay(searchExpansionTask, SEARCH_EXPANSION_DELAY, SEARCH_EXPANSION_DELAY, TimeUnit.MILLISECONDS);
     verify(fafService).startSearchRanked1v1(CYBRAN, GAME_PORT);
     verify(mapService).download("scmp_037");
     verify(replayService).startReplayServer(123);
@@ -457,8 +444,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
     when(localRelayServer.getPort()).thenReturn(111);
-    when(applicationContext.getBean(SearchExpansionTask.class)).thenReturn(searchExpansionTask);
-
 
     CountDownLatch gameRunningLatch = new CountDownLatch(1);
     instance.gameRunningProperty().addListener((observable, oldValue, newValue) -> {

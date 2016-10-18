@@ -48,8 +48,6 @@ public interface FafServerAccessor {
 
   void stopSearchingRanked();
 
-  void expand1v1Search(float radius);
-
   @Nullable
   Long getSessionId();
 

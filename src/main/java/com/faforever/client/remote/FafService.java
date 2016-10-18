@@ -41,8 +41,6 @@ public interface FafService {
 
   void sendGpgMessage(GpgClientMessage message);
 
-  void expand1v1Search(float radius);
-
   CompletionStage<LoginMessage> connectAndLogIn(String username, String password);
 
   void disconnect();

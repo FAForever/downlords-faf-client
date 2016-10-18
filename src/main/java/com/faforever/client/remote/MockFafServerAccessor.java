@@ -255,10 +255,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public void expand1v1Search(float radius) {
-  }
-
-  @Override
   public Long getSessionId() {
     return null;
   }

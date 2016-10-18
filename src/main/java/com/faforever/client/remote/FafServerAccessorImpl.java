@@ -35,7 +35,6 @@ import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.MessageTarget;
 import com.faforever.client.remote.domain.NoticeMessage;
-import com.faforever.client.remote.domain.Ranked1v1SearchExpansionMessage;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.RemoveFoeMessage;
 import com.faforever.client.remote.domain.RemoveFriendMessage;
@@ -321,11 +320,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   public void stopSearchingRanked() {
     writeToServer(new StopSearchRanked1V1ClientMessage());
     gameLaunchFuture = null;
-  }
-
-  @Override
-  public void expand1v1Search(float radius) {
-    writeToServer(new Ranked1v1SearchExpansionMessage(radius));
   }
 
   @Override

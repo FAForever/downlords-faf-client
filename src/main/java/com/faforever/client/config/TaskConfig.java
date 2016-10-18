@@ -2,7 +2,6 @@ package com.faforever.client.config;
 
 import com.faforever.client.connectivity.ConnectivityCheckTask;
 import com.faforever.client.connectivity.UpnpPortForwardingTask;
-import com.faforever.client.game.SearchExpansionTask;
 import com.faforever.client.map.DownloadMapTask;
 import com.faforever.client.map.MapUploadTask;
 import com.faforever.client.map.UninstallMapTask;
@@ -83,12 +82,6 @@ public class TaskConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   DownloadMapTask downloadMapTask() {
     return new DownloadMapTask();
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  SearchExpansionTask searchExpansionTask() {
-    return new SearchExpansionTask();
   }
 
   @Bean
