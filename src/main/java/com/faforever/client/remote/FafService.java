@@ -1,8 +1,11 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.api.Ranked1v1Stats;
+import com.faforever.client.api.RatingType;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.avatar.AvatarBean;
+import com.faforever.client.config.CacheNames;
+import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
@@ -14,8 +17,10 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 
@@ -84,4 +89,7 @@ public interface FafService {
   void selectAvatar(AvatarBean avatar);
 
   void evictModsCache();
+
+  @Cacheable(CacheNames.RATING_HISTORY)
+  CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(RatingType ratingType, int playerId);
 }

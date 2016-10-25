@@ -36,6 +36,8 @@ public interface FafApiAccessor {
 
   Ranked1v1EntryBean getRanked1v1EntryForPlayer(int playerId);
 
+  History getRatingHistory(RatingType ratingType, int playerId);
+
   List<MapBean> getMaps();
 
   List<MapBean> getMostDownloadedMaps(int count);

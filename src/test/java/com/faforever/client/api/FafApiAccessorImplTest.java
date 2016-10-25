@@ -39,6 +39,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -327,7 +328,6 @@ public class FafApiAccessorImplTest {
     instance.requestFactory = instance.httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
 
-
     mockResponse("{'data': [" +
             " {" +
             "   'id': '2'," +
@@ -346,6 +346,62 @@ public class FafApiAccessorImplTest {
   }
 
   @Test
+  public void testGetRatingHistoryGlobal() throws Exception {
+    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.credential = mock(Credential.class);
+
+    mockResponse("{" +
+            "  'data': {" +
+            "    'attributes': {" +
+            "      'history': {" +
+            "        '1469921413': [1026.62, 49.4094]," +
+            "        '1469989967': [1024.01, 49.4545]," +
+            "        '1470842200': [1020.65, 50.1963]" +
+            "      }" +
+            "    }," +
+            "    'id': '21447'," +
+            "    'type': 'leaderboard_history'" +
+            "  }" +
+            "}",
+        "{'data': []}");
+
+    History ratingHistory = instance.getRatingHistory(RatingType.GLOBAL, 123);
+
+    verify(httpTransport).buildRequest("GET", "http://api.example.com/players/123/ratings/global/history");
+    assertThat(ratingHistory.getData().values(), hasSize(3));
+    assertThat(ratingHistory.getData().get("1469921413").get(0), is(1026.62f));
+    assertThat(ratingHistory.getData().get("1469921413").get(1), is(49.4094f));
+  }
+
+  @Test
+  public void testGetRatingHistory1v1() throws Exception {
+    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.credential = mock(Credential.class);
+
+    mockResponse("{" +
+            "  'data': {" +
+            "    'attributes': {" +
+            "      'history': {" +
+            "        '1469921413': [1026.62, 49.4094]," +
+            "        '1469989967': [1024.01, 49.4545]," +
+            "        '1470842200': [1020.65, 50.1963]" +
+            "      }" +
+            "    }," +
+            "    'id': '21447'," +
+            "    'type': 'leaderboard_history'" +
+            "  }" +
+            "}",
+        "{'data': []}");
+
+    History ratingHistory = instance.getRatingHistory(RatingType.LADDER_1V1, 123);
+
+    verify(httpTransport).buildRequest("GET", "http://api.example.com/players/123/ratings/1v1/history");
+    assertThat(ratingHistory.getData().values(), hasSize(3));
+    assertThat(ratingHistory.getData().get("1469921413").get(0), is(1026.62f));
+    assertThat(ratingHistory.getData().get("1469921413").get(1), is(49.4094f));
+  }
+
+  @Test
   public void testUploadMod() throws Exception {
     instance.requestFactory = instance.httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
@@ -359,8 +415,7 @@ public class FafApiAccessorImplTest {
     verify(httpTransport).buildRequest("POST", "http://api.example.com/mods/upload");
   }
 
-  static class SpyableHttpTransport extends HttpTransport {
-
+  private static class SpyableHttpTransport extends HttpTransport {
     LowLevelHttpRequest lowLevelHttpRequest;
 
     @Override

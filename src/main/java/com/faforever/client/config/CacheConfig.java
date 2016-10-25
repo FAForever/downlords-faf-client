@@ -25,6 +25,7 @@ import static com.faforever.client.config.CacheNames.MAPS;
 import static com.faforever.client.config.CacheNames.MODS;
 import static com.faforever.client.config.CacheNames.MOD_THUMBNAIL;
 import static com.faforever.client.config.CacheNames.NEWS;
+import static com.faforever.client.config.CacheNames.RATING_HISTORY;
 import static com.faforever.client.config.CacheNames.SMALL_MAP_PREVIEW;
 import static com.faforever.client.config.CacheNames.STATISTICS;
 import static com.faforever.client.config.CacheNames.THEME_IMAGES;
@@ -42,13 +43,14 @@ public class CacheConfig implements CachingConfigurer {
   public CacheManager cacheManager() {
     SimpleCacheManager simpleCacheManager = new SimpleCacheManager();
     simpleCacheManager.setCaches(Arrays.asList(
-        new GuavaCache(STATISTICS, newBuilder().maximumSize(10).expireAfterAccess(20, MINUTES).build()),
-        new GuavaCache(ACHIEVEMENTS, newBuilder().expireAfterAccess(10, MINUTES).build()),
-        new GuavaCache(MODS, newBuilder().expireAfterAccess(10, MINUTES).build()),
-        new GuavaCache(MAPS, newBuilder().expireAfterAccess(10, MINUTES).build()),
+        new GuavaCache(STATISTICS, newBuilder().maximumSize(10).expireAfterWrite(20, MINUTES).build()),
+        new GuavaCache(ACHIEVEMENTS, newBuilder().expireAfterWrite(10, MINUTES).build()),
+        new GuavaCache(MODS, newBuilder().expireAfterWrite(10, MINUTES).build()),
+        new GuavaCache(MAPS, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new GuavaCache(LEADERBOARD, newBuilder().maximumSize(1).expireAfterAccess(1, MINUTES).build()),
         new GuavaCache(AVAILABLE_AVATARS, newBuilder().expireAfterAccess(30, SECONDS).build()),
-        new GuavaCache(NEWS, newBuilder().expireAfterAccess(1, MINUTES).build()),
+        new GuavaCache(NEWS, newBuilder().expireAfterWrite(1, MINUTES).build()),
+        new GuavaCache(RATING_HISTORY, newBuilder().expireAfterWrite(1, MINUTES).build()),
 
         // Images should only be cached as long as they are in use. This avoids loading an image multiple times, while
         // at the same time it doesn't prevent unused images from being garbage collected.

@@ -1,8 +1,8 @@
 package com.faforever.client.util;
 
 import com.faforever.client.chat.PlayerInfoBean;
+import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.remote.domain.Player;
-import com.faforever.client.stats.RatingInfo;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,8 +43,8 @@ public final class RatingUtil {
     return getRating(player.getLadderRating()[0], player.getLadderRating()[1]);
   }
 
-  public static int getRating(RatingInfo ratingInfo) {
-    return getRating(ratingInfo.getMean(), ratingInfo.getDev());
+  public static int getRating(RatingHistoryDataPoint datapoint) {
+    return getRating(datapoint.getMean(), datapoint.getDeviation());
   }
 
   public static String extractRating(String title) {

@@ -207,6 +207,11 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
+  public History getRatingHistory(RatingType ratingType, int playerId) {
+    return getSingle(String.format("/players/%d/ratings/%s/history", playerId, ratingType.getString()), History.class);
+  }
+
+  @Override
   @Cacheable(CacheNames.MAPS)
   public List<MapBean> getMaps() {
     logger.debug("Getting all maps");
@@ -437,8 +442,10 @@ public class FafApiAccessorImpl implements FafApiAccessor {
       currentToken = jsonParser.nextToken();
     }
     Field idField = ReflectionUtils.findField(type, "id");
-    ReflectionUtils.makeAccessible(idField);
-    idField.set(object, id);
+    if (idField != null) {
+      ReflectionUtils.makeAccessible(idField);
+      idField.set(object, id);
+    }
     return object;
   }
 }

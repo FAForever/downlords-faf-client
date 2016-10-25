@@ -5,14 +5,13 @@ import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.achievements.PlayerAchievementBuilder;
 import com.faforever.client.api.AchievementState;
+import com.faforever.client.api.RatingType;
+import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.domain.StatisticsType;
-import com.faforever.client.stats.PlayerStatisticsMessage;
-import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.Before;
@@ -20,17 +19,19 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Collections;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,6 +39,8 @@ import static org.mockito.Mockito.when;
 public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
 
   private static final String PLAYER_NAME = "junit";
+  private static final int PLAYER_ID = 123;
+
   private UserInfoWindowController instance;
   private Locale locale = Locale.US;
   @Mock
@@ -74,30 +77,24 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getThemeName()).thenReturn("default");
 
-    PlayerStatisticsMessage playerStatisticsMessage = new PlayerStatisticsMessage();
-    playerStatisticsMessage.setPlayer(PLAYER_NAME);
-    playerStatisticsMessage.setValues(asList(
-        new RatingInfo(LocalDate.now(), 1500, 200, LocalTime.now()),
-        new RatingInfo(LocalDate.now(), 1500, 200, LocalTime.now()))
-    );
-    when(statisticsService.getStatisticsForPlayer(StatisticsType.GLOBAL_90_DAYS, PLAYER_NAME))
-        .thenReturn(CompletableFuture.completedFuture(playerStatisticsMessage));
-    when(statisticsService.getStatisticsForPlayer(StatisticsType.GLOBAL_365_DAYS, PLAYER_NAME))
-        .thenReturn(CompletableFuture.completedFuture(playerStatisticsMessage));
+    when(statisticsService.getRatingHistory(any(), eq(PLAYER_ID))).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+        new RatingHistoryDataPoint(LocalDateTime.now(), 1500, 50),
+        new RatingHistoryDataPoint(LocalDateTime.now().plusDays(1), 1500, 50)
+    )));
   }
 
   @Test
   public void testSetPlayerInfoBeanNoAchievementUnlocked() throws Exception {
-    when(achievementService.getAchievementDefinitions()).thenReturn(CompletableFuture.completedFuture(asList(
+    when(achievementService.getAchievementDefinitions()).thenReturn(CompletableFuture.completedFuture(singletonList(
         AchievementDefinitionBuilder.create().defaultValues().get()
     )));
     when(applicationContext.getBean(AchievementItemController.class)).thenReturn(achievementItemController);
     when(achievementService.getPlayerAchievements(PLAYER_NAME)).thenReturn(CompletableFuture.completedFuture(
-        Collections.singletonList(PlayerAchievementBuilder.create().defaultValues().get())
+        singletonList(PlayerAchievementBuilder.create().defaultValues().get())
     ));
     when(eventService.getPlayerEvents(PLAYER_NAME)).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
 
-    instance.setPlayerInfoBean(PlayerInfoBeanBuilder.create(PLAYER_NAME).get());
+    instance.setPlayerInfoBean(PlayerInfoBeanBuilder.create(PLAYER_NAME).id(PLAYER_ID).get());
 
     verify(achievementService).getAchievementDefinitions();
     verify(achievementService).getPlayerAchievements(PLAYER_NAME);
@@ -113,13 +110,6 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnRatingOver90DaysButtonClicked() throws Exception {
-    testSetPlayerInfoBean();
-    instance.onRatingOver90DaysButtonClicked();
-    verify(statisticsService, times(2)).getStatisticsForPlayer(StatisticsType.GLOBAL_90_DAYS, PLAYER_NAME);
-  }
-
-  @Test
   public void testSetPlayerInfoBean() throws Exception {
     when(achievementService.getAchievementDefinitions()).thenReturn(CompletableFuture.completedFuture(asList(
         AchievementDefinitionBuilder.create().id("foo-bar").get(),
@@ -132,7 +122,7 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
     )));
     when(eventService.getPlayerEvents(PLAYER_NAME)).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
 
-    instance.setPlayerInfoBean(PlayerInfoBeanBuilder.create(PLAYER_NAME).get());
+    instance.setPlayerInfoBean(PlayerInfoBeanBuilder.create(PLAYER_NAME).id(PLAYER_ID).get());
 
     verify(achievementService).getAchievementDefinitions();
     verify(achievementService).getPlayerAchievements(PLAYER_NAME);
@@ -142,9 +132,16 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnRatingOver365DaysButtonClicked() throws Exception {
+  public void testOnGlobalRatingButtonClicked() throws Exception {
     testSetPlayerInfoBean();
-    instance.onRatingOver365DaysButtonClicked();
-    verify(statisticsService).getStatisticsForPlayer(StatisticsType.GLOBAL_365_DAYS, PLAYER_NAME);
+    instance.globalButtonClicked();
+    verify(statisticsService, times(2)).getRatingHistory(RatingType.GLOBAL, PLAYER_ID);
+  }
+
+  @Test
+  public void testOn1v1RatingButtonClicked() throws Exception {
+    testSetPlayerInfoBean();
+    instance.ladder1v1ButtonClicked();
+    verify(statisticsService).getRatingHistory(RatingType.LADDER_1V1, PLAYER_ID);
   }
 }
