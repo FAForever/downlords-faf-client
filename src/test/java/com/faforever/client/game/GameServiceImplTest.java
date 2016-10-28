@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
@@ -9,7 +8,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.relay.event.RehostRequestEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
@@ -99,11 +97,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private ApplicationContext applicationContext;
   @Mock
-  private LocalRelayServer localRelayServer;
-  @Mock
   private PlayerService playerService;
-  @Mock
-  private ConnectivityService connectivityService;
   @Mock
   private ScheduledExecutorService scheduledExecutorService;
   @Mock
@@ -125,20 +119,17 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.fafService = fafService;
     instance.mapService = mapService;
     instance.forgedAllianceService = forgedAllianceService;
-    instance.connectivityService = connectivityService;
     instance.gameUpdateService = gameUpdateService;
     instance.preferencesService = preferencesService;
     instance.applicationContext = applicationContext;
     instance.playerService = playerService;
     instance.scheduledExecutorService = scheduledExecutorService;
-    instance.localRelayServer = localRelayServer;
     instance.replayService = replayService;
     instance.eventBus = eventBus;
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
-    when(connectivityService.checkConnectivity()).thenReturn(CompletableFuture.completedFuture(null));
 
     doAnswer(invocation -> {
       try {
@@ -177,9 +168,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
     when(mapService.isInstalled("map")).thenReturn(true);
-    when(connectivityService.getExternalSocketAddress()).thenReturn(externalSocketAddress);
     when(fafService.requestJoinGame(gameInfoBean.getUid(), null)).thenReturn(completedFuture(gameLaunchMessage));
-    when(localRelayServer.getPort()).thenReturn(111);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
 
     CompletableFuture<Void> future = instance.joinGame(gameInfoBean, null).toCompletableFuture();
@@ -244,11 +233,9 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameLaunchMessage.setArgs(asList("/foo bar", "/bar foo"));
     InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
-    when(localRelayServer.getPort()).thenReturn(gpgPort);
     when(forgedAllianceService.startGame(
         gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL, gpgPort, false)
     ).thenReturn(process);
-    when(connectivityService.getExternalSocketAddress()).thenReturn(externalSocketAddress);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
 
@@ -417,7 +404,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(fafService.startSearchRanked1v1(CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
     when(gameUpdateService.updateInBackground(GameType.LADDER_1V1.getString(), null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
     when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
-    when(localRelayServer.getPort()).thenReturn(111);
     when(mapService.isInstalled("scmp_037")).thenReturn(false);
     when(mapService.download("scmp_037")).thenReturn(CompletableFuture.completedFuture(null));
 
@@ -439,11 +425,9 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
-    when(connectivityService.getExternalSocketAddress()).thenReturn(externalSocketAddress);
     when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), any(), anyInt(), eq(false))).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
-    when(localRelayServer.getPort()).thenReturn(111);
 
     CountDownLatch gameRunningLatch = new CountDownLatch(1);
     instance.gameRunningProperty().addListener((observable, oldValue, newValue) -> {

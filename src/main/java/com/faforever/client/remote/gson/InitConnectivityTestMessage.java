@@ -1,12 +1,12 @@
 package com.faforever.client.remote.gson;
 
 import com.faforever.client.relay.GpgClientCommand;
-import com.faforever.client.relay.GpgClientMessage;
+import com.faforever.client.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.MessageTarget;
 
 import java.util.Collections;
 
-public class InitConnectivityTestMessage extends GpgClientMessage {
+public class InitConnectivityTestMessage extends GpgGameMessage {
 
   private static final int PORT_INDEX = 0;
 

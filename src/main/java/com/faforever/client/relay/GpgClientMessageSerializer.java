@@ -7,7 +7,7 @@ import com.faforever.client.remote.gson.GpgServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
 import com.google.gson.GsonBuilder;
 
-public class GpgClientMessageSerializer extends JsonMessageSerializer<GpgClientMessage> {
+public class GpgClientMessageSerializer extends JsonMessageSerializer<GpgGameMessage> {
 
   @Override
   protected void addTypeAdapters(GsonBuilder gsonBuilder) {

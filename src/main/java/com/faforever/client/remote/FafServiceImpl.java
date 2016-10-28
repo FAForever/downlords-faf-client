@@ -7,7 +7,6 @@ import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
@@ -15,7 +14,7 @@ import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.relay.GpgClientMessage;
+import com.faforever.client.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.GameEndedMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
@@ -44,8 +43,6 @@ public class FafServiceImpl implements FafService {
   @Resource
   FafApiAccessor fafApiAccessor;
   @Resource
-  ConnectivityService connectivityService;
-  @Resource
   ThreadPoolExecutor threadPoolExecutor;
   @Resource
   EventBus eventBus;
@@ -63,9 +60,7 @@ public class FafServiceImpl implements FafService {
 
   @Override
   public CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
-    return fafServerAccessor.requestHostGame(newGameInfo,
-        connectivityService.getRelayAddress(),
-        connectivityService.getExternalSocketAddress().getPort()
+    return fafServerAccessor.requestHostGame(newGameInfo
     );
   }
 
@@ -76,14 +71,13 @@ public class FafServiceImpl implements FafService {
 
   @Override
   public CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password) {
-    return fafServerAccessor.requestJoinGame(gameId, password,
-        connectivityService.getRelayAddress(),
-        connectivityService.getExternalSocketAddress().getPort());
+    return fafServerAccessor.requestJoinGame(gameId, password
+    );
   }
 
   @Override
   public CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction, int port) {
-    return fafServerAccessor.startSearchRanked1v1(faction, port, connectivityService.getRelayAddress());
+    return fafServerAccessor.startSearchRanked1v1(faction);
   }
 
   @Override
@@ -97,7 +91,7 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public void sendGpgMessage(GpgClientMessage message) {
+  public void sendGpgGameMessage(GpgGameMessage message) {
     fafServerAccessor.sendGpgMessage(message);
   }
 
@@ -228,5 +222,10 @@ public class FafServiceImpl implements FafService {
         .map(entry -> new RatingHistoryDataPoint(ofEpochSecond(parseLong(entry.getKey()), 0, UTC), entry.getValue().get(0), entry.getValue().get(1)))
         .collect(Collectors.toList())
     );
+  }
+
+  @Override
+  public void sendSdp(int localPlayerId, int remotePlayerId, String sdp) {
+    fafServerAccessor.sendSdp(localPlayerId, remotePlayerId, sdp);
   }
 }

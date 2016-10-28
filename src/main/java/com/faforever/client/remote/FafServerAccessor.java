@@ -3,7 +3,7 @@ package com.faforever.client.remote;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.relay.GpgClientMessage;
+import com.faforever.client.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
@@ -11,7 +11,6 @@ import com.faforever.client.remote.domain.ServerMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
@@ -32,9 +31,9 @@ public interface FafServerAccessor {
 
   CompletionStage<LoginMessage> connectAndLogIn(String username, String password);
 
-  CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, @Nullable InetSocketAddress relayAddress, int externalPort);
+  CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo);
 
-  CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password, @Nullable InetSocketAddress relayAddress, int externalPort);
+  CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password);
 
   void disconnect();
 
@@ -44,14 +43,14 @@ public interface FafServerAccessor {
 
   void addFoe(int playerId);
 
-  CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort, @Nullable InetSocketAddress relayAddress);
+  CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction);
 
   void stopSearchingRanked();
 
   @Nullable
   Long getSessionId();
 
-  void sendGpgMessage(GpgClientMessage message);
+  void sendGpgMessage(GpgGameMessage message);
 
   void initConnectivityTest(int port);
 
@@ -62,4 +61,6 @@ public interface FafServerAccessor {
   void selectAvatar(URL url);
 
   List<Avatar> getAvailableAvatars();
+
+  void sendSdp(int localPlayerId, int remotePlayerId, String sdp);
 }

@@ -9,17 +9,17 @@ import java.util.Collections;
 import java.util.List;
 
 
-public class GpgClientMessage implements SerializableMessage {
+public class GpgGameMessage implements SerializableMessage {
 
   private String command;
   private List<Object> args;
   private MessageTarget target = MessageTarget.GAME;
 
-  public GpgClientMessage(GpgClientCommand command, List<Object> args) {
+  public GpgGameMessage(GpgClientCommand command, List<Object> args) {
     this(command.getString(), args);
   }
 
-  public GpgClientMessage(String command, List<Object> args) {
+  public GpgGameMessage(String command, List<Object> args) {
     this.command = command;
     this.args = args;
   }

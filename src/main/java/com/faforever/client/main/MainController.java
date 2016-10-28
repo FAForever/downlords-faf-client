@@ -4,7 +4,6 @@ import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.connectivity.ConnectivityService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.Faction;
@@ -118,10 +117,6 @@ public class MainController implements OnChooseGameDirectoryListener {
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_CLASS = PseudoClass.getPseudoClass("warn");
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_CLASS = PseudoClass.getPseudoClass("error");
   private static final PseudoClass NAVIGATION_ACTIVE_PSEUDO_CLASS = PseudoClass.getPseudoClass("active");
-  private static final PseudoClass CONNECTIVITY_PUBLIC_PSEUDO_CLASS = PseudoClass.getPseudoClass("public");
-  private static final PseudoClass CONNECTIVITY_STUN_PSEUDO_CLASS = PseudoClass.getPseudoClass("stun");
-  private static final PseudoClass CONNECTIVITY_BLOCKED_PSEUDO_CLASS = PseudoClass.getPseudoClass("blocked");
-  private static final PseudoClass CONNECTIVITY_UNKNOWN_PSEUDO_CLASS = PseudoClass.getPseudoClass("unknown");
   private static final PseudoClass CONNECTIVITY_CONNECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("connected");
   private static final PseudoClass CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("disconnected");
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
@@ -189,8 +184,6 @@ public class MainController implements OnChooseGameDirectoryListener {
   TransientNotificationsController transientNotificationsController;
   @Resource
   PreferencesService preferencesService;
-  @Resource
-  ConnectivityService connectivityService;
   @Resource
   I18n i18n;
   @Resource
@@ -392,44 +385,6 @@ public class MainController implements OnChooseGameDirectoryListener {
             chatConnectionButton.setText(i18n.get("statusBar.chatConnected"));
             chatConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_CONNECTED_PSEUDO_CLASS, true);
             break;
-        }
-      });
-    });
-
-    connectivityService.connectivityStateProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> {
-        portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_PUBLIC_PSEUDO_CLASS, false);
-        portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_STUN_PSEUDO_CLASS, false);
-        portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_BLOCKED_PSEUDO_CLASS, false);
-        portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_UNKNOWN_PSEUDO_CLASS, false);
-        switch (newValue) {
-          case PUBLIC:
-            portCheckStatusIcon.setText("\uF111");
-            portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_PUBLIC_PSEUDO_CLASS, true);
-            portCheckStatusButton.setText(i18n.get("statusBar.connectivityPublic"));
-            break;
-          case STUN:
-            portCheckStatusIcon.setText("\uF06A");
-            portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_STUN_PSEUDO_CLASS, true);
-            portCheckStatusButton.setText(i18n.get("statusBar.connectivityStun"));
-            break;
-          case BLOCKED:
-            portCheckStatusIcon.setText("\uF056");
-            portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_BLOCKED_PSEUDO_CLASS, true);
-            portCheckStatusButton.setText(i18n.get("statusBar.portUnreachable"));
-            break;
-          case RUNNING:
-            portCheckStatusIcon.setText("\uF059");
-            portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_UNKNOWN_PSEUDO_CLASS, true);
-            portCheckStatusButton.setText(i18n.get("statusBar.checkingPort"));
-            break;
-          case UNKNOWN:
-            portCheckStatusIcon.setText("\uF059");
-            portCheckStatusIcon.pseudoClassStateChanged(CONNECTIVITY_UNKNOWN_PSEUDO_CLASS, true);
-            portCheckStatusButton.setText(i18n.get("statusBar.connectivityUnknown"));
-            break;
-          default:
-            throw new AssertionError("Uncovered value: " + newValue);
         }
       });
     });
@@ -765,11 +720,6 @@ public class MainController implements OnChooseGameDirectoryListener {
   @FXML
   void onChangePortClicked() {
     // FIXME implement
-  }
-
-  @FXML
-  void onPortCheckRetryClicked() {
-    connectivityService.checkConnectivity();
   }
 
   @FXML

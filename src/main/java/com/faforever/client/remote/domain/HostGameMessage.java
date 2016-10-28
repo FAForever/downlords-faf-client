@@ -9,7 +9,6 @@ import java.net.InetSocketAddress;
  */
 public class HostGameMessage extends ClientMessage {
 
-  private final int port;
   private int gameport;
   private String mapname;
   private String title;
@@ -19,19 +18,16 @@ public class HostGameMessage extends ClientMessage {
   private Integer version;
   private String password;
   private GameVisibility visibility;
-  private InetSocketAddress relayAddress;
 
-  public HostGameMessage(GameAccess gameAccess, String mapName, String title, int port, boolean[] options, String mod, String password, Integer version, InetSocketAddress relayAddress) {
+  public HostGameMessage(GameAccess gameAccess, String mapName, String title, boolean[] options, String mod, String password, Integer version) {
     super(ClientMessageType.HOST_GAME);
     access = gameAccess;
     this.mapname = mapName;
     this.title = title;
-    this.port = port;
     this.options = options;
     this.mod = mod;
     this.password = password;
     this.version = version;
-    this.relayAddress = relayAddress;
     this.visibility = GameVisibility.PUBLIC;
   }
 
@@ -105,13 +101,5 @@ public class HostGameMessage extends ClientMessage {
 
   public void setVisibility(GameVisibility visibility) {
     this.visibility = visibility;
-  }
-
-  public InetSocketAddress getRelayAddress() {
-    return relayAddress;
-  }
-
-  public void setRelayAddress(InetSocketAddress relayAddress) {
-    this.relayAddress = relayAddress;
   }
 }

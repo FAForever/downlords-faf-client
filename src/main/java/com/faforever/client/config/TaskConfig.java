@@ -1,7 +1,5 @@
 package com.faforever.client.config;
 
-import com.faforever.client.connectivity.ConnectivityCheckTask;
-import com.faforever.client.connectivity.UpnpPortForwardingTask;
 import com.faforever.client.map.DownloadMapTask;
 import com.faforever.client.map.MapUploadTask;
 import com.faforever.client.map.UninstallMapTask;
@@ -34,12 +32,6 @@ public class TaskConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   InstallModTask downloadModTask() {
     return new InstallModTask();
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  ConnectivityCheckTask portCheckTask() {
-    return new ConnectivityCheckTask();
   }
 
   @Bean
@@ -94,12 +86,6 @@ public class TaskConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   UninstallMapTask uninstallMapTask() {
     return new UninstallMapTask();
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  UpnpPortForwardingTask upnpPortForwardingTask() {
-    return new UpnpPortForwardingTask();
   }
 
   @Bean

@@ -352,15 +352,13 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     connectAndLogIn();
     InetSocketAddress relayAddress = InetSocketAddress.createUnresolved("foobar", 1235);
 
-    CompletableFuture<GameLaunchMessage> future = instance.startSearchRanked1v1(Faction.AEON, GAME_PORT, relayAddress).toCompletableFuture();
+    CompletableFuture<GameLaunchMessage> future = instance.startSearchRanked1v1(Faction.AEON).toCompletableFuture();
 
     String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     SearchRanked1V1ClientMessage searchRanked1v1Message = gson.fromJson(clientMessage, SearchRanked1V1ClientMessage.class);
 
     assertThat(searchRanked1v1Message, instanceOf(SearchRanked1V1ClientMessage.class));
     assertThat(searchRanked1v1Message.getFaction(), is(Faction.AEON));
-    assertThat(searchRanked1v1Message.getGameport(), is(GAME_PORT));
-    assertThat(searchRanked1v1Message.getRelayAddress(), is(relayAddress));
 
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(1234);

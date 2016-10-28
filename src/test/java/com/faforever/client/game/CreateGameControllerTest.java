@@ -1,7 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.connectivity.ConnectivityService;
-import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapBuilder;
@@ -13,8 +11,6 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.ThemeService;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.MapChangeListener.Change;
@@ -34,7 +30,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
@@ -68,8 +64,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private ThemeService themeService;
-  @Mock
-  private ConnectivityService connectivityService;
 
   private CreateGameController instance;
   private ObservableList<MapBean> mapList;
@@ -84,16 +78,13 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     instance.environment = environment;
     instance.i18n = i18n;
     instance.themeService = themeService;
-    instance.connectivityService = connectivityService;
 
     mapList = FXCollections.observableArrayList();
-    ReadOnlyObjectProperty<ConnectivityState> connectivityStateProperty = new SimpleObjectProperty<>();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPath()).thenReturn(Paths.get(""));
     when(mapService.getInstalledMaps()).thenReturn(mapList);
-    when(connectivityService.connectivityStateProperty()).thenReturn(connectivityStateProperty);
 
     doAnswer(invocation -> getThemeFile(invocation.getArgumentAt(0, String.class)))
         .when(themeService).getThemeFile(any());

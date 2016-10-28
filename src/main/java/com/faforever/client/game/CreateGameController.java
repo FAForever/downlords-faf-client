@@ -1,7 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.connectivity.ConnectivityService;
-import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
@@ -112,8 +110,6 @@ public class CreateGameController {
   NotificationService notificationService;
   @Resource
   ReportingService reportingService;
-  @Resource
-  ConnectivityService connectivityService;
 
   private Popup createGamePopup;
 
@@ -184,22 +180,10 @@ public class CreateGameController {
       if (Strings.isNullOrEmpty(titleTextField.getText())) {
         return i18n.get("game.create.titleMissing");
       }
-      switch (connectivityService.getConnectivityState()) {
-        case BLOCKED:
-          return i18n.get("game.create.portUnreachable");
-        case RUNNING:
-        case UNKNOWN:
-          return i18n.get("game.create.connectivityCheckPending");
-        default:
-          return i18n.get("game.create.create");
-      }
-    }, titleTextField.textProperty(), connectivityService.connectivityStateProperty()));
+      return i18n.get("game.create.create");
+    }, titleTextField.textProperty()));
 
-    createGameButton.disableProperty().bind(
-        titleTextField.textProperty().isEmpty()
-            .or(connectivityService.connectivityStateProperty().isEqualTo(ConnectivityState.BLOCKED))
-            .or(connectivityService.connectivityStateProperty().isEqualTo(ConnectivityState.UNKNOWN))
-    );
+    createGameButton.disableProperty().bind(titleTextField.textProperty().isEmpty());
   }
 
   private void initModList() {

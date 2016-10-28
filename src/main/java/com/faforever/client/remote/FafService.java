@@ -12,7 +12,7 @@ import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.relay.GpgClientMessage;
+import com.faforever.client.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
@@ -44,7 +44,7 @@ public interface FafService {
 
   void initConnectivityTest(int port);
 
-  void sendGpgMessage(GpgClientMessage message);
+  void sendGpgGameMessage(GpgGameMessage message);
 
   CompletionStage<LoginMessage> connectAndLogIn(String username, String password);
 
@@ -92,4 +92,6 @@ public interface FafService {
 
   @Cacheable(CacheNames.RATING_HISTORY)
   CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(RatingType ratingType, int playerId);
+
+  void sendSdp(int localPlayerId, int remotePlayerId, String sdp);
 }

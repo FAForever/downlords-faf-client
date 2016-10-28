@@ -1,11 +1,8 @@
 package com.faforever.client.relay;
 
-import com.faforever.client.connectivity.DatagramGateway;
-import com.faforever.client.connectivity.TurnServerAccessor;
 import com.faforever.client.game.GameLaunchMessageBuilder;
 import com.faforever.client.game.GameType;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.net.SocketAddressUtil;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
@@ -30,16 +27,12 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -79,7 +72,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
   @Rule
   public TemporaryFolder cacheDirectory = new TemporaryFolder();
-  private BlockingQueue<GpgClientMessage> messagesReceivedByFafServer;
+  private BlockingQueue<GpgGameMessage> messagesReceivedByFafServer;
   private BlockingQueue<GpgServerMessage> messagesReceivedByGame;
   private LocalRelayServerImpl instance;
   private FaDataOutputStream gameToRelayOutputStream;
@@ -88,8 +81,6 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private boolean stopped;
 
   @Mock
-  private TurnServerAccessor turnServerAccessor;
-  @Mock
   private UserService userService;
   @Mock
   private PreferencesService preferencesService;
@@ -97,8 +88,6 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   private FafService fafService;
   @Mock
   private ThreadPoolExecutor threadPoolExecutor;
-  @Mock
-  private DatagramGateway datagramGateway;
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -137,8 +126,6 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     ForgedAlliancePrefs forgedAlliancePrefs = mock(ForgedAlliancePrefs.class);
     Preferences preferences = mock(Preferences.class);
 
-    instance.addOnGameConnectedListener(gameConnectedLatch::countDown);
-
     doAnswer(
         invocation -> WaitForAsyncUtils.async(invocation.getArgumentAt(0, Runnable.class))
     ).when(threadPoolExecutor).execute(any(Runnable.class));
@@ -152,9 +139,9 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     when(userService.getUsername()).thenReturn("junit");
     when(fafService.getSessionId()).thenReturn(SESSION_ID);
     doAnswer(invocation -> {
-      messagesReceivedByFafServer.put(invocation.getArgumentAt(0, GpgClientMessage.class));
+      messagesReceivedByFafServer.put(invocation.getArgumentAt(0, GpgGameMessage.class));
       return null;
-    }).when(fafService).sendGpgMessage(any());
+    }).when(fafService).sendGpgGameMessage(any());
 
     instance.postConstruct();
 
@@ -169,15 +156,12 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     gameLaunchMessage.setMod(GameType.DEFAULT.getString());
     gameLaunchMessageListenerCaptor.getValue().accept(gameLaunchMessage);
 
-    instance.start(datagramGateway).toCompletableFuture().get(2, TimeUnit.SECONDS);
-
     startFakeGameProcess();
     gameConnectedLatch.await(TIMEOUT, TIMEOUT_UNIT);
     assertTrue("Fake game did not connect within timeout", gameConnectedLatch.getCount() == 0);
   }
 
   private void startFakeGameProcess() throws IOException {
-    gameToRelaySocket = new Socket(LOOPBACK_ADDRESS, instance.getPort());
     this.gameToRelayOutputStream = new FaDataOutputStream(gameToRelaySocket.getOutputStream());
     this.gameFromRelayInputStream = new FaDataInputStream(gameToRelaySocket.getInputStream());
 
@@ -201,23 +185,22 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   public void tearDown() {
     stopped = true;
     IOUtils.closeQuietly(gameToRelaySocket);
-    instance.close();
     threadPoolExecutor.shutdownNow();
   }
 
   @Test
   public void testIdle() throws Exception {
-    sendFromGame(new GpgClientMessage(GpgClientCommand.GAME_STATE, singletonList("Idle")));
+    sendFromGame(new GpgGameMessage(GpgClientCommand.GAME_STATE, singletonList("Idle")));
 
-    GpgClientMessage gpgClientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(gpgClientMessage.getCommand(), is(GpgClientCommand.GAME_STATE));
-    assertThat(gpgClientMessage.getArgs().get(0), is("Idle"));
+    GpgGameMessage gpgGameMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
+    assertThat(gpgGameMessage.getCommand(), is(GpgClientCommand.GAME_STATE));
+    assertThat(gpgGameMessage.getArgs().get(0), is("Idle"));
   }
 
   /**
    * Writes the specified message to the local relay server as if it was sent by the game.
    */
-  private void sendFromGame(GpgClientMessage message) throws IOException {
+  private void sendFromGame(GpgGameMessage message) throws IOException {
     String action = message.getCommand().getString();
 
     int headerSize = action.length();
@@ -231,7 +214,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCreateLobbyUponIdle() throws Exception {
-    sendFromGame(new GpgClientMessage(GpgClientCommand.GAME_STATE, singletonList("Idle")));
+    sendFromGame(new GpgGameMessage(GpgClientCommand.GAME_STATE, singletonList("Idle")));
 
     GpgServerMessage relayMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
     assertThat(relayMessage.getMessageType(), is(GpgServerMessageType.CREATE_LOBBY));
@@ -255,45 +238,8 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
     assertThat(receivedMessage.getArgs(), contains("3v3 sand box.v0001"));
   }
 
-  @Test
-  public void testJoinGame() throws Exception {
-    enterIdleState();
-
-    try (DatagramSocket fakePeer = new DatagramSocket(new InetSocketAddress(InetAddress.getLocalHost(), 0))) {
-      JoinGameMessage joinGameMessage = new JoinGameMessage();
-      joinGameMessage.setArgs(Arrays.asList(Arrays.asList(fakePeer.getLocalAddress().getHostAddress(), fakePeer.getLocalPort()), "TechMonkey", 81655));
-      joinGameMessageListenerCaptor.getValue().accept(joinGameMessage);
-
-      GpgServerMessage receivedMessage = messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
-      assertThat(receivedMessage.getMessageType(), is(GpgServerMessageType.JOIN_GAME));
-
-      List<Object> args = receivedMessage.getArgs();
-      assertThat(args, hasSize(3));
-      assertThat((String) args.get(0), startsWith("127.0.0.1:"));
-      assertThat(args.get(1), is("TechMonkey"));
-      assertThat(args.get(2), is(81655));
-
-      // Imitate the game sending a UDP packet to the joined peer
-      CompletableFuture<DatagramPacket> pingPacketFuture = new CompletableFuture<>();
-      doAnswer(invocation -> {
-        pingPacketFuture.complete(invocation.getArgumentAt(0, DatagramPacket.class));
-        return null;
-      }).when(datagramGateway).send(any());
-
-      byte[] data = new byte[]{0x05, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-      DatagramPacket pingPacket = new DatagramPacket(data, data.length);
-      pingPacket.setSocketAddress(SocketAddressUtil.fromString((String) args.get(0)));
-
-      try (DatagramSocket fakeGameSocket = new DatagramSocket(instance.getGameSocketAddress())) {
-        fakeGameSocket.send(pingPacket);
-      }
-
-      assertThat(pingPacketFuture.get(3, TimeUnit.SECONDS).getSocketAddress(), is(fakePeer.getLocalSocketAddress()));
-    }
-  }
-
   private void enterIdleState() throws IOException, InterruptedException {
-    sendFromGame(new GpgClientMessage(GpgClientCommand.GAME_STATE, singletonList("Idle")));
+    sendFromGame(new GpgGameMessage(GpgClientCommand.GAME_STATE, singletonList("Idle")));
     messagesReceivedByGame.poll(TIMEOUT, TIMEOUT_UNIT);
   }
 
@@ -332,9 +278,9 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGameFull() throws Exception {
     when(i18n.get(anyString())).thenReturn("test");
-    sendFromGame(new GpgClientMessage(GpgClientCommand.GAME_FULL, emptyList()));
+    sendFromGame(new GpgGameMessage(GpgClientCommand.GAME_FULL, emptyList()));
 
     verify(eventBus, timeout(1000)).post(any(GameFullEvent.class));
-    verify(fafService, never()).sendGpgMessage(any(GpgClientMessage.class));
+    verify(fafService, never()).sendGpgGameMessage(any(GpgGameMessage.class));
   }
 }

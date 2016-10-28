@@ -4,8 +4,6 @@ import com.faforever.client.cast.CastsController;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.UserInfoWindowController;
-import com.faforever.client.connectivity.ConnectivityService;
-import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
@@ -93,8 +91,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private LeaderboardController leaderboardController;
   @Mock
-  private ConnectivityService connectivityService;
-  @Mock
   private GameUpdateService gameUpdateService;
   @Mock
   private PlayerService playerService;
@@ -162,7 +158,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private MainController instance;
   private CountDownLatch mainControllerInitializedLatch;
   private SimpleObjectProperty<ConnectionState> connectionStateProperty;
-  private SimpleObjectProperty<ConnectivityState> connectivityStateProperty;
   private BooleanProperty loggedInProperty;
   private BooleanProperty gameRunningProperty;
 
@@ -174,7 +169,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.applicationContext = applicationContext;
     instance.playerService = playerService;
     instance.preferencesService = preferencesService;
-    instance.connectivityService = connectivityService;
     instance.gameUpdateService = gameUpdateService;
     instance.fafService = fafService;
     instance.userService = userService;
@@ -204,7 +198,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.ratingBeta = 250;
 
     connectionStateProperty = new SimpleObjectProperty<>();
-    connectivityStateProperty = new SimpleObjectProperty<>(ConnectivityState.UNKNOWN);
     ObjectProperty<ConnectionState> chatConnectionStateProperty = new SimpleObjectProperty<>();
     loggedInProperty = new SimpleBooleanProperty();
     gameRunningProperty = new SimpleBooleanProperty();
@@ -231,8 +224,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(notificationPrefs.toastPositionProperty()).thenReturn(new SimpleObjectProperty<>(ToastPosition.BOTTOM_RIGHT));
     when(notificationPrefs.getToastPosition()).thenReturn(ToastPosition.BOTTOM_RIGHT);
     when(fafService.connectionStateProperty()).thenReturn(connectionStateProperty);
-    when(connectivityService.checkConnectivity()).thenReturn(CompletableFuture.completedFuture(null));
-    when(connectivityService.connectivityStateProperty()).thenReturn(connectivityStateProperty);
     when(chatService.connectionStateProperty()).thenReturn(chatConnectionStateProperty);
     when(chatService.unreadMessagesCount()).thenReturn(chatUnreadMessagesCountProperty);
     when(userService.loggedInProperty()).thenReturn(loggedInProperty);
@@ -338,13 +329,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnPortCheckRetryClicked() throws Exception {
-    instance.onPortCheckRetryClicked();
-
-    verify(connectivityService).checkConnectivity();
-  }
-
-  @Test
   public void testOnFafReconnectClicked() throws Exception {
     instance.onFafReconnectClicked();
     verify(fafService).reconnect();
@@ -362,42 +346,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForAsyncFx(1000, instance::onNotificationsButtonClicked);
 
     assertThat(instance.persistentNotificationsPopup.isShowing(), is(true));
-  }
-
-  @Test
-  public void testOnGamePortCheckFailed() throws Exception {
-    testChangeConnectivity(ConnectivityState.PUBLIC, ConnectivityState.UNKNOWN);
-  }
-
-  private void testChangeConnectivity(ConnectivityState initialState, ConnectivityState newState) throws Exception {
-    connectivityStateProperty.setValue(initialState);
-
-    String unknown = "Unknown";
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.portCheckStatusButton.setText(unknown));
-
-    CompletableFuture<String> textFuture = new CompletableFuture<>();
-    instance.portCheckStatusButton.textProperty().addListener((observable, oldValue, newValue) -> {
-      textFuture.complete(newValue);
-    });
-
-    connectivityStateProperty.setValue(newState);
-
-    assertThat(textFuture.get(1, TimeUnit.SECONDS), not(unknown));
-  }
-
-  @Test
-  public void testOnGamePortCheckResultProxy() throws Exception {
-    testChangeConnectivity(ConnectivityState.UNKNOWN, ConnectivityState.STUN);
-  }
-
-  @Test
-  public void testOnGamePortCheckResultUnreachable() throws Exception {
-    testChangeConnectivity(ConnectivityState.UNKNOWN, ConnectivityState.BLOCKED);
-  }
-
-  @Test
-  public void testOnGamePortCheckResultReachable() throws Exception {
-    testChangeConnectivity(ConnectivityState.UNKNOWN, ConnectivityState.PUBLIC);
   }
 
   @Test

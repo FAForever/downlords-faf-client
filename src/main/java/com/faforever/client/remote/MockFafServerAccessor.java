@@ -10,7 +10,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
-import com.faforever.client.relay.GpgClientMessage;
+import com.faforever.client.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameInfoMessage;
@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
-import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
@@ -189,7 +188,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, InetSocketAddress relayAddress, int externalPort) {
+  public CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
     return taskService.submitTask(new CompletableTask<GameLaunchMessage>(HIGH) {
       @Override
       protected GameLaunchMessage call() throws Exception {
@@ -205,7 +204,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password, InetSocketAddress relayAddress, int externalPort) {
+  public CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password) {
     return taskService.submitTask(new CompletableTask<GameLaunchMessage>(HIGH) {
       @Override
       protected GameLaunchMessage call() throws Exception {
@@ -241,7 +240,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort, InetSocketAddress relayAddress) {
+  public CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction) {
     logger.debug("Searching 1v1 match with faction: {}", faction);
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);
@@ -260,7 +259,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public void sendGpgMessage(GpgClientMessage message) {
+  public void sendGpgMessage(GpgGameMessage message) {
 
   }
 

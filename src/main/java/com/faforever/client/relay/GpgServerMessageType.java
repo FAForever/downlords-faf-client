@@ -18,7 +18,6 @@ public enum GpgServerMessageType implements ServerMessageType {
   CREATE_LOBBY("CreateLobby", CreateLobbyServerMessage.class),
   DISCONNECT_FROM_PEER("DisconnectFromPeer", DisconnectFromPeerMessage.class),
   JOIN_PROXY("JoinProxy", null),
-  CONNECTIVITY_STATE("ConnectivityState", ConnectivityStateMessage.class),
   /**
    * Requests the creation of a TURN permission.
    */
@@ -43,16 +42,6 @@ public enum GpgServerMessageType implements ServerMessageType {
     this.type = type;
   }
 
-  public String getString() {
-    return string;
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public <T extends ServerMessage> Class<T> getType() {
-    return (Class<T>) type;
-  }
-
   public static GpgServerMessageType fromString(String string) {
     GpgServerMessageType gpgServerMessageType = fromString.get(string);
     if (gpgServerMessageType == null) {
@@ -63,5 +52,15 @@ public enum GpgServerMessageType implements ServerMessageType {
       throw new IllegalArgumentException("Unknown relay server command: " + string);
     }
     return gpgServerMessageType;
+  }
+
+  public String getString() {
+    return string;
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T extends ServerMessage> Class<T> getType() {
+    return (Class<T>) type;
   }
 }

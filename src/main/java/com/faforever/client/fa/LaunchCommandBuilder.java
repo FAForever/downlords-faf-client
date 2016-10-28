@@ -137,9 +137,6 @@ public class LaunchCommandBuilder {
     if (executable == null) {
       throw new IllegalStateException("executable has not been set");
     }
-    if (logFile == null) {
-      throw new IllegalStateException("logFile has not been set");
-    }
     if (gameType == null) {
       throw new IllegalStateException("gameType has not been set");
     }
