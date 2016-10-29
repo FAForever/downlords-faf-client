@@ -78,6 +78,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
+  public History getRatingHistory(RatingType ratingType, int playerId) {
+    return new History();
+  }
+
+  @Override
   public List<MapBean> getMaps() {
     return Collections.emptyList();
   }

@@ -68,7 +68,7 @@ import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.TransientNotificationController;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.player.FriendJoinedGameNotifier;
-import com.faforever.client.preferences.SettingsController;
+import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.rankedmatch.Ranked1v1Controller;
 import com.faforever.client.replay.ReplayVaultController;
 import com.faforever.client.units.UnitsController;
@@ -386,7 +386,7 @@ public class UiConfig {
 
   @Bean
   SettingsController settingsWindowController() {
-    return loadController("settings.fxml");
+    return loadController("settings/settings.fxml");
   }
 
   @Bean

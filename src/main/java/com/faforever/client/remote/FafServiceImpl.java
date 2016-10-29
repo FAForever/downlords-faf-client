@@ -2,11 +2,13 @@ package com.faforever.client.remote;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.Ranked1v1Stats;
+import com.faforever.client.api.RatingType;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.connectivity.ConnectivityService;
+import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
@@ -30,6 +32,10 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static java.lang.Long.parseLong;
+import static java.time.LocalDateTime.ofEpochSecond;
+import static java.time.ZoneOffset.UTC;
 
 public class FafServiceImpl implements FafService {
 
@@ -93,11 +99,6 @@ public class FafServiceImpl implements FafService {
   @Override
   public void sendGpgMessage(GpgClientMessage message) {
     fafServerAccessor.sendGpgMessage(message);
-  }
-
-  @Override
-  public void expand1v1Search(float radius) {
-    fafServerAccessor.expand1v1Search(radius);
   }
 
   @Override
@@ -215,5 +216,17 @@ public class FafServiceImpl implements FafService {
   @CacheEvict(CacheNames.MODS)
   public void evictModsCache() {
     // Nothing to see, please move along
+  }
+
+  @Cacheable(CacheNames.RATING_HISTORY)
+  @Override
+  public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(RatingType ratingType, int playerId) {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getRatingHistory(ratingType, playerId)
+        .getData().entrySet()
+        .stream()
+        .sorted((o1, o2) -> Long.compare(parseLong(o1.getKey()), parseLong(o2.getKey())))
+        .map(entry -> new RatingHistoryDataPoint(ofEpochSecond(parseLong(entry.getKey()), 0, UTC), entry.getValue().get(0), entry.getValue().get(1)))
+        .collect(Collectors.toList())
+    );
   }
 }

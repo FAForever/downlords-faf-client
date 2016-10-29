@@ -1,5 +1,6 @@
 package com.faforever.client.theme;
 
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.web.WebView;
@@ -22,6 +23,14 @@ public interface ThemeService {
   String CSS_CLASS_FONTAWESOME = "fontawesome";
   String RANKED_1V1_IMAGE = "images/ranked1v1_notification.png";
   String TRAY_ICON = "images/tray_icon.png";
+  Theme DEFAULT_THEME = new Theme() {
+    {
+      setAuthor("Downlord");
+      setCompatibilityVersion(1);
+      setDisplayName("Default");
+      setThemeVersion("1.0");
+    }
+  };
 
   String getThemeFile(String relativeFile);
 
@@ -58,4 +67,6 @@ public interface ThemeService {
    * @param number the new badge number. If 0, the badge will be removed.
    */
   void setApplicationIconBadgeNumber(Stage stage, int number);
+
+  ReadOnlyObjectProperty<Theme> currentThemeProperty();
 }

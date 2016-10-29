@@ -5,15 +5,15 @@ import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.api.PlayerEvent;
+import com.faforever.client.api.RatingType;
+import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.domain.StatisticsType;
-import com.faforever.client.stats.PlayerStatisticsMessage;
-import com.faforever.client.stats.RatingInfo;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
+import com.faforever.client.util.TimeService;
 import com.neovisionaries.i18n.CountryCode;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -27,6 +27,7 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.StackedBarChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.chart.XYChart.Data;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
@@ -34,25 +35,21 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.util.StringConverter;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
 
 import static com.faforever.client.api.AchievementState.UNLOCKED;
 import static com.faforever.client.events.EventService.EVENT_AEON_PLAYS;
@@ -71,22 +68,11 @@ import static com.faforever.client.events.EventService.EVENT_SERAPHIM_PLAYS;
 import static com.faforever.client.events.EventService.EVENT_SERAPHIM_WINS;
 import static com.faforever.client.events.EventService.EVENT_UEF_PLAYS;
 import static com.faforever.client.events.EventService.EVENT_UEF_WINS;
+import static javafx.collections.FXCollections.observableList;
 
 public class UserInfoWindowController {
 
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM");
-  public static final StringConverter<Number> DAY_AXIS_FORMATTER = new StringConverter<Number>() {
-    @Override
-    public String toString(Number object) {
-      ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(object.longValue()), ZoneId.systemDefault());
-      return DATE_FORMATTER.format(zonedDateTime);
-    }
-
-    @Override
-    public Number fromString(String string) {
-      return null;
-    }
-  };
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -131,15 +117,15 @@ public class UserInfoWindowController {
   @FXML
   Pane unlockedAchievementsContainer;
   @FXML
-  ToggleButton ratingOver365DaysButton;
+  ToggleButton globalButton;
   @FXML
-  ToggleButton ratingOver90DaysButton;
+  ToggleButton ladder1v1Button;
   @FXML
-  NumberAxis rating90DaysYAxis;
+  NumberAxis yAxis;
   @FXML
-  NumberAxis rating90DaysXAxis;
+  NumberAxis xAxis;
   @FXML
-  LineChart<Long, Integer> rating90DaysChart;
+  LineChart<Integer, Integer> ratingHistoryChart;
   @FXML
   Label usernameLabel;
   @FXML
@@ -165,6 +151,8 @@ public class UserInfoWindowController {
   I18n i18n;
   @Resource
   Locale locale;
+  @Resource
+  TimeService timeService;
 
   private PlayerInfoBean playerInfoBean;
   private Map<String, AchievementItemController> achievementItemById;
@@ -204,8 +192,6 @@ public class UserInfoWindowController {
     unlockedAchievementsContainer.getChildren().addListener((InvalidationListener) observable ->
         unlockedAchievementsHeaderLabel.setText(i18n.get("achievements.unlocked", unlockedAchievementsContainer.getChildren().size()))
     );
-
-    rating90DaysXAxis.setTickLabelFormatter(DAY_AXIS_FORMATTER);
 
     getRoot().sceneProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue != null) {
@@ -254,8 +240,8 @@ public class UserInfoWindowController {
       countryLabel.setText(playerInfoBean.getCountry());
     }
 
-    ratingOver90DaysButton.fire();
-    ratingOver90DaysButton.setSelected(true);
+    globalButton.fire();
+    globalButton.setSelected(true);
 
     loadAchievements();
     eventService.getPlayerEvents(playerInfoBean.getUsername()).thenAccept(events -> {
@@ -402,13 +388,13 @@ public class UserInfoWindowController {
   }
 
   @FXML
-  void onRatingOver90DaysButtonClicked() {
-    loadStatistics(StatisticsType.GLOBAL_90_DAYS);
+  void ladder1v1ButtonClicked() {
+    loadStatistics(RatingType.LADDER_1V1);
   }
 
-  private CompletionStage<Void> loadStatistics(StatisticsType type) {
-    return statisticsService.getStatisticsForPlayer(type, playerInfoBean.getUsername())
-        .thenAccept(playerStatistics -> Platform.runLater(() -> plotPlayerRatingGraph(playerStatistics)))
+  private CompletionStage<Void> loadStatistics(RatingType type) {
+    return statisticsService.getRatingHistory(type, playerInfoBean.getId())
+        .thenAccept(ratingHistory -> Platform.runLater(() -> plotPlayerRatingGraph(ratingHistory)))
         .exceptionally(throwable -> {
           // FIXME display to user
           logger.warn("Statistics could not be loaded", throwable);
@@ -417,24 +403,38 @@ public class UserInfoWindowController {
   }
 
   @SuppressWarnings("unchecked")
-  private void plotPlayerRatingGraph(PlayerStatisticsMessage result) {
-    XYChart.Series<Long, Integer> series = new XYChart.Series<>();
+  private void plotPlayerRatingGraph(List<RatingHistoryDataPoint> dataPoints) {
+    List<XYChart.Data<Integer, Integer>> values = dataPoints.stream()
+        .map(datapoint -> new Data<>(dataPoints.indexOf(datapoint), RatingUtil.getRating(datapoint)))
+        .collect(Collectors.toList());
+
+    xAxis.setTickLabelFormatter(ratingLabelFormatter(dataPoints));
+
+    XYChart.Series<Integer, Integer> series = new XYChart.Series<>(observableList(values));
     series.setName(i18n.get("userInfo.ratingOverTime"));
+    ratingHistoryChart.getData().setAll(series);
+  }
 
-    List<XYChart.Data<Long, Integer>> values = new ArrayList<>();
+  @NotNull
+  private StringConverter<Number> ratingLabelFormatter(final List<RatingHistoryDataPoint> dataPoints) {
+    return new StringConverter<Number>() {
+      @Override
+      public String toString(Number object) {
+        int number = object.intValue();
+        int numberOfDataPoints = dataPoints.size();
+        int dataPointIndex = number >= numberOfDataPoints ? numberOfDataPoints - 1 : number;
+        return DATE_FORMATTER.format(dataPoints.get(dataPointIndex).getDateTime());
+      }
 
-    for (RatingInfo ratingInfo : result.getValues()) {
-      int minRating = RatingUtil.getRating(ratingInfo);
-      LocalDateTime dateTime = LocalDate.from(ratingInfo.getDate()).atTime(ratingInfo.getTime());
-      values.add(new XYChart.Data<>(dateTime.atZone(ZoneId.systemDefault()).toEpochSecond(), minRating));
-    }
-
-    series.getData().setAll(FXCollections.observableList(values));
-    rating90DaysChart.getData().setAll(series);
+      @Override
+      public Number fromString(String string) {
+        return null;
+      }
+    };
   }
 
   @FXML
-  void onRatingOver365DaysButtonClicked() {
-    loadStatistics(StatisticsType.GLOBAL_365_DAYS);
+  void globalButtonClicked() {
+    loadStatistics(RatingType.GLOBAL);
   }
 }

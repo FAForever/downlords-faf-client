@@ -138,7 +138,7 @@ public class PreferencesService {
       deleteFileIfEmpty();
       readExistingFile(preferencesFilePath);
     } else {
-      initDefaultPreferences();
+      preferences = new Preferences();
     }
 
     Path gamePrefs = preferences.getForgedAlliance().getPreferencesFile();
@@ -258,15 +258,6 @@ public class PreferencesService {
 
   public Path getFafReposDirectory() {
     return getFafDataDirectory().resolve("repos");
-  }
-
-  private void initDefaultPreferences() {
-    if (preferences != null) {
-      throw new IllegalStateException("Preferences have already been initialized");
-    }
-
-    logger.debug("Initializing default user preferences");
-    preferences = new Preferences();
   }
 
   private void readExistingFile(Path path) {

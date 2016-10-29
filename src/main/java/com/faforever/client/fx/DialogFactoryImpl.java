@@ -17,7 +17,7 @@ public class DialogFactoryImpl implements DialogFactory {
 
   @Override
   public Alert createAlert(Alert.AlertType alertType, String text, ButtonType... buttons) {
-    String theme = preferencesService.getPreferences().getTheme();
+    String theme = preferencesService.getPreferences().getThemeName();
     String themeCss = String.format("/themes/%s/style.css", theme);
 
     Alert alert = new Alert(alertType);

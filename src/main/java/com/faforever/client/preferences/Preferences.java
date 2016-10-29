@@ -22,7 +22,7 @@ public class Preferences {
   private final LoginPrefs login;
   private final ChatPrefs chat;
   private final NotificationsPrefs notification;
-  private final StringProperty theme;
+  private final StringProperty themeName;
   private final StringProperty lastGameType;
   private final StringProperty lastGameTitle;
   private final StringProperty lastMap;
@@ -39,11 +39,11 @@ public class Preferences {
     login = new LoginPrefs();
     mainWindow = new WindowPrefs();
     forgedAlliance = new ForgedAlliancePrefs();
-    theme = new SimpleStringProperty(DEFAULT_THEME_NAME);
+    themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
     lastGameType = new SimpleStringProperty(GameType.DEFAULT.getString());
     ignoredNotifications = new SimpleListProperty<>(observableArrayList());
     notification = new NotificationsPrefs();
-    rememberLastTab = new SimpleBooleanProperty(false);
+    rememberLastTab = new SimpleBooleanProperty(true);
     lastGameTitle = new SimpleStringProperty();
     lastMap = new SimpleStringProperty();
     lastGameMinRating = new SimpleIntegerProperty(800);
@@ -85,16 +85,16 @@ public class Preferences {
     return notification;
   }
 
-  public String getTheme() {
-    return theme.get();
+  public String getThemeName() {
+    return themeName.get();
   }
 
-  public void setTheme(String theme) {
-    this.theme.set(theme);
+  public void setThemeName(String themeName) {
+    this.themeName.set(themeName);
   }
 
-  public StringProperty themeProperty() {
-    return theme;
+  public StringProperty themeNameProperty() {
+    return themeName;
   }
 
   public String getLastGameType() {

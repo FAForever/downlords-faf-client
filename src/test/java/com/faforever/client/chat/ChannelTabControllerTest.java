@@ -95,7 +95,7 @@ public class ChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getCacheDirectory()).thenReturn(tempDir.getRoot().toPath());
-    when(preferences.getTheme()).thenReturn("default");
+    when(preferences.getThemeName()).thenReturn("default");
     when(preferences.getChat()).thenReturn(chatPrefs);
     when(chatPrefs.getZoom()).thenReturn(1d);
     when(userService.getUsername()).thenReturn(USER_NAME);

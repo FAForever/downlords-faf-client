@@ -1,11 +1,13 @@
 package com.faforever.client.stats;
 
-import com.faforever.client.remote.domain.StatisticsType;
 
-import java.util.concurrent.CompletionStage;
+import com.faforever.client.api.RatingType;
+import com.faforever.client.domain.RatingHistoryDataPoint;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface StatisticsService {
 
-  CompletionStage<PlayerStatisticsMessage> getStatisticsForPlayer(StatisticsType type, String username);
-
+  CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(RatingType type, int playerId);
 }

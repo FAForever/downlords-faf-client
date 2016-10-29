@@ -267,7 +267,7 @@ public class PircBotXChatService implements ChatService {
           new TransientNotification(
               i18n.get("friend.nowOnlineNotification.title", username),
               i18n.get("friend.nowOnlineNotification.action"),
-              IdenticonUtil.createIdenticon(username),
+              IdenticonUtil.createIdenticon(player.getId()),
               event -> eventBus.post(new InitiatePrivateChatEvent(username))
           ));
     }
@@ -286,6 +286,14 @@ public class PircBotXChatService implements ChatService {
     }
     synchronized (chatUsersByName) {
       chatUsersByName.remove(username);
+    }
+    PlayerInfoBean player = playerService.getPlayerForUsername(username);
+    if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
+      notificationService.addNotification(
+          new TransientNotification(
+              i18n.get("friend.nowOfflineNotification.title", username), "",
+              IdenticonUtil.createIdenticon(player.getId())
+          ));
     }
   }
 
@@ -464,18 +472,6 @@ public class PircBotXChatService implements ChatService {
         }
 
         chatUsersByName.put(lowerUsername, new ChatUser(username, color));
-
-        PlayerInfoBean player = playerService.getPlayerForUsername(username);
-        String identiconSource = player != null ? String.valueOf(player.getId()) : username;
-        if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
-          notificationService.addNotification(
-              new TransientNotification(
-                  i18n.get("friend.nowOnlineNotification.title", username),
-                  i18n.get("friend.nowOnlineNotification.action"),
-                  IdenticonUtil.createIdenticon(identiconSource),
-                  event -> eventBus.post(new InitiatePrivateChatEvent(username))
-              ));
-        }
       }
       return chatUsersByName.get(lowerUsername);
     }

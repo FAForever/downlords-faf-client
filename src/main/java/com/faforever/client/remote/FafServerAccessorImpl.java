@@ -35,7 +35,6 @@ import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.MessageTarget;
 import com.faforever.client.remote.domain.NoticeMessage;
-import com.faforever.client.remote.domain.Ranked1v1SearchExpansionMessage;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.RemoveFoeMessage;
 import com.faforever.client.remote.domain.RemoveFriendMessage;
@@ -44,7 +43,6 @@ import com.faforever.client.remote.domain.SerializableMessage;
 import com.faforever.client.remote.domain.ServerCommand;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.remote.domain.SessionMessage;
-import com.faforever.client.remote.domain.StatisticsType;
 import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.ConnectivityStateTypeAdapter;
@@ -57,7 +55,6 @@ import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
 import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
-import com.faforever.client.remote.gson.StatisticsTypeTypeAdapter;
 import com.faforever.client.remote.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.update.ClientUpdateService;
 import com.github.nocatch.NoCatch;
@@ -149,7 +146,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
         .registerTypeAdapter(GameState.class, GameStateTypeAdapter.INSTANCE)
         .registerTypeAdapter(GameAccess.class, GameAccessTypeAdapter.INSTANCE)
         .registerTypeAdapter(ClientMessageType.class, ClientMessageTypeTypeAdapter.INSTANCE)
-        .registerTypeAdapter(StatisticsType.class, StatisticsTypeTypeAdapter.INSTANCE)
         .registerTypeAdapter(FafServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
         .registerTypeAdapter(GpgServerMessageType.class, GpgServerMessageTypeTypeAdapter.INSTANCE)
         .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
@@ -324,11 +320,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public void expand1v1Search(float radius) {
-    writeToServer(new Ranked1v1SearchExpansionMessage(radius));
-  }
-
-  @Override
   public Long getSessionId() {
     return sessionId.get();
   }
@@ -445,11 +436,9 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     logIn(username, password);
   }
 
-  private CompletableFuture<LoginMessage> logIn(String username, String password) {
+  private void logIn(String username, String password) {
     String uniqueId = uidService.generate(String.valueOf(sessionId.get()), preferencesService.getFafDataDirectory().resolve("uid.log"));
     writeToServer(new LoginClientMessage(username, password, sessionId.get(), uniqueId, localIp));
-
-    return loginFuture;
   }
 
   private void onGameLaunchInfo(GameLaunchMessage gameLaunchMessage) {

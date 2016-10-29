@@ -130,8 +130,8 @@ public class PlayerServiceImpl implements PlayerService {
       if (playerInfoBean == null) {
         continue;
       }
-      updatePlayerGameStatus(playerInfoBean, GameStatus.fromGameState(gameInfoBean.getStatus()));
       playerInfoBean.setGameUid(gameInfoBean.getUid());
+      updatePlayerGameStatus(playerInfoBean, GameStatus.fromGameState(gameInfoBean.getStatus()));
     }
     if (GameStatus.fromGameState(gameInfoBean.getStatus()) == GameStatus.LOBBY) {
       PlayerInfoBean host = getPlayerForUsername(gameInfoBean.getHost());

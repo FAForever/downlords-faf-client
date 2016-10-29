@@ -23,9 +23,6 @@ import com.faforever.client.game.GameServiceImpl;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.LeaderboardServiceImpl;
 import com.faforever.client.leaderboard.MockLeaderboardService;
-import com.faforever.client.legacy.MockStatisticsServerAccessor;
-import com.faforever.client.legacy.StatisticsServerAccessor;
-import com.faforever.client.legacy.StatisticsServerAccessorImpl;
 import com.faforever.client.legacy.UidService;
 import com.faforever.client.legacy.UnixUidService;
 import com.faforever.client.legacy.WindowsUidService;
@@ -124,14 +121,6 @@ public class ServiceConfig {
       return new MockFafApiAccessor();
     }
     return new FafApiAccessorImpl();
-  }
-
-  @Bean
-  StatisticsServerAccessor statisticsServerAccessor() {
-    if (environment.containsProperty("faf.testing")) {
-      return new MockStatisticsServerAccessor();
-    }
-    return new StatisticsServerAccessorImpl();
   }
 
   @Bean

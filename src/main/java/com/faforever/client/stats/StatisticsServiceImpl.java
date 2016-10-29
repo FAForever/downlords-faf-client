@@ -1,18 +1,20 @@
 package com.faforever.client.stats;
 
-import com.faforever.client.legacy.StatisticsServerAccessor;
-import com.faforever.client.remote.domain.StatisticsType;
+import com.faforever.client.api.RatingType;
+import com.faforever.client.domain.RatingHistoryDataPoint;
+import com.faforever.client.remote.FafService;
 
 import javax.annotation.Resource;
-import java.util.concurrent.CompletionStage;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class StatisticsServiceImpl implements StatisticsService {
 
   @Resource
-  StatisticsServerAccessor statisticsServerAccessor;
+  FafService fafService;
 
   @Override
-  public CompletionStage<PlayerStatisticsMessage> getStatisticsForPlayer(StatisticsType type, String username) {
-    return statisticsServerAccessor.requestPlayerStatistics(type, username);
+  public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(RatingType type, int playerId) {
+    return fafService.getRatingHistory(type, playerId);
   }
 }
