@@ -1,8 +1,10 @@
 package com.faforever.client.replay;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface ReplayServer {
 
   void stop();
 
-  void start(int uid);
+  CompletableFuture<Void> start(int uid);
 }

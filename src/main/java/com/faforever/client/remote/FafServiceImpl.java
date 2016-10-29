@@ -60,8 +60,7 @@ public class FafServiceImpl implements FafService {
 
   @Override
   public CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
-    return fafServerAccessor.requestHostGame(newGameInfo
-    );
+    return fafServerAccessor.requestHostGame(newGameInfo);
   }
 
   @Override

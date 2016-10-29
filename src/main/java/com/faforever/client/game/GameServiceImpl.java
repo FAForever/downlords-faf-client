@@ -3,7 +3,6 @@ package com.faforever.client.game;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.ice.IceAdapterService;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
@@ -15,6 +14,7 @@ import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
+import com.faforever.client.relay.LocalRelayServer;
 import com.faforever.client.relay.event.RehostRequestEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
@@ -108,7 +108,7 @@ public class GameServiceImpl implements GameService {
   @Resource
   EventBus eventBus;
   @Resource
-  IceAdapterService iceAdapterService;
+  LocalRelayServer localRelayServer;
 
   @VisibleForTesting
   RatingMode ratingMode;
@@ -151,10 +151,7 @@ public class GameServiceImpl implements GameService {
 
     return updateGameIfNecessary(newGameInfo.getGameType(), null, emptyMap(), newGameInfo.getSimMods())
         .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
-        .thenAccept(gameLaunchInfo -> {
-          replayService.startReplayServer(gameLaunchInfo.getUid());
-          startGame(gameLaunchInfo, null, RatingMode.GLOBAL);
-        });
+        .thenAccept(gameLaunchInfo -> startGame(gameLaunchInfo, null, RatingMode.GLOBAL));
   }
 
   @Override
@@ -180,7 +177,6 @@ public class GameServiceImpl implements GameService {
             gameInfoBean.setPassword(password);
             currentGame.set(gameInfoBean);
           }
-          replayService.startReplayServer(gameLaunchInfo.getUid());
           startGame(gameLaunchInfo, null, RatingMode.GLOBAL);
         });
   }
@@ -309,7 +305,6 @@ public class GameServiceImpl implements GameService {
               gameLaunchInfo.getArgs().add("/team 1");
               gameLaunchInfo.getArgs().add("/players 2");
 
-              replayService.startReplayServer(gameLaunchInfo.getUid());
               startGame(gameLaunchInfo, faction, RatingMode.RANKED_1V1);
             }))
         .exceptionally(throwable -> {
@@ -365,8 +360,8 @@ public class GameServiceImpl implements GameService {
   }
 
   /**
-   * Actually starts the game. Call this method when everything else is prepared (mod/map download, connectivity check
-   * etc.)
+   * Actually starts the game, including relay and replay server. Call this method when everything else is prepared
+   * (mod/map download, connectivity check etc.)
    */
   private void startGame(GameLaunchMessage gameLaunchMessage, Faction faction, RatingMode ratingMode) {
     if (isRunning()) {
@@ -375,22 +370,25 @@ public class GameServiceImpl implements GameService {
     }
 
     stopSearchRanked1v1();
-    iceAdapterService.start();
-    List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
-    try {
-      process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), faction, args, ratingMode, iceAdapterPort, rehostRequested);
-      setGameRunning(true);
+    localRelayServer.start()
+        .thenRun(() -> replayService.startReplayServer(gameLaunchMessage.getUid()))
+        .thenRun(() -> {
+          List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
+          try {
+            process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), faction, args, ratingMode, iceAdapterPort, rehostRequested);
+            setGameRunning(true);
 
-      this.ratingMode = ratingMode;
-      spawnTerminationListener(process);
-    } catch (IOException e) {
-      logger.warn("Game could not be started", e);
-      notificationService.addNotification(
-          new ImmediateNotification(i18n.get("errorTitle"),
-              i18n.get("game.start.couldNotStart"), Severity.ERROR, e, Arrays.asList(
-              new ReportAction(i18n, reportingService, e), new DismissAction(i18n)))
-      );
-    }
+            this.ratingMode = ratingMode;
+            spawnTerminationListener(process);
+          } catch (IOException e) {
+            logger.warn("Game could not be started", e);
+            notificationService.addNotification(
+                new ImmediateNotification(i18n.get("errorTitle"),
+                    i18n.get("game.start.couldNotStart"), Severity.ERROR, e, Arrays.asList(
+                    new ReportAction(i18n, reportingService, e), new DismissAction(i18n)))
+            );
+          }
+        });
   }
 
   /**
@@ -420,6 +418,7 @@ public class GameServiceImpl implements GameService {
           gameRunning.set(false);
           fafService.notifyGameEnded();
           replayService.stopReplayServer();
+          localRelayServer.stop();
 
           if (rehostRequested) {
             rehost();

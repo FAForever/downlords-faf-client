@@ -23,9 +23,9 @@ public class Test {
 
     CountDownLatch countDownLatch = new CountDownLatch(1);
 
-    WindowsIceAdapterService windowsIceAdapterService = context.getBean(WindowsIceAdapterService.class);
+    WindowsIceAdapter windowsIceAdapter = context.getBean(WindowsIceAdapter.class);
 
-    windowsIceAdapterService.start().thenAccept(iceAdapterClient -> {
+    windowsIceAdapter.start().thenAccept(iceAdapterClient -> {
       List<String> launchCommand = LaunchCommandBuilder.create()
           .executable(Paths.get("C:/ProgramData/FAForever/bin/ForgedAlliance.exe"))
           .executableDecorator("%s")

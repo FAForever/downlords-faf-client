@@ -23,8 +23,6 @@ import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.chat.avatar.AvatarServiceImpl;
 import com.faforever.client.fa.OnGameFullNotifier;
-import com.faforever.client.fx.DialogFactory;
-import com.faforever.client.fx.DialogFactoryImpl;
 import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.fx.FxmlLoaderImpl;
 import com.faforever.client.fx.WindowController;
@@ -75,6 +73,7 @@ import com.faforever.client.units.UnitsController;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 
@@ -82,6 +81,7 @@ import javax.annotation.Resource;
 
 @org.springframework.context.annotation.Configuration
 @Import(BaseConfig.class)
+@Lazy
 public class UiConfig {
 
   @Resource
@@ -103,12 +103,6 @@ public class UiConfig {
   @Bean
   AchievementUnlockedNotifier achievementUnlockedNotifier() {
     return new AchievementUnlockedNotifier();
-  }
-
-  // TODO this seems obsolete, remove it
-  @Bean
-  DialogFactory dialogFactory() {
-    return new DialogFactoryImpl();
   }
 
   @Bean

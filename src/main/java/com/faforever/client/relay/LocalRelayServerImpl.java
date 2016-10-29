@@ -1,22 +1,23 @@
 package com.faforever.client.relay;
 
 import com.faforever.client.game.GameType;
-import com.faforever.client.ice.IceAdapterClient;
+import com.faforever.client.ice.WindowsIceAdapter;
 import com.faforever.client.ice.event.GpgGameMessageEvent;
 import com.faforever.client.relay.event.GameFullEvent;
 import com.faforever.client.relay.event.RehostRequestEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
+import com.faforever.client.remote.domain.SdpServerMessage;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.SocketUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * <p>Acts as a proxy between the game and the "outside world" (server and peers). See <a
@@ -35,7 +36,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
   @Resource
   EventBus eventBus;
   @Resource
-  IceAdapterClient iceAdapterClient;
+  WindowsIceAdapter windowsIceAdapter;
 
   private LobbyMode lobbyMode;
 
@@ -48,17 +49,7 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     GpgGameMessage gpgGameMessage = event.getGpgGameMessage();
     GpgClientCommand command = gpgGameMessage.getCommand();
 
-    if (isIdleLobbyMessage(gpgGameMessage)) {
-      String username = userService.getUsername();
-      if (lobbyMode == null) {
-        throw new IllegalStateException("lobbyMode has not been set");
-      }
-
-      int faGamePort = SocketUtils.findAvailableUdpPort();
-      logger.debug("Picked port for FA to listen: {}", faGamePort);
-
-      writeToFa(new CreateLobbyServerMessage(lobbyMode, faGamePort, username, userService.getUid(), 1));
-    } else if (command == GpgClientCommand.REHOST) {
+    if (command == GpgClientCommand.REHOST) {
       eventBus.post(new RehostRequestEvent());
       return;
     } else if (command == GpgClientCommand.GAME_FULL) {
@@ -71,24 +62,18 @@ public class LocalRelayServerImpl implements LocalRelayServer {
 
   @PostConstruct
   void postConstruct() {
+    eventBus.register(this);
     fafService.addOnMessageListener(GpgServerMessage.class, this::writeToFa);
     fafService.addOnMessageListener(GameLaunchMessage.class, this::updateLobbyModeFromGameInfo);
-    fafService.addOnMessageListener(JoinGameMessage.class, (joinGameMessage) -> iceAdapterClient.joinGame(joinGameMessage.getUsername(), joinGameMessage.getPeerUid()));
-    fafService.addOnMessageListener(ConnectToPeerMessage.class, (connectToPeerMessage) -> iceAdapterClient.connectToPeer(connectToPeerMessage.getUsername(), connectToPeerMessage.getPeerUid()));
-    fafService.addOnMessageListener(DisconnectFromPeerMessage.class, (disconnectFromPeerMessage) -> iceAdapterClient.disconnectFromPeer(disconnectFromPeerMessage.getUid()));
-  }
-
-  /**
-   * Returns {@code true} if the game lobby is "idle", which basically means the game has been started (into lobby) and
-   * does now need to be told on which port to listen on.
-   */
-  private boolean isIdleLobbyMessage(GpgGameMessage gpgGameMessage) {
-    return gpgGameMessage.getCommand() == GpgClientCommand.GAME_STATE
-        && gpgGameMessage.getArgs().get(0).equals("Idle");
+    fafService.addOnMessageListener(HostGameMessage.class, (hostGameMessage) -> windowsIceAdapter.hostGame(hostGameMessage.getMap()));
+    fafService.addOnMessageListener(JoinGameMessage.class, (joinGameMessage) -> windowsIceAdapter.joinGame(joinGameMessage.getUsername(), joinGameMessage.getPeerUid()));
+    fafService.addOnMessageListener(ConnectToPeerMessage.class, (connectToPeerMessage) -> windowsIceAdapter.connectToPeer(connectToPeerMessage.getUsername(), connectToPeerMessage.getPeerUid()));
+    fafService.addOnMessageListener(DisconnectFromPeerMessage.class, (disconnectFromPeerMessage) -> windowsIceAdapter.disconnectFromPeer(disconnectFromPeerMessage.getUid()));
+    fafService.addOnMessageListener(SdpServerMessage.class, sdpServerMessage -> windowsIceAdapter.setSdp(sdpServerMessage.getSender(), sdpServerMessage.getRecord()));
   }
 
   private void writeToFa(GpgServerMessage gpgServerMessage) {
-    iceAdapterClient.sendToGpgNet(gpgServerMessage.getMessageType().getString(), gpgServerMessage.getArgs());
+    windowsIceAdapter.sendToGpgNet(gpgServerMessage.getMessageType().getString(), gpgServerMessage.getArgs());
   }
 
   private void updateLobbyModeFromGameInfo(GameLaunchMessage gameLaunchMessage) {
@@ -97,5 +82,15 @@ public class LocalRelayServerImpl implements LocalRelayServer {
     } else {
       lobbyMode = LobbyMode.DEFAULT_LOBBY;
     }
+  }
+
+  @Override
+  public CompletableFuture<Void> start() {
+    return windowsIceAdapter.start();
+  }
+
+  @Override
+  public void stop() {
+    windowsIceAdapter.stop();
   }
 }

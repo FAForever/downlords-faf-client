@@ -116,11 +116,7 @@ public class LocalRelayServerImplTest extends AbstractPlainJavaFxTest {
 
     instance = new LocalRelayServerImpl();
     instance.userService = userService;
-    instance.preferencesService = preferencesService;
     instance.fafService = fafService;
-    instance.threadPoolExecutor = threadPoolExecutor;
-    instance.notificationService = notificationService;
-    instance.i18n = i18n;
     instance.eventBus = eventBus;
 
     ForgedAlliancePrefs forgedAlliancePrefs = mock(ForgedAlliancePrefs.class);

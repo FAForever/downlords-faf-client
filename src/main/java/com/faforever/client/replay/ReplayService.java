@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 public interface ReplayService {
@@ -18,7 +19,7 @@ public interface ReplayService {
 
   void runLiveReplay(URI uri) throws IOException;
 
-  void startReplayServer(int gameUid);
+  CompletableFuture<Void> startReplayServer(int gameUid);
 
   void stopReplayServer();
 }

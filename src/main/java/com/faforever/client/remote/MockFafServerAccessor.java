@@ -288,6 +288,11 @@ public class MockFafServerAccessor implements FafServerAccessor {
     return null;
   }
 
+  @Override
+  public void sendSdp(int localPlayerId, int remotePlayerId, String sdp) {
+
+  }
+
   private GameInfoMessage createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
     GameInfoMessage gameInfoMessage = new GameInfoMessage();
     gameInfoMessage.setUid(uid);

@@ -2,14 +2,11 @@ package com.faforever.client.remote.domain;
 
 import com.faforever.client.game.GameVisibility;
 
-import java.net.InetSocketAddress;
-
 /**
  * Data sent from the client to the FAF server to tell it about a game to be hosted.
  */
 public class HostGameMessage extends ClientMessage {
 
-  private int gameport;
   private String mapname;
   private String title;
   private String mod;
@@ -29,14 +26,6 @@ public class HostGameMessage extends ClientMessage {
     this.password = password;
     this.version = version;
     this.visibility = GameVisibility.PUBLIC;
-  }
-
-  public int getGameport() {
-    return gameport;
-  }
-
-  public void setGameport(int gameport) {
-    this.gameport = gameport;
   }
 
   public String getMapname() {

@@ -76,7 +76,7 @@ public class OnGameFullNotifierTest {
       return null;
     }).when(platformService).stopFlashingWindow("Forged Alliance");
 
-    instance.onGameFull(new GameFullEvent(gameInfoBean));
+    instance.onGameFull(new GameFullEvent());
 
     verify(notificationService).addNotification(any(TransientNotification.class));
     verify(threadPoolExecutor).submit(any(Runnable.class));
@@ -90,7 +90,7 @@ public class OnGameFullNotifierTest {
     when(gameService.getCurrentGame()).thenReturn(gameInfoBean);
     when(platformService.getForegroundWindowTitle()).thenReturn("Forged Alliance");
 
-    instance.onGameFull(new GameFullEvent(gameInfoBean));
+    instance.onGameFull(new GameFullEvent());
 
     verifyZeroInteractions(notificationService);
   }

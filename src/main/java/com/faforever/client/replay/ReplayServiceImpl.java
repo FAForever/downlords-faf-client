@@ -42,6 +42,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.notification.Severity.WARN;
@@ -222,8 +223,8 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public void startReplayServer(int gameUid) {
-    replayServer.start(gameUid);
+  public CompletableFuture<Void> startReplayServer(int gameUid) {
+    return replayServer.start(gameUid);
   }
 
   @Override

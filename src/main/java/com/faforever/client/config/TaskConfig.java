@@ -16,10 +16,12 @@ import com.faforever.client.uploader.imgur.ImgurUploadTask;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 
 @org.springframework.context.annotation.Configuration
 @Import(BaseConfig.class)
+@Lazy
 public class TaskConfig {
 
   @Bean
