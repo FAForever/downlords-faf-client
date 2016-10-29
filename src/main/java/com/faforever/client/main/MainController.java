@@ -535,7 +535,7 @@ public class MainController implements OnChooseGameDirectoryListener {
     int toastScreenIndex = preferencesService.getPreferences().getNotification().getToastScreen();
     Screen screen;
     if (toastScreenIndex < screens.size()) {
-      screen = screens.get(toastScreenIndex);
+      screen = screens.get(Math.max(0, toastScreenIndex));
     } else {
       screen = Screen.getPrimary();
     }
