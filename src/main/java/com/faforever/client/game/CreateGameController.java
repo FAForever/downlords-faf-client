@@ -336,7 +336,7 @@ public class CreateGameController {
       return null;
     });
 
-
+    createGamePopup.hide();
   }
 
   public Node getRoot() {
