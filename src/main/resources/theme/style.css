@@ -89,6 +89,13 @@
   REVIEW_SCORE_2: #e9985d;
   REVIEW_SCORE_1: #ae453b;
 
+  /* Review score color palette */
+  REVIEW_SCORE_5: #117D3C;
+  REVIEW_SCORE_4: #9BD454;
+  REVIEW_SCORE_3: #d4bb5a;
+  REVIEW_SCORE_2: #e9985d;
+  REVIEW_SCORE_1: #ae453b;
+
   /* Chart Color Palette */
   CHART_COLOR_1: #609E15;
   CHART_COLOR_2: #9BD454;
@@ -1621,6 +1628,32 @@
 .medium-stars .review-star-background,
 .medium-stars .review-star-fill {
   -fx-font-size: 1.5em;
+}
+
+.score-bar.five {
+  -fx-background-color: REVIEW_SCORE_5;
+}
+
+.score-bar.four {
+  -fx-background-color: REVIEW_SCORE_4;
+}
+
+.score-bar.three {
+  -fx-background-color: REVIEW_SCORE_3;
+}
+
+.score-bar.two {
+  -fx-background-color: REVIEW_SCORE_2;
+}
+
+.score-bar.one {
+  -fx-background-color: REVIEW_SCORE_1;
+}
+
+/***************** Mod review *****************/
+
+.review-score {
+  -fx-font-size: 3em;
 }
 
 .score-bar.five {

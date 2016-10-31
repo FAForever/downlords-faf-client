@@ -301,7 +301,8 @@ public class ModServiceImplTest {
     assertThat(mod.getDescription(), is("Version 5.0. This mod provides global icon support for any mod that places their icons in the proper folder structure. See Readme"));
     assertThat(mod.getImagePath(), nullValue());
     assertThat(mod.getSelectable(), is(true));
-    assertThat(mod.getId(), is("9e8ea941-c306-4751-b367-f00000000005"));
+    assertThat(mod.getId(), is(nullValue()));
+    assertThat(mod.getUid(), is("9e8ea941-c306-4751-b367-f00000000005"));
     assertThat(mod.getUiOnly(), is(false));
 
     mod = installedMods.get(1);
@@ -312,7 +313,8 @@ public class ModServiceImplTest {
     assertThat(mod.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
     assertThat(mod.getImagePath(), is(modsDirectory.getRoot().toPath().resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
     assertThat(mod.getSelectable(), is(true));
-    assertThat(mod.getId(), is("9e8ea941-c306-4751-b367-a11000000502"));
+    assertThat(mod.getId(), is(nullValue()));
+    assertThat(mod.getUid(), is("9e8ea941-c306-4751-b367-a11000000502"));
     assertThat(mod.getUiOnly(), is(false));
     assertThat(mod.getMountInfos(), hasSize(10));
     assertThat(mod.getMountInfos().get(3).getFile(), is(Paths.get("effects")));
@@ -327,7 +329,8 @@ public class ModServiceImplTest {
     assertThat(mod.getDescription(), is("EcoManager v3, more efficient energy throttling"));
     assertThat(mod.getImagePath(), nullValue());
     assertThat(mod.getSelectable(), is(true));
-    assertThat(mod.getId(), is("b2cde810-15d0-4bfa-af66-ec2d6ecd561b"));
+    assertThat(mod.getId(), is(nullValue()));
+    assertThat(mod.getUid(), is("b2cde810-15d0-4bfa-af66-ec2d6ecd561b"));
     assertThat(mod.getUiOnly(), is(true));
   }
 
@@ -418,7 +421,7 @@ public class ModServiceImplTest {
     )));
     List<Mod> mods = instance.getMostLikedUiMods(1).toCompletableFuture().get();
     assertThat(mods, hasSize(1));
-    assertThat(mods.get(0).getId(), is("1"));
+    assertThat(mods.get(0).getUid(), is("1"));
   }
 
   private InstallModTask stubInstallModTask() {

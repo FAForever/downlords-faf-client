@@ -42,13 +42,13 @@ public class ModCardController implements Controller<Node> {
     installStatusChangeListener = change -> {
       while (change.next()) {
         for (Mod mod : change.getAddedSubList()) {
-          if (this.mod.getId().equals(mod.getId())) {
+          if (this.mod.getUid().equals(mod.getUid())) {
             setInstalled(true);
             return;
           }
         }
         for (Mod mod : change.getRemoved()) {
-          if (this.mod.getId().equals(mod.getId())) {
+          if (this.mod.getUid().equals(mod.getUid())) {
             setInstalled(false);
             return;
           }

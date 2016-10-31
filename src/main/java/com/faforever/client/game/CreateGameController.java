@@ -332,7 +332,7 @@ public class CreateGameController implements Controller<Pane> {
     ObservableList<Mod> selectedMods = modListView.getSelectionModel().getSelectedItems();
 
     Set<String> simMods = selectedMods.stream()
-        .map(Mod::getId)
+        .map(Mod::getUid)
         .collect(Collectors.toSet());
 
     NewGameInfo newGameInfo = new NewGameInfo(

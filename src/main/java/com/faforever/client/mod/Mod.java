@@ -2,7 +2,9 @@ package com.faforever.client.mod;
 
 import com.faforever.client.api.dto.ModType;
 import com.faforever.client.api.dto.ModVersion;
+import com.faforever.client.vault.review.Review;
 import com.faforever.commons.mod.MountInfo;
+import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
@@ -16,6 +18,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -30,9 +33,17 @@ public class Mod {
   public static final Comparator<? super Mod> LIKES_COMPARATOR = Comparator.comparingInt(Mod::getLikes);
   public static final Comparator<? super Mod> PUBLISH_DATE_COMPARATOR = Comparator.comparing(Mod::getPublishDate);
   public static final Comparator<? super Mod> DOWNLOADS_COMPARATOR = Comparator.comparingInt(Mod::getDownloads);
+
   private final StringProperty name;
   private final ObjectProperty<Path> imagePath;
+  /**
+   * Entity ID as provided by the API (DB primary key).
+   */
   private final StringProperty id;
+  /**
+   * UID as specified in the mod itself (specified by the uploader).
+   */
+  private final StringProperty uid;
   private final StringProperty description;
   private final StringProperty author;
   private final BooleanProperty selectable;
@@ -48,11 +59,13 @@ public class Mod {
   private final ObjectProperty<URL> downloadUrl;
   private final ListProperty<MountInfo> mountPoints;
   private final ListProperty<String> hookDirectories;
+  private final ListProperty<Review> reviews;
 
   public Mod() {
     name = new SimpleStringProperty();
     imagePath = new SimpleObjectProperty<>();
     id = new SimpleStringProperty();
+    uid = new SimpleStringProperty();
     description = new SimpleStringProperty();
     author = new SimpleStringProperty();
     selectable = new SimpleBooleanProperty();
@@ -68,6 +81,8 @@ public class Mod {
     downloadUrl = new SimpleObjectProperty<>();
     mountPoints = new SimpleListProperty<>(FXCollections.observableArrayList());
     hookDirectories = new SimpleListProperty<>(FXCollections.observableArrayList());
+    reviews = new SimpleListProperty<>(FXCollections.observableArrayList(param
+        -> new Observable[]{param.scoreProperty(), param.textProperty()}));
   }
 
   /**
@@ -75,7 +90,7 @@ public class Mod {
    */
   static Mod fromModInfo(com.faforever.commons.mod.Mod modInfo, Path basePath) {
     Mod mod = new Mod();
-    mod.setId(modInfo.getUid());
+    mod.setUid(modInfo.getUid());
     mod.setName(modInfo.getName());
     mod.setDescription(modInfo.getDescription());
     mod.setAuthor(modInfo.getAuthor());
@@ -104,6 +119,7 @@ public class Mod {
     modInfoBean.setPublishDate(modVersion.getCreateTime().toLocalDateTime());
     modInfoBean.setDescription(modVersion.getDescription());
     modInfoBean.setId(modVersion.getId());
+    modInfoBean.setUid(modVersion.getUid());
 //    modInfoBean.setDownloads(mod));
     modInfoBean.setThumbnailUrl(modVersion.getThumbnailUrl());
 //    modInfoBean.getComments().setAll(mod.getComments());
@@ -219,6 +235,10 @@ public class Mod {
     return name;
   }
 
+  /**
+   * The ID within the database. {@code null} in case the mod was loaded locally.
+   */
+  @Nullable
   public String getId() {
     return id.get();
   }
@@ -297,7 +317,7 @@ public class Mod {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id.get());
+    return Objects.hash(uid.get());
   }
 
   @Override
@@ -309,7 +329,7 @@ public class Mod {
       return false;
     }
     Mod that = (Mod) o;
-    return Objects.equals(id.get(), that.id.get());
+    return Objects.equals(uid.get(), that.uid.get());
   }
 
   public ObservableList<String> getComments() {
@@ -326,5 +346,29 @@ public class Mod {
 
   public ObservableList<String> getHookDirectories() {
     return hookDirectories.get();
+  }
+
+  public ObservableList<Review> getReviews() {
+    return reviews.get();
+  }
+
+  public void setReviews(ObservableList<Review> reviews) {
+    this.reviews.set(reviews);
+  }
+
+  public ListProperty<Review> reviewsProperty() {
+    return reviews;
+  }
+
+  public String getUid() {
+    return uid.get();
+  }
+
+  public void setUid(String uid) {
+    this.uid.set(uid);
+  }
+
+  public StringProperty uidProperty() {
+    return uid;
   }
 }

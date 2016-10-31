@@ -71,6 +71,11 @@ public interface ModService {
 
   void evictModsCache();
 
+  /**
+   * Returns the download size of the specified mod in bytes.
+   */
+  long getModSize(Mod mod);
+
   ComparableVersion readModVersion(Path modDirectory);
 
   CompletableFuture<List<FeaturedMod>> getFeaturedMods();

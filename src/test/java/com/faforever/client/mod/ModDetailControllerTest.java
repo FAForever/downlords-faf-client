@@ -3,8 +3,16 @@ package com.faforever.client.mod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.util.TimeService;
+import com.faforever.client.vault.review.ReviewController;
+import com.faforever.client.vault.review.ReviewService;
+import com.faforever.client.vault.review.ReviewsController;
+import com.faforever.client.vault.review.StarController;
+import com.faforever.client.vault.review.StarsController;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -13,6 +21,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -34,18 +43,48 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   private ModService modService;
   @Mock
   private I18n i18n;
+  @Mock
+  private TimeService timeService;
+  @Mock
+  private ReviewService reviewService;
+  @Mock
+  private PlayerService playerService;
+  @Mock
+  private ReviewsController reviewsController;
+  @Mock
+  private ReviewController reviewController;
+  @Mock
+  private StarsController starsController;
+  @Mock
+  private StarController starController;
 
   private ModDetailController instance;
   private ObservableList<Mod> installedMods;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ModDetailController(modService, notificationService, i18n, reportingService);
+    instance = new ModDetailController(modService, notificationService, i18n, reportingService, timeService, reviewService, playerService);
 
     installedMods = FXCollections.observableArrayList();
     when(modService.getInstalledMods()).thenReturn(installedMods);
 
-    loadFxml("theme/vault/mod/mod_detail.fxml", clazz -> instance);
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("junit")));
+
+    loadFxml("theme/vault/mod/mod_detail.fxml", clazz -> {
+      if (clazz == ReviewsController.class) {
+        return reviewsController;
+      }
+      if (clazz == ReviewController.class) {
+        return reviewController;
+      }
+      if (clazz == StarsController.class) {
+        return starsController;
+      }
+      if (clazz == StarController.class) {
+        return starController;
+      }
+      return instance;
+    });
   }
 
   @Test
@@ -88,7 +127,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   public void testOnInstallButtonClicked() throws Exception {
     when(modService.downloadAndInstallMod(any(Mod.class), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
-    instance.setMod(new Mod());
+    instance.setMod(ModInfoBeanBuilder.create().defaultValues().get());
     instance.onInstallButtonClicked();
 
     verify(modService).downloadAndInstallMod(any(Mod.class), any(), any());

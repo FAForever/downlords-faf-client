@@ -6,8 +6,6 @@
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -15,81 +13,116 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modDetailRoot" onMouseClicked="#onDimmerClicked"
-            maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="dimmer"
-            xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.faforever.client.mod.ModDetailController">
-  <children>
-    <AnchorPane onMouseClicked="#onContentPaneClicked" styleClass="modal-popup" AnchorPane.bottomAnchor="100.0"
-                AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="100.0">
-      <children>
-        <Button cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked" AnchorPane.rightAnchor="0.0"
-                AnchorPane.topAnchor="0.0">
-          <styleClass>
-            <String fx:value="window-button"/>
-            <String fx:value="close-button"/>
-          </styleClass>
-        </Button>
-        <GridPane hgap="10.0" vgap="10.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0"
-                  AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="30.0">
-          <columnConstraints>
-            <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
-            <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
-            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-            <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
-          </columnConstraints>
-          <rowConstraints>
-            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-            <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
-          </rowConstraints>
-          <children>
-            <Label fx:id="nameLabel" maxWidth="1.7976931348623157E308" styleClass="h1" text="&lt;Name&gt;"
-                   GridPane.columnIndex="1" GridPane.columnSpan="2"/>
-            <ImageView fx:id="thumbnailImageView" fitHeight="128.0" fitWidth="128.0" pickOnBounds="true"
-                       preserveRatio="true"
-                       GridPane.rowSpan="2"/>
-            <Label fx:id="authorLabel" text="&lt;Author&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1"
-                   GridPane.valignment="TOP"/>
-            <Button fx:id="uninstallButton" mnemonicParsing="false" onAction="#onUninstallButtonClicked"
-                    styleClass="button-raised" text="%modVault.uninstall" GridPane.columnIndex="3"
-                    GridPane.halignment="RIGHT"/>
-            <Button fx:id="installButton" mnemonicParsing="false" onAction="#onInstallButtonClicked"
-                    styleClass="button-raised" text="%modVault.install" GridPane.columnIndex="3"
-                    GridPane.halignment="RIGHT"/>
-            <VBox alignment="CENTER_LEFT" maxWidth="300.0" GridPane.columnIndex="2" GridPane.columnSpan="2"
-                  GridPane.halignment="RIGHT" GridPane.rowIndex="1">
-              <children>
-                  <Label fx:id="progressLabel"/>
-                <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" progress="0.0"/>
-              </children>
-            </VBox>
-            <TabPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" tabClosingPolicy="UNAVAILABLE"
-                     GridPane.columnSpan="2147483647" GridPane.rowIndex="3">
-              <tabs>
-                <Tab text="%mod.description">
-                  <content>
-                    <VBox>
-                      <children>
-                        <Label fx:id="modDescriptionLabel" text="Label"/>
-                      </children>
-                      <padding>
-                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-                      </padding>
-                    </VBox>
-                  </content>
-                </Tab>
-                <Tab text="%mod.comments">
-                  <content>
-                    <ScrollPane prefHeight="200.0" prefWidth="200.0"/>
-                  </content>
-                </Tab>
-              </tabs>
-            </TabPane>
-            <Separator prefWidth="200.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="2"/>
-          </children>
-        </GridPane>
-      </children>
-    </AnchorPane>
-  </children>
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="modDetailRoot" maxHeight="1.7976931348623157E308"
+            maxWidth="1.7976931348623157E308" onMouseClicked="#onDimmerClicked" styleClass="dimmer"
+            xmlns="http://javafx.com/javafx/8.0.111" fx:controller="com.faforever.client.mod.ModDetailController">
+    <children>
+        <AnchorPane onMouseClicked="#onContentPaneClicked" styleClass="modal-popup" AnchorPane.bottomAnchor="50.0"
+                    AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0">
+            <children>
+                <ScrollPane fx:id="scrollPane" fitToWidth="true" AnchorPane.bottomAnchor="10.0"
+                            AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="20.0">
+                    <content>
+                        <VBox alignment="TOP_CENTER" maxHeight="1.7976931348623157E308"
+                              maxWidth="1.7976931348623157E308" spacing="20.0">
+                            <children>
+                                <GridPane hgap="20.0" maxWidth="1.7976931348623157E308" vgap="10.0">
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+                                        <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                                        <ColumnConstraints/>
+                                    </columnConstraints>
+                                    <rowConstraints>
+                                        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+                                        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+                                    </rowConstraints>
+                                    <children>
+                                        <Label fx:id="nameLabel" maxWidth="1.7976931348623157E308" styleClass="h1"
+                                               text="&lt;Name&gt;" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+                                        <ImageView fx:id="thumbnailImageView" fitHeight="128.0" fitWidth="128.0"
+                                                   pickOnBounds="true" preserveRatio="true" GridPane.rowSpan="2"/>
+                                        <Label fx:id="authorLabel" text="&lt;Author&gt;" wrapText="true"
+                                               GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                               GridPane.rowSpan="2147483647" GridPane.valignment="TOP"/>
+                                        <VBox fx:id="progressPane" alignment="CENTER_LEFT" maxWidth="300.0"
+                                              GridPane.columnIndex="2" GridPane.halignment="RIGHT"
+                                              GridPane.rowIndex="1">
+                                            <children>
+                                                <Label fx:id="progressLabel" text=""/>
+                                                <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308"
+                                                             progress="0.0"/>
+                                            </children>
+                                        </VBox>
+                                        <Button fx:id="uninstallButton" mnemonicParsing="false"
+                                                onAction="#onUninstallButtonClicked" text="%modVault.uninstall"
+                                                GridPane.columnIndex="2" GridPane.halignment="RIGHT"
+                                                GridPane.rowIndex="1"/>
+                                        <Button fx:id="installButton" mnemonicParsing="false"
+                                                onAction="#onInstallButtonClicked" styleClass="highlighted-button"
+                                                text="%modVault.install" GridPane.columnIndex="2"
+                                                GridPane.halignment="RIGHT" GridPane.rowIndex="1"/>
+                                    </children>
+                                </GridPane>
+                                <Label fx:id="modDescriptionLabel" maxHeight="1.7976931348623157E308"
+                                       maxWidth="1.7976931348623157E308" text="&lt;Description&gt;" wrapText="true"/>
+                                <Separator layoutX="10.0" layoutY="251.0" maxWidth="1.7976931348623157E308"/>
+                                <VBox alignment="TOP_CENTER" maxWidth="640.0">
+                                    <children>
+                                        <fx:include fx:id="reviews" source="../review/reviews.fxml"/>
+                                    </children>
+                                </VBox>
+                                <Separator prefWidth="200.0"/>
+                                <Label layoutX="10.0" layoutY="204.0" styleClass="h2" text="%mod.detail.moreInfo"/>
+                                <GridPane hgap="20.0" maxWidth="640.0">
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
+                                    </columnConstraints>
+                                    <rowConstraints>
+                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                                        <RowConstraints minHeight="10.0" prefHeight="40.0" vgrow="SOMETIMES"/>
+                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                                    </rowConstraints>
+                                    <children>
+                                        <Label styleClass="h3" text="%mod.detail.updated"/>
+                                        <Label styleClass="h3" text="%mod.detail.size" GridPane.columnIndex="1"/>
+                                        <Label layoutX="114.0" layoutY="15.0" styleClass="h3"
+                                               text="%mod.detail.installations" GridPane.columnIndex="2"/>
+                                        <Label layoutX="217.0" layoutY="15.0" styleClass="h3" text="%mod.detail.version"
+                                               GridPane.rowIndex="2"/>
+                                        <Label fx:id="updatedLabel" text="&lt;Updated&gt;" GridPane.rowIndex="1"
+                                               GridPane.valignment="TOP"/>
+                                        <Label fx:id="sizeLabel" text="&lt;Size&gt;" GridPane.columnIndex="1"
+                                               GridPane.rowIndex="1" GridPane.valignment="TOP"/>
+                                        <Label fx:id="installationsLabel" text="&lt;Installations&gt;"
+                                               GridPane.columnIndex="2" GridPane.rowIndex="1"
+                                               GridPane.valignment="TOP"/>
+                                        <Label fx:id="versionLabel" text="&lt;Version&gt;" GridPane.rowIndex="3"
+                                               GridPane.valignment="TOP"/>
+                                    </children>
+                                </GridPane>
+                                <Label fx:id="dependenciesTitle" styleClass="h2" text="%mod.detail.dependencies"/>
+                                <VBox fx:id="dependenciesContainer" maxHeight="1.7976931348623157E308"
+                                      maxWidth="1.7976931348623157E308"/>
+                            </children>
+                            <padding>
+                                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+                            </padding>
+                        </VBox>
+                    </content>
+                </ScrollPane>
+                <Button cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
+                        AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <styleClass>
+                        <String fx:value="window-button"/>
+                        <String fx:value="close-button"/>
+                    </styleClass>
+                </Button>
+            </children>
+        </AnchorPane>
+    </children>
 </AnchorPane>

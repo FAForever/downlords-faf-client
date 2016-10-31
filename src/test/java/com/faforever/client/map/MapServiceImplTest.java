@@ -97,7 +97,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     when(forgedAlliancePrefs.getCustomMapsDirectory()).thenReturn(customMapsDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.customMapsDirectoryProperty()).thenReturn(customMapsDirectoryProperty);
     when(forgedAlliancePrefs.getPath()).thenReturn(gameDirectory.getRoot().toPath());
-    when(preferencesService.getPreferences().getForgedAlliance().pathProperty()).thenReturn(new SimpleObjectProperty<>());
+    when(forgedAlliancePrefs.pathProperty()).thenReturn(new SimpleObjectProperty<>());
 
     doAnswer(invocation -> {
       @SuppressWarnings("unchecked")

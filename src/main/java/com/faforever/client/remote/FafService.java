@@ -128,7 +128,7 @@ public interface FafService {
 
   CompletableFuture<Void> saveGameReview(Review review, int gameId);
 
-  CompletableFuture<Void> saveModVersionReview(Review review, int modVersionId);
+  CompletableFuture<Void> saveModVersionReview(Review review, String modVersionId);
 
   CompletableFuture<Void> saveMapVersionReview(Review review, String mapVersionId);
 
@@ -141,6 +141,8 @@ public interface FafService {
   Optional<MapBean> findMapById(String id);
 
   CompletableFuture<Void> deleteMapVersionReview(Review review);
+
+  CompletableFuture<Void> deleteModVersionReview(Review review);
 
   CompletableFuture<Optional<Replay>> findReplayById(int id);
 }

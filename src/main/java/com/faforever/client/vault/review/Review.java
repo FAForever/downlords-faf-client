@@ -9,7 +9,7 @@ import javafx.beans.property.StringProperty;
 import java.util.Optional;
 
 public class Review {
-  private final ObjectProperty<Integer> id;
+  private final ObjectProperty<String> id;
   private final StringProperty text;
   private final ObjectProperty<Player> player;
   private final ObjectProperty<Integer> score;
@@ -23,7 +23,7 @@ public class Review {
 
   public static Review fromDto(com.faforever.client.api.dto.Review dto) {
     Review review = new Review();
-    review.setId(Integer.parseInt(dto.getId()));
+    review.setId(dto.getId());
     review.setText(dto.getText());
     review.setScore(Optional.ofNullable(dto.getScore()).map(Byte::intValue).orElse(0));
 
@@ -33,15 +33,15 @@ public class Review {
     return review;
   }
 
-  public Integer getId() {
+  public String getId() {
     return id.get();
   }
 
-  public void setId(Integer id) {
+  public void setId(String id) {
     this.id.set(id);
   }
 
-  public ObjectProperty<Integer> idProperty() {
+  public ObjectProperty<String> idProperty() {
     return id;
   }
 

@@ -87,11 +87,11 @@ public class FafServiceImplTest {
     when(fafApiAccessor.createModVersionReview(any()))
         .thenReturn((ModVersionReview) new ModVersionReview().setPlayer(player()).setId("1").setScore((byte) 1));
 
-    instance.saveModVersionReview(review, 5);
+    instance.saveModVersionReview(review, "5");
     verify(fafApiAccessor).createModVersionReview(any());
   }
 
-  private Review createReview(Integer id, String text, int rating, Integer playerId) {
+  private Review createReview(String id, String text, int rating, Integer playerId) {
     Review review = new Review();
     review.setId(id);
     review.setText(text);

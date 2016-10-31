@@ -25,7 +25,7 @@ public class ReviewServiceTest {
   }
 
   @Test
-  public void createGameReview() throws Exception {
+  public void saveGameReview() throws Exception {
     Review review = createReview();
     when(fafService.saveGameReview(review, 2)).thenReturn(CompletableFuture.completedFuture(null));
 
@@ -34,7 +34,7 @@ public class ReviewServiceTest {
   }
 
   @Test
-  public void createMapVersionReview() throws Exception {
+  public void saveMapVersionReview() throws Exception {
     Review review = createReview();
     when(fafService.saveMapVersionReview(review, "2")).thenReturn(CompletableFuture.completedFuture(null));
 
@@ -43,12 +43,12 @@ public class ReviewServiceTest {
   }
 
   @Test
-  public void createModVersionReview() throws Exception {
+  public void saveModVersionReview() throws Exception {
     Review review = createReview();
-    when(fafService.saveModVersionReview(review, 2)).thenReturn(CompletableFuture.completedFuture(null));
+    when(fafService.saveModVersionReview(review, "2")).thenReturn(CompletableFuture.completedFuture(null));
 
-    instance.createModVersionReview(review, 2);
-    verify(fafService).saveModVersionReview(review, 2);
+    instance.saveModVersionReview(review, "2");
+    verify(fafService).saveModVersionReview(review, "2");
   }
 
   private Review createReview() {

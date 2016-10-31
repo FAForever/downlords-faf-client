@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -36,6 +37,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -48,6 +50,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -204,7 +207,7 @@ public class ModServiceImpl implements ModService {
   @Override
   public Set<String> getInstalledModUids() {
     return getInstalledMods().stream()
-        .map(Mod::getId)
+        .map(Mod::getUid)
         .collect(Collectors.toSet());
   }
 
@@ -212,7 +215,7 @@ public class ModServiceImpl implements ModService {
   public Set<String> getInstalledUiModsUids() {
     return getInstalledMods().stream()
         .filter(Mod::getUiOnly)
-        .map(Mod::getId)
+        .map(Mod::getUid)
         .collect(Collectors.toSet());
   }
 
@@ -250,15 +253,12 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public Path getPathForMod(Mod mod) {
-    for (Map.Entry<Path, Mod> entry : pathToMod.entrySet()) {
-      Mod modInfoBean = entry.getValue();
-
-      if (mod.getId().equals(modInfoBean.getId())) {
-        return entry.getKey();
-      }
-    }
-    return null;
+  public Path getPathForMod(Mod modToFind) {
+    return pathToMod.entrySet().stream()
+        .filter(pathModEntry -> pathModEntry.getValue().getUid().equals(modToFind.getUid()))
+        .findFirst()
+        .map(Entry::getKey)
+        .orElse(null);
   }
 
   @Override
@@ -288,7 +288,7 @@ public class ModServiceImpl implements ModService {
 
   @Override
   public CompletableFuture<List<Mod>> getMostLikedUiMods(int count) {
-    return getAvailableMods().thenApply(modInfoBeans -> modInfoBeans.stream()
+    return getAvailableMods().thenApply(mods -> mods.stream()
         .filter(Mod::getUiOnly)
         .sorted(Mod.LIKES_COMPARATOR.reversed())
         .limit(count)
@@ -343,6 +343,21 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
+  @SneakyThrows
+  public long getModSize(Mod mod) {
+    HttpURLConnection conn = null;
+    try {
+      conn = (HttpURLConnection) mod.getDownloadUrl().openConnection();
+      conn.setRequestMethod(HttpMethod.HEAD.name());
+      return conn.getContentLength();
+    } finally {
+      if (conn != null) {
+        conn.disconnect();
+      }
+    }
+  }
+
+  @Override
   public ComparableVersion readModVersion(Path modDirectory) {
     return extractModInfo(modDirectory).getVersion();
   }
@@ -362,7 +377,7 @@ public class ModServiceImpl implements ModService {
   }
 
   private CompletableFuture<List<Mod>> getTopElements(Comparator<? super Mod> comparator, int count) {
-    return getAvailableMods().thenApply(modInfoBeans -> modInfoBeans.stream()
+    return getAvailableMods().thenApply(mods -> mods.stream()
         .sorted(comparator)
         .limit(count)
         .collect(Collectors.toList()));
