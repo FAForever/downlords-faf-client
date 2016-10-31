@@ -372,13 +372,18 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public void deleteGameReview(int id) {
+  public void deleteGameReview(String id) {
     delete("/data/gameReview/" + id);
   }
 
   @Override
-  public void deleteMapVersionReview(Integer id) {
+  public void deleteMapVersionReview(String id) {
     delete("/data/mapVersionReview/" + id);
+  }
+
+  @Override
+  public void deleteModVersionReview(String id) {
+    delete("/data/modVersionReview/" + id);
   }
 
   @Override

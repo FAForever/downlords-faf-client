@@ -258,7 +258,7 @@ public class MapDetailController implements Controller<Node> {
         });
   }
 
-  public void onDimmerClicked(MouseEvent event) {
+  public void onDimmerClicked() {
     onCloseButtonClicked();
   }
 

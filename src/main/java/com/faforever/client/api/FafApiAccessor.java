@@ -102,7 +102,7 @@ public interface FafApiAccessor {
 
   void updateMapVersionReview(MapVersionReview review);
 
-  void deleteGameReview(int id);
+  void deleteGameReview(String id);
 
   Optional<Clan> getClanByTag(String tag);
 
@@ -110,7 +110,9 @@ public interface FafApiAccessor {
 
   Optional<MapVersion> findMapVersionById(String id);
 
-  void deleteMapVersionReview(Integer id);
+  void deleteMapVersionReview(String id);
+
+  void deleteModVersionReview(String id);
 
   Optional<Game> findReplayById(int id);
 

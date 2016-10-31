@@ -18,7 +18,7 @@ public class ReviewService {
     return fafService.saveGameReview(review, gameId);
   }
 
-  public CompletableFuture createModVersionReview(Review review, int modVersionId) {
+  public CompletableFuture<Void> saveModVersionReview(Review review, String modVersionId) {
     return fafService.saveModVersionReview(review, modVersionId);
   }
 
@@ -32,5 +32,9 @@ public class ReviewService {
 
   public CompletableFuture<Void> deleteMapVersionReview(Review review) {
     return fafService.deleteMapVersionReview(review);
+  }
+
+  public CompletableFuture<Void> deleteModVersionReview(Review review) {
+    return fafService.deleteModVersionReview(review);
   }
 }

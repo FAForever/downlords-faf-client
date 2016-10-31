@@ -221,7 +221,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public void deleteGameReview(int id) {
+  public void deleteGameReview(String id) {
 
   }
 
@@ -241,7 +241,12 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public void deleteMapVersionReview(Integer id) {
+  public void deleteMapVersionReview(String id) {
+
+  }
+
+  @Override
+  public void deleteModVersionReview(String id) {
 
   }
 

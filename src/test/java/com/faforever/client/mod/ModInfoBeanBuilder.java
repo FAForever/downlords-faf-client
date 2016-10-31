@@ -38,7 +38,7 @@ public class ModInfoBeanBuilder {
   }
 
   public ModInfoBeanBuilder uid(String uid) {
-    modInfo.setId(uid);
+    modInfo.setUid(uid);
     return this;
   }
 

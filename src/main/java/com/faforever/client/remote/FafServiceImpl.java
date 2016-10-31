@@ -371,7 +371,7 @@ public class FafServiceImpl implements FafService {
               .setGame(new Game().setId(String.valueOf(gameId)))
               .setPlayer(new com.faforever.client.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
       );
-      review.setId(Integer.parseInt(updatedReview.getId()));
+      review.setId(updatedReview.getId());
     } else {
       fafApiAccessor.updateGameReview((GameReview) gameReview.setId(String.valueOf(review.getId())));
     }
@@ -380,7 +380,7 @@ public class FafServiceImpl implements FafService {
 
   @Override
   @Async
-  public CompletableFuture<Void> saveModVersionReview(Review review, int modVersionId) {
+  public CompletableFuture<Void> saveModVersionReview(Review review, String modVersionId) {
     ModVersionReview modVersionReview = (ModVersionReview) new ModVersionReview()
         .setScore(review.getScore().byteValue())
         .setText(review.getText());
@@ -393,7 +393,7 @@ public class FafServiceImpl implements FafService {
               .setId(String.valueOf(review.getId()))
               .setPlayer(new com.faforever.client.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
       );
-      review.setId(Integer.parseInt(updatedReview.getId()));
+      review.setId(updatedReview.getId());
     } else {
       fafApiAccessor.updateModVersionReview((ModVersionReview) modVersionReview.setId(String.valueOf(review.getId())));
     }
@@ -415,7 +415,7 @@ public class FafServiceImpl implements FafService {
               .setId(String.valueOf(review.getId()))
               .setPlayer(new com.faforever.client.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
       );
-      review.setId(Integer.parseInt(updatedReview.getId()));
+      review.setId(updatedReview.getId());
     } else {
       fafApiAccessor.updateMapVersionReview((MapVersionReview) mapVersionReview.setId(String.valueOf(review.getId())));
     }
@@ -442,6 +442,14 @@ public class FafServiceImpl implements FafService {
   @Async
   public CompletableFuture<Void> deleteMapVersionReview(Review review) {
     fafApiAccessor.deleteMapVersionReview(review.getId());
+    return CompletableFuture.completedFuture(null);
+  }
+
+
+  @Override
+  @Async
+  public CompletableFuture<Void> deleteModVersionReview(Review review) {
+    fafApiAccessor.deleteModVersionReview(review.getId());
     return CompletableFuture.completedFuture(null);
   }
 
