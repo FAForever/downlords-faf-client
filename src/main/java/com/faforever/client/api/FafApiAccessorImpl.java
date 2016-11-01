@@ -16,6 +16,7 @@ import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpContent;
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpMediaType;
 import com.google.api.client.http.HttpRequest;
@@ -24,6 +25,7 @@ import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpResponseException;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.MultipartContent;
+import com.google.api.client.http.UrlEncodedContent;
 import com.google.api.client.http.json.JsonHttpContent;
 import com.google.api.client.json.GenericJson;
 import com.google.api.client.json.JsonFactory;
@@ -61,6 +63,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -249,7 +252,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public void uploadMod(Path file, ByteCountListener listener) throws IOException {
     MultipartContent multipartContent = createFileMultipart(file, listener);
-    postMultipart("/mods/upload", multipartContent);
+    post("/mods/upload", multipartContent);
   }
 
   @Override
@@ -263,7 +266,21 @@ public class FafApiAccessorImpl implements FafApiAccessor {
           }
         })));
 
-    postMultipart("/maps/upload", multipartContent);
+    post("/maps/upload", multipartContent);
+  }
+
+  @Override
+  public void changePassword(String currentPasswordHash, String newPasswordHash) throws IOException {
+    logger.debug("Changing password");
+
+    HashMap<String, String> httpDict = new HashMap<>();
+    httpDict.put("name", userService.getUsername());
+    httpDict.put("pw_hash_old", currentPasswordHash);
+    httpDict.put("pw_hash_new", newPasswordHash);
+
+    HttpContent httpContent = new UrlEncodedContent(httpDict);
+
+    post("/users/change_password", httpContent);
   }
 
   @NotNull
@@ -279,14 +296,14 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     return multipartContent.addPart(new MultipartContent.Part(headers, fileContent));
   }
 
-  private void postMultipart(String endpointPath, MultipartContent multipartContent) throws IOException {
+  private void post(String endpointPath, HttpContent httpContent) throws IOException {
     if (requestFactory == null) {
       throw new IllegalStateException("authorize() must be called first");
     }
 
     String url = baseUrl + endpointPath;
     logger.trace("Posting to: {}", url);
-    HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), multipartContent)
+    HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), httpContent)
         .setThrowExceptionOnExecuteError(false)
         .setParser(new JsonObjectParser(jsonFactory));
     credential.initialize(request);

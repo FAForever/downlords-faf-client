@@ -15,6 +15,7 @@ import com.faforever.client.replay.ReplayDownloadTask;
 import com.faforever.client.update.CheckForUpdateTask;
 import com.faforever.client.update.DownloadUpdateTask;
 import com.faforever.client.uploader.imgur.ImgurUploadTask;
+import com.faforever.client.user.ChangePasswordTask;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -112,5 +113,11 @@ public class TaskConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   MapUploadTask uploadMapTask() {
     return new MapUploadTask();
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  ChangePasswordTask changeMapTask() {
+    return new ChangePasswordTask();
   }
 }

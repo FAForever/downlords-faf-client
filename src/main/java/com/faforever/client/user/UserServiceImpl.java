@@ -4,6 +4,8 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
@@ -13,6 +15,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -32,6 +35,11 @@ public class UserServiceImpl implements UserService {
   FafApiAccessor fafApiAccessor;
   @Resource
   EventBus eventBus;
+  @Resource
+  ApplicationContext applicationContext;
+  @Resource
+  TaskService taskService;
+
   private String password;
   private Integer uid;
 
@@ -108,6 +116,15 @@ public class UserServiceImpl implements UserService {
   @Override
   public ReadOnlyStringProperty currentUserProperty() {
     return username;
+  }
+
+  @Override
+  public CompletableTask<Void> changePassword(String currentPassword, String newPassword) {
+    ChangePasswordTask changePasswordTask = applicationContext.getBean(ChangePasswordTask.class);
+    changePasswordTask.setCurrentPassword(currentPassword);
+    changePasswordTask.setNewPassword(newPassword);
+
+    return taskService.submitTask(changePasswordTask);
   }
 
   @PostConstruct
