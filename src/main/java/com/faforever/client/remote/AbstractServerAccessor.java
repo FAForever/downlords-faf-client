@@ -8,11 +8,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.Socket;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Super class for all server accessors.
@@ -20,7 +22,8 @@ import java.net.Socket;
 public abstract class AbstractServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
+  @Resource
+  ThreadPoolExecutor threadPoolExecutor;
   private boolean stopped;
   private QDataInputStream dataInput;
 
@@ -40,11 +43,13 @@ public abstract class AbstractServerAccessor {
 
       logger.debug("Message from server: {}", message);
 
-      try {
-        onServerMessage(message);
-      } catch (Exception e) {
-        logger.warn("Error while handling server message: " + message, e);
-      }
+      threadPoolExecutor.submit(() -> {
+        try {
+          onServerMessage(message);
+        } catch (Exception e) {
+          logger.warn("Error while handling server message: " + message, e);
+        }
+      });
     }
 
     logger.info("Connection to server {} has been closed", socket.getRemoteSocketAddress());

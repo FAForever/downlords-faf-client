@@ -7,6 +7,7 @@ import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameStatus;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.Player;
@@ -15,6 +16,7 @@ import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.util.Assert;
+import com.github.nocatch.NoCatch.NoCatchRunnable;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
@@ -34,11 +36,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.faforever.client.chat.SocialStatus.OTHER;
 import static com.faforever.client.chat.SocialStatus.SELF;
+import static com.github.nocatch.NoCatch.noCatch;
 
 public class PlayerServiceImpl implements PlayerService {
 
@@ -55,6 +59,7 @@ public class PlayerServiceImpl implements PlayerService {
   GameService gameService;
   @Resource
   EventBus eventBus;
+  private CountDownLatch currentPlayerLatch;
   /**
    * Maps game IDs to status change listeners.
    */
@@ -67,6 +72,7 @@ public class PlayerServiceImpl implements PlayerService {
     foeList = new ArrayList<>();
     currentPlayer = new SimpleObjectProperty<>();
     statusChangeListeners = new HashMap<>();
+    currentPlayerLatch = new CountDownLatch(1);
   }
 
   @PostConstruct
@@ -74,6 +80,11 @@ public class PlayerServiceImpl implements PlayerService {
     eventBus.register(this);
     fafService.addOnMessageListener(PlayersMessage.class, this::onPlayersInfo);
     fafService.addOnMessageListener(SocialMessage.class, this::onFoeList);
+    fafService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == ConnectionState.DISCONNECTED) {
+        currentPlayerLatch = new CountDownLatch(1);
+      }
+    });
 
     gameService.addOnGameInfoBeansChangeListener(listChange -> {
       while (listChange.next()) {
@@ -94,24 +105,21 @@ public class PlayerServiceImpl implements PlayerService {
 
   @Subscribe
   public void onLoginSuccess(LoginSuccessEvent event) {
-    synchronized (currentPlayer) {
-      currentPlayer.set(createAndGetPlayerForUsername(event.getUsername()));
-    }
+    currentPlayer.set(createAndGetPlayerForUsername(event.getUsername()));
+    currentPlayerLatch.countDown();
   }
 
   @Subscribe
   public void onAvatarChanged(AvatarChangedEvent event) {
-    synchronized (currentPlayer) {
-      PlayerInfoBean player = currentPlayer.get();
+    PlayerInfoBean player = getCurrentPlayer();
 
-      AvatarBean avatar = event.getAvatar();
-      if (avatar == null) {
-        player.setAvatarTooltip(null);
-        player.setAvatarUrl(null);
-      } else {
-        player.setAvatarTooltip(avatar.getDescription());
-        player.setAvatarUrl(Objects.toString(avatar.getUrl(), null));
-      }
+    AvatarBean avatar = event.getAvatar();
+    if (avatar == null) {
+      player.setAvatarTooltip(null);
+      player.setAvatarUrl(null);
+    } else {
+      player.setAvatarTooltip(avatar.getDescription());
+      player.setAvatarUrl(Objects.toString(avatar.getUrl(), null));
     }
   }
 
@@ -216,12 +224,8 @@ public class PlayerServiceImpl implements PlayerService {
 
   @Override
   public PlayerInfoBean getCurrentPlayer() {
-    synchronized (currentPlayer) {
-      if (currentPlayer.get() == null) {
-        throw new IllegalStateException("Current player has not yet been set");
-      }
-      return currentPlayer.get();
-    }
+    noCatch((NoCatchRunnable) currentPlayerLatch::await);
+    return currentPlayer.get();
   }
 
   @Override

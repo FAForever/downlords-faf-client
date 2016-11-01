@@ -62,6 +62,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -116,6 +117,8 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
   private NotificationService notificationService;
   @Mock
   private I18n i18n;
+  @Mock
+  private ThreadPoolExecutor threadPoolExecutor;
 
   private FafServerAccessorImpl instance;
   private ServerSocket fafLobbyServerSocket;
@@ -140,6 +143,7 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     instance.lobbyHost = LOOPBACK_ADDRESS.getHostAddress();
     instance.lobbyPort = fafLobbyServerSocket.getLocalPort();
     instance.clientUpdateService = clientUpdateService;
+    instance.threadPoolExecutor = threadPoolExecutor;
 
     LoginPrefs loginPrefs = new LoginPrefs();
     loginPrefs.setUsername("junit");
@@ -152,6 +156,11 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     when(preferences.getLogin()).thenReturn(loginPrefs);
     when(uidService.generate(any(), any())).thenReturn("encrypteduidstring");
     when(clientUpdateService.getCurrentVersion()).thenReturn(new ComparableVersion("1.0"));
+
+    doAnswer(invocation -> {
+      new Thread(invocation.getArgumentAt(0, Runnable.class)).start();
+      return null;
+    }).when(threadPoolExecutor).submit(any(Runnable.class));
 
     preferencesService.getPreferences().getLogin();
   }
