@@ -54,5 +54,7 @@ public interface FafApiAccessor {
 
   void uploadMap(Path file, boolean isRanked, ByteCountListener listener) throws IOException;
 
+  void changePassword(String currentPasswordHash, String newPasswordHash) throws IOException;
+
   ModInfoBean getMod(String uid);
 }

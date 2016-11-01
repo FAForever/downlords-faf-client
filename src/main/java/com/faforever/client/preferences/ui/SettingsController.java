@@ -9,6 +9,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.ThemeService;
+import com.faforever.client.user.UserService;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
@@ -16,6 +17,8 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
@@ -68,7 +71,14 @@ public class SettingsController {
   public ToggleButton topRightToastButton;
   public ToggleButton topLeftToastButton;
   public ToggleButton bottomRightToastButton;
+  public TextField usernameField;
+  public PasswordField currentPasswordField;
+  public PasswordField newPasswordField;
+  public PasswordField confirmPasswordField;
+  public Label passwordChangeErrorLabel;
 
+  @Resource
+  UserService userService;
   @Resource
   PreferencesService preferencesService;
   @Resource
@@ -154,6 +164,9 @@ public class SettingsController {
 
     executableDecoratorField.textProperty().bindBidirectional(preferences.getForgedAlliance().executableDecoratorProperty());
     executionDirectoryField.textProperty().bindBidirectional(preferences.getForgedAlliance().executionDirectoryProperty(), PATH_STRING_CONVERTER);
+
+    usernameField.textProperty().bind(userService.currentUserProperty());
+    passwordChangeErrorLabel.setVisible(false);
   }
 
   /**
@@ -251,5 +264,39 @@ public class SettingsController {
 
   public void onSelectExecutionDirectory(ActionEvent event) {
     // TODO implement
+  }
+
+  public void onChangePasswordClicked() {
+    if (currentPasswordField.getText().isEmpty()) {
+      passwordChangeErrorLabel.setVisible(true);
+      passwordChangeErrorLabel.setText(i18n.get("settings.account.currentPassword.empty"));
+      return;
+    }
+
+    if (newPasswordField.getText().isEmpty()) {
+      passwordChangeErrorLabel.setVisible(true);
+      passwordChangeErrorLabel.setText(i18n.get("settings.account.newPassword.empty"));
+      return;
+    }
+
+    if (!newPasswordField.getText().equals(confirmPasswordField.getText())) {
+
+      passwordChangeErrorLabel.setText(i18n.get("settings.account.confirmPassword.mismatch"));
+      return;
+    }
+
+    userService.changePassword(currentPasswordField.getText(), newPasswordField.getText()).getFuture()
+        .thenAccept(aVoid -> {
+          passwordChangeErrorLabel.setVisible(true);
+          currentPasswordField.setText("");
+          newPasswordField.setText("");
+          confirmPasswordField.setText("");
+          passwordChangeErrorLabel.setText(i18n.get("settings.account.changePassword.success"));
+        }).exceptionally(throwable -> {
+          passwordChangeErrorLabel.setVisible(true);
+          passwordChangeErrorLabel.setText(i18n.get("settings.account.changePassword.error", throwable.getMessage()));
+          return null;
+        }
+    );
   }
 }

@@ -133,4 +133,9 @@ public class MockFafApiAccessor implements FafApiAccessor {
     return null;
   }
 
+  @Override
+  public void changePassword(String currentPasswordHash, String newPasswordHash) {
+
+  }
+
 }
