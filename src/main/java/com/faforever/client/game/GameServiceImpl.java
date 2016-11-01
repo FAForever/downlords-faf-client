@@ -304,7 +304,7 @@ public class GameServiceImpl implements GameService {
               gameLaunchMessage.getArgs().add("/team 1");
               gameLaunchMessage.getArgs().add("/players 2");
 
-              startGame(gameLaunchMessage, null, RatingMode.RANKED_1V1);
+              startGame(gameLaunchMessage, faction, RatingMode.RANKED_1V1);
             }))
         .exceptionally(throwable -> {
           if (throwable instanceof CancellationException) {

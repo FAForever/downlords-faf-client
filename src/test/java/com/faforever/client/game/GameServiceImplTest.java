@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fa.ForgedAllianceService;
+import com.faforever.client.ice.IceAdapter;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerInfoBeanBuilder;
@@ -18,6 +19,7 @@ import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
@@ -77,6 +79,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
   private static final int GAME_PORT = 1234;
+  private static final Integer GPG_PORT = 1234;
 
   private GameServiceImpl instance;
 
@@ -104,6 +107,9 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   private ReplayService replayService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private IceAdapter iceAdapter;
+
   @Captor
   private ArgumentCaptor<Consumer<Void>> gameLaunchedListenerCaptor;
   @Captor
@@ -126,10 +132,14 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     instance.scheduledExecutorService = scheduledExecutorService;
     instance.replayService = replayService;
     instance.eventBus = eventBus;
+    instance.iceAdapter = iceAdapter;
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
+    when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
+    when(replayService.startReplayServer(anyInt())).thenReturn(CompletableFuture.completedFuture(null));
+    when(iceAdapter.start()).thenReturn(CompletableFuture.completedFuture(GPG_PORT));
 
     doAnswer(invocation -> {
       try {
@@ -226,15 +236,13 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @SuppressWarnings("unchecked")
   public void testAddOnGameStartedListener() throws Exception {
     Process process = mock(Process.class);
-    int gpgPort = 111;
 
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     gameLaunchMessage.setArgs(asList("/foo bar", "/bar foo"));
-    InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
     when(forgedAllianceService.startGame(
-        gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL, gpgPort, false)
+        gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL, GPG_PORT, false)
     ).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
@@ -264,7 +272,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameTerminatedLatch.await(TIMEOUT, TIME_UNIT);
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL,
-        gpgPort, false);
+        GPG_PORT, false);
     verify(replayService).startReplayServer(gameLaunchMessage.getUid());
   }
 

@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Scope;
 public class IceConfig {
 
   @Bean
-  public IceAdapterImpl windowsIceAdapterService() {
+  public IceAdapter iceAdapter() {
     return new IceAdapterImpl();
   }
 

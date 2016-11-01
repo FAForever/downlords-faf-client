@@ -69,8 +69,8 @@ public class LaunchCommandBuilderTest {
     defaultBuilder().gameType(null).build();
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testLogFileNullThrowsException() throws Exception {
+  @Test
+  public void testLogFileNullAllowed() throws Exception {
     defaultBuilder().logFile(null).build();
   }
 
