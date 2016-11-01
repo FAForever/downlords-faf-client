@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Scope;
 public class IceConfig {
 
   @Bean
-  public WindowsIceAdapter windowsIceAdapterService() {
-    return new WindowsIceAdapter();
+  public IceAdapterImpl windowsIceAdapterService() {
+    return new IceAdapterImpl();
   }
 
   @Bean

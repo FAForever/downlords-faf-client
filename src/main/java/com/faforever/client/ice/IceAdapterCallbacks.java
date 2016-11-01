@@ -1,6 +1,7 @@
 package com.faforever.client.ice;
 
 import com.faforever.client.ice.event.GpgGameMessageEvent;
+import com.faforever.client.ice.event.IceAdapterStateChanged;
 import com.faforever.client.relay.GpgGameMessage;
 import com.faforever.client.remote.FafService;
 import com.google.common.eventbus.EventBus;
@@ -30,6 +31,7 @@ public class IceAdapterCallbacks {
 
   public void onConnectionStateChanged(String newState) {
     logger.debug("ICE adapter connection state changed: {}", newState);
+    eventBus.post(new IceAdapterStateChanged(newState));
   }
 
   public void onGpgNetMessageReceived(String header, List<Object> chunks) {
@@ -37,12 +39,12 @@ public class IceAdapterCallbacks {
     eventBus.post(new GpgGameMessageEvent(new GpgGameMessage(header, chunks)));
   }
 
-  public void onGatheredSdp(int localPlayerId, int remotePlayerId, String sdp) {
+  public void onSdpGathered(int localPlayerId, int remotePlayerId, String sdp) {
     logger.debug("Gathered SDP for connection {}/{}: {}", localPlayerId, remotePlayerId, sdp);
     fafService.sendSdp(localPlayerId, remotePlayerId, sdp);
   }
 
-  public void onIceStateChanged(int localPlayerId, int remotePlayerId, String state) {
+  public void onPeerStateChanged(int localPlayerId, int remotePlayerId, String state) {
     logger.debug("Connection state for peer {} changed: {}", remotePlayerId, state);
   }
 }

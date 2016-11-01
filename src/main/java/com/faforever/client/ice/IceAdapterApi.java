@@ -3,7 +3,7 @@ package com.faforever.client.ice;
 import java.util.List;
 
 /**
- * API functions provided by the ICE adapter.
+ * API functions provided by the ICE adapter binary.
  */
 interface IceAdapterApi {
   void quit();
