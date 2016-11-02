@@ -9,6 +9,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import javafx.beans.property.SimpleObjectProperty;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -34,6 +35,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class PlayerServiceImplTest {
 
@@ -57,6 +59,8 @@ public class PlayerServiceImplTest {
     instance.fafService = fafService;
     instance.userService = userService;
     instance.gameService = gameService;
+
+    when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
 
     instance.postConstruct();
   }
@@ -196,11 +200,6 @@ public class PlayerServiceImplTest {
     instance.removeFriend(player);
 
     assertFalse("Property 'friend' was not set to false", player.getSocialStatus() == FRIEND);
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void testGetCurrentPlayerNullThrowsIllegalStateException() throws Exception {
-    instance.getCurrentPlayer();
   }
 
   @Test
