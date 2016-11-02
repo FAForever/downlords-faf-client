@@ -25,7 +25,7 @@ public class IceAdapterCallbacks {
   @Resource
   FafService fafService;
 
-  public void onNeedSdp(int localPlayerId, int remotePlayerId) {
+  public void onNeedSdp(long localPlayerId, long remotePlayerId) {
     logger.debug("SDP for connection {}/{} requested", localPlayerId, remotePlayerId);
   }
 
@@ -39,12 +39,12 @@ public class IceAdapterCallbacks {
     eventBus.post(new GpgGameMessageEvent(new GpgGameMessage(header, chunks)));
   }
 
-  public void onSdpGathered(int localPlayerId, int remotePlayerId, String sdp) {
+  public void onSdpGathered(long localPlayerId, long remotePlayerId, String sdp) {
     logger.debug("Gathered SDP for connection {}/{}: {}", localPlayerId, remotePlayerId, sdp);
-    fafService.sendSdp(localPlayerId, remotePlayerId, sdp);
+    fafService.sendSdp((int) localPlayerId, (int) remotePlayerId, sdp);
   }
 
-  public void onPeerStateChanged(int localPlayerId, int remotePlayerId, String state) {
+  public void onPeerStateChanged(long localPlayerId, long remotePlayerId, String state) {
     logger.debug("Connection state for peer {} changed: {}", remotePlayerId, state);
   }
 }
