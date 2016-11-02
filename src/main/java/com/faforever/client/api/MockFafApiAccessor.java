@@ -117,4 +117,9 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   }
 
+  @Override
+  public ModInfoBean getMod(String uid) {
+    return null;
+  }
+
 }

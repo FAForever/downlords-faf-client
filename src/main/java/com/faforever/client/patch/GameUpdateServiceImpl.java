@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-public class GameUpdateServiceImpl extends AbstractPatchService implements GameUpdateService {
+public class GameUpdateServiceImpl extends AbstractUpdateService implements GameUpdateService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -23,7 +23,7 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
   @Resource
   ApplicationContext applicationContext;
 
-  private UpdateGameFilesTask updateTask;
+  private LegacyGameUpdateTask updateTask;
 
   @Override
   public CompletionStage<Void> updateInBackground(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUids) {
@@ -37,7 +37,7 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
       return CompletableFuture.completedFuture(null);
     }
 
-    updateTask = applicationContext.getBean(UpdateGameFilesTask.class);
+    updateTask = applicationContext.getBean(LegacyGameUpdateTask.class);
     updateTask.setGameType(gameType);
     updateTask.setSimMods(simModUids);
     updateTask.setModVersions(modVersions);

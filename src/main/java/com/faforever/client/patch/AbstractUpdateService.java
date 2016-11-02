@@ -3,9 +3,8 @@ package com.faforever.client.patch;
 import com.faforever.client.preferences.PreferencesService;
 
 import javax.annotation.Resource;
-import java.nio.file.Path;
 
-public abstract class AbstractPatchService {
+public abstract class AbstractUpdateService {
 
   @Resource
   PreferencesService preferencesService;
@@ -17,7 +16,6 @@ public abstract class AbstractPatchService {
    * @return {@code true} if directories are set up correctly
    */
   protected boolean checkDirectories() {
-    Path faDirectory = preferencesService.getPreferences().getForgedAlliance().getPath();
-    return faDirectory != null;
+    return preferencesService.getPreferences().getForgedAlliance().getPath() != null;
   }
 }

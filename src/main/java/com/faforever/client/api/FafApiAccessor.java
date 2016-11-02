@@ -51,4 +51,6 @@ public interface FafApiAccessor {
   void uploadMod(Path file, ByteCountListener listener) throws IOException;
 
   void uploadMap(Path file, boolean isRanked, ByteCountListener listener) throws IOException;
+
+  ModInfoBean getMod(String uid);
 }

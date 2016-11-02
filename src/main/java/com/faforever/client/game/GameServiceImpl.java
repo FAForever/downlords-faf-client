@@ -21,7 +21,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameState;
-import com.faforever.client.remote.domain.GameTypeMessage;
+import com.faforever.client.remote.domain.FeaturedModMessage;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.google.common.annotations.VisibleForTesting;
@@ -78,7 +78,7 @@ public class GameServiceImpl implements GameService {
   final BooleanProperty gameRunning;
   @VisibleForTesting
   final SimpleObjectProperty<GameInfoBean> currentGame;
-  private final ObservableMap<String, GameTypeBean> gameTypeBeans;
+  private final ObservableMap<String, FeaturedModBean> gameTypeBeans;
   // It is indeed ugly to keep references in both, a list and a map, however I don't see how I can populate the map
   // values as an observable list (in order to display it in the games table)
   private final ObservableList<GameInfoBean> gameInfoBeans;
@@ -191,12 +191,12 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public List<GameTypeBean> getGameTypes() {
+  public List<FeaturedModBean> getGameTypes() {
     return new ArrayList<>(gameTypeBeans.values());
   }
 
   @Override
-  public void addOnGameTypesChangeListener(MapChangeListener<String, GameTypeBean> changeListener) {
+  public void addOnGameTypesChangeListener(MapChangeListener<String, FeaturedModBean> changeListener) {
     gameTypeBeans.addListener(changeListener);
   }
 
@@ -266,7 +266,7 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public GameTypeBean getGameTypeByString(String gameTypeName) {
+  public FeaturedModBean getGameTypeByString(String gameTypeName) {
     return gameTypeBeans.get(gameTypeName);
   }
 
@@ -295,7 +295,7 @@ public class GameServiceImpl implements GameService {
 
     int port = preferencesService.getPreferences().getForgedAlliance().getPort();
 
-    return updateGameIfNecessary(GameType.LADDER_1V1.getString(), null, emptyMap(), emptySet())
+    return updateGameIfNecessary(FeaturedMod.LADDER_1V1.getString(), null, emptyMap(), emptySet())
         .thenCompose(aVoid -> fafService.startSearchRanked1v1(faction, port))
         .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapname())
             .thenRun(() -> {
@@ -455,7 +455,7 @@ public class GameServiceImpl implements GameService {
   @PostConstruct
   void postConstruct() {
     eventBus.register(this);
-    fafService.addOnMessageListener(GameTypeMessage.class, this::onGameTypeInfo);
+    fafService.addOnMessageListener(FeaturedModMessage.class, this::onGameTypeInfo);
     fafService.addOnMessageListener(GameInfoMessage.class, this::onGameInfo);
     fafService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == ConnectionState.DISCONNECTED) {
@@ -464,12 +464,12 @@ public class GameServiceImpl implements GameService {
     });
   }
 
-  private void onGameTypeInfo(GameTypeMessage gameTypeMessage) {
-    if (!gameTypeMessage.isPublish() || gameTypeBeans.containsKey(gameTypeMessage.getName())) {
+  private void onGameTypeInfo(FeaturedModMessage featuredModMessage) {
+    if (!featuredModMessage.isPublish() || gameTypeBeans.containsKey(featuredModMessage.getName())) {
       return;
     }
 
-    gameTypeBeans.put(gameTypeMessage.getName(), new GameTypeBean(gameTypeMessage));
+    gameTypeBeans.put(featuredModMessage.getName(), new FeaturedModBean(featuredModMessage));
   }
 
   private void onGameInfo(GameInfoMessage gameInfoMessage) {

@@ -3,7 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameTooltipController;
-import com.faforever.client.game.GameTypeBean;
+import com.faforever.client.game.FeaturedModBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.google.common.base.Joiner;
@@ -56,7 +56,7 @@ public class GameStatusTooltipController {
 
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
     gameTypeLabel.textProperty().bind(Bindings.createStringBinding(() -> {
-      GameTypeBean gameType = gameService.getGameTypeByString(gameInfoBean.getFeaturedMod());
+      FeaturedModBean gameType = gameService.getGameTypeByString(gameInfoBean.getFeaturedMod());
       String fullName = gameType != null ? gameType.getFullName() : null;
       return StringUtils.defaultString(fullName);
     }, gameInfoBean.featuredModProperty()));

@@ -266,6 +266,11 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     postMultipart("/maps/upload", multipartContent);
   }
 
+  @Override
+  public ModInfoBean getMod(String uid) {
+    return ModInfoBean.fromModInfo(getSingle("/mods/" + uid, Mod.class));
+  }
+
   @NotNull
   private MultipartContent createFileMultipart(Path file, ByteCountListener listener) {
     HttpMediaType mediaType = new HttpMediaType("multipart/form-data").setParameter("boundary", "__END_OF_PART__");

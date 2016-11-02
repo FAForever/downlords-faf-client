@@ -1,20 +1,20 @@
 package com.faforever.client.game;
 
-import com.faforever.client.remote.domain.GameTypeMessage;
+import com.faforever.client.remote.domain.FeaturedModMessage;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.jsoup.Jsoup;
 
-public class GameTypeBean {
+public class FeaturedModBean {
 
   private final StringProperty name;
   private final StringProperty fullName;
   private final StringProperty description;
 
-  public GameTypeBean(GameTypeMessage gameTypeMessage) {
-    name = new SimpleStringProperty(gameTypeMessage.getName());
-    fullName = new SimpleStringProperty(gameTypeMessage.getFullname());
-    description = new SimpleStringProperty(Jsoup.parse(gameTypeMessage.getDesc()).text());
+  public FeaturedModBean(FeaturedModMessage featuredModMessage) {
+    name = new SimpleStringProperty(featuredModMessage.getName());
+    fullName = new SimpleStringProperty(featuredModMessage.getFullname());
+    description = new SimpleStringProperty(Jsoup.parse(featuredModMessage.getDesc()).text());
   }
 
   public String getName() {

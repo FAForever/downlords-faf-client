@@ -1,10 +1,8 @@
 package com.faforever.client.rankedmatch;
 
 import com.faforever.client.game.Faction;
-import com.faforever.client.game.GameType;
+import com.faforever.client.game.FeaturedMod;
 import com.faforever.client.remote.domain.ClientMessageType;
-
-import java.net.InetSocketAddress;
 
 public class SearchRanked1V1ClientMessage extends MatchMakerClientMessage {
 
@@ -12,7 +10,7 @@ public class SearchRanked1V1ClientMessage extends MatchMakerClientMessage {
 
   public SearchRanked1V1ClientMessage(Faction faction) {
     super(ClientMessageType.GAME_MATCH_MAKING);
-    mod = GameType.LADDER_1V1.getString();
+    mod = FeaturedMod.LADDER_1V1.getString();
     state = "start";
     this.faction = faction;
   }

@@ -45,10 +45,10 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 public class GamesController {
 
   private static final Collection<String> HIDDEN_FEATURED_MODS = Arrays.asList(
-      GameType.COOP.getString(),
-      GameType.LADDER_1V1.getString(),
-      GameType.GALACTIC_WAR.getString(),
-      GameType.MATCHMAKER.getString()
+      FeaturedMod.COOP.getString(),
+      FeaturedMod.LADDER_1V1.getString(),
+      FeaturedMod.GALACTIC_WAR.getString(),
+      FeaturedMod.MATCHMAKER.getString()
   );
 
   private static final Predicate<GameInfoBean> OPEN_CUSTOM_GAMES_PREDICATE = gameInfoBean ->
@@ -228,7 +228,7 @@ public class GamesController {
     mapLabel.textProperty().bind(gameInfoBean.mapFolderNameProperty());
 
     gameTypeLabel.textProperty().bind(createStringBinding(() -> {
-      GameTypeBean gameType = gameService.getGameTypeByString(gameInfoBean.getFeaturedMod());
+      FeaturedModBean gameType = gameService.getGameTypeByString(gameInfoBean.getFeaturedMod());
       String fullName = gameType != null ? gameType.getFullName() : null;
       return StringUtils.defaultString(fullName);
     }, gameInfoBean.featuredModProperty()));

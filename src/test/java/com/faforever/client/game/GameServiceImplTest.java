@@ -13,7 +13,7 @@ import com.faforever.client.relay.event.RehostRequestEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.GameTypeMessage;
+import com.faforever.client.remote.domain.FeaturedModMessage;
 import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -115,7 +115,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Captor
   private ArgumentCaptor<ListChangeListener.Change<? extends GameInfoBean>> gameInfoBeanChangeListenerCaptor;
   @Captor
-  private ArgumentCaptor<Consumer<GameTypeMessage>> gameTypeMessageListenerCaptor;
+  private ArgumentCaptor<Consumer<FeaturedModMessage>> gameTypeMessageListenerCaptor;
   @Captor
   private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
 
@@ -152,14 +152,14 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.postConstruct();
 
-    verify(fafService).addOnMessageListener(eq(GameTypeMessage.class), gameTypeMessageListenerCaptor.capture());
+    verify(fafService).addOnMessageListener(eq(FeaturedModMessage.class), gameTypeMessageListenerCaptor.capture());
     verify(fafService).addOnMessageListener(eq(GameInfoMessage.class), gameInfoMessageListenerCaptor.capture());
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void postConstruct() {
-    verify(fafService).addOnMessageListener(eq(GameTypeMessage.class), any(Consumer.class));
+    verify(fafService).addOnMessageListener(eq(FeaturedModMessage.class), any(Consumer.class));
     verify(fafService).addOnMessageListener(eq(GameInfoMessage.class), any(Consumer.class));
   }
 
@@ -190,35 +190,35 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testNoGameTypes() throws Exception {
-    List<GameTypeBean> gameTypes = instance.getGameTypes();
+    List<FeaturedModBean> gameTypes = instance.getGameTypes();
 
-    assertThat(gameTypes, emptyCollectionOf(GameTypeBean.class));
+    assertThat(gameTypes, emptyCollectionOf(FeaturedModBean.class));
     assertThat(gameTypes, hasSize(0));
   }
 
   @Test
   public void testGameTypeIsOnlyAddedOnce() throws Exception {
-    GameTypeMessage gameTypeMessage = GameTypeInfoBuilder.create().defaultValues().get();
-    gameTypeMessageListenerCaptor.getValue().accept(gameTypeMessage);
-    gameTypeMessageListenerCaptor.getValue().accept(gameTypeMessage);
+    FeaturedModMessage featuredModMessage = GameTypeInfoBuilder.create().defaultValues().get();
+    gameTypeMessageListenerCaptor.getValue().accept(featuredModMessage);
+    gameTypeMessageListenerCaptor.getValue().accept(featuredModMessage);
 
-    List<GameTypeBean> gameTypes = instance.getGameTypes();
+    List<FeaturedModBean> gameTypes = instance.getGameTypes();
 
     assertThat(gameTypes, hasSize(1));
   }
 
   @Test
   public void testDifferentGameTypes() throws Exception {
-    GameTypeMessage gameTypeMessage1 = GameTypeInfoBuilder.create().defaultValues().get();
-    GameTypeMessage gameTypeMessage2 = GameTypeInfoBuilder.create().defaultValues().get();
+    FeaturedModMessage featuredModMessage1 = GameTypeInfoBuilder.create().defaultValues().get();
+    FeaturedModMessage featuredModMessage2 = GameTypeInfoBuilder.create().defaultValues().get();
 
-    gameTypeMessage1.setName("number1");
-    gameTypeMessage2.setName("number2");
+    featuredModMessage1.setName("number1");
+    featuredModMessage2.setName("number2");
 
-    gameTypeMessageListenerCaptor.getValue().accept(gameTypeMessage1);
-    gameTypeMessageListenerCaptor.getValue().accept(gameTypeMessage2);
+    gameTypeMessageListenerCaptor.getValue().accept(featuredModMessage1);
+    gameTypeMessageListenerCaptor.getValue().accept(featuredModMessage2);
 
-    List<GameTypeBean> gameTypes = instance.getGameTypes();
+    List<FeaturedModBean> gameTypes = instance.getGameTypes();
 
     assertThat(gameTypes, hasSize(2));
   }
@@ -226,7 +226,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testAddOnGameTypeInfoListener() throws Exception {
     @SuppressWarnings("unchecked")
-    MapChangeListener<String, GameTypeBean> listener = mock(MapChangeListener.class);
+    MapChangeListener<String, FeaturedModBean> listener = mock(MapChangeListener.class);
     instance.addOnGameTypesChangeListener(listener);
 
     gameTypeMessageListenerCaptor.getValue().accept(GameTypeInfoBuilder.create().defaultValues().get());
@@ -410,7 +410,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameLaunchMessage.setArgs(Collections.emptyList());
     gameLaunchMessage.setMapname("scmp_037");
     when(fafService.startSearchRanked1v1(CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
-    when(gameUpdateService.updateInBackground(GameType.LADDER_1V1.getString(), null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
+    when(gameUpdateService.updateInBackground(FeaturedMod.LADDER_1V1.getString(), null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
     when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
     when(mapService.isInstalled("scmp_037")).thenReturn(false);
     when(mapService.download("scmp_037")).thenReturn(CompletableFuture.completedFuture(null));

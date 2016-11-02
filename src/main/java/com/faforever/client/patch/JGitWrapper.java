@@ -1,16 +1,19 @@
 package com.faforever.client.patch;
 
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
+
+import static com.github.nocatch.NoCatch.noCatch;
+import static org.eclipse.jgit.api.Git.cloneRepository;
+import static org.eclipse.jgit.api.Git.open;
+import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public class JGitWrapper implements GitWrapper {
 
@@ -20,42 +23,69 @@ public class JGitWrapper implements GitWrapper {
   public void clone(String repositoryUri, Path targetDirectory) {
     logger.debug("Cloning {} into {}", repositoryUri, targetDirectory);
 
-    try {
-      Git.cloneRepository()
-          .setURI(repositoryUri)
-          .setDirectory(targetDirectory.toFile())
-          .call();
-    } catch (GitAPIException e) {
-      throw new RuntimeException(e);
-    }
+    noCatch(() -> cloneRepository()
+        .setURI(repositoryUri)
+        .setDirectory(targetDirectory.toFile())
+        .call());
   }
 
   @Override
-  public String getRemoteHead(Path repoDirectory) throws IOException {
-    Git git = Git.open(repoDirectory.toFile());
-    String remoteHead = null;
-    try {
+  public String getRemoteHead(Path repoDirectory) {
+    return noCatch(() -> {
+      Git git = open(repoDirectory.toFile());
+      String remoteHead = null;
       for (Ref ref : git.lsRemote().call()) {
-        if (Constants.HEAD.equals(ref.getName())) {
+        if (HEAD.equals(ref.getName())) {
           remoteHead = ref.getObjectId().name();
           break;
         }
       }
-    } catch (GitAPIException e) {
-      throw new IOException(e);
-    }
-    return remoteHead;
+      return remoteHead;
+    });
   }
 
   @Override
-  public String getLocalHead(Path repoDirectory) throws IOException {
-    Git git = Git.open(repoDirectory.toFile());
+  public String getLocalHead(Path repoDirectory) {
+    return noCatch(() -> {
+      Git git = open(repoDirectory.toFile());
 
-    ObjectId head = git.getRepository().resolve(Constants.HEAD);
-    if (head == null) {
-      return null;
-    }
+      ObjectId head = git.getRepository().resolve(HEAD);
+      if (head == null) {
+        return null;
+      }
 
-    return head.name();
+      return head.name();
+    });
+  }
+
+  @Override
+  public void fetch(Path repoDirectory) {
+    noCatch(() -> open(repoDirectory.toFile())
+        .fetch()
+        .call());
+  }
+
+  @Override
+  public void clean(Path repoDirectory) {
+    noCatch(() -> open(repoDirectory.toFile())
+        .clean()
+        .setCleanDirectories(true)
+        .call());
+  }
+
+  @Override
+  public void reset(Path repoDirectory) {
+    noCatch(() -> open(repoDirectory.toFile())
+        .reset()
+        .setMode(ResetType.HARD)
+        .call());
+  }
+
+  @Override
+  public void checkoutTag(Path repoDirectory, String tagName) {
+    noCatch(() -> open(repoDirectory.toFile())
+        .checkout()
+        .setName(tagName)
+        .getResult());
   }
 }

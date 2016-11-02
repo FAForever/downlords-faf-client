@@ -192,23 +192,23 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testInitGameTypeComboBoxPostPopulated() throws Exception {
     instance.postConstruct();
 
-    GameTypeBean gameTypeBean = mock(GameTypeBean.class);
-    onGameTypeAdded(gameTypeBean);
+    FeaturedModBean featuredModBean = mock(FeaturedModBean.class);
+    onGameTypeAdded(featuredModBean);
 
     assertThat(instance.gameTypeListView.getItems(), hasSize(1));
-    assertThat(instance.gameTypeListView.getItems().get(0), is(gameTypeBean));
+    assertThat(instance.gameTypeListView.getItems().get(0), is(featuredModBean));
   }
 
-  private void onGameTypeAdded(GameTypeBean gameTypeBean) {
-    ArgumentCaptor<MapChangeListener<String, GameTypeBean>> argument = ArgumentCaptor.forClass(MapChangeListener.class);
+  private void onGameTypeAdded(FeaturedModBean featuredModBean) {
+    ArgumentCaptor<MapChangeListener<String, FeaturedModBean>> argument = ArgumentCaptor.forClass(MapChangeListener.class);
     verify(instance.gameService, atLeastOnce()).addOnGameTypesChangeListener(argument.capture());
 
-    MapChangeListener<String, GameTypeBean> listener = argument.getValue();
+    MapChangeListener<String, FeaturedModBean> listener = argument.getValue();
 
     @SuppressWarnings("unchecked")
-    Change<String, GameTypeBean> change = mock(Change.class);
+    Change<String, FeaturedModBean> change = mock(Change.class);
     when(change.wasAdded()).thenReturn(true);
-    when(change.getValueAdded()).thenReturn(gameTypeBean);
+    when(change.getValueAdded()).thenReturn(featuredModBean);
 
     listener.onChanged(change);
   }
@@ -216,34 +216,34 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   // FIXME fix this
   @Test
   public void testSelectLastOrDefaultSelectDefault() throws Exception {
-    GameTypeBean gameTypeBean = mock(GameTypeBean.class);
-    GameTypeBean gameTypeBean2 = mock(GameTypeBean.class);
+    FeaturedModBean featuredModBean = mock(FeaturedModBean.class);
+    FeaturedModBean featuredModBean2 = mock(FeaturedModBean.class);
     when(preferences.getLastGameType()).thenReturn(null);
-    when(gameTypeBean.getName()).thenReturn(GameType.DEFAULT.getString());
-    when(gameTypeBean2.getName()).thenReturn(null);
+    when(featuredModBean.getName()).thenReturn(FeaturedMod.DEFAULT.getString());
+    when(featuredModBean2.getName()).thenReturn(null);
 
     instance.postConstruct();
 
-    onGameTypeAdded(gameTypeBean2);
-    onGameTypeAdded(gameTypeBean);
+    onGameTypeAdded(featuredModBean2);
+    onGameTypeAdded(featuredModBean);
 
-    assertThat(instance.gameTypeListView.getSelectionModel().getSelectedItem(), is(gameTypeBean));
+    assertThat(instance.gameTypeListView.getSelectionModel().getSelectedItem(), is(featuredModBean));
   }
 
   @Test
   public void testSelectLastOrDefaultSelectLast() throws Exception {
-    GameTypeBean gameTypeBean = mock(GameTypeBean.class);
-    GameTypeBean gameTypeBean2 = mock(GameTypeBean.class);
+    FeaturedModBean featuredModBean = mock(FeaturedModBean.class);
+    FeaturedModBean featuredModBean2 = mock(FeaturedModBean.class);
     when(preferences.getLastGameType()).thenReturn("last");
-    when(gameTypeBean.getName()).thenReturn(null);
-    when(gameTypeBean2.getName()).thenReturn("last");
+    when(featuredModBean.getName()).thenReturn(null);
+    when(featuredModBean2.getName()).thenReturn("last");
 
     instance.postConstruct();
 
-    onGameTypeAdded(gameTypeBean);
-    onGameTypeAdded(gameTypeBean2);
+    onGameTypeAdded(featuredModBean);
+    onGameTypeAdded(featuredModBean2);
 
-    assertThat(instance.gameTypeListView.getSelectionModel().getSelectedItem(), is(gameTypeBean2));
+    assertThat(instance.gameTypeListView.getSelectionModel().getSelectedItem(), is(featuredModBean2));
   }
 
   @Test

@@ -1,7 +1,7 @@
 package com.faforever.client.ice;
 
 import com.faforever.client.chat.PlayerInfoBean;
-import com.faforever.client.game.GameType;
+import com.faforever.client.game.FeaturedMod;
 import com.faforever.client.ice.event.GpgGameMessageEvent;
 import com.faforever.client.ice.event.IceAdapterStateChanged;
 import com.faforever.client.player.PlayerService;
@@ -206,7 +206,7 @@ public class IceAdapterImpl implements IceAdapter {
   }
 
   private void updateLobbyModeFromGameInfo(GameLaunchMessage gameLaunchMessage) {
-    if (GameType.LADDER_1V1.getString().equals(gameLaunchMessage.getMod())) {
+    if (FeaturedMod.LADDER_1V1.getString().equals(gameLaunchMessage.getMod())) {
       lobbyMode = LobbyMode.NO_LOBBY;
     } else {
       lobbyMode = LobbyMode.DEFAULT_LOBBY;

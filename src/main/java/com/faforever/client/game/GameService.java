@@ -30,9 +30,9 @@ public interface GameService {
 
   CompletionStage<Void> joinGame(GameInfoBean gameInfoBean, String password);
 
-  List<GameTypeBean> getGameTypes();
+  List<FeaturedModBean> getGameTypes();
 
-  void addOnGameTypesChangeListener(MapChangeListener<String, GameTypeBean> changeListener);
+  void addOnGameTypesChangeListener(MapChangeListener<String, FeaturedModBean> changeListener);
 
   /**
    * @param path a replay file that is readable by the game without any further conversion
@@ -45,7 +45,7 @@ public interface GameService {
   ObservableList<GameInfoBean> getGameInfoBeans();
 
   @Nullable
-  GameTypeBean getGameTypeByString(String gameTypeBeanName);
+  FeaturedModBean getGameTypeByString(String gameTypeBeanName);
 
   GameInfoBean getByUid(int uid);
 

@@ -36,7 +36,7 @@ public class GitCheckGameUpdateTask extends CompletableTask<Boolean> {
   @Resource
   Environment environment;
 
-  private Path binaryPatchRepoDirectory;
+  private Path gameRepositoryDirectory;
   private Gson gson;
   private Path migrationDataFile;
 
@@ -53,7 +53,7 @@ public class GitCheckGameUpdateTask extends CompletableTask<Boolean> {
 
     updateTitle(i18n.get("updateCheckTask.title"));
 
-    return (Files.notExists(binaryPatchRepoDirectory)
+    return (Files.notExists(gameRepositoryDirectory)
         || areNewPatchFilesAvailable()
         || !areLocalFilesPatched());
   }
@@ -62,8 +62,8 @@ public class GitCheckGameUpdateTask extends CompletableTask<Boolean> {
    * Checks whether the remote GIT repository has newer patch files available then the local repsitory.
    */
   private boolean areNewPatchFilesAvailable() throws IOException {
-    String remoteHead = gitWrapper.getRemoteHead(binaryPatchRepoDirectory);
-    String localHead = gitWrapper.getLocalHead(binaryPatchRepoDirectory);
+    String remoteHead = gitWrapper.getRemoteHead(gameRepositoryDirectory);
+    String localHead = gitWrapper.getLocalHead(gameRepositoryDirectory);
 
     boolean needsPatching = !localHead.equals(remoteHead);
 
@@ -106,8 +106,8 @@ public class GitCheckGameUpdateTask extends CompletableTask<Boolean> {
     return true;
   }
 
-  public void setBinaryPatchRepoDirectory(Path binaryPatchRepoDirectory) {
-    this.binaryPatchRepoDirectory = binaryPatchRepoDirectory;
+  public void setGameRepositoryDirectory(Path gameRepositoryDirectory) {
+    this.gameRepositoryDirectory = gameRepositoryDirectory;
   }
 
   public void setMigrationDataFile(Path migrationDataFile) {

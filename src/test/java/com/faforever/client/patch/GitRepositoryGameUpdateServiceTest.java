@@ -1,6 +1,6 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.game.GameType;
+import com.faforever.client.game.FeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -24,11 +24,9 @@ import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static com.faforever.client.patch.GitRepositoryGameUpdateService.STEAM_API_DLL;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -88,15 +86,13 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
 
     faBinDirectory = faDirectory.getRoot().toPath().resolve("bin");
     Files.createDirectories(faBinDirectory);
-
-    instance.postConstruct();
   }
 
   @Test
   public void testUpdateInBackgroundFaDirectoryUnspecified() throws Exception {
     when(forgedAlliancePrefs.getPath()).thenReturn(null);
 
-    instance.updateInBackground(GameType.FAF.getString(), null, null, null);
+    instance.updateInBackground(FeaturedMod.FAF.getString(), null, null, null);
 
     verifyZeroInteractions(instance.taskService);
   }
@@ -110,7 +106,7 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
     future.completeExceptionally(new Exception("This exception mimicks that something went wrong"));
     when(task.getFuture()).thenReturn(future);
 
-    instance.updateInBackground(GameType.FAF.getString(), null, null, null).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
+    instance.updateInBackground(FeaturedMod.FAF.getString(), null, null, null).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     ArgumentCaptor<PersistentNotification> captor = ArgumentCaptor.forClass(PersistentNotification.class);
     verify(notificationService).addNotification(captor.capture());
@@ -147,22 +143,5 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
     ArgumentCaptor<PersistentNotification> captor = ArgumentCaptor.forClass(PersistentNotification.class);
     verify(notificationService).addNotification(captor.capture());
     assertThat(captor.getValue().getSeverity(), is(Severity.WARN));
-  }
-
-  @Test
-  public void testGuessInstallTypeRetail() throws Exception {
-    assertTrue(Files.notExists(faBinDirectory.resolve(STEAM_API_DLL)));
-
-    GitRepositoryGameUpdateService.InstallType installType = instance.guessInstallType();
-    assertThat(installType, is(GitRepositoryGameUpdateService.InstallType.RETAIL));
-  }
-
-  @Test
-  public void testGuessInstallTypeSteam() throws Exception {
-    Files.createDirectories(faBinDirectory);
-    Files.createFile(faBinDirectory.resolve(STEAM_API_DLL));
-
-    GitRepositoryGameUpdateService.InstallType installType = instance.guessInstallType();
-    assertThat(installType, is(GitRepositoryGameUpdateService.InstallType.STEAM));
   }
 }

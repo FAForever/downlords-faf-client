@@ -167,6 +167,11 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
+  public ModInfoBean getMod(String uid) {
+    return fafApiAccessor.getMod(uid);
+  }
+
+  @Override
   public void reconnect() {
     fafServerAccessor.reconnect();
   }

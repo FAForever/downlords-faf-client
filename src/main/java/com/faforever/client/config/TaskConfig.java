@@ -7,7 +7,8 @@ import com.faforever.client.mod.InstallModTask;
 import com.faforever.client.mod.ModUploadTask;
 import com.faforever.client.mod.UninstallModTask;
 import com.faforever.client.patch.GitCheckGameUpdateTask;
-import com.faforever.client.patch.UpdateGameFilesTask;
+import com.faforever.client.patch.GitGameUpdateTask;
+import com.faforever.client.patch.LegacyGameUpdateTask;
 import com.faforever.client.replay.LoadLocalReplaysTask;
 import com.faforever.client.replay.ReplayDownloadTask;
 import com.faforever.client.update.CheckForUpdateTask;
@@ -25,9 +26,20 @@ import org.springframework.context.annotation.Scope;
 public class TaskConfig {
 
   @Bean
+  LegacyGameUpdateTask updateGameFilesTask() {
+    return new LegacyGameUpdateTask();
+  }
+
+  @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  UpdateGameFilesTask updateGameFilesTask() {
-    return new UpdateGameFilesTask();
+  GitCheckGameUpdateTask gitCheckGameUpdateTask() {
+    return new GitCheckGameUpdateTask();
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  GitGameUpdateTask gitGameUpdateTask() {
+    return new GitGameUpdateTask();
   }
 
   @Bean
@@ -46,12 +58,6 @@ public class TaskConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   DownloadUpdateTask downloadUpdateTask() {
     return new DownloadUpdateTask();
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  GitCheckGameUpdateTask gitCheckGameUpdateTask() {
-    return new GitCheckGameUpdateTask();
   }
 
   @Bean

@@ -74,6 +74,8 @@ public interface FafService {
 
   List<ModInfoBean> getMods();
 
+  ModInfoBean getMod(String uid);
+
   void reconnect();
 
   CompletionStage<List<MapBean>> getMostDownloadedMaps(int count);

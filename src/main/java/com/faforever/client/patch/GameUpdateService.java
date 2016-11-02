@@ -14,6 +14,4 @@ public interface GameUpdateService {
   CompletionStage<Void> updateInBackground(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUids);
 
   CompletionStage<Void> checkForUpdateInBackground();
-
-
 }

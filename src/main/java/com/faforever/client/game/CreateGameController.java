@@ -80,7 +80,7 @@ public class CreateGameController {
   @FXML
   TextField maxRankingTextField;
   @FXML
-  ListView<GameTypeBean> gameTypeListView;
+  ListView<FeaturedModBean> gameTypeListView;
   @FXML
   ListView<MapBean> mapListView;
   @FXML
@@ -145,7 +145,7 @@ public class CreateGameController {
       mapListView.scrollTo(newMapIndex);
     });
 
-    gameTypeListView.setCellFactory(param -> new StringListCell<>(GameTypeBean::getFullName));
+    gameTypeListView.setCellFactory(param -> new StringListCell<>(FeaturedModBean::getFullName));
 
     JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH);
     JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH);
@@ -291,10 +291,10 @@ public class CreateGameController {
   private void selectLastOrDefaultGameType() {
     String lastGameMod = preferencesService.getPreferences().getLastGameType();
     if (lastGameMod == null) {
-      lastGameMod = GameType.DEFAULT.getString();
+      lastGameMod = FeaturedMod.DEFAULT.getString();
     }
 
-    for (GameTypeBean mod : gameTypeListView.getItems()) {
+    for (FeaturedModBean mod : gameTypeListView.getItems()) {
       if (Objects.equals(mod.getName(), lastGameMod)) {
         gameTypeListView.getSelectionModel().select(mod);
         break;
@@ -345,9 +345,9 @@ public class CreateGameController {
 
   @FXML
   void onSelectDefaultGameTypeButtonClicked(ActionEvent event) {
-    for (GameTypeBean gameTypeBean : gameTypeListView.getItems()) {
-      if (GameType.FAF.getString().equalsIgnoreCase(gameTypeBean.getName())) {
-        gameTypeListView.getSelectionModel().select(gameTypeBean);
+    for (FeaturedModBean featuredModBean : gameTypeListView.getItems()) {
+      if (FeaturedMod.FAF.getString().equalsIgnoreCase(featuredModBean.getName())) {
+        gameTypeListView.getSelectionModel().select(featuredModBean);
         return;
       }
     }

@@ -32,7 +32,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.patch.GameUpdateService;
-import com.faforever.client.patch.GameUpdateServiceImpl;
+import com.faforever.client.patch.GitCheckGameUpdateTask;
+import com.faforever.client.patch.GitRepositoryGameUpdateService;
 import com.faforever.client.patch.GitWrapper;
 import com.faforever.client.patch.JGitWrapper;
 import com.faforever.client.patch.UpdateServerAccessor;
@@ -203,7 +204,7 @@ public class ServiceConfig {
     if (environment.containsProperty("disable.update")) {
       return new MockGameUpdateService();
     }
-    return new GameUpdateServiceImpl();
+    return new GitRepositoryGameUpdateService();
   }
 
   @Bean

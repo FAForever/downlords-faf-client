@@ -19,7 +19,7 @@ import com.faforever.client.remote.domain.ClientMessageType;
 import com.faforever.client.remote.domain.FafServerMessage;
 import com.faforever.client.remote.domain.FafServerMessageType;
 import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.GameTypeMessage;
+import com.faforever.client.remote.domain.FeaturedModMessage;
 import com.faforever.client.remote.domain.InitSessionMessage;
 import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
@@ -259,15 +259,15 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
   public void testAddOnGameTypeInfoListener() throws Exception {
     connectAndLogIn();
 
-    CompletableFuture<GameTypeMessage> gameTypeInfoFuture = new CompletableFuture<>();
+    CompletableFuture<FeaturedModMessage> gameTypeInfoFuture = new CompletableFuture<>();
     @SuppressWarnings("unchecked")
-    Consumer<GameTypeMessage> listener = mock(Consumer.class);
+    Consumer<FeaturedModMessage> listener = mock(Consumer.class);
     doAnswer(invocation -> {
-      gameTypeInfoFuture.complete(invocation.getArgumentAt(0, GameTypeMessage.class));
+      gameTypeInfoFuture.complete(invocation.getArgumentAt(0, FeaturedModMessage.class));
       return null;
     }).when(listener).accept(any());
 
-    instance.addOnMessageListener(GameTypeMessage.class, listener);
+    instance.addOnMessageListener(FeaturedModMessage.class, listener);
 
     String name = "test";
     String fullname = "Test game type";
@@ -275,16 +275,16 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     String icon = "what";
     Boolean[] options = new Boolean[]{TRUE, FALSE, TRUE};
 
-    GameTypeMessage gameTypeMessage = new GameTypeMessage();
-    gameTypeMessage.setName(name);
-    gameTypeMessage.setFullname(fullname);
-    gameTypeMessage.setDesc(description);
-    gameTypeMessage.setIcon(icon);
-    gameTypeMessage.setOptions(options);
+    FeaturedModMessage featuredModMessage = new FeaturedModMessage();
+    featuredModMessage.setName(name);
+    featuredModMessage.setFullname(fullname);
+    featuredModMessage.setDesc(description);
+    featuredModMessage.setIcon(icon);
+    featuredModMessage.setOptions(options);
 
-    sendFromServer(gameTypeMessage);
+    sendFromServer(featuredModMessage);
 
-    GameTypeMessage result = gameTypeInfoFuture.get(TIMEOUT, TIMEOUT_UNIT);
+    FeaturedModMessage result = gameTypeInfoFuture.get(TIMEOUT, TIMEOUT_UNIT);
     assertThat(result.getName(), is(name));
     assertThat(result.getFullname(), is(fullname));
     assertThat(result.getMessageType(), is(FafServerMessageType.GAME_TYPE_INFO));

@@ -41,13 +41,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.game.GameType.FAF;
-import static com.faforever.client.game.GameType.LADDER_1V1;
+import static com.faforever.client.game.FeaturedMod.FAF;
+import static com.faforever.client.game.FeaturedMod.LADDER_1V1;
 import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
 import static javafx.collections.FXCollections.observableArrayList;
 
-public class UpdateGameFilesTask extends CompletableTask<Void> implements UpdateServerResponseListener {
+public class LegacyGameUpdateTask extends CompletableTask<Void> implements UpdateServerResponseListener {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final long TIMEOUT = 30;
@@ -72,7 +72,7 @@ public class UpdateGameFilesTask extends CompletableTask<Void> implements Update
   private int numberOfFilesToUpdate;
   private String gameVersion;
 
-  public UpdateGameFilesTask() {
+  public LegacyGameUpdateTask() {
     super(Priority.HIGH);
     filesToUpdate = observableArrayList();
   }

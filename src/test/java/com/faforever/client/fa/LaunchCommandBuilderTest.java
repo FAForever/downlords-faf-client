@@ -1,6 +1,6 @@
 package com.faforever.client.fa;
 
-import com.faforever.client.game.GameType;
+import com.faforever.client.game.FeaturedMod;
 import org.junit.Test;
 
 import java.nio.file.Paths;
@@ -15,7 +15,7 @@ public class LaunchCommandBuilderTest {
     return LaunchCommandBuilder.create()
         .executable(Paths.get("test.exe"))
         .logFile(Paths.get("game.log"))
-        .gameType(GameType.DEFAULT.getString())
+        .gameType(FeaturedMod.DEFAULT.getString())
         .username("junit");
   }
 

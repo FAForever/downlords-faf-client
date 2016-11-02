@@ -1,13 +1,12 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.game.GameType;
+import com.faforever.client.game.FeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.task.TaskService;
-import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -15,7 +14,6 @@ import org.springframework.context.ApplicationContext;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,12 +22,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-public class GitRepositoryGameUpdateService extends AbstractPatchService implements GameUpdateService {
+public class GitRepositoryGameUpdateService extends AbstractUpdateService implements GameUpdateService {
 
-  @VisibleForTesting
-  static final String REPO_NAME = "binary-patch";
-  @VisibleForTesting
-  static final String STEAM_API_DLL = "steam_api.dll";
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   @Resource
   TaskService taskService;
@@ -44,7 +38,7 @@ public class GitRepositoryGameUpdateService extends AbstractPatchService impleme
   /**
    * Path to the local binary-patch Git repository.
    */
-  private Path binaryPatchRepoDirectory;
+  private Path gameRepositoryDirectory;
 
   @Override
   protected boolean checkDirectories() {
@@ -53,7 +47,7 @@ public class GitRepositoryGameUpdateService extends AbstractPatchService impleme
 
   @PostConstruct
   void postConstruct() {
-    binaryPatchRepoDirectory = preferencesService.getFafReposDirectory().resolve(REPO_NAME);
+    gameRepositoryDirectory = preferencesService.getFafReposDirectory().resolve("faf");
   }
 
   @Override
@@ -64,8 +58,10 @@ public class GitRepositoryGameUpdateService extends AbstractPatchService impleme
     }
 
     GitGameUpdateTask task = applicationContext.getBean(GitGameUpdateTask.class);
-    task.setBinaryPatchRepoDirectory(binaryPatchRepoDirectory);
-    task.setMigrationDataFile(getMigrationDataFile());
+    task.setVersion(String.valueOf(version));
+    task.setSimMods(simModUids);
+    // FIXME get from API
+    task.setGameRepositoryUri("https://github.com/FAForever/fa.git");
 
     return taskService.submitTask(task).getFuture().thenAccept(aVoid -> notificationService.addNotification(
         new PersistentNotification(
@@ -89,8 +85,7 @@ public class GitRepositoryGameUpdateService extends AbstractPatchService impleme
   @Override
   public CompletionStage<Void> checkForUpdateInBackground() {
     GitCheckGameUpdateTask task = applicationContext.getBean(GitCheckGameUpdateTask.class);
-    task.setBinaryPatchRepoDirectory(binaryPatchRepoDirectory);
-    task.setMigrationDataFile(getMigrationDataFile());
+    task.setGameRepositoryDirectory(gameRepositoryDirectory);
 
     return taskService.submitTask(task).getFuture().thenAccept(needsPatching -> {
       if (needsPatching) {
@@ -101,7 +96,7 @@ public class GitRepositoryGameUpdateService extends AbstractPatchService impleme
                 Arrays.asList(
                     new Action(i18n.get("faUpdateAvailable.updateLater")),
                     new Action(i18n.get("faUpdateAvailable.updateNow"),
-                        event -> updateInBackground(GameType.DEFAULT.getString(), null, null, null))
+                        event -> updateInBackground(FeaturedMod.DEFAULT.getString(), null, null, null))
                 )
             )
         );
@@ -118,36 +113,5 @@ public class GitRepositoryGameUpdateService extends AbstractPatchService impleme
       );
       return null;
     });
-  }
-
-  private Path getMigrationDataFile() {
-    String migrationDataFileName = guessInstallType().migrationDataFileName;
-    return binaryPatchRepoDirectory.resolve(migrationDataFileName);
-  }
-
-  @VisibleForTesting
-  InstallType guessInstallType() {
-    Path faBinDirectory = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("bin");
-    if (Files.notExists(faBinDirectory)) {
-      throw new IllegalStateException("Directory does not exist: " + faBinDirectory);
-    }
-
-    if (Files.exists(faBinDirectory.resolve(STEAM_API_DLL))) {
-      return InstallType.STEAM;
-    } else {
-      return InstallType.RETAIL;
-    }
-  }
-
-  @VisibleForTesting
-  enum InstallType {
-    RETAIL("retail.json"),
-    STEAM("steam.json");
-
-    final String migrationDataFileName;
-
-    InstallType(String migrationDataFileName) {
-      this.migrationDataFileName = migrationDataFileName;
-    }
   }
 }

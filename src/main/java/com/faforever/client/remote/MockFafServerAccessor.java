@@ -1,7 +1,7 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.game.Faction;
-import com.faforever.client.game.GameType;
+import com.faforever.client.game.FeaturedMod;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
@@ -16,7 +16,7 @@ import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameState;
-import com.faforever.client.remote.domain.GameTypeMessage;
+import com.faforever.client.remote.domain.FeaturedModMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.Player;
 import com.faforever.client.remote.domain.PlayersMessage;
@@ -99,13 +99,13 @@ public class MockFafServerAccessor implements FafServerAccessor {
       protected LoginMessage call() throws Exception {
         updateTitle(i18n.get("login.progress.message"));
 
-        GameTypeMessage gameTypeMessage = new GameTypeMessage();
-        gameTypeMessage.setFullname("Forged Alliance Forever");
-        gameTypeMessage.setName("faf");
-        gameTypeMessage.setPublish(true);
-        gameTypeMessage.setDesc("Description");
+        FeaturedModMessage featuredModMessage = new FeaturedModMessage();
+        featuredModMessage.setFullname("Forged Alliance Forever");
+        featuredModMessage.setName("faf");
+        featuredModMessage.setPublish(true);
+        featuredModMessage.setDesc("Description");
 
-        messageListeners.getOrDefault(gameTypeMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(gameTypeMessage));
+        messageListeners.getOrDefault(featuredModMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(featuredModMessage));
 
         Player player = new Player();
         player.setLogin(USER_NAME);
@@ -244,7 +244,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
     logger.debug("Searching 1v1 match with faction: {}", faction);
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);
-    gameLaunchMessage.setMod(GameType.DEFAULT.getString());
+    gameLaunchMessage.setMod(FeaturedMod.DEFAULT.getString());
     return CompletableFuture.completedFuture(gameLaunchMessage);
   }
 

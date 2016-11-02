@@ -1,6 +1,6 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.game.GameType;
+import com.faforever.client.game.FeaturedMod;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -68,19 +68,19 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testPatchInBackgroundSubmitsTask() throws Exception {
-    UpdateGameFilesTask updateGameFilesTask = mock(UpdateGameFilesTask.class, withSettings().useConstructor());
-    when(applicationContext.getBean(UpdateGameFilesTask.class)).thenReturn(updateGameFilesTask);
+    LegacyGameUpdateTask legacyGameUpdateTask = mock(LegacyGameUpdateTask.class, withSettings().useConstructor());
+    when(applicationContext.getBean(LegacyGameUpdateTask.class)).thenReturn(legacyGameUpdateTask);
 
-    when(updateGameFilesTask.getFuture()).thenReturn(completedFuture(null));
+    when(legacyGameUpdateTask.getFuture()).thenReturn(completedFuture(null));
 
-    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet())
+    instance.updateInBackground(FeaturedMod.DEFAULT.getString(), null, emptyMap(), emptySet())
         .toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(taskService).submitTask(updateGameFilesTask);
+    verify(taskService).submitTask(legacyGameUpdateTask);
 
-    verify(updateGameFilesTask).setGameType(GameType.DEFAULT.getString());
-    verify(updateGameFilesTask).setModVersions(eq(emptyMap()));
-    verify(updateGameFilesTask).setSimMods(eq(emptySet()));
+    verify(legacyGameUpdateTask).setGameType(FeaturedMod.DEFAULT.getString());
+    verify(legacyGameUpdateTask).setModVersions(eq(emptyMap()));
+    verify(legacyGameUpdateTask).setSimMods(eq(emptySet()));
   }
 
   @Test
@@ -88,7 +88,7 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getFafBinDirectory()).thenReturn(null);
     when(forgedAlliancePrefs.getPath()).thenReturn(null);
 
-    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet())
+    instance.updateInBackground(FeaturedMod.DEFAULT.getString(), null, emptyMap(), emptySet())
         .toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     verifyZeroInteractions(taskService);
@@ -97,16 +97,16 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testPatchInBackgroundAlreadyRunning() throws Exception {
-    UpdateGameFilesTask updateGameFilesTask = mock(UpdateGameFilesTask.class, withSettings().useConstructor());
-    when(updateGameFilesTask.getFuture()).thenReturn(completedFuture(null));
-    when(applicationContext.getBean(UpdateGameFilesTask.class)).thenReturn(updateGameFilesTask);
+    LegacyGameUpdateTask legacyGameUpdateTask = mock(LegacyGameUpdateTask.class, withSettings().useConstructor());
+    when(legacyGameUpdateTask.getFuture()).thenReturn(completedFuture(null));
+    when(applicationContext.getBean(LegacyGameUpdateTask.class)).thenReturn(legacyGameUpdateTask);
 
-    when(updateGameFilesTask.isDone()).thenReturn(false);
+    when(legacyGameUpdateTask.isDone()).thenReturn(false);
 
-    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet()).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
-    instance.updateInBackground(GameType.DEFAULT.getString(), null, emptyMap(), emptySet()).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
+    instance.updateInBackground(FeaturedMod.DEFAULT.getString(), null, emptyMap(), emptySet()).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
+    instance.updateInBackground(FeaturedMod.DEFAULT.getString(), null, emptyMap(), emptySet()).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
-    verify(taskService, only()).submitTask(updateGameFilesTask);
+    verify(taskService, only()).submitTask(legacyGameUpdateTask);
   }
 
   @Test

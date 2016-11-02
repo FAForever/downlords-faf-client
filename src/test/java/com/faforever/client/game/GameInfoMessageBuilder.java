@@ -22,7 +22,7 @@ public class GameInfoMessageBuilder {
 
   public GameInfoMessageBuilder defaultValues() {
     gameInfoMessage.setHost("Some host");
-    gameInfoMessage.setFeaturedMod(GameType.FAF.getString());
+    gameInfoMessage.setFeaturedMod(FeaturedMod.FAF.getString());
     gameInfoMessage.setMapname("scmp_007");
     gameInfoMessage.setMaxPlayers(4);
     gameInfoMessage.setNumPlayers(1);

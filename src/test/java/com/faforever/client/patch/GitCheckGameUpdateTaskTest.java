@@ -20,7 +20,6 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
-import static com.faforever.client.patch.GitRepositoryGameUpdateService.InstallType.RETAIL;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
@@ -68,10 +67,9 @@ public class GitCheckGameUpdateTaskTest extends AbstractPlainJavaFxTest {
     instance.gitWrapper = gitWrapper;
 
     Path reposDirectory = faDirectory.getRoot().toPath().resolve("repos");
-    binaryPatchRepoDirectory = reposDirectory.resolve(GitRepositoryGameUpdateService.REPO_NAME);
+    binaryPatchRepoDirectory = reposDirectory.resolve("faf");
 
-    instance.setBinaryPatchRepoDirectory(binaryPatchRepoDirectory);
-    instance.setMigrationDataFile(binaryPatchRepoDirectory.resolve(RETAIL.migrationDataFileName));
+    instance.setGameRepositoryDirectory(binaryPatchRepoDirectory);
 
     when(preferencesService.getFafReposDirectory()).thenReturn(reposDirectory);
     when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
@@ -109,7 +107,6 @@ public class GitCheckGameUpdateTaskTest extends AbstractPlainJavaFxTest {
   }
 
   private void prepareLocalPatchRepo() throws IOException {
-    TestResources.copyResource("/patch/retail.json", binaryPatchRepoDirectory.resolve(RETAIL.migrationDataFileName));
     TestResources.copyResource("/patch/bsdiff4/040943c20d9e1f7de7f496b1202a600d", binaryPatchRepoDirectory.resolve("bsdiff4/040943c20d9e1f7de7f496b1202a600d"));
   }
 
@@ -142,8 +139,6 @@ public class GitCheckGameUpdateTaskTest extends AbstractPlainJavaFxTest {
     gitGameUpdateTask.gitWrapper = gitWrapper;
     gitGameUpdateTask.i18n = i18n;
     gitGameUpdateTask.preferencesService = preferencesService;
-    gitGameUpdateTask.setMigrationDataFile(binaryPatchRepoDirectory.resolve(RETAIL.migrationDataFileName));
-    gitGameUpdateTask.setBinaryPatchRepoDirectory(binaryPatchRepoDirectory);
     gitGameUpdateTask.call();
 
     when(gitWrapper.getLocalHead(binaryPatchRepoDirectory)).thenReturn("1234");

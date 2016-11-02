@@ -1,30 +1,30 @@
 package com.faforever.client.game;
 
-import com.faforever.client.remote.domain.GameTypeMessage;
+import com.faforever.client.remote.domain.FeaturedModMessage;
 
 public class GameTypeInfoBuilder {
 
-  private final GameTypeMessage gameTypeMessage;
+  private final FeaturedModMessage featuredModMessage;
 
   public GameTypeInfoBuilder() {
-    gameTypeMessage = new GameTypeMessage();
-  }
-
-  public GameTypeInfoBuilder defaultValues() {
-    gameTypeMessage.setDesc("Description");
-    gameTypeMessage.setFullname("Full name");
-    gameTypeMessage.setIcon("icon");
-    gameTypeMessage.setJoin(true);
-    gameTypeMessage.setPublish(true);
-    gameTypeMessage.setOptions(new Boolean[0]);
-    return this;
-  }
-
-  public GameTypeMessage get() {
-    return gameTypeMessage;
+    featuredModMessage = new FeaturedModMessage();
   }
 
   public static GameTypeInfoBuilder create() {
     return new GameTypeInfoBuilder();
+  }
+
+  public GameTypeInfoBuilder defaultValues() {
+    featuredModMessage.setDesc("Description");
+    featuredModMessage.setFullname("Full name");
+    featuredModMessage.setIcon("icon");
+    featuredModMessage.setJoin(true);
+    featuredModMessage.setPublish(true);
+    featuredModMessage.setOptions(new Boolean[0]);
+    return this;
+  }
+
+  public FeaturedModMessage get() {
+    return featuredModMessage;
   }
 }

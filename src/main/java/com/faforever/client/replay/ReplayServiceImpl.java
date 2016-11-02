@@ -3,7 +3,7 @@ package com.faforever.client.replay;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
-import com.faforever.client.game.GameType;
+import com.faforever.client.game.FeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
@@ -111,7 +111,7 @@ public class ReplayServiceImpl implements ReplayService {
     if (splitFileName.length > 2) {
       return splitFileName[splitFileName.length - 2];
     }
-    return GameType.DEFAULT.getString();
+    return FeaturedMod.DEFAULT.getString();
   }
 
   @Override
