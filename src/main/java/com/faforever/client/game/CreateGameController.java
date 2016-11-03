@@ -222,10 +222,10 @@ public class CreateGameController {
   }
 
   private void initGameTypeComboBox() {
-    gameService.addOnGameTypesChangeListener(change -> {
+    gameService.addOnGameTypesChangeListener(change -> Platform.runLater(() -> {
       gameTypeListView.getItems().add(change.getValueAdded());
       selectLastOrDefaultGameType();
-    });
+    }));
 
     gameTypeListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       preferencesService.getPreferences().setLastGameType(newValue.getName());
