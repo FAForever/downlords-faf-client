@@ -29,7 +29,6 @@ plugins {
 }
 
 apply plugin: 'java'
-apply plugin: 'idea'
 apply plugin: 'jacoco'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'distribution'
@@ -124,18 +123,6 @@ sonarqube {
 jacocoTestReport {
   reports {
     xml.enabled = true
-  }
-}
-
-idea {
-  project {
-    jdkName = JavaVersion.VERSION_1_8
-    languageLevel = JavaVersion.VERSION_1_8
-    vcs = 'Git'
-  }
-  module {
-    downloadJavadoc = false
-    downloadSources = true
   }
 }
 
