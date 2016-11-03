@@ -6,7 +6,6 @@ import com.faforever.client.ice.event.GpgGameMessageEvent;
 import com.faforever.client.ice.event.IceAdapterStateChanged;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.relay.ConnectToPeerMessage;
-import com.faforever.client.relay.CreateLobbyServerMessage;
 import com.faforever.client.relay.DisconnectFromPeerMessage;
 import com.faforever.client.relay.GpgClientCommand;
 import com.faforever.client.relay.GpgGameMessage;
@@ -104,19 +103,7 @@ public class IceAdapterImpl implements IceAdapter {
     GpgGameMessage gpgGameMessage = event.getGpgGameMessage();
     GpgClientCommand command = gpgGameMessage.getCommand();
 
-    if (isIdleLobbyMessage(gpgGameMessage)) {
-      PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
-      int playerId = currentPlayer.getId();
-      String username = currentPlayer.getUsername();
-      if (lobbyMode == null) {
-        throw new IllegalStateException("lobbyMode has not been set");
-      }
-
-      int faGamePort = SocketUtils.findAvailableUdpPort();
-      logger.debug("Picked port for FA to listen: {}", faGamePort);
-
-      writeToFa(new CreateLobbyServerMessage(lobbyMode, faGamePort, username, playerId, 1));
-    } else if (command == GpgClientCommand.REHOST) {
+    if (command == GpgClientCommand.REHOST) {
       eventBus.post(new RehostRequestEvent());
       return;
     } else if (command == GpgClientCommand.GAME_FULL) {
