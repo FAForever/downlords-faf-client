@@ -3,7 +3,6 @@ package com.faforever.client.patch;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
-import com.google.common.hash.Hashing;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -12,13 +11,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.Resource;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
 
 public class GitCheckGameUpdateTask extends CompletableTask<Boolean> {
 
@@ -54,8 +50,7 @@ public class GitCheckGameUpdateTask extends CompletableTask<Boolean> {
     updateTitle(i18n.get("updateCheckTask.title"));
 
     return (Files.notExists(gameRepositoryDirectory)
-        || areNewPatchFilesAvailable()
-        || !areLocalFilesPatched());
+        || areNewPatchFilesAvailable());
   }
 
   /**
@@ -74,36 +69,6 @@ public class GitCheckGameUpdateTask extends CompletableTask<Boolean> {
     }
 
     return needsPatching;
-  }
-
-  private boolean areLocalFilesPatched() throws IOException {
-    try (BufferedReader reader = Files.newBufferedReader(migrationDataFile, StandardCharsets.UTF_8)) {
-      MigrationData migrationData = gson.fromJson(reader, MigrationData.class);
-
-      for (Map.Entry<String, String> entry : migrationData.postPatchVerify.entrySet()) {
-        String fileName = entry.getKey();
-        String expectedMd5 = entry.getValue();
-
-        Path fileToCheck = preferencesService.getFafBinDirectory().resolve(fileName);
-
-        if (Files.notExists(fileToCheck)) {
-          logger.info("Missing file: {}", fileToCheck);
-          return false;
-        }
-
-        byte[] bytesOfFileToCheck = Files.readAllBytes(fileToCheck);
-
-        String actualMd5 = Hashing.md5().hashBytes(bytesOfFileToCheck).toString();
-        if (!actualMd5.equals(expectedMd5)) {
-          logger.info("At least one binary file is out of date: {}. Expected checksum: {} but got: {}", fileName, expectedMd5, actualMd5);
-          return false;
-        }
-      }
-    }
-
-    logger.info("All binary files are up to date");
-
-    return true;
   }
 
   public void setGameRepositoryDirectory(Path gameRepositoryDirectory) {
