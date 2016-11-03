@@ -198,7 +198,7 @@ public class MapServiceImpl implements MapService {
         installedSkirmishMaps.add(mapBean);
       }
     } catch (MapLoadException e) {
-      logger.warn("Map could not be read: " + mapsDirectory.getFileName(), e);
+      logger.warn("Map could not be read: " + path.getFileName(), e);
     }
   }
 
