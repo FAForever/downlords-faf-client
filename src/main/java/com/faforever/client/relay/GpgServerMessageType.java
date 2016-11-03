@@ -11,18 +11,9 @@ import java.util.Map;
  */
 public enum GpgServerMessageType implements ServerMessageType {
   HOST_GAME("HostGame", HostGameMessage.class),
-  SEND_NAT_PACKET("SendNatPacket", SendNatPacketMessage.class),
-  P2P_RECONNECT("P2pReconnect", null),
   JOIN_GAME("JoinGame", JoinGameMessage.class),
   CONNECT_TO_PEER("ConnectToPeer", ConnectToPeerMessage.class),
-  CREATE_LOBBY("CreateLobby", CreateLobbyServerMessage.class),
-  DISCONNECT_FROM_PEER("DisconnectFromPeer", DisconnectFromPeerMessage.class),
-  JOIN_PROXY("JoinProxy", null),
-  /**
-   * Requests the creation of a TURN permission.
-   */
-  CREATE_PERMISSION("CreatePermission", CreatePermissionMessage.class),
-  GAME_OPTION("GameOption", GameOptionMessage.class);
+  DISCONNECT_FROM_PEER("DisconnectFromPeer", DisconnectFromPeerMessage.class);
 
 
   private static final Map<String, GpgServerMessageType> fromString;

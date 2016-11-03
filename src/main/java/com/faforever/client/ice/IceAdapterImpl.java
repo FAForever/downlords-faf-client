@@ -75,7 +75,6 @@ public class IceAdapterImpl implements IceAdapter {
   @PostConstruct
   void postConstruct() {
     eventBus.register(this);
-    fafService.addOnMessageListener(GpgServerMessage.class, this::writeToFa);
     fafService.addOnMessageListener(GameLaunchMessage.class, this::updateLobbyModeFromGameInfo);
     fafService.addOnMessageListener(HostGameMessage.class, (hostGameMessage) -> iceAdapterProxy.hostGame(hostGameMessage.getMap()));
     fafService.addOnMessageListener(JoinGameMessage.class, (joinGameMessage) -> iceAdapterProxy.joinGame(joinGameMessage.getUsername(), joinGameMessage.getPeerUid()));
@@ -84,6 +83,7 @@ public class IceAdapterImpl implements IceAdapter {
     fafService.addOnMessageListener(SdpServerMessage.class, sdpServerMessage -> iceAdapterProxy.setSdp(sdpServerMessage.getSender(), sdpServerMessage.getRecord()));
   }
 
+  // TODO remove if no longer needed
   private void writeToFa(GpgServerMessage gpgServerMessage) {
     Assert.checkNullIllegalState(iceAdapterProxy, "Adapter is not ready");
     iceAdapterProxy.sendToGpgNet(gpgServerMessage.getMessageType().getString(), gpgServerMessage.getArgs());
