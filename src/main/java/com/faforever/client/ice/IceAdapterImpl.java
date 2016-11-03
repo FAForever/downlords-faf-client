@@ -31,6 +31,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.util.SocketUtils;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
@@ -214,6 +215,7 @@ public class IceAdapterImpl implements IceAdapter {
   }
 
   @Override
+  @PreDestroy
   public void stop() {
     iceAdapterProxy.quit();
   }
