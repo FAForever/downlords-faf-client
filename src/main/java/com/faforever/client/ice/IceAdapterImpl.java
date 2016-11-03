@@ -139,7 +139,7 @@ public class IceAdapterImpl implements IceAdapter {
   @Override
   public CompletableFuture<Integer> start() {
     iceAdapterClientFuture = new CompletableFuture<>();
-    new Thread(() -> {
+    Thread thread = new Thread(() -> {
       // TODO rename to nativeDir and reuse in UID service
       String uidDir = System.getProperty("uid.dir", "lib");
 
@@ -183,7 +183,9 @@ public class IceAdapterImpl implements IceAdapter {
       } catch (Exception e) {
         iceAdapterClientFuture.completeExceptionally(e);
       }
-    }).start();
+    });
+    thread.setDaemon(true);
+    thread.start();
 
     return iceAdapterClientFuture;
   }
