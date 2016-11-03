@@ -25,7 +25,7 @@
     <logger name="com.faforever.client.ice" level="debug"/>
 
     <logger name="org.ice4j.stack" level="warn"/>
-    <logger name="com.nbarraille.jjsonrpc" level="debug"/>
+    <logger name="com.nbarraille.jjsonrpc" level="warn"/>
 
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
         <resetJUL>true</resetJUL>
