@@ -269,5 +269,5 @@ dependencies {
   compile 'io.sigpipe:jbsdiff:1.0'
   compile 'org.luaj:luaj-jse:3.0.1'
   compile 'commons-validator:commons-validator:1.5.1'
-  compile 'com.github.micheljung:JJsonRpc:586c549796'
+  compile 'com.github.micheljung:JJsonRpc:f683b55f55'
 }

@@ -151,6 +151,7 @@ public class IceAdapterImpl implements IceAdapter {
 
         logger.debug("Starting ICE adapter with command: {}", asList(cmd));
         process = processBuilder.start();
+        Logger logger = LoggerFactory.getLogger("faf-ice-adapter");
         gobbleLines(process.getInputStream(), logger::debug);
         gobbleLines(process.getErrorStream(), logger::error);
 
@@ -184,7 +185,7 @@ public class IceAdapterImpl implements IceAdapter {
             return "ICE adapter proxy";
           }
           List<Object> argList = args == null ? Collections.emptyList() : asList(args);
-          if (!peer.isAlive()) {
+          if (!peer.isAlive() && !"quit".equals(method.getName())) {
             logger.warn("Ignoring call to ICE adapter as we are not connected: {}({})", method.getName(), argList);
             return null;
           }

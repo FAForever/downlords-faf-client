@@ -25,7 +25,10 @@ public final class OsUtils {
   public static void gobbleLines(InputStream stream, Consumer<String> lineConsumer) {
     Thread thread = new Thread(() -> noCatch(() -> {
       try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream))) {
-        lineConsumer.accept(bufferedReader.readLine());
+        String line;
+        while ((line = bufferedReader.readLine()) != null) {
+          lineConsumer.accept(line);
+        }
       }
     }));
     thread.setDaemon(true);
