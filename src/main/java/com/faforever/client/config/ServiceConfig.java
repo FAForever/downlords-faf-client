@@ -32,7 +32,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.patch.GameUpdateService;
-import com.faforever.client.patch.GitCheckGameUpdateTask;
 import com.faforever.client.patch.GitRepositoryGameUpdateService;
 import com.faforever.client.patch.GitWrapper;
 import com.faforever.client.patch.JGitWrapper;
@@ -70,8 +69,6 @@ import com.faforever.client.update.MockClientUpdateService;
 import com.faforever.client.update.MockGameUpdateService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.uploader.imgur.ImgurImageUploadService;
-import com.faforever.client.upnp.UpnpService;
-import com.faforever.client.upnp.WeUpnpServiceImpl;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
 import com.faforever.client.util.TimeService;
@@ -79,11 +76,8 @@ import com.faforever.client.util.TimeServiceImpl;
 import com.google.api.client.util.Beta;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
-import org.ice4j.stack.StunStack;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
@@ -184,11 +178,6 @@ public class ServiceConfig {
   @Bean
   ReplayFileReader replayFileReader() {
     return new ReplayFileReaderImpl();
-  }
-
-  @Bean
-  UpnpService upnpService() {
-    return new WeUpnpServiceImpl();
   }
 
   @Bean
@@ -299,11 +288,5 @@ public class ServiceConfig {
   @Bean
   ThemeService themeService() {
     return new ThemeServiceImpl();
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  StunStack stunStack() {
-    return new StunStack();
   }
 }

@@ -9,7 +9,6 @@ import com.faforever.client.relay.ConnectToPeerMessage;
 import com.faforever.client.relay.DisconnectFromPeerMessage;
 import com.faforever.client.relay.GpgClientCommand;
 import com.faforever.client.relay.GpgGameMessage;
-import com.faforever.client.relay.GpgServerMessage;
 import com.faforever.client.relay.HostGameMessage;
 import com.faforever.client.relay.JoinGameMessage;
 import com.faforever.client.relay.LobbyMode;
@@ -18,7 +17,6 @@ import com.faforever.client.relay.event.RehostRequestEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.SdpServerMessage;
-import com.faforever.client.util.Assert;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.nbarraille.jjsonrpc.JJsonPeer;
@@ -83,12 +81,6 @@ public class IceAdapterImpl implements IceAdapter {
     fafService.addOnMessageListener(SdpServerMessage.class, sdpServerMessage -> iceAdapterProxy.setSdp(sdpServerMessage.getSender(), sdpServerMessage.getRecord()));
   }
 
-  // TODO remove if no longer needed
-  private void writeToFa(GpgServerMessage gpgServerMessage) {
-    Assert.checkNullIllegalState(iceAdapterProxy, "Adapter is not ready");
-    iceAdapterProxy.sendToGpgNet(gpgServerMessage.getMessageType().getString(), gpgServerMessage.getArgs());
-  }
-
   @Subscribe
   public void onIceAdapterStateChanged(IceAdapterStateChanged event) {
     switch (event.getNewState()) {
@@ -112,15 +104,6 @@ public class IceAdapterImpl implements IceAdapter {
     }
 
     fafService.sendGpgGameMessage(gpgGameMessage);
-  }
-
-  /**
-   * Returns {@code true} if the game lobby is "idle", which basically means the game has been started (into lobby) and
-   * does now need to be told on which port to listen on.
-   */
-  private boolean isIdleLobbyMessage(GpgGameMessage gpgGameMessage) {
-    return gpgGameMessage.getCommand() == GpgClientCommand.GAME_STATE
-        && gpgGameMessage.getArgs().get(0).equals("Idle");
   }
 
   @Override

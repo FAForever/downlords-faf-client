@@ -24,6 +24,7 @@
     <logger name="com.faforever.client.io" level="debug"/>
     <logger name="com.faforever.client.ice" level="debug"/>
 
+    <logger name="faf-ice-adapter" level="debug"/>
     <logger name="org.ice4j.stack" level="warn"/>
     <logger name="com.nbarraille.jjsonrpc" level="warn"/>
 

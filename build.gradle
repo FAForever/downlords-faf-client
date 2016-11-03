@@ -249,7 +249,6 @@ dependencies {
   compile 'org.apache.lucene:lucene-core:5.3.1'
   compile 'org.apache.lucene:lucene-analyzers-common:5.3.1'
   compile 'org.apache.lucene:lucene-suggest:5.3.1'
-  compile 'org.opentelecoms.ice:ice4j-fork:1.0+f.4'
   compile 'com.nativelibs4java:bridj:0.7.0'
   compile 'com.github.nocatch:nocatch:1.1'
   compile 'org.javassist:javassist:3.20.0-GA'
