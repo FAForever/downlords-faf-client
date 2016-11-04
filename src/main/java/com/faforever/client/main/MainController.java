@@ -688,14 +688,11 @@ public class MainController implements OnChooseGameDirectoryListener {
     stage.setTitle(mainWindowTitle);
     windowController.setContent(mainRoot);
 
-    gameUpdateService.checkForUpdateInBackground();
     clientUpdateService.checkForUpdateInBackground();
 
     restoreLastView();
 
     usernameButton.setText(userService.getUsername());
-    // TODO no more e-mail address :(
-//    userImageView.setImage(gravatarService.getGravatar(userService.getEmail()));
     userImageView.setImage(IdenticonUtil.createIdenticon(userService.getUid()));
   }
 

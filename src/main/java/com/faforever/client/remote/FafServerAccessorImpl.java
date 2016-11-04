@@ -254,7 +254,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
         newGameInfo.getMap(),
         newGameInfo.getTitle(),
         new boolean[0],
-        newGameInfo.getGameType(),
+        newGameInfo.getFeaturedMod().getTechnicalName(),
         newGameInfo.getPassword(),
         null
     );
@@ -387,6 +387,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private void parseServerObject(String jsonString) {
     try {
       ServerMessage serverMessage = gson.fromJson(jsonString, ServerMessage.class);
+      if (serverMessage == null) {
+        logger.debug("Discarding unimplemented server message: {}", jsonString);
+        return;
+      }
 
       Class<?> messageClass = serverMessage.getClass();
       while (messageClass != Object.class) {

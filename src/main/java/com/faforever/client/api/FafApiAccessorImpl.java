@@ -10,12 +10,13 @@ import com.faforever.client.net.UriUtil;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
+import com.google.api.client.auth.oauth2.AuthorizationCodeFlow.Builder;
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
-import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpContent;
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpMediaType;
 import com.google.api.client.http.HttpRequest;
@@ -60,11 +61,16 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.github.nocatch.NoCatch.noCatch;
+import static com.google.api.client.auth.oauth2.BearerToken.authorizationHeaderAccessMethod;
+import static java.lang.String.valueOf;
+import static java.util.Arrays.asList;
 
 public class FafApiAccessorImpl implements FafApiAccessor {
 
@@ -106,10 +112,24 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   HttpRequestFactory requestFactory;
   private FileDataStoreFactory dataStoreFactory;
 
+  private CountDownLatch authorizedLatch;
+
+  public FafApiAccessorImpl() {
+    authorizedLatch = new CountDownLatch(1);
+  }
+
   @PostConstruct
   void postConstruct() throws IOException {
     Path playServicesDirectory = preferencesService.getPreferencesDirectory().resolve("oauth");
     dataStoreFactory = new FileDataStoreFactory(playServicesDirectory.toFile());
+
+    userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        authorize(userService.getUid());
+      } else {
+        authorizedLatch = new CountDownLatch(1);
+      }
+    });
   }
 
   @Override
@@ -143,9 +163,9 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   public void authorize(int playerId) {
-    try {
-      AuthorizationCodeFlow flow = new AuthorizationCodeFlow.Builder(
-          BearerToken.authorizationHeaderAccessMethod(),
+    noCatch(() -> {
+      AuthorizationCodeFlow flow = new Builder(
+          authorizationHeaderAccessMethod(),
           httpTransport,
           jsonFactory,
           new GenericUrl(oAuthTokenServerUrl),
@@ -153,22 +173,29 @@ public class FafApiAccessorImpl implements FafApiAccessor {
           oAuthClientId,
           oAuthUrl)
           .setDataStoreFactory(dataStoreFactory)
-          .setScopes(Arrays.asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_READ_EVENTS, UPLOAD_MAP, UPLOAD_MOD))
+          .setScopes(asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_READ_EVENTS, UPLOAD_MAP, UPLOAD_MOD))
           .build();
 
-      credential = authorize(flow, String.valueOf(playerId));
+      credential = authorize(flow, valueOf(playerId));
       requestFactory = httpTransport.createRequestFactory(credential);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+      authorizedLatch.countDown();
+    });
   }
 
   @Override
+  @Cacheable(CacheNames.MODS)
   public List<ModInfoBean> getMods() {
     logger.debug("Loading available mods");
     return getMany("/mods", Mod.class).stream()
         .map(ModInfoBean::fromModInfo)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  @Cacheable(CacheNames.FEATURED_MODS)
+  public List<FeaturedMod> getFeaturedMods() {
+    logger.debug("Getting featured mods");
+    return getMany("/featured_mods", FeaturedMod.class);
   }
 
   private <T> List<T> getMany(String endpointPath, Class<T> type) {
@@ -207,6 +234,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
+  @Cacheable(CacheNames.RATING_HISTORY)
   public History getRatingHistory(RatingType ratingType, int playerId) {
     return getSingle(String.format("/players/%d/ratings/%s/history", playerId, ratingType.getString()), History.class);
   }
@@ -249,7 +277,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public void uploadMod(Path file, ByteCountListener listener) throws IOException {
     MultipartContent multipartContent = createFileMultipart(file, listener);
-    postMultipart("/mods/upload", multipartContent);
+    executePost("/mods/upload", multipartContent);
   }
 
   @Override
@@ -263,7 +291,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
           }
         })));
 
-    postMultipart("/maps/upload", multipartContent);
+    executePost("/maps/upload", multipartContent);
   }
 
   @Override
@@ -284,14 +312,12 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     return multipartContent.addPart(new MultipartContent.Part(headers, fileContent));
   }
 
-  private void postMultipart(String endpointPath, MultipartContent multipartContent) throws IOException {
-    if (requestFactory == null) {
-      throw new IllegalStateException("authorize() must be called first");
-    }
+  private void executePost(String endpointPath, HttpContent content) throws IOException {
+    noCatch(() -> authorizedLatch.await());
 
     String url = baseUrl + endpointPath;
     logger.trace("Posting to: {}", url);
-    HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), multipartContent)
+    HttpRequest request = requestFactory.buildPostRequest(new GenericUrl(url), content)
         .setThrowExceptionOnExecuteError(false)
         .setParser(new JsonObjectParser(jsonFactory));
     credential.initialize(request);
@@ -415,9 +441,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   private InputStream executeGet(String endpointPath) throws IOException {
-    if (requestFactory == null) {
-      throw new IllegalStateException("authorize() must be called first");
-    }
+    noCatch(() -> authorizedLatch.await());
+
     String url = baseUrl + endpointPath;
     logger.trace("Calling: {}", url);
     HttpRequest request = requestFactory.buildGetRequest(new GenericUrl(url));

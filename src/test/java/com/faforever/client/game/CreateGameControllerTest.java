@@ -12,19 +12,21 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.ThemeService;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
-import javafx.collections.MapChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.core.env.Environment;
 
 import java.nio.file.Paths;
+import java.util.concurrent.CompletableFuture;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -32,10 +34,8 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
@@ -85,6 +85,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPath()).thenReturn(Paths.get(""));
     when(mapService.getInstalledMaps()).thenReturn(mapList);
+    when(gameService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(emptyList()));
 
     doAnswer(invocation -> getThemeFile(invocation.getArgumentAt(0, String.class)))
         .when(themeService).getThemeFile(any());
@@ -185,65 +186,44 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testInitGameTypeComboBoxEmpty() throws Exception {
     instance = loadController("create_game.fxml");
 
-    assertThat(instance.gameTypeListView.getItems(), empty());
+    assertThat(instance.featuredModListView.getItems(), empty());
   }
 
   @Test
   public void testInitGameTypeComboBoxPostPopulated() throws Exception {
+    FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().get();
+    when(gameService.getFeaturedMods()).thenReturn(completedFuture(singletonList(featuredModBean)));
+
     instance.postConstruct();
 
-    FeaturedModBean featuredModBean = mock(FeaturedModBean.class);
-    onGameTypeAdded(featuredModBean);
-
-    assertThat(instance.gameTypeListView.getItems(), hasSize(1));
-    assertThat(instance.gameTypeListView.getItems().get(0), is(featuredModBean));
+    assertThat(instance.featuredModListView.getItems(), hasSize(1));
+    assertThat(instance.featuredModListView.getItems().get(0), is(featuredModBean));
   }
 
-  private void onGameTypeAdded(FeaturedModBean featuredModBean) {
-    ArgumentCaptor<MapChangeListener<String, FeaturedModBean>> argument = ArgumentCaptor.forClass(MapChangeListener.class);
-    verify(instance.gameService, atLeastOnce()).addOnGameTypesChangeListener(argument.capture());
-
-    MapChangeListener<String, FeaturedModBean> listener = argument.getValue();
-
-    @SuppressWarnings("unchecked")
-    Change<String, FeaturedModBean> change = mock(Change.class);
-    when(change.wasAdded()).thenReturn(true);
-    when(change.getValueAdded()).thenReturn(featuredModBean);
-
-    listener.onChanged(change);
-  }
-
-  // FIXME fix this
   @Test
   public void testSelectLastOrDefaultSelectDefault() throws Exception {
-    FeaturedModBean featuredModBean = mock(FeaturedModBean.class);
-    FeaturedModBean featuredModBean2 = mock(FeaturedModBean.class);
+    FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().technicalName("something").get();
+    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getString()).get();
+
     when(preferences.getLastGameType()).thenReturn(null);
-    when(featuredModBean.getName()).thenReturn(FeaturedMod.DEFAULT.getString());
-    when(featuredModBean2.getName()).thenReturn(null);
+    when(gameService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
 
     instance.postConstruct();
 
-    onGameTypeAdded(featuredModBean2);
-    onGameTypeAdded(featuredModBean);
-
-    assertThat(instance.gameTypeListView.getSelectionModel().getSelectedItem(), is(featuredModBean));
+    assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredModBean2));
   }
 
   @Test
   public void testSelectLastOrDefaultSelectLast() throws Exception {
-    FeaturedModBean featuredModBean = mock(FeaturedModBean.class);
-    FeaturedModBean featuredModBean2 = mock(FeaturedModBean.class);
+    FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().technicalName("last").get();
+    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getString()).get();
+
     when(preferences.getLastGameType()).thenReturn("last");
-    when(featuredModBean.getName()).thenReturn(null);
-    when(featuredModBean2.getName()).thenReturn("last");
+    when(gameService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
 
     instance.postConstruct();
 
-    onGameTypeAdded(featuredModBean);
-    onGameTypeAdded(featuredModBean2);
-
-    assertThat(instance.gameTypeListView.getSelectionModel().getSelectedItem(), is(featuredModBean2));
+    assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredModBean));
   }
 
   @Test

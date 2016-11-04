@@ -22,9 +22,9 @@
     <logger name="com.faforever.client.theme" level="info"/>
     <logger name="com.faforever.client.preferences" level="info"/>
     <logger name="com.faforever.client.io" level="debug"/>
-    <logger name="com.faforever.client.ice" level="debug"/>
+    <logger name="com.faforever.client.ice" level="info"/>
 
-    <logger name="faf-ice-adapter" level="debug"/>
+    <logger name="faf-ice-adapter" level="warn"/>
     <logger name="org.ice4j.stack" level="warn"/>
     <logger name="com.nbarraille.jjsonrpc" level="warn"/>
 

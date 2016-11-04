@@ -1,9 +1,6 @@
 package com.faforever.client.patch;
 
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Ref;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +10,6 @@ import java.nio.file.Path;
 import static com.github.nocatch.NoCatch.noCatch;
 import static org.eclipse.jgit.api.Git.cloneRepository;
 import static org.eclipse.jgit.api.Git.open;
-import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public class JGitWrapper implements GitWrapper {
 
@@ -27,35 +23,6 @@ public class JGitWrapper implements GitWrapper {
         .setURI(repositoryUri)
         .setDirectory(targetDirectory.toFile())
         .call());
-  }
-
-  @Override
-  public String getRemoteHead(Path repoDirectory) {
-    return noCatch(() -> {
-      Git git = open(repoDirectory.toFile());
-      String remoteHead = null;
-      for (Ref ref : git.lsRemote().call()) {
-        if (HEAD.equals(ref.getName())) {
-          remoteHead = ref.getObjectId().name();
-          break;
-        }
-      }
-      return remoteHead;
-    });
-  }
-
-  @Override
-  public String getLocalHead(Path repoDirectory) {
-    return noCatch(() -> {
-      Git git = open(repoDirectory.toFile());
-
-      ObjectId head = git.getRepository().resolve(HEAD);
-      if (head == null) {
-        return null;
-      }
-
-      return head.name();
-    });
   }
 
   @Override
@@ -82,10 +49,10 @@ public class JGitWrapper implements GitWrapper {
   }
 
   @Override
-  public void checkoutTag(Path repoDirectory, String tagName) {
+  public void checkoutRef(Path repoDirectory, String ref) {
     noCatch(() -> open(repoDirectory.toFile())
         .checkout()
-        .setName(tagName)
-        .getResult());
+        .setName(ref)
+        .call());
   }
 }

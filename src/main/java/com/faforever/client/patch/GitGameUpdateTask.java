@@ -3,9 +3,10 @@ package com.faforever.client.patch;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
-import com.google.common.base.Joiner;
+import com.faforever.client.util.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -20,12 +21,8 @@ import java.io.InputStreamReader;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
@@ -40,8 +37,6 @@ public class GitGameUpdateTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final ClassPathResource INIT_TEMPLATE = new ClassPathResource("/fa/init_template.lua");
-  private static final long TIMEOUT = 30;
-  private static final TimeUnit TIMEOUT_UNIT = TimeUnit.SECONDS;
 
   @Resource
   I18n i18n;
@@ -55,8 +50,9 @@ public class GitGameUpdateTask extends CompletableTask<Void> {
   ModService modService;
 
   private String gameRepositoryUri;
-  private String version;
   private Set<String> simMods;
+  private String ref;
+  private Path repositoryDirectory;
 
   public GitGameUpdateTask() {
     super(Priority.MEDIUM);
@@ -69,44 +65,39 @@ public class GitGameUpdateTask extends CompletableTask<Void> {
 
   @Override
   protected Void call() throws Exception {
-    logger.info("Updating game files to version: {}", Objects.toString(version, "latest"));
-
-    // FIXME derive from repository URI
-    Path gameRepositoryDirectory = preferencesService.getFafReposDirectory().resolve("faf");
+    logger.info("Updating game files from {}@{}", gameRepositoryUri, ref);
 
     copyGameFilesToFafBinDirectory();
-    generateInitFile(gameRepositoryDirectory);
+    generateInitFile(repositoryDirectory);
 
-    String ref;
-    if (version != null) {
-      ref = "refs/tags/" + version;
-    } else {
-      ref = "refs/heads/master";
-    }
-
-    checkout(gameRepositoryDirectory, gameRepositoryUri, ref);
+    checkout(repositoryDirectory, gameRepositoryUri, ref);
 
     logger.info("Downloading missing sim mods");
     downloadMissingSimMods();
     return null;
   }
 
-  private void checkout(Path gitRepoDir, String gitRepoUri, String ref) throws IOException {
+  private void checkout(Path gitRepoDir, String gitRepoUrl, String ref) throws IOException {
+    Assert.checkNullIllegalState(gitRepoDir, "Parameter 'gitRepoDir' must not be null");
+    Assert.checkNullIllegalState(gitRepoUrl, "Parameter 'gitRepoUrl' must not be null");
+    Assert.checkNullIllegalState(ref, "Parameter 'ref' must not be null");
+
+
     if (Files.notExists(gitRepoDir)) {
       Files.createDirectories(gitRepoDir.getParent());
-      gitWrapper.clone(gitRepoUri, gitRepoDir);
+      gitWrapper.clone(gitRepoUrl, gitRepoDir);
+    } else {
+      gitWrapper.clean(gitRepoDir);
+      gitWrapper.reset(gitRepoDir);
+      gitWrapper.fetch(gitRepoDir);
+      gitWrapper.checkoutRef(gitRepoDir, ref);
     }
-
-    gitWrapper.clean(gitRepoDir);
-    gitWrapper.reset(gitRepoDir);
-    gitWrapper.fetch(gitRepoDir);
-    gitWrapper.checkoutTag(gitRepoDir, ref);
   }
 
   private void generateInitFile(Path gameRepositoryDirectory) {
-    Path initFile = preferencesService.getFafBinDirectory().resolve("init.lua");
-    String faPath = preferencesService.getPreferences().getForgedAlliance().getPath().toAbsolutePath().toString();
-    List<String> mountPaths = Collections.singletonList(gameRepositoryDirectory.toAbsolutePath().toString());
+    Path initFile = preferencesService.getFafBinDirectory().resolve(ForgedAlliancePrefs.INIT_FILE_NAME);
+    String faPath = preferencesService.getPreferences().getForgedAlliance().getPath().toAbsolutePath().toString().replaceAll("[/\\\\]", "\\\\\\\\");
+    String mountPath = gameRepositoryDirectory.toAbsolutePath().toString().replaceAll("[/\\\\]", "\\\\\\\\");
 
     logger.debug("Generating init file at {}", initFile);
 
@@ -115,8 +106,8 @@ public class GitGameUpdateTask extends CompletableTask<Void> {
            BufferedWriter writer = Files.newBufferedWriter(initFile, UTF_8)) {
         String line;
         while ((line = reader.readLine()) != null) {
-          line = line.replace("{{fa_path}}", faPath);
-          writer.write(line.replace("{{mount_dirs}}", Joiner.on(',').join(mountPaths) + "\r\n"));
+          line = line.replace("((fa_path))", faPath);
+          writer.write(line.replace("((mount_dirs))", String.format("'%s'", mountPath)) + "\r\n");
         }
       }
     });
@@ -148,28 +139,31 @@ public class GitGameUpdateTask extends CompletableTask<Void> {
         });
   }
 
-  public void setVersion(String version) {
-    this.version = version;
-  }
-
   private void downloadMissingSimMods() throws InterruptedException, ExecutionException, TimeoutException, IOException {
-    Set<String> uidsOfRequiredSimMods = simMods;
-    if (uidsOfRequiredSimMods.isEmpty()) {
+    if (simMods == null || simMods.isEmpty()) {
       return;
     }
 
     Set<String> uidsOfInstalledMods = modService.getInstalledModUids();
-    uidsOfRequiredSimMods.stream()
+    simMods.stream()
         .filter(uid -> !uidsOfInstalledMods.contains(uid))
         .collect(Collectors.toSet())
         .forEach(uid -> modService.downloadAndInstallMod(uid));
   }
 
-  public void setGameRepositoryUri(String gameRepositoryUri) {
+  public void setGameRepositoryUrl(String gameRepositoryUri) {
     this.gameRepositoryUri = gameRepositoryUri;
   }
 
   public void setSimMods(Set<String> simMods) {
     this.simMods = simMods;
+  }
+
+  public void setRef(String ref) {
+    this.ref = ref;
+  }
+
+  public void setRepositoryDirectory(Path repositoryDirectory) {
+    this.repositoryDirectory = repositoryDirectory;
   }
 }

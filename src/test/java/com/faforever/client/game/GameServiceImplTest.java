@@ -13,8 +13,6 @@ import com.faforever.client.relay.event.RehostRequestEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.FeaturedModMessage;
-import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.eventbus.EventBus;
@@ -22,7 +20,6 @@ import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +31,6 @@ import org.springframework.util.ReflectionUtils;
 
 import java.net.InetSocketAddress;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
@@ -51,6 +47,7 @@ import static com.faforever.client.remote.domain.GameState.OPEN;
 import static com.faforever.client.remote.domain.GameState.PLAYING;
 import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -59,7 +56,6 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
-import static org.hamcrest.collection.IsEmptyCollection.emptyCollectionOf;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
@@ -115,8 +111,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   @Captor
   private ArgumentCaptor<ListChangeListener.Change<? extends GameInfoBean>> gameInfoBeanChangeListenerCaptor;
   @Captor
-  private ArgumentCaptor<Consumer<FeaturedModMessage>> gameTypeMessageListenerCaptor;
-  @Captor
   private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
 
   @Before
@@ -140,6 +134,10 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayService.startReplayServer(anyInt())).thenReturn(CompletableFuture.completedFuture(null));
     when(iceAdapter.start()).thenReturn(CompletableFuture.completedFuture(GPG_PORT));
+    when(fafService.getFeaturedMods()).thenReturn(completedFuture(asList(
+        FeaturedModBeanBuilder.create().defaultValues().get(),
+        FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.LADDER_1V1.getString()).get()
+    )));
 
     doAnswer(invocation -> {
       try {
@@ -152,14 +150,12 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.postConstruct();
 
-    verify(fafService).addOnMessageListener(eq(FeaturedModMessage.class), gameTypeMessageListenerCaptor.capture());
     verify(fafService).addOnMessageListener(eq(GameInfoMessage.class), gameInfoMessageListenerCaptor.capture());
   }
 
   @Test
   @SuppressWarnings("unchecked")
   public void postConstruct() {
-    verify(fafService).addOnMessageListener(eq(FeaturedModMessage.class), any(Consumer.class));
     verify(fafService).addOnMessageListener(eq(GameInfoMessage.class), any(Consumer.class));
   }
 
@@ -175,7 +171,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameInfoBean.setMapFolderName("map");
 
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
-    InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
     when(mapService.isInstalled("map")).thenReturn(true);
     when(fafService.requestJoinGame(gameInfoBean.getUid(), null)).thenReturn(completedFuture(gameLaunchMessage));
@@ -189,50 +184,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testNoGameTypes() throws Exception {
-    List<FeaturedModBean> gameTypes = instance.getGameTypes();
-
-    assertThat(gameTypes, emptyCollectionOf(FeaturedModBean.class));
-    assertThat(gameTypes, hasSize(0));
-  }
-
-  @Test
-  public void testGameTypeIsOnlyAddedOnce() throws Exception {
-    FeaturedModMessage featuredModMessage = GameTypeInfoBuilder.create().defaultValues().get();
-    gameTypeMessageListenerCaptor.getValue().accept(featuredModMessage);
-    gameTypeMessageListenerCaptor.getValue().accept(featuredModMessage);
-
-    List<FeaturedModBean> gameTypes = instance.getGameTypes();
-
-    assertThat(gameTypes, hasSize(1));
-  }
-
-  @Test
-  public void testDifferentGameTypes() throws Exception {
-    FeaturedModMessage featuredModMessage1 = GameTypeInfoBuilder.create().defaultValues().get();
-    FeaturedModMessage featuredModMessage2 = GameTypeInfoBuilder.create().defaultValues().get();
-
-    featuredModMessage1.setName("number1");
-    featuredModMessage2.setName("number2");
-
-    gameTypeMessageListenerCaptor.getValue().accept(featuredModMessage1);
-    gameTypeMessageListenerCaptor.getValue().accept(featuredModMessage2);
-
-    List<FeaturedModBean> gameTypes = instance.getGameTypes();
-
-    assertThat(gameTypes, hasSize(2));
-  }
-
-  @Test
-  public void testAddOnGameTypeInfoListener() throws Exception {
-    @SuppressWarnings("unchecked")
-    MapChangeListener<String, FeaturedModBean> listener = mock(MapChangeListener.class);
-    instance.addOnGameTypesChangeListener(listener);
-
-    gameTypeMessageListenerCaptor.getValue().accept(GameTypeInfoBuilder.create().defaultValues().get());
-  }
-
-  @Test
   @SuppressWarnings("unchecked")
   public void testAddOnGameStartedListener() throws Exception {
     Process process = mock(Process.class);
@@ -242,7 +193,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     gameLaunchMessage.setArgs(asList("/foo bar", "/bar foo"));
 
     when(forgedAllianceService.startGame(
-        gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL, GPG_PORT, false)
+        gameLaunchMessage.getUid(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL, GPG_PORT, false)
     ).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
@@ -271,7 +222,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     gameTerminatedLatch.await(TIMEOUT, TIME_UNIT);
     verify(forgedAllianceService).startGame(
-        gameLaunchMessage.getUid(), gameLaunchMessage.getMod(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL,
+        gameLaunchMessage.getUid(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL,
         GPG_PORT, false);
     verify(replayService).startReplayServer(gameLaunchMessage.getUid());
   }
@@ -407,10 +358,13 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setMod("ladder1v1");
     gameLaunchMessage.setUid(123);
-    gameLaunchMessage.setArgs(Collections.emptyList());
+    gameLaunchMessage.setArgs(emptyList());
     gameLaunchMessage.setMapname("scmp_037");
+
+    FeaturedModBean featuredMod = new FeaturedModBean();
+
     when(fafService.startSearchRanked1v1(CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
-    when(gameUpdateService.updateInBackground(FeaturedMod.LADDER_1V1.getString(), null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
+    when(gameUpdateService.updateInBackground(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
     when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
     when(mapService.isInstalled("scmp_037")).thenReturn(false);
     when(mapService.download("scmp_037")).thenReturn(CompletableFuture.completedFuture(null));
@@ -420,7 +374,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     verify(fafService).startSearchRanked1v1(CYBRAN, GAME_PORT);
     verify(mapService).download("scmp_037");
     verify(replayService).startReplayServer(123);
-    verify(forgedAllianceService, timeout(100)).startGame(eq(123), eq("ladder1v1"), eq(CYBRAN), eq(asList("/team", "1", "/players", "2")), eq(RANKED_1V1), anyInt(), eq(false));
+    verify(forgedAllianceService, timeout(100)).startGame(eq(123), eq(CYBRAN), eq(asList("/team", "1", "/players", "2")), eq(RANKED_1V1), anyInt(), eq(false));
     assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
   }
 
@@ -433,7 +387,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
-    when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), any(), anyInt(), eq(false))).thenReturn(process);
+    when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), anyInt(), eq(false))).thenReturn(process);
     when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
 
@@ -469,44 +423,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void testAddOnGameInfoBeanListener() throws Exception {
-    ListChangeListener<GameInfoBean> listener = mock(ListChangeListener.class);
-    instance.addOnGameInfoBeansChangeListener(listener);
-
-    GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1).defaultValues()
-        .host("host")
-        .title("title")
-        .mapName("mapName")
-        .featuredMod("mod")
-        .numPlayers(2)
-        .maxPlayers(4)
-        .gameType(VictoryCondition.DOMINATION)
-        .state(PLAYING)
-        .passwordProtected(false)
-        .get();
-
-    gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
-
-    verify(listener).onChanged(gameInfoBeanChangeListenerCaptor.capture());
-
-    ListChangeListener.Change<? extends GameInfoBean> change = gameInfoBeanChangeListenerCaptor.getValue();
-    assertThat(change.next(), is(true));
-    List<? extends GameInfoBean> addedSubList = change.getAddedSubList();
-    assertThat(addedSubList, hasSize(1));
-
-    GameInfoBean gameInfoBean = addedSubList.get(0);
-    assertThat(gameInfoBean.getUid(), is(1));
-    assertThat(gameInfoBean.getHost(), is("host"));
-    assertThat(gameInfoBean.getTitle(), is("title"));
-    assertThat(gameInfoBean.getNumPlayers(), is(2));
-    assertThat(gameInfoBean.getMaxPlayers(), is(4));
-    assertThat(gameInfoBean.getFeaturedMod(), is("mod"));
-    assertThat(gameInfoBean.getVictoryCondition(), is(VictoryCondition.DOMINATION));
-    assertThat(gameInfoBean.getStatus(), is(PLAYING));
-  }
-
-  @Test
   public void testSubscribeEventBus() throws Exception {
     verify(eventBus).register(instance);
 
@@ -525,7 +441,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.onRehostRequest(new RehostRequestEvent());
 
-    verify(forgedAllianceService).startGame(anyInt(), eq("faf"), eq(null), anyListOf(String.class), eq(GLOBAL), anyInt(), eq(true));
+    verify(forgedAllianceService).startGame(anyInt(), eq(null), anyListOf(String.class), eq(GLOBAL), anyInt(), eq(true));
   }
 
   @Test
@@ -540,6 +456,6 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     instance.onRehostRequest(new RehostRequestEvent());
 
-    verify(forgedAllianceService, never()).startGame(anyInt(), any(), any(), any(), any(), anyInt(), anyBoolean());
+    verify(forgedAllianceService, never()).startGame(anyInt(), any(), any(), any(), anyInt(), anyBoolean());
   }
 }

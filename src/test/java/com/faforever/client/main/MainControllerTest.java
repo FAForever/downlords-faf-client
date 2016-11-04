@@ -253,7 +253,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
     when(mainWindowPrefs.getLastView()).thenReturn(instance.newsButton.getId());
 
-    verify(gameUpdateService).checkForUpdateInBackground();
     assertTrue(getStage().isShowing());
   }
 

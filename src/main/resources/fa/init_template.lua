@@ -1,5 +1,5 @@
 -- TODO this file can surely be reduced, but for now I don't want to risk breaking anything so I keep it as-is.
-fa_path = '{{fa_path}}'
+fa_path = '((fa_path))'
 
 path = {}
 blacklist = {
@@ -97,7 +97,7 @@ local function mount_dir_with_whitelist(dir, glob)
                 notsafe = notsafe and (string.find(mp, white, 1) == nil)
             end
             if notsafe then
-                LOG('not safe ' .. dir .. entry)
+                LOG('Not in whitelist: ' .. dir .. entry)
             else
                 table.insert(sorted, dir .. entry)
             end
@@ -120,7 +120,7 @@ local function mount_dir_with_blacklist(dir, glob)
             if safe then
                 table.insert(sorted, dir .. entry)
             else
-                LOG('not safe ' .. dir .. entry)
+                LOG('Blacklisted: ' .. dir .. entry)
             end
         end
     end
@@ -183,8 +183,8 @@ mount_dir_with_whitelist(InitFileDir .. '\\..\\gamedata\\', '*.nxt', '/')
 mount_dir_with_whitelist(InitFileDir .. '\\..\\gamedata\\', '*.nx2', '/')
 
 
-for path in { { mount_dirs } } do
-    mount_dir(path, '/')
+for _, dir in { ((mount_dirs)) } do
+    mount_dir(dir, '/')
 end
 
 

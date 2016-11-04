@@ -56,8 +56,8 @@ public class GameStatusTooltipController {
 
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
     gameTypeLabel.textProperty().bind(Bindings.createStringBinding(() -> {
-      FeaturedModBean gameType = gameService.getGameTypeByString(gameInfoBean.getFeaturedMod());
-      String fullName = gameType != null ? gameType.getFullName() : null;
+      FeaturedModBean gameType = gameService.getFeaturedMod(gameInfoBean.getFeaturedMod()).get();
+      String fullName = gameType != null ? gameType.getDisplayName() : null;
       return StringUtils.defaultString(fullName);
     }, gameInfoBean.featuredModProperty()));
 

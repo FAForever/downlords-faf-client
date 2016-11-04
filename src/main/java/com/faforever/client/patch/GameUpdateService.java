@@ -1,5 +1,7 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.game.FeaturedModBean;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
@@ -11,7 +13,5 @@ public interface GameUpdateService {
    * to.
    * @param simModUids a list of sim mod UIDs to update
    */
-  CompletionStage<Void> updateInBackground(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUids);
-
-  CompletionStage<Void> checkForUpdateInBackground();
+  CompletionStage<Void> updateInBackground(FeaturedModBean featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simModUids);
 }

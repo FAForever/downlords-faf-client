@@ -97,7 +97,7 @@
               GridPane.rowIndex="5" GridPane.rowSpan="3" GridPane.vgrow="ALWAYS"/>
     <Button mnemonicParsing="false" onAction="#onSelectDefaultGameTypeButtonClicked" text="%game.create.defaultGameType"
             GridPane.halignment="CENTER" GridPane.rowIndex="8"/>
-    <ListView fx:id="gameTypeListView" prefHeight="100.0" GridPane.rowIndex="5" GridPane.rowSpan="3"/>
+      <ListView fx:id="featuredModListView" prefHeight="100.0" GridPane.rowIndex="5" GridPane.rowSpan="3"/>
     <HBox alignment="CENTER" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="8">
       <children>
         <Button mnemonicParsing="false" onAction="#onDeselectModsButtonClicked" text="%game.create.deselectAll"/>

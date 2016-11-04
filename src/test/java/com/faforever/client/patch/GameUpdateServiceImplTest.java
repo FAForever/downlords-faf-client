@@ -1,6 +1,7 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.game.FeaturedMod;
+import com.faforever.client.game.FeaturedModBean;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -73,12 +74,12 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
 
     when(legacyGameUpdateTask.getFuture()).thenReturn(completedFuture(null));
 
-    instance.updateInBackground(FeaturedMod.DEFAULT.getString(), null, emptyMap(), emptySet())
+    instance.updateInBackground(featuredMod(KnownFeaturedMod.DEFAULT), null, emptyMap(), emptySet())
         .toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     verify(taskService).submitTask(legacyGameUpdateTask);
 
-    verify(legacyGameUpdateTask).setGameType(FeaturedMod.DEFAULT.getString());
+    verify(legacyGameUpdateTask).setFeaturedMod(KnownFeaturedMod.DEFAULT.getString());
     verify(legacyGameUpdateTask).setModVersions(eq(emptyMap()));
     verify(legacyGameUpdateTask).setSimMods(eq(emptySet()));
   }
@@ -88,7 +89,7 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getFafBinDirectory()).thenReturn(null);
     when(forgedAlliancePrefs.getPath()).thenReturn(null);
 
-    instance.updateInBackground(FeaturedMod.DEFAULT.getString(), null, emptyMap(), emptySet())
+    instance.updateInBackground(featuredMod(KnownFeaturedMod.DEFAULT), null, emptyMap(), emptySet())
         .toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     verifyZeroInteractions(taskService);
@@ -103,14 +104,15 @@ public class GameUpdateServiceImplTest extends AbstractPlainJavaFxTest {
 
     when(legacyGameUpdateTask.isDone()).thenReturn(false);
 
-    instance.updateInBackground(FeaturedMod.DEFAULT.getString(), null, emptyMap(), emptySet()).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
-    instance.updateInBackground(FeaturedMod.DEFAULT.getString(), null, emptyMap(), emptySet()).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
+    instance.updateInBackground(featuredMod(KnownFeaturedMod.DEFAULT), null, emptyMap(), emptySet()).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
+    instance.updateInBackground(featuredMod(KnownFeaturedMod.DEFAULT), null, emptyMap(), emptySet()).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     verify(taskService, only()).submitTask(legacyGameUpdateTask);
   }
 
-  @Test
-  public void testCheckForUpdateInBackground() throws Exception {
-    instance.checkForUpdateInBackground();
+  private FeaturedModBean featuredMod(KnownFeaturedMod knownFeaturedMod) {
+    FeaturedModBean featuredModBean = new FeaturedModBean();
+    featuredModBean.setTechnicalName(knownFeaturedMod.getString());
+    return featuredModBean;
   }
 }

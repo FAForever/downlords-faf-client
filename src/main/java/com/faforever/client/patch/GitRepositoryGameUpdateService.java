@@ -1,26 +1,27 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.game.FeaturedMod;
+import com.faforever.client.game.FeaturedModBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.task.TaskService;
+import com.google.common.eventbus.EventBus;
+import com.google.common.hash.Hashing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+
+import static com.faforever.client.notification.Severity.WARN;
+import static java.util.Collections.singletonList;
 
 public class GitRepositoryGameUpdateService extends AbstractUpdateService implements GameUpdateService {
 
@@ -35,78 +36,43 @@ public class GitRepositoryGameUpdateService extends AbstractUpdateService implem
   GitWrapper gitWrapper;
   @Resource
   ApplicationContext applicationContext;
-  /**
-   * Path to the local binary-patch Git repository.
-   */
-  private Path gameRepositoryDirectory;
+  @Resource
+  EventBus eventBus;
 
   @Override
   protected boolean checkDirectories() {
     return super.checkDirectories();
   }
 
-  @PostConstruct
-  void postConstruct() {
-    gameRepositoryDirectory = preferencesService.getFafReposDirectory().resolve("faf");
-  }
-
   @Override
-  public CompletionStage<Void> updateInBackground(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUids) {
+  public CompletionStage<Void> updateInBackground(FeaturedModBean featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simModUids) {
     if (!checkDirectories()) {
       logger.warn("Aborted patching since directories aren't initialized properly");
       return CompletableFuture.completedFuture(null);
     }
 
+    String repoDirName = Hashing.md5().hashString(featuredMod.getGitUrl(), StandardCharsets.UTF_8).toString();
+
     GitGameUpdateTask task = applicationContext.getBean(GitGameUpdateTask.class);
-    task.setVersion(String.valueOf(version));
     task.setSimMods(simModUids);
-    // FIXME get from API
-    task.setGameRepositoryUri("https://github.com/FAForever/fa.git");
+    task.setRepositoryDirectory(preferencesService.getFafReposDirectory().resolve(repoDirName));
+    task.setGameRepositoryUrl(featuredMod.getGitUrl());
 
-    return taskService.submitTask(task).getFuture().exceptionally(throwable -> {
-      notificationService.addNotification(
-          new PersistentNotification(
-              i18n.get("updateFailed.notification"),
-              Severity.WARN,
-              Collections.singletonList(
-                  new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdateInBackground())
-              )
-          )
-      );
-      return null;
-    });
-  }
+    if (version != null) {
+      task.setRef("refs/tags/" + version);
+    } else {
+      task.setRef("refs/remotes/origin/" + featuredMod.getGitBranch());
+    }
 
-  @Override
-  public CompletionStage<Void> checkForUpdateInBackground() {
-    GitCheckGameUpdateTask task = applicationContext.getBean(GitCheckGameUpdateTask.class);
-    task.setGameRepositoryDirectory(gameRepositoryDirectory);
-
-    return taskService.submitTask(task).getFuture().thenAccept(needsPatching -> {
-      if (needsPatching) {
-        notificationService.addNotification(
-            new PersistentNotification(
-                i18n.get("faUpdateAvailable.notification"),
-                Severity.INFO,
-                Arrays.asList(
-                    new Action(i18n.get("faUpdateAvailable.updateLater")),
-                    new Action(i18n.get("faUpdateAvailable.updateNow"),
-                        event -> updateInBackground(FeaturedMod.DEFAULT.getString(), null, null, null))
+    return taskService.submitTask(task).getFuture()
+        .whenComplete((aVoid, throwable) -> {
+          if (throwable != null) {
+            notificationService.addNotification(
+                new PersistentNotification(i18n.get("updateFailed.notification"), WARN,
+                    singletonList(new Action(i18n.get("updateFailed.retry"), event -> updateInBackground(featuredMod, version, modVersions, simModUids)))
                 )
-            )
-        );
-      }
-    }).exceptionally(throwable -> {
-      notificationService.addNotification(
-          new PersistentNotification(
-              i18n.get("updateCheckFailed.notification"),
-              Severity.WARN,
-              Collections.singletonList(
-                  new Action(i18n.get("updateCheckFailed.retry"), event -> checkForUpdateInBackground())
-              )
-          )
-      );
-      return null;
-    });
+            );
+          }
+        });
   }
 }

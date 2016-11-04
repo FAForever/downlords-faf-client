@@ -12,7 +12,6 @@ public enum FafServerMessageType implements ServerMessageType {
   GAME_INFO("game_info", GameInfoMessage.class),
   PLAYER_INFO("player_info", PlayersMessage.class),
   GAME_LAUNCH("game_launch", GameLaunchMessage.class),
-  GAME_TYPE_INFO("mod_info", FeaturedModMessage.class),
   MATCHMAKER_INFO("matchmaker_info", MatchmakerMessage.class),
   SOCIAL("social", SocialMessage.class),
   AUTHENTICATION_FAILED("authentication_failed", AuthenticationFailedMessage.class),

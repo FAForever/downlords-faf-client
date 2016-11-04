@@ -25,6 +25,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -86,7 +87,7 @@ public class PlayerServiceImpl implements PlayerService {
       }
     });
 
-    gameService.addOnGameInfoBeansChangeListener(listChange -> {
+    gameService.getGameInfoBeans().addListener((ListChangeListener<? super GameInfoBean>) listChange -> {
       while (listChange.next()) {
         for (GameInfoBean gameInfoBean : listChange.getRemoved()) {
           updateGameStateForPlayers(gameInfoBean);

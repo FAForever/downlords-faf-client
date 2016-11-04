@@ -1,6 +1,7 @@
 package com.faforever.client.fa;
 
 import com.faforever.client.game.Faction;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import org.springframework.util.StringUtils;
 
 import java.net.URI;
@@ -28,7 +29,6 @@ public class LaunchCommandBuilder {
   private Path replayFile;
   private Integer replayId;
   private URI replayUri;
-  private String gameType;
   private Faction faction;
   private String executableDecorator;
   private boolean rehost;
@@ -115,11 +115,6 @@ public class LaunchCommandBuilder {
     return this;
   }
 
-  public LaunchCommandBuilder gameType(String gameType) {
-    this.gameType = gameType;
-    return this;
-  }
-
   public LaunchCommandBuilder faction(Faction faction) {
     this.faction = faction;
     return this;
@@ -137,9 +132,6 @@ public class LaunchCommandBuilder {
     if (executable == null) {
       throw new IllegalStateException("executable has not been set");
     }
-    if (gameType == null) {
-      throw new IllegalStateException("gameType has not been set");
-    }
     if (replayUri != null && uid != null) {
       throw new IllegalStateException("uid and replayUri cannot be set at the same time");
     }
@@ -151,7 +143,7 @@ public class LaunchCommandBuilder {
     List<String> command = new ArrayList<>();
     command.addAll(split(String.format(executableDecorator, executable.toAbsolutePath().toString())));
     command.addAll(Arrays.asList(
-        "/init", String.format("init_%s.lua", gameType),
+        "/init", ForgedAlliancePrefs.INIT_FILE_NAME,
         "/nobugreport"
     ));
 

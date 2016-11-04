@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
@@ -127,8 +126,6 @@ public class ChatController {
   }
 
   private AbstractChatTabController getOrCreateChannelTab(String channelName) {
-    JavaFxUtil.assertApplicationThread();
-
     if (!nameToChatTabController.containsKey(channelName)) {
       ChannelTabController tab = applicationContext.getBean(ChannelTabController.class);
       tab.setChannel(chatService.getOrCreateChannel(channelName));

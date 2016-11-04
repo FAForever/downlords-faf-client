@@ -26,7 +26,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   PlayerService playerService;
 
   @Override
-  public Process startGame(int uid, @NotNull String gameType, @Nullable Faction faction, @Nullable List<String> additionalArgs, RatingMode ratingMode, int gpgPort, boolean rehost) throws IOException {
+  public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs, RatingMode ratingMode, int gpgPort, boolean rehost) throws IOException {
     Path executable = getExecutable();
 
     PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
@@ -47,7 +47,6 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
     List<String> launchCommand = LaunchCommandBuilder.create()
         .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator())
         .executable(executable)
-        .gameType(gameType)
         .uid(uid)
         .faction(faction)
         .clan(currentPlayer.getClan())
@@ -65,7 +64,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   }
 
   @Override
-  public Process startReplay(Path path, @Nullable Integer replayId, @NotNull String gameType) throws IOException {
+  public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
     Path executable = getExecutable();
 
     List<String> launchCommand = LaunchCommandBuilder.create()
@@ -73,14 +72,13 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .replayFile(path)
         .replayId(replayId)
         .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
-        .gameType(gameType)
         .build();
 
     return launch(executable, launchCommand);
   }
 
   @Override
-  public Process startReplay(URI replayUri, Integer replayId, String gameType) throws IOException {
+  public Process startReplay(URI replayUri, Integer replayId) throws IOException {
     Path executable = getExecutable();
 
     PlayerInfoBean currentPlayer = playerService.getCurrentPlayer();
@@ -89,7 +87,6 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .replayUri(replayUri)
         .replayId(replayId)
         .logFile(preferencesService.getFafLogDirectory().resolve("replay.log"))
-        .gameType(gameType)
         .username(currentPlayer.getUsername())
         .build();
 

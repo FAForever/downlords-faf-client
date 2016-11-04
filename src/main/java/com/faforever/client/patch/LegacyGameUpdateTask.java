@@ -41,8 +41,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.game.FeaturedMod.FAF;
-import static com.faforever.client.game.FeaturedMod.LADDER_1V1;
+import static com.faforever.client.game.KnownFeaturedMod.FAF;
+import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
 import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
 import static javafx.collections.FXCollections.observableArrayList;
@@ -66,7 +66,7 @@ public class LegacyGameUpdateTask extends CompletableTask<Void> implements Updat
   @Resource
   Environment environment;
   private String targetDirectoryName;
-  private String gameType;
+  private String featuredMod;
   private Set<String> simMods;
   private Map<String, Integer> modVersions;
   private int numberOfFilesToUpdate;
@@ -89,14 +89,14 @@ public class LegacyGameUpdateTask extends CompletableTask<Void> implements Updat
     modService.enableSimMods(simMods);
 
     try {
-      if (FAF.getString().equals(gameType) || LADDER_1V1.getString().equals(gameType)) {
+      if (FAF.getString().equals(featuredMod) || LADDER_1V1.getString().equals(featuredMod)) {
         updateFiles("bin", "FAF");
         updateFiles("gamedata", "FAFGAMEDATA");
       } else {
         updateFiles("bin", "FAF");
         updateFiles("gamedata", "FAFGAMEDATA");
-        updateFiles("bin", gameType);
-        updateFiles("gamedata", gameType + "GameData");
+        updateFiles("bin", featuredMod);
+        updateFiles("gamedata", featuredMod + "GameData");
       }
     } catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
       notificationService.addNotification(
@@ -176,7 +176,7 @@ public class LegacyGameUpdateTask extends CompletableTask<Void> implements Updat
     });
     filesUpdatedLatch.await();
 
-    logger.debug("File group '{}' for game type '{}' has been updated", fileGroup, gameType);
+    logger.debug("File group '{}' for game type '{}' has been updated", fileGroup, featuredMod);
   }
 
   private void downloadMod(String uid) {
@@ -206,7 +206,7 @@ public class LegacyGameUpdateTask extends CompletableTask<Void> implements Updat
 
         if (Files.notExists(fileToPatch)) {
           if (gameVersion != null) {
-            if (FAF.getString().equals(gameType) || LADDER_1V1.getString().equals(gameType) || fileGroup.equals("FAF") || fileGroup.equals("FAFGAMEDATA")) {
+            if (FAF.getString().equals(featuredMod) || LADDER_1V1.getString().equals(featuredMod) || fileGroup.equals("FAF") || fileGroup.equals("FAFGAMEDATA")) {
               updateServerAccessor.requestVersion(targetDirectoryName, filename, gameVersion);
             } else {
               updateServerAccessor.requestModVersion(targetDirectoryName, filename, modVersions);
@@ -217,7 +217,7 @@ public class LegacyGameUpdateTask extends CompletableTask<Void> implements Updat
         } else {
           String currentMd5 = com.google.common.io.Files.hash(fileToPatch.toFile(), Hashing.md5()).toString();
           if (gameVersion != null) {
-            if (FAF.getString().equals(gameType) || LADDER_1V1.getString().equals(gameType) || fileGroup.equals("FAF") || fileGroup.equals("FAFGAMEDATA")) {
+            if (FAF.getString().equals(featuredMod) || LADDER_1V1.getString().equals(featuredMod) || fileGroup.equals("FAF") || fileGroup.equals("FAFGAMEDATA")) {
               updateServerAccessor.patchTo(targetDirectoryName, filename, currentMd5, gameVersion);
             } else {
               updateServerAccessor.modPatchTo(targetDirectoryName, filename, currentMd5, modVersions);
@@ -336,8 +336,8 @@ public class LegacyGameUpdateTask extends CompletableTask<Void> implements Updat
     this.modVersions = modVersions;
   }
 
-  public void setGameType(@NotNull String gameType) {
-    this.gameType = gameType;
+  public void setFeaturedMod(@NotNull String featuredMod) {
+    this.featuredMod = featuredMod;
   }
 
   public void setGameVersion(String gameVersion) {

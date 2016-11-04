@@ -19,7 +19,6 @@ import com.faforever.client.remote.domain.ClientMessageType;
 import com.faforever.client.remote.domain.FafServerMessage;
 import com.faforever.client.remote.domain.FafServerMessageType;
 import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.FeaturedModMessage;
 import com.faforever.client.remote.domain.InitSessionMessage;
 import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
@@ -64,10 +63,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
@@ -77,7 +73,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -253,44 +248,6 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
   private void sendFromServer(FafServerMessage fafServerMessage) throws InterruptedException {
     serverToClientReadyLatch.await();
     serverToClientWriter.write(fafServerMessage);
-  }
-
-  @Test
-  public void testAddOnGameTypeInfoListener() throws Exception {
-    connectAndLogIn();
-
-    CompletableFuture<FeaturedModMessage> gameTypeInfoFuture = new CompletableFuture<>();
-    @SuppressWarnings("unchecked")
-    Consumer<FeaturedModMessage> listener = mock(Consumer.class);
-    doAnswer(invocation -> {
-      gameTypeInfoFuture.complete(invocation.getArgumentAt(0, FeaturedModMessage.class));
-      return null;
-    }).when(listener).accept(any());
-
-    instance.addOnMessageListener(FeaturedModMessage.class, listener);
-
-    String name = "test";
-    String fullname = "Test game type";
-    String description = "Game type description";
-    String icon = "what";
-    Boolean[] options = new Boolean[]{TRUE, FALSE, TRUE};
-
-    FeaturedModMessage featuredModMessage = new FeaturedModMessage();
-    featuredModMessage.setName(name);
-    featuredModMessage.setFullname(fullname);
-    featuredModMessage.setDesc(description);
-    featuredModMessage.setIcon(icon);
-    featuredModMessage.setOptions(options);
-
-    sendFromServer(featuredModMessage);
-
-    FeaturedModMessage result = gameTypeInfoFuture.get(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(result.getName(), is(name));
-    assertThat(result.getFullname(), is(fullname));
-    assertThat(result.getMessageType(), is(FafServerMessageType.GAME_TYPE_INFO));
-    assertThat(result.getDesc(), is(description));
-    assertThat(result.getIcon(), is(icon));
-    assertThat(result.getOptions(), is(options));
   }
 
   private void connectAndLogIn() throws Exception {

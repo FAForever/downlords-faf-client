@@ -9,6 +9,7 @@ import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.game.Faction;
+import com.faforever.client.game.FeaturedModBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
@@ -23,7 +24,6 @@ import com.faforever.client.remote.domain.ServerMessage;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -151,7 +151,6 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  @Cacheable(CacheNames.MAPS)
   public List<MapBean> getMaps() {
     return fafApiAccessor.getMaps();
   }
@@ -162,7 +161,6 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  @Cacheable(CacheNames.MODS)
   public List<ModInfoBean> getMods() {
     return fafApiAccessor.getMods();
   }
@@ -217,7 +215,6 @@ public class FafServiceImpl implements FafService {
     // Nothing to see, please move along
   }
 
-  @Cacheable(CacheNames.RATING_HISTORY)
   @Override
   public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(RatingType ratingType, int playerId) {
     return CompletableFuture.supplyAsync(() -> fafApiAccessor.getRatingHistory(ratingType, playerId)
@@ -232,5 +229,14 @@ public class FafServiceImpl implements FafService {
   @Override
   public void sendSdp(int remotePlayerId, String sdp) {
     fafServerAccessor.sendGpgMessage(new SdpRecordClientMessage(remotePlayerId, sdp));
+  }
+
+  @Override
+  public CompletableFuture<List<FeaturedModBean>> getFeaturedMods() {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getFeaturedMods())
+        .thenApply(featuredMods -> featuredMods.stream()
+            .sorted((o1, o2) -> Integer.compare(o1.getDisplayOrder(), o2.getDisplayOrder()))
+            .map(FeaturedModBean::fromFeaturedMod)
+            .collect(Collectors.toList()));
   }
 }

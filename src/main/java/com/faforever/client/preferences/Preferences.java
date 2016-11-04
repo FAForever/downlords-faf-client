@@ -1,6 +1,6 @@
 package com.faforever.client.preferences;
 
-import com.faforever.client.game.FeaturedMod;
+import com.faforever.client.game.KnownFeaturedMod;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
@@ -41,7 +41,7 @@ public class Preferences {
     mainWindow = new WindowPrefs();
     forgedAlliance = new ForgedAlliancePrefs();
     themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
-    lastGameType = new SimpleStringProperty(FeaturedMod.DEFAULT.getString());
+    lastGameType = new SimpleStringProperty(KnownFeaturedMod.DEFAULT.getString());
     ignoredNotifications = new SimpleListProperty<>(observableArrayList());
     notification = new NotificationsPrefs();
     rememberLastTab = new SimpleBooleanProperty(true);

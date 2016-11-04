@@ -20,6 +20,7 @@ public class ForgedAlliancePrefs {
   public static final Path GPG_FA_PATH;
   public static final Path STEAM_FA_PATH;
   public static final Path LOCAL_FA_DATA_PATH;
+  public static final String INIT_FILE_NAME = "init.lua";
 
   static {
     switch (OperatingSystem.current()) {

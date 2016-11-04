@@ -1,13 +1,13 @@
 package com.faforever.client.game;
 
-import com.faforever.client.remote.domain.FeaturedModMessage;
+import com.faforever.client.api.FeaturedMod;
 
 public class GameTypeInfoBuilder {
 
-  private final FeaturedModMessage featuredModMessage;
+  private final FeaturedMod featuredMod;
 
   public GameTypeInfoBuilder() {
-    featuredModMessage = new FeaturedModMessage();
+    featuredMod = new FeaturedMod();
   }
 
   public static GameTypeInfoBuilder create() {
@@ -15,16 +15,13 @@ public class GameTypeInfoBuilder {
   }
 
   public GameTypeInfoBuilder defaultValues() {
-    featuredModMessage.setDesc("Description");
-    featuredModMessage.setFullname("Full name");
-    featuredModMessage.setIcon("icon");
-    featuredModMessage.setJoin(true);
-    featuredModMessage.setPublish(true);
-    featuredModMessage.setOptions(new Boolean[0]);
+    featuredMod.setDescription("Description");
+    featuredMod.setDisplayName("Full name");
+    featuredMod.setVisible(true);
     return this;
   }
 
-  public FeaturedModMessage get() {
-    return featuredModMessage;
+  public FeaturedMod get() {
+    return featuredMod;
   }
 }

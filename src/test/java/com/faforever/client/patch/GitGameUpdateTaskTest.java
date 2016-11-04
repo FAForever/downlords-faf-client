@@ -52,9 +52,9 @@ public class GitGameUpdateTaskTest extends AbstractPlainJavaFxTest {
   private ForgedAlliancePrefs forgedAlliancePrefs;
 
   /**
-   * The directory containing the cloned patch repository
+   * The directory containing the cloned game repository
    */
-  private Path binaryPatchRepoDirectory;
+  private Path clonedRepoDir;
   private GitGameUpdateTask instance;
 
   @Before
@@ -66,7 +66,7 @@ public class GitGameUpdateTaskTest extends AbstractPlainJavaFxTest {
     instance.i18n = i18n;
 
     Path reposDirectory = faDirectory.getRoot().toPath().resolve("repos");
-    binaryPatchRepoDirectory = reposDirectory.resolve("faf");
+    clonedRepoDir = reposDirectory.resolve("faf");
 
     when(preferencesService.getFafReposDirectory()).thenReturn(reposDirectory);
     when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
@@ -80,18 +80,21 @@ public class GitGameUpdateTaskTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testUpdateInBackgroundRepoDirectoryDoesNotExist() throws Exception {
-    assertTrue("Repo directory was expected to be inexistent, but it existed", Files.notExists(binaryPatchRepoDirectory));
+    assertTrue("Repo directory was expected to be inexistent, but it existed", Files.notExists(clonedRepoDir));
 
     prepareFaBinaries();
 
     doAnswer(invocation -> {
       prepareLocalPatchRepo();
       return null;
-    }).when(gitWrapper).clone(GIT_PATCH_URL, binaryPatchRepoDirectory);
+    }).when(gitWrapper).clone(GIT_PATCH_URL, clonedRepoDir);
+
+    instance.setRepositoryDirectory(clonedRepoDir);
+    instance.setRef("develop");
+    instance.setGameRepositoryUrl(GIT_PATCH_URL);
 
     assertThat(instance.call(), is(nullValue()));
-
-    verify(gitWrapper).clone(GIT_PATCH_URL, binaryPatchRepoDirectory);
+    verify(gitWrapper).clone(GIT_PATCH_URL, clonedRepoDir);
   }
 
   private void prepareFaBinaries() throws IOException {
@@ -104,6 +107,6 @@ public class GitGameUpdateTaskTest extends AbstractPlainJavaFxTest {
   }
 
   private void prepareLocalPatchRepo() throws IOException {
-    TestResources.copyResource("/patch/bsdiff4/040943c20d9e1f7de7f496b1202a600d", binaryPatchRepoDirectory.resolve("bsdiff4/040943c20d9e1f7de7f496b1202a600d"));
+    TestResources.copyResource("/patch/bsdiff4/040943c20d9e1f7de7f496b1202a600d", clonedRepoDir.resolve("bsdiff4/040943c20d9e1f7de7f496b1202a600d"));
   }
 }

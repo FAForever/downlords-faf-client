@@ -10,6 +10,7 @@ import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -22,6 +23,7 @@ import java.util.function.Consumer;
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
+import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
@@ -61,6 +63,7 @@ public class PlayerServiceImplTest {
     instance.gameService = gameService;
 
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
+    when(gameService.getGameInfoBeans()).thenReturn(FXCollections.observableList(emptyList()));
 
     instance.postConstruct();
   }

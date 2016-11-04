@@ -1,5 +1,6 @@
 package com.faforever.client.update;
 
+import com.faforever.client.game.FeaturedModBean;
 import com.faforever.client.patch.GameUpdateService;
 
 import java.util.Map;
@@ -10,12 +11,7 @@ import java.util.concurrent.CompletionStage;
 public class MockGameUpdateService implements GameUpdateService {
 
   @Override
-  public CompletionStage<Void> updateInBackground(String gameType, Integer version, Map<String, Integer> modVersions, Set<String> simModUids) {
-    return CompletableFuture.completedFuture(null);
-  }
-
-  @Override
-  public CompletionStage<Void> checkForUpdateInBackground() {
+  public CompletionStage<Void> updateInBackground(FeaturedModBean featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simModUids) {
     return CompletableFuture.completedFuture(null);
   }
 }

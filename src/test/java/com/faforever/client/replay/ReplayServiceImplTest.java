@@ -1,7 +1,7 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.game.GameService;
-import com.faforever.client.game.FeaturedMod;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -134,7 +134,7 @@ public class ReplayServiceImplTest {
   public void testGuessModByFileNameModIsMissing() throws Exception {
     String mod = ReplayServiceImpl.guessModByFileName("110621-2128 Saltrock Colony.SCFAReplay");
 
-    assertEquals(FeaturedMod.DEFAULT.getString(), mod);
+    assertEquals(KnownFeaturedMod.DEFAULT.getString(), mod);
   }
 
   @Test

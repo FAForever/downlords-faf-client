@@ -79,9 +79,8 @@ public class GameTileController {
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
     this.gameInfoBean = gameInfoBean;
 
-    FeaturedModBean gameType = gameService.getGameTypeByString(gameInfoBean.getFeaturedMod());
-    String fullName = gameType != null ? gameType.getFullName() : null;
-    gameTypeLabel.setText(StringUtils.defaultString(fullName));
+    gameService.getFeaturedMod(gameInfoBean.getFeaturedMod())
+        .thenAccept(featuredModBean -> gameTypeLabel.setText(StringUtils.defaultString(featuredModBean.getDisplayName())));
 
     gameTitleLabel.setText(gameInfoBean.getTitle());
     hostLabel.setText(gameInfoBean.getHost());

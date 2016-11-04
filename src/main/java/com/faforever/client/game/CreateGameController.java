@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
@@ -80,7 +81,7 @@ public class CreateGameController {
   @FXML
   TextField maxRankingTextField;
   @FXML
-  ListView<FeaturedModBean> gameTypeListView;
+  ListView<FeaturedModBean> featuredModListView;
   @FXML
   ListView<MapBean> mapListView;
   @FXML
@@ -145,7 +146,7 @@ public class CreateGameController {
       mapListView.scrollTo(newMapIndex);
     });
 
-    gameTypeListView.setCellFactory(param -> new StringListCell<>(FeaturedModBean::getFullName));
+    featuredModListView.setCellFactory(param -> new StringListCell<>(FeaturedModBean::getDisplayName));
 
     JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH);
     JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH);
@@ -153,6 +154,11 @@ public class CreateGameController {
 
   @PostConstruct
   void postConstruct() {
+    gameService.getFeaturedMods().thenAccept(featuredModBeans -> {
+      featuredModListView.setItems(new FilteredList<>(FXCollections.observableList(featuredModBeans), FeaturedModBean::isVisible));
+      selectLastOrDefaultGameType();
+    });
+
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
       preferencesService.addUpdateListener(preferences -> {
         if (preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
@@ -167,7 +173,7 @@ public class CreateGameController {
   private void init() {
     initModList();
     initMapSelection();
-    initGameTypeComboBox();
+    initFeaturedModList();
     initRatingBoundaries();
     selectLastMap();
     setLastGameTitle();
@@ -221,14 +227,9 @@ public class CreateGameController {
     });
   }
 
-  private void initGameTypeComboBox() {
-    gameService.addOnGameTypesChangeListener(change -> Platform.runLater(() -> {
-      gameTypeListView.getItems().add(change.getValueAdded());
-      selectLastOrDefaultGameType();
-    }));
-
-    gameTypeListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().setLastGameType(newValue.getName());
+  private void initFeaturedModList() {
+    featuredModListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+      preferencesService.getPreferences().setLastGameType(newValue.getTechnicalName());
       preferencesService.storeInBackground();
     });
   }
@@ -291,12 +292,12 @@ public class CreateGameController {
   private void selectLastOrDefaultGameType() {
     String lastGameMod = preferencesService.getPreferences().getLastGameType();
     if (lastGameMod == null) {
-      lastGameMod = FeaturedMod.DEFAULT.getString();
+      lastGameMod = KnownFeaturedMod.DEFAULT.getString();
     }
 
-    for (FeaturedModBean mod : gameTypeListView.getItems()) {
-      if (Objects.equals(mod.getName(), lastGameMod)) {
-        gameTypeListView.getSelectionModel().select(mod);
+    for (FeaturedModBean mod : featuredModListView.getItems()) {
+      if (Objects.equals(mod.getTechnicalName(), lastGameMod)) {
+        featuredModListView.getSelectionModel().select(mod);
         break;
       }
     }
@@ -320,7 +321,7 @@ public class CreateGameController {
     NewGameInfo newGameInfo = new NewGameInfo(
         titleTextField.getText(),
         Strings.emptyToNull(passwordTextField.getText()),
-        gameTypeListView.getSelectionModel().getSelectedItem().getName(),
+        featuredModListView.getSelectionModel().getSelectedItem(),
         mapListView.getSelectionModel().getSelectedItem().getFolderName(),
         simMods);
 
@@ -345,12 +346,7 @@ public class CreateGameController {
 
   @FXML
   void onSelectDefaultGameTypeButtonClicked(ActionEvent event) {
-    for (FeaturedModBean featuredModBean : gameTypeListView.getItems()) {
-      if (FeaturedMod.FAF.getString().equalsIgnoreCase(featuredModBean.getName())) {
-        gameTypeListView.getSelectionModel().select(featuredModBean);
-        return;
-      }
-    }
+    featuredModListView.getSelectionModel().select(0);
   }
 
   @FXML

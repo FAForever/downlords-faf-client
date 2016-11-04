@@ -28,6 +28,8 @@ public interface FafApiAccessor {
 
   List<ModInfoBean> getMods();
 
+  List<FeaturedMod> getFeaturedMods();
+
   MapBean findMapByName(String mapId);
 
   List<Ranked1v1EntryBean> getRanked1v1Entries();

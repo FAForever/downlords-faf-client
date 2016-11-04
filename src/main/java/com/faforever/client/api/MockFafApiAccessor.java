@@ -58,6 +58,17 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
+  public List<FeaturedMod> getFeaturedMods() {
+    FeaturedMod featuredMod = new FeaturedMod();
+    featuredMod.setDisplayName("Forged Alliance Forever");
+    featuredMod.setTechnicalName("faf");
+    featuredMod.setVisible(true);
+    featuredMod.setDescription("Description");
+
+    return Collections.singletonList(featuredMod);
+  }
+
+  @Override
   public MapBean findMapByName(String mapId) {
     return null;
   }
