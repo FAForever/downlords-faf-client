@@ -37,7 +37,6 @@ import com.faforever.client.remote.domain.NoticeMessage;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.RemoveFoeMessage;
 import com.faforever.client.remote.domain.RemoveFriendMessage;
-import com.faforever.client.remote.domain.SdpClientMessage;
 import com.faforever.client.remote.domain.SelectAvatarMessage;
 import com.faforever.client.remote.domain.SerializableMessage;
 import com.faforever.client.remote.domain.ServerCommand;
@@ -349,11 +348,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     avatarsFuture = new CompletableFuture<>();
     writeToServer(new ListPersonalAvatarsMessage());
     return NoCatch.noCatch(() -> avatarsFuture.get(10, TimeUnit.SECONDS));
-  }
-
-  @Override
-  public void sendSdp(int localPlayerId, int remotePlayerId, String sdp) {
-    writeToServer(new SdpClientMessage(remotePlayerId, sdp));
   }
 
   private ServerWriter createServerWriter(OutputStream outputStream) throws IOException {

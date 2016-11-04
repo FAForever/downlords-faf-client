@@ -29,6 +29,7 @@ public enum GpgClientCommand {
   INIT_CONNECTIVITY_TEST("InitiateTest"),
   GAME_FULL("GameFull"),
   ENDED("Ended"),
+  SDP_RECORD("SdpRecord"),
   // Yes, this is the only lower-cased command in the protocol. Because reasons.
   CONNECTED_TO_HOST("connectedToHost");
 

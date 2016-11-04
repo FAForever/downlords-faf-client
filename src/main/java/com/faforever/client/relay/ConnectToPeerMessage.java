@@ -3,9 +3,8 @@ package com.faforever.client.relay;
 import com.faforever.client.remote.domain.MessageTarget;
 
 import static com.faforever.client.relay.GpgServerMessageType.CONNECT_TO_PEER;
-import static com.github.nocatch.NoCatch.noCatch;
 
-public class ConnectToPeerMessage extends GpgServerMessage implements Cloneable {
+public class ConnectToPeerMessage extends GpgServerMessage {
 
   private static final int USERNAME_INDEX = 0;
   private static final int PEER_UID_INDEX = 1;
@@ -13,15 +12,6 @@ public class ConnectToPeerMessage extends GpgServerMessage implements Cloneable 
   public ConnectToPeerMessage() {
     super(CONNECT_TO_PEER, 2);
     setTarget(MessageTarget.GAME);
-  }
-
-  @Override
-  public ConnectToPeerMessage clone() {
-    noCatch(() -> super.clone());
-    ConnectToPeerMessage connectToPeerMessage = new ConnectToPeerMessage();
-    connectToPeerMessage.setUsername(getUsername());
-    connectToPeerMessage.setPeerUid(getPeerUid());
-    return connectToPeerMessage;
   }
 
   public String getUsername() {

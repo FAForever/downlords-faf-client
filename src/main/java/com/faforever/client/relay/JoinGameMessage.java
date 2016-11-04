@@ -2,8 +2,6 @@ package com.faforever.client.relay;
 
 import com.faforever.client.remote.domain.MessageTarget;
 
-import static com.github.nocatch.NoCatch.noCatch;
-
 public class JoinGameMessage extends GpgServerMessage implements Cloneable {
 
   private static final int USERNAME_INDEX = 0;
@@ -12,15 +10,6 @@ public class JoinGameMessage extends GpgServerMessage implements Cloneable {
   public JoinGameMessage() {
     super(GpgServerMessageType.JOIN_GAME, 2);
     setTarget(MessageTarget.GAME);
-  }
-
-  @Override
-  public JoinGameMessage clone() {
-    noCatch(() -> super.clone());
-    JoinGameMessage joinGameMessage = new JoinGameMessage();
-    joinGameMessage.setUsername(getUsername());
-    joinGameMessage.setPeerUid(getPeerUid());
-    return joinGameMessage;
   }
 
   public String getUsername() {

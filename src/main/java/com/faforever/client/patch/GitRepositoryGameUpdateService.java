@@ -63,12 +63,7 @@ public class GitRepositoryGameUpdateService extends AbstractUpdateService implem
     // FIXME get from API
     task.setGameRepositoryUri("https://github.com/FAForever/fa.git");
 
-    return taskService.submitTask(task).getFuture().thenAccept(aVoid -> notificationService.addNotification(
-        new PersistentNotification(
-            i18n.get("faUpdateSucceeded.notification"),
-            Severity.INFO
-        )
-    )).exceptionally(throwable -> {
+    return taskService.submitTask(task).getFuture().exceptionally(throwable -> {
       notificationService.addNotification(
           new PersistentNotification(
               i18n.get("updateFailed.notification"),

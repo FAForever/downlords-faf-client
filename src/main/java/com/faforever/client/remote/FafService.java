@@ -95,5 +95,5 @@ public interface FafService {
   @Cacheable(CacheNames.RATING_HISTORY)
   CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(RatingType ratingType, int playerId);
 
-  void sendSdp(int localPlayerId, int remotePlayerId, String sdp);
+  void sendSdp(int remotePlayerId, String sdp);
 }

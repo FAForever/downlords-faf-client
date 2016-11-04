@@ -16,7 +16,7 @@ import com.faforever.client.relay.event.GameFullEvent;
 import com.faforever.client.relay.event.RehostRequestEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.SdpServerMessage;
+import com.faforever.client.remote.domain.SdpRecordServerMessage;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.nbarraille.jjsonrpc.JJsonPeer;
@@ -78,7 +78,7 @@ public class IceAdapterImpl implements IceAdapter {
     fafService.addOnMessageListener(JoinGameMessage.class, (joinGameMessage) -> iceAdapterProxy.joinGame(joinGameMessage.getUsername(), joinGameMessage.getPeerUid()));
     fafService.addOnMessageListener(ConnectToPeerMessage.class, (connectToPeerMessage) -> iceAdapterProxy.connectToPeer(connectToPeerMessage.getUsername(), connectToPeerMessage.getPeerUid()));
     fafService.addOnMessageListener(DisconnectFromPeerMessage.class, (disconnectFromPeerMessage) -> iceAdapterProxy.disconnectFromPeer(disconnectFromPeerMessage.getUid()));
-    fafService.addOnMessageListener(SdpServerMessage.class, sdpServerMessage -> iceAdapterProxy.setSdp(sdpServerMessage.getSender(), sdpServerMessage.getRecord()));
+    fafService.addOnMessageListener(SdpRecordServerMessage.class, sdpRecordServerMessage -> iceAdapterProxy.setSdp(sdpRecordServerMessage.getSender(), sdpRecordServerMessage.getRecord()));
   }
 
   @Subscribe

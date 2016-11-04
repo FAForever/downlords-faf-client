@@ -41,7 +41,7 @@ public class IceAdapterCallbacks {
 
   public void onSdpGathered(long localPlayerId, long remotePlayerId, String sdp) {
     logger.debug("Gathered SDP for connection {}/{}: {}", localPlayerId, remotePlayerId, sdp);
-    fafService.sendSdp((int) localPlayerId, (int) remotePlayerId, sdp);
+    fafService.sendSdp((int) remotePlayerId, sdp);
   }
 
   public void onPeerStateChanged(long localPlayerId, long remotePlayerId, String state) {

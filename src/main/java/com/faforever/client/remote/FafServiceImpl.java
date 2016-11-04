@@ -18,6 +18,7 @@ import com.faforever.client.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.GameEndedMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.SdpRecordClientMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -229,7 +230,7 @@ public class FafServiceImpl implements FafService {
   }
 
   @Override
-  public void sendSdp(int localPlayerId, int remotePlayerId, String sdp) {
-    fafServerAccessor.sendSdp(localPlayerId, remotePlayerId, sdp);
+  public void sendSdp(int remotePlayerId, String sdp) {
+    fafServerAccessor.sendGpgMessage(new SdpRecordClientMessage(remotePlayerId, sdp));
   }
 }

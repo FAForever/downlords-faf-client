@@ -1,5 +1,6 @@
 package com.faforever.client.relay;
 
+import com.faforever.client.remote.domain.SdpRecordServerMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.remote.domain.ServerMessageType;
 
@@ -13,6 +14,7 @@ public enum GpgServerMessageType implements ServerMessageType {
   HOST_GAME("HostGame", HostGameMessage.class),
   JOIN_GAME("JoinGame", JoinGameMessage.class),
   CONNECT_TO_PEER("ConnectToPeer", ConnectToPeerMessage.class),
+  SDP_RECORD("SdpRecord", SdpRecordServerMessage.class),
   DISCONNECT_FROM_PEER("DisconnectFromPeer", DisconnectFromPeerMessage.class);
 
 

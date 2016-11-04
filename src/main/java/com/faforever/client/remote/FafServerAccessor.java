@@ -62,5 +62,4 @@ public interface FafServerAccessor {
 
   List<Avatar> getAvailableAvatars();
 
-  void sendSdp(int localPlayerId, int remotePlayerId, String sdp);
 }
