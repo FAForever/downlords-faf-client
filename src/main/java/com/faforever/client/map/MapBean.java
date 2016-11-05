@@ -56,7 +56,7 @@ public class MapBean implements Comparable<MapBean> {
     MapBean mapBean = new MapBean();
     mapBean.setDescription(map.getDescription());
     mapBean.setDisplayName(map.getDisplayName());
-    mapBean.setFolderName(map.getTechnicalName());
+    mapBean.setFolderName(map.getFolderName());
     mapBean.setSize(new MapSize(map.getSizeX(), map.getSizeY()));
     mapBean.setDownloads(map.getDownloads());
     mapBean.setId(map.getId());

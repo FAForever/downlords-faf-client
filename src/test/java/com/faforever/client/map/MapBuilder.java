@@ -14,7 +14,7 @@ public class MapBuilder {
 
   public MapBuilder defaultValues() {
     return displayName("Map name")
-        .technicalName("map_name.v001")
+        .folderName("map_name.v001")
         .mapSize(new MapSize(10, 10));
   }
 
@@ -23,7 +23,7 @@ public class MapBuilder {
     return this;
   }
 
-  public MapBuilder technicalName(String technicalName) {
+  public MapBuilder folderName(String technicalName) {
     mapBean.setFolderName(technicalName);
     return this;
   }

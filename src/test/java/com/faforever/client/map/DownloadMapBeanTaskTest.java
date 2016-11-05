@@ -57,7 +57,7 @@ public class DownloadMapBeanTaskTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testCallWithoutTechnicalMapNameThrowsException() throws Exception {
+  public void testCallWithoutFolderNameThrowsException() throws Exception {
     expectedException.expectMessage("folderName");
     expectedException.expect(NullPointerException.class);
 

@@ -114,7 +114,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testMapSearchTextFieldFilteringPopulated() throws Exception {
     mapList.add(MapBuilder.create().defaultValues().displayName("Test1").get());
-    mapList.add(MapBuilder.create().defaultValues().technicalName("test2").get());
+    mapList.add(MapBuilder.create().defaultValues().folderName("test2").get());
     mapList.add(MapBuilder.create().defaultValues().displayName("foo").get());
 
     instance.mapSearchTextField.setText("Test");
@@ -180,10 +180,10 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSelectLastMap() throws Exception {
-    MapBean lastMapBean = MapBuilder.create().defaultValues().technicalName("foo").get();
+    MapBean lastMapBean = MapBuilder.create().defaultValues().folderName("foo").get();
     when(preferences.getLastMap()).thenReturn("foo");
 
-    mapList.add(MapBuilder.create().defaultValues().technicalName("Test1").get());
+    mapList.add(MapBuilder.create().defaultValues().folderName("Test1").get());
     mapList.add(lastMapBean);
     instance.postConstruct();
 

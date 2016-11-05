@@ -93,20 +93,20 @@ public class MapServiceImpl implements MapService {
   private AnalyzingInfixSuggester suggester;
   private Path mapsDirectory;
   private ObservableList<MapBean> installedSkirmishMaps;
-  private Map<String, MapBean> mapsByTechnicalName;
+  private Map<String, MapBean> mapsByFolderName;
 
   public MapServiceImpl() {
     pathToMap = new HashMap<>();
     installedSkirmishMaps = FXCollections.observableArrayList();
-    mapsByTechnicalName = new HashMap<>();
+    mapsByFolderName = new HashMap<>();
 
     installedSkirmishMaps.addListener((ListChangeListener<MapBean>) change -> {
       while (change.next()) {
         for (MapBean mapBean : change.getRemoved()) {
-          mapsByTechnicalName.remove(mapBean.getFolderName().toLowerCase());
+          mapsByFolderName.remove(mapBean.getFolderName().toLowerCase());
         }
         for (MapBean mapBean : change.getAddedSubList()) {
-          mapsByTechnicalName.put(mapBean.getFolderName().toLowerCase(), mapBean);
+          mapsByFolderName.put(mapBean.getFolderName().toLowerCase(), mapBean);
         }
       }
     });
@@ -285,7 +285,7 @@ public class MapServiceImpl implements MapService {
 
   @Override
   public boolean isInstalled(String mapFolderName) {
-    return mapsByTechnicalName.containsKey(mapFolderName.toLowerCase());
+    return mapsByFolderName.containsKey(mapFolderName.toLowerCase());
   }
 
   @Override

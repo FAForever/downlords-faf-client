@@ -38,8 +38,8 @@ public class Map {
   private int numDraws;
   @Key("rating")
   private Float rating;
-  @Key("technical_name")
-  private String technicalName;
+  @Key("folder_name")
+  private String folderName;
   @Key("times_played")
   private int timesPlayed;
   @Key("version")
@@ -170,12 +170,12 @@ public class Map {
     this.rating = rating;
   }
 
-  public String getTechnicalName() {
-    return technicalName;
+  public String getFolderName() {
+    return folderName;
   }
 
-  public void setTechnicalName(String technicalName) {
-    this.technicalName = technicalName;
+  public void setFolderName(String folderName) {
+    this.folderName = folderName;
   }
 
   public int getTimesPlayed() {
