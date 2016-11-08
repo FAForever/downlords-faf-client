@@ -2,6 +2,8 @@ package com.faforever.client.api;
 
 import com.faforever.client.api.ErrorResponse.Error;
 
+import java.util.stream.Collectors;
+
 public class ApiException extends RuntimeException {
   private final ErrorResponse errorResponse;
 
@@ -12,10 +14,8 @@ public class ApiException extends RuntimeException {
   @Override
   public String getLocalizedMessage() {
     // TODO localize
-    StringBuilder errorMessage = new StringBuilder();
-    for (Error error : errorResponse.getErrors()) {
-      errorMessage.append(error.getDetail()).append("\n");
-    }
-    return errorMessage.toString();
+    return errorResponse.getErrors().stream()
+        .map(Error::getDetail)
+        .collect(Collectors.joining("\n"));
   }
 }

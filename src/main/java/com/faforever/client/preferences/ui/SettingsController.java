@@ -76,6 +76,7 @@ public class SettingsController {
   public PasswordField newPasswordField;
   public PasswordField confirmPasswordField;
   public Label passwordChangeErrorLabel;
+  public Label passwordChangeSuccessLabel;
 
   @Resource
   UserService userService;
@@ -267,6 +268,9 @@ public class SettingsController {
   }
 
   public void onChangePasswordClicked() {
+    passwordChangeSuccessLabel.setVisible(false);
+    passwordChangeErrorLabel.setVisible(false);
+
     if (currentPasswordField.getText().isEmpty()) {
       passwordChangeErrorLabel.setVisible(true);
       passwordChangeErrorLabel.setText(i18n.get("settings.account.currentPassword.empty"));
@@ -280,21 +284,20 @@ public class SettingsController {
     }
 
     if (!newPasswordField.getText().equals(confirmPasswordField.getText())) {
-
+      passwordChangeErrorLabel.setVisible(true);
       passwordChangeErrorLabel.setText(i18n.get("settings.account.confirmPassword.mismatch"));
       return;
     }
 
     userService.changePassword(currentPasswordField.getText(), newPasswordField.getText()).getFuture()
         .thenAccept(aVoid -> {
-          passwordChangeErrorLabel.setVisible(true);
+          passwordChangeSuccessLabel.setVisible(true);
           currentPasswordField.setText("");
           newPasswordField.setText("");
           confirmPasswordField.setText("");
-          passwordChangeErrorLabel.setText(i18n.get("settings.account.changePassword.success"));
         }).exceptionally(throwable -> {
           passwordChangeErrorLabel.setVisible(true);
-          passwordChangeErrorLabel.setText(i18n.get("settings.account.changePassword.error", throwable.getMessage()));
+      passwordChangeErrorLabel.setText(i18n.get("settings.account.changePassword.error", throwable.getCause().getLocalizedMessage()));
           return null;
         }
     );

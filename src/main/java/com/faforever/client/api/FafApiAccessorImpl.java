@@ -80,10 +80,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private static final String HTTP_LOCALHOST = "http://localhost:";
   private static final String ENCODED_HTTP_LOCALHOST = HTTP_LOCALHOST.replace(":", "%3A").replace("/", "%2F");
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final String SCOPE_READ_ACHIEVEMENTS = "read_achievements";
-  private static final String SCOPE_READ_EVENTS = "read_events";
-  private static final String UPLOAD_MAP = "upload_map";
-  private static final String UPLOAD_MOD = "upload_mod";
+  private static final List<String> SCOPES = Arrays.asList("read_achievements", "read_events", "upload_map", "upload_mod", "write_account_data");
 
   @Resource
   JsonFactory jsonFactory;
@@ -176,7 +173,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
           oAuthClientId,
           oAuthUrl)
           .setDataStoreFactory(dataStoreFactory)
-          .setScopes(asList(SCOPE_READ_ACHIEVEMENTS, SCOPE_READ_EVENTS, UPLOAD_MAP, UPLOAD_MOD))
+          .setScopes(SCOPES)
           .build();
 
       credential = authorize(flow, valueOf(playerId));
