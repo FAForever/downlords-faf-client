@@ -13,6 +13,7 @@
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.Group?>
 <?import javafx.scene.layout.*?>
+<?import java.lang.String?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="settingsRoot" maxHeight="1.7976931348623157E308"
       xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.preferences.ui.SettingsController">
    <children>
@@ -322,7 +323,7 @@
                                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                                             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                                             <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
                                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                                          </rowConstraints>
                                          <children>
@@ -339,12 +340,34 @@
                                                      GridPane.columnIndex="1" GridPane.halignment="RIGHT"
                                                      GridPane.rowIndex="4"/>
                                              <Label fx:id="passwordChangeErrorLabel" focusTraversable="false"
-                                                    maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                                                    prefHeight="22.0" prefWidth="225.0" text="runtime error message"
+                                                    graphicTextGap="10.0" maxHeight="1.7976931348623157E308"
+                                                    maxWidth="1.7976931348623157E308" text="runtime error message"
+                                                    visible="false" wrapText="true" GridPane.columnSpan="2147483647"
+                                                    GridPane.rowIndex="3">
+                                                 <graphic>
+                                                     <Label fx:id="labelResultType" text="">
+                                                         <styleClass>
+                                                             <String fx:value="fontawesome"/>
+                                                             <String fx:value="notification-icon"/>
+                                                             <String fx:value="error"/>
+                                                         </styleClass>
+                                                     </Label>
+                                                 </graphic>
+                                             </Label>
+                                             <Label fx:id="passwordChangeSuccessLabel" focusTraversable="false"
+                                                    graphicTextGap="10.0" maxHeight="1.7976931348623157E308"
+                                                    maxWidth="1.7976931348623157E308"
+                                                    text="%settings.account.changePassword.success" visible="false"
                                                     wrapText="true" GridPane.columnSpan="2147483647"
                                                     GridPane.rowIndex="3">
                                                  <graphic>
-                                                     <Label styleClass="fontawesome,notification-icon,warn" text=""/>
+                                                     <Label fx:id="labelResultType1" text="">
+                                                         <styleClass>
+                                                             <String fx:value="fontawesome"/>
+                                                             <String fx:value="notification-icon"/>
+                                                             <String fx:value="info"/>
+                                                         </styleClass>
+                                                     </Label>
                                                  </graphic>
                                              </Label>
                                          </children>
