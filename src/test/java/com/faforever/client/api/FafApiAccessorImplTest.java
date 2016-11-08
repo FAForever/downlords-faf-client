@@ -394,6 +394,16 @@ public class FafApiAccessorImplTest {
     verify(httpTransport).buildRequest("POST", "http://api.example.com/mods/upload");
   }
 
+  @Test
+  public void testChangePassword() throws Exception {
+    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.credential = mock(Credential.class);
+
+    instance.changePassword("currentPasswordHash", "newPasswordHash");
+
+    verify(httpTransport).buildRequest("POST", "http://api.example.com/users/change_password");
+  }
+
   private void authorize() throws Exception {
     when(userService.getUsername()).thenReturn("junit");
     when(userService.getPassword()).thenReturn("junit-password");
