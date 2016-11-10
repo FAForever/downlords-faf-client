@@ -9,7 +9,6 @@ import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
-import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
@@ -204,8 +203,6 @@ public class MainController implements OnChooseGameDirectoryListener {
   MapVaultController mapMapVaultController;
   @Resource
   CastsController castsController;
-  @Resource
-  CommunityHubController communityHubController;
   @Resource
   GameUpdateService gameUpdateService;
   @Resource
@@ -843,12 +840,6 @@ public class MainController implements OnChooseGameDirectoryListener {
     setActiveNavigationButton((ButtonBase) event.getSource());
     unitsController.setUpIfNecessary();
     setContent(unitsController.getRoot());
-  }
-
-  @FXML
-  void onCommunityHubSelected(ActionEvent event) {
-    setContent(communityHubController.getRoot());
-    setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }
 
   /**

@@ -7,7 +7,6 @@ import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesController;
-import com.faforever.client.hub.CommunityHubController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardController;
 import com.faforever.client.login.LoginController;
@@ -95,8 +94,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private PlayerService playerService;
   @Mock
-  private CommunityHubController communityHubController;
-  @Mock
   private MapVaultController mapMapVaultController;
   @Mock
   private GamesController gamesController;
@@ -179,7 +176,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.gamesController = gamesController;
     instance.castsController = castsController;
     instance.newsController = newsController;
-    instance.communityHubController = communityHubController;
     instance.settingsController = settingsController;
     instance.chatController = chatController;
     instance.persistentNotificationsController = persistentNotificationsController;
@@ -209,7 +205,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(castsController.getRoot()).thenReturn(new Pane());
     when(userMenuController.getRoot()).thenReturn(new Pane());
     when(newsController.getRoot()).thenReturn(new Pane());
-    when(communityHubController.getRoot()).thenReturn(new Pane());
     when(userMenuController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(taskService.getActiveTasks()).thenReturn(FXCollections.emptyObservableList());
@@ -249,7 +244,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     attachToRoot();
     fakeLogin();
 
-    when(communityHubController.getRoot()).thenReturn(new Pane());
+    when(chatController.getRoot()).thenReturn(new Pane());
     WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.display());
     when(mainWindowPrefs.getLastView()).thenReturn(instance.newsButton.getId());
 
@@ -377,13 +372,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnCommunitySelected() throws Exception {
-    attachToRoot();
-    when(communityHubController.getRoot()).thenReturn(new Pane());
-    WaitForAsyncUtils.waitForAsyncFx(1000, instance.newsButton::fire);
-  }
-
-  @Test
   public void testOnVaultSelected() throws Exception {
     attachToRoot();
     when(modVaultController.getRoot()).thenReturn(new Pane());
@@ -407,13 +395,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnChatSelected() throws Exception {
     WaitForAsyncUtils.waitForAsyncFx(1000, instance.chatButton::fire);
-  }
-
-  @Test
-  @Ignore("CommunityHub is not yet available")
-  public void testOnCommunityHubSelected() throws Exception {
-    when(communityHubController.getRoot()).thenReturn(new Pane());
-    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.newsButton.getItems().get(0).fire());
   }
 
   @Test
