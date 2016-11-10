@@ -194,6 +194,11 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
+  public void downloadAndInstallMod(String uid) {
+    downloadAndInstallMod(fafService.getMod(uid), null, null);
+  }
+
+  @Override
   public CompletionStage<Void> downloadAndInstallMod(URL url) {
     return downloadAndInstallMod(url, null, null);
   }

@@ -28,6 +28,8 @@ public interface FafApiAccessor {
 
   List<ModInfoBean> getMods();
 
+  List<FeaturedMod> getFeaturedMods();
+
   MapBean findMapByName(String mapId);
 
   List<Ranked1v1EntryBean> getRanked1v1Entries();
@@ -51,4 +53,6 @@ public interface FafApiAccessor {
   void uploadMod(Path file, ByteCountListener listener) throws IOException;
 
   void uploadMap(Path file, boolean isRanked, ByteCountListener listener) throws IOException;
+
+  ModInfoBean getMod(String uid);
 }

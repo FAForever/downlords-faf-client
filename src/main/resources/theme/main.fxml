@@ -9,7 +9,6 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitMenuButton?>
-<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
@@ -110,22 +109,6 @@
             <ProgressBar fx:id="taskProgressBar" maxHeight="1.7976931348623157E308" minWidth="20.0" prefWidth="150.0"/>
           </children>
         </HBox>
-        <Separator focusTraversable="false" orientation="VERTICAL"/>
-        <MenuButton fx:id="portCheckStatusButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
-                    styleClass="status-bar-menu-button" text="%statusBar.connectivityUnknown">
-          <tooltip>
-            <Tooltip text="&lt;Tooltip text inserted by code&gt;"/>
-          </tooltip>
-          <items>
-            <MenuItem disable="true" mnemonicParsing="false" onAction="#onPortCheckHelpClicked" text="%statusBar.help"/>
-            <MenuItem disable="true" mnemonicParsing="false" onAction="#onChangePortClicked"
-                      text="%statusBar.changePort"/>
-            <MenuItem mnemonicParsing="false" onAction="#onPortCheckRetryClicked" text="%statusBar.retry"/>
-          </items>
-          <graphic>
-            <Label fx:id="portCheckStatusIcon" styleClass="fontawesome,port-check-status" text=""/>
-          </graphic>
-        </MenuButton>
         <Separator focusTraversable="false" orientation="VERTICAL"/>
         <MenuButton fx:id="fafConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
                     styleClass="status-bar-menu-button" text="%statusBar.fafConnected">

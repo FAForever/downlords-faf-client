@@ -4,26 +4,29 @@
     <logger name="com.google.api.client.util.store.FileDataStoreFactory" level="error"/>
 
     <logger name="com.faforever.client.api" level="info"/>
-    <logger name="com.faforever.client.connectivity" level="info"/>
+    <logger name="com.faforever.client.connectivity" level="debug"/>
     <logger name="com.faforever.client.preferences" level="info"/>
     <logger name="com.faforever.client.map" level="info"/>
     <logger name="com.faforever.client.mod" level="info"/>
-    <logger name="com.faforever.client.net" level="info"/>
+    <logger name="com.faforever.client.net" level="debug"/>
     <logger name="com.faforever.client.util" level="info"/>
     <logger name="com.faforever.client.patch" level="debug"/>
     <logger name="com.faforever.client.events" level="info"/>
-    <logger name="com.faforever.client.legacy" level="info"/>
-    <logger name="com.faforever.client.remote" level="info"/>
+    <logger name="com.faforever.client.legacy" level="debug"/>
+    <logger name="com.faforever.client.remote" level="debug"/>
     <logger name="com.faforever.client.replay" level="info"/>
-    <logger name="com.faforever.client.relay" level="info"/>
+    <logger name="com.faforever.client.relay" level="debug"/>
     <logger name="com.faforever.client.chat" level="info"/>
-    <logger name="com.faforever.client.game" level="info"/>
+    <logger name="com.faforever.client.game" level="debug"/>
     <logger name="com.faforever.client.task" level="info"/>
     <logger name="com.faforever.client.theme" level="info"/>
     <logger name="com.faforever.client.preferences" level="info"/>
-    <logger name="com.faforever.client.io" level="info"/>
+    <logger name="com.faforever.client.io" level="debug"/>
+    <logger name="com.faforever.client.ice" level="info"/>
 
+    <logger name="faf-ice-adapter" level="warn"/>
     <logger name="org.ice4j.stack" level="warn"/>
+    <logger name="com.nbarraille.jjsonrpc" level="warn"/>
 
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
         <resetJUL>true</resetJUL>

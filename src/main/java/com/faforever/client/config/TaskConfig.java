@@ -1,15 +1,13 @@
 package com.faforever.client.config;
 
-import com.faforever.client.connectivity.ConnectivityCheckTask;
-import com.faforever.client.connectivity.UpnpPortForwardingTask;
 import com.faforever.client.map.DownloadMapTask;
 import com.faforever.client.map.MapUploadTask;
 import com.faforever.client.map.UninstallMapTask;
 import com.faforever.client.mod.InstallModTask;
 import com.faforever.client.mod.ModUploadTask;
 import com.faforever.client.mod.UninstallModTask;
-import com.faforever.client.patch.GitCheckGameUpdateTask;
-import com.faforever.client.patch.UpdateGameFilesTask;
+import com.faforever.client.patch.GitGameUpdateTask;
+import com.faforever.client.patch.LegacyGameUpdateTask;
 import com.faforever.client.replay.LoadLocalReplaysTask;
 import com.faforever.client.replay.ReplayDownloadTask;
 import com.faforever.client.update.CheckForUpdateTask;
@@ -18,28 +16,29 @@ import com.faforever.client.uploader.imgur.ImgurUploadTask;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 
 @org.springframework.context.annotation.Configuration
 @Import(BaseConfig.class)
+@Lazy
 public class TaskConfig {
 
   @Bean
+  LegacyGameUpdateTask updateGameFilesTask() {
+    return new LegacyGameUpdateTask();
+  }
+
+  @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  UpdateGameFilesTask updateGameFilesTask() {
-    return new UpdateGameFilesTask();
+  GitGameUpdateTask gitGameUpdateTask() {
+    return new GitGameUpdateTask();
   }
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   InstallModTask downloadModTask() {
     return new InstallModTask();
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  ConnectivityCheckTask portCheckTask() {
-    return new ConnectivityCheckTask();
   }
 
   @Bean
@@ -52,12 +51,6 @@ public class TaskConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   DownloadUpdateTask downloadUpdateTask() {
     return new DownloadUpdateTask();
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  GitCheckGameUpdateTask gitCheckGameUpdateTask() {
-    return new GitCheckGameUpdateTask();
   }
 
   @Bean
@@ -94,12 +87,6 @@ public class TaskConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   UninstallMapTask uninstallMapTask() {
     return new UninstallMapTask();
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  UpnpPortForwardingTask upnpPortForwardingTask() {
-    return new UpnpPortForwardingTask();
   }
 
   @Bean

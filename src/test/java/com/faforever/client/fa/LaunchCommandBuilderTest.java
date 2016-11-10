@@ -1,6 +1,5 @@
 package com.faforever.client.fa;
 
-import com.faforever.client.game.GameType;
 import org.junit.Test;
 
 import java.nio.file.Paths;
@@ -15,7 +14,6 @@ public class LaunchCommandBuilderTest {
     return LaunchCommandBuilder.create()
         .executable(Paths.get("test.exe"))
         .logFile(Paths.get("game.log"))
-        .gameType(GameType.DEFAULT.getString())
         .username("junit");
   }
 
@@ -64,13 +62,8 @@ public class LaunchCommandBuilderTest {
     defaultBuilder().faction(null).build();
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testGameTypeNullThrowsException() throws Exception {
-    defaultBuilder().gameType(null).build();
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void testLogFileNullThrowsException() throws Exception {
+  @Test
+  public void testLogFileNullAllowed() throws Exception {
     defaultBuilder().logFile(null).build();
   }
 
@@ -97,7 +90,7 @@ public class LaunchCommandBuilderTest {
             .build(),
         contains(
             "/path/to/my/wineprefix", "primusrun", "wine", Paths.get("test.exe").toAbsolutePath().toString(),
-            "/init", "init_faf.lua",
+            "/init", "init.lua",
             "/nobugreport",
             "/log", Paths.get("game.log").toAbsolutePath().toString()
         ));
@@ -109,7 +102,7 @@ public class LaunchCommandBuilderTest {
         defaultBuilder().rehost(true).build(),
         contains(
             Paths.get("test.exe").toAbsolutePath().toString(),
-            "/init", "init_faf.lua",
+            "/init", "init.lua",
             "/nobugreport",
             "/log", Paths.get("game.log").toAbsolutePath().toString(),
             "/rehost"

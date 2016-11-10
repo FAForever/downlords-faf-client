@@ -6,17 +6,17 @@ public class NewGameInfo {
 
   private String title;
   private String password;
-  private String gameType;
+  private FeaturedModBean featuredMod;
   private String map;
   private Set<String> simMods;
 
   public NewGameInfo() {
   }
 
-  public NewGameInfo(String title, String password, String mod, String map, Set<String> simMods) {
+  public NewGameInfo(String title, String password, FeaturedModBean featuredMod, String map, Set<String> simMods) {
     this.title = title;
     this.password = password;
-    this.gameType = mod;
+    this.featuredMod = featuredMod;
     this.map = map;
     this.simMods = simMods;
   }
@@ -45,12 +45,12 @@ public class NewGameInfo {
     this.map = map;
   }
 
-  public String getGameType() {
-    return gameType;
+  public FeaturedModBean getFeaturedMod() {
+    return featuredMod;
   }
 
-  public void setGameType(String gameType) {
-    this.gameType = gameType;
+  public void setFeaturedMod(FeaturedModBean featuredMod) {
+    this.featuredMod = featuredMod;
   }
 
   public Set<String> getSimMods() {

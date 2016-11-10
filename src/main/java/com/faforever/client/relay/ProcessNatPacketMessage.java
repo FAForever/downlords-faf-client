@@ -6,7 +6,7 @@ import com.faforever.client.remote.domain.MessageTarget;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 
-public class ProcessNatPacketMessage extends GpgClientMessage {
+public class ProcessNatPacketMessage extends GpgGameMessage {
 
   private static final int ADDRESS_INDEX = 0;
   private static final int MESSAGE_INDEX = 1;

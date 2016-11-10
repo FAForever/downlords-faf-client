@@ -19,6 +19,8 @@ public interface ModService {
 
   ObservableList<ModInfoBean> getInstalledMods();
 
+  void downloadAndInstallMod(String uid);
+
   CompletionStage<Void> downloadAndInstallMod(URL url);
 
   CompletionStage<Void> downloadAndInstallMod(URL url, DoubleProperty progressProperty, StringProperty titleProperty);

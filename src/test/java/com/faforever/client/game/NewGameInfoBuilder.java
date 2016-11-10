@@ -6,7 +6,7 @@ public class NewGameInfoBuilder {
 
   private final NewGameInfo newGameInfo;
 
-  public NewGameInfoBuilder() {
+  private NewGameInfoBuilder() {
     newGameInfo = new NewGameInfo();
   }
 
@@ -16,7 +16,7 @@ public class NewGameInfoBuilder {
 
   public NewGameInfoBuilder defaultValues() {
     newGameInfo.setMap("map");
-    newGameInfo.setGameType("mod");
+    newGameInfo.setFeaturedMod(FeaturedModBeanBuilder.create().defaultValues().get());
     newGameInfo.setPassword("password");
     newGameInfo.setTitle("title");
     newGameInfo.setSimMods(new HashSet<String>() {{

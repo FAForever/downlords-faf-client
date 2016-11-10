@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import static org.mockito.Matchers.any;
@@ -54,12 +55,14 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
     when(applicationContext.getBean(GameTooltipController.class)).thenReturn(gameTooltipController);
     when(gameTooltipController.getRoot()).thenReturn(new Pane());
     when(i18n.get(anyString())).thenReturn("test");
+    when(gameService.getFeaturedMod(gameInfoBean.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(
+        FeaturedModBeanBuilder.create().defaultValues().get()
+    ));
 
     instance.initialize();
     instance.postConstruct();
 
     instance.setOnSelectedListener(onSelectedConsumer);
-
     instance.setGameInfoBean(gameInfoBean);
   }
 

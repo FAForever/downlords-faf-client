@@ -10,10 +10,6 @@ import com.faforever.client.chat.MockChatService;
 import com.faforever.client.chat.PircBotXChatService;
 import com.faforever.client.chat.PircBotXFactory;
 import com.faforever.client.chat.PircBotXFactoryImpl;
-import com.faforever.client.connectivity.ConnectivityService;
-import com.faforever.client.connectivity.ConnectivityServiceImpl;
-import com.faforever.client.connectivity.TurnServerAccessor;
-import com.faforever.client.connectivity.TurnServerAccessorImpl;
 import com.faforever.client.events.EventService;
 import com.faforever.client.events.EventServiceImpl;
 import com.faforever.client.fa.ForgedAllianceService;
@@ -36,7 +32,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.patch.GameUpdateService;
-import com.faforever.client.patch.GameUpdateServiceImpl;
+import com.faforever.client.patch.GitRepositoryGameUpdateService;
 import com.faforever.client.patch.GitWrapper;
 import com.faforever.client.patch.JGitWrapper;
 import com.faforever.client.patch.UpdateServerAccessor;
@@ -44,8 +40,6 @@ import com.faforever.client.patch.UpdateServerAccessorImpl;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.relay.LocalRelayServer;
-import com.faforever.client.relay.LocalRelayServerImpl;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.remote.FafServerAccessorImpl;
 import com.faforever.client.remote.FafService;
@@ -75,8 +69,6 @@ import com.faforever.client.update.MockClientUpdateService;
 import com.faforever.client.update.MockGameUpdateService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.uploader.imgur.ImgurImageUploadService;
-import com.faforever.client.upnp.UpnpService;
-import com.faforever.client.upnp.WeUpnpServiceImpl;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.UserServiceImpl;
 import com.faforever.client.util.TimeService;
@@ -84,11 +76,8 @@ import com.faforever.client.util.TimeServiceImpl;
 import com.google.api.client.util.Beta;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
-import org.ice4j.stack.StunStack;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
@@ -167,16 +156,6 @@ public class ServiceConfig {
   }
 
   @Bean
-  LocalRelayServer relayServer() {
-    return new LocalRelayServerImpl();
-  }
-
-  @Bean
-  ConnectivityService portCheckService() {
-    return new ConnectivityServiceImpl();
-  }
-
-  @Bean
   FafService lobbyService() {
     return new FafServiceImpl();
   }
@@ -202,11 +181,6 @@ public class ServiceConfig {
   }
 
   @Bean
-  UpnpService upnpService() {
-    return new WeUpnpServiceImpl();
-  }
-
-  @Bean
   LeaderboardService leaderboardService() {
     if (environment.containsProperty("faf.testing")) {
       return new MockLeaderboardService();
@@ -215,16 +189,11 @@ public class ServiceConfig {
   }
 
   @Bean
-  TurnServerAccessor turnServerAccessor() {
-    return new TurnServerAccessorImpl();
-  }
-
-  @Bean
   GameUpdateService patchService() {
     if (environment.containsProperty("disable.update")) {
       return new MockGameUpdateService();
     }
-    return new GameUpdateServiceImpl();
+    return new GitRepositoryGameUpdateService();
   }
 
   @Bean
@@ -319,11 +288,5 @@ public class ServiceConfig {
   @Bean
   ThemeService themeService() {
     return new ThemeServiceImpl();
-  }
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  StunStack stunStack() {
-    return new StunStack();
   }
 }

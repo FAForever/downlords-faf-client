@@ -19,7 +19,6 @@ import com.faforever.client.remote.domain.ClientMessageType;
 import com.faforever.client.remote.domain.FafServerMessage;
 import com.faforever.client.remote.domain.FafServerMessageType;
 import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.GameTypeMessage;
 import com.faforever.client.remote.domain.InitSessionMessage;
 import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
@@ -62,11 +61,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
@@ -76,7 +73,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -116,6 +112,8 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
   private NotificationService notificationService;
   @Mock
   private I18n i18n;
+  @Mock
+  private ThreadPoolExecutor threadPoolExecutor;
 
   private FafServerAccessorImpl instance;
   private ServerSocket fafLobbyServerSocket;
@@ -140,6 +138,7 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     instance.lobbyHost = LOOPBACK_ADDRESS.getHostAddress();
     instance.lobbyPort = fafLobbyServerSocket.getLocalPort();
     instance.clientUpdateService = clientUpdateService;
+    instance.threadPoolExecutor = threadPoolExecutor;
 
     LoginPrefs loginPrefs = new LoginPrefs();
     loginPrefs.setUsername("junit");
@@ -152,6 +151,11 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     when(preferences.getLogin()).thenReturn(loginPrefs);
     when(uidService.generate(any(), any())).thenReturn("encrypteduidstring");
     when(clientUpdateService.getCurrentVersion()).thenReturn(new ComparableVersion("1.0"));
+
+    doAnswer(invocation -> {
+      new Thread(invocation.getArgumentAt(0, Runnable.class)).start();
+      return null;
+    }).when(threadPoolExecutor).submit(any(Runnable.class));
 
     preferencesService.getPreferences().getLogin();
   }
@@ -246,44 +250,6 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     serverToClientWriter.write(fafServerMessage);
   }
 
-  @Test
-  public void testAddOnGameTypeInfoListener() throws Exception {
-    connectAndLogIn();
-
-    CompletableFuture<GameTypeMessage> gameTypeInfoFuture = new CompletableFuture<>();
-    @SuppressWarnings("unchecked")
-    Consumer<GameTypeMessage> listener = mock(Consumer.class);
-    doAnswer(invocation -> {
-      gameTypeInfoFuture.complete(invocation.getArgumentAt(0, GameTypeMessage.class));
-      return null;
-    }).when(listener).accept(any());
-
-    instance.addOnMessageListener(GameTypeMessage.class, listener);
-
-    String name = "test";
-    String fullname = "Test game type";
-    String description = "Game type description";
-    String icon = "what";
-    Boolean[] options = new Boolean[]{TRUE, FALSE, TRUE};
-
-    GameTypeMessage gameTypeMessage = new GameTypeMessage();
-    gameTypeMessage.setName(name);
-    gameTypeMessage.setFullname(fullname);
-    gameTypeMessage.setDesc(description);
-    gameTypeMessage.setIcon(icon);
-    gameTypeMessage.setOptions(options);
-
-    sendFromServer(gameTypeMessage);
-
-    GameTypeMessage result = gameTypeInfoFuture.get(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(result.getName(), is(name));
-    assertThat(result.getFullname(), is(fullname));
-    assertThat(result.getMessageType(), is(FafServerMessageType.GAME_TYPE_INFO));
-    assertThat(result.getDesc(), is(description));
-    assertThat(result.getIcon(), is(icon));
-    assertThat(result.getOptions(), is(options));
-  }
-
   private void connectAndLogIn() throws Exception {
     CompletableFuture<LoginMessage> loginFuture = instance.connectAndLogIn("JUnit", "JUnitPassword").toCompletableFuture();
 
@@ -352,15 +318,13 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     connectAndLogIn();
     InetSocketAddress relayAddress = InetSocketAddress.createUnresolved("foobar", 1235);
 
-    CompletableFuture<GameLaunchMessage> future = instance.startSearchRanked1v1(Faction.AEON, GAME_PORT, relayAddress).toCompletableFuture();
+    CompletableFuture<GameLaunchMessage> future = instance.startSearchRanked1v1(Faction.AEON).toCompletableFuture();
 
     String clientMessage = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
     SearchRanked1V1ClientMessage searchRanked1v1Message = gson.fromJson(clientMessage, SearchRanked1V1ClientMessage.class);
 
     assertThat(searchRanked1v1Message, instanceOf(SearchRanked1V1ClientMessage.class));
     assertThat(searchRanked1v1Message.getFaction(), is(Faction.AEON));
-    assertThat(searchRanked1v1Message.getGameport(), is(GAME_PORT));
-    assertThat(searchRanked1v1Message.getRelayAddress(), is(relayAddress));
 
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(1234);

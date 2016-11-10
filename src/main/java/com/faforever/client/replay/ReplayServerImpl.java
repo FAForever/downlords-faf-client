@@ -27,6 +27,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
@@ -77,8 +78,9 @@ public class ReplayServerImpl implements ReplayServer {
   }
 
   @Override
-  public void start(int uid) {
+  public CompletableFuture<Void> start(int uid) {
     stoppedGracefully = false;
+    CompletableFuture<Void> future = new CompletableFuture<>();
     new Thread(() -> {
       Integer localReplayServerPort = environment.getProperty("localReplayServer.port", Integer.class);
       String fafReplayServerHost = environment.getProperty("fafReplayServer.host");
@@ -89,11 +91,13 @@ public class ReplayServerImpl implements ReplayServer {
       try (ServerSocket serverSocket = new ServerSocket(localReplayServerPort);
            Socket fafReplayServerSocket = new Socket(fafReplayServerHost, fafReplayServerPort)) {
         this.serverSocket = serverSocket;
+        future.complete(null);
         recordAndRelay(uid, serverSocket, new BufferedOutputStream(fafReplayServerSocket.getOutputStream()));
       } catch (IOException e) {
         if (stoppedGracefully) {
           return;
         }
+        future.completeExceptionally(e);
         logger.warn("Error in replay server", e);
         notificationService.addNotification(new PersistentNotification(
                 i18n.get("replayServer.listeningFailed", localReplayServerPort),
@@ -102,6 +106,7 @@ public class ReplayServerImpl implements ReplayServer {
         );
       }
     }).start();
+    return future;
   }
 
   private void initReplayInfo(int uid) {

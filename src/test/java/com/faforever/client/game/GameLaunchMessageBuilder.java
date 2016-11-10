@@ -12,18 +12,18 @@ public class GameLaunchMessageBuilder {
     gameLaunchMessage = new GameLaunchMessage();
   }
 
+  public static GameLaunchMessageBuilder create() {
+    return new GameLaunchMessageBuilder();
+  }
+
   public GameLaunchMessageBuilder defaultValues() {
     gameLaunchMessage.setUid(1);
-    gameLaunchMessage.setMod(GameType.DEFAULT.getString());
+    gameLaunchMessage.setMod(KnownFeaturedMod.DEFAULT.getString());
     gameLaunchMessage.setArgs(Arrays.asList("/ratingcolor red", "/clan foo"));
     return this;
   }
 
   public GameLaunchMessage get() {
     return gameLaunchMessage;
-  }
-
-  public static GameLaunchMessageBuilder create() {
-    return new GameLaunchMessageBuilder();
   }
 }

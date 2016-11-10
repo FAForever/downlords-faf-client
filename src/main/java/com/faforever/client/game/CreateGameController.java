@@ -1,7 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.connectivity.ConnectivityService;
-import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
@@ -21,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
@@ -82,7 +81,7 @@ public class CreateGameController {
   @FXML
   TextField maxRankingTextField;
   @FXML
-  ListView<GameTypeBean> gameTypeListView;
+  ListView<FeaturedModBean> featuredModListView;
   @FXML
   ListView<MapBean> mapListView;
   @FXML
@@ -112,8 +111,6 @@ public class CreateGameController {
   NotificationService notificationService;
   @Resource
   ReportingService reportingService;
-  @Resource
-  ConnectivityService connectivityService;
 
   private Popup createGamePopup;
 
@@ -149,7 +146,7 @@ public class CreateGameController {
       mapListView.scrollTo(newMapIndex);
     });
 
-    gameTypeListView.setCellFactory(param -> new StringListCell<>(GameTypeBean::getFullName));
+    featuredModListView.setCellFactory(param -> new StringListCell<>(FeaturedModBean::getDisplayName));
 
     JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH);
     JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH);
@@ -157,6 +154,11 @@ public class CreateGameController {
 
   @PostConstruct
   void postConstruct() {
+    gameService.getFeaturedMods().thenAccept(featuredModBeans -> {
+      featuredModListView.setItems(new FilteredList<>(FXCollections.observableList(featuredModBeans), FeaturedModBean::isVisible));
+      selectLastOrDefaultGameType();
+    });
+
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
       preferencesService.addUpdateListener(preferences -> {
         if (preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
@@ -171,7 +173,7 @@ public class CreateGameController {
   private void init() {
     initModList();
     initMapSelection();
-    initGameTypeComboBox();
+    initFeaturedModList();
     initRatingBoundaries();
     selectLastMap();
     setLastGameTitle();
@@ -184,22 +186,10 @@ public class CreateGameController {
       if (Strings.isNullOrEmpty(titleTextField.getText())) {
         return i18n.get("game.create.titleMissing");
       }
-      switch (connectivityService.getConnectivityState()) {
-        case BLOCKED:
-          return i18n.get("game.create.portUnreachable");
-        case RUNNING:
-        case UNKNOWN:
-          return i18n.get("game.create.connectivityCheckPending");
-        default:
-          return i18n.get("game.create.create");
-      }
-    }, titleTextField.textProperty(), connectivityService.connectivityStateProperty()));
+      return i18n.get("game.create.create");
+    }, titleTextField.textProperty()));
 
-    createGameButton.disableProperty().bind(
-        titleTextField.textProperty().isEmpty()
-            .or(connectivityService.connectivityStateProperty().isEqualTo(ConnectivityState.BLOCKED))
-            .or(connectivityService.connectivityStateProperty().isEqualTo(ConnectivityState.UNKNOWN))
-    );
+    createGameButton.disableProperty().bind(titleTextField.textProperty().isEmpty());
   }
 
   private void initModList() {
@@ -237,14 +227,9 @@ public class CreateGameController {
     });
   }
 
-  private void initGameTypeComboBox() {
-    gameService.addOnGameTypesChangeListener(change -> {
-      gameTypeListView.getItems().add(change.getValueAdded());
-      selectLastOrDefaultGameType();
-    });
-
-    gameTypeListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().setLastGameType(newValue.getName());
+  private void initFeaturedModList() {
+    featuredModListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+      preferencesService.getPreferences().setLastGameType(newValue.getTechnicalName());
       preferencesService.storeInBackground();
     });
   }
@@ -307,12 +292,12 @@ public class CreateGameController {
   private void selectLastOrDefaultGameType() {
     String lastGameMod = preferencesService.getPreferences().getLastGameType();
     if (lastGameMod == null) {
-      lastGameMod = GameType.DEFAULT.getString();
+      lastGameMod = KnownFeaturedMod.DEFAULT.getString();
     }
 
-    for (GameTypeBean mod : gameTypeListView.getItems()) {
-      if (Objects.equals(mod.getName(), lastGameMod)) {
-        gameTypeListView.getSelectionModel().select(mod);
+    for (FeaturedModBean mod : featuredModListView.getItems()) {
+      if (Objects.equals(mod.getTechnicalName(), lastGameMod)) {
+        featuredModListView.getSelectionModel().select(mod);
         break;
       }
     }
@@ -336,7 +321,7 @@ public class CreateGameController {
     NewGameInfo newGameInfo = new NewGameInfo(
         titleTextField.getText(),
         Strings.emptyToNull(passwordTextField.getText()),
-        gameTypeListView.getSelectionModel().getSelectedItem().getName(),
+        featuredModListView.getSelectionModel().getSelectedItem(),
         mapListView.getSelectionModel().getSelectedItem().getFolderName(),
         simMods);
 
@@ -352,7 +337,7 @@ public class CreateGameController {
       return null;
     });
 
-
+    createGamePopup.hide();
   }
 
   public Node getRoot() {
@@ -361,12 +346,7 @@ public class CreateGameController {
 
   @FXML
   void onSelectDefaultGameTypeButtonClicked(ActionEvent event) {
-    for (GameTypeBean gameTypeBean : gameTypeListView.getItems()) {
-      if (GameType.FAF.getString().equalsIgnoreCase(gameTypeBean.getName())) {
-        gameTypeListView.getSelectionModel().select(gameTypeBean);
-        return;
-      }
-    }
+    featuredModListView.getSelectionModel().select(0);
   }
 
   @FXML

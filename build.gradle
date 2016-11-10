@@ -5,7 +5,7 @@ import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.Method
 import groovyx.net.http.ParserRegistry
-import proguard.gradle.ProGuardTask
+import de.undercouch.gradle.tasks.download.Download
 
 buildscript {
   repositories {
@@ -18,7 +18,6 @@ buildscript {
   dependencies {
     classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.4.0'
     classpath 'com.install4j:gradle-plugin:6.0'
-    classpath 'net.sf.proguard:proguard-gradle:5.2.1'
   }
 }
 
@@ -26,6 +25,7 @@ plugins {
   id "org.sonarqube" version "1.0"
   id "com.install4j.gradle" version "6.1.1"
   id "co.riiid.gradle" version "0.4.2"
+  id "de.undercouch.download" version "3.1.2"
 }
 
 apply plugin: 'java'
@@ -157,14 +157,6 @@ distributions {
   }
 }
 
-task proguardJar(type: ProGuardTask) {
-  dependsOn 'jar'
-  configuration 'proguard.txt'
-
-  injars(jar.archivePath.getPath())
-  outjars(libsDir.path + project.name + '_obfuscated.jar')
-}
-
 install4j {
   if (project.hasProperty('install4jHomeDir')) {
     installDir = file(install4jHomeDir)
@@ -205,6 +197,12 @@ task githubRelease(type: ReleaseTask, overwrite: true) {
   }
 }
 
+task downloadIceAdapter(type: Download) {
+  mustRunAfter 'assemble'
+  src "https://github.com/FAForever/ice-adapter/releases/download/v${faf_ice_adapter_version}/faf-ice-adapter.exe"
+  dest file("${buildDir}/resources/native")
+}
+
 task wrapper(type: Wrapper) {
   gradleVersion = '2.5'
 }
@@ -212,6 +210,7 @@ task wrapper(type: Wrapper) {
 repositories {
   mavenCentral()
   jcenter()
+  maven { url "https://jitpack.io" }
 }
 
 jacoco {
@@ -247,7 +246,7 @@ dependencies {
   compile 'org.apache.httpcomponents:httpclient:4.4.1'
   compile 'net.java.dev.jna:jna:4.1.0'
   compile 'net.java.dev.jna:jna-platform:4.1.0'
-  compile 'org.eclipse.jgit:org.eclipse.jgit:4.0.0.201505260635-rc2'
+  compile 'org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r'
   compile 'org.jetbrains:annotations:13.0'
   compile 'net.sf.jtidy:jtidy:r938'
   compile 'com.neovisionaries:nv-i18n:1.15'
@@ -268,5 +267,5 @@ dependencies {
   compile 'io.sigpipe:jbsdiff:1.0'
   compile 'org.luaj:luaj-jse:3.0.1'
   compile 'commons-validator:commons-validator:1.5.1'
+  compile 'com.github.micheljung:JJsonRpc:f683b55f55'
 }
-

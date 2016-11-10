@@ -1,6 +1,6 @@
 package com.faforever.client.preferences;
 
-import com.faforever.client.game.GameType;
+import com.faforever.client.game.KnownFeaturedMod;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
@@ -33,6 +33,7 @@ public class Preferences {
   private final StringProperty gamesViewMode;
   private final Ranked1v1Prefs ranked1v1;
   private final NewsPrefs newsPrefs;
+  private final DeveloperPrefs developerPrefs;
 
   public Preferences() {
     chat = new ChatPrefs();
@@ -40,7 +41,7 @@ public class Preferences {
     mainWindow = new WindowPrefs();
     forgedAlliance = new ForgedAlliancePrefs();
     themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
-    lastGameType = new SimpleStringProperty(GameType.DEFAULT.getString());
+    lastGameType = new SimpleStringProperty(KnownFeaturedMod.DEFAULT.getString());
     ignoredNotifications = new SimpleListProperty<>(observableArrayList());
     notification = new NotificationsPrefs();
     rememberLastTab = new SimpleBooleanProperty(true);
@@ -51,6 +52,7 @@ public class Preferences {
     ranked1v1 = new Ranked1v1Prefs();
     gamesViewMode = new SimpleStringProperty();
     newsPrefs = new NewsPrefs();
+    developerPrefs = new DeveloperPrefs();
   }
 
   public String getGamesViewMode() {
@@ -187,5 +189,9 @@ public class Preferences {
 
   public NewsPrefs getNews() {
     return newsPrefs;
+  }
+
+  public DeveloperPrefs getDeveloperPrefs() {
+    return developerPrefs;
   }
 }

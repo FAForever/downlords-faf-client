@@ -1,7 +1,6 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.connectivity.ConnectivityState;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -13,8 +12,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.SearchRanked1V1ClientMessage;
 import com.faforever.client.rankedmatch.StopSearchRanked1V1ClientMessage;
-import com.faforever.client.relay.GpgClientMessage;
 import com.faforever.client.relay.GpgClientMessageSerializer;
+import com.faforever.client.relay.GpgGameMessage;
 import com.faforever.client.relay.GpgServerMessageType;
 import com.faforever.client.remote.domain.AddFoeMessage;
 import com.faforever.client.remote.domain.AddFriendMessage;
@@ -45,7 +44,6 @@ import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.remote.domain.SessionMessage;
 import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
-import com.faforever.client.remote.gson.ConnectivityStateTypeAdapter;
 import com.faforever.client.remote.gson.GameAccessTypeAdapter;
 import com.faforever.client.remote.gson.GameStateTypeAdapter;
 import com.faforever.client.remote.gson.GpgServerMessageTypeTypeAdapter;
@@ -69,7 +67,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.concurrent.Task;
 import org.apache.commons.compress.utils.IOUtils;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -150,7 +147,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
         .registerTypeAdapter(GpgServerMessageType.class, GpgServerMessageTypeTypeAdapter.INSTANCE)
         .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
         .registerTypeAdapter(ServerMessage.class, ServerMessageTypeAdapter.INSTANCE)
-        .registerTypeAdapter(ConnectivityState.class, ConnectivityStateTypeAdapter.INSTANCE)
         .registerTypeAdapter(InetSocketAddress.class, InetSocketAddressTypeAdapter.INSTANCE)
         .registerTypeAdapter(RatingRange.class, RatingRangeTypeAdapter.INSTANCE)
         .create();
@@ -252,17 +248,15 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, @Nullable InetSocketAddress relayAddress, int externalPort) {
+  public CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
     HostGameMessage hostGameMessage = new HostGameMessage(
         StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
         newGameInfo.getMap(),
         newGameInfo.getTitle(),
-        externalPort,
         new boolean[0],
-        newGameInfo.getGameType(),
+        newGameInfo.getFeaturedMod().getTechnicalName(),
         newGameInfo.getPassword(),
-        null,
-        relayAddress
+        null
     );
 
     gameLaunchFuture = new CompletableFuture<>();
@@ -271,12 +265,11 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password, @Nullable InetSocketAddress relayAddress, int externalPort) {
+  public CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password) {
     JoinGameMessage joinGameMessage = new JoinGameMessage(
         gameId,
-        externalPort,
-        password,
-        relayAddress);
+        password
+    );
 
     gameLaunchFuture = new CompletableFuture<>();
     writeToServer(joinGameMessage);
@@ -307,9 +300,9 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort, @Nullable InetSocketAddress relayAddress) {
+  public CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction) {
     gameLaunchFuture = new CompletableFuture<>();
-    writeToServer(new SearchRanked1V1ClientMessage(gamePort, faction, relayAddress));
+    writeToServer(new SearchRanked1V1ClientMessage(faction));
     return gameLaunchFuture;
   }
 
@@ -325,7 +318,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public void sendGpgMessage(GpgClientMessage message) {
+  public void sendGpgMessage(GpgGameMessage message) {
     writeToServer(message);
   }
 
@@ -362,7 +355,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     serverWriter.registerMessageSerializer(new ClientMessageSerializer(login, sessionId), ClientMessage.class);
     serverWriter.registerMessageSerializer(new PongMessageSerializer(login, sessionId), PongMessage.class);
     serverWriter.registerMessageSerializer(new StringSerializer(), String.class);
-    serverWriter.registerMessageSerializer(new GpgClientMessageSerializer(), GpgClientMessage.class);
+    serverWriter.registerMessageSerializer(new GpgClientMessageSerializer(), GpgGameMessage.class);
     return serverWriter;
   }
 
@@ -394,6 +387,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private void parseServerObject(String jsonString) {
     try {
       ServerMessage serverMessage = gson.fromJson(jsonString, ServerMessage.class);
+      if (serverMessage == null) {
+        logger.debug("Discarding unimplemented server message: {}", jsonString);
+        return;
+      }
 
       Class<?> messageClass = serverMessage.getClass();
       while (messageClass != Object.class) {

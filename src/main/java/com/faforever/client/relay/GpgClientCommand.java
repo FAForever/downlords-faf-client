@@ -12,8 +12,6 @@ public enum GpgClientCommand {
   DISCONNECTED("Disconnected"),
   CONNECTED("Connected"),
   GAME_STATE("GameState"),
-  BOTTLENECK("Bottleneck"),
-  BOTTLENECK_CLEARED("BottleneckCleared"),
   GAME_OPTION("GameOption"),
   GAME_MODS("GameMods"),
   PLAYER_OPTION("PlayerOption"),
@@ -29,6 +27,7 @@ public enum GpgClientCommand {
   INIT_CONNECTIVITY_TEST("InitiateTest"),
   GAME_FULL("GameFull"),
   ENDED("Ended"),
+  SDP_RECORD("SdpRecord"),
   // Yes, this is the only lower-cased command in the protocol. Because reasons.
   CONNECTED_TO_HOST("connectedToHost");
 

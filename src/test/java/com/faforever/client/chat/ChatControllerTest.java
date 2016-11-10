@@ -131,11 +131,6 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getRoot().getParent(), is(nullValue()));
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testOpenPrivateMessageTabForUserNotOnApplicationThread() throws Exception {
-    instance.onInitiatePrivateChatEvent(new InitiatePrivateChatEvent("user"));
-  }
-
   @Test
   public void testOpenPrivateMessageTabForUser() throws Exception {
     when(privateChatTabController.getRoot()).thenReturn(new Tab());

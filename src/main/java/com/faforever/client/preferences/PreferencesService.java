@@ -41,8 +41,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletionStage;
 
-import static java.nio.charset.StandardCharsets.US_ASCII;
-
 public class PreferencesService {
 
   /**
@@ -152,8 +150,6 @@ public class PreferencesService {
     if (path == null || Files.notExists(path)) {
       logger.info("Game path is not specified or non-existent, trying to detect");
       detectGamePath();
-    } else {
-      createFaPathLua(path);
     }
   }
 
@@ -223,20 +219,7 @@ public class PreferencesService {
     preferences.getForgedAlliance().setPath(gamePath);
     storeInBackground();
 
-    createFaPathLua(gamePath);
-
     return true;
-  }
-
-  private void createFaPathLua(Path gamePath) {
-    Path faPathFile = getFafDataDirectory().resolve("fa_path.lua");
-    try {
-      Files.createDirectories(faPathFile.getParent());
-      Files.write(faPathFile, String.format("fa_path = '%s'\n",
-          gamePath.toAbsolutePath().toString().replace("\\", "\\\\")).getBytes(US_ASCII));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   /**

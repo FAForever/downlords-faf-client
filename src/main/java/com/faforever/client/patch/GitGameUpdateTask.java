@@ -1,39 +1,43 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.mod.ModService;
 import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
-import com.google.common.hash.Hashing;
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import io.sigpipe.jbsdiff.InvalidHeaderException;
-import io.sigpipe.jbsdiff.Patch;
-import org.apache.commons.compress.compressors.CompressorException;
+import com.faforever.client.util.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStreamReader;
 import java.lang.invoke.MethodHandles;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+
+import static com.github.nocatch.NoCatch.noCatch;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.copy;
+import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.setAttribute;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class GitGameUpdateTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final String BINARY_PATCH_DIRECTORY = "bsdiff4";
-  private final Gson gson;
+  private static final ClassPathResource INIT_TEMPLATE = new ClassPathResource("/fa/init_template.lua");
+
   @Resource
   I18n i18n;
   @Resource
@@ -42,124 +46,124 @@ public class GitGameUpdateTask extends CompletableTask<Void> {
   GitWrapper gitWrapper;
   @Resource
   Environment environment;
-  private Path binaryPatchRepoDirectory;
-  private String patchRepositoryUri;
-  private Path migrationDataFile;
+  @Resource
+  ModService modService;
+
+  private String gameRepositoryUri;
+  private Set<String> simMods;
+  private String ref;
+  private Path repositoryDirectory;
 
   public GitGameUpdateTask() {
     super(Priority.MEDIUM);
-    gson = new GsonBuilder()
-        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-        .create();
   }
 
   @PostConstruct
   void postConstruct() {
     updateTitle(i18n.get("patchTask.title"));
-    patchRepositoryUri = environment.getProperty("patch.git.url");
   }
-
 
   @Override
   protected Void call() throws Exception {
-    if (Files.notExists(binaryPatchRepoDirectory)) {
-      clonePatchRepository();
-    }
+    logger.info("Updating game files from {}@{}", gameRepositoryUri, ref);
 
-    try (BufferedReader reader = Files.newBufferedReader(migrationDataFile, StandardCharsets.UTF_8)) {
-      MigrationData migrationData = gson.fromJson(reader, MigrationData.class);
+    copyGameFilesToFafBinDirectory();
+    generateInitFile(repositoryDirectory);
 
-      copyGameFilesToFafBinDirectory(migrationData);
+    checkout(repositoryDirectory, gameRepositoryUri, ref);
 
-      Set<Map.Entry<String, String>> entries = migrationData.postPatchVerify.entrySet();
-
-      long progress = 0;
-      updateProgress(progress, entries.size());
-
-      for (Map.Entry<String, String> entry : entries) {
-        String fileName = entry.getKey();
-        String expectedMd5AfterPatch = entry.getValue();
-
-        Path fileToPatch = preferencesService.getFafBinDirectory().resolve(fileName);
-        byte[] bytesOfFileToPatch = Files.readAllBytes(fileToPatch);
-        Path patchFile = getPatchFile(bytesOfFileToPatch);
-
-        if (Files.notExists(patchFile)) {
-          updateProgress(++progress, entries.size());
-          continue;
-        }
-
-        patchFile(fileToPatch, bytesOfFileToPatch, patchFile);
-        verifyPatchedFile(expectedMd5AfterPatch, fileToPatch);
-
-        logger.info("Patching successful for file: {}", fileToPatch);
-
-        updateProgress(++progress, entries.size());
-      }
-    }
-
-    logger.info("All files have been patched successfully");
+    logger.info("Downloading missing sim mods");
+    downloadMissingSimMods();
     return null;
   }
 
-  private void clonePatchRepository() {
-    gitWrapper.clone(patchRepositoryUri, binaryPatchRepoDirectory);
+  private void checkout(Path gitRepoDir, String gitRepoUrl, String ref) throws IOException {
+    Assert.checkNullIllegalState(gitRepoDir, "Parameter 'gitRepoDir' must not be null");
+    Assert.checkNullIllegalState(gitRepoUrl, "Parameter 'gitRepoUrl' must not be null");
+    Assert.checkNullIllegalState(ref, "Parameter 'ref' must not be null");
+
+
+    if (Files.notExists(gitRepoDir)) {
+      Files.createDirectories(gitRepoDir.getParent());
+      gitWrapper.clone(gitRepoUrl, gitRepoDir);
+    } else {
+      gitWrapper.clean(gitRepoDir);
+      gitWrapper.reset(gitRepoDir);
+      gitWrapper.fetch(gitRepoDir);
+      gitWrapper.checkoutRef(gitRepoDir, ref);
+    }
   }
 
-  protected void copyGameFilesToFafBinDirectory(MigrationData migrationData) throws IOException {
-    Path fafBinDirectory = preferencesService.getFafBinDirectory();
-    Files.createDirectories(fafBinDirectory);
+  private void generateInitFile(Path gameRepositoryDirectory) {
+    Path initFile = preferencesService.getFafBinDirectory().resolve(ForgedAlliancePrefs.INIT_FILE_NAME);
+    String faPath = preferencesService.getPreferences().getForgedAlliance().getPath().toAbsolutePath().toString().replaceAll("[/\\\\]", "\\\\\\\\");
+    String mountPath = gameRepositoryDirectory.toAbsolutePath().toString().replaceAll("[/\\\\]", "\\\\\\\\");
 
-    for (Map.Entry<String, String> entry : migrationData.prePatchCopyRename.entrySet()) {
-      String oldName = entry.getKey();
-      String newName = entry.getValue() != null ? entry.getValue() : oldName;
+    logger.debug("Generating init file at {}", initFile);
 
-      Path source = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("bin").resolve(oldName);
-      Path destination = fafBinDirectory.resolve(newName);
-
-      logger.debug("Copying file '{}' to '{}'", source, destination);
-
-      Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
-
-      if (OperatingSystem.current() == OperatingSystem.WINDOWS) {
-        Files.setAttribute(destination, "dos:readonly", false);
+    noCatch(() -> {
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(INIT_TEMPLATE.getInputStream()));
+           BufferedWriter writer = Files.newBufferedWriter(initFile, UTF_8)) {
+        String line;
+        while ((line = reader.readLine()) != null) {
+          line = line.replace("((fa_path))", faPath);
+          writer.write(line.replace("((mount_dirs))", String.format("'%s'", mountPath)) + "\r\n");
+        }
       }
+    });
+  }
+
+  protected void copyGameFilesToFafBinDirectory() throws IOException {
+    logger.debug("Copying game files from FA to FAF folder");
+
+    Path fafBinDirectory = preferencesService.getFafBinDirectory();
+    createDirectories(fafBinDirectory);
+
+    Path faBinPath = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("bin");
+
+    Files.list(faBinPath)
+        .forEach(source -> {
+          Path destination = fafBinDirectory.resolve(source.getFileName());
+
+          if (Files.exists(destination)) {
+            return;
+          }
+
+          logger.debug("Copying file '{}' to '{}'", source, destination);
+          noCatch(() -> createDirectories(destination.getParent()));
+          noCatch(() -> copy(source, destination, REPLACE_EXISTING));
+
+          if (OperatingSystem.current() == OperatingSystem.WINDOWS) {
+            noCatch(() -> setAttribute(destination, "dos:readonly", false));
+          }
+        });
+  }
+
+  private void downloadMissingSimMods() throws InterruptedException, ExecutionException, TimeoutException, IOException {
+    if (simMods == null || simMods.isEmpty()) {
+      return;
     }
+
+    Set<String> uidsOfInstalledMods = modService.getInstalledModUids();
+    simMods.stream()
+        .filter(uid -> !uidsOfInstalledMods.contains(uid))
+        .collect(Collectors.toSet())
+        .forEach(uid -> modService.downloadAndInstallMod(uid));
   }
 
-  private Path getPatchFile(byte[] bytesOfFileToPatch) {
-    Path patchSourceDirectory = binaryPatchRepoDirectory.resolve(BINARY_PATCH_DIRECTORY);
-    return patchSourceDirectory.resolve(Hashing.md5().hashBytes(bytesOfFileToPatch).toString());
+  public void setGameRepositoryUrl(String gameRepositoryUri) {
+    this.gameRepositoryUri = gameRepositoryUri;
   }
 
-  private void patchFile(Path fileToPatch, byte[] bytesOfFileToPatch, Path patchFile) throws IOException, CompressorException, InvalidHeaderException {
-    logger.info("Patching file {}", fileToPatch);
-
-    try (OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(fileToPatch))) {
-      Patch.patch(
-          bytesOfFileToPatch,
-          Files.readAllBytes(patchFile),
-          outputStream
-      );
-    }
+  public void setSimMods(Set<String> simMods) {
+    this.simMods = simMods;
   }
 
-  private void verifyPatchedFile(String expectedMd5AfterPatch, Path fileToPatch) throws IOException {
-    String md5OfPatchedFile = Hashing.md5().hashBytes(Files.readAllBytes(fileToPatch)).toString();
-
-    if (!md5OfPatchedFile.equals(expectedMd5AfterPatch)) {
-      throw new PatchingFailedException(
-          String.format("Patching failed for file: '%s'. Expected checksum: %s but got: %s",
-              fileToPatch, expectedMd5AfterPatch, md5OfPatchedFile)
-      );
-    }
+  public void setRef(String ref) {
+    this.ref = ref;
   }
 
-  public void setBinaryPatchRepoDirectory(Path binaryPatchRepoDirectory) {
-    this.binaryPatchRepoDirectory = binaryPatchRepoDirectory;
-  }
-
-  public void setMigrationDataFile(Path migrationDataFile) {
-    this.migrationDataFile = migrationDataFile;
+  public void setRepositoryDirectory(Path repositoryDirectory) {
+    this.repositoryDirectory = repositoryDirectory;
   }
 }

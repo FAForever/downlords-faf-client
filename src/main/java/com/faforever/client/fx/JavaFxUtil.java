@@ -7,6 +7,9 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
@@ -248,5 +251,18 @@ public final class JavaFxUtil {
         (int) (color.getRed() * 255),
         (int) (color.getGreen() * 255),
         (int) (color.getBlue() * 255));
+  }
+
+  /**
+   * Updates the specified list with any changes made to the specified map, but not vice versa.
+   */
+  public static <T> void attachListToMap(ObservableList<T> list, ObservableMap<?, T> map) {
+    map.addListener((MapChangeListener<Object, T>) change -> {
+      if (change.wasRemoved()) {
+        list.remove(change.getValueRemoved());
+      } else if (change.wasAdded()) {
+        list.add(change.getValueAdded());
+      }
+    });
   }
 }

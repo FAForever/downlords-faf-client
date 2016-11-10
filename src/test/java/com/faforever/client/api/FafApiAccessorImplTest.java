@@ -10,6 +10,7 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.LowLevelHttpRequest;
 import com.google.api.client.http.LowLevelHttpResponse;
 import com.google.api.client.json.gson.GsonFactory;
+import javafx.beans.property.SimpleBooleanProperty;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,10 +38,10 @@ import java.util.List;
 import static com.faforever.client.net.UriStartingWithMatcher.uriStartingWith;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.notNullValue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -83,17 +84,19 @@ public class FafApiAccessorImplTest {
     instance.clientHttpRequestFactory = clientHttpRequestFactory;
     instance.jsonFactory = new GsonFactory();
 
+    SimpleBooleanProperty loggedInProperty = new SimpleBooleanProperty();
+
     when(preferencesService.getPreferencesDirectory()).thenReturn(preferencesDirectory.getRoot().toPath());
+    when(userService.loggedInProperty()).thenReturn(loggedInProperty);
+    when(userService.getUid()).thenReturn(123);
+    when(userService.getUsername()).thenReturn("junit");
+    when(userService.getPassword()).thenReturn("42");
 
     when(lowLevelHttpResponse.getStatusCode()).thenReturn(200);
     when(httpRequest.execute()).thenReturn(lowLevelHttpResponse);
 
     instance.postConstruct();
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void testGetPlayerAchievementsUnauthorizedThrowsIse() throws Exception {
-    instance.getPlayerAchievements(123);
+    authorize();
   }
 
   @Test
@@ -174,30 +177,6 @@ public class FafApiAccessorImplTest {
 
     assertThat(instance.getAchievementDefinition("123"), is(achievementDefinition));
     verify(httpTransport).buildRequest("GET", "http://api.example.com/achievements/123");
-  }
-
-  @Test
-  public void testAuthorize() throws Exception {
-    when(userService.getUsername()).thenReturn("junit");
-    when(userService.getPassword()).thenReturn("junit-password");
-
-    ClientHttpResponse loginResponse = new MockClientHttpResponse((byte[]) null, HttpStatus.FOUND);
-    loginResponse.getHeaders().add("Set-Cookie", "some cookies");
-    MockClientHttpRequest loginRequest = new MockClientHttpRequest();
-    loginRequest.setResponse(loginResponse);
-    when(clientHttpRequestFactory.createRequest(instance.oAuthLoginUrl, HttpMethod.POST)).thenReturn(loginRequest);
-
-    ClientHttpResponse authResponse = new MockClientHttpResponse((byte[]) null, HttpStatus.FOUND);
-    authResponse.getHeaders().setLocation(new URI("http://localhost:1111?code=1337"));
-    MockClientHttpRequest authRequest = new MockClientHttpRequest();
-    authRequest.setResponse(authResponse);
-    when(clientHttpRequestFactory.createRequest(uriStartingWith(instance.oAuthUrl), eq(HttpMethod.POST))).thenReturn(authRequest);
-
-    mockResponse("{}");
-
-    instance.authorize(123);
-
-    assertThat(instance.credential, notNullValue());
   }
 
   @Test
@@ -413,6 +392,29 @@ public class FafApiAccessorImplTest {
     });
 
     verify(httpTransport).buildRequest("POST", "http://api.example.com/mods/upload");
+  }
+
+  private void authorize() throws Exception {
+    when(userService.getUsername()).thenReturn("junit");
+    when(userService.getPassword()).thenReturn("junit-password");
+
+    ClientHttpResponse loginResponse = new MockClientHttpResponse((byte[]) null, HttpStatus.FOUND);
+    loginResponse.getHeaders().add("Set-Cookie", "some cookies");
+    MockClientHttpRequest loginRequest = new MockClientHttpRequest();
+    loginRequest.setResponse(loginResponse);
+    when(clientHttpRequestFactory.createRequest(instance.oAuthLoginUrl, HttpMethod.POST)).thenReturn(loginRequest);
+
+    ClientHttpResponse authResponse = new MockClientHttpResponse((byte[]) null, HttpStatus.FOUND);
+    authResponse.getHeaders().setLocation(new URI("http://localhost:1111?code=1337"));
+    MockClientHttpRequest authRequest = new MockClientHttpRequest();
+    authRequest.setResponse(authResponse);
+    when(clientHttpRequestFactory.createRequest(uriStartingWith(instance.oAuthUrl), eq(HttpMethod.POST))).thenReturn(authRequest);
+
+    mockResponse("{}");
+
+    instance.authorize(123);
+
+    assertThat(instance.credential, notNullValue());
   }
 
   private static class SpyableHttpTransport extends HttpTransport {

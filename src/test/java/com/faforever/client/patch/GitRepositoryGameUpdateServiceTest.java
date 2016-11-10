@@ -1,10 +1,10 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.game.GameType;
+import com.faforever.client.game.FeaturedModBean;
+import com.faforever.client.game.FeaturedModBeanBuilder;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -13,26 +13,18 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static com.faforever.client.patch.GitRepositoryGameUpdateService.STEAM_API_DLL;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
@@ -45,6 +37,8 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
   public final TemporaryFolder reposDirectory = new TemporaryFolder();
   @Rule
   public TemporaryFolder faDirectory = new TemporaryFolder();
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
@@ -65,7 +59,6 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
   @Mock
   private Preferences preferences;
 
-  private Path faBinDirectory;
   private GitRepositoryGameUpdateService instance;
 
   @Before
@@ -78,25 +71,18 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
     instance.notificationService = notificationService;
     instance.applicationContext = applicationContext;
 
-    GitCheckGameUpdateTask gameUpdateTask = mock(GitCheckGameUpdateTask.class, withSettings().useConstructor());
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.getFafReposDirectory()).thenReturn(reposDirectory.getRoot().toPath());
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getPath()).thenReturn(faDirectory.getRoot().toPath());
-    when(applicationContext.getBean(GitCheckGameUpdateTask.class)).thenReturn(gameUpdateTask);
     doAnswer(invocation -> invocation.getArgumentAt(0, Object.class)).when(taskService).submitTask(any());
-
-    faBinDirectory = faDirectory.getRoot().toPath().resolve("bin");
-    Files.createDirectories(faBinDirectory);
-
-    instance.postConstruct();
   }
 
   @Test
   public void testUpdateInBackgroundFaDirectoryUnspecified() throws Exception {
     when(forgedAlliancePrefs.getPath()).thenReturn(null);
 
-    instance.updateInBackground(GameType.FAF.getString(), null, null, null);
+    instance.updateInBackground(featuredMod(KnownFeaturedMod.FAF), null, null, null);
 
     verifyZeroInteractions(instance.taskService);
   }
@@ -110,59 +96,13 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
     future.completeExceptionally(new Exception("This exception mimicks that something went wrong"));
     when(task.getFuture()).thenReturn(future);
 
-    instance.updateInBackground(GameType.FAF.getString(), null, null, null).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
+    expectedException.expect(Exception.class);
+    expectedException.expectMessage("This exception mimicks that something went wrong");
 
-    ArgumentCaptor<PersistentNotification> captor = ArgumentCaptor.forClass(PersistentNotification.class);
-    verify(notificationService).addNotification(captor.capture());
-    assertThat(captor.getValue().getSeverity(), is(Severity.WARN));
+    instance.updateInBackground(featuredMod(KnownFeaturedMod.FAF), null, null, null).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
   }
 
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testCheckForUpdatesInBackgroundPatchingIsNeeded() throws Exception {
-    GitCheckGameUpdateTask task = mock(GitCheckGameUpdateTask.class);
-    when(task.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
-    when(applicationContext.getBean(GitCheckGameUpdateTask.class)).thenReturn(task);
-
-    CompletableFuture<Void> future = instance.checkForUpdateInBackground().toCompletableFuture();
-
-    assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(nullValue()));
-    assertThat(future.isCompletedExceptionally(), is(false));
-  }
-
-  @Test
-  public void testCheckForUpdatesInBackgroundThrowsException() throws Exception {
-    GitCheckGameUpdateTask task = mock(GitCheckGameUpdateTask.class, withSettings().useConstructor());
-    when(applicationContext.getBean(GitCheckGameUpdateTask.class)).thenReturn(task);
-
-    CompletableFuture<Boolean> exceptionFuture = new CompletableFuture<>();
-    exceptionFuture.completeExceptionally(new Exception("This exception mimicks that something went wrong"));
-
-    when(task.getFuture()).thenReturn(exceptionFuture);
-
-    CompletableFuture<Void> future = instance.checkForUpdateInBackground().toCompletableFuture();
-
-    future.get(TIMEOUT, TIMEOUT_UNIT);
-
-    ArgumentCaptor<PersistentNotification> captor = ArgumentCaptor.forClass(PersistentNotification.class);
-    verify(notificationService).addNotification(captor.capture());
-    assertThat(captor.getValue().getSeverity(), is(Severity.WARN));
-  }
-
-  @Test
-  public void testGuessInstallTypeRetail() throws Exception {
-    assertTrue(Files.notExists(faBinDirectory.resolve(STEAM_API_DLL)));
-
-    GitRepositoryGameUpdateService.InstallType installType = instance.guessInstallType();
-    assertThat(installType, is(GitRepositoryGameUpdateService.InstallType.RETAIL));
-  }
-
-  @Test
-  public void testGuessInstallTypeSteam() throws Exception {
-    Files.createDirectories(faBinDirectory);
-    Files.createFile(faBinDirectory.resolve(STEAM_API_DLL));
-
-    GitRepositoryGameUpdateService.InstallType installType = instance.guessInstallType();
-    assertThat(installType, is(GitRepositoryGameUpdateService.InstallType.STEAM));
+  private FeaturedModBean featuredMod(KnownFeaturedMod knownFeaturedMod) {
+    return FeaturedModBeanBuilder.create().defaultValues().technicalName(knownFeaturedMod.getString()).get();
   }
 }

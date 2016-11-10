@@ -1,5 +1,6 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.game.FeaturedModBean;
 import com.faforever.client.task.TaskService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +15,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-public class GameUpdateServiceImpl extends AbstractPatchService implements GameUpdateService {
+public class GameUpdateServiceImpl extends AbstractUpdateService implements GameUpdateService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -23,10 +24,10 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
   @Resource
   ApplicationContext applicationContext;
 
-  private UpdateGameFilesTask updateTask;
+  private LegacyGameUpdateTask updateTask;
 
   @Override
-  public CompletionStage<Void> updateInBackground(@NotNull String gameType, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUids) {
+  public CompletionStage<Void> updateInBackground(@NotNull FeaturedModBean featuredMod, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUids) {
     if (!checkDirectories()) {
       logger.warn("Aborted patching since directories aren't initialized properly");
       return CompletableFuture.completedFuture(null);
@@ -37,8 +38,8 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
       return CompletableFuture.completedFuture(null);
     }
 
-    updateTask = applicationContext.getBean(UpdateGameFilesTask.class);
-    updateTask.setGameType(gameType);
+    updateTask = applicationContext.getBean(LegacyGameUpdateTask.class);
+    updateTask.setFeaturedMod(featuredMod.getTechnicalName());
     updateTask.setSimMods(simModUids);
     updateTask.setModVersions(modVersions);
 
@@ -47,11 +48,5 @@ public class GameUpdateServiceImpl extends AbstractPatchService implements GameU
     }
 
     return taskService.submitTask(updateTask).getFuture();
-  }
-
-  @Override
-  public CompletionStage<Void> checkForUpdateInBackground() {
-    logger.info("Ignoring update check since the current server implementation doesn't allow to do so easily");
-    return null;
   }
 }

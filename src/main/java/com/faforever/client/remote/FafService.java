@@ -4,20 +4,19 @@ import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.api.RatingType;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.chat.avatar.AvatarBean;
-import com.faforever.client.config.CacheNames;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.game.Faction;
+import com.faforever.client.game.FeaturedModBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.relay.GpgClientMessage;
+import com.faforever.client.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -44,7 +43,7 @@ public interface FafService {
 
   void initConnectivityTest(int port);
 
-  void sendGpgMessage(GpgClientMessage message);
+  void sendGpgGameMessage(GpgGameMessage message);
 
   CompletionStage<LoginMessage> connectAndLogIn(String username, String password);
 
@@ -74,6 +73,8 @@ public interface FafService {
 
   List<ModInfoBean> getMods();
 
+  ModInfoBean getMod(String uid);
+
   void reconnect();
 
   CompletionStage<List<MapBean>> getMostDownloadedMaps(int count);
@@ -90,6 +91,9 @@ public interface FafService {
 
   void evictModsCache();
 
-  @Cacheable(CacheNames.RATING_HISTORY)
   CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(RatingType ratingType, int playerId);
+
+  void sendSdp(int remotePlayerId, String sdp);
+
+  CompletableFuture<List<FeaturedModBean>> getFeaturedMods();
 }

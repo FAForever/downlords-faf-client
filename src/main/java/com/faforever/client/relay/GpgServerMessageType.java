@@ -1,5 +1,6 @@
 package com.faforever.client.relay;
 
+import com.faforever.client.remote.domain.SdpRecordServerMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.remote.domain.ServerMessageType;
 
@@ -11,19 +12,10 @@ import java.util.Map;
  */
 public enum GpgServerMessageType implements ServerMessageType {
   HOST_GAME("HostGame", HostGameMessage.class),
-  SEND_NAT_PACKET("SendNatPacket", SendNatPacketMessage.class),
-  P2P_RECONNECT("P2pReconnect", null),
   JOIN_GAME("JoinGame", JoinGameMessage.class),
   CONNECT_TO_PEER("ConnectToPeer", ConnectToPeerMessage.class),
-  CREATE_LOBBY("CreateLobby", CreateLobbyServerMessage.class),
-  DISCONNECT_FROM_PEER("DisconnectFromPeer", DisconnectFromPeerMessage.class),
-  JOIN_PROXY("JoinProxy", null),
-  CONNECTIVITY_STATE("ConnectivityState", ConnectivityStateMessage.class),
-  /**
-   * Requests the creation of a TURN permission.
-   */
-  CREATE_PERMISSION("CreatePermission", CreatePermissionMessage.class),
-  GAME_OPTION("GameOption", GameOptionMessage.class);
+  SDP_RECORD("SdpRecord", SdpRecordServerMessage.class),
+  DISCONNECT_FROM_PEER("DisconnectFromPeer", DisconnectFromPeerMessage.class);
 
 
   private static final Map<String, GpgServerMessageType> fromString;
@@ -43,16 +35,6 @@ public enum GpgServerMessageType implements ServerMessageType {
     this.type = type;
   }
 
-  public String getString() {
-    return string;
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public <T extends ServerMessage> Class<T> getType() {
-    return (Class<T>) type;
-  }
-
   public static GpgServerMessageType fromString(String string) {
     GpgServerMessageType gpgServerMessageType = fromString.get(string);
     if (gpgServerMessageType == null) {
@@ -63,5 +45,15 @@ public enum GpgServerMessageType implements ServerMessageType {
       throw new IllegalArgumentException("Unknown relay server command: " + string);
     }
     return gpgServerMessageType;
+  }
+
+  public String getString() {
+    return string;
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T extends ServerMessage> Class<T> getType() {
+    return (Class<T>) type;
   }
 }

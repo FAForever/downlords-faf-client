@@ -1,7 +1,7 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.game.Faction;
-import com.faforever.client.game.GameType;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
@@ -10,13 +10,12 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
-import com.faforever.client.relay.GpgClientMessage;
+import com.faforever.client.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameState;
-import com.faforever.client.remote.domain.GameTypeMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.Player;
 import com.faforever.client.remote.domain.PlayersMessage;
@@ -33,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
-import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
@@ -99,14 +97,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
       @Override
       protected LoginMessage call() throws Exception {
         updateTitle(i18n.get("login.progress.message"));
-
-        GameTypeMessage gameTypeMessage = new GameTypeMessage();
-        gameTypeMessage.setFullname("Forged Alliance Forever");
-        gameTypeMessage.setName("faf");
-        gameTypeMessage.setPublish(true);
-        gameTypeMessage.setDesc("Description");
-
-        messageListeners.getOrDefault(gameTypeMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(gameTypeMessage));
 
         Player player = new Player();
         player.setLogin(USER_NAME);
@@ -189,7 +179,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo, InetSocketAddress relayAddress, int externalPort) {
+  public CompletionStage<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
     return taskService.submitTask(new CompletableTask<GameLaunchMessage>(HIGH) {
       @Override
       protected GameLaunchMessage call() throws Exception {
@@ -205,7 +195,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password, InetSocketAddress relayAddress, int externalPort) {
+  public CompletionStage<GameLaunchMessage> requestJoinGame(int gameId, String password) {
     return taskService.submitTask(new CompletableTask<GameLaunchMessage>(HIGH) {
       @Override
       protected GameLaunchMessage call() throws Exception {
@@ -241,11 +231,11 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction, int gamePort, InetSocketAddress relayAddress) {
+  public CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction) {
     logger.debug("Searching 1v1 match with faction: {}", faction);
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);
-    gameLaunchMessage.setMod(GameType.DEFAULT.getString());
+    gameLaunchMessage.setMod(KnownFeaturedMod.DEFAULT.getString());
     return CompletableFuture.completedFuture(gameLaunchMessage);
   }
 
@@ -260,7 +250,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public void sendGpgMessage(GpgClientMessage message) {
+  public void sendGpgMessage(GpgGameMessage message) {
 
   }
 

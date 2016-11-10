@@ -29,8 +29,6 @@ public class UserServiceImpl implements UserService {
   @Resource
   PreferencesService preferencesService;
   @Resource
-  FafApiAccessor fafApiAccessor;
-  @Resource
   EventBus eventBus;
   private String password;
   private Integer uid;
@@ -66,7 +64,6 @@ public class UserServiceImpl implements UserService {
           preferencesService.getPreferences().getLogin().setUsername(login);
           preferencesService.storeInBackground();
 
-          fafApiAccessor.authorize(loginInfo.getId());
           loggedIn.set(true);
           eventBus.post(new LoginSuccessEvent(login));
         })

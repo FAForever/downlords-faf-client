@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
@@ -127,8 +126,6 @@ public class ChatController {
   }
 
   private AbstractChatTabController getOrCreateChannelTab(String channelName) {
-    JavaFxUtil.assertApplicationThread();
-
     if (!nameToChatTabController.containsKey(channelName)) {
       ChannelTabController tab = applicationContext.getBean(ChannelTabController.class);
       tab.setChannel(chatService.getOrCreateChannel(channelName));
@@ -139,7 +136,7 @@ public class ChatController {
 
   private void addTab(String playerOrChannelName, AbstractChatTabController tabController) {
     nameToChatTabController.put(playerOrChannelName, tabController);
-    chatsTabPane.getTabs().add(tabController.getRoot());
+    Platform.runLater(() -> chatsTabPane.getTabs().add(tabController.getRoot()));
   }
 
   @FXML
@@ -157,17 +154,14 @@ public class ChatController {
   }
 
   private void onChannelMessage(ChatMessage chatMessage) {
-    Platform.runLater(() -> getOrCreateChannelTab(chatMessage.getSource()).onChatMessage(chatMessage));
+    getOrCreateChannelTab(chatMessage.getSource()).onChatMessage(chatMessage);
   }
 
   private void onPrivateMessage(ChatMessage chatMessage) {
-    JavaFxUtil.assertBackgroundThread();
-    Platform.runLater(() -> addAndGetPrivateMessageTab(chatMessage.getSource()).onChatMessage(chatMessage));
+    addAndGetPrivateMessageTab(chatMessage.getSource()).onChatMessage(chatMessage);
   }
 
   private AbstractChatTabController addAndGetPrivateMessageTab(String username) {
-    JavaFxUtil.assertApplicationThread();
-
     if (!nameToChatTabController.containsKey(username)) {
       PrivateChatTabController tab = applicationContext.getBean(PrivateChatTabController.class);
       tab.setReceiver(username);
