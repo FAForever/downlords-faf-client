@@ -1,4 +1,4 @@
-package com.faforever.client.relay;
+package com.faforever.client.fa.relay;
 
 /**
  * See values for description.

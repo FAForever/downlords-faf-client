@@ -1,8 +1,8 @@
-package com.faforever.client.ice;
+package com.faforever.client.fa.relay.ice;
 
-import com.faforever.client.ice.event.GpgGameMessageEvent;
-import com.faforever.client.ice.event.IceAdapterStateChanged;
-import com.faforever.client.relay.GpgGameMessage;
+import com.faforever.client.fa.relay.ice.event.GpgGameMessageEvent;
+import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
+import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.remote.FafService;
 import com.google.common.eventbus.EventBus;
 import org.slf4j.Logger;

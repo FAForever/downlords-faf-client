@@ -1,8 +1,8 @@
-package com.faforever.client.relay;
+package com.faforever.client.fa.relay;
 
 import com.faforever.client.remote.domain.MessageTarget;
 
-import static com.faforever.client.relay.GpgServerMessageType.CONNECT_TO_PEER;
+import static com.faforever.client.fa.relay.GpgServerMessageType.CONNECT_TO_PEER;
 
 public class ConnectToPeerMessage extends GpgServerMessage {
 
@@ -24,10 +24,6 @@ public class ConnectToPeerMessage extends GpgServerMessage {
 
   public int getPeerUid() {
     return getInt(PEER_UID_INDEX);
-  }
-
-  public void setPeerUid(int uid) {
-    setValue(PEER_UID_INDEX, uid);
   }
 
 }

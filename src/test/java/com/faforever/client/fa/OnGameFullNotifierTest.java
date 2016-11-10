@@ -8,7 +8,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
-import com.faforever.client.relay.event.GameFullEvent;
+import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Test;

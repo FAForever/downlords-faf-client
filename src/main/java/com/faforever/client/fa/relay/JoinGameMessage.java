@@ -1,4 +1,4 @@
-package com.faforever.client.relay;
+package com.faforever.client.fa.relay;
 
 import com.faforever.client.remote.domain.MessageTarget;
 
@@ -22,9 +22,5 @@ public class JoinGameMessage extends GpgServerMessage implements Cloneable {
 
   public int getPeerUid() {
     return getInt(PEER_UID_INDEX);
-  }
-
-  public void setPeerUid(int peerUid) {
-    setValue(PEER_UID_INDEX, peerUid);
   }
 }

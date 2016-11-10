@@ -1,7 +1,7 @@
 package com.faforever.client.remote.domain;
 
-import com.faforever.client.relay.GpgClientCommand;
-import com.faforever.client.relay.GpgGameMessage;
+import com.faforever.client.fa.relay.GpgClientCommand;
+import com.faforever.client.fa.relay.GpgGameMessage;
 
 import java.util.Collections;
 

@@ -1,7 +1,7 @@
 package com.faforever.client.config;
 
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.ice.IceConfig;
+import com.faforever.client.fa.relay.ice.IceConfig;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.stage.Stage;
 import org.junit.Test;

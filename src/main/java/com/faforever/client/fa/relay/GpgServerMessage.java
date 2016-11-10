@@ -1,12 +1,9 @@
-package com.faforever.client.relay;
+package com.faforever.client.fa.relay;
 
-import com.faforever.client.net.SocketAddressUtil;
 import com.faforever.client.remote.domain.MessageTarget;
 import com.faforever.client.remote.domain.SerializableMessage;
 import com.faforever.client.remote.domain.ServerMessage;
-import com.google.common.annotations.VisibleForTesting;
 
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,29 +18,9 @@ public class GpgServerMessage implements SerializableMessage, ServerMessage {
   private MessageTarget target;
   private List<Object> args;
 
-  public GpgServerMessage() {
-  }
-
   protected GpgServerMessage(GpgServerMessageType command, int numberOfArgs) {
     this.command = command;
     this.args = new ArrayList<>(Collections.nCopies(numberOfArgs, null));
-  }
-
-  public GpgServerMessage(GpgServerMessageType command, List<Object> args) {
-    this.command = command;
-    this.args = args;
-  }
-
-  /**
-   * Returns what the server sends as "commands" but with a sane naming (args).
-   */
-  public List<Object> getArgs() {
-    return Collections.unmodifiableList(args);
-  }
-
-  @VisibleForTesting
-  void setArgs(List<Object> args) {
-    this.args = args;
   }
 
   protected void setValue(int index, Object value) {
@@ -56,25 +33,6 @@ public class GpgServerMessage implements SerializableMessage, ServerMessage {
 
   protected String getString(int index) {
     return ((String) args.get(index));
-  }
-
-  protected InetSocketAddress getSocketAddress(int index) {
-    // TODO remove this when the representation of addresses is finally unified on server side
-    Object arg = args.get(index);
-    if (arg instanceof String) {
-      return SocketAddressUtil.fromString((String) arg);
-    }
-
-    @SuppressWarnings("unchecked")
-    List<Object> addressArray = (List<Object>) arg;
-    // TODO remove this when fixed on server side
-    int port;
-    if (addressArray.get(1) instanceof String) {
-      port = Integer.parseInt((String) addressArray.get(1));
-    } else {
-      port = ((Number) addressArray.get(1)).intValue();
-    }
-    return new InetSocketAddress((String) addressArray.get(0), port);
   }
 
   @Override

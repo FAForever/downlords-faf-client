@@ -15,7 +15,7 @@ import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.relay.GpgGameMessage;
+import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.GameEndedMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
@@ -83,11 +83,6 @@ public class FafServiceImpl implements FafService {
   @Override
   public void stopSearchingRanked() {
     fafServerAccessor.stopSearchingRanked();
-  }
-
-  @Override
-  public void initConnectivityTest(int port) {
-    fafServerAccessor.initConnectivityTest(port);
   }
 
   @Override

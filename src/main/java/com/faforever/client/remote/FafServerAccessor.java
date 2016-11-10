@@ -3,7 +3,7 @@ package com.faforever.client.remote;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.relay.GpgGameMessage;
+import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
@@ -51,8 +51,6 @@ public interface FafServerAccessor {
   Long getSessionId();
 
   void sendGpgMessage(GpgGameMessage message);
-
-  void initConnectivityTest(int port);
 
   void removeFriend(int playerId);
 

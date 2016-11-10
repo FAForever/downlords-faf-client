@@ -1,4 +1,4 @@
-package com.faforever.client.ice;
+package com.faforever.client.fa.relay.ice;
 
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;

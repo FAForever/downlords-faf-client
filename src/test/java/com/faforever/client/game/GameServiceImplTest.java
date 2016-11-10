@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fa.ForgedAllianceService;
-import com.faforever.client.ice.IceAdapter;
+import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.map.MapService;
 import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerInfoBeanBuilder;
@@ -9,7 +9,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.relay.event.RehostRequestEvent;
+import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;

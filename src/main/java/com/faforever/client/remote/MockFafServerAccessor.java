@@ -10,7 +10,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
-import com.faforever.client.relay.GpgGameMessage;
+import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameInfoMessage;
@@ -251,11 +251,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
   @Override
   public void sendGpgMessage(GpgGameMessage message) {
-
-  }
-
-  @Override
-  public void initConnectivityTest(int port) {
 
   }
 

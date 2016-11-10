@@ -1,4 +1,4 @@
-package com.faforever.client.relay;
+package com.faforever.client.fa.relay;
 
 import com.faforever.client.remote.domain.SdpRecordServerMessage;
 import com.faforever.client.remote.domain.ServerMessage;

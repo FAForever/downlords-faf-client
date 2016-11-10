@@ -12,7 +12,7 @@ import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.relay.GpgGameMessage;
+import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
@@ -40,8 +40,6 @@ public interface FafService {
   CompletionStage<GameLaunchMessage> startSearchRanked1v1(Faction faction, int port);
 
   void stopSearchingRanked();
-
-  void initConnectivityTest(int port);
 
   void sendGpgGameMessage(GpgGameMessage message);
 

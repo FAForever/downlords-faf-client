@@ -1,6 +1,9 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.fa.relay.GpgClientMessageSerializer;
+import com.faforever.client.fa.relay.GpgGameMessage;
+import com.faforever.client.fa.relay.GpgServerMessageType;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -12,9 +15,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.SearchRanked1V1ClientMessage;
 import com.faforever.client.rankedmatch.StopSearchRanked1V1ClientMessage;
-import com.faforever.client.relay.GpgClientMessageSerializer;
-import com.faforever.client.relay.GpgGameMessage;
-import com.faforever.client.relay.GpgServerMessageType;
 import com.faforever.client.remote.domain.AddFoeMessage;
 import com.faforever.client.remote.domain.AddFriendMessage;
 import com.faforever.client.remote.domain.AuthenticationFailedMessage;
@@ -47,8 +47,6 @@ import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.GameAccessTypeAdapter;
 import com.faforever.client.remote.gson.GameStateTypeAdapter;
 import com.faforever.client.remote.gson.GpgServerMessageTypeTypeAdapter;
-import com.faforever.client.remote.gson.InetSocketAddressTypeAdapter;
-import com.faforever.client.remote.gson.InitConnectivityTestMessage;
 import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
 import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeAdapter;
@@ -79,7 +77,6 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
 import java.util.Collection;
@@ -147,7 +144,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
         .registerTypeAdapter(GpgServerMessageType.class, GpgServerMessageTypeTypeAdapter.INSTANCE)
         .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
         .registerTypeAdapter(ServerMessage.class, ServerMessageTypeAdapter.INSTANCE)
-        .registerTypeAdapter(InetSocketAddress.class, InetSocketAddressTypeAdapter.INSTANCE)
         .registerTypeAdapter(RatingRange.class, RatingRangeTypeAdapter.INSTANCE)
         .create();
 
@@ -320,11 +316,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   @Override
   public void sendGpgMessage(GpgGameMessage message) {
     writeToServer(message);
-  }
-
-  @Override
-  public void initConnectivityTest(int port) {
-    writeToServer(new InitConnectivityTestMessage(port));
   }
 
   @Override

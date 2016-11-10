@@ -1,4 +1,4 @@
-package com.faforever.client.ice.event;
+package com.faforever.client.fa.relay.ice.event;
 
 public class IceAdapterStateChanged {
   private final String newState;

@@ -15,14 +15,14 @@
     <logger name="com.faforever.client.legacy" level="debug"/>
     <logger name="com.faforever.client.remote" level="debug"/>
     <logger name="com.faforever.client.replay" level="info"/>
-    <logger name="com.faforever.client.relay" level="debug"/>
+    <logger name="com.faforever.client.fa.relay" level="debug"/>
     <logger name="com.faforever.client.chat" level="info"/>
     <logger name="com.faforever.client.game" level="debug"/>
     <logger name="com.faforever.client.task" level="info"/>
     <logger name="com.faforever.client.theme" level="info"/>
     <logger name="com.faforever.client.preferences" level="info"/>
     <logger name="com.faforever.client.io" level="debug"/>
-    <logger name="com.faforever.client.ice" level="info"/>
+    <logger name="com.faforever.client.fa.relay.ice" level="info"/>
 
     <logger name="faf-ice-adapter" level="warn"/>
     <logger name="org.ice4j.stack" level="warn"/>

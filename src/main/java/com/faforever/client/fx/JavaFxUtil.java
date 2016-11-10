@@ -29,10 +29,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -65,7 +62,7 @@ public final class JavaFxUtil {
       return Paths.get(string);
     }
   };
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   private static final double ZOOM_STEP = 0.2d;
 
   private JavaFxUtil() {
@@ -139,10 +136,6 @@ public final class JavaFxUtil {
         }
       }));
     });
-  }
-
-  public static void makeNumericTextField(TextField textField) {
-    makeNumericTextField(textField, -1);
   }
 
   public static void makeNumericTextField(TextField textField, int maxLength) {

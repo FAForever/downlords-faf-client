@@ -1,4 +1,4 @@
-package com.faforever.client.relay;
+package com.faforever.client.fa.relay;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum GpgClientCommand {
-  PROCESS_NAT_PACKET("ProcessNatPacket"),
   DISCONNECTED("Disconnected"),
   CONNECTED("Connected"),
   GAME_STATE("GameState"),
@@ -24,7 +23,6 @@ public enum GpgClientCommand {
   JSON_STATS("JsonStats"),
   REHOST("Rehost"),
   DESYNC("Desync"),
-  INIT_CONNECTIVITY_TEST("InitiateTest"),
   GAME_FULL("GameFull"),
   ENDED("Ended"),
   SDP_RECORD("SdpRecord"),

@@ -1,6 +1,6 @@
-package com.faforever.client.ice.event;
+package com.faforever.client.fa.relay.ice.event;
 
-import com.faforever.client.relay.GpgGameMessage;
+import com.faforever.client.fa.relay.GpgGameMessage;
 
 public class GpgGameMessageEvent {
   private final GpgGameMessage gpgGameMessage;

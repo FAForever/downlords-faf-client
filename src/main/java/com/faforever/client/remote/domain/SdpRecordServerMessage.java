@@ -1,7 +1,7 @@
 package com.faforever.client.remote.domain;
 
-import com.faforever.client.relay.GpgServerMessage;
-import com.faforever.client.relay.GpgServerMessageType;
+import com.faforever.client.fa.relay.GpgServerMessage;
+import com.faforever.client.fa.relay.GpgServerMessageType;
 
 public class SdpRecordServerMessage extends GpgServerMessage {
   private static final int SENDER_INDEX = 0;

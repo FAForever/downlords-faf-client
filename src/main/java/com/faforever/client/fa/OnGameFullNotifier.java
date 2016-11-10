@@ -7,7 +7,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
-import com.faforever.client.relay.event.GameFullEvent;
+import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -21,7 +21,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 import static java.lang.Thread.sleep;
 
 /**
- * Starts flashing the Forged Alliance window whenever a {@link com.faforever.client.relay.event.GameFullEvent} is
+ * Starts flashing the Forged Alliance window whenever a {@link com.faforever.client.fa.relay.event.GameFullEvent} is
  * triggered and stops as soon as the window is focused.
  * Also shows a transient notification.
  */
