@@ -35,8 +35,6 @@ import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.patch.GitRepositoryGameUpdateService;
 import com.faforever.client.patch.GitWrapper;
 import com.faforever.client.patch.JGitWrapper;
-import com.faforever.client.patch.UpdateServerAccessor;
-import com.faforever.client.patch.UpdateServerAccessorImpl;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
@@ -115,11 +113,6 @@ public class ServiceConfig {
   @Bean
   ReplayServerAccessor replayServerAccessor() {
     return new ReplayServerAccessorImpl();
-  }
-
-  @Bean
-  UpdateServerAccessor updateServerAccessor() {
-    return new UpdateServerAccessorImpl();
   }
 
   @Bean
