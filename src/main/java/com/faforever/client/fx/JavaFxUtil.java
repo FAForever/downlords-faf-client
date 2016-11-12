@@ -43,6 +43,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.github.nocatch.NoCatch.noCatch;
+import static java.nio.file.Files.createDirectories;
 import static javax.imageio.ImageIO.write;
 
 /**
@@ -271,13 +272,18 @@ public final class JavaFxUtil {
         @Override
         public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
           if (newValue.intValue() >= 1) {
-            noCatch(() -> write(SwingFXUtils.fromFXImage(image, null), format, path.toFile()));
+            writeImage(image, path, format);
             image.progressProperty().removeListener(this);
           }
         }
       });
     } else {
-      noCatch(() -> write(SwingFXUtils.fromFXImage(image, null), format, path.toFile()));
+      writeImage(image, path, format);
     }
+  }
+
+  private static void writeImage(Image image, Path path, String format) {
+    noCatch(() -> createDirectories(path.getParent()));
+    noCatch(() -> write(SwingFXUtils.fromFXImage(image, null), format, path.toFile()));
   }
 }
