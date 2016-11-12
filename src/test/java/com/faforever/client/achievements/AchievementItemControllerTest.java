@@ -1,7 +1,7 @@
 package com.faforever.client.achievements;
 
+import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.api.AchievementState;
 import com.faforever.client.api.AchievementType;
 import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
@@ -52,7 +52,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testSetAchievementDefinition() throws Exception {
     AchievementDefinition achievementDefinition = AchievementDefinitionBuilder.create().defaultValues().get();
-    when(achievementService.getRevealedIcon(achievementDefinition)).thenReturn(new Image(getThemeFile(DEFAULT_ACHIEVEMENT_IMAGE)));
+    when(achievementService.getImage(achievementDefinition, AchievementState.REVEALED)).thenReturn(new Image(getThemeFile(DEFAULT_ACHIEVEMENT_IMAGE)));
 
     instance.setAchievementDefinition(achievementDefinition);
 
@@ -82,7 +82,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
         .get());
 
     PlayerAchievement playerAchievement = PlayerAchievementBuilder.create().defaultValues()
-        .state(AchievementState.UNLOCKED)
+        .state(com.faforever.client.api.AchievementState.UNLOCKED)
         .currentSteps(50)
         .get();
 
@@ -112,7 +112,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
     instance.setAchievementDefinition(AchievementDefinitionBuilder.create().defaultValues().get());
 
     PlayerAchievement playerAchievement = PlayerAchievementBuilder.create().defaultValues()
-        .state(AchievementState.REVEALED)
+        .state(com.faforever.client.api.AchievementState.REVEALED)
         .get();
 
     instance.setPlayerAchievement(playerAchievement);
@@ -125,7 +125,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
     instance.setAchievementDefinition(AchievementDefinitionBuilder.create().defaultValues().get());
 
     PlayerAchievement playerAchievement = PlayerAchievementBuilder.create().defaultValues()
-        .state(AchievementState.UNLOCKED)
+        .state(com.faforever.client.api.AchievementState.UNLOCKED)
         .currentSteps(50)
         .get();
 

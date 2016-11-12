@@ -5,9 +5,11 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.chat.PlayerInfoBean;
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
 import com.faforever.client.theme.ThemeService;
@@ -20,11 +22,15 @@ import org.springframework.cache.annotation.Cacheable;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ThreadPoolExecutor;
+
+import static com.github.nocatch.NoCatch.noCatch;
 
 public class AchievementServiceImpl implements AchievementService {
 
@@ -48,6 +54,8 @@ public class AchievementServiceImpl implements AchievementService {
   ThemeService themeService;
   @Resource
   ThreadPoolExecutor threadPoolExecutor;
+  @Resource
+  PreferencesService preferencesService;
 
   public AchievementServiceImpl() {
     playerAchievements = FXCollections.observableArrayList();
@@ -83,20 +91,29 @@ public class AchievementServiceImpl implements AchievementService {
 
   @Override
   @Cacheable(CacheNames.ACHIEVEMENT_IMAGES)
-  public Image getRevealedIcon(AchievementDefinition achievementDefinition) {
-    if (Strings.isNullOrEmpty(achievementDefinition.getRevealedIconUrl())) {
+  public Image getImage(AchievementDefinition achievementDefinition, AchievementState achievementState) {
+    String url = null;
+    switch (achievementState) {
+      case HIDDEN:
+        throw new UnsupportedOperationException("Not yet implemented");
+      case REVEALED:
+        url = achievementDefinition.getRevealedIconUrl();
+        break;
+      case UNLOCKED:
+        url = achievementDefinition.getUnlockedIconUrl();
+        break;
+    }
+    if (Strings.isNullOrEmpty(url)) {
       return themeService.getThemeImage(ThemeService.DEFAULT_ACHIEVEMENT_IMAGE);
     }
-    return new Image(achievementDefinition.getRevealedIconUrl(), ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE, true, true, true);
-  }
-
-  @Override
-  @Cacheable(CacheNames.ACHIEVEMENT_IMAGES)
-  public Image getUnlockedIcon(AchievementDefinition achievementDefinition) {
-    if (Strings.isNullOrEmpty(achievementDefinition.getUnlockedIconUrl())) {
-      return themeService.getThemeImage(ThemeService.DEFAULT_ACHIEVEMENT_IMAGE);
+    String filename = url.substring(url.lastIndexOf('/') + 1);
+    Path cachedPreviewPath = preferencesService.getCacheDirectory().resolve("achievements").resolve(achievementState.name().toLowerCase()).resolve(filename);
+    if (Files.exists(cachedPreviewPath)) {
+      url = noCatch(() -> cachedPreviewPath.toUri().toURL()).toExternalForm();
     }
-    return new Image(achievementDefinition.getUnlockedIconUrl(), ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE, true, true, true);
+    Image image = new Image(url, ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE, true, true, true);
+    JavaFxUtil.persistImage(image, cachedPreviewPath, filename.substring(filename.lastIndexOf('.') + 1));
+    return image;
   }
 
   private void reloadAchievements() {

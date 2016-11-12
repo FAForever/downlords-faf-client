@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
+import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.api.PlayerEvent;
@@ -51,7 +52,7 @@ import java.util.Map;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.api.AchievementState.UNLOCKED;
+import static com.faforever.client.achievements.AchievementService.AchievementState.UNLOCKED;
 import static com.faforever.client.events.EventService.EVENT_AEON_PLAYS;
 import static com.faforever.client.events.EventService.EVENT_AEON_WINS;
 import static com.faforever.client.events.EventService.EVENT_BUILT_AIR_UNITS;
@@ -165,7 +166,7 @@ public class UserInfoWindowController {
   }
 
   private static boolean isUnlocked(PlayerAchievement playerAchievement) {
-    return UNLOCKED == playerAchievement.getState();
+    return UNLOCKED == AchievementState.valueOf(playerAchievement.getState().name());
   }
 
   @FXML
@@ -377,7 +378,7 @@ public class UserInfoWindowController {
       Platform.runLater(() -> {
         mostRecentAchievementNameLabel.setText(mostRecentAchievementName);
         mostRecentAchievementDescriptionLabel.setText(mostRecentAchievementDescription);
-        mostRecentAchievementImageView.setImage(achievementService.getRevealedIcon(mostRecentAchievement));
+        mostRecentAchievementImageView.setImage(achievementService.getImage(mostRecentAchievement, UNLOCKED));
       });
     }
   }

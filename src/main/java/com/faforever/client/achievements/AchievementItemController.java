@@ -1,7 +1,7 @@
 package com.faforever.client.achievements;
 
+import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.api.AchievementState;
 import com.faforever.client.api.AchievementType;
 import com.faforever.client.api.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
@@ -20,7 +20,7 @@ import javax.annotation.Resource;
 import java.util.Locale;
 import java.util.Objects;
 
-
+// TODO this class should not use API objects
 public class AchievementItemController {
 
   @FXML
@@ -65,7 +65,7 @@ public class AchievementItemController {
     nameLabel.setText(achievementDefinition.getName());
     descriptionLabel.setText(achievementDefinition.getDescription());
     pointsLabel.setText(String.format(locale, "%d", achievementDefinition.getExperiencePoints()));
-    imageView.setImage(achievementService.getRevealedIcon(achievementDefinition));
+    imageView.setImage(achievementService.getImage(achievementDefinition, AchievementService.AchievementState.REVEALED));
     progressLabel.setText(i18n.get("achievement.stepsFormat", 0, achievementDefinition.getTotalSteps()));
     progressBar.setProgress(0);
 
@@ -88,8 +88,8 @@ public class AchievementItemController {
       throw new IllegalStateException("Achievement ID does not match");
     }
 
-    if (AchievementState.UNLOCKED == playerAchievement.getState()) {
-      imageView.setImage(achievementService.getUnlockedIcon(achievementDefinition));
+    if (AchievementState.UNLOCKED == AchievementState.valueOf(playerAchievement.getState().name())) {
+      imageView.setImage(achievementService.getImage(achievementDefinition, AchievementState.UNLOCKED));
       imageView.setOpacity(1);
       imageView.setEffect(null);
     }

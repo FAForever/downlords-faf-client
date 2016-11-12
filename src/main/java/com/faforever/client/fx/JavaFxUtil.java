@@ -7,9 +7,12 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
@@ -18,6 +21,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
@@ -39,6 +43,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.github.nocatch.NoCatch.noCatch;
+import static javax.imageio.ImageIO.write;
 
 /**
  * Utility class to fix some annoying JavaFX shortcomings.
@@ -257,5 +262,22 @@ public final class JavaFxUtil {
         list.add(change.getValueAdded());
       }
     });
+  }
+
+  public static void persistImage(Image image, Path path, String format) {
+    if (image.isBackgroundLoading() && image.getProgress() < 1) {
+      // Let's hope that loading doesn't finish before the listener is added
+      image.progressProperty().addListener(new ChangeListener<Number>() {
+        @Override
+        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+          if (newValue.intValue() >= 1) {
+            noCatch(() -> write(SwingFXUtils.fromFXImage(image, null), format, path.toFile()));
+            image.progressProperty().removeListener(this);
+          }
+        }
+      });
+    } else {
+      noCatch(() -> write(SwingFXUtils.fromFXImage(image, null), format, path.toFile()));
+    }
   }
 }

@@ -15,7 +15,9 @@ public interface AchievementService {
 
   CompletionStage<AchievementDefinition> getAchievementDefinition(String achievementId);
 
-  Image getRevealedIcon(AchievementDefinition achievementDefinition);
+  Image getImage(AchievementDefinition achievementDefinition, AchievementState achievementState);
 
-  Image getUnlockedIcon(AchievementDefinition achievementDefinition);
+  enum AchievementState {
+    HIDDEN, REVEALED, UNLOCKED
+  }
 }

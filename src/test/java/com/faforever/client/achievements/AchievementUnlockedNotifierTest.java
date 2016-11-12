@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+import static com.faforever.client.achievements.AchievementService.AchievementState.REVEALED;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -97,7 +98,7 @@ public class AchievementUnlockedNotifierTest {
     when(achievementService.getAchievementDefinition("1234")).thenReturn(CompletableFuture.completedFuture(achievementDefinition));
 
     when(i18n.get("achievement.unlockedTitle")).thenReturn("Achievement unlocked");
-    when(achievementService.getRevealedIcon(achievementDefinition)).thenReturn(mock(Image.class));
+    when(achievementService.getImage(achievementDefinition, REVEALED)).thenReturn(mock(Image.class));
 
     UpdatedAchievementsMessage message = new UpdatedAchievementsMessage();
     UpdatedAchievement updatedAchievement = new UpdatedAchievement();

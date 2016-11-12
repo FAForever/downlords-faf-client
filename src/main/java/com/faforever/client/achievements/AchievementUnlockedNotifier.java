@@ -1,5 +1,6 @@
 package com.faforever.client.achievements;
 
+import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.i18n.I18n;
@@ -57,7 +58,7 @@ public class AchievementUnlockedNotifier {
     notificationService.addNotification(new TransientNotification(
             i18n.get("achievement.unlockedTitle"),
             achievementDefinition.getName(),
-            achievementService.getRevealedIcon(achievementDefinition)
+        achievementService.getImage(achievementDefinition, AchievementState.UNLOCKED)
         )
     );
   }
