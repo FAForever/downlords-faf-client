@@ -3,14 +3,12 @@ package com.faforever.client.mod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.util.IdenticonUtil;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.function.Consumer;
@@ -69,12 +67,7 @@ public class ModTileController {
 
   public void setMod(ModInfoBean mod) {
     this.mod = mod;
-    Image image;
-    if (StringUtils.isNotEmpty(mod.getThumbnailUrl())) {
-      image = modService.loadThumbnail(mod);
-    } else {
-      image = IdenticonUtil.createIdenticon(mod.getId());
-    }
+    Image image = modService.loadThumbnail(mod);
     thumbnailImageView.setImage(image);
     nameLabel.setText(mod.getName());
     authorLabel.setText(mod.getAuthor());

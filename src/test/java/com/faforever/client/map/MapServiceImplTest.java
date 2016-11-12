@@ -1,18 +1,17 @@
 package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.ByteCopier;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.AssetService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.ThemeService;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
-import javafx.scene.image.Image;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.store.RAMDirectory;
 import org.junit.Before;
@@ -24,7 +23,7 @@ import org.luaj.vm2.LuaError;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.io.BufferedOutputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,11 +37,13 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class MapServiceImplTest extends AbstractPlainJavaFxTest {
@@ -73,6 +74,8 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private ThemeService themeService;
+  @Mock
+  private AssetService assetService;
 
   private Path mapsDirectory;
 
@@ -86,6 +89,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     instance.analyzer = new SimpleAnalyzer();
     instance.i18n = i18n;
     instance.themeService = themeService;
+    instance.assetService = assetService;
     instance.mapPreviewUrlFormat = "http://127.0.0.1:65534/preview/%s/%s";
 
     mapsDirectory = gameDirectory.newFolder("maps").toPath();
@@ -172,27 +176,11 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testLoadPreviewNotCachedLoadsFromUrl() throws Exception {
-    when(themeService.getThemeImage(ThemeService.UNKNOWN_MAP_IMAGE))
-        .thenReturn(new Image(getClass().getResource("/theme/" + ThemeService.UNKNOWN_MAP_IMAGE).toExternalForm()));
-
+  public void testloadPreview() throws Exception {
     for (PreviewSize previewSize : PreviewSize.values()) {
-      Image image = instance.loadPreview("test", previewSize);
-      assertNotNull(image);
-      // Let's use impl_getUrl as long as it's there, later use reflection
-      assertThat(image.impl_getUrl(), startsWith("file:/"));
-    }
-  }
-
-  @Test
-  public void testGetSmallPreviewCached() throws Exception {
-    for (PreviewSize previewSize : PreviewSize.values()) {
-      Path previewPath = cacheDirectory.getRoot().toPath().resolve("maps").resolve(previewSize.folderName).resolve("preview.png");
-      Files.createDirectories(previewPath.getParent());
-      try (BufferedOutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(previewPath))) {
-        ByteCopier.from(getClass().getResourceAsStream("/images/logo_transparent.png")).to(outputStream).copy();
-      }
-      assertNotNull(instance.loadPreview("preview", previewSize));
+      Path cacheSubDir = Paths.get("maps").resolve(previewSize.folderName);
+      instance.loadPreview("preview", previewSize);
+      verify(assetService).loadAndCacheImage(any(URL.class), eq(cacheSubDir), isNull(URL.class));
     }
   }
 }

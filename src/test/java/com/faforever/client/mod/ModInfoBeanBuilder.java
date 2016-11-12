@@ -5,12 +5,18 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static com.github.nocatch.NoCatch.noCatch;
+
 public class ModInfoBeanBuilder {
 
   private final ModInfoBean modInfo;
 
   public ModInfoBeanBuilder() {
     modInfo = new ModInfoBean();
+  }
+
+  public static ModInfoBeanBuilder create() {
+    return new ModInfoBeanBuilder();
   }
 
   public ModInfoBeanBuilder defaultValues() {
@@ -49,11 +55,7 @@ public class ModInfoBeanBuilder {
   }
 
   public ModInfoBeanBuilder thumbnailUrl(String thumbnailUrl) {
-    modInfo.setThumbnailUrl(thumbnailUrl);
+    modInfo.setThumbnailUrl(noCatch(() -> thumbnailUrl == null ? null : new URL(thumbnailUrl)));
     return this;
-  }
-
-  public static ModInfoBeanBuilder create() {
-    return new ModInfoBeanBuilder();
   }
 }

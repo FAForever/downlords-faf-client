@@ -19,7 +19,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,16 +68,17 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSetModNoThumbnail() throws Exception {
+  public void testSetModNoThumbnailLoadsDefault() throws Exception {
     ModInfoBean mod = ModInfoBeanBuilder.create()
         .defaultValues()
         .thumbnailUrl(null)
         .get();
+    Image image = mock(Image.class);
+    when(modService.loadThumbnail(mod)).thenReturn(image);
 
     instance.setMod(mod);
 
-    assertThat(instance.thumbnailImageView.getImage(), notNullValue());
-    verify(modService, never()).loadThumbnail(mod);
+    assertThat(instance.thumbnailImageView.getImage(), is(image));
   }
 
   @Test

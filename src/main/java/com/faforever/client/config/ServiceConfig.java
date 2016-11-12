@@ -38,6 +38,8 @@ import com.faforever.client.patch.JGitWrapper;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.AssetService;
+import com.faforever.client.remote.AssetServiceImpl;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.remote.FafServerAccessorImpl;
 import com.faforever.client.remote.FafService;
@@ -281,5 +283,10 @@ public class ServiceConfig {
   @Bean
   ThemeService themeService() {
     return new ThemeServiceImpl();
+  }
+
+  @Bean
+  AssetService assetAccessor() {
+    return new AssetServiceImpl();
   }
 }

@@ -1,17 +1,16 @@
 package com.faforever.client.map;
 
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean.Type;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.util.ProgrammingError;
-import com.google.common.base.Strings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -36,10 +35,10 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
@@ -83,6 +82,8 @@ public class MapServiceImpl implements MapService {
   ThreadPoolExecutor threadPoolExecutor;
   @Resource
   FafService fafService;
+  @Resource
+  AssetService assetService;
 
   @Value("${vault.mapDownloadUrl}")
   String mapDownloadUrl;
@@ -247,17 +248,7 @@ public class MapServiceImpl implements MapService {
   @Override
   @Cacheable(value = CacheNames.MAP_PREVIEW, unless = "#result == null")
   public Image loadPreview(String mapName, PreviewSize previewSize) {
-    URL url = getPreviewUrl(mapName, mapPreviewUrlFormat, previewSize);
-
-    Path cachePath = preferencesService.getCacheDirectory().resolve("maps").resolve(previewSize.folderName).resolve(mapName + ".png");
-    if (Files.exists(cachePath)) {
-      return new Image(noCatch(() -> cachePath.toUri().toURL().toExternalForm()), true);
-    }
-    logger.debug("Fetching {} preview for map {} from {}", previewSize, mapName, url);
-
-    Image image = fetchImageOrDefault(url);
-    JavaFxUtil.persistImage(image, cachePath, ".png");
-    return image;
+    return loadPreview(getPreviewUrl(mapName, mapPreviewUrlFormat, previewSize), previewSize);
   }
 
   @Override
@@ -347,28 +338,22 @@ public class MapServiceImpl implements MapService {
   @Override
   @Cacheable(CacheNames.MAP_PREVIEW)
   public Image loadPreview(MapBean map, PreviewSize previewSize) {
-    String url;
+    URL url;
     switch (previewSize) {
       case SMALL:
-        url = map.getSmallThumbnailUrl().toString();
+        url = map.getSmallThumbnailUrl();
         break;
       case LARGE:
-        url = map.getLargeThumbnailUrl().toString();
+        url = map.getLargeThumbnailUrl();
         break;
       default:
         throw new ProgrammingError("Uncovered preview size: " + previewSize);
     }
-    if (Strings.isNullOrEmpty(url)) {
-      return themeService.getThemeImage(ThemeService.UNKNOWN_MAP_IMAGE);
-    }
-    String filename = url.substring(url.lastIndexOf('/') + 1);
-    Path cachedPreviewPath = preferencesService.getCacheDirectory().resolve("maps").resolve(previewSize.folderName).resolve(filename);
-    if (Files.exists(cachedPreviewPath)) {
-      url = noCatch(() -> cachedPreviewPath.toUri().toURL()).toExternalForm();
-    }
-    Image image = new Image(url, true);
-    JavaFxUtil.persistImage(image, cachedPreviewPath, filename.substring(filename.lastIndexOf('.') + 1));
-    return image;
+    return loadPreview(url, previewSize);
+  }
+
+  private Image loadPreview(URL url, PreviewSize previewSize) {
+    return assetService.loadAndCacheImage(url, Paths.get("maps").resolve(previewSize.folderName), themeService.getThemeFileUrl(ThemeService.UNKNOWN_MAP_IMAGE));
   }
 
   @Override
@@ -421,21 +406,6 @@ public class MapServiceImpl implements MapService {
 
     return taskService.submitTask(task).getFuture()
         .thenAccept(aVoid -> noCatch(() -> addSkirmishMap(getPathForMap(folderName))));
-  }
-
-  @Nullable
-  private Image fetchImageOrDefault(URL url) {
-    try {
-      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-      if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-        return new Image(url.toString(), true);
-      }
-      logger.debug("Map preview is not available: " + url);
-      return null;
-    } catch (IOException e) {
-      logger.warn("Could not fetch map preview", e);
-      return themeService.getThemeImage(ThemeService.UNKNOWN_MAP_IMAGE);
-    }
   }
 
   public enum OfficialMap {

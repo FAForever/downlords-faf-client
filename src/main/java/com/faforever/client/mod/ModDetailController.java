@@ -6,7 +6,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.util.IdenticonUtil;
 import javafx.collections.ListChangeListener;
 import javafx.collections.WeakListChangeListener;
 import javafx.fxml.FXML;
@@ -17,7 +16,6 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Resource;
 
@@ -66,7 +64,7 @@ public class ModDetailController {
     progressLabel.visibleProperty().bind(progressBar.visibleProperty());
 
     modDetailRoot.setOnKeyPressed(keyEvent -> {
-      if (keyEvent.getCode() == KeyCode.ESCAPE){
+      if (keyEvent.getCode() == KeyCode.ESCAPE) {
         onCloseButtonClicked();
       }
     });
@@ -104,11 +102,7 @@ public class ModDetailController {
 
   public void setMod(ModInfoBean mod) {
     this.mod = mod;
-    if (StringUtils.isNotEmpty(mod.getThumbnailUrl())) {
-      thumbnailImageView.setImage(modService.loadThumbnail(mod));
-    } else {
-      thumbnailImageView.setImage(IdenticonUtil.createIdenticon(mod.getId()));
-    }
+    thumbnailImageView.setImage(modService.loadThumbnail(mod));
     nameLabel.setText(mod.getName());
     authorLabel.setText(mod.getAuthor());
 

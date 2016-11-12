@@ -13,6 +13,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +24,8 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Objects;
+
+import static com.github.nocatch.NoCatch.noCatch;
 
 public class ModInfoBean {
   public static final Comparator<? super ModInfoBean> TIMES_PLAYED_COMPARATOR = (o1, o2) -> Integer.compare(o1.getPlayed(), o2.getPlayed());
@@ -38,7 +41,7 @@ public class ModInfoBean {
   private final BooleanProperty selectable;
   private final BooleanProperty uiOnly;
   private final StringProperty version;
-  private final StringProperty thumbnailUrl;
+  private final ObjectProperty<URL> thumbnailUrl;
   private final ListProperty<String> comments;
   private final BooleanProperty selected;
   private final IntegerProperty likes;
@@ -61,7 +64,7 @@ public class ModInfoBean {
     played = new SimpleIntegerProperty();
     publishDate = new SimpleObjectProperty<>();
     downloads = new SimpleIntegerProperty();
-    thumbnailUrl = new SimpleStringProperty();
+    thumbnailUrl = new SimpleObjectProperty<>();
     comments = new SimpleListProperty<>(FXCollections.observableArrayList());
     downloadUrl = new SimpleObjectProperty<>();
   }
@@ -78,7 +81,7 @@ public class ModInfoBean {
     modInfoBean.setDescription(mod.getDescription());
     modInfoBean.setId(mod.getId());
     modInfoBean.setDownloads(mod.getDownloads());
-    modInfoBean.setThumbnailUrl(mod.getThumbnailUrl());
+    modInfoBean.setThumbnailUrl(StringUtils.isEmpty(mod.getThumbnailUrl()) ? null : noCatch(() -> new URL(mod.getThumbnailUrl())));
 //    modInfoBean.getComments().setAll(mod.getComments());
     try {
       modInfoBean.setDownloadUrl(new URL(mod.getDownloadUrl()));
@@ -257,15 +260,15 @@ public class ModInfoBean {
     return downloads;
   }
 
-  public String getThumbnailUrl() {
+  public URL getThumbnailUrl() {
     return thumbnailUrl.get();
   }
 
-  public void setThumbnailUrl(String thumbnailUrl) {
+  public void setThumbnailUrl(URL thumbnailUrl) {
     this.thumbnailUrl.set(thumbnailUrl);
   }
 
-  public StringProperty thumbnailUrlProperty() {
+  public ObjectProperty<URL> thumbnailUrlProperty() {
     return thumbnailUrl;
   }
 

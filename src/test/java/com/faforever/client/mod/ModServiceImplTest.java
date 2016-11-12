@@ -6,6 +6,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -87,6 +88,8 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   private NotificationService notificationService;
   @Mock
   private I18n i18n;
+  @Mock
+  private AssetService assetService;
 
   private ModServiceImpl instance;
   private Path gamePrefsPath;
@@ -100,6 +103,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     instance.taskService = taskService;
     instance.fafService = fafService;
     instance.notificationService = notificationService;
+    instance.assetService = assetService;
     instance.directory = new RAMDirectory();
     instance.analyzer = new SimpleAnalyzer();
 
@@ -400,5 +404,14 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     verify(modUploadTask).setModPath(modPath);
 
     verify(taskService).submitTask(modUploadTask);
+  }
+
+  @Test
+  public void testLoadThumbnail() throws Exception {
+    ModInfoBean mod = ModInfoBeanBuilder.create().defaultValues()
+        .thumbnailUrl("http://127.0.0.1:65534/thumbnail.png")
+        .get();
+    instance.loadThumbnail(mod);
+    verify(assetService).loadAndCacheImage(mod.getThumbnailUrl(), Paths.get("mods"), null);
   }
 }

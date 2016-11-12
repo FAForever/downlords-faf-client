@@ -7,10 +7,12 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ConcurrentUtil;
+import com.faforever.client.util.IdenticonUtil;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -93,6 +95,8 @@ public class ModServiceImpl implements ModService {
   I18n i18n;
   @Resource
   PlatformService platformService;
+  @Resource
+  AssetService assetService;
 
   private Path modsDirectory;
   private Map<Path, ModInfoBean> pathToMod;
@@ -389,14 +393,13 @@ public class ModServiceImpl implements ModService {
   @Override
   @Cacheable(value = CacheNames.MOD_THUMBNAIL, unless = "#result == null")
   public Image loadThumbnail(ModInfoBean mod) {
-    String url = mod.getThumbnailUrl();
+    URL url = mod.getThumbnailUrl();
     if (url == null) {
-      return null;
+      return IdenticonUtil.createIdenticon(mod.getId());
     }
 
     logger.debug("Fetching thumbnail for mod {} from {}", mod.getName(), url);
-
-    return new Image(url, true);
+    return assetService.loadAndCacheImage(mod.getThumbnailUrl(), Paths.get("mods"), null);
   }
 
   @Override

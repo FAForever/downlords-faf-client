@@ -72,6 +72,9 @@ public class ModTileControllerTest extends AbstractPlainJavaFxTest {
         .thumbnailUrl(null)
         .get();
 
+    Image image = mock(Image.class);
+    when(modService.loadThumbnail(mod)).thenReturn(image);
+
     instance.setMod(mod);
 
     assertThat(instance.thumbnailImageView.getImage(), notNullValue());
