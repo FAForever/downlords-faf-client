@@ -96,7 +96,7 @@ public class MapServiceImpl implements MapService {
 
   private Map<Path, MapBean> pathToMap;
   private AnalyzingInfixSuggester suggester;
-  private Path mapsDirectory;
+  private Path customMapsDirectory;
   private ObservableList<MapBean> installedSkirmishMaps;
   private Map<String, MapBean> mapsByFolderName;
 
@@ -127,24 +127,22 @@ public class MapServiceImpl implements MapService {
 
   @PostConstruct
   void postConstruct() throws IOException {
-    mapsDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
-    preferencesService.getPreferences().getForgedAlliance().customMapsDirectoryProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue != null) {
-        onMapDirectoryReady();
-      }
-    });
-
-    if (mapsDirectory != null) {
-      onMapDirectoryReady();
-    }
+    customMapsDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
+    preferencesService.getPreferences().getForgedAlliance().pathProperty().addListener(observable -> tryLoadMaps());
+    preferencesService.getPreferences().getForgedAlliance().customMapsDirectoryProperty().addListener(observable -> tryLoadMaps());
+    tryLoadMaps();
 
     suggester = new AnalyzingInfixSuggester(directory, analyzer);
   }
 
-  private void onMapDirectoryReady() {
+  private void tryLoadMaps() {
+    if (preferencesService.getPreferences().getForgedAlliance().getPath() == null
+        || preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory() == null) {
+      return;
+    }
     try {
-      Files.createDirectories(mapsDirectory);
-      startDirectoryWatcher(mapsDirectory);
+      Files.createDirectories(customMapsDirectory);
+      startDirectoryWatcher(customMapsDirectory);
     } catch (IOException | InterruptedException e) {
       logger.warn("Could not start map directory watcher", e);
       // TODO notify user
@@ -155,7 +153,7 @@ public class MapServiceImpl implements MapService {
   private void startDirectoryWatcher(Path mapsDirectory) throws IOException, InterruptedException {
     threadPoolExecutor.execute(() -> noCatch(() -> {
       WatchService watcher = mapsDirectory.getFileSystem().newWatchService();
-      MapServiceImpl.this.mapsDirectory.register(watcher, ENTRY_DELETE);
+      MapServiceImpl.this.customMapsDirectory.register(watcher, ENTRY_DELETE);
 
       while (!Thread.interrupted()) {
         WatchKey key = watcher.take();
@@ -176,7 +174,7 @@ public class MapServiceImpl implements MapService {
 
         try {
           List<Path> mapPaths = new ArrayList<>();
-          Files.list(mapsDirectory).collect(toCollection(() -> mapPaths));
+          Files.list(customMapsDirectory).collect(toCollection(() -> mapPaths));
           Arrays.stream(OfficialMap.values())
               .map(map -> officialMapsPath.resolve(map.name()))
               .collect(toCollection(() -> mapPaths));
@@ -188,7 +186,7 @@ public class MapServiceImpl implements MapService {
             addSkirmishMap(mapPath);
           }
         } catch (IOException e) {
-          logger.warn("Maps could not be read from: " + mapsDirectory, e);
+          logger.warn("Maps could not be read from: " + customMapsDirectory, e);
         }
         return null;
       }

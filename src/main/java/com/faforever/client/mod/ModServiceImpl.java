@@ -399,7 +399,8 @@ public class ModServiceImpl implements ModService {
     }
 
     logger.debug("Fetching thumbnail for mod {} from {}", mod.getName(), url);
-    return assetService.loadAndCacheImage(mod.getThumbnailUrl(), Paths.get("mods"), null);
+    Image image = assetService.loadAndCacheImage(url, Paths.get("mods"), null);
+    return image != null ? image : IdenticonUtil.createIdenticon(mod.getId());
   }
 
   @Override

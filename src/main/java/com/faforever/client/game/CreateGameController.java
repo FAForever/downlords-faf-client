@@ -163,7 +163,7 @@ public class CreateGameController {
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
       preferencesService.addUpdateListener(preferences -> {
         if (preferencesService.getPreferences().getForgedAlliance().getPath() != null) {
-          init();
+          Platform.runLater(this::init);
         }
       });
     } else {
@@ -172,6 +172,8 @@ public class CreateGameController {
   }
 
   private void init() {
+    JavaFxUtil.assertApplicationThread();
+
     initModList();
     initMapSelection();
     initFeaturedModList();
@@ -204,28 +206,32 @@ public class CreateGameController {
 
     mapListView.setItems(filteredMapBeans);
     mapListView.setCellFactory(param -> new StringListCell<>(MapBean::getDisplayName));
-    mapListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue == null) {
-        Platform.runLater(() -> mapNameLabel.setText(""));
-        return;
-      }
+    mapListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> Platform.runLater(() -> updateSelectedMap(newValue)));
+  }
 
-      preferencesService.getPreferences().setLastMap(newValue.getFolderName());
-      preferencesService.storeInBackground();
+  private void updateSelectedMap(MapBean newValue) {
+    JavaFxUtil.assertApplicationThread();
 
-      Image largePreview = mapService.loadPreview(newValue.getFolderName(), PreviewSize.LARGE);
-      if (largePreview == null) {
-        new Image(themeService.getThemeFile(ThemeService.UNKNOWN_MAP_IMAGE), true);
-      }
+    if (newValue == null) {
+      mapNameLabel.setText("");
+      return;
+    }
 
-      MapSize mapSize = newValue.getSize();
+    preferencesService.getPreferences().setLastMap(newValue.getFolderName());
+    preferencesService.storeInBackground();
 
-      mapImageView.setImage(largePreview);
-      mapNameLabel.setText(newValue.getDisplayName());
-      mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidth(), mapSize.getHeight()));
-      mapPlayersLabel.setText(i18n.get("mapPreview.maxPlayers", newValue.getPlayers()));
-      mapDescriptionLabel.setText(newValue.getDescription());
-    });
+    Image largePreview = mapService.loadPreview(newValue.getFolderName(), PreviewSize.LARGE);
+    if (largePreview == null) {
+      new Image(themeService.getThemeFile(ThemeService.UNKNOWN_MAP_IMAGE), true);
+    }
+
+    MapSize mapSize = newValue.getSize();
+
+    mapImageView.setImage(largePreview);
+    mapNameLabel.setText(newValue.getDisplayName());
+    mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidth(), mapSize.getHeight()));
+    mapPlayersLabel.setText(i18n.get("mapPreview.maxPlayers", newValue.getPlayers()));
+    mapDescriptionLabel.setText(newValue.getDescription());
   }
 
   private void initFeaturedModList() {

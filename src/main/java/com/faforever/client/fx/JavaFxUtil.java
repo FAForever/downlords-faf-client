@@ -266,6 +266,9 @@ public final class JavaFxUtil {
   }
 
   public static void persistImage(Image image, Path path, String format) {
+    if (image == null) {
+      return;
+    }
     if (image.isBackgroundLoading() && image.getProgress() < 1) {
       // Let's hope that loading doesn't finish before the listener is added
       image.progressProperty().addListener(new ChangeListener<Number>() {
