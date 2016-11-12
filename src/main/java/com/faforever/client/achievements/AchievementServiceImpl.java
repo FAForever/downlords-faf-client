@@ -92,16 +92,16 @@ public class AchievementServiceImpl implements AchievementService {
   @Override
   @Cacheable(CacheNames.ACHIEVEMENT_IMAGES)
   public Image getImage(AchievementDefinition achievementDefinition, AchievementState achievementState) {
-    String url = null;
+    String url;
     switch (achievementState) {
-      case HIDDEN:
-        throw new UnsupportedOperationException("Not yet implemented");
       case REVEALED:
         url = achievementDefinition.getRevealedIconUrl();
         break;
       case UNLOCKED:
         url = achievementDefinition.getUnlockedIconUrl();
         break;
+      default:
+        throw new UnsupportedOperationException("Not yet implemented");
     }
     if (Strings.isNullOrEmpty(url)) {
       return themeService.getThemeImage(ThemeService.DEFAULT_ACHIEVEMENT_IMAGE);

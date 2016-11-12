@@ -22,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import static com.faforever.client.achievements.AchievementService.AchievementState.REVEALED;
+import static com.faforever.client.achievements.AchievementService.AchievementState.UNLOCKED;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -69,6 +70,8 @@ public class AchievementUnlockedNotifierTest {
     AchievementDefinition achievementDefinition = new AchievementDefinition();
     achievementDefinition.setType(AchievementType.STANDARD);
     achievementDefinition.setName("Test Achievement");
+    when(achievementService.getImage(achievementDefinition, UNLOCKED)).thenReturn(mock(Image.class));
+
     triggerUpdatedAchievementsMessage(achievementDefinition, true);
 
     verify(audioController).playAchievementUnlockedSound();

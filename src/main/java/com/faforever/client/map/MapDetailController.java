@@ -1,6 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
@@ -104,7 +105,7 @@ public class MapDetailController {
   public void setMap(MapBean map) {
     this.map = map;
     if (map.getLargeThumbnailUrl() != null) {
-      thumbnailImageView.setImage(mapService.loadLargePreview(map));
+      thumbnailImageView.setImage(mapService.loadPreview(map, PreviewSize.LARGE));
     } else {
       thumbnailImageView.setImage(IdenticonUtil.createIdenticon(map.getId()));
     }

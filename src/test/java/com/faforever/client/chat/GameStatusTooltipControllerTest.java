@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.map.MapService;
+import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +28,7 @@ public class GameStatusTooltipControllerTest extends AbstractPlainJavaFxTest {
     GameInfoBean gameInfoBean = new GameInfoBean();
     gameInfoBean.setMapFolderName("testMap");
 
-    when(mapService.loadSmallPreview(gameInfoBean.getMapFolderName())).thenReturn(null);
+    when(mapService.loadPreview(gameInfoBean.getMapFolderName(), PreviewSize.SMALL)).thenReturn(null);
     when(mapService.findMapByName(gameInfoBean.getMapFolderName())).thenReturn(null);
 
 /*    boolean containsGameTooltipControllerInstance = false;

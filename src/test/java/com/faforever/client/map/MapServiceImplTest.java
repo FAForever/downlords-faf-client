@@ -1,14 +1,18 @@
 package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.io.ByteCopier;
+import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.ThemeService;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
+import javafx.scene.image.Image;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.store.RAMDirectory;
 import org.junit.Before;
@@ -20,6 +24,7 @@ import org.luaj.vm2.LuaError;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.io.BufferedOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,6 +38,7 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
@@ -41,6 +47,8 @@ import static org.mockito.Mockito.when;
 
 public class MapServiceImplTest extends AbstractPlainJavaFxTest {
 
+  @Rule
+  public TemporaryFolder cacheDirectory = new TemporaryFolder();
   @Rule
   public TemporaryFolder customMapsDirectory = new TemporaryFolder();
   @Rule
@@ -63,6 +71,8 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
   private TaskService taskService;
   @Mock
   private I18n i18n;
+  @Mock
+  private ThemeService themeService;
 
   private Path mapsDirectory;
 
@@ -75,9 +85,12 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     instance.directory = new RAMDirectory();
     instance.analyzer = new SimpleAnalyzer();
     instance.i18n = i18n;
+    instance.themeService = themeService;
+    instance.mapPreviewUrlFormat = "http://127.0.0.1:65534/preview/%s/%s";
 
     mapsDirectory = gameDirectory.newFolder("maps").toPath();
 
+    when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
     when(forgedAlliancePrefs.getCustomMapsDirectory()).thenReturn(customMapsDirectory.getRoot().toPath());
@@ -157,5 +170,29 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
 
     assertTrue(instance.isInstalled("ScMp_001"));
   }
-}
 
+  @Test
+  public void testLoadPreviewNotCachedLoadsFromUrl() throws Exception {
+    when(themeService.getThemeImage(ThemeService.UNKNOWN_MAP_IMAGE))
+        .thenReturn(new Image(getClass().getResource("/theme/" + ThemeService.UNKNOWN_MAP_IMAGE).toExternalForm()));
+
+    for (PreviewSize previewSize : PreviewSize.values()) {
+      Image image = instance.loadPreview("test", previewSize);
+      assertNotNull(image);
+      // Let's use impl_getUrl as long as it's there, later use reflection
+      assertThat(image.impl_getUrl(), startsWith("file:/"));
+    }
+  }
+
+  @Test
+  public void testGetSmallPreviewCached() throws Exception {
+    for (PreviewSize previewSize : PreviewSize.values()) {
+      Path previewPath = cacheDirectory.getRoot().toPath().resolve("maps").resolve(previewSize.folderName).resolve("preview.png");
+      Files.createDirectories(previewPath.getParent());
+      try (BufferedOutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(previewPath))) {
+        ByteCopier.from(getClass().getResourceAsStream("/images/logo_transparent.png")).to(outputStream).copy();
+      }
+      assertNotNull(instance.loadPreview("preview", previewSize));
+    }
+  }
+}

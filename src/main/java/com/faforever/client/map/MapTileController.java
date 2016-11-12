@@ -1,5 +1,6 @@
 package com.faforever.client.map;
 
+import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.TimeService;
 import javafx.collections.ListChangeListener;
@@ -39,7 +40,7 @@ public class MapTileController {
     this.map = map;
     Image image;
     if (map.getSmallThumbnailUrl() != null) {
-      image = mapService.loadSmallPreview(map);
+      image = mapService.loadPreview(map, PreviewSize.SMALL);
     } else {
       image = IdenticonUtil.createIdenticon(map.getId());
     }

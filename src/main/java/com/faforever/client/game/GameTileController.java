@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
+import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.google.common.base.Joiner;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -91,7 +92,7 @@ public class GameTileController {
         gameInfoBean.numPlayersProperty(),
         gameInfoBean.maxPlayersProperty()
     ));
-    mapImageView.imageProperty().bind(createObjectBinding(() -> mapService.loadSmallPreview(gameInfoBean.getMapFolderName()), gameInfoBean.mapFolderNameProperty()));
+    mapImageView.imageProperty().bind(createObjectBinding(() -> mapService.loadPreview(gameInfoBean.getMapFolderName(), PreviewSize.LARGE), gameInfoBean.mapFolderNameProperty()));
 
     modsLabel.textProperty().bind(createStringBinding(
         () -> Joiner.on(i18n.get("textSeparator")).join(gameInfoBean.getSimMods().values()),
@@ -100,7 +101,7 @@ public class GameTileController {
 
     // TODO display "unknown map" image first since loading may take a while
     mapImageView.imageProperty().bind(createObjectBinding(
-        () -> mapService.loadSmallPreview(gameInfoBean.getMapFolderName()),
+        () -> mapService.loadPreview(gameInfoBean.getMapFolderName(), PreviewSize.SMALL),
         gameInfoBean.mapFolderNameProperty()
     ));
 

@@ -144,7 +144,7 @@ public class AchievementServiceImplTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testGetPreviewNotExistsReturnsNull() throws Exception {
+  public void testGetImageNotCachedLoadsFromUrl() throws Exception {
     AchievementDefinition achievementDefinition = AchievementDefinitionBuilder.create().defaultValues().get();
     for (AchievementState achievementState : EnumSet.of(REVEALED, UNLOCKED)) {
       Image image = instance.getImage(achievementDefinition, achievementState);

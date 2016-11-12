@@ -1,5 +1,6 @@
 package com.faforever.client.map;
 
+import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.task.CompletableTask;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
@@ -16,9 +17,7 @@ public interface MapService {
   @Nullable
   MapBean readMap(Path mapPath);
 
-  Image loadSmallPreview(String mapName);
-
-  Image loadLargePreview(String mapName);
+  Image loadPreview(String mapName, PreviewSize previewSize);
 
   ObservableList<MapBean> getInstalledMaps();
 
@@ -48,9 +47,7 @@ public interface MapService {
 
   CompletionStage<List<MapBean>> getMostPlayedMaps(int count);
 
-  Image loadSmallPreview(MapBean map);
-
-  Image loadLargePreview(MapBean map);
+  Image loadPreview(MapBean map, PreviewSize previewSize);
 
   CompletionStage<Void> uninstallMap(MapBean map);
 

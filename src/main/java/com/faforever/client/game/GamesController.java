@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
+import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameState;
@@ -214,7 +215,7 @@ public class GamesController {
     gameTitleLabel.textProperty().bind(gameInfoBean.titleProperty());
 
     mapImageView.imageProperty().bind(createObjectBinding(
-        () -> mapService.loadLargePreview(gameInfoBean.getMapFolderName()),
+        () -> mapService.loadPreview(gameInfoBean.getMapFolderName(), PreviewSize.LARGE),
         gameInfoBean.mapFolderNameProperty()
     ));
 

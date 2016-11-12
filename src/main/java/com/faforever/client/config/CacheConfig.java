@@ -20,14 +20,13 @@ import static com.faforever.client.config.CacheNames.AVAILABLE_AVATARS;
 import static com.faforever.client.config.CacheNames.AVATARS;
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
 import static com.faforever.client.config.CacheNames.FEATURED_MODS;
-import static com.faforever.client.config.CacheNames.LARGE_MAP_PREVIEW;
+import static com.faforever.client.config.CacheNames.MAP_PREVIEW;
 import static com.faforever.client.config.CacheNames.LEADERBOARD;
 import static com.faforever.client.config.CacheNames.MAPS;
 import static com.faforever.client.config.CacheNames.MODS;
 import static com.faforever.client.config.CacheNames.MOD_THUMBNAIL;
 import static com.faforever.client.config.CacheNames.NEWS;
 import static com.faforever.client.config.CacheNames.RATING_HISTORY;
-import static com.faforever.client.config.CacheNames.SMALL_MAP_PREVIEW;
 import static com.faforever.client.config.CacheNames.STATISTICS;
 import static com.faforever.client.config.CacheNames.THEME_IMAGES;
 import static com.faforever.client.config.CacheNames.URL_PREVIEW;
@@ -59,8 +58,7 @@ public class CacheConfig implements CachingConfigurer {
         new GuavaCache(ACHIEVEMENT_IMAGES, newBuilder().weakValues().build()),
         new GuavaCache(AVATARS, newBuilder().weakValues().build()),
         new GuavaCache(URL_PREVIEW, newBuilder().weakValues().expireAfterAccess(30, MINUTES).build()),
-        new GuavaCache(LARGE_MAP_PREVIEW, newBuilder().weakValues().build()),
-        new GuavaCache(SMALL_MAP_PREVIEW, newBuilder().weakValues().build()),
+        new GuavaCache(MAP_PREVIEW, newBuilder().weakValues().build()),
         new GuavaCache(COUNTRY_FLAGS, newBuilder().weakValues().build()),
         new GuavaCache(THEME_IMAGES, newBuilder().weakValues().build()),
         new GuavaCache(MOD_THUMBNAIL, newBuilder().weakValues().build()

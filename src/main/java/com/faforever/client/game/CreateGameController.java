@@ -5,6 +5,7 @@ import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
+import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.map.MapSize;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
@@ -212,7 +213,7 @@ public class CreateGameController {
       preferencesService.getPreferences().setLastMap(newValue.getFolderName());
       preferencesService.storeInBackground();
 
-      Image largePreview = mapService.loadLargePreview(newValue.getFolderName());
+      Image largePreview = mapService.loadPreview(newValue.getFolderName(), PreviewSize.LARGE);
       if (largePreview == null) {
         new Image(themeService.getThemeFile(ThemeService.UNKNOWN_MAP_IMAGE), true);
       }

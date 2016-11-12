@@ -1,11 +1,12 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.game.FeaturedModBean;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameTooltipController;
-import com.faforever.client.game.FeaturedModBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
+import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.google.common.base.Joiner;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
@@ -69,7 +70,7 @@ public class GameStatusTooltipController {
     lockIconLabel.visibleProperty().bind(gameInfoBean.passwordProtectedProperty());
 
     // TODO display "unknown map" image first since loading may take a while
-    mapImageView.imageProperty().bind(Bindings.createObjectBinding(() -> mapService.loadSmallPreview(gameInfoBean.getMapFolderName()), gameInfoBean.mapFolderNameProperty()));
+    mapImageView.imageProperty().bind(Bindings.createObjectBinding(() -> mapService.loadPreview(gameInfoBean.getMapFolderName(), PreviewSize.SMALL), gameInfoBean.mapFolderNameProperty()));
 
     GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);
     gameTooltipController.setGameInfoBean(gameInfoBean);
