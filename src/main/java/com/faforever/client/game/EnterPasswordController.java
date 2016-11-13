@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fx.WindowController;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -13,6 +14,8 @@ import javafx.stage.Window;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.Resource;
+
+import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 
 public class EnterPasswordController {
 
@@ -81,8 +84,8 @@ public class EnterPasswordController {
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(owner);
 
-//    WindowController windowController = applicationContext.getBean(WindowController.class);
-//    windowController.configure(userInfoWindow, getRoot(), true, CLOSE);
+    WindowController windowController = applicationContext.getBean(WindowController.class);
+    windowController.configure(userInfoWindow, getRoot(), true, CLOSE);
 
     userInfoWindow.show();
   }
