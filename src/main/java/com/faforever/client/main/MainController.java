@@ -913,7 +913,6 @@ public class MainController implements OnChooseGameDirectoryListener {
   void onReplaysSelected(ActionEvent event) {
     // FIXME don't load every time?
     replayVaultController.loadLocalReplaysInBackground();
-    replayVaultController.loadOnlineReplaysInBackground();
     setContent(replayVaultController.getRoot());
     setActiveNavigationButtonFromChild((MenuItem) event.getTarget());
   }

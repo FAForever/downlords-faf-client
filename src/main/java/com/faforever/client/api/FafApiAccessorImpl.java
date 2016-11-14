@@ -8,6 +8,7 @@ import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.net.UriUtil;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.replay.ReplayInfoBean;
 import com.faforever.client.user.UserService;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow.Builder;
@@ -66,6 +67,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -73,7 +75,6 @@ import java.util.stream.Collectors;
 import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.api.client.auth.oauth2.BearerToken.authorizationHeaderAccessMethod;
 import static java.lang.String.valueOf;
-import static java.util.Arrays.asList;
 
 public class FafApiAccessorImpl implements FafApiAccessor {
 
@@ -311,6 +312,11 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public ModInfoBean getMod(String uid) {
     return ModInfoBean.fromModInfo(getSingle("/mods/" + uid, Mod.class));
+  }
+
+  @Override
+  public CompletionStage<List<ReplayInfoBean>> getOnlineReplays() {
+    throw new UnsupportedOperationException("Not yet implemented");
   }
 
   @NotNull

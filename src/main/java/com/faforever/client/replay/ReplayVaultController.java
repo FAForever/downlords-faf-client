@@ -4,7 +4,6 @@ import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
-import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -94,8 +93,8 @@ public class ReplayVaultController {
 
   @VisibleForTesting
   TreeItem<ReplayInfoBean> localReplaysRoot;
-  @VisibleForTesting
-  TreeItem<ReplayInfoBean> onlineReplaysRoot;
+//  @VisibleForTesting
+//  TreeItem<ReplayInfoBean> onlineReplaysRoot;
 
 
   @SuppressWarnings("unchecked")
@@ -104,11 +103,11 @@ public class ReplayVaultController {
     localReplaysRoot = new TreeItem<>(new ReplayInfoBean(i18n.get("replays.localReplays")));
     localReplaysRoot.setExpanded(true);
 
-    onlineReplaysRoot = new TreeItem<>(new ReplayInfoBean(i18n.get("replays.onlineReplays")));
-    onlineReplaysRoot.setExpanded(true);
+//    onlineReplaysRoot = new TreeItem<>(new ReplayInfoBean(i18n.get("replays.onlineReplays")));
+//    onlineReplaysRoot.setExpanded(true);
 
     TreeItem<ReplayInfoBean> tableRoot = new TreeItem<>(new ReplayInfoBean("invisibleRootItem"));
-    tableRoot.getChildren().addAll(localReplaysRoot, onlineReplaysRoot);
+//    tableRoot.getChildren().addAll(localReplaysRoot, onlineReplaysRoot);
 
     replayVaultRoot.setRoot(tableRoot);
     replayVaultRoot.setRowFactory(param -> replayRowFactory());
@@ -282,25 +281,25 @@ public class ReplayVaultController {
     Platform.runLater(() -> localReplaysRoot.getChildren().addAll(items));
   }
 
-  public void loadOnlineReplaysInBackground() {
-    replayService.getOnlineReplays()
-        .thenAccept(this::addOnlineReplays)
-        .exceptionally(throwable -> {
-          logger.warn("Error while loading online replays", throwable);
-          notificationService.addNotification(new PersistentNotification(
-              i18n.get("replays.loadingOnlineTask.failed"),
-              Severity.ERROR,
-              Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(throwable)))
-          ));
-          return null;
-        });
-  }
+//  public void loadOnlineReplaysInBackground() {
+//    replayService.getOnlineReplays()
+//        .thenAccept(this::addOnlineReplays)
+//        .exceptionally(throwable -> {
+//          logger.warn("Error while loading online replays", throwable);
+//          notificationService.addNotification(new PersistentNotification(
+//              i18n.get("replays.loadingOnlineTask.failed"),
+//              Severity.ERROR,
+//              Collections.singletonList(new Action(i18n.get("report"), event -> reportingService.reportError(throwable)))
+//          ));
+//          return null;
+//        });
+//  }
 
-  private void addOnlineReplays(Collection<ReplayInfoBean> result) {
-    Collection<TreeItem<ReplayInfoBean>> items = result.stream()
-        .map(TreeItem::new).collect(Collectors.toCollection(ArrayList::new));
-    Platform.runLater(() -> onlineReplaysRoot.getChildren().addAll(items));
-  }
+//  private void addOnlineReplays(Collection<ReplayInfoBean> result) {
+//    Collection<TreeItem<ReplayInfoBean>> items = result.stream()
+//        .map(TreeItem::new).collect(Collectors.toCollection(ArrayList::new));
+//    Platform.runLater(() -> onlineReplaysRoot.getChildren().addAll(items));
+//  }
 
   public Node getRoot() {
     return replayVaultRoot;

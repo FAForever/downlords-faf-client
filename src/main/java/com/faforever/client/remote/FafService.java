@@ -16,6 +16,7 @@ import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.ServerMessage;
+import com.faforever.client.replay.ReplayInfoBean;
 import javafx.beans.property.ReadOnlyObjectProperty;
 
 import java.util.List;
@@ -94,4 +95,6 @@ public interface FafService {
   void sendSdp(int remotePlayerId, String sdp);
 
   CompletableFuture<List<FeaturedModBean>> getFeaturedMods();
+
+  CompletionStage<List<ReplayInfoBean>> getOnlineReplays();
 }

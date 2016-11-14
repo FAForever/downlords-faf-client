@@ -4,10 +4,12 @@ import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
+import com.faforever.client.replay.ReplayInfoBean;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 /**
  * Provides access to the FAF REST API. Services should not access this class directly, but use {@link
@@ -57,4 +59,6 @@ public interface FafApiAccessor {
   void changePassword(String currentPasswordHash, String newPasswordHash) throws IOException;
 
   ModInfoBean getMod(String uid);
+
+  CompletionStage<List<ReplayInfoBean>> getOnlineReplays();
 }

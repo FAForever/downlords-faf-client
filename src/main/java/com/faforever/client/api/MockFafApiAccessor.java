@@ -4,6 +4,7 @@ import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModInfoBean;
+import com.faforever.client.replay.ReplayInfoBean;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -11,6 +12,8 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public class MockFafApiAccessor implements FafApiAccessor {
 
@@ -131,6 +134,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   @Override
   public ModInfoBean getMod(String uid) {
     return null;
+  }
+
+  @Override
+  public CompletionStage<List<ReplayInfoBean>> getOnlineReplays() {
+    return CompletableFuture.completedFuture(Collections.emptyList());
   }
 
   @Override

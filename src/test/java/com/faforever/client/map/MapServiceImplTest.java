@@ -11,6 +11,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.ThemeService;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.store.RAMDirectory;
@@ -100,6 +101,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     when(forgedAlliancePrefs.getCustomMapsDirectory()).thenReturn(customMapsDirectory.getRoot().toPath());
     when(forgedAlliancePrefs.customMapsDirectoryProperty()).thenReturn(customMapsDirectoryProperty);
     when(forgedAlliancePrefs.getPath()).thenReturn(gameDirectory.getRoot().toPath());
+    when(preferencesService.getPreferences().getForgedAlliance().pathProperty()).thenReturn(new SimpleObjectProperty<>());
 
     doAnswer(invocation -> {
       @SuppressWarnings("unchecked")

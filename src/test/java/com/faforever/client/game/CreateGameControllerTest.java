@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.springframework.core.env.Environment;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
@@ -93,7 +94,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> getThemeFile(invocation.getArgumentAt(0, String.class)))
         .when(themeService).getThemeFile(ThemeService.UNKNOWN_MAP_IMAGE);
 
-    instance.postConstruct();
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.postConstruct());
   }
 
   @Test
@@ -165,7 +166,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testSetLastGameTitle() throws Exception {
     when(preferences.getLastGameTitle()).thenReturn("testGame");
     when(preferences.getForgedAlliance().getPath()).thenReturn(Paths.get(""));
-    instance.postConstruct();
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.postConstruct());
 
     assertThat(instance.titleTextField.getText(), is("testGame"));
   }
@@ -177,7 +178,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
     mapList.add(MapBuilder.create().defaultValues().folderName("Test1").get());
     mapList.add(lastMapBean);
-    instance.postConstruct();
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.postConstruct());
 
     assertThat(instance.mapListView.getSelectionModel().getSelectedItem(), is(lastMapBean));
   }
@@ -194,7 +195,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().get();
     when(gameService.getFeaturedMods()).thenReturn(completedFuture(singletonList(featuredModBean)));
 
-    instance.postConstruct();
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.postConstruct());
 
     assertThat(instance.featuredModListView.getItems(), hasSize(1));
     assertThat(instance.featuredModListView.getItems().get(0), is(featuredModBean));
@@ -208,7 +209,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getLastGameType()).thenReturn(null);
     when(gameService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
 
-    instance.postConstruct();
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.postConstruct());
 
     assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredModBean2));
   }
@@ -221,7 +222,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(preferences.getLastGameType()).thenReturn("last");
     when(gameService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
 
-    instance.postConstruct();
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.postConstruct());
 
     assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredModBean));
   }
@@ -229,7 +230,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testInitModListEmpty() throws Exception {
     assertThat(instance.modListView.getItems(), nullValue());
-    instance.postConstruct();
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.postConstruct());
     assertThat(instance.modListView.getItems(), nullValue());
   }
 
@@ -244,7 +245,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
         modInfoBean1, modInfoBean2
     ));
 
-    instance.postConstruct();
+    WaitForAsyncUtils.waitForAsyncFx(1000, () -> instance.postConstruct());
 
     assertThat(instance.modListView.getItems(), hasSize(2));
     assertThat(instance.modListView.getItems(), contains(modInfoBean1, modInfoBean2));

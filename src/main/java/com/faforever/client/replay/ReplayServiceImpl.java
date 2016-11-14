@@ -13,6 +13,7 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.google.common.annotations.VisibleForTesting;
@@ -84,13 +85,13 @@ public class ReplayServiceImpl implements ReplayService {
   @Resource
   ReportingService reportingService;
   @Resource
-  ReplayServerAccessor replayServerAccessor;
-  @Resource
   ApplicationContext applicationContext;
   @Resource
   PlatformService platformService;
   @Resource
   ReplayServer replayServer;
+  @Resource
+  FafService fafService;
 
   @VisibleForTesting
   static Integer parseSupComVersion(byte[] rawReplayBytes) {
@@ -159,7 +160,7 @@ public class ReplayServiceImpl implements ReplayService {
 
   @Override
   public CompletionStage<List<ReplayInfoBean>> getOnlineReplays() {
-    return replayServerAccessor.requestOnlineReplays();
+    return fafService.getOnlineReplays();
   }
 
   @Override

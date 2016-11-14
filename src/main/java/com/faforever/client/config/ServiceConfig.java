@@ -50,8 +50,6 @@ import com.faforever.client.replay.ReplayFileReaderImpl;
 import com.faforever.client.replay.ReplayFileWriter;
 import com.faforever.client.replay.ReplayFileWriterImpl;
 import com.faforever.client.replay.ReplayServer;
-import com.faforever.client.replay.ReplayServerAccessor;
-import com.faforever.client.replay.ReplayServerAccessorImpl;
 import com.faforever.client.replay.ReplayServerImpl;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.replay.ReplayServiceImpl;
@@ -110,11 +108,6 @@ public class ServiceConfig {
       return new MockFafApiAccessor();
     }
     return new FafApiAccessorImpl();
-  }
-
-  @Bean
-  ReplayServerAccessor replayServerAccessor() {
-    return new ReplayServerAccessorImpl();
   }
 
   @Bean

@@ -21,6 +21,7 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.SdpRecordClientMessage;
 import com.faforever.client.remote.domain.ServerMessage;
+import com.faforever.client.replay.ReplayInfoBean;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import org.springframework.cache.annotation.CacheEvict;
@@ -233,5 +234,10 @@ public class FafServiceImpl implements FafService {
             .sorted((o1, o2) -> Integer.compare(o1.getDisplayOrder(), o2.getDisplayOrder()))
             .map(FeaturedModBean::fromFeaturedMod)
             .collect(Collectors.toList()));
+  }
+
+  @Override
+  public CompletionStage<List<ReplayInfoBean>> getOnlineReplays() {
+    return fafApiAccessor.getOnlineReplays();
   }
 }

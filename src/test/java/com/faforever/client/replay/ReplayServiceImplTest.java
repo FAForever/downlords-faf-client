@@ -7,6 +7,7 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -86,13 +87,13 @@ public class ReplayServiceImplTest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private ReplayServerAccessor replayServerAccessor;
-  @Mock
   private ApplicationContext applicationContext;
   @Mock
   private TaskService taskService;
   @Mock
   private GameService gameService;
+  @Mock
+  private FafService fafService;
 
   @Before
   public void setUp() throws Exception {
@@ -104,10 +105,10 @@ public class ReplayServiceImplTest {
     instance.preferencesService = preferencesService;
     instance.replayFileReader = replayFileReader;
     instance.notificationService = notificationService;
-    instance.replayServerAccessor = replayServerAccessor;
     instance.applicationContext = applicationContext;
     instance.taskService = taskService;
     instance.gameService = gameService;
+    instance.fafService = fafService;
 
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
@@ -184,7 +185,7 @@ public class ReplayServiceImplTest {
   @Test
   public void testGetOnlineReplays() throws Exception {
     instance.getOnlineReplays();
-    verify(replayServerAccessor).requestOnlineReplays();
+    verify(fafService).getOnlineReplays();
   }
 
   @Test
