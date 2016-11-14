@@ -61,6 +61,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -121,8 +122,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @PostConstruct
   void postConstruct() throws IOException {
-    Path playServicesDirectory = preferencesService.getPreferencesDirectory().resolve("oauth");
-    dataStoreFactory = new FileDataStoreFactory(playServicesDirectory.toFile());
+    Path oauthCredentialsDirectory = preferencesService.getPreferencesDirectory().resolve("oauth");
+    dataStoreFactory = new FileDataStoreFactory(oauthCredentialsDirectory.toFile());
 
     userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue) {
@@ -367,6 +368,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {
+    // TODO until username/password login and/or re-authorization is implemented
+    Files.deleteIfExists(dataStoreFactory.getDataDirectory().toPath().resolve("StoredCredential"));
     Credential credential = flow.loadCredential(userId);
     if (credential != null && (credential.getRefreshToken() != null || credential.getExpiresInSeconds() > 60)) {
       return credential;
