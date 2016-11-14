@@ -43,23 +43,17 @@ public abstract class AbstractServerAccessor {
 
       logger.debug("Message from server: {}", message);
 
-      threadPoolExecutor.submit(() -> {
-        try {
-          onServerMessage(message);
-        } catch (Exception e) {
-          logger.warn("Error while handling server message: " + message, e);
-        }
-      });
+      try {
+        onServerMessage(message);
+      } catch (Exception e) {
+        logger.warn("Error while handling server message: " + message, e);
+      }
     }
 
     logger.info("Connection to server {} has been closed", socket.getRemoteSocketAddress());
   }
 
   protected abstract void onServerMessage(String message) throws IOException;
-
-  protected String readNextString() throws IOException {
-    return dataInput.readQString();
-  }
 
   @PreDestroy
   void close() throws IOException {

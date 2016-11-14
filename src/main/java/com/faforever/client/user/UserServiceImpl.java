@@ -1,6 +1,5 @@
 package com.faforever.client.user;
 
-import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.LoginMessage;
