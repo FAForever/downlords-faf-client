@@ -26,7 +26,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class GitGameUpdateTaskTest extends AbstractPlainJavaFxTest {
+public class GitFeaturedModsUpdateTaskTest extends AbstractPlainJavaFxTest {
 
   private static final String GIT_PATCH_URL = "git://dummy/repo.git";
 
@@ -55,11 +55,11 @@ public class GitGameUpdateTaskTest extends AbstractPlainJavaFxTest {
    * The directory containing the cloned game repository
    */
   private Path clonedRepoDir;
-  private GitGameUpdateTask instance;
+  private GitFeaturedModsUpdateTask instance;
 
   @Before
   public void setUp() throws Exception {
-    instance = new GitGameUpdateTask();
+    instance = new GitFeaturedModsUpdateTask();
     instance.preferencesService = preferencesService;
     instance.gitWrapper = gitWrapper;
     instance.environment = environment;
@@ -68,7 +68,7 @@ public class GitGameUpdateTaskTest extends AbstractPlainJavaFxTest {
     Path reposDirectory = faDirectory.getRoot().toPath().resolve("repos");
     clonedRepoDir = reposDirectory.resolve("faf");
 
-    when(preferencesService.getFafReposDirectory()).thenReturn(reposDirectory);
+    when(preferencesService.getGitReposDirectory()).thenReturn(reposDirectory);
     when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
     when(environment.getProperty("patch.git.url")).thenReturn(GIT_PATCH_URL);
     when(preferencesService.getPreferences()).thenReturn(preferences);

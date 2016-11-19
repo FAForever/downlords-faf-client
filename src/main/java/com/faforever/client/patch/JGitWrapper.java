@@ -1,6 +1,6 @@
 package com.faforever.client.patch;
 
-import org.eclipse.jgit.api.ResetCommand.ResetType;
+import com.faforever.client.task.ResourceLocks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,42 +17,46 @@ public class JGitWrapper implements GitWrapper {
 
   @Override
   public void clone(String repositoryUri, Path targetDirectory) {
-    logger.debug("Cloning {} into {}", repositoryUri, targetDirectory);
-
-    noCatch(() -> cloneRepository()
-        .setURI(repositoryUri)
-        .setDirectory(targetDirectory.toFile())
-        .call());
+    ResourceLocks.acquireDownloadLock();
+    ResourceLocks.acquireDiskLock();
+    try {
+      logger.debug("Cloning {} into {}", repositoryUri, targetDirectory);
+      noCatch(() -> cloneRepository()
+          .setURI(repositoryUri)
+          .setDirectory(targetDirectory.toFile())
+          .call());
+    } finally {
+      ResourceLocks.freeDiskLock();
+      ResourceLocks.freeDownloadLock();
+    }
   }
 
   @Override
   public void fetch(Path repoDirectory) {
-    noCatch(() -> open(repoDirectory.toFile())
-        .fetch()
-        .call());
-  }
-
-  @Override
-  public void clean(Path repoDirectory) {
-    noCatch(() -> open(repoDirectory.toFile())
-        .clean()
-        .setCleanDirectories(true)
-        .call());
-  }
-
-  @Override
-  public void reset(Path repoDirectory) {
-    noCatch(() -> open(repoDirectory.toFile())
-        .reset()
-        .setMode(ResetType.HARD)
-        .call());
+    ResourceLocks.acquireDownloadLock();
+    ResourceLocks.acquireDiskLock();
+    try {
+      logger.debug("Fetching into {}", repoDirectory);
+      noCatch(() -> open(repoDirectory.toFile())
+          .fetch()
+          .call());
+    } finally {
+      ResourceLocks.freeDiskLock();
+      ResourceLocks.freeDownloadLock();
+    }
   }
 
   @Override
   public void checkoutRef(Path repoDirectory, String ref) {
-    noCatch(() -> open(repoDirectory.toFile())
-        .checkout()
-        .setName(ref)
-        .call());
+    ResourceLocks.acquireDiskLock();
+    try {
+      noCatch(() -> open(repoDirectory.toFile())
+          .checkout()
+          .setForce(true)
+          .setName(ref)
+          .call());
+    } finally {
+      ResourceLocks.freeDiskLock();
+    }
   }
 }

@@ -11,7 +11,7 @@ import java.util.concurrent.CompletionStage;
 public class MockGameUpdateService implements GameUpdateService {
 
   @Override
-  public CompletionStage<Void> updateInBackground(FeaturedModBean featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simModUids) {
+  public CompletionStage<Void> updateBaseMod(FeaturedModBean featuredBaseMod, Integer version, Map<String, Integer> featuredModVersions, Set<String> simModUids) {
     return CompletableFuture.completedFuture(null);
   }
 }

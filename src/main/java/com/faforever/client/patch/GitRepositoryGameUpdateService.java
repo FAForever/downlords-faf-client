@@ -45,31 +45,36 @@ public class GitRepositoryGameUpdateService extends AbstractUpdateService implem
   }
 
   @Override
-  public CompletionStage<Void> updateInBackground(FeaturedModBean featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simModUids) {
+  public CompletionStage<Void> updateBaseMod(FeaturedModBean featuredBaseMod, Integer version, Map<String, Integer> featuredModVersions, Set<String> simModUids) {
     if (!checkDirectories()) {
       logger.warn("Aborted patching since directories aren't initialized properly");
       return CompletableFuture.completedFuture(null);
     }
 
-    String repoDirName = Hashing.md5().hashString(featuredMod.getGitUrl(), StandardCharsets.UTF_8).toString();
+    String repoDirName = Hashing.md5().hashString(featuredBaseMod.getGitUrl(), StandardCharsets.UTF_8).toString();
 
-    GitGameUpdateTask task = applicationContext.getBean(GitGameUpdateTask.class);
-    task.setSimMods(simModUids);
-    task.setRepositoryDirectory(preferencesService.getFafReposDirectory().resolve(repoDirName));
-    task.setGameRepositoryUrl(featuredMod.getGitUrl());
+    GitFeaturedModsUpdateTask modUpdateTask = applicationContext.getBean(GitFeaturedModsUpdateTask.class);
+    modUpdateTask.setSimMods(simModUids);
+    modUpdateTask.setRepositoryDirectory(preferencesService.getGitReposDirectory().resolve(repoDirName));
+    modUpdateTask.setGameRepositoryUrl(featuredBaseMod.getGitUrl());
 
     if (version != null) {
-      task.setRef("refs/tags/" + version);
+      modUpdateTask.setRef("refs/tags/" + version);
     } else {
-      task.setRef("refs/remotes/origin/" + featuredMod.getGitBranch());
+      modUpdateTask.setRef("refs/remotes/origin/" + featuredBaseMod.getGitBranch());
     }
 
-    return taskService.submitTask(task).getFuture()
+    return taskService.submitTask(modUpdateTask).getFuture()
+        .thenCompose(modVersion -> {
+          GameBinariesUpdateTask binariesUpdateTask = applicationContext.getBean(GameBinariesUpdateTask.class);
+          binariesUpdateTask.setVersion(modVersion);
+          return taskService.submitTask(binariesUpdateTask).getFuture();
+        })
         .whenComplete((aVoid, throwable) -> {
           if (throwable != null) {
             notificationService.addNotification(
                 new PersistentNotification(i18n.get("updateFailed.notification"), WARN,
-                    singletonList(new Action(i18n.get("updateFailed.retry"), event -> updateInBackground(featuredMod, version, modVersions, simModUids)))
+                    singletonList(new Action(i18n.get("updateFailed.retry"), event -> updateBaseMod(featuredBaseMod, version, featuredModVersions, simModUids)))
                 )
             );
           }

@@ -39,6 +39,7 @@ import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
@@ -115,7 +116,7 @@ public class ThemeServiceImpl implements ThemeService {
 
   @PostConstruct
   void postConstruct() throws IOException, InterruptedException {
-    Path themesDirectory = preferencesService.getThemesDirectory();
+    Path themesDirectory = Paths.get("src/main/resources/theme/");
     startWatchService(themesDirectory);
     Path cacheStylesheetsDirectory = preferencesService.getCacheStylesheetsDirectory();
     if (Files.exists(cacheStylesheetsDirectory)) {

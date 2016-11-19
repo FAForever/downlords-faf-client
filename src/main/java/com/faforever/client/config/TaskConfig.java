@@ -6,7 +6,8 @@ import com.faforever.client.map.UninstallMapTask;
 import com.faforever.client.mod.InstallModTask;
 import com.faforever.client.mod.ModUploadTask;
 import com.faforever.client.mod.UninstallModTask;
-import com.faforever.client.patch.GitGameUpdateTask;
+import com.faforever.client.patch.GameBinariesUpdateTask;
+import com.faforever.client.patch.GitFeaturedModsUpdateTask;
 import com.faforever.client.replay.LoadLocalReplaysTask;
 import com.faforever.client.replay.ReplayDownloadTask;
 import com.faforever.client.update.CheckForUpdateTask;
@@ -26,8 +27,14 @@ public class TaskConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  GitGameUpdateTask gitGameUpdateTask() {
-    return new GitGameUpdateTask();
+  GitFeaturedModsUpdateTask gitFeaturedModUpdateTask() {
+    return new GitFeaturedModsUpdateTask();
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  GameBinariesUpdateTask gameBinariesUpdateTask() {
+    return new GameBinariesUpdateTask();
   }
 
   @Bean

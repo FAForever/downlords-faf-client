@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester;
 import org.apache.lucene.store.Directory;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.luaj.vm2.LuaError;
@@ -371,7 +372,7 @@ public class ModServiceImpl implements ModService {
       modInfoBean.setName(luaValue.get("name").toString());
       modInfoBean.setDescription(luaValue.get("description").toString());
       modInfoBean.setAuthor(luaValue.get("author").toString());
-      modInfoBean.setVersion(luaValue.get("version").toString());
+      modInfoBean.setVersion(new ComparableVersion(luaValue.get("version").toString()));
       modInfoBean.setSelectable(luaValue.get("selectable").toboolean());
       modInfoBean.setUiOnly(luaValue.get("ui_only").toboolean());
       modInfoBean.setImagePath(extractIconPath(path, luaValue));
@@ -406,6 +407,11 @@ public class ModServiceImpl implements ModService {
   @Override
   public void evictModsCache() {
     fafService.evictModsCache();
+  }
+
+  @Override
+  public ComparableVersion readModVersion(Path modDirectory) {
+    return extractModInfo(modDirectory).getVersion();
   }
 
   private CompletionStage<List<ModInfoBean>> getTopElements(Comparator<? super ModInfoBean> comparator, int count) {

@@ -174,7 +174,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
 
     when(mapService.isInstalled("map")).thenReturn(true);
     when(fafService.requestJoinGame(gameInfoBean.getUid(), null)).thenReturn(completedFuture(gameLaunchMessage));
-    when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(gameUpdateService.updateBaseMod(any(), any(), any(), any())).thenReturn(completedFuture(null));
 
     CompletableFuture<Void> future = instance.joinGame(gameInfoBean, null).toCompletableFuture();
 
@@ -195,7 +195,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     when(forgedAllianceService.startGame(
         gameLaunchMessage.getUid(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL, GPG_PORT, false)
     ).thenReturn(process);
-    when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(gameUpdateService.updateBaseMod(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
 
     CountDownLatch gameStartedLatch = new CountDownLatch(1);
@@ -364,7 +364,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     FeaturedModBean featuredMod = new FeaturedModBean();
 
     when(fafService.startSearchRanked1v1(CYBRAN, GAME_PORT)).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
-    when(gameUpdateService.updateInBackground(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
+    when(gameUpdateService.updateBaseMod(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(CompletableFuture.completedFuture(null));
     when(scheduledExecutorService.scheduleWithFixedDelay(any(), anyLong(), anyLong(), any())).thenReturn(mock(ScheduledFuture.class));
     when(mapService.isInstalled("scmp_037")).thenReturn(false);
     when(mapService.download("scmp_037")).thenReturn(CompletableFuture.completedFuture(null));
@@ -388,7 +388,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     InetSocketAddress externalSocketAddress = new InetSocketAddress(123);
 
     when(forgedAllianceService.startGame(anyInt(), any(), any(), any(), anyInt(), eq(false))).thenReturn(process);
-    when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(gameUpdateService.updateBaseMod(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
 
     CountDownLatch gameRunningLatch = new CountDownLatch(1);
@@ -436,7 +436,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     GameInfoBean gameInfoBean = GameInfoBeanBuilder.create().defaultValues().get();
     instance.currentGame.set(gameInfoBean);
 
-    when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(gameUpdateService.updateBaseMod(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafService.requestHostGame(any())).thenReturn(completedFuture(GameLaunchMessageBuilder.create().defaultValues().get()));
 
     instance.onRehostRequest(new RehostRequestEvent());
@@ -451,7 +451,7 @@ public class GameServiceImplTest extends AbstractPlainJavaFxTest {
     GameInfoBean gameInfoBean = GameInfoBeanBuilder.create().defaultValues().get();
     instance.currentGame.set(gameInfoBean);
 
-    when(gameUpdateService.updateInBackground(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(gameUpdateService.updateBaseMod(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafService.requestHostGame(any())).thenReturn(completedFuture(GameLaunchMessageBuilder.create().defaultValues().get()));
 
     instance.onRehostRequest(new RehostRequestEvent());

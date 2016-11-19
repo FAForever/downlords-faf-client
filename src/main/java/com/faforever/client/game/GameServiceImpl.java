@@ -2,9 +2,10 @@ package com.faforever.client.game;
 
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.RatingMode;
+import com.faforever.client.fa.relay.event.RehostRequestEvent;
+import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.map.MapService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
@@ -17,7 +18,6 @@ import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
-import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
@@ -60,8 +60,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.faforever.client.fa.RatingMode.NONE;
+import static com.faforever.client.game.KnownFeaturedMod.BALANCE_TESTING;
+import static com.faforever.client.game.KnownFeaturedMod.FAF;
+import static com.faforever.client.game.KnownFeaturedMod.FAF_BETA;
 import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.util.Collections.emptyMap;
@@ -72,6 +76,9 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 public class GameServiceImpl implements GameService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final List<String> NAMES_OF_FEATURED_BASE_MODS = Arrays.asList(FAF, FAF_BETA, BALANCE_TESTING, LADDER_1V1).stream()
+      .map(KnownFeaturedMod::getString)
+      .collect(Collectors.toList());
   @VisibleForTesting
   final BooleanProperty gameRunning;
   @VisibleForTesting
@@ -160,11 +167,11 @@ public class GameServiceImpl implements GameService {
 
     stopSearchRanked1v1();
 
-    Map<String, Integer> simModVersions = gameInfoBean.getFeaturedModVersions();
+    Map<String, Integer> featuredModVersions = gameInfoBean.getFeaturedModVersions();
     Set<String> simModUIds = gameInfoBean.getSimMods().keySet();
 
     return getFeaturedMod(gameInfoBean.getFeaturedMod())
-        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, simModVersions, simModUIds))
+        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, featuredModVersions, simModUIds))
         .thenCompose(aVoid -> downloadMapIfNecessary(gameInfoBean.getMapFolderName()))
         .thenCompose(aVoid -> fafService.requestJoinGame(gameInfoBean.getUid(), password))
         .thenAccept(gameLaunchMessage -> {
@@ -335,8 +342,15 @@ public class GameServiceImpl implements GameService {
     return process != null && process.isAlive();
   }
 
-  private CompletionStage<Void> updateGameIfNecessary(FeaturedModBean featuredMod, @Nullable Integer version, @NotNull Map<String, Integer> modVersions, @NotNull Set<String> simModUids) {
-    return gameUpdateService.updateInBackground(featuredMod, version, modVersions, simModUids);
+  private CompletionStage<Void> updateGameIfNecessary(FeaturedModBean featuredMod, @Nullable Integer version, @NotNull Map<String, Integer> featuredModVersions, @NotNull Set<String> simModUids) {
+    if (NAMES_OF_FEATURED_BASE_MODS.contains(featuredMod.getTechnicalName())) {
+      return gameUpdateService.updateBaseMod(featuredMod, version, featuredModVersions, simModUids);
+    }
+
+    return gameUpdateService.updateBaseMod(featuredMod, version, featuredModVersions, simModUids)
+        .thenCompose(aVoid -> getFeaturedMod(KnownFeaturedMod.FAF.getString()))
+        .thenAccept(featuredBaseMod -> gameUpdateService.updateBaseMod(featuredBaseMod, version, featuredModVersions, simModUids))
+        .thenRun(() -> gameUpdateService.updateBaseMod(featuredMod, version, featuredModVersions, simModUids));
   }
 
   @Override

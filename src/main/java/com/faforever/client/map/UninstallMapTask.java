@@ -2,7 +2,6 @@ package com.faforever.client.map;
 
 import com.faforever.client.io.FileUtils;
 import com.faforever.client.task.CompletableTask;
-import com.faforever.client.task.ResourceLocks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,12 +34,7 @@ public class UninstallMapTask extends CompletableTask<Void> {
     logger.info("Uninstalling map '{}' ({})", map.getFolderName(), map.getId());
     Path mapPath = mapService.getPathForMap(map);
 
-    ResourceLocks.acquireDiskLock();
-    try {
-      FileUtils.deleteRecursively(mapPath);
-    } finally {
-      ResourceLocks.freeDiskLock();
-    }
+    FileUtils.deleteRecursively(mapPath);
 
     return null;
   }

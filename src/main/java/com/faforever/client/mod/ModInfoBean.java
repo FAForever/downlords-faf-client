@@ -14,6 +14,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public class ModInfoBean {
   private final StringProperty author;
   private final BooleanProperty selectable;
   private final BooleanProperty uiOnly;
-  private final StringProperty version;
+  private final ObjectProperty<ComparableVersion> version;
   private final ObjectProperty<URL> thumbnailUrl;
   private final ListProperty<String> comments;
   private final BooleanProperty selected;
@@ -58,7 +59,7 @@ public class ModInfoBean {
     author = new SimpleStringProperty();
     selectable = new SimpleBooleanProperty();
     uiOnly = new SimpleBooleanProperty();
-    version = new SimpleStringProperty();
+    version = new SimpleObjectProperty<>();
     selected = new SimpleBooleanProperty();
     likes = new SimpleIntegerProperty();
     played = new SimpleIntegerProperty();
@@ -74,7 +75,7 @@ public class ModInfoBean {
     modInfoBean.setUiOnly("UI".equals(mod.getType()));
     modInfoBean.setName(mod.getDisplayName());
     modInfoBean.setAuthor(mod.getAuthor());
-    modInfoBean.setVersion(mod.getVersion());
+    modInfoBean.setVersion(new ComparableVersion(mod.getVersion()));
     modInfoBean.setLikes(mod.getLikes());
 //    modInfoBean.setPlayed(mod.getPlayed());
     modInfoBean.setPublishDate(mod.getCreateTime());
@@ -164,15 +165,15 @@ public class ModInfoBean {
     return description;
   }
 
-  public String getVersion() {
+  public ComparableVersion getVersion() {
     return version.get();
   }
 
-  public void setVersion(String version) {
+  public void setVersion(ComparableVersion version) {
     this.version.set(version);
   }
 
-  public StringProperty versionProperty() {
+  public ObjectProperty<ComparableVersion> versionProperty() {
     return version;
   }
 

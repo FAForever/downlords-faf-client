@@ -2,11 +2,11 @@ package com.faforever.client.patch;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.util.Assert;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -28,12 +28,8 @@ import java.util.stream.Collectors;
 
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.copy;
-import static java.nio.file.Files.createDirectories;
-import static java.nio.file.Files.setAttribute;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
-public class GitGameUpdateTask extends CompletableTask<Void> {
+public class GitFeaturedModsUpdateTask extends CompletableTask<ComparableVersion> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final ClassPathResource INIT_TEMPLATE = new ClassPathResource("/fa/init_template.lua");
@@ -54,7 +50,7 @@ public class GitGameUpdateTask extends CompletableTask<Void> {
   private String ref;
   private Path repositoryDirectory;
 
-  public GitGameUpdateTask() {
+  public GitFeaturedModsUpdateTask() {
     super(Priority.MEDIUM);
   }
 
@@ -64,17 +60,17 @@ public class GitGameUpdateTask extends CompletableTask<Void> {
   }
 
   @Override
-  protected Void call() throws Exception {
+  protected ComparableVersion call() throws Exception {
     logger.info("Updating game files from {}@{}", gameRepositoryUri, ref);
 
-    copyGameFilesToFafBinDirectory();
     generateInitFile(repositoryDirectory);
 
     checkout(repositoryDirectory, gameRepositoryUri, ref);
 
     logger.info("Downloading missing sim mods");
     downloadMissingSimMods();
-    return null;
+
+    return modService.readModVersion(repositoryDirectory);
   }
 
   private void checkout(Path gitRepoDir, String gitRepoUrl, String ref) throws IOException {
@@ -87,11 +83,9 @@ public class GitGameUpdateTask extends CompletableTask<Void> {
       Files.createDirectories(gitRepoDir.getParent());
       gitWrapper.clone(gitRepoUrl, gitRepoDir);
     } else {
-      gitWrapper.clean(gitRepoDir);
-      gitWrapper.reset(gitRepoDir);
       gitWrapper.fetch(gitRepoDir);
-      gitWrapper.checkoutRef(gitRepoDir, ref);
     }
+    gitWrapper.checkoutRef(gitRepoDir, ref);
   }
 
   private void generateInitFile(Path gameRepositoryDirectory) {
@@ -102,6 +96,7 @@ public class GitGameUpdateTask extends CompletableTask<Void> {
     logger.debug("Generating init file at {}", initFile);
 
     noCatch(() -> {
+      Files.createDirectories(initFile.getParent());
       try (BufferedReader reader = new BufferedReader(new InputStreamReader(INIT_TEMPLATE.getInputStream()));
            BufferedWriter writer = Files.newBufferedWriter(initFile, UTF_8)) {
         String line;
@@ -111,32 +106,6 @@ public class GitGameUpdateTask extends CompletableTask<Void> {
         }
       }
     });
-  }
-
-  protected void copyGameFilesToFafBinDirectory() throws IOException {
-    logger.debug("Copying game files from FA to FAF folder");
-
-    Path fafBinDirectory = preferencesService.getFafBinDirectory();
-    createDirectories(fafBinDirectory);
-
-    Path faBinPath = preferencesService.getPreferences().getForgedAlliance().getPath().resolve("bin");
-
-    Files.list(faBinPath)
-        .forEach(source -> {
-          Path destination = fafBinDirectory.resolve(source.getFileName());
-
-          if (Files.exists(destination)) {
-            return;
-          }
-
-          logger.debug("Copying file '{}' to '{}'", source, destination);
-          noCatch(() -> createDirectories(destination.getParent()));
-          noCatch(() -> copy(source, destination, REPLACE_EXISTING));
-
-          if (OperatingSystem.current() == OperatingSystem.WINDOWS) {
-            noCatch(() -> setAttribute(destination, "dos:readonly", false));
-          }
-        });
   }
 
   private void downloadMissingSimMods() throws InterruptedException, ExecutionException, TimeoutException, IOException {

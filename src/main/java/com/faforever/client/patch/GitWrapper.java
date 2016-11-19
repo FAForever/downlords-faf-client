@@ -9,9 +9,5 @@ public interface GitWrapper {
 
   void fetch(Path repoDirectory) throws IOException;
 
-  void clean(Path repoDirectory);
-
-  void reset(Path repoDirectory);
-
   void checkoutRef(Path repoDirectory, String ref);
 }

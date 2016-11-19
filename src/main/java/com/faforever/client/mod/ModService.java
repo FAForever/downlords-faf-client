@@ -5,6 +5,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.io.IOException;
 import java.net.URL;
@@ -63,4 +64,6 @@ public interface ModService {
   Image loadThumbnail(ModInfoBean mod);
 
   void evictModsCache();
+
+  ComparableVersion readModVersion(Path modDirectory);
 }

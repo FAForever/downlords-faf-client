@@ -166,6 +166,9 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   public void authorize(int playerId) {
     noCatch(() -> {
+      // TODO until username/password login and/or re-authorization is implemented
+      Files.deleteIfExists(dataStoreFactory.getDataDirectory().toPath().resolve("StoredCredential"));
+
       AuthorizationCodeFlow flow = new Builder(
           authorizationHeaderAccessMethod(),
           httpTransport,
@@ -368,8 +371,6 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {
-    // TODO until username/password login and/or re-authorization is implemented
-    Files.deleteIfExists(dataStoreFactory.getDataDirectory().toPath().resolve("StoredCredential"));
     Credential credential = flow.loadCredential(userId);
     if (credential != null && (credential.getRefreshToken() != null || credential.getExpiresInSeconds() > 60)) {
       return credential;

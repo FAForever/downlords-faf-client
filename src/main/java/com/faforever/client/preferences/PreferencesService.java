@@ -239,7 +239,7 @@ public class PreferencesService {
     return FAF_DATA_DIRECTORY;
   }
 
-  public Path getFafReposDirectory() {
+  public Path getGitReposDirectory() {
     return getFafDataDirectory().resolve("repos");
   }
 

@@ -2,7 +2,6 @@ package com.faforever.client.mod;
 
 import com.faforever.client.io.FileUtils;
 import com.faforever.client.task.CompletableTask;
-import com.faforever.client.task.ResourceLocks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,12 +34,7 @@ public class UninstallModTask extends CompletableTask<Void> {
     logger.info("Uninstalling mod '{}' ({})", mod.getName(), mod.getId());
     Path modPath = modService.getPathForMod(mod);
 
-    ResourceLocks.acquireDiskLock();
-    try {
-      FileUtils.deleteRecursively(modPath);
-    } finally {
-      ResourceLocks.freeDiskLock();
-    }
+    FileUtils.deleteRecursively(modPath);
 
     return null;
   }

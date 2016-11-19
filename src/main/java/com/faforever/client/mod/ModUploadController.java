@@ -119,7 +119,7 @@ public class ModUploadController {
     enterModInfoState();
     modNameLabel.textProperty().bind(modInfo.nameProperty());
     descriptionLabel.textProperty().bind(modInfo.descriptionProperty());
-    versionLabel.textProperty().bind(modInfo.versionProperty());
+    versionLabel.textProperty().bind(modInfo.versionProperty().asString());
     uidLabel.textProperty().bind(modInfo.idProperty());
     thumbnailImageView.imageProperty().bind(
         Bindings.createObjectBinding(() -> {
