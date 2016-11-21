@@ -569,7 +569,7 @@ public class MainController implements OnChooseGameDirectoryListener {
 
     Stage userInfoWindow = new Stage(StageStyle.TRANSPARENT);
     userInfoWindow.initModality(Modality.NONE);
-    userInfoWindow.initOwner(mainRoot.getScene().getWindow());
+    userInfoWindow.initOwner(stage.getOwner());
 
     WindowController windowController = applicationContext.getBean(WindowController.class);
     windowController.configure(userInfoWindow, controller.getRoot(), true, CLOSE, MAXIMIZE_RESTORE);

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
+import java.util.concurrent.CancellationException;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -98,10 +99,12 @@ public class LoginController {
   private void onLoginFailed(Throwable e) {
     logger.warn("Login failed", e);
     Platform.runLater(() -> {
-      loginErrorLabel.setText(e.getCause().getLocalizedMessage());
+      if (!(e instanceof CancellationException)) {
+        loginErrorLabel.setText(e.getCause().getLocalizedMessage());
+        loginErrorLabel.setVisible(true);
+      }
 
       setShowLoginProgress(false);
-      loginErrorLabel.setVisible(true);
     });
   }
 

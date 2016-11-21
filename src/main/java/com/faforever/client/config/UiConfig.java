@@ -27,6 +27,7 @@ import com.faforever.client.fx.DialogFactory;
 import com.faforever.client.fx.DialogFactoryImpl;
 import com.faforever.client.fx.FxmlLoader;
 import com.faforever.client.fx.FxmlLoaderImpl;
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.CreateGameController;
 import com.faforever.client.game.EnterPasswordController;
@@ -442,5 +443,10 @@ public class UiConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   AutoCompletionHelper autoCompletitionHelper() {
     return new AutoCompletionHelper();
+  }
+
+  @Bean
+  WebViewConfigurer webViewConfigurer() {
+    return new WebViewConfigurer();
   }
 }

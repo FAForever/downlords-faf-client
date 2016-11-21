@@ -210,7 +210,6 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
     assertThat(initSessionMessage.getCommand(), is(ClientMessageType.ASK_SESSION));
     assertThat(initSessionMessage.getVersion(), is("1.0"));
-    assertThat(initSessionMessage.getUserAgent(), is("downlords-faf-client"));
 
     SessionMessage sessionMessage = new SessionMessage();
     sessionMessage.setSession(sessionId);

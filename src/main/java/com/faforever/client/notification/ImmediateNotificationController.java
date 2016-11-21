@@ -1,5 +1,10 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.WebViewConfigurer;
+import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.theme.ThemeService;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -7,24 +12,39 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Region;
+import javafx.scene.web.WebView;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
 public class ImmediateNotificationController {
 
   @FXML
+  WebView errorMessageView;
+  @FXML
   Node exceptionPane;
   @FXML
   TextArea exceptionTextArea;
-  @FXML
-  Label messageLabel;
   @FXML
   Label titleLabel;
   @FXML
   ButtonBar buttonBar;
   @FXML
   Region notificationRoot;
+
+  @Resource
+  WebViewConfigurer webViewConfigurer;
+
+  public void initialize() {
+    exceptionPane.managedProperty().bind(exceptionPane.visibleProperty());
+  }
+
+  @PostConstruct
+  public void postConstruct() {
+    webViewConfigurer.configureWebView(errorMessageView);
+  }
 
   public void setNotification(ImmediateNotification notification) {
     StringWriter writer = new StringWriter();
@@ -38,7 +58,7 @@ public class ImmediateNotificationController {
     }
 
     titleLabel.setText(notification.getTitle());
-    messageLabel.setText(notification.getText());
+    Platform.runLater(() -> errorMessageView.getEngine().loadContent(notification.getText()));
 
     if (notification.getActions() != null) {
       for (Action action : notification.getActions()) {

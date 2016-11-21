@@ -45,7 +45,7 @@ public class ClientUpdateServiceImpl implements ClientUpdateService {
 
   public ClientUpdateServiceImpl() {
     currentVersion = new ComparableVersion(
-        defaultString(getClass().getPackage().getImplementationVersion(), DEVELOPMENT_VERSION_STRING)
+        defaultString(Version.VERSION, DEVELOPMENT_VERSION_STRING)
     );
     logger.info("Current version: {}", currentVersion);
   }
