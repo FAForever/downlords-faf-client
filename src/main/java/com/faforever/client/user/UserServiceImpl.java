@@ -3,6 +3,7 @@ package com.faforever.client.user;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.NoticeMessage;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.event.LoginSuccessEvent;
@@ -39,6 +40,7 @@ public class UserServiceImpl implements UserService {
 
   private String password;
   private Integer uid;
+  private CompletionStage<Void> loginFuture;
 
   public UserServiceImpl() {
     loggedIn = new SimpleBooleanProperty();
@@ -60,7 +62,7 @@ public class UserServiceImpl implements UserService {
 
     this.password = password;
 
-    return fafService.connectAndLogIn(username, password)
+    loginFuture = fafService.connectAndLogIn(username, password)
         .thenAccept(loginInfo -> {
           uid = loginInfo.getId();
 
@@ -80,6 +82,7 @@ public class UserServiceImpl implements UserService {
             fafService.disconnect();
           }
         });
+    return loginFuture;
   }
 
   @Override
@@ -99,6 +102,10 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public void cancelLogin() {
+    if (loginFuture != null) {
+      loginFuture.toCompletableFuture().cancel(true);
+      loginFuture = null;
+    }
     fafService.disconnect();
   }
 
@@ -126,5 +133,6 @@ public class UserServiceImpl implements UserService {
   @PostConstruct
   void postConstruct() {
     fafService.addOnMessageListener(LoginMessage.class, loginInfo -> uid = loginInfo.getId());
+    fafService.addOnMessageListener(NoticeMessage.class, noticeMessage -> cancelLogin());
   }
 }

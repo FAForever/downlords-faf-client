@@ -4,6 +4,7 @@ import com.faforever.client.audio.AudioController;
 import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCopier;
@@ -160,6 +161,8 @@ public abstract class AbstractChatTabController {
   AutoCompletionHelper autoCompletionHelper;
   @Resource
   EventBus eventBus;
+  @Resource
+  WebViewConfigurer webViewConfigurer;
 
   private boolean isChatReady;
   private WebEngine engine;
@@ -335,7 +338,7 @@ public abstract class AbstractChatTabController {
 
   private void initChatView() {
     WebView messagesWebView = getMessagesWebView();
-    JavaFxUtil.configureWebView(messagesWebView, preferencesService, themeService);
+    webViewConfigurer.configureWebView(messagesWebView);
     themeService.registerWebView(messagesWebView);
 
     messagesWebView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);

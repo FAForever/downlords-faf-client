@@ -1,6 +1,7 @@
 package com.faforever.client.news;
 
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.ThemeService;
@@ -42,6 +43,8 @@ public class NewsController {
   ThemeService themeService;
   @Resource
   EventBus eventBus;
+  @Resource
+  WebViewConfigurer webViewConfigurer;
 
   public void setUpIfNecessary() {
     if (!newsListPane.getChildren().isEmpty()) {
@@ -49,7 +52,7 @@ public class NewsController {
     }
 
     newsDetailWebView.setContextMenuEnabled(false);
-    JavaFxUtil.configureWebView(newsDetailWebView, preferencesService, themeService);
+    webViewConfigurer.configureWebView(newsDetailWebView);
     themeService.registerWebView(newsDetailWebView);
 
     boolean firstItemSelected = false;

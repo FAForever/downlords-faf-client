@@ -5,6 +5,7 @@ import javafx.scene.control.Button;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collections;
 
@@ -29,8 +30,10 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
     ImmediateNotification notification = new ImmediateNotification("title", "text", Severity.INFO);
     instance.setNotification(notification);
 
+    WaitForAsyncUtils.waitForFxEvents();
+
     assertEquals("title", instance.titleLabel.getText());
-    assertEquals("text", instance.messageLabel.getText());
+    assertEquals("text", instance.errorMessageView.getEngine().getDocument().getDocumentElement().getTextContent());
     assertThat(instance.buttonBar.getButtons(), empty());
   }
 
@@ -42,8 +45,10 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
         ));
     instance.setNotification(notification);
 
+    WaitForAsyncUtils.waitForFxEvents();
+
     assertEquals("title", instance.titleLabel.getText());
-    assertEquals("text", instance.messageLabel.getText());
+    assertEquals("text", instance.errorMessageView.getEngine().getDocument().getDocumentElement().getTextContent());
     assertThat(instance.buttonBar.getButtons(), hasSize(1));
     assertEquals("actionTitle", ((Button) instance.buttonBar.getButtons().get(0)).getText());
   }

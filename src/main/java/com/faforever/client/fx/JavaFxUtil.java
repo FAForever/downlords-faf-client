@@ -69,8 +69,6 @@ public final class JavaFxUtil {
     }
   };
 
-  private static final double ZOOM_STEP = 0.2d;
-
   private JavaFxUtil() {
     throw new AssertionError("Not instantiatable");
   }
@@ -209,28 +207,6 @@ public final class JavaFxUtil {
     if (Platform.isFxApplicationThread()) {
       throw new IllegalStateException("Must not run in FX Application thread");
     }
-  }
-
-  public static void configureWebView(WebView webView, PreferencesService preferencesService, ThemeService themeService) {
-    webView.setContextMenuEnabled(false);
-    webView.setOnScroll(event -> {
-      if (event.isControlDown()) {
-        if (event.getDeltaY() > 0) {
-          webView.setZoom(webView.getZoom() + ZOOM_STEP);
-        } else {
-          webView.setZoom(webView.getZoom() - ZOOM_STEP);
-        }
-      }
-    });
-    webView.setOnKeyPressed(event -> {
-      if (event.isControlDown() && (event.getCode() == KeyCode.DIGIT0 || event.getCode() == KeyCode.NUMPAD0)) {
-        webView.setZoom(1);
-      }
-    });
-
-    WebEngine engine = webView.getEngine();
-    engine.setUserDataDirectory(preferencesService.getCacheDirectory().toFile());
-    themeService.registerWebView(webView);
   }
 
   public static boolean isVisibleRecursively(Node node) {

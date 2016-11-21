@@ -10,6 +10,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.UidService;
 import com.faforever.client.login.LoginFailedException;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
@@ -163,7 +164,8 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     if (noticeMessage.getText() == null) {
       return;
     }
-    notificationService.addNotification(new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), noticeMessage.getSeverity()));
+    notificationService.addNotification(new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), noticeMessage.getSeverity(),
+        Collections.singletonList(new DismissAction(i18n))));
   }
 
   @Override
