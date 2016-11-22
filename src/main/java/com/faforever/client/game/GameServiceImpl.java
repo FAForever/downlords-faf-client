@@ -479,20 +479,21 @@ public class GameServiceImpl implements GameService {
       return;
     }
 
-    if (GameState.CLOSED == gameInfoMessage.getState()) {
-      synchronized (uidToGameInfoBean) {
-        uidToGameInfoBean.remove(gameInfoMessage.getUid());
-      }
-      return;
-    }
-
     final GameInfoBean gameInfoBean;
-    if (!uidToGameInfoBean.containsKey(gameInfoMessage.getUid())) {
+    Integer gameId = gameInfoMessage.getUid();
+    if (!uidToGameInfoBean.containsKey(gameId)) {
       gameInfoBean = new GameInfoBean(gameInfoMessage);
-      uidToGameInfoBean.put(gameInfoMessage.getUid(), gameInfoBean);
+      uidToGameInfoBean.put(gameId, gameInfoBean);
     } else {
-      gameInfoBean = uidToGameInfoBean.get(gameInfoMessage.getUid());
+      gameInfoBean = uidToGameInfoBean.get(gameId);
       Platform.runLater(() -> gameInfoBean.updateFromGameInfo(gameInfoMessage));
+
+      if (GameState.CLOSED == gameInfoMessage.getState()) {
+        synchronized (uidToGameInfoBean) {
+          uidToGameInfoBean.remove(gameInfoMessage.getUid());
+        }
+        return;
+      }
     }
 
     boolean currentPlayerInGame = gameInfoMessage.getTeams().values().stream()
