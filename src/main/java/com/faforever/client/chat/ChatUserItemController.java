@@ -7,7 +7,6 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameStatus;
 import com.faforever.client.game.GamesController;
 import com.faforever.client.game.JoinGameHelper;
-import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -103,7 +102,6 @@ public class ChatUserItemController {
   private ChangeListener<String> avatarChangeListener;
   private ChangeListener<String> clanChangeListener;
   private ChangeListener<GameStatus> gameStatusChangeListener;
-  private PlayerCardTooltipController playerCardTooltipController;
 
   @FXML
   void initialize() {
@@ -235,7 +233,6 @@ public class ChatUserItemController {
     configureAvatarImageView();
     configureClanLabel();
     configureGameStatusView();
-    configureTooltip();
 
     usernameLabel.setText(playerInfoBean.getUsername());
   }
@@ -275,23 +272,6 @@ public class ChatUserItemController {
     playerInfoBean.gameStatusProperty().addListener(new WeakChangeListener<>(gameStatusChangeListener));
   }
 
-  private void configureTooltip() {
-    if (playerInfoBean.getChatOnly()) {
-      return;
-    }
-
-    // FIXME #294
-    Tooltip tooltip = new Tooltip();
-    Tooltip.install(clanLabel, tooltip);
-    Tooltip.install(usernameLabel, tooltip);
-
-    Bindings.createStringBinding(
-        () -> i18n.get("userInfo.ratingFormat", getGlobalRating(playerInfoBean), getLeaderboardRating(playerInfoBean)),
-        playerInfoBean.leaderboardRatingMeanProperty(), playerInfoBean.leaderboardRatingDeviationProperty(),
-        playerInfoBean.globalRatingMeanProperty(), playerInfoBean.globalRatingDeviationProperty()
-    );
-  }
-
   private void setCountry(String country) {
     if (StringUtils.isEmpty(country)) {
       countryImageView.setVisible(false);
@@ -317,20 +297,21 @@ public class ChatUserItemController {
 
   @FXML
   void onMouseEnterUsername() {
-    if (playerInfoBean.getChatOnly()) {
+    if (playerInfoBean.getChatOnly() || usernameLabel.getTooltip() != null) {
       return;
     }
 
-    if (playerCardTooltipController != null) {
-      return;
-    }
+    Tooltip tooltip = new Tooltip();
+    Label label = new Label();
+    tooltip.setGraphic(label);
+    Tooltip.install(usernameLabel, tooltip);
+    Tooltip.install(clanLabel, tooltip);
 
-    playerCardTooltipController = applicationContext.getBean(PlayerCardTooltipController.class);
-    playerCardTooltipController.setPlayer(playerInfoBean);
-
-    Tooltip statusTooltip = new Tooltip();
-    statusTooltip.setGraphic(playerCardTooltipController.getRoot());
-    Tooltip.install(usernameLabel, statusTooltip);
+    label.textProperty().bind(Bindings.createStringBinding(
+        () -> i18n.get("userInfo.ratingFormat", getGlobalRating(playerInfoBean), getLeaderboardRating(playerInfoBean)),
+        playerInfoBean.leaderboardRatingMeanProperty(), playerInfoBean.leaderboardRatingDeviationProperty(),
+        playerInfoBean.globalRatingMeanProperty(), playerInfoBean.globalRatingDeviationProperty()
+    ));
   }
 
   @FXML
