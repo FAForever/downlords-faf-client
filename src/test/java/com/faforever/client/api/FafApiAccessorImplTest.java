@@ -220,6 +220,7 @@ public class FafApiAccessorImplTest {
             "   'id': '1'," +
             "   'attributes': {" +
             "     'create_time': '2011-12-03T10:15:30'," +
+            "     'version': '1'," +
             "     'download_url': 'http://example.com/mod1.zip'" +
             "   }" +
             " }," +
@@ -227,6 +228,7 @@ public class FafApiAccessorImplTest {
             "   'id': '2'," +
             "   'attributes': {" +
             "     'create_time': '2011-12-03T10:15:30'," +
+            "     'version': '1'," +
             "     'download_url': 'http://example.com/mod2.zip'" +
             "   }" +
             " }" +

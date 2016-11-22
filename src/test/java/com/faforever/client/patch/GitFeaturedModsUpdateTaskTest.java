@@ -1,6 +1,7 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -50,6 +51,8 @@ public class GitFeaturedModsUpdateTaskTest extends AbstractPlainJavaFxTest {
   private Preferences preferences;
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
+  @Mock
+  private ModService modService;
 
   /**
    * The directory containing the cloned game repository
@@ -64,6 +67,7 @@ public class GitFeaturedModsUpdateTaskTest extends AbstractPlainJavaFxTest {
     instance.gitWrapper = gitWrapper;
     instance.environment = environment;
     instance.i18n = i18n;
+    instance.modService = modService;
 
     Path reposDirectory = faDirectory.getRoot().toPath().resolve("repos");
     clonedRepoDir = reposDirectory.resolve("faf");

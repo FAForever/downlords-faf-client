@@ -18,6 +18,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.store.RAMDirectory;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
@@ -313,7 +314,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     ModInfoBean modInfoBean = installedMods.get(0);
 
     assertThat(modInfoBean.getName(), is("BlackOps Global Icon Support Mod"));
-    assertThat(modInfoBean.getVersion(), is("5"));
+    assertThat(modInfoBean.getVersion(), is(new ComparableVersion("5")));
     assertThat(modInfoBean.getAuthor(), is("Exavier Macbeth, DeadMG"));
     assertThat(modInfoBean.getDescription(), is("Version 5.0. This mod provides global icon support for any mod that places their icons in the proper folder structure. See Readme"));
     assertThat(modInfoBean.getImagePath(), nullValue());
@@ -324,7 +325,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     modInfoBean = installedMods.get(1);
 
     assertThat(modInfoBean.getName(), is("BlackOps Unleashed"));
-    assertThat(modInfoBean.getVersion(), is("8"));
+    assertThat(modInfoBean.getVersion(), is(new ComparableVersion("8")));
     assertThat(modInfoBean.getAuthor(), is("Lt_hawkeye"));
     assertThat(modInfoBean.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
     assertThat(modInfoBean.getImagePath(), is(modsDirectory.getRoot().toPath().resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
@@ -335,7 +336,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     modInfoBean = installedMods.get(2);
 
     assertThat(modInfoBean.getName(), is("EcoManager"));
-    assertThat(modInfoBean.getVersion(), is("3"));
+    assertThat(modInfoBean.getVersion(), is(new ComparableVersion("3")));
     assertThat(modInfoBean.getAuthor(), is("Crotalus"));
     assertThat(modInfoBean.getDescription(), is("EcoManager v3, more efficient energy throttling"));
     assertThat(modInfoBean.getImagePath(), nullValue());
