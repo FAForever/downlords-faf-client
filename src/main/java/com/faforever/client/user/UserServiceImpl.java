@@ -81,6 +81,7 @@ public class UserServiceImpl implements UserService {
             logger.warn("Error during login", throwable);
             fafService.disconnect();
           }
+          loginFuture = null;
         });
     return loginFuture;
   }
@@ -105,8 +106,8 @@ public class UserServiceImpl implements UserService {
     if (loginFuture != null) {
       loginFuture.toCompletableFuture().cancel(true);
       loginFuture = null;
+      fafService.disconnect();
     }
-    fafService.disconnect();
   }
 
   @Override
