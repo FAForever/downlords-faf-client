@@ -54,6 +54,7 @@ import com.faforever.client.remote.gson.ServerMessageTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.VictoryConditionTypeAdapter;
 import com.faforever.client.update.ClientUpdateService;
+import com.faforever.client.update.Version;
 import com.github.nocatch.NoCatch;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -214,8 +215,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
             serverWriter = createServerWriter(outputStream);
 
-            String version = clientUpdateService.getCurrentVersion().toString();
-            writeToServer(new InitSessionMessage(version));
+            writeToServer(new InitSessionMessage(Version.VERSION));
 
             logger.info("FAF server connection established");
             connectionState.set(ConnectionState.CONNECTED);
