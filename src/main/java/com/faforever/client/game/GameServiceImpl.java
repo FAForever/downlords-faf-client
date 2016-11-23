@@ -258,7 +258,7 @@ public class GameServiceImpl implements GameService {
 
   @Override
   public ObservableList<GameInfoBean> getGameInfoBeans() {
-    return FXCollections.unmodifiableObservableList(gameInfoBeans);
+    return gameInfoBeans;
   }
 
   @Override

@@ -53,6 +53,9 @@ public class WebViewConfigurer {
         };
 
         Document doc = webView.getEngine().getDocument();
+        if (doc == null) {
+          return;
+        }
         NodeList nodeList = doc.getElementsByTagName("a");
         for (int i = 0; i < nodeList.getLength(); i++) {
           ((EventTarget) nodeList.item(i)).addEventListener(EVENT_TYPE_CLICK, listener, true);
