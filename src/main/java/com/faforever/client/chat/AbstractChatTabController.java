@@ -545,8 +545,8 @@ public abstract class AbstractChatTabController {
       if (!isChatReady) {
         waitingMessages.add(chatMessage);
       } else {
-        appendMessage(chatMessage);
         Platform.runLater(() -> {
+          appendMessage(chatMessage);
           removeTopmostMessages();
           scrollToBottomIfDesired();
         });
