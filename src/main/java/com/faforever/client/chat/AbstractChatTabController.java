@@ -5,7 +5,6 @@ import com.faforever.client.chat.UrlPreviewResolver.Preview;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
-import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCopier;
 import com.faforever.client.main.MainController;
@@ -30,6 +29,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.io.CharStreams;
 import com.sun.javafx.scene.control.skin.TabPaneSkin;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
@@ -40,6 +40,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputControl;
@@ -81,6 +82,8 @@ import java.util.regex.Pattern;
 import static com.faforever.client.chat.SocialStatus.FOE;
 import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.faforever.client.chat.SocialStatus.SELF;
+import static com.faforever.client.util.RatingUtil.getGlobalRating;
+import static com.faforever.client.util.RatingUtil.getLeaderboardRating;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
@@ -138,8 +141,6 @@ public abstract class AbstractChatTabController {
   @Resource
   TimeService timeService;
   @Resource
-  PlayerCardTooltipController playerCardTooltipController;
-  @Resource
   ChatController chatController;
   @Resource
   I18n i18n;
@@ -178,9 +179,9 @@ public abstract class AbstractChatTabController {
   private String receiver;
 
   private Pattern mentionPattern;
-  private Popup playerCardTooltip;
   private Tooltip linkPreviewTooltip;
   private ChangeListener<Boolean> stageFocusedListener;
+  private Popup playerInfoPopup;
 
   public AbstractChatTabController() {
     waitingMessages = new ArrayList<>();
@@ -401,23 +402,30 @@ public abstract class AbstractChatTabController {
       return;
     }
 
-    playerCardTooltipController.setPlayer(playerInfoBean);
+    playerInfoPopup = new Popup();
+    Label label = new Label();
+    label.getStyleClass().add("tooltip");
+    playerInfoPopup.getContent().setAll(label);
 
-    playerCardTooltip = new Popup();
-    playerCardTooltip.getContent().setAll(playerCardTooltipController.getRoot());
-    playerCardTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
-    playerCardTooltip.show(getRoot().getTabPane(), lastMouseX, lastMouseY - 10);
+    label.textProperty().bind(Bindings.createStringBinding(
+        () -> i18n.get("userInfo.ratingFormat", getGlobalRating(playerInfoBean), getLeaderboardRating(playerInfoBean)),
+        playerInfoBean.leaderboardRatingMeanProperty(), playerInfoBean.leaderboardRatingDeviationProperty(),
+        playerInfoBean.globalRatingMeanProperty(), playerInfoBean.globalRatingDeviationProperty()
+    ));
+
+    playerInfoPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_BOTTOM_LEFT);
+    playerInfoPopup.show(getRoot().getTabPane(), lastMouseX, lastMouseY - 10);
   }
 
   /**
    * Called from JavaScript when user no longer hovers over a user name.
    */
   public void hidePlayerInfo() {
-    if (playerCardTooltip == null) {
+    if (playerInfoPopup == null) {
       return;
     }
-    playerCardTooltip.hide();
-    playerCardTooltip = null;
+    playerInfoPopup.hide();
+    playerInfoPopup = null;
   }
 
   /**

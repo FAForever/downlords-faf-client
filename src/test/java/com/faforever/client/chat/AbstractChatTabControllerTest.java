@@ -2,7 +2,6 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioController;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.PlayerCardTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.os.OperatingSystem;
@@ -25,12 +24,10 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -43,7 +40,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 
 import static com.faforever.client.chat.AbstractChatTabController.CSS_CLASS_CHAT_ONLY;
-import static com.faforever.client.chat.SocialStatus.*;
+import static com.faforever.client.chat.SocialStatus.FOE;
+import static com.faforever.client.chat.SocialStatus.FRIEND;
+import static com.faforever.client.chat.SocialStatus.OTHER;
+import static com.faforever.client.chat.SocialStatus.SELF;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.core.Is.is;
@@ -52,15 +52,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   private static final long TIMEOUT = 5000;
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
-  @Mock
-  PlayerCardTooltipController playerCardTooltipController;
   @Mock
   private ChatService chatService;
   @Mock
@@ -121,7 +121,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.userService = userService;
     instance.preferencesService = preferencesService;
     instance.playerService = playerService;
-    instance.playerCardTooltipController = playerCardTooltipController;
     instance.platformService = platformService;
     instance.urlPreviewResolver = urlPreviewResolver;
     instance.timeService = timeService;
@@ -219,18 +218,15 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.getMessageTextField().isDisable(), is(false));
   }
 
-  @Ignore("Wanted but not invoked: playerCardTooltipController.setPlayer(com.faforever.client.chat.PlayerInfoBean);")
   @Test
   public void testPlayerInfo() throws Exception {
     String playerName = "somePlayer";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
     when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
-    when(playerCardTooltipController.getRoot()).thenReturn(new Pane());
 
     WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> instance.playerInfo(playerName));
 
     verify(playerService).getPlayerForUsername(playerName);
-    verify(playerCardTooltipController).setPlayer(eq(playerInfoBean));
   }
 
   @Test
@@ -243,7 +239,6 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String playerName = "somePlayer";
     PlayerInfoBean playerInfoBean = new PlayerInfoBean(playerName);
     when(playerService.getPlayerForUsername(playerName)).thenReturn(playerInfoBean);
-    when(playerCardTooltipController.getRoot()).thenReturn(new Pane());
 
     WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
       instance.playerInfo(playerName);
