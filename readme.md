@@ -12,6 +12,6 @@ Please take a look at the [contribution guidelines](https://github.com/FAForever
 
 # How to run
 
-1. Make sure you have a 32-Bit JVM. This is necessary due to the `uid.dll` we are forced to use.
-1. Import the project into IntelliJ
-1. For some reasons, IntelliJ deletes launch configurations after import. Please revert such deleted files first.
+1. Clone the project with git
+1. Import the project into IntelliJ as "Gradle Project"
+1. For some reasons, IntelliJ deletes launch configurations after import. Please revert such deleted files first (Version Control (Alt+F9) -> Local Changes)
