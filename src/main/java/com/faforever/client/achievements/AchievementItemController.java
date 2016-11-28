@@ -4,53 +4,50 @@ import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.AchievementType;
 import com.faforever.client.api.PlayerAchievement;
+import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.common.base.MoreObjects;
 import javafx.application.Platform;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.Locale;
 import java.util.Objects;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 // TODO this class should not use API objects
-public class AchievementItemController {
+public class AchievementItemController implements Controller<Node> {
 
-  @FXML
-  GridPane achievementItemRoot;
-  @FXML
-  Label nameLabel;
-  @FXML
-  Label descriptionLabel;
-  @FXML
-  Label pointsLabel;
-  @FXML
-  ProgressBar progressBar;
-  @FXML
-  Label progressLabel;
-  @FXML
-  ImageView imageView;
+  public GridPane achievementItemRoot;
+  public Label nameLabel;
+  public Label descriptionLabel;
+  public Label pointsLabel;
+  public ProgressBar progressBar;
+  public Label progressLabel;
+  public ImageView imageView;
 
-  @Resource
+  @Inject
   Locale locale;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
+  @Inject
   AchievementService achievementService;
 
   private AchievementDefinition achievementDefinition;
 
-  @FXML
-  void initialize() {
+  public void initialize() {
     progressBar.managedProperty().bind(progressBar.visibleProperty());
     progressLabel.managedProperty().bind(progressLabel.visibleProperty());
   }

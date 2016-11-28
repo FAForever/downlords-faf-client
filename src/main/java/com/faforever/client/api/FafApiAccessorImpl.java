@@ -2,16 +2,17 @@ package com.faforever.client.api;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.coop.CoopMission;
-import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.io.CountingFileContent;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
-import com.faforever.client.mod.ModInfoBean;
+import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.Mod;
 import com.faforever.client.net.UriUtil;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.replay.ReplayInfoBean;
-import com.faforever.client.user.UserService;
+import com.faforever.client.replay.Replay;
+import com.faforever.client.user.event.LoggedOutEvent;
+import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow.Builder;
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
@@ -39,6 +40,8 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.escape.Escaper;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import com.google.common.net.MediaType;
 import com.google.common.net.UrlEscapers;
 import org.jetbrains.annotations.NotNull;
@@ -47,15 +50,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,17 +76,20 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Pattern;
-
-import static java.util.stream.Collectors.toList;
+import java.util.stream.Collectors;
 
 import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.api.client.auth.oauth2.BearerToken.authorizationHeaderAccessMethod;
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
+import static java.util.stream.Collectors.toList;
 
+@Lazy
+@Component
+@Profile("!local")
+// TODO devide and conquer
 public class FafApiAccessorImpl implements FafApiAccessor {
 
   private static final String HTTP_LOCALHOST = "http://localhost:";
@@ -88,16 +97,11 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final List<String> SCOPES = Arrays.asList("read_achievements", "read_events", "upload_map", "upload_mod", "write_account_data");
 
-  @Resource
-  JsonFactory jsonFactory;
-  @Resource
-  PreferencesService preferencesService;
-  @Resource
-  HttpTransport httpTransport;
-  @Resource
-  UserService userService;
-  @Resource
-  ClientHttpRequestFactory clientHttpRequestFactory;
+  private final JsonFactory jsonFactory;
+  private final PreferencesService preferencesService;
+  private final HttpTransport httpTransport;
+  private final ClientHttpRequestFactory clientHttpRequestFactory;
+  private final EventBus eventBus;
 
   @Value("${api.baseUrl}")
   String baseUrl;
@@ -120,22 +124,31 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   private CountDownLatch authorizedLatch;
 
-  public FafApiAccessorImpl() {
+  @Inject
+  public FafApiAccessorImpl(JsonFactory jsonFactory, PreferencesService preferencesService, HttpTransport httpTransport, ClientHttpRequestFactory clientHttpRequestFactory, EventBus eventBus) {
     authorizedLatch = new CountDownLatch(1);
+    this.jsonFactory = jsonFactory;
+    this.preferencesService = preferencesService;
+    this.httpTransport = httpTransport;
+    this.clientHttpRequestFactory = clientHttpRequestFactory;
+    this.eventBus = eventBus;
   }
 
   @PostConstruct
   void postConstruct() throws IOException {
     Path oauthCredentialsDirectory = preferencesService.getPreferencesDirectory().resolve("oauth");
     dataStoreFactory = new FileDataStoreFactory(oauthCredentialsDirectory.toFile());
+    eventBus.register(this);
+  }
 
-    userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
-        authorize(userService.getUid());
-      } else {
-        authorizedLatch = new CountDownLatch(1);
-      }
-    });
+  @Subscribe
+  public void onLoggedOutEvent(LoggedOutEvent event) {
+    authorizedLatch = new CountDownLatch(1);
+  }
+
+  @Subscribe
+  public void onLoginSuccessEvent(LoginSuccessEvent event) {
+    authorize(event.getUserId(), event.getUsername(), event.getPassword());
   }
 
   @Override
@@ -168,7 +181,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public void authorize(int playerId) {
+  public void authorize(int playerId, String username, String password) {
     noCatch(() -> {
       // TODO until username/password login and/or re-authorization is implemented
       Files.deleteIfExists(dataStoreFactory.getDataDirectory().toPath().resolve("StoredCredential"));
@@ -185,7 +198,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
           .setScopes(SCOPES)
           .build();
 
-      credential = authorize(flow, valueOf(playerId));
+      credential = authorize(flow, valueOf(playerId), username, password);
       requestFactory = httpTransport.createRequestFactory(credential);
       authorizedLatch.countDown();
     });
@@ -193,10 +206,10 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   @Cacheable(CacheNames.MODS)
-  public List<ModInfoBean> getMods() {
+  public List<Mod> getMods() {
     logger.debug("Loading available mods");
-    return getMany("/mods", Mod.class).stream()
-        .map(ModInfoBean::fromModInfo)
+    return getMany("/mods", com.faforever.client.api.Mod.class).stream()
+        .map(Mod::fromModInfo)
         .collect(toList());
   }
 
@@ -226,8 +239,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
 
   @Override
   @Cacheable(CacheNames.LEADERBOARD)
-  public List<Ranked1v1EntryBean> getRanked1v1Entries() {
-    return getMany("/leaderboards/1v1", LeaderboardEntry.class).stream()
+  public List<Ranked1v1EntryBean> getLeaderboardEntries(RatingType ratingType) {
+    return getMany("/leaderboards/" + ratingType.getString(), LeaderboardEntry.class).stream()
         .map(Ranked1v1EntryBean::fromLeaderboardEntry)
         .collect(toList());
   }
@@ -304,11 +317,12 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public void changePassword(String currentPasswordHash, String newPasswordHash) throws IOException {
+  public void changePassword(String username, String currentPasswordHash, String newPasswordHash) throws IOException {
     logger.debug("Changing password");
 
     HashMap<String, String> httpDict = new HashMap<>();
-    httpDict.put("name", userService.getUsername());
+    // TODO this should not be necessary; we are oauthed so the server knows our username
+    httpDict.put("name", username);
     httpDict.put("pw_hash_old", currentPasswordHash);
     httpDict.put("pw_hash_new", newPasswordHash);
 
@@ -318,13 +332,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
-  public ModInfoBean getMod(String uid) {
-    return ModInfoBean.fromModInfo(getSingle("/mods/" + uid, Mod.class));
-  }
-
-  @Override
-  public CompletionStage<List<ReplayInfoBean>> getOnlineReplays() {
-    throw new UnsupportedOperationException("Not yet implemented");
+  public Mod getMod(String uid) {
+    return Mod.fromModInfo(getSingle("/mods/" + uid, com.faforever.client.api.Mod.class));
   }
 
   @Override
@@ -335,10 +344,47 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   }
 
   @Override
+  public List<Replay> searchReplayByPlayer(String playerName) {
+    return getMany("/replays?filter[player]=" + playerName, ReplayInfo.class)
+        .parallelStream().map(Replay::fromReplayInfo).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Replay> searchReplayByMap(String mapName) {
+    return getMany("/replays?filter[map]=" + mapName, ReplayInfo.class)
+        .parallelStream().map(Replay::fromReplayInfo).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Replay> searchReplayByMod(FeaturedMod featuredMod) {
+    return getMany("/replays?filter[mod]=" + featuredMod.getId(), ReplayInfo.class)
+        .parallelStream().map(Replay::fromReplayInfo).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Replay> getNewestReplays(int count) {
+    return getMany(format("/replays?page[size]=%d&sort=-date", count), ReplayInfo.class)
+        .parallelStream().map(Replay::fromReplayInfo).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Replay> getHighestRatedReplays(int count) {
+    return getMany(format("/replays?page[size]=%d&sort=-rating", count), ReplayInfo.class)
+        .parallelStream().map(Replay::fromReplayInfo).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Replay> getMostWatchedReplays(int count) {
+    return getMany(format("/replays?page[size]=%d&sort=-plays", count), ReplayInfo.class)
+        .parallelStream().map(Replay::fromReplayInfo).collect(Collectors.toList());
+  }
+
+  @Override
   @Cacheable(CacheNames.COOP_MAPS)
   public List<CoopMission> getCoopMissions() {
     logger.debug("Loading available coop missions");
-    return getMany("/coop/missions", com.faforever.client.api.CoopMission.class).stream().map(CoopMission::fromCoopInfo).collect(toList());
+    return getMany("/coop/missions", com.faforever.client.api.CoopMission.class)
+        .stream().map(CoopMission::fromCoopInfo).collect(toList());
   }
 
   @Override
@@ -394,7 +440,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
         .collect(toList());
   }
 
-  private Credential authorize(AuthorizationCodeFlow flow, String userId) throws IOException {
+  private Credential authorize(AuthorizationCodeFlow flow, String userId, String username, String password) throws IOException {
     Credential credential = flow.loadCredential(userId);
     if (credential != null && (credential.getRefreshToken() != null || credential.getExpiresInSeconds() > 60)) {
       return credential;
@@ -409,8 +455,8 @@ public class FafApiAccessorImpl implements FafApiAccessor {
         .replaceFirst("uri=" + Pattern.quote(HTTP_LOCALHOST), "uri=" + ENCODED_HTTP_LOCALHOST));
 
     Escaper escaper = UrlEscapers.urlFormParameterEscaper();
-    byte[] postData = ("username=" + escaper.escape(userService.getUsername()) +
-        "&password=" + escaper.escape(userService.getPassword()) +
+    byte[] postData = ("username=" + escaper.escape(username) +
+        "&password=" + escaper.escape(password) +
         "&next=" + fixedAuthorizationUri).getBytes(StandardCharsets.UTF_8);
     int postDataLength = postData.length;
 

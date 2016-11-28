@@ -1,10 +1,14 @@
 package com.faforever.client.preferences;
 
-import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.NotificationService;
+import com.google.common.eventbus.EventBus;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
+import org.bridj.Platform;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,11 +19,18 @@ import static org.junit.Assert.assertThat;
 
 public class PreferencesServiceTest {
 
+  @Mock
+  private I18n i18n;
+  @Mock
   private PreferencesService instance;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private EventBus eventBus;
 
   @Before
   public void setUp() throws Exception {
-    instance = new PreferencesService();
+    instance = new PreferencesService(i18n, notificationService, eventBus);
   }
 
   @Test
@@ -34,13 +45,10 @@ public class PreferencesServiceTest {
 
   @Test
   public void testGetFafDataDirectory() throws Exception {
-    switch (OperatingSystem.current()) {
-      case WINDOWS:
-        assertThat(instance.getFafDataDirectory(), is(Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever")));
-        break;
-
-      default:
-        assertThat(instance.getFafDataDirectory(), is(Paths.get(System.getProperty("user.home")).resolve(".faforever")));
+    if (Platform.isWindows()) {
+      assertThat(instance.getFafDataDirectory(), is(Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever")));
+    } else {
+      assertThat(instance.getFafDataDirectory(), is(Paths.get(System.getProperty("user.home")).resolve(".faforever")));
     }
   }
 

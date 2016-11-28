@@ -16,12 +16,14 @@ public class TransientNotificationControllerTest extends AbstractPlainJavaFxTest
 
   @Before
   public void setUp() throws Exception {
-    instance = loadController("transient_notification.fxml");
+    instance = new TransientNotificationController();
+
+    loadFxml("theme/transient_notification.fxml", clazz -> instance);
   }
 
   @Test
   public void testSetNotificationWithoutActions() throws Exception {
-    Image image = new Image(getClass().getResource("/theme/images/tray_icon.png").toExternalForm());
+    Image image = new Image(getClass().getResource("/theme/images/close.png").toExternalForm());
 
     TransientNotification notification = new TransientNotification("title", "text", image);
     instance.setNotification(notification);

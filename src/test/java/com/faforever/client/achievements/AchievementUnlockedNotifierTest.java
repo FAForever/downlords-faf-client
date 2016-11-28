@@ -2,7 +2,7 @@ package com.faforever.client.achievements;
 
 import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.AchievementType;
-import com.faforever.client.audio.AudioController;
+import com.faforever.client.audio.AudioService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.notification.TransientNotification;
@@ -44,7 +44,7 @@ public class AchievementUnlockedNotifierTest {
   @Mock
   private FafService fafService;
   @Mock
-  private AudioController audioController;
+  private AudioService audioService;
 
   @Captor
   private ArgumentCaptor<Consumer<UpdatedAchievementsMessage>> listenerCaptor;
@@ -55,7 +55,7 @@ public class AchievementUnlockedNotifierTest {
 
     instance = new AchievementUnlockedNotifier();
     instance.achievementService = achievementService;
-    instance.audioController = audioController;
+    instance.audioService = audioService;
     instance.fafService = fafService;
     instance.i18n = i18n;
     instance.notificationService = notificationService;
@@ -74,7 +74,7 @@ public class AchievementUnlockedNotifierTest {
 
     triggerUpdatedAchievementsMessage(achievementDefinition, true);
 
-    verify(audioController).playAchievementUnlockedSound();
+    verify(audioService).playAchievementUnlockedSound();
 
     ArgumentCaptor<TransientNotification> notificationCaptor = ArgumentCaptor.forClass(TransientNotification.class);
     verify(notificationService).addNotification(notificationCaptor.capture());
@@ -93,7 +93,7 @@ public class AchievementUnlockedNotifierTest {
     achievementDefinition.setName("Test Achievement");
     triggerUpdatedAchievementsMessage(achievementDefinition, false);
 
-    verifyZeroInteractions(audioController);
+    verifyZeroInteractions(audioService);
     verifyZeroInteractions(notificationService);
   }
 

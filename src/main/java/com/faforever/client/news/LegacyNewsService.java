@@ -7,14 +7,13 @@ import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import java.lang.invoke.MethodHandles;
+import javax.inject.Inject;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,9 +24,9 @@ import java.util.concurrent.TimeUnit;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
+@Lazy
+@Service
 public class LegacyNewsService implements NewsService {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   /**
    * The delay (in seconds) between polling for new news.
@@ -37,11 +36,11 @@ public class LegacyNewsService implements NewsService {
   @Value("${newsFeedUrl}")
   String newsFeedUrl;
 
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
+  @Inject
   EventBus eventBus;
-  @Resource
+  @Inject
   ScheduledExecutorService scheduledExecutorService;
 
   @PostConstruct

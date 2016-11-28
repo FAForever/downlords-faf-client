@@ -2,12 +2,14 @@ package com.faforever.client.player;
 
 import com.faforever.client.chat.SocialStatus;
 import com.faforever.client.game.Game;
-import com.faforever.client.game.GameStatus;
+import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.remote.domain.GameState;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
@@ -18,6 +20,8 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+
+import java.time.Instant;
 
 import static com.faforever.client.chat.SocialStatus.OTHER;
 
@@ -41,8 +45,9 @@ public class Player {
   private final FloatProperty leaderboardRatingDeviation;
   private final FloatProperty leaderboardRatingMean;
   private final ObjectProperty<Game> game;
-  private final SimpleObjectProperty<GameStatus> gameStatus;
+  private final SimpleObjectProperty<PlayerStatus> status;
   private final IntegerProperty numberOfGames;
+  private final ObjectProperty<Instant> idleSince;
 
   public Player(com.faforever.client.remote.domain.Player player) {
     this();
@@ -70,15 +75,15 @@ public class Player {
     globalRatingMean = new SimpleFloatProperty();
     leaderboardRatingDeviation = new SimpleFloatProperty();
     leaderboardRatingMean = new SimpleFloatProperty();
-    gameStatus = new SimpleObjectProperty<>();
+    status = new SimpleObjectProperty<>(PlayerStatus.IDLE);
     game = new SimpleObjectProperty<>();
     numberOfGames = new SimpleIntegerProperty();
     socialStatus = new SimpleObjectProperty<>(OTHER);
+    idleSince = new SimpleObjectProperty<>(Instant.now());
   }
 
   public Player(String username) {
     this();
-    this.gameStatus.set(GameStatus.NONE);
     this.username.set(username);
   }
 
@@ -238,20 +243,12 @@ public class Player {
     return globalRatingMean;
   }
 
-  public GameStatus getGameStatus() {
-    return gameStatus.get();
+  public PlayerStatus getStatus() {
+    return status.get();
   }
 
-  public void setGameStatus(GameStatus gameStatus) {
-    this.gameStatus.set(gameStatus);
-  }
-
-  public SimpleObjectProperty<GameStatus> gameStatusProperty() {
-    return gameStatus;
-  }
-
-  public void setGameStatusFromGameState(GameState gameState) {
-    gameStatus.set(GameStatus.fromGameState(gameState));
+  public ReadOnlyObjectProperty<PlayerStatus> statusProperty() {
+    return status;
   }
 
   public Game getGame() {
@@ -260,6 +257,22 @@ public class Player {
 
   public void setGame(Game game) {
     this.game.set(game);
+    if (game == null) {
+      status.unbind();
+      status.set(PlayerStatus.IDLE);
+    } else {
+      this.status.bind(Bindings.createObjectBinding(() -> {
+        if (getGame().getStatus() == GameState.OPEN) {
+          if (getGame().getHost().equalsIgnoreCase(username.get())) {
+            return PlayerStatus.HOSTING;
+          }
+          return PlayerStatus.LOBBYING;
+        } else if (getGame().getStatus() == GameState.CLOSED) {
+          return PlayerStatus.IDLE;
+        }
+        return PlayerStatus.PLAYING;
+      }, game.statusProperty()));
+    }
   }
 
   public ObjectProperty<Game> gameProperty() {
@@ -284,6 +297,18 @@ public class Player {
 
   public void setLeaderboardRatingDeviation(float leaderboardRatingDeviation) {
     this.leaderboardRatingDeviation.set(leaderboardRatingDeviation);
+  }
+
+  public Instant getIdleSince() {
+    return idleSince.get();
+  }
+
+  public void setIdleSince(Instant idleSince) {
+    this.idleSince.set(idleSince);
+  }
+
+  public ObjectProperty<Instant> idleSinceProperty() {
+    return idleSince;
   }
 
   public FloatProperty leaderboardRatingDeviationProperty() {

@@ -1,16 +1,18 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.audio.AudioController;
+import com.faforever.client.audio.AudioService;
+import com.faforever.client.fx.Controller;
+import com.faforever.client.theme.UiService;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -18,26 +20,25 @@ import java.util.Set;
 /**
  * Controller for pane that displays all persistent notifications.
  */
-public class PersistentNotificationsController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class PersistentNotificationsController implements Controller<Node> {
 
   private final Map<PersistentNotification, Node> notificationsToNode;
-  @FXML
-  Label noNotificationsLabel;
-  @FXML
-  Pane persistentNotificationsRoot;
-  @Resource
+  public Label noNotificationsLabel;
+  public Pane persistentNotificationsRoot;
+  @Inject
   NotificationService notificationService;
-  @Resource
-  AudioController audioController;
-  @Resource
-  ApplicationContext applicationContext;
+  @Inject
+  AudioService audioService;
+  @Inject
+  UiService uiService;
 
   public PersistentNotificationsController() {
     notificationsToNode = new HashMap<>();
   }
 
-  @PostConstruct
-  void postConstruct() {
+  public void initialize() {
     addNotifications(notificationService.getPersistentNotifications());
     notificationService.addPersistentNotificationListener(change -> {
       if (change.wasAdded()) {
@@ -54,7 +55,7 @@ public class PersistentNotificationsController {
   }
 
   private void addNotification(PersistentNotification notification) {
-    PersistentNotificationController controller = applicationContext.getBean(PersistentNotificationController.class);
+    PersistentNotificationController controller = uiService.loadFxml("theme/persistent_notification.fxml");
     controller.setNotification(notification);
 
     notificationsToNode.put(notification, controller.getRoot());
@@ -80,15 +81,15 @@ public class PersistentNotificationsController {
   private void playNotificationSound(PersistentNotification notification) {
     switch (notification.getSeverity()) {
       case INFO:
-        audioController.playInfoNotificationSound();
+        audioService.playInfoNotificationSound();
         break;
 
       case WARN:
-        audioController.playWarnNotificationSound();
+        audioService.playWarnNotificationSound();
         break;
 
       case ERROR:
-        audioController.playErrorNotificationSound();
+        audioService.playErrorNotificationSound();
         break;
     }
   }

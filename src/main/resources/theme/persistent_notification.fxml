@@ -24,7 +24,7 @@
     <Label fx:id="messageLabel" text="Sample text" GridPane.halignment="LEFT" GridPane.valignment="CENTER">
       <graphic>
         <Label fx:id="iconLabel" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="45.0"
-               styleClass="fontawesome,notification-icon" text="Label"/>
+               styleClass="icon,notification-icon" text="Label"/>
       </graphic>
     </Label>
     <HBox fx:id="actionButtonsContainer" alignment="CENTER_RIGHT" spacing="10.0" GridPane.columnIndex="1"
@@ -34,7 +34,7 @@
       </GridPane.margin>
     </HBox>
     <Button focusTraversable="false" mnemonicParsing="false" onAction="#onCloseButtonClicked"
-            styleClass="notification-close-button" GridPane.columnIndex="2" GridPane.halignment="RIGHT"
+            styleClass="icon-button" GridPane.columnIndex="2" GridPane.halignment="RIGHT"
             GridPane.valignment="CENTER">
       <graphic>
         <ImageView pickOnBounds="true" preserveRatio="true">

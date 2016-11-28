@@ -10,9 +10,12 @@ import com.google.gson.GsonBuilder;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.invoke.MethodHandles;
@@ -22,14 +25,16 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final Gson gson;
 
-  @Resource
+  @Inject
   Environment environment;
-  @Resource
+  @Inject
   I18n i18n;
 
   private ComparableVersion currentVersion;

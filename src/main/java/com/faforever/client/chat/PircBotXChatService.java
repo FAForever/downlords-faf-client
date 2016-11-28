@@ -1,26 +1,29 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.TransientNotification;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerService;
+import com.faforever.client.player.UserOnlineEvent;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.ui.tray.event.IncrementApplicationBadgeEvent;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.IdenticonUtil;
+import com.faforever.client.user.event.LoggedOutEvent;
+import com.faforever.client.user.event.LoginSuccessEvent;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import com.google.common.hash.Hashing;
 import javafx.application.Platform;
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.MapChangeListener;
@@ -51,10 +54,13 @@ import org.pircbotx.hooks.types.GenericEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.time.Instant;
@@ -65,7 +71,6 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatColorMode.CUSTOM;
@@ -78,37 +83,40 @@ import static java.util.Locale.US;
 import static javafx.collections.FXCollections.observableHashMap;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 
+@Lazy
+@Service
+@Profile("!local")
 public class PircBotXChatService implements ChatService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int SOCKET_TIMEOUT = 10000;
+  @VisibleForTesting
+  final ObjectProperty<ConnectionState> connectionState;
   private final Map<Class<? extends GenericEvent>, ArrayList<ChatEventListener>> eventListeners;
   /**
    * Maps channels by name.
    */
   private final ObservableMap<String, Channel> channels;
   private final ObservableMap<String, ChatUser> chatUsersByName;
-  private final ObjectProperty<ConnectionState> connectionState;
-  private final IntegerProperty unreadMessagesCount;
-  @Resource
+  private final SimpleIntegerProperty unreadMessagesCount;
+
+  @Inject
   PreferencesService preferencesService;
-  @Resource
+  @Inject
   UserService userService;
-  @Resource
-  PlayerService playerService;
-  @Resource
+  @Inject
   TaskService taskService;
-  @Resource
+  @Inject
   FafService fafService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   PircBotXFactory pircBotXFactory;
-  @Resource
+  @Inject
   NotificationService notificationService;
-  @Resource
+  @Inject
   ThreadPoolExecutor threadPoolExecutor;
-  @Resource
+  @Inject
   EventBus eventBus;
   @Value("${irc.host}")
   String ircHost;
@@ -132,7 +140,7 @@ public class PircBotXChatService implements ChatService {
   private boolean autoChannelsJoined;
 
   public PircBotXChatService() {
-    connectionState = new SimpleObjectProperty<>();
+    connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
     eventListeners = new ConcurrentHashMap<>();
     channels = observableHashMap();
     chatUsersByName = observableHashMap();
@@ -142,6 +150,7 @@ public class PircBotXChatService implements ChatService {
 
   @PostConstruct
   void postConstruct() {
+    eventBus.register(this);
     fafService.addOnMessageListener(SocialMessage.class, this::onSocialMessage);
     connectionState.addListener((observable, oldValue, newValue) -> {
       switch (newValue) {
@@ -160,19 +169,13 @@ public class PircBotXChatService implements ChatService {
     addEventListener(PartEvent.class, event -> onChatUserLeftChannel(event.getChannel().getName(), event.getUser().getNick()));
     addEventListener(QuitEvent.class, event -> onChatUserQuit(event.getUser().getNick()));
     addEventListener(TopicEvent.class, event -> getOrCreateChannel(event.getChannel().getName()).setTopic(event.getTopic()));
+    addEventListener(MessageEvent.class, this::onMessage);
+    addEventListener(ActionEvent.class, this::onAction);
+    addEventListener(PrivateMessageEvent.class, this::onPrivateMessage);
     addEventListener(OpEvent.class, event -> {
       User recipient = event.getRecipient();
       if (recipient != null) {
         onModeratorSet(event.getChannel().getName(), recipient.getNick());
-      }
-    });
-
-    userService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
-        connect();
-      } else {
-        disconnect();
-        autoChannelsJoined = false;
       }
     });
 
@@ -202,6 +205,17 @@ public class PircBotXChatService implements ChatService {
         }
       }
     });
+  }
+
+  @Subscribe
+  public void onLoginSuccessEvent(LoginSuccessEvent event) {
+    connect();
+  }
+
+  @Subscribe
+  public void onLoggedOutEvent(LoggedOutEvent event) {
+    disconnect();
+    autoChannelsJoined = false;
   }
 
   private void onNotice(NoticeEvent event) {
@@ -260,18 +274,10 @@ public class PircBotXChatService implements ChatService {
   }
 
   private void onUserJoinedChannel(String channelName, ChatUser chatUser) {
-    String username = chatUser.getUsername();
     getOrCreateChannel(channelName).addUser(chatUser);
-    Player player = playerService.getPlayerForUsername(username);
-    if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
-      notificationService.addNotification(
-          new TransientNotification(
-              i18n.get("friend.nowOnlineNotification.title", username),
-              i18n.get("friend.nowOnlineNotification.action"),
-              IdenticonUtil.createIdenticon(player.getId()),
-              event -> eventBus.post(new InitiatePrivateChatEvent(username))
-          ));
-    }
+    // This should actually be posted by the player service, but since the server doesn't tell us about users leaving,
+    // we have to rely on IRC for that. To keep things consistent,
+    eventBus.post(new UserOnlineEvent(chatUser.getUsername()));
   }
 
   private void onChatUserLeftChannel(String channelName, String username) {
@@ -288,14 +294,6 @@ public class PircBotXChatService implements ChatService {
     synchronized (chatUsersByName) {
       chatUsersByName.remove(username);
     }
-    Player player = playerService.getPlayerForUsername(username);
-    if (player != null && player.getSocialStatus() == SocialStatus.FRIEND) {
-      notificationService.addNotification(
-          new TransientNotification(
-              i18n.get("friend.nowOfflineNotification.title", username), "",
-              IdenticonUtil.createIdenticon(player.getId())
-          ));
-    }
   }
 
   private void onModeratorSet(String channelName, String username) {
@@ -307,7 +305,7 @@ public class PircBotXChatService implements ChatService {
 
     configuration = new Configuration.Builder()
         .setName(username)
-        .setLogin(String.valueOf(userService.getUid()))
+        .setLogin(String.valueOf(userService.getUserId()))
         .setRealName(username)
         .addServer(ircHost, ircPort)
         .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
@@ -333,7 +331,7 @@ public class PircBotXChatService implements ChatService {
     if (!autoChannelsJoined) {
       this.autoChannels = new ArrayList<>(socialMessage.getChannels());
       autoChannels.add(0, defaultChannelName);
-      joinAutoChannels();
+      threadPoolExecutor.execute(this::joinAutoChannels);
     }
   }
 
@@ -345,60 +343,44 @@ public class PircBotXChatService implements ChatService {
     eventListeners.get(event.getClass()).forEach(listener -> listener.onEvent(event));
   }
 
-  public void addOnMessageListener(Consumer<ChatMessage> listener) {
-    addEventListener(MessageEvent.class, event -> {
-      User user = event.getUser();
-      if (user == null) {
-        logger.warn("Action event without user: {}", event);
-        return;
-      }
+  private void onAction(ActionEvent event) {
+    User user = event.getUser();
+    if (user == null) {
+      logger.warn("Action event without user: {}", event);
+      return;
+    }
 
-      String source;
-      org.pircbotx.Channel channel = event.getChannel();
-      if (channel == null) {
-        source = user.getNick();
-      } else {
-        source = channel.getName();
-      }
-      listener.accept(
-          new ChatMessage(source, Instant.ofEpochMilli(event.getTimestamp()), user.getNick(), event.getMessage(), false)
-      );
-    });
-    addEventListener(ActionEvent.class, event -> {
-      User user = event.getUser();
-      if (user == null) {
-        logger.warn("Action event without user: {}", event);
-        return;
-      }
-
-      String source;
-      org.pircbotx.Channel channel = event.getChannel();
-      if (channel == null) {
-        source = user.getNick();
-      } else {
-        source = channel.getName();
-      }
-      listener.accept(
-          new ChatMessage(source, Instant.ofEpochMilli(event.getTimestamp()), user.getNick(), event.getMessage(), true)
-      );
-    });
+    String source;
+    org.pircbotx.Channel channel = event.getChannel();
+    if (channel == null) {
+      source = user.getNick();
+    } else {
+      source = channel.getName();
+    }
+    eventBus.post(new ChatMessageEvent(new ChatMessage(source, Instant.ofEpochMilli(event.getTimestamp()), user.getNick(), event.getMessage(), true)));
   }
 
-  @Override
-  public void addOnPrivateChatMessageListener(Consumer<ChatMessage> listener) {
-    addEventListener(PrivateMessageEvent.class,
-        event -> {
-          User user = event.getUser();
-          if (user == null) {
-            logger.warn("Private message without user: {}", event);
-            return;
-          }
-          logger.debug("Received private message: {}", event);
-          listener.accept(
-              new ChatMessage(user.getNick(), Instant.ofEpochMilli(event.getTimestamp()), user.getNick(), event.getMessage())
-          );
-        }
-    );
+  private void onMessage(MessageEvent event) {
+    User user = event.getUser();
+    if (user == null) {
+      logger.warn("Action event without user: {}", event);
+      return;
+    }
+
+    String source;
+    org.pircbotx.Channel channel = event.getChannel();
+    source = channel.getName();
+    eventBus.post(new ChatMessageEvent(new ChatMessage(source, Instant.ofEpochMilli(event.getTimestamp()), user.getNick(), event.getMessage(), false)));
+  }
+
+  private void onPrivateMessage(PrivateMessageEvent event) {
+    User user = event.getUser();
+    if (user == null) {
+      logger.warn("Private message without user: {}", event);
+      return;
+    }
+    logger.debug("Received private message: {}", event);
+    eventBus.post(new ChatMessageEvent(new ChatMessage(user.getNick(), Instant.ofEpochMilli(event.getTimestamp()), user.getNick(), event.getMessage())));
   }
 
   @Override
@@ -440,6 +422,7 @@ public class PircBotXChatService implements ChatService {
 
   @Override
   public CompletionStage<String> sendMessageInBackground(String target, String message) {
+    eventBus.post(new ChatMessageEvent(new ChatMessage(target, Instant.now(), userService.getUsername(), message)));
     return taskService.submitTask(new CompletableTask<String>(HIGH) {
       @Override
       protected String call() throws Exception {
@@ -566,7 +549,7 @@ public class PircBotXChatService implements ChatService {
   }
 
   @Override
-  public ObjectProperty<ConnectionState> connectionStateProperty() {
+  public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
     return connectionState;
   }
 
@@ -583,9 +566,7 @@ public class PircBotXChatService implements ChatService {
 
   @Override
   public void incrementUnreadMessagesCount(int delta) {
-    synchronized (unreadMessagesCount) {
-      unreadMessagesCount.set(unreadMessagesCount.get() + delta);
-    }
+    eventBus.post(new IncrementApplicationBadgeEvent(delta));
   }
 
   @Override

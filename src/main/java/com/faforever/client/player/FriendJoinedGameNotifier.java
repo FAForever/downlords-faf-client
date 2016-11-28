@@ -1,6 +1,6 @@
 package com.faforever.client.player;
 
-import com.faforever.client.audio.AudioController;
+import com.faforever.client.audio.AudioService;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
@@ -12,27 +12,31 @@ import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.scene.Node;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 
 /**
- * Displays a notification whenever a friend joins a game (if enabled in settings).
+ * Displays a notification whenever a friend joins a preferences (if enabled in settings).
  */
+@Lazy
+@Component
 public class FriendJoinedGameNotifier {
 
-  @Resource
+  @Inject
   NotificationService notificationService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   EventBus eventBus;
-  @Resource
+  @Inject
   JoinGameHelper joinGameHelper;
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
-  AudioController audioController;
+  @Inject
+  AudioService audioService;
 
   @PostConstruct
   void postConstruct() {
@@ -44,7 +48,7 @@ public class FriendJoinedGameNotifier {
     Player player = event.getPlayer();
     Game game = player.getGame();
 
-    audioController.playFriendJoinsGameSound();
+    audioService.playFriendJoinsGameSound();
 
     if (preferencesService.getPreferences().getNotification().isFriendJoinsGameToastEnabled()) {
       notificationService.addNotification(new TransientNotification(

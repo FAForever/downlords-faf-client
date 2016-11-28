@@ -9,11 +9,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.imageio.ImageIO;
+import javax.inject.Inject;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -27,12 +30,14 @@ import java.nio.charset.StandardCharsets;
 
 import static com.faforever.client.io.Bytes.formatSize;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ImgurUploadTask extends CompletableTask<String> {
 
   private final Gson gson;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   Environment environment;
   private Image image;
   private int maxUploadSize;

@@ -9,7 +9,7 @@ import com.faforever.client.remote.AssetService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.theme.ThemeService;
+import com.faforever.client.theme.UiService;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
@@ -42,7 +42,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -74,7 +73,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private I18n i18n;
   @Mock
-  private ThemeService themeService;
+  private UiService uiService;
   @Mock
   private AssetService assetService;
 
@@ -89,7 +88,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     instance.directory = new RAMDirectory();
     instance.analyzer = new SimpleAnalyzer();
     instance.i18n = i18n;
-    instance.themeService = themeService;
+    instance.uiService = uiService;
     instance.assetService = assetService;
     instance.mapPreviewUrlFormat = "http://127.0.0.1:65534/preview/%s/%s";
 
@@ -182,7 +181,7 @@ public class MapServiceImplTest extends AbstractPlainJavaFxTest {
     for (PreviewSize previewSize : PreviewSize.values()) {
       Path cacheSubDir = Paths.get("maps").resolve(previewSize.folderName);
       instance.loadPreview("preview", previewSize);
-      verify(assetService).loadAndCacheImage(any(URL.class), eq(cacheSubDir), isNull(URL.class));
+      verify(assetService).loadAndCacheImage(any(URL.class), eq(cacheSubDir), any());
     }
   }
 }

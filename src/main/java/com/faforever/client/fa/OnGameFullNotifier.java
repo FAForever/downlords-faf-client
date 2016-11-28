@@ -1,5 +1,6 @@
 package com.faforever.client.fa;
 
+import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
@@ -8,14 +9,15 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
-import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.github.nocatch.NoCatch.noCatch;
@@ -26,21 +28,23 @@ import static java.lang.Thread.sleep;
  * triggered and stops as soon as the window is focused.
  * Also shows a transient notification.
  */
+@Lazy
+@Component
 public class OnGameFullNotifier {
 
-  @Resource
+  @Inject
   PlatformService platformService;
-  @Resource
+  @Inject
   ThreadPoolExecutor threadPoolExecutor;
-  @Resource
+  @Inject
   GameService gameService;
-  @Resource
+  @Inject
   NotificationService notificationService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   MapService mapService;
-  @Resource
+  @Inject
   EventBus eventBus;
 
   @Value("${forgedAlliance.windowTitle}")
@@ -63,7 +67,7 @@ public class OnGameFullNotifier {
 
     Game currentGame = gameService.getCurrentGame();
     if (currentGame == null) {
-      throw new ProgrammingError("Got a GameFull notification but player is not in a game");
+      throw new ProgrammingError("Got a GameFull notification but player is not in a preferences");
     }
     if (faWindowTitle.equals(platformService.getForegroundWindowTitle())) {
       return;

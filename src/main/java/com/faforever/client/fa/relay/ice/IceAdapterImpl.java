@@ -25,22 +25,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 import org.springframework.util.SocketUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.os.OsUtils.gobbleLines;
 import static java.util.Arrays.asList;
 
+@Component
+@Lazy
 public class IceAdapterImpl implements IceAdapter {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -51,13 +56,13 @@ public class IceAdapterImpl implements IceAdapter {
   @Value("${turn.host}")
   String turnServerAddress;
 
-  @Resource
+  @Inject
   ApplicationContext applicationContext;
-  @Resource
+  @Inject
   PlayerService playerService;
-  @Resource
+  @Inject
   EventBus eventBus;
-  @Resource
+  @Inject
   FafService fafService;
 
   private CompletableFuture<Integer> iceAdapterClientFuture;
@@ -190,6 +195,6 @@ public class IceAdapterImpl implements IceAdapter {
   @Override
   @PreDestroy
   public void stop() {
-    iceAdapterProxy.quit();
+    Optional.ofNullable(iceAdapterProxy).ifPresent(IceAdapterApi::quit);
   }
 }

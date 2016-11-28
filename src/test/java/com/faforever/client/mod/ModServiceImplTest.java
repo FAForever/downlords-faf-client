@@ -53,6 +53,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -142,7 +143,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPostConstructLoadInstalledMods() throws Exception {
-    ObservableList<ModInfoBean> installedMods = instance.getInstalledMods();
+    ObservableList<Mod> installedMods = instance.getInstalledMods();
 
     assertThat(installedMods.size(), is(1));
   }
@@ -231,8 +232,8 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     StringProperty stringProperty = new SimpleStringProperty();
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
-    ModInfoBean modInfoBean = ModInfoBeanBuilder.create().defaultValues().downloadUrl(modUrl).get();
-    instance.downloadAndInstallMod(modInfoBean, doubleProperty, stringProperty).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
+    Mod mod = ModInfoBeanBuilder.create().defaultValues().downloadUrl(modUrl).get();
+    instance.downloadAndInstallMod(mod, doubleProperty, stringProperty).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
@@ -313,41 +314,41 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     copyMod("EM", ECO_MANAGER_MOD_INFO);
     instance.loadInstalledMods();
 
-    ArrayList<ModInfoBean> installedMods = new ArrayList<>(instance.getInstalledMods());
+    ArrayList<Mod> installedMods = new ArrayList<>(instance.getInstalledMods());
     Collections.sort(installedMods, (lhs, rhs) -> lhs.getName().compareTo(rhs.getName()));
 
-    ModInfoBean modInfoBean = installedMods.get(0);
+    Mod mod = installedMods.get(0);
 
-    assertThat(modInfoBean.getName(), is("BlackOps Global Icon Support Mod"));
-    assertThat(modInfoBean.getVersion(), is(new ComparableVersion("5")));
-    assertThat(modInfoBean.getAuthor(), is("Exavier Macbeth, DeadMG"));
-    assertThat(modInfoBean.getDescription(), is("Version 5.0. This mod provides global icon support for any mod that places their icons in the proper folder structure. See Readme"));
-    assertThat(modInfoBean.getImagePath(), nullValue());
-    assertThat(modInfoBean.getSelectable(), is(true));
-    assertThat(modInfoBean.getId(), is("9e8ea941-c306-4751-b367-f00000000005"));
-    assertThat(modInfoBean.getUiOnly(), is(false));
+    assertThat(mod.getName(), is("BlackOps Global Icon Support Mod"));
+    assertThat(mod.getVersion(), is(new ComparableVersion("5")));
+    assertThat(mod.getAuthor(), is("Exavier Macbeth, DeadMG"));
+    assertThat(mod.getDescription(), is("Version 5.0. This mod provides global icon support for any mod that places their icons in the proper folder structure. See Readme"));
+    assertThat(mod.getImagePath(), nullValue());
+    assertThat(mod.getSelectable(), is(true));
+    assertThat(mod.getId(), is("9e8ea941-c306-4751-b367-f00000000005"));
+    assertThat(mod.getUiOnly(), is(false));
 
-    modInfoBean = installedMods.get(1);
+    mod = installedMods.get(1);
 
-    assertThat(modInfoBean.getName(), is("BlackOps Unleashed"));
-    assertThat(modInfoBean.getVersion(), is(new ComparableVersion("8")));
-    assertThat(modInfoBean.getAuthor(), is("Lt_hawkeye"));
-    assertThat(modInfoBean.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
-    assertThat(modInfoBean.getImagePath(), is(modsDirectory.getRoot().toPath().resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
-    assertThat(modInfoBean.getSelectable(), is(true));
-    assertThat(modInfoBean.getId(), is("9e8ea941-c306-4751-b367-a11000000502"));
-    assertThat(modInfoBean.getUiOnly(), is(false));
+    assertThat(mod.getName(), is("BlackOps Unleashed"));
+    assertThat(mod.getVersion(), is(new ComparableVersion("8")));
+    assertThat(mod.getAuthor(), is("Lt_hawkeye"));
+    assertThat(mod.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
+    assertThat(mod.getImagePath(), is(modsDirectory.getRoot().toPath().resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
+    assertThat(mod.getSelectable(), is(true));
+    assertThat(mod.getId(), is("9e8ea941-c306-4751-b367-a11000000502"));
+    assertThat(mod.getUiOnly(), is(false));
 
-    modInfoBean = installedMods.get(2);
+    mod = installedMods.get(2);
 
-    assertThat(modInfoBean.getName(), is("EcoManager"));
-    assertThat(modInfoBean.getVersion(), is(new ComparableVersion("3")));
-    assertThat(modInfoBean.getAuthor(), is("Crotalus"));
-    assertThat(modInfoBean.getDescription(), is("EcoManager v3, more efficient energy throttling"));
-    assertThat(modInfoBean.getImagePath(), nullValue());
-    assertThat(modInfoBean.getSelectable(), is(true));
-    assertThat(modInfoBean.getId(), is("b2cde810-15d0-4bfa-af66-ec2d6ecd561b"));
-    assertThat(modInfoBean.getUiOnly(), is(true));
+    assertThat(mod.getName(), is("EcoManager"));
+    assertThat(mod.getVersion(), is(new ComparableVersion("3")));
+    assertThat(mod.getAuthor(), is("Crotalus"));
+    assertThat(mod.getDescription(), is("EcoManager v3, more efficient energy throttling"));
+    assertThat(mod.getImagePath(), nullValue());
+    assertThat(mod.getSelectable(), is(true));
+    assertThat(mod.getId(), is("b2cde810-15d0-4bfa-af66-ec2d6ecd561b"));
+    assertThat(mod.getUiOnly(), is(true));
   }
 
   @Test
@@ -411,11 +412,11 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testLoadThumbnail() throws Exception {
-    ModInfoBean mod = ModInfoBeanBuilder.create().defaultValues()
+    Mod mod = ModInfoBeanBuilder.create().defaultValues()
         .thumbnailUrl("http://127.0.0.1:65534/thumbnail.png")
         .get();
     instance.loadThumbnail(mod);
-    verify(assetService).loadAndCacheImage(mod.getThumbnailUrl(), Paths.get("mods"), null);
+    verify(assetService).loadAndCacheImage(eq(mod.getThumbnailUrl()), eq(Paths.get("mods")), any());
   }
 
   @Test
@@ -436,7 +437,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
         ModInfoBeanBuilder.create().defaultValues().uid("1").get(),
         ModInfoBeanBuilder.create().defaultValues().uid("2").get()
     ));
-    List<ModInfoBean> modInfoBeen = instance.getAvailableMods().toCompletableFuture().get();
+    List<Mod> modInfoBeen = instance.getAvailableMods().toCompletableFuture().get();
     assertThat(modInfoBeen, hasSize(2));
   }
 
@@ -449,7 +450,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
         ModInfoBeanBuilder.create().defaultValues().uid("2").uiMod(false).get(),
         ModInfoBeanBuilder.create().defaultValues().uid("3").uiMod(true).get()
     ));
-    List<ModInfoBean> mods = instance.getMostLikedUiMods(1).toCompletableFuture().get();
+    List<Mod> mods = instance.getMostLikedUiMods(1).toCompletableFuture().get();
     assertThat(mods, hasSize(1));
     assertThat(mods.get(0).getId(), is("1"));
   }
@@ -464,7 +465,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
         ModInfoBeanBuilder.create().defaultValues().uid("3").name("Another mod").get()
     ));
 
-    List<ModInfoBean> mods = instance.lookupMod("test", 3).toCompletableFuture().get();
+    List<Mod> mods = instance.lookupMod("test", 3).toCompletableFuture().get();
     assertThat(mods, hasSize(2));
     assertThat(mods.get(0).getId(), is("1"));
     assertThat(mods.get(0).getVersion(), is(new ComparableVersion("1")));

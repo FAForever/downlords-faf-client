@@ -34,7 +34,7 @@ public class AvatarServiceImplTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testLoadAvatar() throws Exception {
-    URL url = getClass().getResource("/theme/images/tray_icon.png").toURI().toURL();
+    URL url = getClass().getResource("/theme/images/close.png").toURI().toURL();
     instance.loadAvatar(url.toString());
     verify(assetService).loadAndCacheImage(url, Paths.get("avatars"), null);
   }

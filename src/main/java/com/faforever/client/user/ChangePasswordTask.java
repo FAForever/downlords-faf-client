@@ -5,28 +5,31 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.util.Validator;
 import com.google.common.hash.Hashing;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import java.lang.invoke.MethodHandles;
+import javax.inject.Inject;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ChangePasswordTask extends CompletableTask<Void> {
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Resource
-  FafApiAccessor fafApiAccessor;
-  @Resource
-  I18n i18n;
+  private final FafApiAccessor fafApiAccessor;
+  private final I18n i18n;
 
   private String currentPassword;
   private String newPassword;
+  private String username;
 
-  public ChangePasswordTask() {
+  @Inject
+  public ChangePasswordTask(FafApiAccessor fafApiAccessor, I18n i18n) {
     super(Priority.HIGH);
+    this.fafApiAccessor = fafApiAccessor;
+    this.i18n = i18n;
   }
 
   @PostConstruct
@@ -34,12 +37,16 @@ public class ChangePasswordTask extends CompletableTask<Void> {
     updateTitle(i18n.get("settings.account.changePassword.changing"));
   }
 
-  public void setCurrentPassword(String currentPassword) {
+  void setCurrentPassword(String currentPassword) {
     this.currentPassword = currentPassword;
   }
 
-  public void setNewPassword(String newPassword) {
+  void setNewPassword(String newPassword) {
     this.newPassword = newPassword;
+  }
+
+  void setUsername(String username) {
+    this.username = username;
   }
 
   @Override
@@ -50,7 +57,7 @@ public class ChangePasswordTask extends CompletableTask<Void> {
     String currentPasswordHash = Hashing.sha256().hashString(currentPassword, UTF_8).toString();
     String newPasswordHash = Hashing.sha256().hashString(newPassword, UTF_8).toString();
 
-    fafApiAccessor.changePassword(currentPasswordHash, newPasswordHash);
+    fafApiAccessor.changePassword(username, currentPasswordHash, newPasswordHash);
 
     return null;
   }

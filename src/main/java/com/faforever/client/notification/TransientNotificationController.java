@@ -1,5 +1,6 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.fx.Controller;
 import com.faforever.client.notification.Action.ActionCallback;
 import com.faforever.client.preferences.PreferencesService;
 import javafx.animation.Interpolator;
@@ -7,7 +8,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
-import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -15,24 +16,24 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 
 import static javafx.util.Duration.millis;
 
-public class TransientNotificationController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class TransientNotificationController implements Controller<Node> {
 
-  @FXML
-  Pane transientNotificationRoot;
-  @FXML
-  Label messageLabel;
-  @FXML
-  Label titleLabel;
-  @FXML
-  ImageView imageView;
+  public Pane transientNotificationRoot;
+  public Label messageLabel;
+  public Label titleLabel;
+  public ImageView imageView;
 
-  @Resource
+  @Inject
   PreferencesService preferencesService;
 
   private ChangeListener<Number> animationListener;
@@ -40,8 +41,7 @@ public class TransientNotificationController {
   private Timeline timeline;
   private int toastDisplayTime;
 
-  @FXML
-  void initialize() {
+  public void initialize() {
     Rectangle rectangle = new Rectangle();
     rectangle.widthProperty().bind(transientNotificationRoot.widthProperty());
     rectangle.heightProperty().bind(transientNotificationRoot.heightProperty());
@@ -59,6 +59,12 @@ public class TransientNotificationController {
     transientNotificationRoot.setVisible(false);
     transientNotificationRoot.setClip(rectangle);
     transientNotificationRoot.heightProperty().addListener(animationListener);
+
+    // Divided by two because it's used in a cycle
+    toastDisplayTime = preferencesService.getPreferences().getNotification().getToastDisplayTime() / 2;
+
+    transientNotificationRoot.setOnMouseEntered(event -> timeline.pause());
+    transientNotificationRoot.setOnMouseExited(event -> timeline.playFrom(Duration.millis(300 + toastDisplayTime)));
   }
 
   private void animate(Number height) {
@@ -83,15 +89,6 @@ public class TransientNotificationController {
     parent.getChildren().remove(transientNotificationRoot);
   }
 
-  @PostConstruct
-  void postConstruct() {
-    // Divided by two because it's used in a cycle
-    toastDisplayTime = preferencesService.getPreferences().getNotification().getToastDisplayTime() / 2;
-
-    transientNotificationRoot.setOnMouseEntered(event -> timeline.pause());
-    transientNotificationRoot.setOnMouseExited(event -> timeline.playFrom(Duration.millis(300 + toastDisplayTime)));
-  }
-
   public void setNotification(TransientNotification notification) {
     titleLabel.setText(notification.getTitle());
     messageLabel.setText(notification.getText());
@@ -99,8 +96,7 @@ public class TransientNotificationController {
     action = notification.getActionCallback();
   }
 
-  @FXML
-  void onCloseButtonClicked() {
+  public void onCloseButtonClicked() {
     dismiss();
   }
 
@@ -108,7 +104,6 @@ public class TransientNotificationController {
     return transientNotificationRoot;
   }
 
-  @FXML
   public void onClicked(MouseEvent event) {
     action.call(event);
   }

@@ -4,7 +4,9 @@ import javafx.scene.image.Image;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -13,6 +15,8 @@ import java.util.Collection;
 
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
 
+@Lazy
+@Service
 public class CountryFlagServiceImpl implements CountryFlagService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -37,7 +41,7 @@ public class CountryFlagServiceImpl implements CountryFlagService {
     try {
       return new Image(new ClassPathResource(path).getURL().toString(), true);
     } catch (IOException e) {
-      logger.warn("Could not load country flag", e);
+      logger.warn("Could not display country flag", e);
       return null;
     }
   }

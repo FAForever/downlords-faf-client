@@ -1,5 +1,6 @@
 package com.faforever.client.map;
 
+import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.notification.ImmediateNotification;
@@ -10,7 +11,6 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
 import javafx.collections.ListChangeListener;
 import javafx.collections.WeakListChangeListener;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -18,46 +18,41 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 
 import static java.util.Collections.singletonList;
 
-public class MapDetailController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class MapDetailController implements Controller<Node> {
 
-  @FXML
-  Label progressLabel;
-  @FXML
-  Button uninstallButton;
-  @FXML
-  Button installButton;
-  @FXML
-  ImageView thumbnailImageView;
-  @FXML
-  Label nameLabel;
-  @FXML
-  Label authorLabel;
-  @FXML
-  ProgressBar progressBar;
-  @FXML
-  Label mapDescriptionLabel;
-  @FXML
-  Node mapDetailRoot;
+  public Label progressLabel;
+  public Button uninstallButton;
+  public Button installButton;
+  public ImageView thumbnailImageView;
+  public Label nameLabel;
+  public Label authorLabel;
+  public ProgressBar progressBar;
+  public Label mapDescriptionLabel;
+  public Node mapDetailRoot;
 
-  @Resource
+  @Inject
   MapService mapService;
-  @Resource
+  @Inject
   NotificationService notificationService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   ReportingService reportingService;
 
   private MapBean map;
   private ListChangeListener<MapBean> installStatusChangeListener;
 
-  @FXML
-  void initialize() {
+  public void initialize() {
     uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
     installButton.managedProperty().bind(installButton.visibleProperty());
     progressBar.managedProperty().bind(progressBar.visibleProperty());
@@ -121,8 +116,7 @@ public class MapDetailController {
     setInstalled(mapService.isInstalled(map.getFolderName()));
   }
 
-  @FXML
-  void onInstallButtonClicked() {
+  public void onInstallButtonClicked() {
     installButton.setVisible(false);
 
     mapService.downloadAndInstallMap(map, progressBar.progressProperty(), progressLabel.textProperty())
@@ -137,8 +131,7 @@ public class MapDetailController {
         });
   }
 
-  @FXML
-  void onUninstallButtonClicked() {
+  public void onUninstallButtonClicked() {
     progressBar.progressProperty().unbind();
     progressBar.setProgress(-1);
     uninstallButton.setVisible(false);
@@ -155,8 +148,7 @@ public class MapDetailController {
         });
   }
 
-  @FXML
-  void onDimmerClicked() {
+  public void onDimmerClicked() {
     onCloseButtonClicked();
   }
 

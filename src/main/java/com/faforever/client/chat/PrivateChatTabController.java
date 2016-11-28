@@ -1,34 +1,38 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.audio.AudioController;
+import com.faforever.client.audio.AudioService;
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.player.Player;
 import com.faforever.client.preferences.ChatPrefs;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.application.Platform;
-import javafx.fxml.FXML;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.web.WebView;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.time.Instant;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class PrivateChatTabController extends AbstractChatTabController {
 
-  @FXML
-  Tab privateChatTabRoot;
-  @FXML
-  WebView messagesWebView;
-  @FXML
-  TextInputControl messageTextField;
+  public Tab privateChatTabRoot;
+  public WebView messagesWebView;
+  public TextInputControl messageTextField;
 
-  @Resource
-  AudioController audioController;
-  @Resource
+  @Inject
+  AudioService audioService;
+  @Inject
   ChatService chatService;
+  @Inject
+  WebViewConfigurer webViewConfigurer;
+
   private boolean userOffline;
 
   public boolean isUserOffline() {
@@ -47,10 +51,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
     privateChatTabRoot.setText(username);
   }
 
-  @PostConstruct
-  @Override
-  void postConstruct() {
-    super.postConstruct();
+  public void initialize() {
     userOffline = false;
     chatService.addChatUsersByNameListener(change -> {
       if (change.wasRemoved()) {
@@ -59,10 +60,8 @@ public class PrivateChatTabController extends AbstractChatTabController {
       if (change.wasAdded()) {
         onPlayerConnected(change.getKey(), change.getValueRemoved());
       }
-
     });
-
-
+    webViewConfigurer.configureWebView(messagesWebView);
   }
 
   @Override
@@ -73,12 +72,6 @@ public class PrivateChatTabController extends AbstractChatTabController {
   @Override
   protected WebView getMessagesWebView() {
     return messagesWebView;
-  }
-
-  @Override
-  protected void onWebViewLoaded() {
-    getMessagesWebView().getEngine().executeScript("document.getElementById('" + CHANNEL_TOPIC_CONTAINER_ID + "').style.display = \"none\";");
-    getMessagesWebView().getEngine().executeScript("document.getElementById('" + CHANNEL_TOPIC_SHADOW_CONTAINER_ID + "').style.display = \"none\";");
   }
 
   @Override
@@ -93,7 +86,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
     super.onChatMessage(chatMessage);
 
     if (!hasFocus()) {
-      audioController.playPrivateMessageSound();
+      audioService.playPrivateMessageSound();
       showNotificationIfNecessary(chatMessage);
       setUnread(true);
       incrementUnreadMessagesCount(1);

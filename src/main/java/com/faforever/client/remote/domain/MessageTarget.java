@@ -23,11 +23,11 @@ public enum MessageTarget {
     this.string = string;
   }
 
-  public String getString() {
-    return string;
-  }
-
   public static MessageTarget fromString(String string) {
     return fromString.get(string);
+  }
+
+  public String getString() {
+    return string;
   }
 }

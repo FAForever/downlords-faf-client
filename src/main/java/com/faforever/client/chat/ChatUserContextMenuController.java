@@ -2,11 +2,12 @@ package com.faforever.client.chat;
 
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.game.GameService;
-import com.faforever.client.game.GameStatus;
 import com.faforever.client.game.JoinGameHelper;
+import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -16,28 +17,30 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.fxml.FXML;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.image.ImageView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
-import java.io.IOException;
+import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.util.Objects;
@@ -49,78 +52,60 @@ import static com.faforever.client.chat.SocialStatus.SELF;
 import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 import static java.util.Locale.US;
 
-public class ChatUserContextMenuController {
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @FXML
-  ComboBox<AvatarBean> avatarComboBox;
-  @FXML
-  CustomMenuItem avatarPickerMenuItem;
-  @FXML
-  MenuItem sendPrivateMessageItem;
-  @FXML
-  SeparatorMenuItem socialSeparator;
-  @FXML
-  MenuItem removeCustomColorItem;
-  @FXML
-  CustomMenuItem colorPickerMenuItem;
-  @FXML
-  ColorPicker colorPicker;
-  @FXML
-  MenuItem joinGameItem;
-  @FXML
-  MenuItem addFriendItem;
-  @FXML
-  MenuItem removeFriendItem;
-  @FXML
-  MenuItem addFoeItem;
-  @FXML
-  MenuItem removeFoeItem;
-  @FXML
-  MenuItem watchGameItem;
-  @FXML
-  MenuItem viewReplaysItem;
-  @FXML
-  MenuItem inviteItem;
-  @FXML
-  SeparatorMenuItem moderatorActionSeparator;
-  @FXML
-  MenuItem kickItem;
-  @FXML
-  MenuItem banItem;
-  @FXML
-  ContextMenu contextMenu;
+  public ComboBox<AvatarBean> avatarComboBox;
+  public CustomMenuItem avatarPickerMenuItem;
+  public MenuItem sendPrivateMessageItem;
+  public SeparatorMenuItem socialSeparator;
+  public MenuItem removeCustomColorItem;
+  public CustomMenuItem colorPickerMenuItem;
+  public ColorPicker colorPicker;
+  public MenuItem joinGameItem;
+  public MenuItem addFriendItem;
+  public MenuItem removeFriendItem;
+  public MenuItem addFoeItem;
+  public MenuItem removeFoeItem;
+  public MenuItem watchGameItem;
+  public MenuItem viewReplaysItem;
+  public MenuItem inviteItem;
+  public SeparatorMenuItem moderatorActionSeparator;
+  public MenuItem kickItem;
+  public MenuItem banItem;
+  public ContextMenu chatUserContextMenuRoot;
 
-  @Resource
+  @Inject
   UserService userService;
-  @Resource
+  @Inject
   ChatService chatService;
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
-  ApplicationContext applicationContext;
-  @Resource
+  @Inject
   PlayerService playerService;
-  @Resource
+  @Inject
   GameService gameService;
-  @Resource
+  @Inject
   ReplayService replayService;
-  @Resource
+  @Inject
   NotificationService notificationService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   EventBus eventBus;
-  @Resource
+  @Inject
   JoinGameHelper joinGameHelper;
-  @Resource
+  @Inject
   AvatarService avatarService;
+  @Inject
+  UiService uiService;
 
   private Player player;
 
-  @FXML
-  void initialize() {
+  public void initialize() {
     avatarComboBox.setCellFactory(param -> avatarCell());
     avatarComboBox.setButtonCell(avatarCell());
   }
@@ -134,12 +119,12 @@ public class ChatUserContextMenuController {
           if (url == null) {
             return null;
           }
-          return avatarService.loadAvatar(url.toString());
+          return new ImageView(avatarService.loadAvatar(url.toString()));
         });
   }
 
   public ContextMenu getContextMenu() {
-    return contextMenu;
+    return chatUserContextMenuRoot;
   }
 
   public void setPlayer(Player player) {
@@ -162,7 +147,7 @@ public class ChatUserContextMenuController {
       }
       ChatUser chatUser = chatService.getOrCreateChatUser(lowerUsername);
       chatUser.setColor(newValue);
-      contextMenu.hide();
+      chatUserContextMenuRoot.hide();
     });
 
     removeCustomColorItem.visibleProperty().bind(chatPrefs.chatColorModeProperty().isEqualTo(CUSTOM)
@@ -192,11 +177,11 @@ public class ChatUserContextMenuController {
     removeFoeItem.visibleProperty().bind(player.socialStatusProperty().isEqualTo(FOE));
 
     joinGameItem.visibleProperty().bind(player.socialStatusProperty().isNotEqualTo(SELF)
-        .and(player.gameStatusProperty().isEqualTo(GameStatus.LOBBY)
-            .or(player.gameStatusProperty().isEqualTo(GameStatus.HOST))));
-    watchGameItem.visibleProperty().bind(player.gameStatusProperty().isEqualTo(GameStatus.PLAYING));
+        .and(player.statusProperty().isEqualTo(PlayerStatus.LOBBYING)
+            .or(player.statusProperty().isEqualTo(PlayerStatus.HOSTING))));
+    watchGameItem.visibleProperty().bind(player.statusProperty().isEqualTo(PlayerStatus.PLAYING));
     inviteItem.visibleProperty().bind(player.socialStatusProperty().isNotEqualTo(SELF)
-        .and(player.gameStatusProperty().isNotEqualTo(GameStatus.PLAYING)));
+        .and(player.statusProperty().isNotEqualTo(PlayerStatus.PLAYING)));
 
     socialSeparator.visibleProperty().bind(addFriendItem.visibleProperty().or(
         removeFriendItem.visibleProperty().or(
@@ -230,91 +215,83 @@ public class ChatUserContextMenuController {
     });
   }
 
-  @FXML
-  void onUserInfo() {
-    UserInfoWindowController userInfoWindowController = applicationContext.getBean(UserInfoWindowController.class);
+  public void onUserInfo() {
+    UserInfoWindowController userInfoWindowController = uiService.loadFxml("theme/user_info_window.fxml");
     userInfoWindowController.setPlayer(player);
 
     Stage userInfoWindow = new Stage(StageStyle.TRANSPARENT);
     userInfoWindow.initModality(Modality.NONE);
-    userInfoWindow.initOwner(contextMenu.getOwnerWindow());
+    userInfoWindow.initOwner(chatUserContextMenuRoot.getOwnerWindow());
 
-    WindowController windowController = applicationContext.getBean(WindowController.class);
+    WindowController windowController = uiService.loadFxml("theme/window.fxml");
     windowController.configure(userInfoWindow, userInfoWindowController.getRoot(), true, CLOSE);
 
     userInfoWindow.show();
   }
 
-  @FXML
-  void onSendPrivateMessage() {
+  public void onSendPrivateMessage() {
     eventBus.post(new InitiatePrivateChatEvent(player.getUsername()));
   }
 
-  @FXML
-  void onAddFriend() {
+  public void onAddFriend() {
     if (player.getSocialStatus() == FOE) {
       playerService.removeFoe(player);
     }
     playerService.addFriend(player);
   }
 
-  @FXML
-  void onRemoveFriend() {
+  public void onRemoveFriend() {
     playerService.removeFriend(player);
   }
 
-  @FXML
-  void onAddFoe() {
+  public void onAddFoe() {
     if (player.getSocialStatus() == FRIEND) {
       playerService.removeFriend(player);
     }
     playerService.addFoe(player);
   }
 
-  @FXML
-  void onRemoveFoe() {
+  public void onRemoveFoe() {
     playerService.removeFoe(player);
   }
 
-  @FXML
-  void onWatchGame() {
+  public void onWatchGame() {
     try {
       replayService.runLiveReplay(player.getGame().getId(), player.getId());
-    } catch (IOException e) {
-      logger.error("Cannot load live replay {}", e.getCause());
+    } catch (Exception e) {
+      logger.error("Cannot display live replay {}", e.getCause());
       String title = i18n.get("replays.live.loadFailure.title");
       String message = i18n.get("replays.live.loadFailure.message");
       notificationService.addNotification(new ImmediateNotification(title, message, Severity.ERROR));
     }
   }
 
-  @FXML
-  void onViewReplays() {
+  public void onViewReplays() {
     // FIXME implement
   }
 
-  @FXML
-  void onInviteToGame() {
+  public void onInviteToGame() {
     //FIXME implement
   }
 
-  @FXML
-  void onKick() {
+  public void onKick() {
     // FIXME implement
   }
 
-  @FXML
-  void onBan() {
+  public void onBan() {
     // FIXME implement
   }
 
-  @FXML
-  void onJoinGame() {
+  public void onJoinGame() {
     joinGameHelper.join(player.getGame());
   }
 
-  @FXML
-  void onRemoveCustomColor() {
+  public void onRemoveCustomColor() {
     colorPicker.setValue(null);
+  }
+
+  @Override
+  public ContextMenu getRoot() {
+    return chatUserContextMenuRoot;
   }
 }

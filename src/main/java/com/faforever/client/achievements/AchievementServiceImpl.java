@@ -3,23 +3,25 @@ package com.faforever.client.achievements;
 import com.faforever.client.api.AchievementDefinition;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.PlayerAchievement;
-import com.faforever.client.player.Player;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
-import com.faforever.client.theme.ThemeService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -30,29 +32,32 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
+
+@Lazy
+@Service
 public class AchievementServiceImpl implements AchievementService {
 
   private static final int ACHIEVEMENT_IMAGE_SIZE = 128;
   private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements;
   private final ObservableList<PlayerAchievement> playerAchievements;
 
-  @Resource
+  @Inject
   UserService userService;
-  @Resource
+  @Inject
   FafApiAccessor fafApiAccessor;
-  @Resource
+  @Inject
   FafService fafService;
-  @Resource
+  @Inject
   NotificationService notificationService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   PlayerService playerService;
-  @Resource
-  ThemeService themeService;
-  @Resource
+  @Inject
+  UiService uiService;
+  @Inject
   ThreadPoolExecutor threadPoolExecutor;
-  @Resource
+  @Inject
   AssetService assetService;
 
   public AchievementServiceImpl() {
@@ -106,7 +111,7 @@ public class AchievementServiceImpl implements AchievementService {
   }
 
   private void reloadAchievements() {
-    playerAchievements.setAll(fafApiAccessor.getPlayerAchievements(userService.getUid()));
+    playerAchievements.setAll(fafApiAccessor.getPlayerAchievements(userService.getUserId()));
   }
 
   @PostConstruct

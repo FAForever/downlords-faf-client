@@ -1,11 +1,8 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.WebViewConfigurer;
-import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.theme.ThemeService;
 import javafx.application.Platform;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -13,36 +10,34 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Region;
 import javafx.scene.web.WebView;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-public class ImmediateNotificationController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class ImmediateNotificationController implements Controller<Node> {
 
-  @FXML
-  WebView errorMessageView;
-  @FXML
-  Node exceptionPane;
-  @FXML
-  TextArea exceptionTextArea;
-  @FXML
-  Label titleLabel;
-  @FXML
-  ButtonBar buttonBar;
-  @FXML
-  Region notificationRoot;
+  public WebView errorMessageView;
+  public Node exceptionPane;
+  public TextArea exceptionTextArea;
+  public Label titleLabel;
+  public ButtonBar buttonBar;
+  public Region notificationRoot;
 
-  @Resource
-  WebViewConfigurer webViewConfigurer;
+  private final WebViewConfigurer webViewConfigurer;
+
+  @Inject
+  public ImmediateNotificationController(WebViewConfigurer webViewConfigurer) {
+    this.webViewConfigurer = webViewConfigurer;
+  }
 
   public void initialize() {
     exceptionPane.managedProperty().bind(exceptionPane.visibleProperty());
-  }
-
-  @PostConstruct
-  public void postConstruct() {
     webViewConfigurer.configureWebView(errorMessageView);
   }
 

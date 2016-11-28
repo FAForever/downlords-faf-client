@@ -5,12 +5,14 @@ All the following applies to the content of a WebViews (chat, news), therefore i
 *****************/
 
 html, body {
-  background-color: #0e0e0e;
+  /* Same as -base-color */
+  background-color: #212121;
   margin: 0;
   padding: 0;
   /* Use same as -fx-light-text-color */
-  color: #BFBEBA;
-  font-family: "Segoe UI", "Arial", "Tahoma", "sans-serif";
+  color: #e6e6e6;
+  font-family: 'Open Sans', 'sans-serif';
+  font-size: 14px;
 }
 
 a {
@@ -19,131 +21,99 @@ a {
   text-decoration: none;
 }
 
-/***************** Header / Channel topic *****************/
-
-#wrapper {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-#channel-topic {
-  position: fixed;
-}
-
-#channel-topic, #channel-topic-shadow {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 5px;
-  color: white;
-  background: #333;
-}
-
-#content {
-  flex: 1;
-  display: flex;
-  overflow: auto;
-  padding: 0px 5px;
-}
-
-#chat-table {
-  margin-top: 5px;
-}
-
 /***************** Search (WebView) *****************/
 .highlight {
   background-color: rgba(255, 255, 0, 0.7);
   color: black;
-  border-radius: 5px;
-}
-
-/***************** Chat Colors (WebView) *****************/
-
-.self {
-  color: #FFA500;
-}
-
-.friend {
-  color: #16B7EB;
-}
-
-.foe {
-  color: #FF0000;
-}
-
-.moderator {
-  color: #FFFFFF;
-}
-
-.chat_only {
-  color: #808080;
-}
-
-/*This needs to be at the bottom to guarantee username highlighting */
-.own-username {
-  color: #800000 !important;
+  border-radius: 3px;
 }
 
 /***************** Chat (WebView) *****************/
 
-#chat-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.chat-message {
-  /* Same height as avatar */
-  line-height: 20px;
+.chat-section {
   overflow: hidden;
+  padding: 1em;
+  /* Same color as -divider-color */
+  border-bottom: 1px solid #424242;
 }
 
-.chat-message.message .username::after {
-  content: ':';
-}
-
-.chat-message.action {
-  font-style: italic;
-}
-
-.chat-message:nth-of-type(odd) {
-  background-color: rgba(255, 255, 255, 0.06667);
-}
-
-.chat-message * {
-  padding: 0 2px;
+.chat-section * {
   word-wrap: break-word;
 }
 
-.chat-message td {
-  vertical-align: top;
+img.avatar {
+  margin-right: 0.2em;
+}
+img.avatar[src=""] {
+  display: none;
+  padding: 0;
+  margin: 0;
 }
 
-.chat-message > .avatar {
-  width: 40px;
-  height: 20px;
-  padding: 0 2px;
+.chat-section-head {
+  margin-bottom: 0.2em;
+  display: table;
 }
 
-.avatar > img {
-  display: block;
+.chat-section .clan-tag:empty {
+  display: none;
 }
 
-.chat-message .text {
-  width: 100%;
-  word-break: break-word;
+.chat-section .avatar,
+.chat-section .author {
+  display: table-cell;
+  vertical-align: middle;
 }
 
-.chat-message .username {
-  /* I really don't know where else this is set that makes !important necessary */
-  padding-right: 10px !important;
-  max-width: 50%;
-  text-align: right;
-  white-space: nowrap;
+.chat-section .username {
+  /* Same as -primary-text-color */
+  color: #fafafa;
   cursor: pointer;
+  font-weight: bold;
+  margin-right: 0.5em;
 }
 
-.chat-message .time {
-  white-space: nowrap;
+.chat-section .username:hover {
+  text-decoration: underline;
+}
+
+.chat-section .time {
+  /* Same as -tertiary-text-color */
+  color: #757575;
+  font-size: 10px;
+}
+
+.chat-section .text {
+  /* Same as -secondary-text-color */
+  color: #bdbdbd;
+  padding-left: 1em;
+}
+
+.chat-section.text.action {
+  font-style: italic;
+}
+
+.username.friend {
+  color: #16B7EB;
+}
+
+.username.foe {
+  /* Same as -bad */
+  color: #f44336;
+}
+
+.username.moderator {
+  color: #FFFFFF;
+}
+
+.username.chat_only {
+  color: #808080;
+}
+
+/* Username and mentions */
+.self,
+.username.self {
+  color: #FFA500;
 }
 
 /***************** News (WebView) *****************/

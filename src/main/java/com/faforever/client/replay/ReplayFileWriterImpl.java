@@ -8,9 +8,11 @@ import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -21,15 +23,17 @@ import java.nio.file.Path;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
+@Lazy
+@Component
 public class ReplayFileWriterImpl implements ReplayFileWriter {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final Gson gson;
-  @Resource
+  @Inject
   Environment environment;
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
+  @Inject
   I18n i18n;
 
   public ReplayFileWriterImpl() {

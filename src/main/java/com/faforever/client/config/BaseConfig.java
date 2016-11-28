@@ -14,14 +14,15 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.scheduling.annotation.EnableAsync;
 
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This configuration has to be imported by other configurations and should only contain beans that are necessary to run
@@ -29,10 +30,9 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 @org.springframework.context.annotation.Configuration
 @PropertySource("classpath:/application.properties")
-@EnableAsync
 public class BaseConfig {
 
-  @Resource
+  @Inject
   ScheduledExecutorService scheduledExecutorService;
 
   @Bean
@@ -48,7 +48,7 @@ public class BaseConfig {
   @Bean
   MessageSource messageSource() {
     ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-    messageSource.setBasename("i18n.Messages");
+    messageSource.setBasename("i18n.messages");
     return messageSource;
   }
 
@@ -59,7 +59,7 @@ public class BaseConfig {
 
   @Bean
   ThreadPoolExecutor threadPoolExecutor() {
-    return (ThreadPoolExecutor) Executors.newCachedThreadPool();
+    return new ThreadPoolExecutor(1, Runtime.getRuntime().availableProcessors() * 4, 60L, TimeUnit.SECONDS, new SynchronousQueue<>());
   }
 
   @Bean
@@ -89,6 +89,6 @@ public class BaseConfig {
 
   @Bean
   EventBus eventBus() {
-    return new EventBus();
+    return new EventBus((exception, context) -> exception.printStackTrace());
   }
 }

@@ -3,7 +3,6 @@ package com.faforever.client.coop;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.FeaturedModBeanBuilder;
 import com.faforever.client.game.Game;
-import com.faforever.client.game.GameInfoBeanBuilder;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesTableController;
 import com.faforever.client.game.NewGameInfo;
@@ -12,7 +11,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.theme.ThemeService;
+import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
@@ -22,7 +21,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.concurrent.CompletableFuture;
@@ -34,7 +32,6 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -52,9 +49,7 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private ThemeService themeService;
-  @Mock
-  private ApplicationContext applicationContext;
+  private UiService uiService;
   @Mock
   private GamesTableController gamesTableController;
   @Mock
@@ -70,12 +65,11 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = loadController("coop/coop.fxml");
+    instance = new CoopController();
     instance.coopService = coopService;
     instance.gameService = gameService;
     instance.preferencesService = preferencesService;
-    instance.themeService = themeService;
-    instance.applicationContext = applicationContext;
+    instance.uiService = uiService;
     instance.mapService = mapService;
     instance.i18n = i18n;
     instance.webViewConfigurer = webViewConfigurer;
@@ -85,14 +79,13 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
     when(modService.getFeaturedMod(COOP.getString())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create().defaultValues().technicalName("coop").get()));
     when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
     when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
-    when(applicationContext.getBean(GamesTableController.class)).thenReturn(gamesTableController);
+    when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
     when(gamesTableController.getRoot()).thenReturn(new Pane());
     selectedGameProperty = new SimpleObjectProperty<>();
     when(gamesTableController.selectedGameProperty()).thenReturn(selectedGameProperty);
 
-    instance.postConstruct();
+    loadFxml("theme/play/coop/coop.fxml", clazz -> instance);
 
-    WaitForAsyncUtils.waitForFxEvents();
     verify(webViewConfigurer).configureWebView(instance.descriptionWebView);
   }
 
@@ -125,17 +118,5 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
   public void testGetRoot() throws Exception {
     assertThat(instance.getRoot(), is(instance.coopRoot));
     assertThat(instance.getRoot().getParent(), is(nullValue()));
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testSelectGame() throws Exception {
-    assertNull(instance.currentGame);
-    Game game = GameInfoBeanBuilder.create().defaultValues().featuredMod("coop").get();
-    when(gameService.getGames()).thenReturn(FXCollections.observableArrayList(game));
-
-    selectedGameProperty.set(game);
-
-    assertThat(instance.currentGame, is(game));
   }
 }

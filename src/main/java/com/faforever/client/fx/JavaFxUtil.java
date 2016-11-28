@@ -1,7 +1,5 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.theme.ThemeService;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -25,8 +23,6 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.Screen;
@@ -262,7 +258,9 @@ public final class JavaFxUtil {
   }
 
   private static void writeImage(Image image, Path path, String format) {
-    noCatch(() -> createDirectories(path.getParent()));
+    if (path.getParent() != null) {
+      noCatch(() -> createDirectories(path.getParent()));
+    }
     noCatch(() -> write(SwingFXUtils.fromFXImage(image, null), format, path.toFile()));
   }
 }

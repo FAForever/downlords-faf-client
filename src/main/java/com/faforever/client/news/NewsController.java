@@ -1,67 +1,69 @@
 package com.faforever.client.news;
 
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.theme.ThemeService;
+import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import com.google.common.io.CharStreams;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebView;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
 
-public class NewsController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class NewsController extends AbstractViewController<Node> {
 
   private static final ClassPathResource NEWS_DETAIL_HTML_RESOURCE = new ClassPathResource("/theme/news_detail.html");
 
-  @FXML
-  Pane newsRoot;
-  @FXML
-  Pane newsListPane;
-  @FXML
-  WebView newsDetailWebView;
+  public Pane newsRoot;
+  public Pane newsListPane;
+  public WebView newsDetailWebView;
 
-  @Resource
-  ApplicationContext applicationContext;
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   NewsService newsService;
-  @Resource
-  ThemeService themeService;
-  @Resource
+  @Inject
+  UiService uiService;
+  @Inject
   EventBus eventBus;
-  @Resource
+  @Inject
   WebViewConfigurer webViewConfigurer;
 
-  public void setUpIfNecessary() {
+  @Override
+  public void onDisplay() {
     if (!newsListPane.getChildren().isEmpty()) {
       return;
     }
 
     newsDetailWebView.setContextMenuEnabled(false);
     webViewConfigurer.configureWebView(newsDetailWebView);
-    themeService.registerWebView(newsDetailWebView);
 
     boolean firstItemSelected = false;
 
     List<NewsItem> newsItems = newsService.fetchNews();
     for (NewsItem newsItem : newsItems) {
-      NewsListItemController newsListItemController = applicationContext.getBean(NewsListItemController.class);
+      NewsListItemController newsListItemController = uiService.loadFxml("theme/news_list_item.fxml");
       newsListItemController.setNewsItem(newsItem);
-      newsListItemController.setOnItemSelectedListener(this::displayNewsItem);
+      newsListItemController.setOnItemSelectedListener((item) -> {
+        newsListPane.getChildren().forEach(node -> node.pseudoClassStateChanged(NewsListItemController.SELECTED_PSEUDO_CLASS, false));
+        displayNewsItem(item);
+        newsListItemController.getRoot().pseudoClassStateChanged(NewsListItemController.SELECTED_PSEUDO_CLASS, true);
+      });
 
       newsListPane.getChildren().add(newsListItemController.getRoot());
 

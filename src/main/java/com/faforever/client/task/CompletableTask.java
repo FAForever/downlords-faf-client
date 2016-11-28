@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-public abstract class CompletableTask<V> extends Task<V> implements PrioritizedTask<V> {
+public abstract class CompletableTask<V> extends Task<V> implements PrioritizedCompletableTask<V> {
 
   private final CompletableFuture<V> future;
   private Priority priority;

@@ -1,5 +1,6 @@
 package com.faforever.client.remote;
 
+import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.NewGameInfo;
@@ -11,7 +12,6 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.rankedmatch.MatchmakerMessage.MatchmakerQueue;
-import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameInfoMessage;
@@ -24,14 +24,18 @@ import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.event.LoginSuccessEvent;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.util.Arrays;
@@ -51,26 +55,33 @@ import static com.faforever.client.remote.domain.GameAccess.PUBLIC;
 import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 import static java.util.Collections.singletonList;
 
+@Lazy
+@Component
+@Profile("local")
+// NOSONAR
 public class MockFafServerAccessor implements FafServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String USER_NAME = "MockUser";
   private final Timer timer;
   private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners;
-  @Resource
-  UserService userService;
-  @Resource
-  TaskService taskService;
-  @Resource
-  NotificationService notificationService;
-  @Resource
-  I18n i18n;
+
+  private final TaskService taskService;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final EventBus eventBus;
+
   private ObjectProperty<ConnectionState> connectionState;
 
-  public MockFafServerAccessor() {
+  @Inject
+  public MockFafServerAccessor(TaskService taskService, NotificationService notificationService, I18n i18n, EventBus eventBus) {
     timer = new Timer("LobbyServerAccessorTimer", true);
     messageListeners = new HashMap<>();
     connectionState = new SimpleObjectProperty<>();
+    this.taskService = taskService;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.eventBus = eventBus;
   }
 
   @Override
@@ -100,6 +111,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
         updateTitle(i18n.get("login.progress.message"));
 
         Player player = new Player();
+        player.setId(4812);
         player.setLogin(USER_NAME);
         player.setClan("ABC");
         player.setCountry("A1");
@@ -109,6 +121,8 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
         PlayersMessage playersMessage = new PlayersMessage();
         playersMessage.setPlayers(singletonList(player));
+
+        eventBus.post(new LoginSuccessEvent(username, password, player.getId()));
 
         messageListeners.getOrDefault(playersMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(playersMessage));
 
@@ -135,13 +149,13 @@ public class MockFafServerAccessor implements FafServerAccessor {
         }, 7000);
 
         List<GameInfoMessage> gameInfoMessages = Arrays.asList(
-            createGameInfo(1, "Mock game 500 - 800", PUBLIC, "faf", "scmp_010", 3, 6, "Mock user"),
-            createGameInfo(2, "Mock game 500+", PUBLIC, "faf", "scmp_011", 3, 6, "Mock user"),
+            createGameInfo(1, "Mock game 500 - 800", PUBLIC, "faf", "scmp_010", 1, 6, "Mock user"),
+            createGameInfo(2, "Mock game 500+", PUBLIC, "faf", "scmp_011", 2, 6, "Mock user"),
             createGameInfo(3, "Mock game +500", PUBLIC, "faf", "scmp_012", 3, 6, "Mock user"),
-            createGameInfo(4, "Mock game <1000", PUBLIC, "faf", "scmp_013", 3, 6, "Mock user"),
-            createGameInfo(5, "Mock game >1000", PUBLIC, "faf", "scmp_014", 3, 6, "Mock user"),
-            createGameInfo(6, "Mock game ~600", PASSWORD, "faf", "scmp_015", 3, 6, "Mock user"),
-            createGameInfo(7, "Mock game 7", PASSWORD, "faf", "scmp_016", 3, 6, "Mock user")
+            createGameInfo(4, "Mock game <1000", PUBLIC, "faf", "scmp_013", 4, 6, "Mock user"),
+            createGameInfo(5, "Mock game >1000", PUBLIC, "faf", "scmp_014", 5, 6, "Mock user"),
+            createGameInfo(6, "Mock game ~600", PASSWORD, "faf", "scmp_015", 6, 6, "Mock user"),
+            createGameInfo(7, "Mock game 7", PASSWORD, "faf", "scmp_016", 7, 6, "Mock user")
         );
 
         gameInfoMessages.forEach(gameInfoMessage ->
@@ -184,7 +198,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
     return taskService.submitTask(new CompletableTask<GameLaunchMessage>(HIGH) {
       @Override
       protected GameLaunchMessage call() throws Exception {
-        updateTitle(i18n.get("requestNewGameTask.title"));
+        updateTitle("Hosting game");
 
         GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
         gameLaunchMessage.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));
@@ -200,7 +214,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
     return taskService.submitTask(new CompletableTask<GameLaunchMessage>(HIGH) {
       @Override
       protected GameLaunchMessage call() throws Exception {
-        updateTitle(i18n.get("requestJoinGameTask.title"));
+        updateTitle("Joining game");
 
         GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
         gameLaunchMessage.setArgs(Arrays.asList("/ratingcolor d8d8d8d8", "/numgames 1234"));

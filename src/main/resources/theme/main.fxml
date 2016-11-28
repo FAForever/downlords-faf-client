@@ -8,133 +8,82 @@
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SeparatorMenuItem?>
-<?import javafx.scene.control.SplitMenuButton?>
-<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-
+<?import java.lang.String?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="mainRoot" minHeight="500.0" minWidth="600.0"
       xmlns="http://javafx.com/javafx/8.0.60" fx:controller="com.faforever.client.main.MainController">
-  <children>
-    <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
-          VBox.vgrow="ALWAYS">
-      <children>
-        <HBox fx:id="mainHeaderPane" alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308"
-              minHeight="-Infinity" minWidth="-Infinity">
-          <children>
-            <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
-              <items>
-                <MenuItem disable="true" onAction="#onSupportItemSelected" text="%menu.support"/>
-                <MenuItem onAction="#onSettingsItemSelected" text="%menu.settings"/>
-                <SeparatorMenuItem mnemonicParsing="false"/>
-                <MenuItem disable="true" text="%menu.feedback"/>
-                <SeparatorMenuItem mnemonicParsing="false"/>
-                <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
-              </items>
-            </MenuButton>
-            <HBox fx:id="mainNavigation" styleClass="main-navigation">
-              <children>
-                <SplitMenuButton fx:id="newsButton" focusTraversable="false" mnemonicParsing="false"
-                                 onAction="#onNewsSelected" text="%main.community.news"/>
-                <SplitMenuButton fx:id="chatButton" focusTraversable="false" mnemonicParsing="false"
-                                 onAction="#onChatSelected" text="%main.chat"/>
-                <SplitMenuButton fx:id="playButton" focusTraversable="false" mnemonicParsing="false"
-                                 onAction="#onPlaySelected" text="%main.play">
-                  <items>
-                    <MenuItem fx:id="playCustomButton" mnemonicParsing="false" onAction="#onPlayCustomSelected"
-                              text="%main.play.custom"/>
-                      <MenuItem fx:id="playCoopButton" mnemonicParsing="false" onAction="#onPlayCoopSelected"
-                                text="%main.play.coop"/>
-                    <MenuItem fx:id="playRanked1v1Button" mnemonicParsing="false" onAction="#onPlayRanked1v1Selected"
-                              text="%main.play.ranked1v1"/>
-                  </items>
-                </SplitMenuButton>
-                <SplitMenuButton fx:id="vaultButton" focusTraversable="false" mnemonicParsing="false"
-                                 onAction="#onVaultSelected" text="%main.vault">
-                  <items>
-                    <MenuItem fx:id="modVaultButton" mnemonicParsing="false" onAction="#onModsSelected"
-                              text="%main.vault.mods"/>
-                    <MenuItem fx:id="mapVaultButton" mnemonicParsing="false" onAction="#onMapsSelected"
-                              text="%main.vault.maps"/>
-                    <MenuItem fx:id="replayVaultButton" mnemonicParsing="false" onAction="#onReplaysSelected"
-                              text="%main.vault.replays"/>
-                  </items>
-                </SplitMenuButton>
-                <SplitMenuButton fx:id="leaderboardButton" focusTraversable="false" mnemonicParsing="false"
-                                 onAction="#onLeaderboardSelected" text="%main.leaderboard">
-                  <items>
-                    <MenuItem fx:id="leaderboardRanked1v1Button" mnemonicParsing="false"
-                              onAction="#onLeaderboardRanked1v1Selected" text="%main.leaderboard.ranked1v1"/>
-                  </items>
-                </SplitMenuButton>
-                <SplitMenuButton fx:id="unitsButton" focusTraversable="false" mnemonicParsing="false"
-                                 onAction="#onUnitsSelected" text="%main.units">
-                </SplitMenuButton>
-              </children>
-            </HBox>
-            <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"/>
-            <Button fx:id="notificationsButton" contentDisplay="RIGHT" focusTraversable="false" mnemonicParsing="false"
-                    onAction="#onNotificationsButtonClicked" styleClass="notification-button" text="0">
-              <HBox.margin>
-                <Insets right="10.0"/>
-              </HBox.margin>
-              <graphic>
-                <Label contentDisplay="RIGHT" styleClass="fontawesome" text=""/>
-              </graphic>
-            </Button>
-            <Button fx:id="usernameButton" focusTraversable="false" graphicTextGap="10.0" minWidth="100.0"
-                    mnemonicParsing="false" onAction="#onUsernameButtonClicked" styleClass="username-button"
-                    text="&lt;Username&gt;">
-              <graphic>
-                <ImageView fx:id="userImageView" fitHeight="32.0" fitWidth="32.0" pickOnBounds="true"
-                           preserveRatio="true"/>
-              </graphic>
-            </Button>
-          </children>
-          <padding>
-            <Insets bottom="12.0" left="20.0" right="20.0" top="12.0"/>
-          </padding>
-        </HBox>
-        <Separator prefWidth="200.0"/>
-        <AnchorPane fx:id="contentPane" VBox.vgrow="ALWAYS"/>
-      </children>
-    </VBox>
-    <HBox alignment="CENTER_LEFT" minHeight="22.0" styleClass="status-bar" VBox.vgrow="NEVER">
-      <children>
-        <HBox fx:id="taskPane" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-          <children>
-            <Pane minHeight="0.0" minWidth="0.0" HBox.hgrow="ALWAYS"/>
-            <Label fx:id="taskProgressLabel" text="Label"/>
-            <Pane HBox.hgrow="ALWAYS"/>
-            <ProgressBar fx:id="taskProgressBar" maxHeight="1.7976931348623157E308" minWidth="20.0" prefWidth="150.0"/>
-          </children>
-        </HBox>
-        <Separator focusTraversable="false" orientation="VERTICAL"/>
-        <MenuButton fx:id="fafConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
-                    styleClass="status-bar-menu-button" text="%statusBar.fafConnected">
-          <items>
-            <MenuItem mnemonicParsing="false" onAction="#onFafReconnectClicked" text="%statusBar.reconnect"/>
-          </items>
-          <graphic>
-            <Label fx:id="fafConnectionStatusIcon" styleClass="fontawesome,connection-status" text=""/>
-          </graphic>
-        </MenuButton>
-        <Separator focusTraversable="false" orientation="VERTICAL"/>
-        <MenuButton fx:id="chatConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP"
-                    styleClass="status-bar-menu-button" text="%statusBar.chatConnected">
-          <items>
-            <MenuItem mnemonicParsing="false" onAction="#onChatReconnectClicked" text="%statusBar.reconnect"/>
-          </items>
-          <graphic>
-            <Label fx:id="chatConnectionStatusIcon" styleClass="fontawesome,connection-status" text=""/>
-          </graphic>
-        </MenuButton>
-      </children>
-      <padding>
-        <Insets left="5.0" right="5.0"/>
-      </padding>
-    </HBox>
-  </children>
+    <children>
+        <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
+              VBox.vgrow="ALWAYS">
+            <children>
+                <HBox fx:id="mainHeaderPane" alignment="CENTER_LEFT" maxHeight="-Infinity"
+                      maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity"
+                      styleClass="main-navigation-top">
+                    <children>
+                        <MenuButton focusTraversable="false" mnemonicParsing="false" text="">
+                            <items>
+                                <MenuItem onAction="#onSettingsSelected" text="%menu.settings"/>
+                                <SeparatorMenuItem mnemonicParsing="false"/>
+                                <MenuItem disable="true" text="%menu.feedback"/>
+                                <SeparatorMenuItem mnemonicParsing="false"/>
+                                <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
+                            </items>
+                            <styleClass>
+                                <String fx:value="icon-button"/>
+                                <String fx:value="main-menu-button"/>
+                            </styleClass>
+                        </MenuButton>
+                        <ToggleButton fx:id="newsButton" mnemonicParsing="false" onAction="#onNavigate"
+                                      styleClass="main-navigation-button" text="%main.community.news">
+                            <toggleGroup>
+                                <ToggleGroup fx:id="mainNavigation"/>
+                            </toggleGroup>
+                        </ToggleButton>
+                        <ToggleButton fx:id="chatButton" mnemonicParsing="false" onAction="#onNavigate"
+                                      styleClass="main-navigation-button" text="%main.chat"
+                                      toggleGroup="$mainNavigation"/>
+                        <ToggleButton fx:id="playButton" mnemonicParsing="false" onAction="#onNavigate"
+                                      styleClass="main-navigation-button" text="%main.play"
+                                      toggleGroup="$mainNavigation"/>
+                        <ToggleButton fx:id="vaultButton" mnemonicParsing="false" onAction="#onNavigate"
+                                      styleClass="main-navigation-button" text="%main.vault"
+                                      toggleGroup="$mainNavigation"/>
+                        <ToggleButton fx:id="leaderboardsButton" mnemonicParsing="false" onAction="#onNavigate"
+                                      styleClass="main-navigation-button" text="%main.leaderboards"
+                                      toggleGroup="$mainNavigation"/>
+                        <ToggleButton fx:id="unitsButton" mnemonicParsing="false" onAction="#onNavigate"
+                                      styleClass="main-navigation-button" text="%main.units"
+                                      toggleGroup="$mainNavigation"/>
+                        <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"/>
+                        <StackPane>
+                            <children>
+                                <Button contentDisplay="CENTER" focusTraversable="false" mnemonicParsing="false"
+                                        onAction="#onNotificationsButtonClicked"
+                                        styleClass="icon-button,notification-button"
+                                        text=""/>
+                                <Label fx:id="notificationsBadge" alignment="CENTER" mouseTransparent="true"
+                                       styleClass="notification-badge" text="3" StackPane.alignment="TOP_RIGHT">
+                                    <StackPane.margin>
+                                        <Insets left="20.0" top="10.0"/>
+                                    </StackPane.margin>
+                                </Label>
+                            </children>
+                            <padding>
+                                <Insets right="20.0"/>
+                            </padding>
+                        </StackPane>
+                        <fx:include source="user_button.fxml"/>
+                    </children>
+                </HBox>
+                <AnchorPane fx:id="contentPane" VBox.vgrow="ALWAYS"/>
+            </children>
+        </VBox>
+        <fx:include source="statusbar/status_bar.fxml"/>
+    </children>
 </VBox>

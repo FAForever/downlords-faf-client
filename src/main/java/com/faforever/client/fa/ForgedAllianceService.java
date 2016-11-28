@@ -10,7 +10,7 @@ import java.util.List;
 
 /**
  * Knows how to starts/stop Forged Alliance with proper parameters. Downloading maps, mods and updates as well as
- * notifying the server about whether the game is running or not is <strong>not</strong> this service's responsibility.
+ * notifying the server about whether the preferences is running or not is <strong>not</strong> this service's responsibility.
  */
 public interface ForgedAllianceService {
 

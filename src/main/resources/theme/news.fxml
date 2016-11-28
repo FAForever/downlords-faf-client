@@ -19,7 +19,7 @@
     <Separator orientation="VERTICAL"/>
     <AnchorPane HBox.hgrow="ALWAYS">
       <children>
-        <WebView fx:id="newsDetailWebView" blendMode="ADD" prefHeight="-1.0" prefWidth="-1.0"
+        <WebView fx:id="newsDetailWebView" prefHeight="-1.0" prefWidth="-1.0"
                  AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                  AnchorPane.topAnchor="0.0"/>
       </children>

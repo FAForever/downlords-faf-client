@@ -11,8 +11,11 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
@@ -24,20 +27,24 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 
+
+@Lazy
+@Service
+@Profile("!local")
 public class ClientUpdateServiceImpl implements ClientUpdateService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String DEVELOPMENT_VERSION_STRING = "dev";
 
-  @Resource
+  @Inject
   TaskService taskService;
-  @Resource
+  @Inject
   NotificationService notificationService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   PlatformService platformService;
-  @Resource
+  @Inject
   ApplicationContext applicationContext;
 
   @VisibleForTesting

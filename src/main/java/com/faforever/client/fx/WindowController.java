@@ -1,12 +1,12 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.theme.ThemeService;
+import com.faforever.client.theme.UiService;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
-import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -17,8 +17,11 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -27,42 +30,25 @@ import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 import static com.faforever.client.fx.WindowController.WindowButtonType.MAXIMIZE_RESTORE;
 import static com.faforever.client.fx.WindowController.WindowButtonType.MINIMIZE;
 
-public class WindowController {
 
-  public enum WindowButtonType {
-    MINIMIZE,
-    MAXIMIZE_RESTORE,
-    CLOSE
-  }
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class WindowController implements Controller<Node> {
 
-  private enum ResizeDirection {
-    NORTH,
-    EAST,
-    SOUTH,
-    WEST
-  }
-
-  public static final double RESIZE_BORDER_WIDTH = 7d;
-  public static final String PROPERTY_WINDOW_DECORATOR = "windowDecorator";
+  private static final double RESIZE_BORDER_WIDTH = 7d;
+  private static final String PROPERTY_WINDOW_DECORATOR = "windowDecorator";
   private static final PseudoClass MAXIMIZED_PSEUDO_STATE = PseudoClass.getPseudoClass("maximized");
 
-  @FXML
-  AnchorPane contentPane;
-  @FXML
-  Button minimizeButton;
-  @FXML
-  Button maximizeButton;
-  @FXML
-  Button restoreButton;
-  @FXML
-  Button closeButton;
-  @FXML
-  AnchorPane windowRoot;
-  @FXML
-  Pane windowButtons;
+  public AnchorPane contentPane;
+  public Button minimizeButton;
+  public Button maximizeButton;
+  public Button restoreButton;
+  public Button closeButton;
+  public AnchorPane windowRoot;
+  public Pane windowButtons;
 
-  @Resource
-  ThemeService themeService;
+  @Inject
+  UiService uiService;
 
   private Stage stage;
   private boolean resizable;
@@ -70,18 +56,33 @@ public class WindowController {
   private EnumSet<ResizeDirection> resizeDirections;
   private boolean isResizing;
 
-  @FXML
-  void onMinimizeButtonClicked() {
+  public static Rectangle2D getVisualBounds(Stage stage) {
+    double x1 = stage.getX() + (stage.getWidth() / 2);
+    double y1 = stage.getY() + (stage.getHeight() / 2);
+
+    Rectangle2D windowCenter = new Rectangle2D(x1, y1, 1, 1);
+    ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(windowCenter);
+    return screensForRectangle.get(0).getVisualBounds();
+  }
+
+  public static void maximize(Stage stage) {
+    ((WindowController) stage.getProperties().get(PROPERTY_WINDOW_DECORATOR)).maximize();
+  }
+
+  @Override
+  public Node getRoot() {
+    return windowRoot;
+  }
+
+  public void onMinimizeButtonClicked() {
     stage.setIconified(true);
   }
 
-  @FXML
-  void onCloseButtonClicked() {
+  public void onCloseButtonClicked() {
     stage.close();
   }
 
-  @FXML
-  void onRestoreButtonClicked() {
+  public void onRestoreButtonClicked() {
     restore();
   }
 
@@ -97,8 +98,7 @@ public class WindowController {
     AnchorPane.setRightAnchor(windowButtons, RESIZE_BORDER_WIDTH);
   }
 
-  @FXML
-  void onMaximizeButtonClicked() {
+  public void onMaximizeButtonClicked() {
     maximize();
   }
 
@@ -122,21 +122,21 @@ public class WindowController {
     AnchorPane.setRightAnchor(windowButtons, 0d);
   }
 
-  public static Rectangle2D getVisualBounds(Stage stage) {
-    double x1 = stage.getX() + (stage.getWidth() / 2);
-    double y1 = stage.getY() + (stage.getHeight() / 2);
-
-    Rectangle2D windowCenter = new Rectangle2D(x1, y1, 1, 1);
-    ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(windowCenter);
-    return screensForRectangle.get(0).getVisualBounds();
-  }
-
-  @FXML
-  void initialize() {
+  public void initialize() {
     minimizeButton.managedProperty().bind(minimizeButton.visibleProperty());
     maximizeButton.managedProperty().bind(maximizeButton.visibleProperty());
     restoreButton.managedProperty().bind(restoreButton.visibleProperty());
     closeButton.managedProperty().bind(closeButton.visibleProperty());
+
+    // Workaround for https://bugs.openjdk.java.net/browse/JDK-8087997
+    // Will be fixed in JDK 8u122
+    // Fixes #13
+    windowRoot.heightProperty().addListener((observable, oldValue, newValue) -> {
+      if (stage.isIconified() && stage.isMaximized()) {
+        stage.setIconified(false);
+        maximize();
+      }
+    });
   }
 
   public void configure(Stage stage, Region content, boolean resizable, WindowButtonType... buttons) {
@@ -149,7 +149,7 @@ public class WindowController {
 
     Scene scene = new Scene(windowRoot);
     stage.setScene(scene);
-    themeService.registerScene(scene);
+    uiService.registerScene(scene);
 
     // Configure these only once per stage
     if (!stage.getProperties().containsKey(PROPERTY_WINDOW_DECORATOR)) {
@@ -213,8 +213,7 @@ public class WindowController {
     return windowRoot;
   }
 
-  @FXML
-  void onMouseMoved(MouseEvent event) {
+  public void onMouseMoved(MouseEvent event) {
     if (!resizable || stage.isMaximized()) {
       return;
     }
@@ -252,8 +251,7 @@ public class WindowController {
     windowRoot.setCursor(Cursor.cursor(cursorName.append("_RESIZE").toString()));
   }
 
-  @FXML
-  void onMouseDragged(MouseEvent event) {
+  public void onMouseDragged(MouseEvent event) {
     if (dragOffset == null) {
       // Somehow the drag event occurred without an initial press event
       onMousePressed(event);
@@ -266,8 +264,7 @@ public class WindowController {
     }
   }
 
-  @FXML
-  void onMousePressed(MouseEvent event) {
+  public void onMousePressed(MouseEvent event) {
     if (isOnResizeBorder(event)) {
       isResizing = true;
     }
@@ -334,8 +331,7 @@ public class WindowController {
         || event.getX() < RESIZE_BORDER_WIDTH;
   }
 
-  @FXML
-  void onMouseClicked(MouseEvent event) {
+  public void onMouseClicked(MouseEvent event) {
     if (event.getTarget() instanceof Pane
         && event.getButton() == MouseButton.PRIMARY
         && event.getClickCount() == 2 && resizable) {
@@ -347,8 +343,7 @@ public class WindowController {
     }
   }
 
-  @FXML
-  void onMouseReleased() {
+  public void onMouseReleased() {
     isResizing = false;
     dragOffset = null;
   }
@@ -357,7 +352,16 @@ public class WindowController {
     windowRoot.setCursor(Cursor.DEFAULT);
   }
 
-  public static void maximize(Stage stage) {
-    ((WindowController) stage.getProperties().get(PROPERTY_WINDOW_DECORATOR)).maximize();
+  public enum WindowButtonType {
+    MINIMIZE,
+    MAXIMIZE_RESTORE,
+    CLOSE
+  }
+
+  private enum ResizeDirection {
+    NORTH,
+    EAST,
+    SOUTH,
+    WEST
   }
 }

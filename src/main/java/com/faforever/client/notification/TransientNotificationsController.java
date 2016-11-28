@@ -1,32 +1,31 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.fx.Controller;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.ToastPosition;
-import javafx.fxml.FXML;
+import com.faforever.client.theme.UiService;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 
-public class TransientNotificationsController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class TransientNotificationsController  implements Controller<Node> {
 
-  @FXML
-  VBox transientNotificationsRoot;
-  @Resource
-  ApplicationContext applicationContext;
-  @Resource
+  public VBox transientNotificationsRoot;
+  @Inject
+  UiService uiService;
+  @Inject
   PreferencesService preferencesService;
 
-  public TransientNotificationsController() {
-  }
-
-
-  @PostConstruct
-  void postConstruct() {
+  public void initialize() {
     ToastPosition toastPosition = preferencesService.getPreferences().getNotification().getToastPosition();
 
     switch (toastPosition) {
@@ -52,7 +51,7 @@ public class TransientNotificationsController {
   }
 
   public void addNotification(TransientNotification notification) {
-    TransientNotificationController controller = applicationContext.getBean(TransientNotificationController.class);
+    TransientNotificationController controller = uiService.loadFxml("theme/transient_notification.fxml");
     controller.setNotification(notification);
     Region controllerRoot = controller.getRoot();
     transientNotificationsRoot.getChildren().add(0, controllerRoot);

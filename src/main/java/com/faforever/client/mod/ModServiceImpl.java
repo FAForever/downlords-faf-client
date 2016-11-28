@@ -12,13 +12,11 @@ import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.IdenticonUtil;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.scene.image.Image;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
@@ -34,9 +32,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.annotation.PreDestroy;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
@@ -45,7 +46,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
@@ -54,6 +54,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -74,6 +75,8 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
+@Lazy
+@Service
 public class ModServiceImpl implements ModService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -82,34 +85,35 @@ public class ModServiceImpl implements ModService {
   private static final Pattern ACTIVE_MOD_PATTERN = Pattern.compile("\\['(.*?)']\\s*=\\s*(true|false)", Pattern.DOTALL);
   private static final Lock LOOKUP_LOCK = new ReentrantLock();
 
-  @Resource
+  @Inject
   FafService fafService;
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
+  @Inject
   TaskService taskService;
-  @Resource
+  @Inject
   ApplicationContext applicationContext;
-  @Resource
+  @Inject
   ThreadPoolExecutor threadPoolExecutor;
-  @Resource
+  @Inject
   Analyzer analyzer;
-  @Resource
+  @Inject
   Directory directory;
-  @Resource
+  @Inject
   NotificationService notificationService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   PlatformService platformService;
-  @Resource
+  @Inject
   AssetService assetService;
 
   private Path modsDirectory;
-  private Map<Path, ModInfoBean> pathToMod;
-  private ObservableList<ModInfoBean> installedMods;
-  private ObservableList<ModInfoBean> readOnlyInstalledMods;
+  private Map<Path, Mod> pathToMod;
+  private ObservableList<Mod> installedMods;
+  private ObservableList<Mod> readOnlyInstalledMods;
   private AnalyzingInfixSuggester suggester;
+  private Thread directoryWatcherThread;
 
   public ModServiceImpl() {
     pathToMod = new HashMap<>();
@@ -133,7 +137,7 @@ public class ModServiceImpl implements ModService {
       // mods/BlackOpsUnleashed/icons/yoda_icon.bmp -> icons/yoda_icon.bmp
       iconPath = iconPath.subpath(2, iconPath.getNameCount());
     } catch (IllegalArgumentException e) {
-      logger.warn("Can't load icon for mod: {}, icon path: {}", path, iconPath);
+      logger.warn("Can't display icon for mod: {}, icon path: {}", path, iconPath);
       return null;
     }
 
@@ -159,7 +163,7 @@ public class ModServiceImpl implements ModService {
   private void onModDirectoryReady() {
     try {
       createDirectories(modsDirectory);
-      startDirectoryWatcher(modsDirectory);
+      directoryWatcherThread = startDirectoryWatcher(modsDirectory);
     } catch (IOException | InterruptedException e) {
       logger.warn("Could not start mod directory watcher", e);
       // TODO notify user
@@ -167,25 +171,25 @@ public class ModServiceImpl implements ModService {
     loadInstalledMods();
   }
 
-  private void startDirectoryWatcher(Path modsDirectory) throws IOException, InterruptedException {
-    ConcurrentUtil.executeInBackground(new Task<Void>() {
-      @Override
-      protected Void call() throws Exception {
-        WatchService watcher = modsDirectory.getFileSystem().newWatchService();
-        modsDirectory.register(watcher, ENTRY_DELETE);
+  private Thread startDirectoryWatcher(Path modsDirectory) throws IOException, InterruptedException {
+    Thread thread = new Thread(() -> noCatch(() -> {
+      WatchService watcher = modsDirectory.getFileSystem().newWatchService();
+      modsDirectory.register(watcher, ENTRY_DELETE);
 
-        //noinspection InfiniteLoopStatement
-        while (true) {
+      try {
+        while (!Thread.interrupted()) {
           WatchKey key = watcher.take();
-          for (WatchEvent<?> event : key.pollEvents()) {
-            if (event.kind() == ENTRY_DELETE) {
-              removeMod(modsDirectory.resolve((Path) event.context()));
-            }
-          }
+          key.pollEvents().stream()
+              .filter(event -> event.kind() == ENTRY_DELETE)
+              .forEach(event -> removeMod(modsDirectory.resolve((Path) event.context())));
           key.reset();
         }
+      } catch (InterruptedException e) {
+        logger.debug("Watcher terminated ({})", e.getMessage());
       }
-    });
+    }));
+    thread.start();
+    return thread;
   }
 
   @Override
@@ -200,7 +204,7 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public ObservableList<ModInfoBean> getInstalledMods() {
+  public ObservableList<Mod> getInstalledMods() {
     return readOnlyInstalledMods;
   }
 
@@ -230,22 +234,22 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletionStage<Void> downloadAndInstallMod(ModInfoBean modInfoBean, @Nullable DoubleProperty progressProperty, StringProperty titleProperty) {
-    return downloadAndInstallMod(modInfoBean.getDownloadUrl(), progressProperty, titleProperty);
+  public CompletionStage<Void> downloadAndInstallMod(Mod mod, @Nullable DoubleProperty progressProperty, StringProperty titleProperty) {
+    return downloadAndInstallMod(mod.getDownloadUrl(), progressProperty, titleProperty);
   }
 
   @Override
   public Set<String> getInstalledModUids() {
     return getInstalledMods().stream()
-        .map(ModInfoBean::getId)
+        .map(Mod::getId)
         .collect(Collectors.toSet());
   }
 
   @Override
   public Set<String> getInstalledUiModsUids() {
     return getInstalledMods().stream()
-        .filter(ModInfoBean::getUiOnly)
-        .map(ModInfoBean::getId)
+        .filter(Mod::getUiOnly)
+        .map(Mod::getId)
         .collect(Collectors.toSet());
   }
 
@@ -276,16 +280,16 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletionStage<Void> uninstallMod(ModInfoBean mod) {
+  public CompletionStage<Void> uninstallMod(Mod mod) {
     UninstallModTask task = applicationContext.getBean(UninstallModTask.class);
     task.setMod(mod);
     return taskService.submitTask(task).getFuture();
   }
 
   @Override
-  public Path getPathForMod(ModInfoBean mod) {
-    for (Map.Entry<Path, ModInfoBean> entry : pathToMod.entrySet()) {
-      ModInfoBean modInfoBean = entry.getValue();
+  public Path getPathForMod(Mod mod) {
+    for (Map.Entry<Path, Mod> entry : pathToMod.entrySet()) {
+      Mod modInfoBean = entry.getValue();
 
       if (mod.getId().equals(modInfoBean.getId())) {
         return entry.getKey();
@@ -295,9 +299,9 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletionStage<List<ModInfoBean>> getAvailableMods() {
+  public CompletionStage<List<Mod>> getAvailableMods() {
     return CompletableFuture.supplyAsync(() -> {
-      List<ModInfoBean> availableMods = fafService.getMods();
+      List<Mod> availableMods = fafService.getMods();
       ModInfoBeanIterator iterator = new ModInfoBeanIterator(availableMods.iterator());
       noCatch(() -> suggester.build(iterator));
       return availableMods;
@@ -305,36 +309,36 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public CompletionStage<List<ModInfoBean>> getMostDownloadedMods(int count) {
-    return getTopElements(ModInfoBean.DOWNLOADS_COMPARATOR.reversed(), count);
+  public CompletionStage<List<Mod>> getMostDownloadedMods(int count) {
+    return getTopElements(Mod.DOWNLOADS_COMPARATOR.reversed(), count);
   }
 
   @Override
-  public CompletionStage<List<ModInfoBean>> getMostLikedMods(int count) {
-    return getTopElements(ModInfoBean.LIKES_COMPARATOR.reversed(), count);
+  public CompletionStage<List<Mod>> getMostLikedMods(int count) {
+    return getTopElements(Mod.LIKES_COMPARATOR.reversed(), count);
   }
 
   @Override
-  public CompletionStage<List<ModInfoBean>> getMostPlayedMods(int count) {
-    return getTopElements(ModInfoBean.TIMES_PLAYED_COMPARATOR.reversed(), count);
+  public CompletionStage<List<Mod>> getMostPlayedMods(int count) {
+    return getTopElements(Mod.TIMES_PLAYED_COMPARATOR.reversed(), count);
   }
 
   @Override
-  public CompletionStage<List<ModInfoBean>> getNewestMods(int count) {
-    return getTopElements(ModInfoBean.PUBLISH_DATE_COMPARATOR.reversed(), count);
+  public CompletionStage<List<Mod>> getNewestMods(int count) {
+    return getTopElements(Mod.PUBLISH_DATE_COMPARATOR.reversed(), count);
   }
 
   @Override
-  public CompletionStage<List<ModInfoBean>> getMostLikedUiMods(int count) {
+  public CompletionStage<List<Mod>> getMostLikedUiMods(int count) {
     return getAvailableMods().thenApply(modInfoBeans -> modInfoBeans.stream()
-        .filter(ModInfoBean::getUiOnly)
-        .sorted(ModInfoBean.LIKES_COMPARATOR.reversed())
+        .filter(Mod::getUiOnly)
+        .sorted(Mod.LIKES_COMPARATOR.reversed())
         .limit(count)
         .collect(Collectors.toList()));
   }
 
   @Override
-  public CompletionStage<List<ModInfoBean>> lookupMod(String string, int maxResults) {
+  public CompletionStage<List<Mod>> lookupMod(String string, int maxResults) {
     return CompletableFuture.supplyAsync(() -> {
       try {
         LOOKUP_LOCK.lock();
@@ -355,8 +359,8 @@ public class ModServiceImpl implements ModService {
   }
 
   @NotNull
-  public ModInfoBean extractModInfo(Path path) {
-    ModInfoBean modInfoBean = new ModInfoBean();
+  public Mod extractModInfo(Path path) {
+    Mod mod = new Mod();
 
     Path modInfoLua = path.resolve("mod_info.lua");
     if (Files.notExists(modInfoLua)) {
@@ -368,19 +372,19 @@ public class ModServiceImpl implements ModService {
     try {
       LuaValue luaValue = noCatch(() -> loadFile(modInfoLua), ModLoadException.class);
 
-      modInfoBean.setId(luaValue.get("uid").toString());
-      modInfoBean.setName(luaValue.get("name").toString());
-      modInfoBean.setDescription(luaValue.get("description").toString());
-      modInfoBean.setAuthor(luaValue.get("author").toString());
-      modInfoBean.setVersion(new ComparableVersion(luaValue.get("version").toString()));
-      modInfoBean.setSelectable(luaValue.get("selectable").toboolean());
-      modInfoBean.setUiOnly(luaValue.get("ui_only").toboolean());
-      modInfoBean.setImagePath(extractIconPath(path, luaValue));
+      mod.setId(luaValue.get("uid").toString());
+      mod.setName(luaValue.get("name").toString());
+      mod.setDescription(luaValue.get("description").toString());
+      mod.setAuthor(luaValue.get("author").toString());
+      mod.setVersion(new ComparableVersion(luaValue.get("version").toString()));
+      mod.setSelectable(luaValue.get("selectable").toboolean());
+      mod.setUiOnly(luaValue.get("ui_only").toboolean());
+      mod.setImagePath(extractIconPath(path, luaValue));
     } catch (LuaError e) {
       throw new ModLoadException(e);
     }
 
-    return modInfoBean;
+    return mod;
   }
 
   @Override
@@ -393,15 +397,9 @@ public class ModServiceImpl implements ModService {
 
   @Override
   @Cacheable(value = CacheNames.MOD_THUMBNAIL, unless = "#result == null")
-  public Image loadThumbnail(ModInfoBean mod) {
+  public Image loadThumbnail(Mod mod) {
     URL url = mod.getThumbnailUrl();
-    if (url == null) {
-      return IdenticonUtil.createIdenticon(mod.getId());
-    }
-
-    logger.debug("Fetching thumbnail for mod {} from {}", mod.getName(), url);
-    Image image = assetService.loadAndCacheImage(url, Paths.get("mods"), null);
-    return image != null ? image : IdenticonUtil.createIdenticon(mod.getId());
+    return assetService.loadAndCacheImage(url, Paths.get("mods"), () -> IdenticonUtil.createIdenticon(mod.getId()));
   }
 
   @Override
@@ -418,7 +416,6 @@ public class ModServiceImpl implements ModService {
   public CompletableFuture<List<FeaturedModBean>> getFeaturedMods() {
     return fafService.getFeaturedMods();
   }
-
 
   @Override
   public CompletableFuture<FeaturedModBean> getFeaturedMod(String featuredMod) {
@@ -440,7 +437,7 @@ public class ModServiceImpl implements ModService {
     return mountPoints;
   }
 
-  private CompletionStage<List<ModInfoBean>> getTopElements(Comparator<? super ModInfoBean> comparator, int count) {
+  private CompletionStage<List<Mod>> getTopElements(Comparator<? super Mod> comparator, int count) {
     return getAvailableMods().thenApply(modInfoBeans -> modInfoBeans.stream()
         .sorted(comparator)
         .limit(count)
@@ -503,16 +500,16 @@ public class ModServiceImpl implements ModService {
     Files.write(preferencesFile, preferencesContent.getBytes(US_ASCII));
   }
 
-  private void removeMod(Path path) throws IOException {
+  private void removeMod(Path path) {
     installedMods.remove(pathToMod.remove(path));
   }
 
   private void addMod(Path path) {
     try {
-      ModInfoBean modInfoBean = extractModInfo(path);
-      pathToMod.put(path, modInfoBean);
-      if (!installedMods.contains(modInfoBean)) {
-        installedMods.add(modInfoBean);
+      Mod mod = extractModInfo(path);
+      pathToMod.put(path, mod);
+      if (!installedMods.contains(mod)) {
+        installedMods.add(mod);
       }
     } catch (ModLoadException e) {
       logger.debug("Corrupt mod: " + path, e);
@@ -521,5 +518,10 @@ public class ModServiceImpl implements ModService {
           new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(path))
       )));
     }
+  }
+
+  @PreDestroy
+  private void preDestroy() {
+    Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
   }
 }

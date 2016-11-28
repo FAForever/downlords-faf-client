@@ -11,7 +11,7 @@ import java.util.concurrent.CompletionStage;
 
 /**
  * Execute all necessary tasks such as downloading featured mod, patching the executable, downloading other sim mods and
- * generating the init file in order to put the game into a runnable state for a specific featured mod and version.
+ * generating the init file in order to put the preferences into a runnable state for a specific featured mod and version.
  */
 public interface GameUpdater {
 

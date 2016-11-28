@@ -9,13 +9,14 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerInfoBeanBuilder;
+import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
@@ -25,10 +26,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
@@ -58,7 +57,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private ApplicationContext applicationContext;
+  private UiService uiService;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -75,20 +74,17 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   private JoinGameHelper joinGameHelper;
   @Mock
   private AvatarService avatarService;
-  @Mock
-  private Game game;
 
   private ChatUserContextMenuController instance;
   private Player player;
 
   @Before
   public void setUp() throws Exception {
-    instance = loadController("chat_user_context_menu.fxml");
-
+    instance = new ChatUserContextMenuController();
     instance.userService = userService;
     instance.chatService = chatService;
     instance.preferencesService = preferencesService;
-    instance.applicationContext = applicationContext;
+    instance.uiService = uiService;
     instance.playerService = playerService;
     instance.gameService = gameService;
     instance.replayService = replayService;
@@ -112,7 +108,10 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
         new AvatarBean(new URL("http://www.example.com/avatar3.png"), "Avatar Number #3")
     )));
 
-    player = PlayerInfoBeanBuilder.create(TEST_USER_NAME).socialStatus(SELF).avatar(null).game(game).get();
+
+    loadFxml("theme/chat/chat_user_context_menu.fxml", clazz -> instance);
+
+    player = PlayerBuilder.create(TEST_USER_NAME).socialStatus(SELF).avatar(null).game(new Game()).get();
     instance.setPlayer(player);
   }
 
@@ -186,8 +185,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnWatchGameThrowsIoExceptionTriggersNotification() throws Exception {
-    doThrow(new IOException("Error in runLiveReplay"))
-        .when(replayService).runLiveReplay(anyInt(), anyInt());
+    doThrow(new RuntimeException("Error in runLiveReplay")).when(replayService).runLiveReplay(anyInt(), anyInt());
 
     instance.onWatchGame();
 
@@ -198,7 +196,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   public void testOnJoinGame() {
     instance.onJoinGame();
 
-    verify(joinGameHelper).join(game);
+    verify(joinGameHelper).join(any());
   }
 
   @Test

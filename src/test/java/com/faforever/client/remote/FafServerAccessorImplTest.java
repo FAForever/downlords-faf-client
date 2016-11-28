@@ -32,12 +32,10 @@ import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.io.QDataInputStream;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.update.ClientUpdateService;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.compress.utils.IOUtils;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -60,7 +58,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.singletonList;
@@ -71,7 +68,6 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -105,13 +101,9 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
   @Mock
   private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
-  private ClientUpdateService clientUpdateService;
-  @Mock
   private NotificationService notificationService;
   @Mock
   private I18n i18n;
-  @Mock
-  private ThreadPoolExecutor threadPoolExecutor;
 
   private FafServerAccessorImpl instance;
   private ServerSocket fafLobbyServerSocket;
@@ -128,15 +120,7 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
     startFakeFafLobbyServer();
 
-    instance = new FafServerAccessorImpl();
-    instance.i18n = i18n;
-    instance.notificationService = notificationService;
-    instance.preferencesService = preferencesService;
-    instance.uidService = uidService;
-    instance.lobbyHost = LOOPBACK_ADDRESS.getHostAddress();
-    instance.lobbyPort = fafLobbyServerSocket.getLocalPort();
-    instance.clientUpdateService = clientUpdateService;
-    instance.threadPoolExecutor = threadPoolExecutor;
+    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, LOOPBACK_ADDRESS.getHostAddress(), fafLobbyServerSocket.getLocalPort());
 
     LoginPrefs loginPrefs = new LoginPrefs();
     loginPrefs.setUsername("junit");
@@ -148,12 +132,6 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     when(forgedAlliancePrefs.getPort()).thenReturn(GAME_PORT);
     when(preferences.getLogin()).thenReturn(loginPrefs);
     when(uidService.generate(any(), any())).thenReturn("encrypteduidstring");
-    when(clientUpdateService.getCurrentVersion()).thenReturn(new ComparableVersion("1.0"));
-
-    doAnswer(invocation -> {
-      new Thread(invocation.getArgumentAt(0, Runnable.class)).start();
-      return null;
-    }).when(threadPoolExecutor).submit(any(Runnable.class));
 
     preferencesService.getPreferences().getLogin();
   }

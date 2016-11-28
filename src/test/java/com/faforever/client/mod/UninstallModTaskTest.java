@@ -17,7 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
 public class UninstallModTaskTest extends AbstractPlainJavaFxTest {
@@ -54,7 +54,7 @@ public class UninstallModTaskTest extends AbstractPlainJavaFxTest {
     copyMod("blackOpsSupport", BLACKOPS_SUPPORT_MOD_INFO);
     copyMod("ecoManager", ECO_MANAGER_MOD_INFO);
 
-    ModInfoBean mod = ModInfoBeanBuilder.create().uid("b2cde810-15d0-4bfa-af66-ec2d6ecd561b").get();
+    Mod mod = ModInfoBeanBuilder.create().uid("b2cde810-15d0-4bfa-af66-ec2d6ecd561b").get();
 
     Path ecoManagerPath = modsDirectory.getRoot().toPath().resolve("ecoManager");
     when(modService.getPathForMod(mod)).thenReturn(ecoManagerPath);

@@ -10,9 +10,12 @@ import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.BufferedOutputStream;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
@@ -24,15 +27,17 @@ import static com.faforever.client.io.Bytes.formatSize;
 import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.newOutputStream;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MapUploadTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
+  @Inject
   FafApiAccessor fafApiAccessor;
-  @Resource
+  @Inject
   I18n i18n;
 
   private Path mapPath;

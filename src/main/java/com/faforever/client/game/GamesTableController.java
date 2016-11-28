@@ -1,59 +1,63 @@
 package com.faforever.client.game;
 
-import com.faforever.client.fx.FxmlLoader;
+import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.remote.domain.RatingRange;
-import com.faforever.client.theme.ThemeService;
+import com.faforever.client.theme.UiService;
+import com.google.api.client.repackaged.com.google.common.base.Joiner;
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
-import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
-public class GamesTableController {
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+public class GamesTableController implements Controller<Node> {
 
   private final ObjectProperty<Game> selectedGame;
-  @FXML
-  TableView<Game> gamesTable;
-  @FXML
-  TableColumn<Game, Image> mapPreviewColumn;
-  @FXML
-  TableColumn<Game, String> gameTitleColumn;
-  @FXML
-  TableColumn<Game, PlayerFill> playersColumn;
-  @FXML
-  TableColumn<Game, RatingRange> ratingColumn;
-  @FXML
-  TableColumn<Game, String> hostColumn;
-  @FXML
-  TableColumn<Game, Boolean> passwordProtectionColumn;
-  @Resource
-  FxmlLoader fxmlLoader;
-  @Resource
+  public TableView<Game> gamesTable;
+  public TableColumn<Game, Image> mapPreviewColumn;
+  public TableColumn<Game, String> gameTitleColumn;
+  public TableColumn<Game, PlayerFill> playersColumn;
+  public TableColumn<Game, RatingRange> ratingColumn;
+  public TableColumn<Game, String> modsColumn;
+  public TableColumn<Game, String> hostColumn;
+  public TableColumn<Game, Boolean> passwordProtectionColumn;
+  @Inject
   MapService mapService;
-  @Resource
+  @Inject
   JoinGameHelper joinGameHelper;
-  @Resource
+  @Inject
   I18n i18n;
+  @Inject
+  UiService uiService;
 
   public GamesTableController() {
     this.selectedGame = new SimpleObjectProperty<>();
@@ -63,8 +67,7 @@ public class GamesTableController {
     return selectedGame;
   }
 
-  @PostConstruct
-  void postConstruct() {
+  public void initialize() {
     joinGameHelper.setParentNode(getRoot());
   }
 
@@ -83,7 +86,7 @@ public class GamesTableController {
 
     passwordProtectionColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty());
     passwordProtectionColumn.setCellFactory(param -> passwordIndicatorColumn());
-    mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(fxmlLoader));
+    mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
     mapPreviewColumn.setCellValueFactory(param -> new ObjectBinding<Image>() {
       {
         bind(param.getValue().mapFolderNameProperty());
@@ -105,11 +108,25 @@ public class GamesTableController {
     ratingColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(new RatingRange(param.getValue().getMinRating(), param.getValue().getMaxRating())));
     ratingColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
-    hostColumn.setCellFactory(param -> new StringCell<>(title -> title));
+    hostColumn.setCellFactory(param -> new StringCell<>(String::toString));
+    modsColumn.setCellValueFactory(this::modCell);
+    modsColumn.setCellFactory(param -> new StringCell<>(String::toString));
 
-    gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      Platform.runLater(() -> selectedGame.set(newValue));
-    });
+    gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
+        -> Platform.runLater(() -> selectedGame.set(newValue)));
+  }
+
+  @NotNull
+  private ObservableValue<String> modCell(CellDataFeatures<Game, String> param) {
+    int simModCount = param.getValue().getSimMods().size();
+    List<String> modNames = param.getValue().getSimMods().entrySet().stream()
+        .limit(2)
+        .map(Entry::getValue)
+        .collect(Collectors.toList());
+    if (simModCount > 2) {
+      return new SimpleStringProperty(i18n.get("game.mods.twoAndMore", modNames.get(0), modNames.get(2)));
+    }
+    return new SimpleStringProperty(Joiner.on(i18n.get("textSeparator")).join(modNames));
   }
 
   private void selectFirstGame() {
@@ -134,7 +151,7 @@ public class GamesTableController {
   private TableCell<Game, Boolean> passwordIndicatorColumn() {
     return new StringCell<>(
         isPasswordProtected -> isPasswordProtected ? i18n.get("game.protected.symbol") : "",
-        Pos.CENTER, ThemeService.CSS_CLASS_FONTAWESOME);
+        Pos.CENTER, UiService.CSS_CLASS_ICON);
   }
 
   private TableCell<Game, PlayerFill> playersCell() {

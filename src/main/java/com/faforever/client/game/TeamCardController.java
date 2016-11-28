@@ -1,36 +1,39 @@
 package com.faforever.client.game;
 
 
-import com.faforever.client.player.Player;
+import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.VBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 
-public class TeamCardController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class TeamCardController implements Controller<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @FXML
-  TitledPane teamPaneRoot;
-  @FXML
-  VBox teamPane;
+  public TitledPane teamPaneRoot;
+  public VBox teamPane;
 
-  @Resource
+  @Inject
   PlayerService playerService;
-  @Resource
-  ApplicationContext applicationContext;
-  @Resource
+  @Inject
+  UiService uiService;
+  @Inject
   I18n i18n;
 
   public void setPlayersInTeam(String team, List<String> playerList) {
@@ -41,7 +44,7 @@ public class TeamCardController {
         logger.warn("{} is not returned by playerService", player);
         continue;
       }
-      PlayerCardTooltipController playerCardTooltipController = applicationContext.getBean(PlayerCardTooltipController.class);
+      PlayerCardTooltipController playerCardTooltipController = uiService.loadFxml("theme/player_card_tooltip.fxml");
       playerCardTooltipController.setPlayer(playerInfoBean);
 
       teamPane.getChildren().add(playerCardTooltipController.getRoot());

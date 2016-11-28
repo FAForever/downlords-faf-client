@@ -1,28 +1,33 @@
 package com.faforever.client.fx;
 
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.theme.ThemeService;
+import com.faforever.client.theme.UiService;
 import javafx.concurrent.Worker.State;
 import javafx.scene.input.KeyCode;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class WebViewConfigurer {
 
   private static final double ZOOM_STEP = 0.2d;
   private static final String EVENT_TYPE_CLICK = "click";
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
-  ThemeService themeService;
-  @Resource
+  @Inject
+  UiService uiService;
+  @Inject
   PlatformService platformService;
 
   public void configureWebView(WebView webView) {
@@ -40,7 +45,7 @@ public class WebViewConfigurer {
 
     WebEngine engine = webView.getEngine();
     engine.setUserDataDirectory(preferencesService.getCacheDirectory().toFile());
-    themeService.registerWebView(webView);
+    uiService.registerWebView(webView);
     webView.getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == State.SUCCEEDED) {
         EventListener listener = ev -> {

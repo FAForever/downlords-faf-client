@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<HBox xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="1.7976931348623157E308"
+      styleClass="status-bar" xmlns="http://javafx.com/javafx/8.0.60"
+      fx:controller="com.faforever.client.ui.statusbar.StatusBarController">
+
+    <children>
+        <HBox fx:id="taskPane" alignment="CENTER_LEFT" spacing="20.0" HBox.hgrow="ALWAYS">
+            <children>
+                <Pane HBox.hgrow="SOMETIMES"/>
+                <Label fx:id="taskProgressLabel" prefWidth="480.0" text="Label">
+                    <graphic>
+                        <ProgressIndicator maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"/>
+                    </graphic>
+                </Label>
+                <ProgressBar fx:id="taskProgressBar" minWidth="80.0" prefWidth="160.0"/>
+            </children>
+        </HBox>
+        <Separator orientation="VERTICAL" />
+        <MenuButton fx:id="fafConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.fafConnected">
+            <items>
+                <MenuItem mnemonicParsing="false" onAction="#onFafReconnectClicked" text="%statusBar.reconnect" />
+            </items>
+            <graphic>
+                <Label fx:id="fafConnectionStatusIcon" styleClass="icon,connection-status" text="" />
+            </graphic>
+        </MenuButton>
+        <Separator orientation="VERTICAL" />
+        <MenuButton fx:id="chatConnectionButton" focusTraversable="false" mnemonicParsing="false" popupSide="TOP" styleClass="status-bar-menu-button" text="%statusBar.chatConnected">
+            <items>
+                <MenuItem mnemonicParsing="false" onAction="#onChatReconnectClicked" text="%statusBar.reconnect" />
+            </items>
+            <graphic>
+                <Label fx:id="chatConnectionStatusIcon" styleClass="icon,connection-status" text="" />
+            </graphic>
+        </MenuButton>
+    </children>
+    <padding>
+        <Insets left="10.0" right="10.0"/>
+    </padding>
+</HBox>

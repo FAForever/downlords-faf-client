@@ -53,7 +53,6 @@ import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeAdapter;
 import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.gson.VictoryConditionTypeAdapter;
-import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.Version;
 import com.github.nocatch.NoCatch;
 import com.google.gson.FieldNamingPolicy;
@@ -71,11 +70,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
@@ -93,6 +95,9 @@ import java.util.function.Consumer;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 
+@Lazy
+@Component
+@Profile("!local")
 public class FafServerAccessorImpl extends AbstractServerAccessor implements FafServerAccessor {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -100,21 +105,12 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private final Gson gson;
   private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners;
 
-  @Resource
-  PreferencesService preferencesService;
-  @Resource
-  UidService uidService;
-  @Resource
-  ClientUpdateService clientUpdateService;
-  @Resource
-  NotificationService notificationService;
-  @Resource
-  I18n i18n;
-
-  @Value("${lobby.host}")
-  String lobbyHost;
-  @Value("${lobby.port}")
-  int lobbyPort;
+  private final PreferencesService preferencesService;
+  private final UidService uidService;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final String lobbyHost;
+  private final int lobbyPort;
 
   private Task<Void> fafConnectionTask;
   private String localIp;
@@ -130,7 +126,15 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private Socket fafServerSocket;
   private CompletableFuture<List<Avatar>> avatarsFuture;
 
-  public FafServerAccessorImpl() {
+  @Inject
+  public FafServerAccessorImpl(PreferencesService preferencesService,
+                               UidService uidService,
+                               NotificationService notificationService,
+                               I18n i18n,
+                               @Value("${lobby.host}") String lobbyHost,
+                               @Value("${lobby.port}") int lobbyPort) {
+    this.lobbyHost = lobbyHost;
+    this.lobbyPort = lobbyPort;
     messageListeners = new HashMap<>();
     connectionState = new SimpleObjectProperty<>();
     sessionId = new SimpleObjectProperty<>();
@@ -155,6 +159,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     addOnMessageListener(GameLaunchMessage.class, this::onGameLaunchInfo);
     addOnMessageListener(AuthenticationFailedMessage.class, this::dispatchAuthenticationFailed);
     addOnMessageListener(AvatarMessage.class, this::onAvatarMessage);
+    this.preferencesService = preferencesService;
+    this.uidService = uidService;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
   }
 
   private void onAvatarMessage(AvatarMessage avatarMessage) {

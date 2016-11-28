@@ -1,23 +1,30 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.theme.ThemeService;
+import com.faforever.client.theme.UiService;
 import javafx.fxml.FXMLLoader;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.support.MessageSourceResourceBundle;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.Locale;
 
+@Component
+@Lazy
 public class FxmlLoaderImpl implements FxmlLoader {
 
-  @Resource
+  @Inject
   MessageSource messageSource;
-  @Resource
+  @Inject
   Locale locale;
-  @Resource
-  ThemeService themeService;
+  @Inject
+  UiService uiService;
+  @Inject
+  ApplicationContext applicationContext;
 
   private MessageSourceResourceBundle resources;
 
@@ -29,11 +36,6 @@ public class FxmlLoaderImpl implements FxmlLoader {
   @Override
   public <T> T loadAndGetController(String file) {
     return load(file, null, null).getController();
-  }
-
-  @Override
-  public void loadCustomControl(String file, Object control) {
-    load(file, control, control);
   }
 
   @Override
@@ -49,9 +51,12 @@ public class FxmlLoaderImpl implements FxmlLoader {
   private FXMLLoader load(String file, Object controller, Object root) {
     try {
       FXMLLoader loader = new FXMLLoader();
+//      loader.setControllerFactory(param -> {
+//          return applicationContext.getBean(param);
+//      });
       loader.setController(controller);
       loader.setRoot(root);
-      loader.setLocation(themeService.getThemeFileUrl(file));
+      loader.setLocation(uiService.getThemeFileUrl(file));
       loader.setResources(resources);
       loader.load();
       return loader;

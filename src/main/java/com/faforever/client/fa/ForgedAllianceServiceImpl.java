@@ -1,15 +1,17 @@
 package com.faforever.client.fa;
 
-import com.faforever.client.player.Player;
 import com.faforever.client.game.Faction;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
@@ -18,13 +20,15 @@ import java.util.List;
 
 import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
 
+@Lazy
+@Service
 public class ForgedAllianceServiceImpl implements ForgedAllianceService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
+  @Inject
   PlayerService playerService;
 
   @Override
@@ -57,7 +61,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .mean(mean)
         .username(currentPlayer.getUsername())
         .additionalArgs(additionalArgs)
-        .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
+        .logFile(preferencesService.getFafLogDirectory().resolve("preferences.log"))
         .localGpgPort(gpgPort)
         .rehost(rehost)
         .build();
@@ -73,7 +77,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
         .executable(executable)
         .replayFile(path)
         .replayId(replayId)
-        .logFile(preferencesService.getFafLogDirectory().resolve("game.log"))
+        .logFile(preferencesService.getFafLogDirectory().resolve("preferences.log"))
         .build();
 
     return launch(executable, launchCommand);

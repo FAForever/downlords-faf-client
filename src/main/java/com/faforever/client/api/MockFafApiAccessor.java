@@ -1,12 +1,15 @@
 package com.faforever.client.api;
 
 import com.faforever.client.coop.CoopMission;
-import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
-import com.faforever.client.mod.ModInfoBean;
-import com.faforever.client.replay.ReplayInfoBean;
+import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.Mod;
+import com.faforever.client.replay.Replay;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -14,9 +17,11 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
+@Lazy
+@Component
+@Profile("local")
+// NOSONAR
 public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
@@ -44,21 +49,21 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public void authorize(int playerId) {
+  public void authorize(int playerId, String username, String password) {
 
   }
 
   @Override
-  public List<ModInfoBean> getMods() {
+  public List<Mod> getMods() {
     return Arrays.asList(
-        ModInfoBean.fromModInfo(new Mod("1-1-1", "Mod Number One", "Mod description Apple", "Mock", LocalDateTime.now())),
-        ModInfoBean.fromModInfo(new Mod("2-2-2", "Mod Number Two", "Mod description Banana", "Mock", LocalDateTime.now())),
-        ModInfoBean.fromModInfo(new Mod("3-3-3", "Mod Number Three", "Mod description Citrus", "Mock", LocalDateTime.now())),
-        ModInfoBean.fromModInfo(new Mod("4-4-4", "Mod Number Four", "Mod description Date", "Mock", LocalDateTime.now())),
-        ModInfoBean.fromModInfo(new Mod("5-5-5", "Mod Number Five", "Mod description Elderberry", "Mock", LocalDateTime.now())),
-        ModInfoBean.fromModInfo(new Mod("6-6-6", "Mod Number Six", "Mod description Fig", "Mock", LocalDateTime.now())),
-        ModInfoBean.fromModInfo(new Mod("7-7-7", "Mod Number Seven", "Mod description Garlic", "Mock", LocalDateTime.now())),
-        ModInfoBean.fromModInfo(new Mod("8-8-8", "Mod Number Eight", "Mod description Haricot bean", "Mock", LocalDateTime.now()))
+        Mod.fromModInfo(new com.faforever.client.api.Mod("1-1-1", "Mod Number One", "Mod description Apple", "Mock", LocalDateTime.now())),
+        Mod.fromModInfo(new com.faforever.client.api.Mod("2-2-2", "Mod Number Two", "Mod description Banana", "Mock", LocalDateTime.now())),
+        Mod.fromModInfo(new com.faforever.client.api.Mod("3-3-3", "Mod Number Three", "Mod description Citrus", "Mock", LocalDateTime.now())),
+        Mod.fromModInfo(new com.faforever.client.api.Mod("4-4-4", "Mod Number Four", "Mod description Date", "Mock", LocalDateTime.now())),
+        Mod.fromModInfo(new com.faforever.client.api.Mod("5-5-5", "Mod Number Five", "Mod description Elderberry", "Mock", LocalDateTime.now())),
+        Mod.fromModInfo(new com.faforever.client.api.Mod("6-6-6", "Mod Number Six", "Mod description Fig", "Mock", LocalDateTime.now())),
+        Mod.fromModInfo(new com.faforever.client.api.Mod("7-7-7", "Mod Number Seven", "Mod description Garlic", "Mock", LocalDateTime.now())),
+        Mod.fromModInfo(new com.faforever.client.api.Mod("8-8-8", "Mod Number Eight", "Mod description Haricot bean", "Mock", LocalDateTime.now()))
     );
   }
 
@@ -79,7 +84,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<Ranked1v1EntryBean> getRanked1v1Entries() {
+  public List<Ranked1v1EntryBean> getLeaderboardEntries(RatingType ratingType) {
     return null;
   }
 
@@ -134,13 +139,8 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public ModInfoBean getMod(String uid) {
+  public Mod getMod(String uid) {
     return null;
-  }
-
-  @Override
-  public CompletionStage<List<ReplayInfoBean>> getOnlineReplays() {
-    return CompletableFuture.completedFuture(Collections.emptyList());
   }
 
   @Override
@@ -149,7 +149,37 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public void changePassword(String currentPasswordHash, String newPasswordHash) {
+  public List<Replay> searchReplayByPlayer(String playerName) {
+    return null;
+  }
+
+  @Override
+  public List<Replay> searchReplayByMap(String mapName) {
+    return null;
+  }
+
+  @Override
+  public List<Replay> searchReplayByMod(FeaturedMod featuredMod) {
+    return null;
+  }
+
+  @Override
+  public List<Replay> getNewestReplays(int count) {
+    return null;
+  }
+
+  @Override
+  public List<Replay> getHighestRatedReplays(int count) {
+    return null;
+  }
+
+  @Override
+  public List<Replay> getMostWatchedReplays(int count) {
+    return null;
+  }
+
+  @Override
+  public void changePassword(String username, String currentPasswordHash, String newPasswordHash) {
 
   }
 

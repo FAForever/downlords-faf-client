@@ -14,8 +14,11 @@ import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,14 +36,16 @@ import java.util.zip.ZipInputStream;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResult> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  @Resource
+  @Inject
   FafService fafService;
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
+  @Inject
   ModService modService;
 
   private FeaturedModBean featuredMod;

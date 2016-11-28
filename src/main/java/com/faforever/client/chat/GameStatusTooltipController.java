@@ -1,59 +1,54 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.fx.Controller;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
 import javafx.beans.binding.Bindings;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 
-public class GameStatusTooltipController {
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+public class GameStatusTooltipController  implements Controller<Node> {
 
-  @FXML
-  Label lockIconLabel;
-  @FXML
-  Label gameTypeLabel;
-  @FXML
-  Label gameMapLabel;
-  @FXML
-  Label gameTitleLabel;
-  @FXML
-  Label numberOfPlayersLabel;
-  @FXML
-  Label hostLabel;
-  @FXML
-  Label modsLabel;
-  @FXML
-  ImageView mapImageView;
-  @FXML
-  Pane gameStatusTooltipRoot;
+  public Label lockIconLabel;
+  public Label gameTypeLabel;
+  public Label gameMapLabel;
+  public Label gameTitleLabel;
+  public Label numberOfPlayersLabel;
+  public Label hostLabel;
+  public Label modsLabel;
+  public ImageView mapImageView;
+  public Pane gameStatusTooltipRoot;
 
-  @Resource
+  @Inject
   MapService mapService;
-  @Resource
-  ApplicationContext applicationContext;
-  @Resource
+  @Inject
   GameService gameService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   ModService modService;
+  @Inject
+  UiService uiService;
 
-  @FXML
-  void initialize() {
+  public void initialize() {
     modsLabel.managedProperty().bindBidirectional(modsLabel.visibleProperty());
     modsLabel.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
   }
@@ -75,7 +70,7 @@ public class GameStatusTooltipController {
     // TODO display "unknown map" image first since loading may take a while
     mapImageView.imageProperty().bind(Bindings.createObjectBinding(() -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL), game.mapFolderNameProperty()));
 
-    GameTooltipController gameTooltipController = applicationContext.getBean(GameTooltipController.class);
+    GameTooltipController gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
     gameTooltipController.setGameInfoBean(game);
     gameStatusTooltipRoot.getChildren().add(gameTooltipController.getRoot());
     gameStatusTooltipRoot.getChildren();

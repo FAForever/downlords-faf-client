@@ -186,7 +186,7 @@ public class LocalReplayInfo {
   }
 
   /**
-   * If 0.0, then {@code launchedAt} should be available instead.
+   * Backwards compatibility: If 0.0, then {@code launchedAt} should be available instead.
    */
   public double getGameTime() {
     return gameTime;
@@ -197,7 +197,7 @@ public class LocalReplayInfo {
   }
 
   /**
-   * If 0.0, then {@code gameTime} should be available instead.
+   * Backwards compatibility: If 0.0, then {@code gameTime} should be available instead.
    */
   public double getLaunchedAt() {
     return launchedAt;

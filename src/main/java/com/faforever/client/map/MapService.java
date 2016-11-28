@@ -6,6 +6,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -17,6 +18,10 @@ public interface MapService {
   @Nullable
   MapBean readMap(Path mapPath);
 
+  /**
+   * Loads the preview of a map or returns a "unknown map" image.
+   */
+  @NotNull
   Image loadPreview(String mapName, PreviewSize previewSize);
 
   ObservableList<MapBean> getInstalledMaps();
@@ -29,7 +34,6 @@ public interface MapService {
 
   /**
    * Returns {@code true} if the given map is available locally, {@code false} otherwise.
-   * @param mapFolderName
    */
   boolean isInstalled(String mapFolderName);
 

@@ -1,9 +1,16 @@
 package com.faforever.client.legacy;
 
 import com.faforever.client.os.OsUtils;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 
+
+@Lazy
+@Service
+@Profile({"unix", "mac"})
 public class UnixUidService implements UidService {
 
   @Override

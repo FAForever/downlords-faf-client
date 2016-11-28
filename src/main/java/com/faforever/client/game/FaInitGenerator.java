@@ -6,9 +6,11 @@ import com.faforever.client.preferences.PreferencesService;
 import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStreamReader;
@@ -24,11 +26,14 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * Generates the Forged Alliance init file that is required to mount all necessary files and directories.
  */
+
+@Lazy
+@Component
 public class FaInitGenerator {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final ClassPathResource INIT_TEMPLATE = new ClassPathResource("/fa/init_template.lua");
 
-  @Resource
+  @Inject
   PreferencesService preferencesService;
 
   /**

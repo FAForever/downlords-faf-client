@@ -23,10 +23,10 @@ import java.util.Set;
 public class ModInfoBeanIterator implements InputIterator {
 
   private final Gson gson;
-  private ModInfoBean currentMod;
-  private Iterator<ModInfoBean> modIterator;
+  private Mod currentMod;
+  private Iterator<Mod> modIterator;
 
-  public ModInfoBeanIterator(Iterator<ModInfoBean> modIterator) {
+  public ModInfoBeanIterator(Iterator<Mod> modIterator) {
     this.modIterator = modIterator;
     this.gson = new GsonBuilder()
         .registerTypeHierarchyAdapter(Property.class, PropertyTypeAdapter.INSTANCE)
@@ -63,10 +63,10 @@ public class ModInfoBeanIterator implements InputIterator {
     return false;
   }
 
-  private byte[] serialize(ModInfoBean modInfoBean) throws IOException {
+  private byte[] serialize(Mod mod) throws IOException {
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     try (Writer writer = new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8)) {
-      gson.toJson(modInfoBean, writer);
+      gson.toJson(mod, writer);
     }
     return byteArrayOutputStream.toByteArray();
   }
@@ -79,9 +79,9 @@ public class ModInfoBeanIterator implements InputIterator {
     return new BytesRef(currentMod.getName().getBytes(StandardCharsets.UTF_8));
   }
 
-  public ModInfoBean deserialize(byte[] bytes) {
+  public Mod deserialize(byte[] bytes) {
     try (Reader reader = new InputStreamReader(new ByteArrayInputStream(bytes), StandardCharsets.UTF_8)) {
-      return gson.fromJson(reader, ModInfoBean.class);
+      return gson.fromJson(reader, Mod.class);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

@@ -26,7 +26,4 @@
     <Label fx:id="authoredLabel" styleClass="news-item-authored" text="&lt;Name on 23.06.2015&gt;"
            GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.valignment="TOP"/>
   </children>
-  <padding>
-    <Insets bottom="20.0" left="10.0" right="10.0" top="20.0"/>
-  </padding>
 </GridPane>

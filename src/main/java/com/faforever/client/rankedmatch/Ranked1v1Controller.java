@@ -1,11 +1,12 @@
 package com.faforever.client.rankedmatch;
 
 import com.faforever.client.api.Ranked1v1Stats;
-import com.faforever.client.player.Player;
+import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.RatingUtil;
@@ -15,7 +16,6 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
@@ -28,10 +28,12 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.List;
@@ -42,66 +44,48 @@ import java.util.stream.Collectors;
 
 import static java.lang.Integer.parseInt;
 
-@SuppressWarnings("FieldCanBeLocal")
-public class Ranked1v1Controller {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class Ranked1v1Controller extends AbstractViewController<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final PseudoClass NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("highlighted-bar");
 
   private final Random random;
 
-  @FXML
-  CategoryAxis ratingDistributionXAxis;
-  @FXML
-  NumberAxis ratingDistributionYAxis;
-  @FXML
-  BarChart<String, Integer> ratingDistributionChart;
-  @FXML
-  Label ratingHintLabel;
-  @FXML
-  Label searchingForOpponentLabel;
-  @FXML
-  Label ratingLabel;
-  @FXML
-  ProgressIndicator searchProgressIndicator;
-  @FXML
-  ProgressIndicator ratingProgressIndicator;
-  @FXML
-  ToggleButton aeonButton;
-  @FXML
-  ToggleButton uefButton;
-  @FXML
-  ToggleButton cybranButton;
-  @FXML
-  ToggleButton seraphimButton;
-  @FXML
-  Button cancelButton;
-  @FXML
-  Button playButton;
-  @FXML
-  ScrollPane ranked1v1Root;
-  @FXML
-  Label gamesPlayedLabel;
-  @FXML
-  Label rankingLabel;
-  @FXML
-  Label winLossRationLabel;
-  @FXML
-  Label rankingOutOfLabel;
+  public CategoryAxis ratingDistributionXAxis;
+  public NumberAxis ratingDistributionYAxis;
+  public BarChart<String, Integer> ratingDistributionChart;
+  public Label ratingHintLabel;
+  public Label searchingForOpponentLabel;
+  public Label ratingLabel;
+  public ProgressIndicator searchProgressIndicator;
+  public ProgressIndicator ratingProgressIndicator;
+  public ToggleButton aeonButton;
+  public ToggleButton uefButton;
+  public ToggleButton cybranButton;
+  public ToggleButton seraphimButton;
+  public Button cancelButton;
+  public Button playButton;
+  public ScrollPane ranked1v1Root;
+  public Label gamesPlayedLabel;
+  public Label rankingLabel;
+  public Label winLossRationLabel;
+  public Label rankingOutOfLabel;
 
-  @Resource
+  @Inject
   GameService gameService;
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
+  @Inject
   PlayerService playerService;
-  @Resource
+  @Inject
   Environment environment;
-  @Resource
+  @Inject
   LeaderboardService leaderboardService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   Locale locale;
 
   @VisibleForTesting
@@ -114,8 +98,9 @@ public class Ranked1v1Controller {
     random = new Random();
   }
 
-  @FXML
-  void initialize() {
+  @Override
+  public void initialize() {
+    super.initialize();
     cancelButton.managedProperty().bind(cancelButton.visibleProperty());
     playButton.managedProperty().bind(playButton.visibleProperty());
     ratingLabel.managedProperty().bind(ratingLabel.visibleProperty());
@@ -128,25 +113,8 @@ public class Ranked1v1Controller {
     factionsToButtons.put(Faction.SERAPHIM, seraphimButton);
 
     setSearching(false);
-  }
 
-  private void setSearching(boolean searching) {
-    cancelButton.setVisible(searching);
-    playButton.setVisible(!searching);
-    searchProgressIndicator.setVisible(searching);
-    searchingForOpponentLabel.setVisible(searching);
-    setFactionButtonsDisabled(searching);
-  }
-
-  private void setFactionButtonsDisabled(boolean disabled) {
-    factionsToButtons.values().forEach(button -> button.setDisable(disabled));
-  }
-
-  @PostConstruct
-  void postConstruct() {
-    gameService.searching1v1Property().addListener((observable, oldValue, newValue) -> {
-      setSearching(newValue);
-    });
+    gameService.searching1v1Property().addListener((observable, oldValue, newValue) -> setSearching(newValue));
 
     ObservableList<Faction> factions = preferencesService.getPreferences().getRanked1v1().getFactions();
     for (Faction faction : factions) {
@@ -161,8 +129,19 @@ public class Ranked1v1Controller {
     });
   }
 
-  @FXML
-  void onCancelButtonClicked() {
+  private void setSearching(boolean searching) {
+    cancelButton.setVisible(searching);
+    playButton.setVisible(!searching);
+    searchProgressIndicator.setVisible(searching);
+    searchingForOpponentLabel.setVisible(searching);
+    setFactionButtonsDisabled(searching);
+  }
+
+  private void setFactionButtonsDisabled(boolean disabled) {
+    factionsToButtons.values().forEach(button -> button.setDisable(disabled));
+  }
+
+  public void onCancelButtonClicked() {
     gameService.stopSearchRanked1v1();
     setSearching(false);
   }
@@ -171,8 +150,7 @@ public class Ranked1v1Controller {
     return ranked1v1Root;
   }
 
-  @FXML
-  void onPlayButtonClicked() {
+  public void onPlayButtonClicked() {
     if (preferencesService.getPreferences().getForgedAlliance().getPath() == null) {
       // FIXME implement user notification
       return;
@@ -187,8 +165,7 @@ public class Ranked1v1Controller {
     gameService.startSearchRanked1v1(randomFaction);
   }
 
-  @FXML
-  void onFactionButtonClicked() {
+  public void onFactionButtonClicked() {
     List<Faction> factions = factionsToButtons.entrySet().stream()
         .filter(entry -> entry.getValue().isSelected())
         .map(Map.Entry::getKey)
@@ -200,7 +177,7 @@ public class Ranked1v1Controller {
     playButton.setDisable(factions.isEmpty());
   }
 
-  public void setUpIfNecessary() {
+  public void onDisplay() {
     if (initialized) {
       return;
     }

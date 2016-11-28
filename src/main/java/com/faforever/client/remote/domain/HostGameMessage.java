@@ -3,7 +3,7 @@ package com.faforever.client.remote.domain;
 import com.faforever.client.game.GameVisibility;
 
 /**
- * Data sent from the client to the FAF server to tell it about a game to be hosted.
+ * Data sent from the client to the FAF server to tell it about a preferences to be hosted.
  */
 public class HostGameMessage extends ClientMessage {
 

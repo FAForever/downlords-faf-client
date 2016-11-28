@@ -1,45 +1,46 @@
 package com.faforever.client.news;
 
+import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.theme.ThemeService;
-import javafx.fxml.FXML;
+import com.faforever.client.theme.UiService;
+import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Pane;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 
-public class NewsListItemController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class NewsListItemController implements Controller<Node> {
 
-  @FXML
-  Pane newsItemRoot;
-  @FXML
-  ImageView imageView;
-  @FXML
-  Label titleLabel;
-  @FXML
-  Label authoredLabel;
-  @Resource
+  static final PseudoClass SELECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("selected");
+
+  public Node newsItemRoot;
+  public ImageView imageView;
+  public Label titleLabel;
+  public Label authoredLabel;
+  @Inject
   I18n i18n;
-  @Resource
-  ThemeService themeService;
+  @Inject
+  UiService uiService;
   private NewsItem newsItem;
   private OnItemSelectedListener onItemSelectedListener;
 
-  @PostConstruct
-  void postConstruct() {
+  public void initialize() {
     // TODO only use this if there's no thumbnail. However, there's never a thumbnail ATM.
-    imageView.setImage(themeService.getThemeImage(ThemeService.DEFAULT_NEWS_IMAGE));
+    imageView.setImage(uiService.getThemeImage(UiService.DEFAULT_NEWS_IMAGE));
   }
 
+  @Override
   public Node getRoot() {
     return newsItemRoot;
   }
 
-  @FXML
-  void onMouseClicked() {
+  public void onMouseClicked() {
     onItemSelectedListener.onSelected(newsItem);
   }
 

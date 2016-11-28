@@ -2,7 +2,7 @@ package com.faforever.client.achievements;
 
 import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.api.AchievementDefinition;
-import com.faforever.client.audio.AudioController;
+import com.faforever.client.audio.AudioService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.notification.TransientNotification;
@@ -11,25 +11,29 @@ import com.faforever.client.remote.UpdatedAchievement;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 
+@Lazy
+@Component
 public class AchievementUnlockedNotifier {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Resource
+  @Inject
   NotificationServiceImpl notificationService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   AchievementService achievementService;
-  @Resource
+  @Inject
   FafService fafService;
-  @Resource
-  AudioController audioController;
+  @Inject
+  AudioService audioService;
 
   private long lastSoundPlayed;
 
@@ -52,7 +56,7 @@ public class AchievementUnlockedNotifier {
 
   private void notifyAboutUnlockedAchievement(AchievementDefinition achievementDefinition) {
     if (lastSoundPlayed < System.currentTimeMillis() - 1000) {
-      audioController.playAchievementUnlockedSound();
+      audioService.playAchievementUnlockedSound();
       lastSoundPlayed = System.currentTimeMillis();
     }
     notificationService.addNotification(new TransientNotification(

@@ -4,8 +4,10 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.PlayerEvent;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -15,13 +17,16 @@ import java.util.concurrent.ThreadPoolExecutor;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
+
+@Lazy
+@Service
 public class EventServiceImpl implements EventService {
 
-  @Resource
+  @Inject
   FafApiAccessor fafApiAccessor;
-  @Resource
+  @Inject
   PlayerService playerService;
-  @Resource
+  @Inject
   ThreadPoolExecutor threadPoolExecutor;
 
   @Override

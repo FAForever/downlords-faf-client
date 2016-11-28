@@ -3,7 +3,7 @@ package com.faforever.client.api;
 import com.faforever.client.coop.CoopCategory;
 import com.faforever.client.coop.CoopMission;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
-import com.faforever.client.mod.ModInfoBean;
+import com.faforever.client.mod.Mod;
 import com.faforever.client.mod.ModInfoBeanBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.UserService;
@@ -12,7 +12,7 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.LowLevelHttpRequest;
 import com.google.api.client.http.LowLevelHttpResponse;
 import com.google.api.client.json.gson.GsonFactory;
-import javafx.beans.property.SimpleBooleanProperty;
+import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,6 +64,9 @@ public class FafApiAccessorImplTest {
   private UserService userService;
   @Mock
   private ClientHttpRequestFactory clientHttpRequestFactory;
+  @Mock
+  private EventBus eventBus;
+
   @Spy
   private SpyableHttpTransport httpTransport;
 
@@ -73,24 +76,16 @@ public class FafApiAccessorImplTest {
 
     httpTransport.lowLevelHttpRequest = httpRequest;
 
-    instance = new FafApiAccessorImpl();
-    instance.preferencesService = preferencesService;
+    instance = new FafApiAccessorImpl(new GsonFactory(), preferencesService, httpTransport, clientHttpRequestFactory, eventBus);
     instance.baseUrl = "http://api.example.com";
     instance.oAuthTokenServerUrl = "http://api.example.com/token";
     instance.oAuthClientSecret = "123";
     instance.oAuthClientId = "456";
     instance.oAuthUrl = "http://api.example.com/oauth/authorize";
     instance.oAuthLoginUrl = new URI("http://api.example.com/login");
-    instance.httpTransport = httpTransport;
-    instance.userService = userService;
-    instance.clientHttpRequestFactory = clientHttpRequestFactory;
-    instance.jsonFactory = new GsonFactory();
-
-    SimpleBooleanProperty loggedInProperty = new SimpleBooleanProperty();
 
     when(preferencesService.getPreferencesDirectory()).thenReturn(preferencesDirectory.getRoot().toPath());
-    when(userService.loggedInProperty()).thenReturn(loggedInProperty);
-    when(userService.getUid()).thenReturn(123);
+    when(userService.getUserId()).thenReturn(123);
     when(userService.getUsername()).thenReturn("junit");
     when(userService.getPassword()).thenReturn("42");
 
@@ -103,7 +98,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   public void testGetPlayerAchievements() throws Exception {
-    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.requestFactory = httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
 
     mockResponse("{'data': [" +
@@ -138,7 +133,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   public void testGetAchievementDefinitions() throws Exception {
-    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.requestFactory = httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
 
     mockResponse("{'data': [" +
@@ -164,7 +159,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   public void testGetAchievementDefinition() throws Exception {
-    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.requestFactory = httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
 
     AchievementDefinition achievementDefinition = new AchievementDefinition();
@@ -183,7 +178,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   public void testGetPlayerEvents() throws Exception {
-    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.requestFactory = httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
 
     mockResponse("{'data': [" +
@@ -214,7 +209,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   public void testGetMods() throws Exception {
-    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.requestFactory = httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
 
     mockResponse("{'data': [" +
@@ -237,7 +232,7 @@ public class FafApiAccessorImplTest {
             "]}",
         "{'data': []}");
 
-    List<ModInfoBean> result = Arrays.asList(
+    List<Mod> result = Arrays.asList(
         ModInfoBeanBuilder.create().defaultValues().uid("1").get(),
         ModInfoBeanBuilder.create().defaultValues().uid("2").get()
     );
@@ -249,7 +244,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   public void testGetRanked1v1Entries() throws Exception {
-    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.requestFactory = httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
 
 
@@ -276,14 +271,14 @@ public class FafApiAccessorImplTest {
         Ranked1v1EntryBeanBuilder.create().defaultValues().username("user2").get()
     );
 
-    assertThat(instance.getRanked1v1Entries(), equalTo(result));
+    assertThat(instance.getLeaderboardEntries(RatingType.LADDER_1V1), equalTo(result));
     verify(httpTransport).buildRequest("GET", "http://api.example.com/leaderboards/1v1?page%5Bnumber%5D=1");
     verify(httpTransport).buildRequest("GET", "http://api.example.com/leaderboards/1v1?page%5Bnumber%5D=2");
   }
 
   @Test
   public void testGetRanked1v1Stats() throws Exception {
-    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.requestFactory = httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
 
 
@@ -308,7 +303,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   public void testGetRanked1v1EntryForPlayer() throws Exception {
-    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.requestFactory = httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
 
     mockResponse("{'data': [" +
@@ -330,7 +325,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   public void testGetRatingHistoryGlobal() throws Exception {
-    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.requestFactory = httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
 
     mockResponse("{" +
@@ -358,7 +353,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   public void testGetRatingHistory1v1() throws Exception {
-    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.requestFactory = httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
 
     mockResponse("{" +
@@ -386,7 +381,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   public void testUploadMod() throws Exception {
-    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.requestFactory = httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
 
     Path file = Files.createTempFile("foo", null);
@@ -400,10 +395,10 @@ public class FafApiAccessorImplTest {
 
   @Test
   public void testChangePassword() throws Exception {
-    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.requestFactory = httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
 
-    instance.changePassword("currentPasswordHash", "newPasswordHash");
+    instance.changePassword("junit", "currentPasswordHash", "newPasswordHash");
 
     verify(httpTransport).buildRequest("POST", "http://api.example.com/users/change_password");
   }
@@ -426,14 +421,14 @@ public class FafApiAccessorImplTest {
 
     mockResponse("{}");
 
-    instance.authorize(123);
+    instance.authorize(123, "", "");
 
     assertThat(instance.credential, notNullValue());
   }
 
   @Test
   public void testGetCoopMissions() throws Exception {
-    instance.requestFactory = instance.httpTransport.createRequestFactory();
+    instance.requestFactory = httpTransport.createRequestFactory();
     instance.credential = mock(Credential.class);
 
     mockResponse("{'data': [" +

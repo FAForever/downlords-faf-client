@@ -2,16 +2,21 @@ package com.faforever.client.replay;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.task.CompletableTask;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.Collection;
 
-public class LoadLocalReplaysTask extends CompletableTask<Collection<ReplayInfoBean>> {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class LoadLocalReplaysTask extends CompletableTask<Collection<Replay>> {
 
-  @Resource
+  @Inject
   ReplayService replayService;
 
-  @Resource
+  @Inject
   I18n i18n;
 
 
@@ -20,7 +25,7 @@ public class LoadLocalReplaysTask extends CompletableTask<Collection<ReplayInfoB
   }
 
   @Override
-  protected Collection<ReplayInfoBean> call() throws Exception {
+  protected Collection<Replay> call() throws Exception {
     updateTitle(i18n.get("replays.loadingLocalTask.title"));
     return replayService.getLocalReplays();
   }

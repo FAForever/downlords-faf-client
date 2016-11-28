@@ -10,7 +10,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -20,8 +21,10 @@ public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTes
 
   @Before
   public void setUp() throws Exception {
-    instance = loadController("persistent_notification.fxml");
+    instance = new PersistentNotificationController();
     instance.notificationService = mock(NotificationService.class);
+
+    loadFxml("theme/persistent_notification.fxml", clazz -> instance);
   }
 
   @Test
@@ -32,7 +35,7 @@ public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTes
     instance.setNotification(notification);
 
     assertEquals("foo", instance.messageLabel.getText());
-    assertEquals("\uf05a", instance.iconLabel.getText());
+    assertEquals("\uE88F", instance.iconLabel.getText());
     assertThat(instance.actionButtonsContainer.getChildren(), hasSize(0));
   }
 
@@ -48,7 +51,7 @@ public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTes
     instance.setNotification(notification);
 
     assertEquals("foo", instance.messageLabel.getText());
-    assertEquals("\uf071", instance.iconLabel.getText());
+    assertEquals("\uE002", instance.iconLabel.getText());
     assertThat(instance.actionButtonsContainer.getChildren(), hasSize(1));
   }
 
@@ -60,7 +63,7 @@ public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTes
     instance.setNotification(notification);
 
     assertEquals("foo", instance.messageLabel.getText());
-    assertEquals("\uf06a", instance.iconLabel.getText());
+    assertEquals("\uE001", instance.iconLabel.getText());
     assertThat(instance.actionButtonsContainer.getChildren(), hasSize(0));
   }
 

@@ -2,15 +2,15 @@ package com.faforever.client.i18n;
 
 import org.springframework.context.MessageSource;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.Locale;
 
 public class I18nImpl implements I18n {
 
-  @Resource
+  @Inject
   MessageSource messageSource;
 
-  @Resource
+  @Inject
   Locale locale;
 
   @Override
@@ -19,7 +19,21 @@ public class I18nImpl implements I18n {
   }
 
   @Override
+  public String getQuantized(String singularKey, String pluralKey, long arg) {
+    Object[] args = {arg};
+    if (Math.abs(arg) == 1) {
+      return messageSource.getMessage(singularKey, args, locale);
+    }
+    return messageSource.getMessage(pluralKey, args, locale);
+  }
+
+  @Override
   public Locale getLocale() {
     return locale;
+  }
+
+  @Override
+  public String number(int number) {
+    return String.format(locale, "%d", number);
   }
 }

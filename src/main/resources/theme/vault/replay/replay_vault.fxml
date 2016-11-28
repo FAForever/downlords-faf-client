@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
+<TreeTableView xmlns:fx="http://javafx.com/fxml/1" fx:id="replayVaultRoot" prefHeight="200.0" prefWidth="200.0"
+               showRoot="false" xmlns="http://javafx.com/javafx/8.0.40"
+               fx:controller="com.faforever.client.vault.replay.ReplayVaultController">
+  <columns>
+    <TreeTableColumn fx:id="mapColumn" prefWidth="75.0" text="%replay.map"/>
+    <TreeTableColumn fx:id="titleColumn" prefWidth="75.0" text="%replay.title"/>
+    <TreeTableColumn fx:id="playersColumn" prefWidth="75.0" text="%replay.players"/>
+    <TreeTableColumn fx:id="timeColumn" prefWidth="75.0" text="%replay.time"/>
+    <TreeTableColumn fx:id="durationColumn" prefWidth="75.0" text="%replay.duration"/>
+    <TreeTableColumn fx:id="gameTypeColumn" prefWidth="75.0" text="%replay.gameType"/>
+    <TreeTableColumn fx:id="idColumn" prefWidth="75.0" text="%replay.id"/>
+  </columns>
+  <columnResizePolicy>
+    <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+  </columnResizePolicy>
+</TreeTableView>

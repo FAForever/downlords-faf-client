@@ -6,35 +6,43 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.google.common.eventbus.EventBus;
-import com.google.common.hash.Hashing;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
-import javax.annotation.Resource;
-import java.nio.charset.StandardCharsets;
+import javax.inject.Inject;
 import java.nio.file.Path;
 import java.util.concurrent.CompletionStage;
 
+
+@Lazy
+@Component
+@Profile("!local")
 public class GitRepositoryFeaturedModUpdater implements FeaturedModUpdater {
 
-  @Resource
+  private static final String NON_WORD_CHARACTER_PATTERN = "[^\\w]";
+
+  @Inject
   TaskService taskService;
-  @Resource
+  @Inject
   NotificationService notificationService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   GitWrapper gitWrapper;
-  @Resource
+  @Inject
   ApplicationContext applicationContext;
-  @Resource
+  @Inject
   EventBus eventBus;
-  @Resource
+  @Inject
   PreferencesService preferencesService;
 
   @Override
+  @SuppressWarnings("unchecked")
   public CompletionStage<PatchResult> updateMod(FeaturedModBean featuredMod, @Nullable Integer version) {
-    String repoDirName = Hashing.md5().hashString(featuredMod.getGitUrl(), StandardCharsets.UTF_8).toString();
+    String repoDirName = featuredMod.getGitUrl().replaceAll(NON_WORD_CHARACTER_PATTERN, "");
     Path repositoryDirectory = preferencesService.getGitReposDirectory().resolve(repoDirName);
 
     GitFeaturedModUpdateTask modUpdateTask = applicationContext.getBean(GitFeaturedModUpdateTask.class);

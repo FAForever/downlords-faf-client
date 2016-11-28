@@ -3,16 +3,23 @@ package com.faforever.client.patch;
 import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.task.TaskService;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.concurrent.CompletionStage;
 
+
+@Lazy
+@Component
+@Profile("!local")
 public class SimpleHttpFeaturedModUpdater implements FeaturedModUpdater {
 
-  @Resource
+  @Inject
   TaskService taskService;
-  @Resource
+  @Inject
   ApplicationContext applicationContext;
 
   @Override

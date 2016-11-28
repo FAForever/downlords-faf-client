@@ -1,27 +1,30 @@
 package com.faforever.client.game;
 
 import com.faforever.client.chat.CountryFlagService;
-import com.faforever.client.player.Player;
+import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.player.Player;
 import com.faforever.client.util.RatingUtil;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 
 
-public class PlayerCardTooltipController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class PlayerCardTooltipController implements Controller<Node> {
 
-  @FXML
-  Label playerInfo;
-  @FXML
-  ImageView playerFlag;
+  public Label playerInfo;
+  public ImageView playerFlag;
 
-  @Resource
+  @Inject
   CountryFlagService countryFlagService;
-  @Resource
+  @Inject
   I18n i18n;
 
   public void setPlayer(Player player) {

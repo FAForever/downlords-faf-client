@@ -1,38 +1,36 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.fx.Controller;
 import javafx.collections.ObservableList;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Controller for a single persistent notification entry.
  */
-public class PersistentNotificationController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class PersistentNotificationController  implements Controller<Node> {
 
   private static final String CSS_STYLE_INFO = "info";
   private static final String CSS_STYLE_WARN = "warn";
   private static final String CSS_STYLE_ERROR = "error";
 
-  @FXML
-  Node notificationRoot;
+  public Node notificationRoot;
+  public Label messageLabel;
+  public Label iconLabel;
+  public HBox actionButtonsContainer;
 
-  @FXML
-  Label messageLabel;
-
-  @FXML
-  Label iconLabel;
-
-  @FXML
-  HBox actionButtonsContainer;
-
-  @Resource
+  @Inject
   NotificationService notificationService;
 
   private PersistentNotification notification;
@@ -53,15 +51,15 @@ public class PersistentNotificationController {
 
     switch (severity) {
       case INFO:
-        iconLabel.setText("\uf05a");
+        iconLabel.setText("\uE88F");
         styleClasses.add(CSS_STYLE_INFO);
         break;
       case WARN:
-        iconLabel.setText("\uf071");
+        iconLabel.setText("\uE002");
         styleClasses.add(CSS_STYLE_WARN);
         break;
       case ERROR:
-        iconLabel.setText("\uf06a");
+        iconLabel.setText("\uE001");
         styleClasses.add(CSS_STYLE_ERROR);
         break;
       default:

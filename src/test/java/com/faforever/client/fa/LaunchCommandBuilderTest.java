@@ -13,7 +13,7 @@ public class LaunchCommandBuilderTest {
   private static LaunchCommandBuilder defaultBuilder() {
     return LaunchCommandBuilder.create()
         .executable(Paths.get("test.exe"))
-        .logFile(Paths.get("game.log"))
+        .logFile(Paths.get("preferences.log"))
         .username("junit");
   }
 
@@ -92,7 +92,7 @@ public class LaunchCommandBuilderTest {
             "/path/to/my/wineprefix", "primusrun", "wine", Paths.get("test.exe").toAbsolutePath().toString(),
             "/init", "init.lua",
             "/nobugreport",
-            "/log", Paths.get("game.log").toAbsolutePath().toString()
+            "/log", Paths.get("preferences.log").toAbsolutePath().toString()
         ));
   }
 
@@ -104,7 +104,7 @@ public class LaunchCommandBuilderTest {
             Paths.get("test.exe").toAbsolutePath().toString(),
             "/init", "init.lua",
             "/nobugreport",
-            "/log", Paths.get("game.log").toAbsolutePath().toString(),
+            "/log", Paths.get("preferences.log").toAbsolutePath().toString(),
             "/rehost"
         ));
   }

@@ -12,7 +12,7 @@ public class MountPoint {
   }
 
   /**
-   * Returns the directory on the local file system that should be mounted into the virtual file system of the game.
+   * Returns the directory on the local file system that should be mounted into the virtual file system of the preferences.
    */
   public Path getDirectory() {
     return directory;

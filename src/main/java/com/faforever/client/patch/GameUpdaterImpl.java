@@ -12,7 +12,7 @@ import com.faforever.client.task.TaskService;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.context.ApplicationContext;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,29 +25,30 @@ import java.util.stream.Stream;
 import static com.faforever.client.game.KnownFeaturedMod.BALANCE_TESTING;
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.game.KnownFeaturedMod.FAF_BETA;
+import static com.faforever.client.game.KnownFeaturedMod.FAF_DEVELOP;
 import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
 
 public class GameUpdaterImpl implements GameUpdater {
 
-  private static final List<String> NAMES_OF_FEATURED_BASE_MODS = Stream.of(FAF, FAF_BETA, BALANCE_TESTING, LADDER_1V1)
+  private static final List<String> NAMES_OF_FEATURED_BASE_MODS = Stream.of(FAF, FAF_BETA, FAF_DEVELOP, BALANCE_TESTING, LADDER_1V1)
       .map(KnownFeaturedMod::getString)
       .collect(Collectors.toList());
   private final List<FeaturedModUpdater> featuredModUpdaters;
-  @Resource
+  @Inject
   ModService modService;
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
+  @Inject
   NotificationService notificationService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   ApplicationContext applicationContext;
-  @Resource
+  @Inject
   TaskService taskService;
-  @Resource
+  @Inject
   FafService fafService;
-  @Resource
+  @Inject
   FaInitGenerator faInitGenerator;
 
   public GameUpdaterImpl() {
@@ -77,7 +78,7 @@ public class GameUpdaterImpl implements GameUpdater {
 
     return future.thenCompose(aVoid -> updateFeaturedMod(featuredMod, version))
         .thenAccept(patchResults::add)
-        .thenRun(() -> updateGameBinaries(patchResults.get(0).getVersion()))
+        .thenCompose(aVoid -> updateGameBinaries(patchResults.get(0).getVersion()))
         .thenRun(() -> {
           List<MountPoint> collect = patchResults.stream()
               .flatMap(patchResult -> patchResult.getMountPoints().stream())
@@ -115,7 +116,7 @@ public class GameUpdaterImpl implements GameUpdater {
   }
 
   private CompletableFuture<Void> updateGameBinaries(ComparableVersion version) {
-    GameBinariesUpdateTask binariesUpdateTask = applicationContext.getBean(GameBinariesUpdateTask.class);
+    GameBinariesUpdateTask binariesUpdateTask = applicationContext.getBean(GameBinariesUpdateTaskImpl.class);
     binariesUpdateTask.setVersion(version);
     return taskService.submitTask(binariesUpdateTask).getFuture();
   }

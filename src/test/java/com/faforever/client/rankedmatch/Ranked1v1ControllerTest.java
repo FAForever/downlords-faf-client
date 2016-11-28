@@ -1,12 +1,12 @@
 package com.faforever.client.rankedmatch;
 
 import com.faforever.client.api.Ranked1v1Stats;
-import com.faforever.client.player.Player;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
+import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
@@ -31,7 +31,7 @@ import java.util.concurrent.CompletableFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -71,7 +71,7 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = loadController("ranked_1v1.fxml");
+    instance = new Ranked1v1Controller();
     instance.gameService = gameService;
     instance.preferencesService = preferencesService;
     instance.playerService = playerService;
@@ -109,14 +109,14 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     when(environment.getProperty("rating.top", int.class)).thenReturn(500);
     when(environment.getProperty("rating.beta", int.class)).thenReturn(10);
 
-    instance.postConstruct();
+    loadFxml("theme/play/ranked_1v1.fxml", clazz -> instance);
   }
 
   @Test
   public void testPostConstructSelectsPreviousFactions() throws Exception {
     factionList.setAll(Faction.SERAPHIM, Faction.AEON);
 
-    instance.postConstruct();
+    instance.initialize();
 
     assertThat(instance.aeonButton.isSelected(), is(true));
     assertThat(instance.seraphimButton.isSelected(), is(true));
@@ -193,7 +193,7 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     currentPlayer.setLeaderboardRatingDeviation(1);
     currentPlayer.setLeaderboardRatingMean(leaderboardRatingMean);
 
-    instance.setUpIfNecessary();
+    instance.onDisplay();
 
     verify(playerService).getCurrentPlayer();
     verify(i18n).get(key);
@@ -228,20 +228,20 @@ public class Ranked1v1ControllerTest extends AbstractPlainJavaFxTest {
     currentPlayer.setLeaderboardRatingDeviation(45);
     currentPlayer.setLeaderboardRatingMean(100);
 
-    instance.setUpIfNecessary();
+    instance.onDisplay();
 
     assertThat(instance.ratingProgressIndicator.isVisible(), is(true));
     assertThat(instance.ratingProgressIndicator.getProgress(), is(5d / 10d));
   }
 
   @Test
-  public void testSetUpIfNecessaryFiresOnlyOnce() throws Exception {
+  public void testOnDisplayFiresOnlyOnce() throws Exception {
     verifyZeroInteractions(playerService);
-    instance.setUpIfNecessary();
+    instance.onDisplay();
     verify(playerService).currentPlayerProperty();
     verify(playerService).getCurrentPlayer();
     verify(playerService).currentPlayerProperty();
-    instance.setUpIfNecessary();
+    instance.onDisplay();
     verifyNoMoreInteractions(playerService);
   }
 }

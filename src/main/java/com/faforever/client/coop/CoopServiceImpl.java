@@ -2,14 +2,19 @@ package com.faforever.client.coop;
 
 import com.faforever.client.api.CoopLeaderboardEntry;
 import com.faforever.client.remote.FafService;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+
+@Lazy
+@Service
 public class CoopServiceImpl implements CoopService {
 
-  @Resource
+  @Inject
   FafService fafService;
 
   @Override

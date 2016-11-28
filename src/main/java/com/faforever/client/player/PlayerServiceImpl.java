@@ -3,11 +3,12 @@ package com.faforever.client.player;
 import com.faforever.client.chat.SocialStatus;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
+import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
-import com.faforever.client.game.GameStatus;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.GameState;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.user.UserService;
@@ -15,8 +16,6 @@ import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.util.Assert;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.beans.InvalidationListener;
-import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -24,14 +23,16 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.faforever.client.chat.SocialStatus.FOE;
@@ -39,6 +40,8 @@ import static com.faforever.client.chat.SocialStatus.FRIEND;
 import static com.faforever.client.chat.SocialStatus.OTHER;
 import static com.faforever.client.chat.SocialStatus.SELF;
 
+@Lazy
+@Service
 public class PlayerServiceImpl implements PlayerService {
 
   private final ObservableMap<String, Player> playersByName;
@@ -46,19 +49,14 @@ public class PlayerServiceImpl implements PlayerService {
   private final List<Integer> foeList;
   private final List<Integer> friendList;
   private final ObjectProperty<Player> currentPlayer;
-  @Resource
+  @Inject
   FafService fafService;
-  @Resource
+  @Inject
   UserService userService;
-  @Resource
+  @Inject
   GameService gameService;
-  @Resource
+  @Inject
   EventBus eventBus;
-
-  /**
-   * Maps game IDs to status change listeners.
-   */
-  private Map<Integer, InvalidationListener> statusChangeListeners;
 
   public PlayerServiceImpl() {
     playersByName = FXCollections.observableHashMap();
@@ -66,7 +64,6 @@ public class PlayerServiceImpl implements PlayerService {
     friendList = new ArrayList<>();
     foeList = new ArrayList<>();
     currentPlayer = new SimpleObjectProperty<>();
-    statusChangeListeners = new HashMap<>();
   }
 
   @PostConstruct
@@ -77,30 +74,25 @@ public class PlayerServiceImpl implements PlayerService {
 
     gameService.getGames().addListener((ListChangeListener<? super Game>) listChange -> {
       while (listChange.next()) {
-        for (Game game : listChange.getRemoved()) {
-          updateGameStateForPlayers(game);
-          game.statusProperty().removeListener(statusChangeListeners.remove(game.getId()));
-        }
+        listChange.getRemoved().forEach(this::updateGameForPlayersInGame);
 
         if (listChange.wasUpdated()) {
           for (int i = listChange.getFrom(); i < listChange.getTo(); i++) {
-            updateGameStateForPlayers(listChange.getList().get(i));
+            updateGameForPlayersInGame(listChange.getList().get(i));
           }
         }
 
-        for (Game game : listChange.getAddedSubList()) {
-          updateGameStateForPlayers(game);
-          InvalidationListener statusChangeListener = statusChange -> updateGameStateForPlayers(game);
-          statusChangeListeners.put(game.getId(), statusChangeListener);
-          game.statusProperty().addListener(new WeakInvalidationListener(statusChangeListener));
-        }
+        listChange.getAddedSubList().forEach(this::updateGameForPlayersInGame);
       }
     });
   }
 
   @Subscribe
   public void onLoginSuccess(LoginSuccessEvent event) {
-    currentPlayer.set(createAndGetPlayerForUsername(event.getUsername()));
+    Player player = createAndGetPlayerForUsername(event.getUsername());
+    player.setId(event.getUserId());
+    currentPlayer.set(player);
+    player.setIdleSince(Instant.now());
   }
 
   @Subscribe
@@ -117,39 +109,41 @@ public class PlayerServiceImpl implements PlayerService {
     }
   }
 
+  @Subscribe
+  public void onChatMessage(ChatMessageEvent event) {
+    resetIdleTime(getPlayerForUsername(event.getMessage().getUsername()));
+  }
 
-  private void updateGameStateForPlayers(Game game) {
+  private void resetIdleTime(Player playerForUsername) {
+    Optional.ofNullable(playerForUsername).ifPresent(player -> player.setIdleSince(Instant.now()));
+  }
+
+  private void updateGameForPlayersInGame(Game game) {
     ObservableMap<String, List<String>> teams = game.getTeams();
     synchronized (teams) {
-      teams.forEach((team, players) -> updateGameStateForPlayer(players, game));
+      teams.forEach((team, players) -> updateGamePlayers(players, game));
     }
   }
 
-  //FIXME ugly fix until host can be resolved from gamestate
-  private void updateGameStateForPlayer(List<String> players, Game game) {
-    for (String player : players) {
-      Player playerInfoBean = getPlayerForUsername(player);
-      if (playerInfoBean == null) {
-        continue;
-      }
-      playerInfoBean.setGame(game);
-      updatePlayerGameStatus(playerInfoBean, GameStatus.fromGameState(game.getStatus()));
-    }
-    if (GameStatus.fromGameState(game.getStatus()) == GameStatus.LOBBY) {
-      Player host = getPlayerForUsername(game.getHost());
-      updatePlayerGameStatus(host, GameStatus.HOST);
-    }
-  }
-
-  private void updatePlayerGameStatus(Player player, GameStatus gameStatus) {
-    if (player != null && player.getGameStatus() != gameStatus) {
-      //FIXME until api, host is set twice or ugly code, I chose to set twice
-      player.setGameStatus(gameStatus);
-
-      if (player.getSocialStatus() == FRIEND && (gameStatus == GameStatus.HOST || gameStatus == GameStatus.LOBBY)) {
-        eventBus.post(new FriendJoinedGameEvent(player));
-      }
-    }
+  private void updateGamePlayers(List<String> players, Game game) {
+    players.stream()
+        .map(this::getPlayerForUsername)
+        .filter(Objects::nonNull)
+        .forEach(player -> {
+          resetIdleTime(player);
+          player.setGame(game);
+          if (game == null) {
+            return;
+          }
+          GameState gameState = game.getStatus();
+          if (player.getSocialStatus() == FRIEND) {
+            if (gameState == GameState.OPEN) {
+              eventBus.post(new FriendJoinedGameEvent(player));
+            } else if (gameState == GameState.PLAYING) {
+//              eventBus.post(new FriendPlaysGameEvent(player));
+            }
+          }
+        });
   }
 
   @Override

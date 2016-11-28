@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.audio.AudioController;
+import com.faforever.client.audio.AudioService;
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
@@ -23,7 +24,7 @@ import java.io.IOException;
 import java.time.Instant;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -32,37 +33,43 @@ import static org.mockito.Mockito.when;
 public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
-  PreferencesService preferencesService;
+  private PreferencesService preferencesService;
   @Mock
-  Preferences preferences;
+  private Preferences preferences;
   @Mock
-  ChatPrefs chatPrefs;
+  private ChatPrefs chatPrefs;
   @Mock
-  PlayerService playerService;
+  private PlayerService playerService;
   @Mock
-  AudioController audioController;
+  private AudioService audioService;
   @Mock
-  NotificationService notificationService;
+  private NotificationService notificationService;
   @Mock
-  I18n i18n;
+  private I18n i18n;
+  @Mock
+  private WebViewConfigurer webViewConfigurer;
+  @Mock
+  private ChatService chatService;
 
   private PrivateChatTabController instance;
   private String playerName;
 
   @Before
   public void setUp() throws IOException {
-    instance = loadController("private_chat_tab.fxml");
+    instance = new PrivateChatTabController();
     instance.preferencesService = preferencesService;
     instance.playerService = playerService;
-    instance.audioController = audioController;
+    instance.audioService = audioService;
     instance.notificationService = notificationService;
     instance.i18n = i18n;
+    instance.webViewConfigurer = webViewConfigurer;
+    instance.chatService = chatService;
 
-    WaitForAsyncUtils.waitForAsyncFx(3000, () -> instance.stage = new Stage());
+    WaitForAsyncUtils.asyncFx(() -> instance.stage = new Stage());
+    WaitForAsyncUtils.waitForFxEvents();
 
     playerName = "testUser";
     Player player = new Player(playerName);
-    instance.setReceiver(playerName);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getChat()).thenReturn(chatPrefs);
@@ -70,10 +77,17 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
 
     TabPane tabPane = new TabPane();
     tabPane.setSkin(new TabPaneSkin(tabPane));
-    WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+
+    loadFxml("theme/chat/private_chat_tab.fxml", clazz -> instance);
+
+    instance.setReceiver(playerName);
+    WaitForAsyncUtils.asyncFx(() -> {
       getRoot().getChildren().setAll(tabPane);
       tabPane.getTabs().add(instance.getRoot());
     });
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(webViewConfigurer).configureWebView(instance.messagesWebView);
   }
 
   @Test

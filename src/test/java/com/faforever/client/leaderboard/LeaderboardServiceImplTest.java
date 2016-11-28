@@ -1,6 +1,7 @@
 package com.faforever.client.leaderboard;
 
 import com.faforever.client.api.Ranked1v1Stats;
+import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.remote.FafService;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,13 +36,13 @@ public class LeaderboardServiceImplTest {
   }
 
   @Test
-  public void testGetRanked1v1Entries() throws Exception {
+  public void testGetLeaderboardEntries() throws Exception {
     List<Ranked1v1EntryBean> ranked1v1EntryBeans = Collections.emptyList();
-    when(fafService.getRanked1v1Entries()).thenReturn(CompletableFuture.completedFuture(ranked1v1EntryBeans));
+    when(fafService.getLeaderboardEntries(any())).thenReturn(CompletableFuture.completedFuture(ranked1v1EntryBeans));
 
-    List<Ranked1v1EntryBean> result = instance.getRanked1v1Entries().toCompletableFuture().get(2, TimeUnit.SECONDS);
+    List<Ranked1v1EntryBean> result = instance.getEntries(KnownFeaturedMod.LADDER_1V1).toCompletableFuture().get(2, TimeUnit.SECONDS);
 
-    verify(fafService).getRanked1v1Entries();
+    verify(fafService).getLeaderboardEntries(KnownFeaturedMod.LADDER_1V1);
     assertThat(result, is(ranked1v1EntryBeans));
   }
 

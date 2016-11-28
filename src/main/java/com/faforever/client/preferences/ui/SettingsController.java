@@ -1,6 +1,7 @@
 package com.faforever.client.preferences.ui;
 
 import com.faforever.client.chat.ChatColorMode;
+import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.NotificationsPrefs;
@@ -8,13 +9,16 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.theme.Theme;
-import com.faforever.client.theme.ThemeService;
+import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.user.UserService;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
+import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -26,15 +30,19 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Region;
 import javafx.stage.Screen;
 import javafx.util.converter.NumberStringConverter;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.text.NumberFormat;
 
 import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
-import static com.faforever.client.theme.ThemeService.DEFAULT_THEME;
+import static com.faforever.client.theme.UiService.DEFAULT_THEME;
 
-public class SettingsController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class SettingsController implements Controller<Node> {
 
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
@@ -78,19 +86,60 @@ public class SettingsController {
   public Label passwordChangeErrorLabel;
   public Label passwordChangeSuccessLabel;
 
-  @Resource
-  UserService userService;
-  @Resource
-  PreferencesService preferencesService;
-  @Resource
-  ThemeService themeService;
-  @Resource
-  I18n i18n;
+  private final UserService userService;
+  private final PreferencesService preferencesService;
+  private final UiService uiService;
+  private final I18n i18n;
+  private final EventBus eventBus;
 
   private ChangeListener<Theme> themeChangeListener;
 
-  @PostConstruct
-  void postConstruct() {
+  @Inject
+  public SettingsController(UserService userService, PreferencesService preferencesService, UiService uiService, I18n i18n, EventBus eventBus) {
+    this.userService = userService;
+    this.preferencesService = preferencesService;
+    this.uiService = uiService;
+    this.i18n = i18n;
+    this.eventBus = eventBus;
+  }
+
+  /**
+   * Disables preferences that should not be enabled since they are not supported yet.
+   */
+  private void temporarilyDisableUnsupportedSettings(Preferences preferences) {
+    NotificationsPrefs notification = preferences.getNotification();
+    notification.setFriendOnlineSoundEnabled(false);
+    notification.setFriendOfflineSoundEnabled(false);
+    notification.setFriendOfflineSoundEnabled(false);
+    notification.setFriendPlaysGameSoundEnabled(false);
+    notification.setFriendPlaysGameToastEnabled(false);
+  }
+
+  private void setSelectedToastPosition(ToastPosition newValue) {
+    switch (newValue) {
+      case TOP_RIGHT:
+        toastPosition.selectToggle(topRightToastButton);
+        break;
+      case BOTTOM_RIGHT:
+        toastPosition.selectToggle(bottomRightToastButton);
+        break;
+      case BOTTOM_LEFT:
+        toastPosition.selectToggle(bottomLeftToastButton);
+        break;
+      case TOP_LEFT:
+        toastPosition.selectToggle(topLeftToastButton);
+        break;
+    }
+  }
+
+  public void initialize() {
+    eventBus.register(this);
+    themeComboBox.setButtonCell(new StringListCell<>(Theme::getDisplayName));
+    themeComboBox.setCellFactory(param -> new StringListCell<>(Theme::getDisplayName));
+
+    toastScreenComboBox.setButtonCell(screenListCell());
+    toastScreenComboBox.setCellFactory(param -> screenListCell());
+    toastScreenComboBox.setItems(Screen.getScreens());
     NumberFormat integerNumberFormat = NumberFormat.getIntegerInstance();
     integerNumberFormat.setGroupingUsed(false);
 
@@ -170,44 +219,6 @@ public class SettingsController {
     passwordChangeErrorLabel.setVisible(false);
   }
 
-  /**
-   * Disables preferences that should not be enabled since they are not supported yet.
-   */
-  private void temporarilyDisableUnsupportedSettings(Preferences preferences) {
-    NotificationsPrefs notification = preferences.getNotification();
-    notification.setFriendOnlineSoundEnabled(false);
-    notification.setFriendOfflineSoundEnabled(false);
-    notification.setFriendOfflineSoundEnabled(false);
-    notification.setFriendPlaysGameSoundEnabled(false);
-    notification.setFriendPlaysGameToastEnabled(false);
-  }
-
-  private void setSelectedToastPosition(ToastPosition newValue) {
-    switch (newValue) {
-      case TOP_RIGHT:
-        toastPosition.selectToggle(topRightToastButton);
-        break;
-      case BOTTOM_RIGHT:
-        toastPosition.selectToggle(bottomRightToastButton);
-        break;
-      case BOTTOM_LEFT:
-        toastPosition.selectToggle(bottomLeftToastButton);
-        break;
-      case TOP_LEFT:
-        toastPosition.selectToggle(topLeftToastButton);
-        break;
-    }
-  }
-
-  public void initialize() {
-    themeComboBox.setButtonCell(new StringListCell<>(Theme::getDisplayName));
-    themeComboBox.setCellFactory(param -> new StringListCell<>(Theme::getDisplayName));
-
-    toastScreenComboBox.setButtonCell(screenListCell());
-    toastScreenComboBox.setCellFactory(param -> screenListCell());
-    toastScreenComboBox.setItems(Screen.getScreens());
-  }
-
   private StringListCell<Screen> screenListCell() {
     return new StringListCell<>(screen -> i18n.get("settings.screenFormat", Screen.getScreens().indexOf(screen) + 1));
   }
@@ -231,7 +242,7 @@ public class SettingsController {
   }
 
   private void configureThemeSelection(Preferences preferences) {
-    themeComboBox.setItems(FXCollections.observableArrayList(themeService.getAvailableThemes()));
+    themeComboBox.setItems(FXCollections.observableArrayList(uiService.getAvailableThemes()));
     themeComboBox.getSelectionModel().selectedItemProperty().addListener(new WeakChangeListener<>(themeChangeListener));
 
     Theme currentTheme = themeComboBox.getItems().stream()
@@ -239,7 +250,7 @@ public class SettingsController {
         .findFirst().orElse(DEFAULT_THEME);
     themeComboBox.getSelectionModel().select(currentTheme);
 
-    themeService.currentThemeProperty().addListener(
+    uiService.currentThemeProperty().addListener(
         (observable, oldValue, newValue) -> themeComboBox.getSelectionModel().select(newValue)
     );
   }
@@ -260,7 +271,7 @@ public class SettingsController {
   }
 
   public void onSelectGameLocation() {
-    preferencesService.letUserChooseGameDirectory();
+    eventBus.post(new GameDirectoryChooseEvent());
   }
 
   public void onSelectExecutionDirectory(ActionEvent event) {
@@ -297,7 +308,7 @@ public class SettingsController {
           confirmPasswordField.setText("");
         }).exceptionally(throwable -> {
           passwordChangeErrorLabel.setVisible(true);
-      passwordChangeErrorLabel.setText(i18n.get("settings.account.changePassword.error", throwable.getCause().getLocalizedMessage()));
+          passwordChangeErrorLabel.setText(i18n.get("settings.account.changePassword.error", throwable.getCause().getLocalizedMessage()));
           return null;
         }
     );

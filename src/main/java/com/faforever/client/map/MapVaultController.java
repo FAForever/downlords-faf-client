@@ -1,15 +1,17 @@
 package com.faforever.client.map;
 
+import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.event.MapUploadedEvent;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.theme.UiService;
+import com.google.common.collect.Iterators;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -21,10 +23,11 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
@@ -36,55 +39,52 @@ import java.util.stream.Collectors;
 
 import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 
-public class MapVaultController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class MapVaultController extends AbstractViewController<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int TOP_ELEMENT_COUNT = 7;
   private static final int MAX_SUGGESTIONS = 10;
+  private static final int LOAD_MORE_COUNT = 200;
+  /**
+   * How many mod cards should be badged into one UI thread runnable.
+   */
+  private static final int BATCH_SIZE = 10;
 
-  @FXML
-  Pane searchResultGroup;
-  @FXML
-  Pane searchResultPane;
-  @FXML
-  Pane showroomGroup;
-  @FXML
-  Pane loadingPane;
-  @FXML
-  TextField searchTextField;
-  @FXML
-  Pane newestMapsPane;
-  @FXML
-  Pane popularMapsPane;
-  @FXML
-  Pane recommendedMapsPane;
-  @FXML
-  Pane mapVaultRoot;
-
-  @Resource
-  MapService mapService;
-  @Resource
-  ApplicationContext applicationContext;
-  @Resource
-  MapDetailController mapDetailController;
-  @Resource
-  I18n i18n;
-  @Resource
-  EventBus eventBus;
-  @Resource
-  PreferencesService preferencesService;
-
+  private final MapService mapService;
+  private final I18n i18n;
+  private final EventBus eventBus;
+  private final PreferencesService preferencesService;
+  private final UiService uiService;
+  public Pane searchResultGroup;
+  public Pane searchResultPane;
+  public Pane showroomGroup;
+  public Pane loadingPane;
+  public TextField searchTextField;
+  public Pane newestPane;
+  public Pane mostPlayedPane;
+  public Pane mostLikedPane;
+  public Pane mapVaultRoot;
   private boolean initialized;
+  private MapDetailController mapDetailController;
 
-  @FXML
-  void initialize() {
+  @Inject
+  public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus, PreferencesService preferencesService, UiService uiService) {
+    this.mapService = mapService;
+    this.i18n = i18n;
+    this.eventBus = eventBus;
+    this.preferencesService = preferencesService;
+    this.uiService = uiService;
+  }
+
+  @Override
+  public void initialize() {
+    super.initialize();
     loadingPane.managedProperty().bind(loadingPane.visibleProperty());
     showroomGroup.managedProperty().bind(showroomGroup.visibleProperty());
     searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
-  }
-
-  @PostConstruct
-  void postConstruct() {
+    mapDetailController = uiService.loadFxml("theme/vault/map/map_detail.fxml");
     Node mapDetailRoot = mapDetailController.getRoot();
     mapVaultRoot.getChildren().add(mapDetailRoot);
     AnchorPane.setTopAnchor(mapDetailRoot, 0d);
@@ -96,7 +96,8 @@ public class MapVaultController {
     eventBus.register(this);
   }
 
-  public void setUpIfNecessary() {
+  @Override
+  public void onDisplay() {
     if (initialized) {
       return;
     }
@@ -109,9 +110,9 @@ public class MapVaultController {
 
   private void displayShowroomMaps() {
     enterLoadingState();
-    mapService.getMostPlayedMaps(TOP_ELEMENT_COUNT).thenAccept(maps -> populateMaps(maps, popularMapsPane))
-        .thenCompose(aVoid -> mapService.getMostLikedMaps(TOP_ELEMENT_COUNT)).thenAccept(maps -> populateMaps(maps, recommendedMapsPane))
-        .thenCompose(aVoid -> mapService.getNewestMaps(TOP_ELEMENT_COUNT)).thenAccept(maps -> populateMaps(maps, newestMapsPane))
+    mapService.getMostPlayedMaps(TOP_ELEMENT_COUNT).thenAccept(maps -> populateMaps(maps, mostPlayedPane))
+        .thenCompose(aVoid -> mapService.getMostLikedMaps(TOP_ELEMENT_COUNT)).thenAccept(maps -> populateMaps(maps, mostLikedPane))
+        .thenCompose(aVoid -> mapService.getNewestMaps(TOP_ELEMENT_COUNT)).thenAccept(maps -> populateMaps(maps, newestPane))
         .thenRun(this::enterShowroomState)
         .exceptionally(throwable -> {
           logger.warn("Could not populate maps", throwable);
@@ -119,16 +120,35 @@ public class MapVaultController {
         });
   }
 
-  @FXML
-  void onSearchMapButtonClicked() {
+  public void onSearchMapButtonClicked() {
     if (searchTextField.getText().isEmpty()) {
       onResetButtonClicked();
       return;
     }
-    enterSearchResultState();
-
+    enterLoadingState();
     mapService.lookupMap(searchTextField.getText(), 100)
         .thenAccept(this::displaySearchResult);
+  }
+
+  private void populateMaps(List<MapBean> maps, Pane pane) {
+    JavaFxUtil.assertBackgroundThread();
+
+    ObservableList<Node> children = pane.getChildren();
+    Platform.runLater(children::clear);
+
+    List<MapCardController> controllers = maps.parallelStream()
+        .map(map -> {
+          MapCardController controller = uiService.loadFxml("theme/vault/map/map_card.fxml");
+          controller.setMap(map);
+          controller.setOnOpenDetailListener(this::onShowMapDetail);
+          return controller;
+        }).collect(Collectors.toList());
+
+    Iterators.partition(controllers.iterator(), BATCH_SIZE).forEachRemaining(mapCardControllers -> Platform.runLater(() -> {
+      for (MapCardController mapCardController : mapCardControllers) {
+        children.add(mapCardController.getRoot());
+      }
+    }));
   }
 
   private void enterLoadingState() {
@@ -137,21 +157,7 @@ public class MapVaultController {
     loadingPane.setVisible(true);
   }
 
-  private void populateMaps(List<MapBean> maps, Pane pane) {
-    ObservableList<Node> children = pane.getChildren();
-    Platform.runLater(() -> {
-      children.clear();
-      for (MapBean map : maps) {
-        MapTileController controller = applicationContext.getBean(MapTileController.class);
-        controller.setMap(map);
-        controller.setOnOpenDetailListener(this::onShowMapDetail);
-        children.add(controller.getRoot());
-      }
-    });
-  }
-
-  @FXML
-  void onResetButtonClicked() {
+  public void onResetButtonClicked() {
     searchTextField.clear();
     showroomGroup.setVisible(true);
     searchResultGroup.setVisible(false);
@@ -198,30 +204,15 @@ public class MapVaultController {
     loadingPane.setVisible(false);
   }
 
-  @FXML
-  void onShowMapDetail(MapBean map) {
+  private void onShowMapDetail(MapBean map) {
     mapDetailController.setMap(map);
     mapDetailController.getRoot().setVisible(true);
     mapDetailController.getRoot().requestFocus();
   }
 
-  @FXML
-  void onSearchMapsButtonClicked() {
-    if (searchTextField.getText().isEmpty()) {
-      onResetButtonClicked();
-      return;
-    }
-    enterSearchResultState();
-
-    mapService.lookupMap(searchTextField.getText(), 100)
-        .thenAccept(this::displaySearchResult);
-  }
-
   private void displaySearchResult(List<MapBean> maps) {
-    showroomGroup.setVisible(false);
-    searchResultGroup.setVisible(true);
-
     populateMaps(maps, searchResultPane);
+    enterSearchResultState();
   }
 
   public void onUploadMapButtonClicked() {
@@ -243,14 +234,14 @@ public class MapVaultController {
   }
 
   private void openMapUploadWindow(Path path) {
-    MapUploadController mapUploadController = applicationContext.getBean(MapUploadController.class);
+    MapUploadController mapUploadController = uiService.loadFxml("theme/vault/map/map_upload.fxml");
     mapUploadController.setMapPath(path);
 
     Stage mapUploadWindow = new Stage(StageStyle.TRANSPARENT);
     mapUploadWindow.initModality(Modality.NONE);
     mapUploadWindow.initOwner(getRoot().getScene().getWindow());
 
-    WindowController windowController = applicationContext.getBean(WindowController.class);
+    WindowController windowController = uiService.loadFxml("theme/window.fxml");
     windowController.configure(mapUploadWindow, mapUploadController.getRoot(), true, CLOSE);
 
     mapUploadWindow.show();
@@ -264,5 +255,20 @@ public class MapVaultController {
   @Subscribe
   public void onMapUploaded(MapUploadedEvent event) {
     onRefreshClicked();
+  }
+
+  public void showMoreMostLikedMaps() {
+    enterLoadingState();
+    mapService.getMostLikedMaps(LOAD_MORE_COUNT).thenAccept(this::displaySearchResult);
+  }
+
+  public void showMoreNewestMaps() {
+    enterLoadingState();
+    mapService.getNewestMaps(LOAD_MORE_COUNT).thenAccept(this::displaySearchResult);
+  }
+
+  public void showMoreMostPlayedMaps() {
+    enterLoadingState();
+    mapService.getMostPlayedMaps(LOAD_MORE_COUNT).thenAccept(this::displaySearchResult);
   }
 }

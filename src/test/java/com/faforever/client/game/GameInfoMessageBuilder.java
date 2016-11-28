@@ -27,7 +27,7 @@ public class GameInfoMessageBuilder {
     gameInfoMessage.setMaxPlayers(4);
     gameInfoMessage.setNumPlayers(1);
     gameInfoMessage.setState(GameState.OPEN);
-    gameInfoMessage.setTitle("Test game");
+    gameInfoMessage.setTitle("Test preferences");
     gameInfoMessage.setTeams(new HashMap<>());
     gameInfoMessage.setPasswordProtected(false);
     return this;

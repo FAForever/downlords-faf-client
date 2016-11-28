@@ -4,8 +4,10 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.reporting.ReportingService;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,17 +19,19 @@ import static java.util.Collections.singletonList;
 import static javafx.collections.FXCollections.observableSet;
 import static javafx.collections.FXCollections.synchronizedObservableSet;
 
+
+@Lazy
+@Service
 public class NotificationServiceImpl implements NotificationService {
 
   private final ObservableSet<PersistentNotification> persistentNotifications;
   private final List<OnTransientNotificationListener> onTransientNotificationListeners;
   private final List<OnImmediateNotificationListener> onImmediateNotificationListeners;
 
-  @Resource
-  I18n i18n;
-
-  @Resource
-  ReportingService reportingService;
+  @Inject
+  private I18n i18n;
+  @Inject
+  private ReportingService reportingService;
 
   public NotificationServiceImpl() {
     persistentNotifications = synchronizedObservableSet(observableSet(new TreeSet<>()));

@@ -38,7 +38,7 @@ apply plugin: 'distribution'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-version = '0.6.30.2-alpha'
+version = '0.6.31-alpha'
 
 class HttpBuilder extends HTTPBuilder {
 
@@ -200,7 +200,7 @@ task githubRelease(type: ReleaseTask, overwrite: true) {
 task downloadIceAdapter(type: Download) {
   mustRunAfter 'assemble'
   src "https://github.com/FAForever/ice-adapter/releases/download/v${faf_ice_adapter_version}/faf-ice-adapter.exe"
-  dest file("${buildDir}/resources/native")
+  dest file("${buildDir}/resources/native/faf-ice-adapter.exe")
 }
 
 task wrapper(type: Wrapper) {
@@ -258,11 +258,11 @@ dependencies {
   compile 'org.apache.lucene:lucene-core:5.3.1'
   compile 'org.apache.lucene:lucene-analyzers-common:5.3.1'
   compile 'org.apache.lucene:lucene-suggest:5.3.1'
-  compile 'org.opentelecoms.ice:ice4j-fork:1.0+f.4'
   compile 'com.nativelibs4java:bridj:0.7.0'
   compile 'com.github.nocatch:nocatch:1.1'
   compile 'org.javassist:javassist:3.20.0-GA'
   compile 'org.luaj:luaj-jse:3.0.1'
   compile 'commons-validator:commons-validator:1.5.1'
   compile 'com.github.micheljung:JJsonRpc:f683b55f55'
+  compile 'javax.inject:javax.inject:1'
 }

@@ -2,19 +2,15 @@ package com.faforever.client.patch;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.TestResources;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
-import org.springframework.core.env.Environment;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -43,52 +39,25 @@ public class GitFeaturedModUpdateTaskTest extends AbstractPlainJavaFxTest {
   @Rule
   public final TemporaryFolder faDirectory = new TemporaryFolder();
 
-  @Rule
-  public final TemporaryFolder fafBinDirectory = new TemporaryFolder();
-
   @Mock
   private GitWrapper gitWrapper;
   @Mock
-  private TaskService taskService;
-  @Mock
-  private PreferencesService preferencesService;
-  @Mock
-  private Environment environment;
-  @Mock
   private I18n i18n;
-  @Mock
-  private Preferences preferences;
-  @Mock
-  private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
   private ModService modService;
 
   /**
-   * The directory containing the cloned game repository
+   * The directory containing the cloned preferences repository
    */
   private Path clonedRepoDir;
-  private GitFeaturedModUpdateTask instance;
+  private GitFeaturedModUpdateTaskImpl instance;
 
   @Before
   public void setUp() throws Exception {
-    instance = new GitFeaturedModUpdateTask();
-    instance.preferencesService = preferencesService;
-    instance.gitWrapper = gitWrapper;
-    instance.environment = environment;
-    instance.i18n = i18n;
-    instance.modService = modService;
+    instance = new GitFeaturedModUpdateTaskImpl(i18n, gitWrapper, modService);
 
     Path reposDirectory = faDirectory.getRoot().toPath().resolve("repos");
     clonedRepoDir = reposDirectory.resolve("faf");
-
-    when(preferencesService.getGitReposDirectory()).thenReturn(reposDirectory);
-    when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
-    when(environment.getProperty("patch.git.url")).thenReturn(GIT_PATCH_URL);
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
-    when(forgedAlliancePrefs.getPath()).thenReturn(faDirectory.getRoot().toPath());
-
-    instance.postConstruct();
   }
 
   @Test
@@ -100,7 +69,7 @@ public class GitFeaturedModUpdateTaskTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> {
       fakeClone();
       return null;
-    }).when(gitWrapper).clone(GIT_PATCH_URL, clonedRepoDir);
+    }).when(gitWrapper).clone(eq(GIT_PATCH_URL), eq(clonedRepoDir), any(ProgressMonitor.class));
     when(modService.readModVersion(clonedRepoDir)).thenReturn(new ComparableVersion("3663"));
     when(modService.readMountPoints(any(), eq(clonedRepoDir))).thenReturn(Arrays.asList(
         new MountPoint(Paths.get("env"), "/env"),
@@ -119,7 +88,7 @@ public class GitFeaturedModUpdateTaskTest extends AbstractPlainJavaFxTest {
     assertThat(result.getMountPoints().get(0).getMountPath(), is("/env"));
     assertThat(result.getMountPoints().get(0).getDirectory(), is(Paths.get("env")));
 
-    verify(gitWrapper).clone(GIT_PATCH_URL, clonedRepoDir);
+    verify(gitWrapper).clone(eq(GIT_PATCH_URL), eq(clonedRepoDir), any(ProgressMonitor.class));
   }
 
   private void prepareFaBinaries() throws IOException {

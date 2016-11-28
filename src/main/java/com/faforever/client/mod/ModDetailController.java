@@ -1,5 +1,6 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -8,7 +9,6 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.reporting.ReportingService;
 import javafx.collections.ListChangeListener;
 import javafx.collections.WeakListChangeListener;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -16,46 +16,46 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
+import java.util.concurrent.CompletableFuture;
 
 import static java.util.Collections.singletonList;
 
-public class ModDetailController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class ModDetailController implements Controller<Node> {
 
-  @FXML
-  Label progressLabel;
-  @FXML
-  Button uninstallButton;
-  @FXML
-  Button installButton;
-  @FXML
-  ImageView thumbnailImageView;
-  @FXML
-  Label nameLabel;
-  @FXML
-  Label authorLabel;
-  @FXML
-  ProgressBar progressBar;
-  @FXML
-  Label modDescriptionLabel;
-  @FXML
-  Node modDetailRoot;
+  private final ModService modService;
+  private final NotificationService notificationService;
+  private final I18n i18n;
+  private final ReportingService reportingService;
 
-  @Resource
-  ModService modService;
-  @Resource
-  NotificationService notificationService;
-  @Resource
-  I18n i18n;
-  @Resource
-  ReportingService reportingService;
+  public Label progressLabel;
+  public Button uninstallButton;
+  public Button installButton;
+  public ImageView thumbnailImageView;
+  public Label nameLabel;
+  public Label authorLabel;
+  public ProgressBar progressBar;
+  public Label modDescriptionLabel;
+  public Node modDetailRoot;
+  private Mod mod;
+  private ListChangeListener<Mod> installStatusChangeListener;
 
-  private ModInfoBean mod;
-  private ListChangeListener<ModInfoBean> installStatusChangeListener;
+  @Inject
+  public ModDetailController(ModService modService, NotificationService notificationService, I18n i18n, ReportingService reportingService) {
+    this.modService = modService;
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.reportingService = reportingService;
+  }
 
-  @FXML
-  void initialize() {
+  public void initialize() {
     uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
     installButton.managedProperty().bind(installButton.visibleProperty());
     progressBar.managedProperty().bind(progressBar.visibleProperty());
@@ -71,14 +71,14 @@ public class ModDetailController {
 
     installStatusChangeListener = change -> {
       while (change.next()) {
-        for (ModInfoBean modInfoBean : change.getAddedSubList()) {
-          if (mod.getId().equals(modInfoBean.getId())) {
+        for (Mod mod : change.getAddedSubList()) {
+          if (this.mod.getId().equals(mod.getId())) {
             setInstalled(true);
             return;
           }
         }
-        for (ModInfoBean modInfoBean : change.getRemoved()) {
-          if (mod.getId().equals(modInfoBean.getId())) {
+        for (Mod mod : change.getRemoved()) {
+          if (this.mod.getId().equals(mod.getId())) {
             setInstalled(false);
             return;
           }
@@ -88,7 +88,7 @@ public class ModDetailController {
   }
 
   public void onCloseButtonClicked() {
-    getRoot().setVisible(false);
+    ((Pane) modDetailRoot.getParent()).getChildren().remove(modDetailRoot);
   }
 
   private void setInstalled(boolean installed) {
@@ -100,9 +100,9 @@ public class ModDetailController {
     return modDetailRoot;
   }
 
-  public void setMod(ModInfoBean mod) {
+  public void setMod(Mod mod) {
     this.mod = mod;
-    thumbnailImageView.setImage(modService.loadThumbnail(mod));
+    CompletableFuture.runAsync(() -> thumbnailImageView.setImage(modService.loadThumbnail(mod)));
     nameLabel.setText(mod.getName());
     authorLabel.setText(mod.getAuthor());
 
@@ -115,8 +115,7 @@ public class ModDetailController {
     setInstalled(modService.isModInstalled(mod.getId()));
   }
 
-  @FXML
-  void onInstallButtonClicked() {
+  public void onInstallButtonClicked() {
     installButton.setVisible(false);
 
     modService.downloadAndInstallMod(mod, progressBar.progressProperty(), progressLabel.textProperty())
@@ -129,8 +128,7 @@ public class ModDetailController {
         });
   }
 
-  @FXML
-  void onUninstallButtonClicked() {
+  public void onUninstallButtonClicked() {
     progressBar.progressProperty().unbind();
     progressBar.setProgress(-1);
     uninstallButton.setVisible(false);
@@ -144,8 +142,7 @@ public class ModDetailController {
     });
   }
 
-  @FXML
-  void onDimmerClicked() {
+  public void onDimmerClicked() {
     onCloseButtonClicked();
   }
 

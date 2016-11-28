@@ -1,8 +1,8 @@
 package com.faforever.client.player;
 
-import com.faforever.client.audio.AudioController;
+import com.faforever.client.audio.AudioService;
 import com.faforever.client.game.Game;
-import com.faforever.client.game.GameInfoBeanBuilder;
+import com.faforever.client.game.GameBuilder;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -49,7 +49,7 @@ public class FriendJoinedGameNotifierTest {
   @Mock
   private NotificationsPrefs notification;
   @Mock
-  private AudioController audioController;
+  private AudioService audioService;
 
   @Before
   public void setUp() throws Exception {
@@ -61,7 +61,7 @@ public class FriendJoinedGameNotifierTest {
     instance.i18n = i18n;
     instance.joinGameHelper = joinGameHelper;
     instance.preferencesService = preferencesService;
-    instance.audioController = audioController;
+    instance.audioService = audioService;
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getNotification()).thenReturn(notification);
@@ -78,8 +78,8 @@ public class FriendJoinedGameNotifierTest {
 
   @Test
   public void onFriendJoinedGame() throws Exception {
-    Game game = GameInfoBeanBuilder.create().defaultValues().title("My Game").get();
-    Player player = PlayerInfoBeanBuilder.create("junit").id(1).game(game).get();
+    Game game = GameBuilder.create().defaultValues().title("My Game").get();
+    Player player = PlayerBuilder.create("junit").id(1).game(game).get();
 
     when(notification.isFriendJoinsGameToastEnabled()).thenReturn(true);
     when(i18n.get("friend.joinedGameNotification.title", "junit", "My Game")).thenReturn("junit joined My Game");
@@ -100,7 +100,7 @@ public class FriendJoinedGameNotifierTest {
   public void testNoNotificationIfDisabledInPreferences() throws Exception {
     when(notification.isFriendJoinsGameToastEnabled()).thenReturn(false);
 
-    instance.onFriendJoinedGame(new FriendJoinedGameEvent(PlayerInfoBeanBuilder.create("junit").get()));
+    instance.onFriendJoinedGame(new FriendJoinedGameEvent(PlayerBuilder.create("junit").get()));
 
     verify(notificationService, never()).addNotification(any(TransientNotification.class));
   }

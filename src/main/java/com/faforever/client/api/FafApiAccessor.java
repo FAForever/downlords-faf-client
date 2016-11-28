@@ -5,13 +5,12 @@ import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedModBean;
-import com.faforever.client.mod.ModInfoBean;
-import com.faforever.client.replay.ReplayInfoBean;
+import com.faforever.client.mod.Mod;
+import com.faforever.client.replay.Replay;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
 
 /**
  * Provides access to the FAF REST API. Services should not access this class directly, but use {@link
@@ -28,15 +27,15 @@ public interface FafApiAccessor {
 
   AchievementDefinition getAchievementDefinition(String achievementId);
 
-  void authorize(int playerId);
+  void authorize(int playerId, String username, String password);
 
-  List<ModInfoBean> getMods();
+  List<Mod> getMods();
 
   List<FeaturedMod> getFeaturedMods();
 
   MapBean findMapByName(String mapId);
 
-  List<Ranked1v1EntryBean> getRanked1v1Entries();
+  List<Ranked1v1EntryBean> getLeaderboardEntries(RatingType ratingType);
 
   Ranked1v1Stats getRanked1v1Stats();
 
@@ -62,12 +61,21 @@ public interface FafApiAccessor {
 
   List<CoopLeaderboardEntry> getCoopLeaderboard(String missionId, int numberOfPlayers);
 
-  void changePassword(String currentPasswordHash, String newPasswordHash) throws IOException;
+  void changePassword(String username, String currentPasswordHash, String newPasswordHash) throws IOException;
 
-  ModInfoBean getMod(String uid);
-
-  // TODO this shouldn't be async
-  CompletionStage<List<ReplayInfoBean>> getOnlineReplays();
+  Mod getMod(String uid);
 
   List<FeaturedModFile> getFeaturedModFiles(FeaturedModBean featuredModBean, Integer version);
+
+  List<Replay> searchReplayByPlayer(String playerName);
+
+  List<Replay> searchReplayByMap(String mapName);
+
+  List<Replay> searchReplayByMod(FeaturedMod featuredMod);
+
+  List<Replay> getNewestReplays(int count);
+
+  List<Replay> getHighestRatedReplays(int count);
+
+  List<Replay> getMostWatchedReplays(int count);
 }

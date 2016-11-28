@@ -2,17 +2,17 @@ package com.faforever.client.replay;
 
 public class ReplayInfoBeanBuilder {
 
-  private final ReplayInfoBean replayInfoBean;
+  private final Replay replay;
 
   private ReplayInfoBeanBuilder() {
-    replayInfoBean = new ReplayInfoBean();
-  }
-
-  public ReplayInfoBean get() {
-    return replayInfoBean;
+    replay = new Replay();
   }
 
   public static ReplayInfoBeanBuilder create() {
     return new ReplayInfoBeanBuilder();
+  }
+
+  public Replay get() {
+    return replay;
   }
 }

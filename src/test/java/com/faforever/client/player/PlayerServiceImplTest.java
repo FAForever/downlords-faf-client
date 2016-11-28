@@ -206,12 +206,13 @@ public class PlayerServiceImplTest {
 
   @Test
   public void testGetCurrentPlayer() throws Exception {
-    LoginSuccessEvent event = new LoginSuccessEvent("junit");
+    LoginSuccessEvent event = new LoginSuccessEvent("junit", "", 1);
     instance.onLoginSuccess(event);
 
     Player currentPlayer = instance.getCurrentPlayer();
 
     assertThat(currentPlayer.getUsername(), is("junit"));
+    assertThat(currentPlayer.getId(), is(1));
   }
 
   @Test

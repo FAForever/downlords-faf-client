@@ -9,7 +9,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.theme.ThemeService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ProgrammingError;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
@@ -30,9 +30,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.annotation.PreDestroy;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
@@ -47,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -62,43 +66,47 @@ import static java.nio.file.Files.list;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.util.stream.Collectors.toCollection;
 
+
+@Lazy
+@Service
 public class MapServiceImpl implements MapService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final float MAP_SIZE_FACTOR = 51.2f;
   private static final Lock LOOKUP_LOCK = new ReentrantLock();
 
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
+  @Inject
   TaskService taskService;
-  @Resource
+  @Inject
   ApplicationContext applicationContext;
-  @Resource
+  @Inject
   Directory directory;
-  @Resource
+  @Inject
   Analyzer analyzer;
-  @Resource
+  @Inject
   ThreadPoolExecutor threadPoolExecutor;
-  @Resource
+  @Inject
   FafService fafService;
-  @Resource
+  @Inject
   AssetService assetService;
 
   @Value("${vault.mapDownloadUrl}")
   String mapDownloadUrl;
   @Value("${vault.mapPreviewUrlFormat}")
   String mapPreviewUrlFormat;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
-  ThemeService themeService;
+  @Inject
+  UiService uiService;
 
   private Map<Path, MapBean> pathToMap;
   private AnalyzingInfixSuggester suggester;
   private Path customMapsDirectory;
   private ObservableList<MapBean> installedSkirmishMaps;
   private Map<String, MapBean> mapsByFolderName;
+  private Thread directoryWatcherThread;
 
   public MapServiceImpl() {
     pathToMap = new HashMap<>();
@@ -142,7 +150,7 @@ public class MapServiceImpl implements MapService {
     }
     try {
       Files.createDirectories(customMapsDirectory);
-      startDirectoryWatcher(customMapsDirectory);
+      directoryWatcherThread = startDirectoryWatcher(customMapsDirectory);
     } catch (IOException | InterruptedException e) {
       logger.warn("Could not start map directory watcher", e);
       // TODO notify user
@@ -150,19 +158,25 @@ public class MapServiceImpl implements MapService {
     loadInstalledMaps();
   }
 
-  private void startDirectoryWatcher(Path mapsDirectory) throws IOException, InterruptedException {
-    threadPoolExecutor.execute(() -> noCatch(() -> {
+  private Thread startDirectoryWatcher(Path mapsDirectory) throws IOException, InterruptedException {
+    Thread thread = new Thread(() -> noCatch(() -> {
       WatchService watcher = mapsDirectory.getFileSystem().newWatchService();
       MapServiceImpl.this.customMapsDirectory.register(watcher, ENTRY_DELETE);
 
-      while (!Thread.interrupted()) {
-        WatchKey key = watcher.take();
-        key.pollEvents().stream()
-            .filter(event -> event.kind() == ENTRY_DELETE)
-            .forEach(event -> removeMap(mapsDirectory.resolve((Path) event.context())));
-        key.reset();
+      try {
+        while (!Thread.interrupted()) {
+          WatchKey key = watcher.take();
+          key.pollEvents().stream()
+              .filter(event -> event.kind() == ENTRY_DELETE)
+              .forEach(event -> removeMap(mapsDirectory.resolve((Path) event.context())));
+          key.reset();
+        }
+      } catch (InterruptedException e) {
+        logger.debug("Watcher terminated ({})", e.getMessage());
       }
     }));
+    thread.start();
+    return thread;
   }
 
   private void loadInstalledMaps() {
@@ -243,6 +257,7 @@ public class MapServiceImpl implements MapService {
     }
   }
 
+  @NotNull
   @Override
   @Cacheable(value = CacheNames.MAP_PREVIEW, unless = "#result == null")
   public Image loadPreview(String mapName, PreviewSize previewSize) {
@@ -351,7 +366,8 @@ public class MapServiceImpl implements MapService {
   }
 
   private Image loadPreview(URL url, PreviewSize previewSize) {
-    return assetService.loadAndCacheImage(url, Paths.get("maps").resolve(previewSize.folderName), themeService.getThemeFileUrl(ThemeService.UNKNOWN_MAP_IMAGE));
+    return assetService.loadAndCacheImage(url, Paths.get("maps").resolve(previewSize.folderName),
+        () -> uiService.getThemeImage(UiService.UNKNOWN_MAP_IMAGE));
   }
 
   @Override
@@ -404,6 +420,11 @@ public class MapServiceImpl implements MapService {
 
     return taskService.submitTask(task).getFuture()
         .thenAccept(aVoid -> noCatch(() -> addSkirmishMap(getPathForMap(folderName))));
+  }
+
+  @PreDestroy
+  private void preDestroy() {
+    Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
   }
 
   public enum OfficialMap {

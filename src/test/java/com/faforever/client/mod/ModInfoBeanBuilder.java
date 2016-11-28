@@ -11,10 +11,10 @@ import static com.github.nocatch.NoCatch.noCatch;
 
 public class ModInfoBeanBuilder {
 
-  private final ModInfoBean modInfo;
+  private final Mod modInfo;
 
   public ModInfoBeanBuilder() {
-    modInfo = new ModInfoBean();
+    modInfo = new Mod();
   }
 
   public static ModInfoBeanBuilder create() {
@@ -39,7 +39,7 @@ public class ModInfoBeanBuilder {
     return this;
   }
 
-  public ModInfoBean get() {
+  public Mod get() {
     return modInfo;
   }
 

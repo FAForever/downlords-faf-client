@@ -1,8 +1,10 @@
 package com.faforever.client.util;
 
 import com.faforever.client.i18n.I18n;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -12,12 +14,14 @@ import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
 import java.util.TimeZone;
 
+
+@Lazy
+@Service
 public class TimeServiceImpl implements TimeService {
 
-  @Resource
+  @Inject
   I18n i18n;
-
-  @Resource
+  @Inject
   Locale locale;
 
   @Override
@@ -29,22 +33,22 @@ public class TimeServiceImpl implements TimeService {
     Duration ago = Duration.between(instant, Instant.now());
 
     if (Duration.ofMinutes(1).compareTo(ago) > 0) {
-      return i18n.get("secondsAgo", ago.getSeconds());
+      return i18n.getQuantized("secondAgo", "secondsAgo", ago.getSeconds());
     }
     if (Duration.ofHours(1).compareTo(ago) > 0) {
-      return i18n.get("minutesAgo", ago.toMinutes());
+      return i18n.getQuantized("minuteAgo", "minutesAgo", ago.toMinutes());
     }
     if (Duration.ofDays(1).compareTo(ago) > 0) {
-      return i18n.get("hoursAgo", ago.toHours());
+      return i18n.getQuantized("hourAgo", "hoursAgo", ago.toHours());
     }
     if (Duration.ofDays(30).compareTo(ago) > 0) {
-      return i18n.get("daysAgo", ago.toDays());
+      return i18n.getQuantized("dayAgo", "daysAgo", ago.toDays());
     }
     if (Duration.ofDays(365).compareTo(ago) > 0) {
-      return i18n.get("monthsAgo", ago.toDays() / 30);
+      return i18n.getQuantized("monthAgo", "monthsAgo", ago.toDays() / 30);
     }
 
-    return i18n.get("yearsAgo", ago.toDays() / 365);
+    return i18n.getQuantized("yearAgo", "yearsAgo", ago.toDays() / 365);
   }
 
   @Override

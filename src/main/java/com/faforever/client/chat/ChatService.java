@@ -1,19 +1,14 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.net.ConnectionState;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.MapChangeListener;
 import org.pircbotx.User;
 
 import java.util.concurrent.CompletionStage;
-import java.util.function.Consumer;
 
 public interface ChatService {
-
-  void addOnMessageListener(Consumer<ChatMessage> listener);
-
-  void addOnPrivateChatMessageListener(Consumer<ChatMessage> listener);
 
   void connect();
 
@@ -49,7 +44,7 @@ public interface ChatService {
 
   ChatUser getOrCreateChatUser(User user);
 
-  ObjectProperty<ConnectionState> connectionStateProperty();
+  ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
 
   void reconnect();
 

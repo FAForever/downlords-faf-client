@@ -8,8 +8,10 @@ import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -18,6 +20,8 @@ import java.util.regex.Pattern;
 
 import static com.faforever.client.io.Bytes.formatSize;
 
+@Lazy
+@Component
 public class UrlPreviewResolverImpl implements UrlPreviewResolver {
 
   private static final Pattern IMGUR_PATTERN = Pattern.compile("https?://imgur\\.com/gallery/(\\w+)");
@@ -25,10 +29,10 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
   private static final String IMGUR_PNG = "http://i.imgur.com/%s.png";
   private static final String IMGUR_GIF = "http://i.imgur.com/%s.gif";
 
-  @Resource
+  @Inject
   FxmlLoader fxmlLoader;
 
-  @Resource
+  @Inject
   I18n i18n;
 
   private static boolean testUrl(String urlString) {

@@ -1,5 +1,6 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.api.FeaturedMod;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
@@ -24,16 +25,16 @@ import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,12 +48,20 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.notification.Severity.WARN;
+import static com.github.nocatch.NoCatch.noCatch;
+import static java.net.URLDecoder.decode;
 import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.move;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 
+
+@Lazy
+@Service
 public class ReplayServiceImpl implements ReplayService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -68,29 +77,29 @@ public class ReplayServiceImpl implements ReplayService {
   private static final String GPGNET_SCHEME = "gpgnet";
   private static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
 
-  @Resource
+  @Inject
   Environment environment;
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
+  @Inject
   ReplayFileReader replayFileReader;
-  @Resource
+  @Inject
   NotificationService notificationService;
-  @Resource
+  @Inject
   GameService gameService;
-  @Resource
+  @Inject
   TaskService taskService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   ReportingService reportingService;
-  @Resource
+  @Inject
   ApplicationContext applicationContext;
-  @Resource
+  @Inject
   PlatformService platformService;
-  @Resource
+  @Inject
   ReplayServer replayServer;
-  @Resource
+  @Inject
   FafService fafService;
 
   @VisibleForTesting
@@ -116,39 +125,41 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public Collection<ReplayInfoBean> getLocalReplays() throws IOException {
-    Collection<ReplayInfoBean> replayInfos = new ArrayList<>();
+  public Collection<Replay> getLocalReplays() {
+    Collection<Replay> replayInfos = new ArrayList<>();
 
     String replayFileGlob = environment.getProperty("replayFileGlob");
 
     Path replaysDirectory = preferencesService.getReplaysDirectory();
     if (!Files.notExists(replaysDirectory)) {
-      Files.createDirectories(replaysDirectory);
+      noCatch(() -> createDirectories(replaysDirectory));
     }
     try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(replaysDirectory, replayFileGlob)) {
       for (Path replayFile : directoryStream) {
         try {
           LocalReplayInfo replayInfo = replayFileReader.readReplayInfo(replayFile);
-          replayInfos.add(new ReplayInfoBean(replayInfo, replayFile));
+          replayInfos.add(new Replay(replayInfo, replayFile));
         } catch (Exception e) {
           logger.warn("Could not read replay file {} ({})", replayFile, e.getMessage());
           moveCorruptedReplayFile(replayFile);
         }
       }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
 
     return replayInfos;
   }
 
-  private void moveCorruptedReplayFile(Path replayFile) throws IOException {
+  private void moveCorruptedReplayFile(Path replayFile) {
     Path corruptedReplaysDirectory = preferencesService.getCorruptedReplaysDirectory();
-    Files.createDirectories(corruptedReplaysDirectory);
+    noCatch(() -> createDirectories(corruptedReplaysDirectory));
 
     Path target = corruptedReplaysDirectory.resolve(replayFile.getFileName());
 
     logger.debug("Moving corrupted replay file from {} to {}", replayFile, target);
 
-    Files.move(replayFile, target);
+    noCatch(() -> move(replayFile, target));
 
     notificationService.addNotification(new PersistentNotification(
         i18n.get("corruptedReplayFiles.notification"), WARN,
@@ -159,12 +170,7 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public CompletionStage<List<ReplayInfoBean>> getOnlineReplays() {
-    return fafService.getOnlineReplays();
-  }
-
-  @Override
-  public void runReplay(ReplayInfoBean item) {
+  public void runReplay(Replay item) {
     if (item.getReplayFile() != null) {
       runReplayFile(item.getReplayFile());
     } else {
@@ -173,7 +179,7 @@ public class ReplayServiceImpl implements ReplayService {
   }
 
   @Override
-  public void runLiveReplay(int gameId, int playerId) throws IOException {
+  public void runLiveReplay(int gameId, int playerId) {
     Game game = gameService.getByUid(gameId);
     if (game == null) {
       throw new RuntimeException("There's no game with ID: " + gameId);
@@ -186,15 +192,11 @@ public class ReplayServiceImpl implements ReplayService {
     uriBuilder.addParameter("map", UrlEscapers.urlFragmentEscaper().escape(game.getMapFolderName()));
     uriBuilder.addParameter("mod", game.getFeaturedMod());
 
-    try {
-      runLiveReplay(uriBuilder.build());
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
+    noCatch(() -> runLiveReplay(uriBuilder.build()));
   }
 
   @Override
-  public void runLiveReplay(URI uri) throws IOException {
+  public void runLiveReplay(URI uri) {
     logger.debug("Running replay from URL: {}", uri);
     if (!uri.getScheme().equals(FAF_LIFE_PROTOCOL)) {
       throw new IllegalArgumentException("Invalid protocol: " + uri.getScheme());
@@ -203,7 +205,7 @@ public class ReplayServiceImpl implements ReplayService {
     Map<String, String> queryParams = Splitter.on('&').trimResults().withKeyValueSeparator("=").split(uri.getQuery());
 
     String gameType = queryParams.get("mod");
-    String mapName = URLDecoder.decode(queryParams.get("map"), StandardCharsets.UTF_8.name());
+    String mapName = noCatch(() -> decode(queryParams.get("map"), UTF_8.name()));
     Integer gameId = Integer.parseInt(uri.getPath().split("/")[1]);
 
     try {
@@ -236,6 +238,36 @@ public class ReplayServiceImpl implements ReplayService {
   @Override
   public void runReplay(Integer replayId) {
     runOnlineReplay(replayId);
+  }
+
+  @Override
+  public CompletableFuture<List<Replay>> searchByMap(String mapName) {
+    return fafService.searchReplayByMap(mapName);
+  }
+
+  @Override
+  public CompletableFuture<List<Replay>> searchByPlayer(String playerName) {
+    return fafService.searchReplayByPlayer(playerName);
+  }
+
+  @Override
+  public CompletableFuture<List<Replay>> searchByMod(FeaturedMod featuredMod) {
+    return fafService.searchReplayByMod(featuredMod);
+  }
+
+  @Override
+  public CompletionStage<List<Replay>> getNewestReplays(int topElementCount) {
+    return fafService.getNewestReplays(topElementCount);
+  }
+
+  @Override
+  public CompletionStage<List<Replay>> getHighestRatedReplays(int topElementCount) {
+    return fafService.getHighestRatedReplays(topElementCount);
+  }
+
+  @Override
+  public CompletionStage<List<Replay>> getMostWatchedReplays(int topElementCount) {
+    return fafService.getMostWatchedReplays(topElementCount);
   }
 
   private void runReplayFile(Path path) {
@@ -276,7 +308,7 @@ public class ReplayServiceImpl implements ReplayService {
 
     Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
 
-    Files.createDirectories(tempSupComReplayFile.getParent());
+    createDirectories(tempSupComReplayFile.getParent());
     Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
 
     LocalReplayInfo replayInfo = replayFileReader.readReplayInfo(path);

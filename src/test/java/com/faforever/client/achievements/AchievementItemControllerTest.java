@@ -14,12 +14,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static com.faforever.client.theme.ThemeService.DEFAULT_ACHIEVEMENT_IMAGE;
+import static com.faforever.client.theme.UiService.DEFAULT_ACHIEVEMENT_IMAGE;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
 public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
@@ -37,10 +37,12 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = loadController("achievement_item.fxml");
+    instance = new AchievementItemController();
     instance.preferencesService = preferencesService;
     instance.i18n = i18n;
     instance.achievementService = achievementService;
+
+    loadFxml("theme/achievement_item.fxml", clazz -> instance);
   }
 
   @Test

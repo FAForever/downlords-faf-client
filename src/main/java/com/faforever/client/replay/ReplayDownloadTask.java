@@ -6,9 +6,12 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.InputStream;
@@ -19,16 +22,18 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ReplayDownloadTask extends CompletableTask<Path> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String TEMP_FAF_REPLAY_FILE_NAME = "temp.fafreplay";
 
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   Environment environment;
-  @Resource
+  @Inject
   PreferencesService preferencesService;
 
   private int replayId;

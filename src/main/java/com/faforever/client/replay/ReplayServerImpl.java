@@ -13,9 +13,11 @@ import com.faforever.client.user.UserService;
 import com.google.common.primitives.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,6 +33,8 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
+@Lazy
+@Component
 public class ReplayServerImpl implements ReplayServer {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -42,19 +46,19 @@ public class ReplayServerImpl implements ReplayServer {
    */
   private static final byte[] LIVE_REPLAY_PREFIX = new byte[]{'P', '/'};
 
-  @Resource
+  @Inject
   Environment environment;
-  @Resource
+  @Inject
   NotificationService notificationService;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   GameService gameService;
-  @Resource
+  @Inject
   UserService userService;
-  @Resource
+  @Inject
   ReplayFileWriter replayFileWriter;
-  @Resource
+  @Inject
   ClientUpdateService clientUpdateService;
 
   private LocalReplayInfo replayInfo;
@@ -101,7 +105,7 @@ public class ReplayServerImpl implements ReplayServer {
         logger.warn("Error in replay server", e);
         notificationService.addNotification(new PersistentNotification(
                 i18n.get("replayServer.listeningFailed", localReplayServerPort),
-            Severity.WARN, Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(uid)))
+                Severity.WARN, Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(uid)))
             )
         );
       }
@@ -168,10 +172,10 @@ public class ReplayServerImpl implements ReplayServer {
   private void finishReplayInfo() {
     Game game = gameService.getByUid(replayInfo.getUid());
 
+    replayInfo.updateFromGameInfoBean(game);
     replayInfo.setGameEnd(pythonTime());
     replayInfo.setRecorder(userService.getUsername());
-    replayInfo.setComplete(true);
     replayInfo.setState(GameState.CLOSED);
-    replayInfo.updateFromGameInfoBean(game);
+    replayInfo.setComplete(true);
   }
 }

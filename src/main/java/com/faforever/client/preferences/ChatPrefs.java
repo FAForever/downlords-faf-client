@@ -27,6 +27,13 @@ public class ChatPrefs {
   private final IntegerProperty channelTabScrollPaneWidth;
   private final MapProperty<String, Color> userToColor;
   private final BooleanProperty hideFoeMessages;
+
+  /**
+   * Time in minutes a player has to be inactive to be considered idle.
+   */
+  private final IntegerProperty idleThreshold;
+
+
   public ChatPrefs() {
     maxMessages = new SimpleIntegerProperty(500);
     zoom = new SimpleDoubleProperty(1);
@@ -36,6 +43,7 @@ public class ChatPrefs {
     channelTabScrollPaneWidth = new SimpleIntegerProperty(250);
     userToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
     chatColorMode = new SimpleObjectProperty<>(CUSTOM);
+    idleThreshold = new SimpleIntegerProperty(10);
   }
 
   public ChatColorMode getChatColorMode() {
@@ -137,5 +145,17 @@ public class ChatPrefs {
 
   public BooleanProperty hideFoeMessagesProperty() {
     return hideFoeMessages;
+  }
+
+  public int getIdleThreshold() {
+    return idleThreshold.get();
+  }
+
+  public IntegerProperty idleThresholdProperty() {
+    return idleThreshold;
+  }
+
+  public void setIdleThreshold(int idleThreshold) {
+    this.idleThreshold.set(idleThreshold);
   }
 }

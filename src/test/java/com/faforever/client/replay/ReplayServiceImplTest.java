@@ -153,7 +153,7 @@ public class ReplayServiceImplTest {
     doThrow(new IOException("Junit test exception")).when(replayFileReader).readReplayInfo(file1);
     doThrow(new IOException("Junit test exception")).when(replayFileReader).readReplayInfo(file2);
 
-    Collection<ReplayInfoBean> localReplays = instance.getLocalReplays();
+    Collection<Replay> localReplays = instance.getLocalReplays();
 
     assertThat(localReplays, empty());
 
@@ -175,7 +175,7 @@ public class ReplayServiceImplTest {
 
     when(replayFileReader.readReplayInfo(file1)).thenReturn(localReplayInfo);
 
-    Collection<ReplayInfoBean> localReplays = instance.getLocalReplays();
+    Collection<Replay> localReplays = instance.getLocalReplays();
 
     assertThat(localReplays, hasSize(1));
     assertThat(localReplays.iterator().next().getId(), is(123));
@@ -183,17 +183,11 @@ public class ReplayServiceImplTest {
   }
 
   @Test
-  public void testGetOnlineReplays() throws Exception {
-    instance.getOnlineReplays();
-    verify(fafService).getOnlineReplays();
-  }
-
-  @Test
   public void testRunFafReplayFile() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.fafreplay").toPath();
 
-    ReplayInfoBean replayInfoBean = new ReplayInfoBean();
-    replayInfoBean.setReplayFile(replayFile);
+    Replay replay = new Replay();
+    replay.setReplayFile(replayFile);
 
     LocalReplayInfo replayInfo = new LocalReplayInfo();
     replayInfo.setUid(123);
@@ -205,7 +199,7 @@ public class ReplayServiceImplTest {
     when(replayFileReader.readReplayInfo(replayFile)).thenReturn(replayInfo);
     when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
-    instance.runReplay(replayInfoBean);
+    instance.runReplay(replay);
 
     verify(gameService).runWithReplay(any(), eq(123), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME));
     verifyZeroInteractions(notificationService);
@@ -215,12 +209,12 @@ public class ReplayServiceImplTest {
   public void testRunScFaReplayFile() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
 
-    ReplayInfoBean replayInfoBean = new ReplayInfoBean();
-    replayInfoBean.setReplayFile(replayFile);
+    Replay replay = new Replay();
+    replay.setReplayFile(replayFile);
 
     when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
-    instance.runReplay(replayInfoBean);
+    instance.runReplay(replay);
 
     verify(gameService).runWithReplay(any(), eq(null), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME));
     verifyZeroInteractions(notificationService);
@@ -232,13 +226,13 @@ public class ReplayServiceImplTest {
 
     doThrow(new RuntimeException("Junit test exception")).when(replayFileReader).readReplayData(replayFile);
 
-    ReplayInfoBean replayInfoBean = new ReplayInfoBean();
-    replayInfoBean.setReplayFile(replayFile);
+    Replay replay = new Replay();
+    replay.setReplayFile(replayFile);
 
     expectedException.expect(RuntimeException.class);
     expectedException.expectMessage("Junit test exception");
 
-    instance.runReplay(replayInfoBean);
+    instance.runReplay(replay);
   }
 
   @Test
@@ -248,10 +242,10 @@ public class ReplayServiceImplTest {
     doThrow(new IOException("Junit test exception")).when(replayFileReader).readReplayInfo(replayFile);
     when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
-    ReplayInfoBean replayInfoBean = new ReplayInfoBean();
-    replayInfoBean.setReplayFile(replayFile);
+    Replay replay = new Replay();
+    replay.setReplayFile(replayFile);
 
-    instance.runReplay(replayInfoBean);
+    instance.runReplay(replay);
 
     verify(notificationService).addNotification(any(ImmediateNotification.class));
     verifyNoMoreInteractions(gameService);
@@ -264,7 +258,7 @@ public class ReplayServiceImplTest {
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
-    ReplayInfoBean replayInfoBean = new ReplayInfoBean();
+    Replay replay = new Replay();
 
     LocalReplayInfo replayInfo = new LocalReplayInfo();
     replayInfo.setUid(123);
@@ -276,7 +270,7 @@ public class ReplayServiceImplTest {
     when(replayFileReader.readReplayInfo(replayFile)).thenReturn(replayInfo);
     when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
-    instance.runReplay(replayInfoBean);
+    instance.runReplay(replay);
 
     verify(taskService).submitTask(replayDownloadTask);
     verify(gameService).runWithReplay(any(), eq(123), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME));
@@ -291,11 +285,11 @@ public class ReplayServiceImplTest {
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
 
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
-    ReplayInfoBean replayInfoBean = new ReplayInfoBean();
+    Replay replay = new Replay();
 
     when(replayFileReader.readReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
 
-    instance.runReplay(replayInfoBean);
+    instance.runReplay(replay);
 
     verify(taskService).submitTask(replayDownloadTask);
     verify(gameService).runWithReplay(replayFile, null, "faf", 3599, emptyMap(), emptySet(), TEST_MAP_NAME);
@@ -310,9 +304,9 @@ public class ReplayServiceImplTest {
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
-    ReplayInfoBean replayInfoBean = new ReplayInfoBean();
+    Replay replay = new Replay();
 
-    instance.runReplay(replayInfoBean);
+    instance.runReplay(replay);
 
     verify(notificationService).addNotification(any(ImmediateNotification.class));
     verifyNoMoreInteractions(gameService);

@@ -1,9 +1,11 @@
 package com.faforever.client.test;
 
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.support.MessageSourceResourceBundle;
@@ -54,19 +56,20 @@ public class AbstractPlainJavaFxTest extends ApplicationTest {
     return stage;
   }
 
-  protected <T> T loadController(String fileName) throws IOException {
+  protected void loadFxml(String fileName, Callback<Class<?>, Object> controllerFactory) throws IOException {
     ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-    messageSource.setBasename("i18n.Messages");
+    messageSource.setBasename("i18n.messages");
 
     FXMLLoader loader = new FXMLLoader();
-    loader.setLocation(getClass().getResource(getThemeFile(fileName)));
+    loader.setLocation(getThemeFileUrl(fileName));
     loader.setResources(new MessageSourceResourceBundle(messageSource, Locale.US));
-    WaitForAsyncUtils.waitForAsyncFx(5000, (Callable<Object>) loader::load);
-    return loader.getController();
+    loader.setControllerFactory(controllerFactory);
+    Platform.runLater(() -> noCatch((Callable<Object>) loader::load));
+    WaitForAsyncUtils.waitForFxEvents();
   }
 
   protected String getThemeFile(String file) {
-    return String.format("/theme/%s", file);
+    return String.format("/%s", file);
   }
 
   protected URL getThemeFileUrl(String file) {

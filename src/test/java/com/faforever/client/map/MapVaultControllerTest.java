@@ -1,6 +1,9 @@
 package com.faforever.client.map;
 
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.Observable;
 import javafx.scene.layout.Pane;
@@ -17,10 +20,10 @@ import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,23 +34,35 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ApplicationContext applicationContext;
   @Mock
-  private MapDetailController mapDetailController;
+  private UiService uiService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private MapDetailController mapDetailController;
+  @Mock
+  private MapCardController mapCardController;
+  @Mock
+  private I18n i18n;
+  @Mock
+  private PreferencesService preferencesService;
 
   private MapVaultController instance;
 
   @Before
   public void setUp() throws Exception {
-    instance = loadController("map_vault.fxml");
-    instance.mapService = mapService;
-    instance.applicationContext = applicationContext;
-    instance.mapDetailController = mapDetailController;
-    instance.eventBus = eventBus;
+    instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService);
 
-    when(mapDetailController.getRoot()).thenReturn(new Pane());
+    doAnswer(invocation -> {
+      when(mapDetailController.getRoot()).thenReturn(new Pane());
+      return mapDetailController;
+    }).when(uiService).loadFxml("theme/vault/map/map_detail.fxml");
 
-    instance.postConstruct();
+    doAnswer(invocation -> {
+      when(mapCardController.getRoot()).then(invocation1 -> new Pane());
+      return mapCardController;
+    }).when(uiService).loadFxml("theme/vault/map/map_card.fxml");
+
+    loadFxml("theme/vault/map/map_vault.fxml", clazz -> instance);
   }
 
   @Test
@@ -62,7 +77,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSetUpIfNecessary() throws Exception {
+  public void testOnDisplay() throws Exception {
     List<MapBean> maps = new ArrayList<>();
     for (int i = 0; i < 5; i++) {
       maps.add(
@@ -79,17 +94,14 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     when(mapService.getNewestMaps(anyInt())).thenReturn(CompletableFuture.completedFuture(maps));
     when(mapService.getMostPlayedMaps(anyInt())).thenReturn(CompletableFuture.completedFuture(maps));
 
-    MapTileController mapTileController = mock(MapTileController.class);
-    doAnswer(invocation -> new Pane()).when(mapTileController).getRoot();
-
-    when(applicationContext.getBean(MapTileController.class)).thenReturn(mapTileController);
+    when(applicationContext.getBean(MapCardController.class)).thenReturn(mapCardController);
 
     CountDownLatch latch = new CountDownLatch(3);
-    waitUntilInitialized(instance.recommendedMapsPane, latch);
-    waitUntilInitialized(instance.newestMapsPane, latch);
-    waitUntilInitialized(instance.popularMapsPane, latch);
+    waitUntilInitialized(instance.mostLikedPane, latch);
+    waitUntilInitialized(instance.newestPane, latch);
+    waitUntilInitialized(instance.mostPlayedPane, latch);
 
-    instance.setUpIfNecessary();
+    instance.onDisplay();
 
     assertTrue(latch.await(5000, TimeUnit.MILLISECONDS));
   }
@@ -100,18 +112,5 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
         latch.countDown();
       }
     });
-  }
-
-  @Test
-  public void testShowMapDetail() throws Exception {
-    Pane pane = new Pane();
-    pane.setVisible(false);
-    when(mapDetailController.getRoot()).thenReturn(pane);
-
-    MapBean mapBean = MapBeanBuilder.create().defaultValues().get();
-    instance.onShowMapDetail(mapBean);
-
-    verify(mapDetailController).setMap(mapBean);
-    assertThat(pane.isVisible(), is(true));
   }
 }

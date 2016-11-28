@@ -1,5 +1,6 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.common.hash.Hashing;
@@ -29,16 +30,17 @@ public class GameBinariesUpdateTaskTest {
   public TemporaryFolder fafBinDirectory = new TemporaryFolder();
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private I18n i18n;
 
-  private GameBinariesUpdateTask instance;
+  private GameBinariesUpdateTaskImpl instance;
   private Preferences preferences;
 
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new GameBinariesUpdateTask();
-    instance.preferencesService = preferencesService;
+    instance = new GameBinariesUpdateTaskImpl(i18n, preferencesService);
 
     Path faPath = faDirectory.getRoot().toPath();
     java.nio.file.Files.createDirectories(faPath.resolve("bin"));
@@ -54,7 +56,7 @@ public class GameBinariesUpdateTaskTest {
   public void name() throws Exception {
     Path dummyExe = fafBinDirectory.getRoot().toPath().resolve("ForgedAlliance.exe");
     createFileWithSize(dummyExe, 12_444_928);
-    GameBinariesUpdateTask.updateVersionInExe(3660, dummyExe);
+    GameBinariesUpdateTaskImpl.updateVersionInExe(3660, dummyExe);
 
     assertThat(Files.hash(dummyExe.toFile(), Hashing.md5()).toString(), is("4de5eed29b45b640fe64aa22808631c3"));
   }
@@ -69,7 +71,7 @@ public class GameBinariesUpdateTaskTest {
     Path fafBinPath = fafBinDirectory.getRoot().toPath();
     Path faBinPath = faDirectory.getRoot().toPath().resolve("bin");
 
-    for (String fileName : GameBinariesUpdateTask.BINARIES_TO_COPY) {
+    for (String fileName : GameBinariesUpdateTaskImpl.BINARIES_TO_COPY) {
       createFileWithSize(faBinPath.resolve(fileName), 1024);
     }
     createFileWithSize(faBinPath.resolve("splash.png"), 1024);
@@ -79,8 +81,8 @@ public class GameBinariesUpdateTaskTest {
     List<Path> resultFiles = java.nio.file.Files.list(fafBinPath).collect(Collectors.toList());
 
     // Expected all files except splash.png to be copied
-    assertThat(resultFiles.size(), is(GameBinariesUpdateTask.BINARIES_TO_COPY.size()));
-    for (String fileName : GameBinariesUpdateTask.BINARIES_TO_COPY) {
+    assertThat(resultFiles.size(), is(GameBinariesUpdateTaskImpl.BINARIES_TO_COPY.size()));
+    for (String fileName : GameBinariesUpdateTaskImpl.BINARIES_TO_COPY) {
       assertTrue(java.nio.file.Files.exists(fafBinPath.resolve(fileName)));
     }
   }

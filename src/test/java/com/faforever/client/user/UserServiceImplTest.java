@@ -45,12 +45,7 @@ public class UserServiceImplTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
-    instance = new UserServiceImpl();
-    instance.eventBus = eventBus;
-    instance.fafService = fafService;
-    instance.preferencesService = preferencesService;
-    instance.taskService = taskService;
-    instance.applicationContext = applicationContext;
+    instance = new UserServiceImpl(fafService, preferencesService, eventBus, applicationContext, taskService);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferences.getLogin()).thenReturn(login);
@@ -80,7 +75,7 @@ public class UserServiceImplTest {
 //    assertEquals("junit", instance.getUsername());
 //    assertEquals("junitPw", instance.getPassword());
 //    assertEquals("session", instance.getSessionId());
-//    assertEquals(1234, instance.getUid());
+//    assertEquals(1234, instance.getUserId());
 //    assertEquals("junit@example.com", instance.getEmail());
 //  }
 

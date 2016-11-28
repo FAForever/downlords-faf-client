@@ -17,7 +17,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -43,8 +42,6 @@ public class GitRepositoryFeaturedModUpdaterTest extends AbstractPlainJavaFxTest
   private ForgedAlliancePrefs forgedAlliancePrefs;
   @Mock
   private ApplicationContext applicationContext;
-  @Mock
-  private Environment environment;
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -79,9 +76,9 @@ public class GitRepositoryFeaturedModUpdaterTest extends AbstractPlainJavaFxTest
 
   @Test
   public void testUpdateInBackgroundThrowsException() throws Exception {
-    GitFeaturedModUpdateTask featuredModTask = mock(GitFeaturedModUpdateTask.class, withSettings().useConstructor());
+    GitFeaturedModUpdateTask featuredModTask = mock(GitFeaturedModUpdateTask.class, withSettings());
     when(applicationContext.getBean(GitFeaturedModUpdateTask.class)).thenReturn(featuredModTask);
-    GameBinariesUpdateTask binariesTask = mock(GameBinariesUpdateTask.class, withSettings().useConstructor());
+    GameBinariesUpdateTask binariesTask = mock(GameBinariesUpdateTask.class, withSettings());
     when(applicationContext.getBean(GameBinariesUpdateTask.class)).thenReturn(binariesTask);
 
     CompletableFuture<PatchResult> future = new CompletableFuture<>();

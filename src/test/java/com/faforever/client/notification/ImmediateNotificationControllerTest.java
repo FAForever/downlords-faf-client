@@ -14,7 +14,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest {
 
@@ -22,7 +22,8 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
 
   @Before
   public void setUp() throws Exception {
-    instance = loadController("immediate_notification.fxml");
+    instance = new ImmediateNotificationController();
+    loadFxml("theme/immediate_notification.fxml", clazz -> instance);
   }
 
   @Test

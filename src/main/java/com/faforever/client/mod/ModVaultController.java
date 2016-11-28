@@ -1,16 +1,18 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WindowController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.theme.UiService;
+import com.google.common.collect.Iterators;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -22,10 +24,11 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
@@ -37,69 +40,55 @@ import java.util.stream.Collectors;
 
 import static com.faforever.client.fx.WindowController.WindowButtonType.CLOSE;
 
-public class ModVaultController {
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public class ModVaultController extends AbstractViewController<Node> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final int TOP_ELEMENT_COUNT = 7;
   private static final int MAX_SUGGESTIONS = 10;
+  private static final int LOAD_MORE_COUNT = 200;
+  /**
+   * How many mod cards should be badged into one UI thread runnable.
+   */
+  private static final int BATCH_SIZE = 10;
 
-  @FXML
-  Pane searchResultGroup;
-  @FXML
-  Pane searchResultPane;
-  @FXML
-  Pane showroomGroup;
-  @FXML
-  Pane loadingPane;
-  @FXML
-  TextField searchTextField;
-  @FXML
-  Pane recommendedUiModsPane;
-  @FXML
-  Pane newestModsPane;
-  @FXML
-  Pane popularModsPane;
-  @FXML
-  Pane mostLikedModsPane;
-  @FXML
-  Pane modVaultRoot;
+  public Pane searchResultGroup;
+  public Pane searchResultPane;
+  public Pane showroomGroup;
+  public Pane loadingPane;
+  public TextField searchTextField;
+  public Pane recommendedUiModsPane;
+  public Pane newestModsPane;
+  public Pane popularModsPane;
+  public Pane mostLikedModsPane;
+  public Pane modVaultRoot;
 
-  @Resource
+  @Inject
   ModService modService;
-  @Resource
-  ApplicationContext applicationContext;
-  @Resource
-  ModDetailController modDetailController;
-  @Resource
+  @Inject
   I18n i18n;
-  @Resource
+  @Inject
   PreferencesService preferencesService;
-  @Resource
+  @Inject
   EventBus eventBus;
+  @Inject
+  UiService uiService;
 
   private boolean initialized;
 
-  @FXML
-  void initialize() {
+  @Override
+  public void initialize() {
+    super.initialize();
     loadingPane.managedProperty().bind(loadingPane.visibleProperty());
     showroomGroup.managedProperty().bind(showroomGroup.visibleProperty());
     searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
-  }
-
-  @PostConstruct
-  void postConstruct() {
-    Node modDetailRoot = modDetailController.getRoot();
-    modVaultRoot.getChildren().add(modDetailRoot);
-    AnchorPane.setTopAnchor(modDetailRoot, 0d);
-    AnchorPane.setRightAnchor(modDetailRoot, 0d);
-    AnchorPane.setBottomAnchor(modDetailRoot, 0d);
-    AnchorPane.setLeftAnchor(modDetailRoot, 0d);
-    modDetailRoot.setVisible(false);
 
     eventBus.register(this);
   }
 
-  public void setUpIfNecessary() {
+  @Override
+  public void onDisplay() {
     if (initialized) {
       return;
     }
@@ -112,10 +101,11 @@ public class ModVaultController {
 
   private void displayShowroomMods() {
     enterLoadingState();
-    modService.getMostDownloadedMods(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateMods(modInfoBeans, popularModsPane))
-        .thenCompose(aVoid -> modService.getMostLikedMods(TOP_ELEMENT_COUNT)).thenAccept(modInfoBeans -> populateMods(modInfoBeans, mostLikedModsPane))
-        .thenCompose(aVoid -> modService.getNewestMods(TOP_ELEMENT_COUNT)).thenAccept(modInfoBeans -> populateMods(modInfoBeans, newestModsPane))
-        .thenCompose(aVoid -> modService.getMostLikedUiMods(TOP_ELEMENT_COUNT)).thenAccept(modInfoBeans -> populateMods(modInfoBeans, recommendedUiModsPane))
+    modService.getMostDownloadedMods(TOP_ELEMENT_COUNT)
+        .thenAccept(modInfoBeans -> populateMods(modInfoBeans, popularModsPane))
+        .thenCompose(aVoid -> modService.getMostLikedMods(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateMods(modInfoBeans, mostLikedModsPane)))
+        .thenCompose(aVoid -> modService.getNewestMods(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateMods(modInfoBeans, newestModsPane)))
+        .thenCompose(aVoid -> modService.getMostLikedUiMods(TOP_ELEMENT_COUNT).thenAccept(modInfoBeans -> populateMods(modInfoBeans, recommendedUiModsPane)))
         .thenRun(this::enterShowroomState)
         .exceptionally(throwable -> {
           logger.warn("Could not populate mods", throwable);
@@ -123,16 +113,35 @@ public class ModVaultController {
         });
   }
 
-  @FXML
-  void onSearchModButtonClicked() {
+  public void onSearchModButtonClicked() {
     if (searchTextField.getText().isEmpty()) {
       onResetButtonClicked();
       return;
     }
     enterSearchResultState();
-
     modService.lookupMod(searchTextField.getText(), 100)
         .thenAccept(this::displaySearchResult);
+  }
+
+  private void populateMods(List<Mod> mods, Pane pane) {
+    JavaFxUtil.assertBackgroundThread();
+
+    ObservableList<Node> children = pane.getChildren();
+    Platform.runLater(children::clear);
+
+    List<ModCardController> controllers = mods.parallelStream()
+        .map(mod -> {
+          ModCardController controller = uiService.loadFxml("theme/vault/mod/mod_card.fxml");
+          controller.setMod(mod);
+          controller.setOnOpenDetailListener(this::onShowModDetail);
+          return controller;
+        }).collect(Collectors.toList());
+
+    Iterators.partition(controllers.iterator(), BATCH_SIZE).forEachRemaining(mapCardControllers -> Platform.runLater(() -> {
+      for (ModCardController modCardController : mapCardControllers) {
+        children.add(modCardController.getRoot());
+      }
+    }));
   }
 
   private void enterLoadingState() {
@@ -141,21 +150,7 @@ public class ModVaultController {
     loadingPane.setVisible(true);
   }
 
-  private void populateMods(List<ModInfoBean> modInfoBeans, Pane pane) {
-    ObservableList<Node> children = pane.getChildren();
-    Platform.runLater(() -> {
-      children.clear();
-      for (ModInfoBean mod : modInfoBeans) {
-        ModTileController controller = applicationContext.getBean(ModTileController.class);
-        controller.setMod(mod);
-        controller.setOnOpenDetailListener(this::onShowModDetail);
-        children.add(controller.getRoot());
-      }
-    });
-  }
-
-  @FXML
-  void onResetButtonClicked() {
+  public void onResetButtonClicked() {
     searchTextField.clear();
     showroomGroup.setVisible(true);
     searchResultGroup.setVisible(false);
@@ -169,10 +164,10 @@ public class ModVaultController {
 
   private CompletionStage<Set<Label>> createModSuggestions(String string) {
     return modService.lookupMod(string, MAX_SUGGESTIONS)
-        .thenApply(new Function<List<ModInfoBean>, Set<Label>>() {
+        .thenApply(new Function<List<Mod>, Set<Label>>() {
           @Override
-          public Set<Label> apply(List<ModInfoBean> modInfoBeans) {
-            return modInfoBeans.stream()
+          public Set<Label> apply(List<Mod> mods) {
+            return mods.stream()
                 .map(result -> {
                   String name = result.getName();
                   Label item = new Label(name) {
@@ -202,18 +197,22 @@ public class ModVaultController {
     loadingPane.setVisible(false);
   }
 
-  @FXML
-  void onShowModDetail(ModInfoBean mod) {
+  void onShowModDetail(Mod mod) {
+    ModDetailController modDetailController = uiService.loadFxml("theme/vault/mod/mod_detail.fxml");
     modDetailController.setMod(mod);
-    modDetailController.getRoot().setVisible(true);
-    modDetailController.getRoot().requestFocus();
+
+    Node modDetailRoot = modDetailController.getRoot();
+    modVaultRoot.getChildren().add(modDetailRoot);
+    AnchorPane.setTopAnchor(modDetailRoot, 0d);
+    AnchorPane.setRightAnchor(modDetailRoot, 0d);
+    AnchorPane.setBottomAnchor(modDetailRoot, 0d);
+    AnchorPane.setLeftAnchor(modDetailRoot, 0d);
+    modDetailRoot.requestFocus();
   }
 
-  private void displaySearchResult(List<ModInfoBean> modInfoBeans) {
-    showroomGroup.setVisible(false);
-    searchResultGroup.setVisible(true);
-
-    populateMods(modInfoBeans, searchResultPane);
+  private void displaySearchResult(List<Mod> mods) {
+    populateMods(mods, searchResultPane);
+    enterSearchResultState();
   }
 
   public void onUploadModButtonClicked(ActionEvent actionEvent) {
@@ -235,14 +234,14 @@ public class ModVaultController {
   }
 
   private void openModUploadWindow(Path path) {
-    ModUploadController modUploadController = applicationContext.getBean(ModUploadController.class);
+    ModUploadController modUploadController = uiService.loadFxml("theme/vault/mod/mod_upload.fxml");
     modUploadController.setModPath(path);
 
     Stage modUploadWindow = new Stage(StageStyle.TRANSPARENT);
     modUploadWindow.initModality(Modality.NONE);
     modUploadWindow.initOwner(getRoot().getScene().getWindow());
 
-    WindowController windowController = applicationContext.getBean(WindowController.class);
+    WindowController windowController = uiService.loadFxml("theme/window.fxml");
     windowController.configure(modUploadWindow, modUploadController.getRoot(), true, CLOSE);
 
     modUploadWindow.show();
@@ -256,5 +255,25 @@ public class ModVaultController {
   @Subscribe
   public void onModUploaded(ModUploadedEvent event) {
     onRefreshClicked();
+  }
+
+  public void showMoreRecommendedUiMods() {
+    enterLoadingState();
+    modService.getMostLikedUiMods(LOAD_MORE_COUNT).thenAccept(this::displaySearchResult);
+  }
+
+  public void showMoreNewestMods() {
+    enterLoadingState();
+    modService.getNewestMods(LOAD_MORE_COUNT).thenAccept(this::displaySearchResult);
+  }
+
+  public void showMorePopularMods() {
+    enterLoadingState();
+    modService.getMostPlayedMods(LOAD_MORE_COUNT).thenAccept(this::displaySearchResult);
+  }
+
+  public void showMoreMostLikedMods() {
+    enterLoadingState();
+    modService.getMostLikedMods(LOAD_MORE_COUNT).thenAccept(this::displaySearchResult);
   }
 }

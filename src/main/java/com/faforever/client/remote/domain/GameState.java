@@ -30,10 +30,6 @@ public enum GameState {
     this.string = string;
   }
 
-  public String getString() {
-    return string;
-  }
-
   public static GameState fromString(String string) {
     GameState gameState = fromString.get(string);
     if (gameState == null) {
@@ -41,5 +37,9 @@ public enum GameState {
       return UNKNOWN;
     }
     return gameState;
+  }
+
+  public String getString() {
+    return string;
   }
 }

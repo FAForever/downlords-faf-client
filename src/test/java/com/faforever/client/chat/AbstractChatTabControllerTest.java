@@ -1,17 +1,18 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.audio.AudioController;
+import com.faforever.client.audio.AudioService;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerInfoBeanBuilder;
+import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
@@ -28,6 +29,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import org.bridj.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -81,7 +83,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private TimeService timeService;
   @Mock
-  private AudioController audioController;
+  private AudioService audioService;
   @Mock
   private ImageUploadService imageUploadService;
   @Mock
@@ -90,6 +92,10 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   private NotificationService notificationService;
   @Mock
   private AutoCompletionHelper autoCompletionHelper;
+  @Mock
+  private UiService uiService;
+  @Mock
+  private WebViewConfigurer webViewConfigurer;
 
   private AbstractChatTabController instance;
   private CountDownLatch chatReadyLatch;
@@ -125,16 +131,19 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.platformService = platformService;
     instance.urlPreviewResolver = urlPreviewResolver;
     instance.timeService = timeService;
-    instance.audioController = audioController;
+    instance.audioService = audioService;
     instance.imageUploadService = imageUploadService;
     instance.notificationService = notificationService;
     instance.i18n = i18n;
     instance.stage = stage;
     instance.autoCompletionHelper = autoCompletionHelper;
+    instance.webViewConfigurer = webViewConfigurer;
+    instance.uiService = uiService;
 
     TabPane tabPane = new TabPane(instance.getRoot());
     getRoot().getChildren().setAll(tabPane);
 
+    when(uiService.getThemeFileUrl(any())).thenReturn(getClass().getResource("/theme/chat/chat_section.html"));
     when(timeService.asShortTime(any())).thenReturn("123");
     when(userService.getUsername()).thenReturn("junit");
     when(preferencesService.getPreferences()).thenReturn(preferences);
@@ -149,7 +158,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
       }
     });
 
-    instance.postConstruct();
+    instance.initialize();
   }
 
   @Test
@@ -331,15 +340,13 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testPasteImageCtrlV() throws Exception {
     KeyCode modifier;
-    switch (OperatingSystem.current()) {
-      case MAC:
-        modifier = KeyCode.META;
-        break;
-      default:
-        modifier = KeyCode.CONTROL;
+    if (Platform.isMacOSX()) {
+      modifier = KeyCode.META;
+    } else {
+      modifier = KeyCode.CONTROL;
     }
 
-    Image image = new Image(getClass().getResourceAsStream("/theme/images/tray_icon.png"));
+    Image image = new Image(getClass().getResourceAsStream("/theme/images/close.png"));
 
     String url = "http://www.example.com/fake.png";
     when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));
@@ -359,7 +366,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testPasteImageShiftInsert() throws Exception {
-    Image image = new Image(getClass().getResourceAsStream("/theme/images/tray_icon.png"));
+    Image image = new Image(getClass().getResourceAsStream("/theme/images/close.png"));
 
     String url = "http://www.example.com/fake.png";
     when(imageUploadService.uploadImageInBackground(any())).thenReturn(CompletableFuture.completedFuture(url));
@@ -430,9 +437,9 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     when(chatService.getOrCreateChatUser("somePlayer")).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
 
-    String shouldBe = String.format("style=\"%s%s\"", colorStyle, "");
+    String expected = String.format("%s%s", colorStyle, "");
     String result = instance.getInlineStyle("somePlayer");
-    assertEquals(shouldBe, result);
+    assertEquals(expected, result);
   }
 
   @Test
@@ -441,13 +448,13 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     Color color = ColorGeneratorUtil.generateRandomColor();
 
     ChatUser chatUser = new ChatUser(somePlayer, color);
-    when(playerService.getPlayerForUsername(somePlayer)).thenReturn(PlayerInfoBeanBuilder.create(somePlayer).chatOnly(true).get());
+    when(playerService.getPlayerForUsername(somePlayer)).thenReturn(PlayerBuilder.create(somePlayer).chatOnly(true).get());
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
     when(chatService.getOrCreateChatUser(somePlayer)).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
 
-    String expected = String.format("style=\"%s\"", instance.createInlineStyleFromColor(color));
+    String expected = instance.createInlineStyleFromColor(color);
     String result = instance.getInlineStyle(somePlayer);
     assertEquals(expected, result);
   }
@@ -458,13 +465,13 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String somePlayer = "somePlayer";
 
     ChatUser chatUser = new ChatUser(somePlayer, color);
-    when(playerService.getPlayerForUsername(somePlayer)).thenReturn(PlayerInfoBeanBuilder.create(somePlayer).chatOnly(true).get());
+    when(playerService.getPlayerForUsername(somePlayer)).thenReturn(PlayerBuilder.create(somePlayer).chatOnly(true).get());
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
     when(chatService.getOrCreateChatUser(somePlayer)).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
 
-    String expected = String.format("style=\"%s\"", instance.createInlineStyleFromColor(color));
+    String expected = instance.createInlineStyleFromColor(color);
     String result = instance.getInlineStyle(somePlayer);
     assertEquals(expected, result);
   }
@@ -473,28 +480,27 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void getInlineStyleRandomFoeHide() throws Exception {
     String playerName = "playerName";
     ChatUser chatUser = new ChatUser(playerName, null);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(PlayerInfoBeanBuilder.create(playerName).socialStatus(FOE).get());
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(PlayerBuilder.create(playerName).socialStatus(FOE).get());
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
     when(chatService.getOrCreateChatUser(playerName)).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(true);
 
     String result = instance.getInlineStyle(playerName);
-    assertEquals("style=\"display: none;\"", result);
+    assertEquals("display: none;", result);
   }
 
   @Test
   public void getInlineStyleRandomFoeShow() throws Exception {
     String playerName = "somePlayer";
     ChatUser chatUser = new ChatUser(playerName, null);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(PlayerInfoBeanBuilder.create(playerName).socialStatus(FOE).get());
+    when(playerService.getPlayerForUsername(playerName)).thenReturn(PlayerBuilder.create(playerName).socialStatus(FOE).get());
 
     when(chatPrefs.getChatColorMode()).thenReturn(ChatColorMode.RANDOM);
     when(chatService.getOrCreateChatUser(playerName)).thenReturn(chatUser);
     when(chatPrefs.getHideFoeMessages()).thenReturn(false);
 
-    String shouldBe = "style=\"\"";
     String result = instance.getInlineStyle(playerName);
-    assertEquals(shouldBe, result);
+    assertEquals("", result);
   }
 }

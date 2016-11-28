@@ -4,17 +4,22 @@ import com.faforever.client.io.FileUtils;
 import com.faforever.client.task.CompletableTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.Objects;
 
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class UninstallMapTask extends CompletableTask<Void> {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Resource
+  @Inject
   MapService mapService;
 
   private MapBean map;

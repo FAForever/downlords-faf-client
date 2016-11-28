@@ -21,7 +21,7 @@ public interface ModService {
 
   void loadInstalledMods();
 
-  ObservableList<ModInfoBean> getInstalledMods();
+  ObservableList<Mod> getInstalledMods();
 
   CompletionStage<Void> downloadAndInstallMod(String uid);
 
@@ -29,7 +29,7 @@ public interface ModService {
 
   CompletionStage<Void> downloadAndInstallMod(URL url, DoubleProperty progressProperty, StringProperty titleProperty);
 
-  CompletionStage<Void> downloadAndInstallMod(ModInfoBean modInfoBean, DoubleProperty progressProperty, StringProperty titleProperty);
+  CompletionStage<Void> downloadAndInstallMod(Mod mod, DoubleProperty progressProperty, StringProperty titleProperty);
 
   Set<String> getInstalledModUids();
 
@@ -39,32 +39,32 @@ public interface ModService {
 
   boolean isModInstalled(String uid);
 
-  CompletionStage<Void> uninstallMod(ModInfoBean mod);
+  CompletionStage<Void> uninstallMod(Mod mod);
 
-  Path getPathForMod(ModInfoBean mod);
+  Path getPathForMod(Mod mod);
 
   /**
    * Returns mods available on the server.
    */
-  CompletionStage<List<ModInfoBean>> getAvailableMods();
+  CompletionStage<List<Mod>> getAvailableMods();
 
-  CompletionStage<List<ModInfoBean>> getMostDownloadedMods(int count);
+  CompletionStage<List<Mod>> getMostDownloadedMods(int count);
 
-  CompletionStage<List<ModInfoBean>> getMostLikedMods(int count);
+  CompletionStage<List<Mod>> getMostLikedMods(int count);
 
-  CompletionStage<List<ModInfoBean>> getMostPlayedMods(int count);
+  CompletionStage<List<Mod>> getMostPlayedMods(int count);
 
-  CompletionStage<List<ModInfoBean>> getNewestMods(int count);
+  CompletionStage<List<Mod>> getNewestMods(int count);
 
-  CompletionStage<List<ModInfoBean>> getMostLikedUiMods(int count);
+  CompletionStage<List<Mod>> getMostLikedUiMods(int count);
 
-  CompletionStage<List<ModInfoBean>> lookupMod(String string, int maxSuggestions);
+  CompletionStage<List<Mod>> lookupMod(String string, int maxSuggestions);
 
-  ModInfoBean extractModInfo(Path path);
+  Mod extractModInfo(Path path);
 
   CompletableTask<Void> uploadMod(Path modPath);
 
-  Image loadThumbnail(ModInfoBean mod);
+  Image loadThumbnail(Mod mod);
 
   void evictModsCache();
 
