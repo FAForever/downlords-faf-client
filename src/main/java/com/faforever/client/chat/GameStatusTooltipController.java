@@ -1,12 +1,13 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.game.FeaturedModBean;
+import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.game.GameInfoBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.mod.ModService;
 import com.google.common.base.Joiner;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
@@ -48,6 +49,8 @@ public class GameStatusTooltipController {
   GameService gameService;
   @Resource
   I18n i18n;
+  @Resource
+  ModService modService;
 
   @FXML
   void initialize() {
@@ -57,7 +60,7 @@ public class GameStatusTooltipController {
 
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
     gameTypeLabel.textProperty().bind(Bindings.createStringBinding(() -> {
-      FeaturedModBean gameType = gameService.getFeaturedMod(gameInfoBean.getFeaturedMod()).get();
+      FeaturedModBean gameType = modService.getFeaturedMod(gameInfoBean.getFeaturedMod()).get();
       String fullName = gameType != null ? gameType.getDisplayName() : null;
       return StringUtils.defaultString(fullName);
     }, gameInfoBean.featuredModProperty()));

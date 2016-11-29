@@ -179,12 +179,14 @@ mount_contents(SHGetFolderPath('PERSONAL') .. 'My Games\\Gas Powered Games\\Supr
 -- these are the local FAF directories. The My Games ones are only there for people with usernames that don't work in the uppder ones.
 mount_contents(InitFileDir .. '\\..\\user\\My Games\\Gas Powered Games\\Supreme Commander Forged Alliance\\mods', '/mods')
 mount_contents(InitFileDir .. '\\..\\user\\My Games\\Gas Powered Games\\Supreme Commander Forged Alliance\\maps', '/maps')
-mount_dir_with_whitelist(InitFileDir .. '\\..\\gamedata\\', '*.nxt', '/')
-mount_dir_with_whitelist(InitFileDir .. '\\..\\gamedata\\', '*.nx2', '/')
 
+-- Generated
+mountPoints = {
+    --[[ ${mountpointsTable} --]]
+}
 
-for _, dir in { ((mount_dirs)) } do
-    mount_dir(dir, '/')
+for mountpoint, dir in mountPoints do
+    mount_dir(dir, mountpoint)
 end
 
 

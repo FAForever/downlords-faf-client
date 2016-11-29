@@ -1,16 +1,15 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.game.FeaturedModBean;
 import com.faforever.client.game.FeaturedModBeanBuilder;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,11 +25,10 @@ import java.util.concurrent.TimeUnit;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 
-public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest {
+public class GitRepositoryFeaturedModUpdaterTest extends AbstractPlainJavaFxTest {
 
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
@@ -60,11 +58,11 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
   @Mock
   private Preferences preferences;
 
-  private GitRepositoryGameUpdateService instance;
+  private GitRepositoryFeaturedModUpdater instance;
 
   @Before
   public void setUp() throws Exception {
-    instance = new GitRepositoryGameUpdateService();
+    instance = new GitRepositoryFeaturedModUpdater();
     instance.preferencesService = preferencesService;
     instance.taskService = taskService;
     instance.i18n = i18n;
@@ -80,22 +78,13 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
   }
 
   @Test
-  public void testUpdateInBackgroundFaDirectoryUnspecified() throws Exception {
-    when(forgedAlliancePrefs.getPath()).thenReturn(null);
-
-    instance.updateBaseMod(featuredMod(KnownFeaturedMod.FAF), null, null, null);
-
-    verifyZeroInteractions(instance.taskService);
-  }
-
-  @Test
   public void testUpdateInBackgroundThrowsException() throws Exception {
-    GitFeaturedModsUpdateTask featuredModTask = mock(GitFeaturedModsUpdateTask.class, withSettings().useConstructor());
-    when(applicationContext.getBean(GitFeaturedModsUpdateTask.class)).thenReturn(featuredModTask);
+    GitFeaturedModUpdateTask featuredModTask = mock(GitFeaturedModUpdateTask.class, withSettings().useConstructor());
+    when(applicationContext.getBean(GitFeaturedModUpdateTask.class)).thenReturn(featuredModTask);
     GameBinariesUpdateTask binariesTask = mock(GameBinariesUpdateTask.class, withSettings().useConstructor());
     when(applicationContext.getBean(GameBinariesUpdateTask.class)).thenReturn(binariesTask);
 
-    CompletableFuture<ComparableVersion> future = new CompletableFuture<>();
+    CompletableFuture<PatchResult> future = new CompletableFuture<>();
     future.completeExceptionally(new Exception("This exception mimicks that something went wrong"));
     when(featuredModTask.getFuture()).thenReturn(future);
     when(binariesTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
@@ -103,7 +92,7 @@ public class GitRepositoryGameUpdateServiceTest extends AbstractPlainJavaFxTest 
     expectedException.expect(Exception.class);
     expectedException.expectMessage("This exception mimicks that something went wrong");
 
-    instance.updateBaseMod(featuredMod(KnownFeaturedMod.FAF), null, null, null).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
+    instance.updateMod(featuredMod(KnownFeaturedMod.FAF), null).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
   }
 
   private FeaturedModBean featuredMod(KnownFeaturedMod knownFeaturedMod) {

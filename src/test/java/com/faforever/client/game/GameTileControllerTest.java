@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
+import com.faforever.client.mod.ModService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
@@ -23,7 +24,7 @@ import static org.mockito.Mockito.when;
 public class GameTileControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
-  GameService gameService;
+  private ModService modService;
   private GameTileController instance;
   @Mock
   private JoinGameHelper joinGameHelper;
@@ -44,7 +45,7 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     instance = loadController("game_tile.fxml");
-    instance.gameService = gameService;
+    instance.modService = modService;
     instance.applicationContext = applicationContext;
     instance.i18n = i18n;
     instance.mapService = mapService;
@@ -55,7 +56,7 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
     when(applicationContext.getBean(GameTooltipController.class)).thenReturn(gameTooltipController);
     when(gameTooltipController.getRoot()).thenReturn(new Pane());
     when(i18n.get(anyString())).thenReturn("test");
-    when(gameService.getFeaturedMod(gameInfoBean.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(
+    when(modService.getFeaturedMod(gameInfoBean.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(
         FeaturedModBeanBuilder.create().defaultValues().get()
     ));
 

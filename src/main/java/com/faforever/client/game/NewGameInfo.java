@@ -1,5 +1,7 @@
 package com.faforever.client.game;
 
+import com.faforever.client.mod.FeaturedModBean;
+
 import java.util.Set;
 
 public class NewGameInfo {

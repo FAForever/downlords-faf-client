@@ -14,7 +14,7 @@
     <Separator />
     <VBox maxHeight="1.7976931348623157E308" spacing="20.0" styleClass="content" VBox.vgrow="ALWAYS">
       <children>
-            <WebView fx:id="errorMessageView" contextMenuEnabled="false" minHeight="20.0" minWidth="100.0" prefHeight="200.0" prefWidth="300.0" VBox.vgrow="ALWAYS" />
+            <WebView fx:id="errorMessageView" minHeight="20.0" minWidth="100.0" prefHeight="200.0" prefWidth="300.0" VBox.vgrow="ALWAYS" />
         <TitledPane fx:id="exceptionPane" maxHeight="1.7976931348623157E308" text="%errorDetails" VBox.vgrow="ALWAYS">
           <content>
             <TextArea fx:id="exceptionTextArea" maxWidth="1.7976931348623157E308" />

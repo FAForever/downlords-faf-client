@@ -16,6 +16,8 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 
+import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
+
 public class ForgedAllianceServiceImpl implements ForgedAllianceService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -94,7 +96,7 @@ public class ForgedAllianceServiceImpl implements ForgedAllianceService {
   }
 
   private Path getExecutable() {
-    return preferencesService.getFafBinDirectory().resolve("ForgedAlliance.exe");
+    return preferencesService.getFafBinDirectory().resolve(FORGED_ALLIANCE_EXE);
   }
 
   @NotNull

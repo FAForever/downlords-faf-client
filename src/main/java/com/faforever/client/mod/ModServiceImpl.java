@@ -6,6 +6,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.patch.MountPoint;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
@@ -27,6 +28,7 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.luaj.vm2.LuaError;
+import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +38,7 @@ import org.springframework.context.ApplicationContext;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
@@ -45,6 +48,7 @@ import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -61,12 +65,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.notification.Severity.WARN;
+import static com.faforever.client.util.LuaUtil.load;
 import static com.faforever.client.util.LuaUtil.loadFile;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 
 public class ModServiceImpl implements ModService {
 
@@ -199,8 +205,8 @@ public class ModServiceImpl implements ModService {
   }
 
   @Override
-  public void downloadAndInstallMod(String uid) {
-    downloadAndInstallMod(fafService.getMod(uid), null, null);
+  public CompletionStage<Void> downloadAndInstallMod(String uid) {
+    return downloadAndInstallMod(fafService.getMod(uid), null, null);
   }
 
   @Override
@@ -291,17 +297,11 @@ public class ModServiceImpl implements ModService {
   @Override
   public CompletionStage<List<ModInfoBean>> getAvailableMods() {
     return CompletableFuture.supplyAsync(() -> {
-          List<ModInfoBean> availableMods = fafService.getMods();
-
-          try {
-            ModInfoBeanIterator iterator = new ModInfoBeanIterator(availableMods.iterator());
-            suggester.build(iterator);
-            return availableMods;
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }
-        , threadPoolExecutor);
+      List<ModInfoBean> availableMods = fafService.getMods();
+      ModInfoBeanIterator iterator = new ModInfoBeanIterator(availableMods.iterator());
+      noCatch(() -> suggester.build(iterator));
+      return availableMods;
+    }, threadPoolExecutor);
   }
 
   @Override
@@ -412,6 +412,32 @@ public class ModServiceImpl implements ModService {
   @Override
   public ComparableVersion readModVersion(Path modDirectory) {
     return extractModInfo(modDirectory).getVersion();
+  }
+
+  @Override
+  public CompletableFuture<List<FeaturedModBean>> getFeaturedMods() {
+    return fafService.getFeaturedMods();
+  }
+
+
+  @Override
+  public CompletableFuture<FeaturedModBean> getFeaturedMod(String featuredMod) {
+    return getFeaturedMods().thenCompose(featuredModBeans -> completedFuture(featuredModBeans.stream()
+        .filter(featuredModBean -> featuredMod.equals(featuredModBean.getTechnicalName()))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("Not a valid featured mod: " + featuredMod))
+    ));
+  }
+
+  @Override
+  public List<MountPoint> readMountPoints(InputStream inputStream, Path basePath) {
+    LuaValue modInfo = noCatch(() -> load(inputStream));
+    ArrayList<MountPoint> mountPoints = new ArrayList<>();
+    LuaTable mountpoints = modInfo.get("mountpoints").checktable();
+    for (LuaValue key : mountpoints.keys()) {
+      mountPoints.add(new MountPoint(basePath.resolve(key.tojstring()), mountpoints.get(key).tojstring()));
+    }
+    return mountPoints;
   }
 
   private CompletionStage<List<ModInfoBean>> getTopElements(Comparator<? super ModInfoBean> comparator, int count) {

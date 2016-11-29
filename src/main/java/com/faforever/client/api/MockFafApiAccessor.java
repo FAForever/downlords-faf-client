@@ -1,5 +1,6 @@
 package com.faforever.client.api;
 
+import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
@@ -139,6 +140,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   @Override
   public CompletionStage<List<ReplayInfoBean>> getOnlineReplays() {
     return CompletableFuture.completedFuture(Collections.emptyList());
+  }
+
+  @Override
+  public List<FeaturedModFile> getFeaturedModFiles(FeaturedModBean featuredModBean, Integer version) {
+    return null;
   }
 
   @Override

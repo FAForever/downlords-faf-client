@@ -1,5 +1,6 @@
 package com.faforever.client.api;
 
+import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
@@ -60,5 +61,8 @@ public interface FafApiAccessor {
 
   ModInfoBean getMod(String uid);
 
+  // TODO this shouldn't be async
   CompletionStage<List<ReplayInfoBean>> getOnlineReplays();
+
+  List<FeaturedModFile> getFeaturedModFiles(FeaturedModBean featuredModBean, Integer version);
 }

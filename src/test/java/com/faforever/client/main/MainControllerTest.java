@@ -18,16 +18,15 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.notification.TransientNotificationsController;
-import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerInfoBeanBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.preferences.WindowPrefs;
+import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.RatingRange;
@@ -89,8 +88,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   private PreferencesService preferencesService;
   @Mock
   private LeaderboardController leaderboardController;
-  @Mock
-  private GameUpdateService gameUpdateService;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -166,7 +163,6 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.applicationContext = applicationContext;
     instance.playerService = playerService;
     instance.preferencesService = preferencesService;
-    instance.gameUpdateService = gameUpdateService;
     instance.fafService = fafService;
     instance.userService = userService;
     instance.replayVaultController = replayVaultController;

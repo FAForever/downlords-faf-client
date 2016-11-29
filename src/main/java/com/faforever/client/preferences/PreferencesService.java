@@ -43,6 +43,8 @@ import java.util.concurrent.CompletionStage;
 
 public class PreferencesService {
 
+  public static final String FORGED_ALLIANCE_EXE = "ForgedAlliance.exe";
+
   /**
    * Points to the FAF data directory where log files, config files and others are held. The returned value varies
    * depending on the operating system.
@@ -63,7 +65,6 @@ public class PreferencesService {
       Paths.get(System.getenv("ProgramFiles") + "\\Steam\\steamapps\\common\\supreme commander forged alliance"),
       Paths.get(System.getenv("ProgramFiles") + "\\Supreme Commander - Forged Alliance")
   );
-  private static final String FORGED_ALLIANCE_EXE = "ForgedAlliance.exe";
   private static final String SUPREME_COMMANDER_EXE = "SupremeCommander.exe";
   private static final Logger logger;
 

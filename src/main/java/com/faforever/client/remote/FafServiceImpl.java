@@ -1,6 +1,7 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.api.FeaturedModFile;
 import com.faforever.client.api.Ranked1v1Stats;
 import com.faforever.client.api.RatingType;
 import com.faforever.client.chat.PlayerInfoBean;
@@ -9,7 +10,7 @@ import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.game.Faction;
-import com.faforever.client.game.FeaturedModBean;
+import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
 import com.faforever.client.map.MapBean;
@@ -239,5 +240,10 @@ public class FafServiceImpl implements FafService {
   @Override
   public CompletionStage<List<ReplayInfoBean>> getOnlineReplays() {
     return fafApiAccessor.getOnlineReplays();
+  }
+
+  @Override
+  public CompletableFuture<List<FeaturedModFile>> getFeaturedModFiles(FeaturedModBean featuredMod, Integer version) {
+    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getFeaturedModFiles(featuredMod, version));
   }
 }

@@ -27,8 +27,6 @@ public interface GameService {
 
   CompletionStage<Void> joinGame(GameInfoBean gameInfoBean, String password);
 
-  CompletableFuture<List<FeaturedModBean>> getFeaturedMods();
-
   /**
    * @param path a replay file that is readable by the game without any further conversion
    * @param featuredMod
@@ -38,8 +36,6 @@ public interface GameService {
   CompletionStage<Void> runWithLiveReplay(URI replayUri, Integer gameId, String gameType, String mapName) throws IOException;
 
   ObservableList<GameInfoBean> getGameInfoBeans();
-
-  CompletableFuture<FeaturedModBean> getFeaturedMod(String gameTypeBeanName);
 
   GameInfoBean getByUid(int uid);
 

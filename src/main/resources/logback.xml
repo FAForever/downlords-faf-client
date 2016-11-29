@@ -3,7 +3,7 @@
     <logger name="org.pircbotx" level="warn"/>
     <logger name="com.google.api.client.util.store.FileDataStoreFactory" level="error"/>
 
-    <logger name="com.faforever.client.api" level="info"/>
+    <logger name="com.faforever.client.api" level="trace"/>
     <logger name="com.faforever.client.connectivity" level="debug"/>
     <logger name="com.faforever.client.preferences" level="info"/>
     <logger name="com.faforever.client.map" level="info"/>

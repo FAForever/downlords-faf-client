@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.mod.ModService;
 import com.google.common.base.Joiner;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -50,9 +51,9 @@ public class GameTileController {
   @Resource
   ApplicationContext applicationContext;
   @Resource
-  GameService gameService;
-  @Resource
   JoinGameHelper joinGameHelper;
+  @Resource
+  ModService modService;
   private Consumer<GameInfoBean> onSelectedListener;
   private GameInfoBean gameInfoBean;
 
@@ -80,7 +81,7 @@ public class GameTileController {
   public void setGameInfoBean(GameInfoBean gameInfoBean) {
     this.gameInfoBean = gameInfoBean;
 
-    gameService.getFeaturedMod(gameInfoBean.getFeaturedMod())
+    modService.getFeaturedMod(gameInfoBean.getFeaturedMod())
         .thenAccept(featuredModBean -> gameTypeLabel.setText(StringUtils.defaultString(featuredModBean.getDisplayName())));
 
     gameTitleLabel.setText(gameInfoBean.getTitle());

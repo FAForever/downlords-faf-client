@@ -23,12 +23,13 @@ public class ModInfoBeanBuilder {
 
   public ModInfoBeanBuilder defaultValues() {
     modInfo.setPublishDate(LocalDateTime.now());
+    name("Mod");
     uid(UUID.randomUUID().toString());
     version(new ComparableVersion("1"));
     return this;
   }
 
-  private ModInfoBeanBuilder version(ComparableVersion version) {
+  public ModInfoBeanBuilder version(ComparableVersion version) {
     modInfo.setVersion(version);
     return this;
   }
