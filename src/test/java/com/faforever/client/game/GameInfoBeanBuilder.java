@@ -17,7 +17,7 @@ public class GameInfoBeanBuilder {
   }
 
   public GameInfoBeanBuilder defaultValues() {
-    gameInfoBean.setFeaturedMod("faf");
+    gameInfoBean.setFeaturedMod(KnownFeaturedMod.DEFAULT.getString());
     gameInfoBean.setFeaturedModVersions(FXCollections.emptyObservableMap());
     gameInfoBean.setVictoryCondition(VictoryCondition.DEMORALIZATION);
     gameInfoBean.setHost("Host");

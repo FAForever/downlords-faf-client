@@ -7,6 +7,7 @@ import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
 import com.faforever.client.map.MapSize;
+import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.mod.ModInfoBean;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.ImmediateNotification;
@@ -155,7 +156,7 @@ public class CreateGameController {
 
   @PostConstruct
   void postConstruct() {
-    gameService.getFeaturedMods().thenAccept(featuredModBeans -> {
+    modService.getFeaturedMods().thenAccept(featuredModBeans -> {
       featuredModListView.setItems(new FilteredList<>(FXCollections.observableList(featuredModBeans), FeaturedModBean::isVisible));
       selectLastOrDefaultGameType();
     });

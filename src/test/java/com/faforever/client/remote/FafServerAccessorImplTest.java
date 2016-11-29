@@ -211,7 +211,6 @@ public class FafServerAccessorImplTest extends AbstractPlainJavaFxTest {
     InitSessionMessage initSessionMessage = gson.fromJson(json, InitSessionMessage.class);
 
     assertThat(initSessionMessage.getCommand(), is(ClientMessageType.ASK_SESSION));
-    assertThat(initSessionMessage.getVersion(), is("1.0"));
 
     SessionMessage sessionMessage = new SessionMessage();
     sessionMessage.setSession(sessionId);

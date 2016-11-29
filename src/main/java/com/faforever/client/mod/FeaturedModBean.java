@@ -1,4 +1,4 @@
-package com.faforever.client.game;
+package com.faforever.client.mod;
 
 import com.google.api.client.repackaged.com.google.common.base.Strings;
 import javafx.beans.property.BooleanProperty;
@@ -8,6 +8,7 @@ import javafx.beans.property.StringProperty;
 
 public class FeaturedModBean {
 
+  private final StringProperty id;
   private final StringProperty technicalName;
   private final StringProperty displayName;
   private final StringProperty description;
@@ -16,6 +17,7 @@ public class FeaturedModBean {
   private final BooleanProperty visible;
 
   public FeaturedModBean() {
+    id = new SimpleStringProperty();
     technicalName = new SimpleStringProperty();
     displayName = new SimpleStringProperty();
     description = new SimpleStringProperty();
@@ -26,6 +28,7 @@ public class FeaturedModBean {
 
   public static FeaturedModBean fromFeaturedMod(com.faforever.client.api.FeaturedMod featuredMod) {
     FeaturedModBean bean = new FeaturedModBean();
+    bean.setId(featuredMod.getId());
     bean.technicalName.set(featuredMod.getTechnicalName());
     bean.displayName.set(featuredMod.getDisplayName());
     bean.description.setValue(featuredMod.getDescription());
@@ -105,5 +108,17 @@ public class FeaturedModBean {
 
   public StringProperty gitBranchProperty() {
     return gitBranch;
+  }
+
+  public String getId() {
+    return id.get();
+  }
+
+  public StringProperty idProperty() {
+    return id;
+  }
+
+  public void setId(String id) {
+    this.id.set(id);
   }
 }

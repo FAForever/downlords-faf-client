@@ -18,6 +18,7 @@ public final class CacheNames {
   public static final String NEWS = "news";
   public static final String RATING_HISTORY = "ratingHistory";
   public static final String FEATURED_MODS = "featuredMods";
+  public static final String FEATURED_MOD_FILES = "featuredModFiles";
 
   private CacheNames() {
     throw new AssertionError("Not instantiatable");

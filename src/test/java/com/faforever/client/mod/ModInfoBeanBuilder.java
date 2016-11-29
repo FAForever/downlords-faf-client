@@ -1,5 +1,7 @@
 package com.faforever.client.mod;
 
+import org.apache.maven.artifact.versioning.ComparableVersion;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -21,7 +23,14 @@ public class ModInfoBeanBuilder {
 
   public ModInfoBeanBuilder defaultValues() {
     modInfo.setPublishDate(LocalDateTime.now());
+    name("Mod");
     uid(UUID.randomUUID().toString());
+    version(new ComparableVersion("1"));
+    return this;
+  }
+
+  public ModInfoBeanBuilder version(ComparableVersion version) {
+    modInfo.setVersion(version);
     return this;
   }
 

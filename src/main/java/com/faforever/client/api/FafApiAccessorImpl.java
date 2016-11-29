@@ -1,6 +1,7 @@
 package com.faforever.client.api;
 
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.mod.FeaturedModBean;
 import com.faforever.client.io.ByteCountListener;
 import com.faforever.client.io.CountingFileContent;
 import com.faforever.client.leaderboard.Ranked1v1EntryBean;
@@ -75,6 +76,7 @@ import java.util.stream.Collectors;
 
 import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.api.client.auth.oauth2.BearerToken.authorizationHeaderAccessMethod;
+import static java.lang.String.format;
 import static java.lang.String.valueOf;
 
 public class FafApiAccessorImpl implements FafApiAccessor {
@@ -241,7 +243,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Override
   @Cacheable(CacheNames.RATING_HISTORY)
   public History getRatingHistory(RatingType ratingType, int playerId) {
-    return getSingle(String.format("/players/%d/ratings/%s/history", playerId, ratingType.getString()), History.class);
+    return getSingle(format("/players/%d/ratings/%s/history", playerId, ratingType.getString()), History.class);
   }
 
   @Override
@@ -256,27 +258,27 @@ public class FafApiAccessorImpl implements FafApiAccessor {
   @Cacheable(CacheNames.MAPS)
   public List<MapBean> getMostDownloadedMaps(int count) {
     logger.debug("Getting most downloaded maps");
-    return requestMaps(String.format("/maps?page[size]=%d&sort=-downloads", count), 1);
+    return requestMaps(format("/maps?page[size]=%d&sort=-downloads", count), 1);
   }
 
   @Override
   @Cacheable(CacheNames.MAPS)
   public List<MapBean> getMostPlayedMaps(int count) {
     logger.debug("Getting most played maps");
-    return requestMaps(String.format("/maps?page[size]=%d&sort=-times_played", count), 1);
+    return requestMaps(format("/maps?page[size]=%d&sort=-times_played", count), 1);
   }
 
   @Override
   @Cacheable(CacheNames.MAPS)
   public List<MapBean> getBestRatedMaps(int count) {
     logger.debug("Getting most liked maps");
-    return requestMaps(String.format("/maps?page[size]=%d&sort=-rating", count), 1);
+    return requestMaps(format("/maps?page[size]=%d&sort=-rating", count), 1);
   }
 
   @Override
   public List<MapBean> getNewestMaps(int count) {
     logger.debug("Getting most liked maps");
-    return requestMaps(String.format("/maps?page[size]=%d&sort=-create_time", count), 1);
+    return requestMaps(format("/maps?page[size]=%d&sort=-create_time", count), 1);
   }
 
   @Override
@@ -323,6 +325,13 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     throw new UnsupportedOperationException("Not yet implemented");
   }
 
+  @Override
+  @Cacheable(CacheNames.FEATURED_MOD_FILES)
+  public List<FeaturedModFile> getFeaturedModFiles(FeaturedModBean featuredModBean, Integer version) {
+    String innerVersion = version == null ? "latest" : String.valueOf(version);
+    return getMany(format("/featured_mods/%s/files/%s", featuredModBean.getId(), innerVersion), FeaturedModFile.class);
+  }
+
   @NotNull
   private MultipartContent createFileMultipart(Path file, ByteCountListener listener) {
     HttpMediaType mediaType = new HttpMediaType("multipart/form-data").setParameter("boundary", "__END_OF_PART__");
@@ -331,7 +340,7 @@ public class FafApiAccessorImpl implements FafApiAccessor {
     String fileName = file.getFileName().toString();
     CountingFileContent fileContent = new CountingFileContent(guessMediaType(fileName).toString(), file, listener);
 
-    HttpHeaders headers = new HttpHeaders().set("Content-Disposition", String.format("form-data; name=\"file\"; filename=\"%s\"", fileName));
+    HttpHeaders headers = new HttpHeaders().set("Content-Disposition", format("form-data; name=\"file\"; filename=\"%s\"", fileName));
 
     return multipartContent.addPart(new MultipartContent.Part(headers, fileContent));
   }

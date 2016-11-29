@@ -7,14 +7,15 @@ import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
+import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ReportAction;
-import com.faforever.client.notification.Severity;
-import com.faforever.client.patch.GameUpdateService;
+import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerMessage;
@@ -60,13 +61,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static com.faforever.client.fa.RatingMode.NONE;
-import static com.faforever.client.game.KnownFeaturedMod.BALANCE_TESTING;
-import static com.faforever.client.game.KnownFeaturedMod.FAF;
-import static com.faforever.client.game.KnownFeaturedMod.FAF_BETA;
 import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
+import static com.faforever.client.notification.Severity.ERROR;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -76,9 +74,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 public class GameServiceImpl implements GameService {
 
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private static final List<String> NAMES_OF_FEATURED_BASE_MODS = Arrays.asList(FAF, FAF_BETA, BALANCE_TESTING, LADDER_1V1).stream()
-      .map(KnownFeaturedMod::getString)
-      .collect(Collectors.toList());
+
   @VisibleForTesting
   final BooleanProperty gameRunning;
   @VisibleForTesting
@@ -99,7 +95,7 @@ public class GameServiceImpl implements GameService {
   @Resource
   PreferencesService preferencesService;
   @Resource
-  GameUpdateService gameUpdateService;
+  GameUpdater gameUpdater;
   @Resource
   NotificationService notificationService;
   @Resource
@@ -118,6 +114,8 @@ public class GameServiceImpl implements GameService {
   EventBus eventBus;
   @Resource
   IceAdapter iceAdapter;
+  @Resource
+  ModService modService;
 
   @VisibleForTesting
   RatingMode ratingMode;
@@ -170,7 +168,7 @@ public class GameServiceImpl implements GameService {
     Map<String, Integer> featuredModVersions = gameInfoBean.getFeaturedModVersions();
     Set<String> simModUIds = gameInfoBean.getSimMods().keySet();
 
-    return getFeaturedMod(gameInfoBean.getFeaturedMod())
+    return modService.getFeaturedMod(gameInfoBean.getFeaturedMod())
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, featuredModVersions, simModUIds))
         .thenCompose(aVoid -> downloadMapIfNecessary(gameInfoBean.getMapFolderName()))
         .thenCompose(aVoid -> fafService.requestJoinGame(gameInfoBean.getUid(), password))
@@ -195,17 +193,12 @@ public class GameServiceImpl implements GameService {
   }
 
   @Override
-  public CompletableFuture<List<FeaturedModBean>> getFeaturedMods() {
-    return fafService.getFeaturedMods();
-  }
-
-  @Override
   public void runWithReplay(Path path, @Nullable Integer replayId, String featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simMods, String mapName) {
     if (isRunning()) {
       logger.warn("Forged Alliance is already running, not starting replay");
       return;
     }
-    getFeaturedMod(featuredMod)
+    modService.getFeaturedMod(featuredMod)
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, version, modVersions, simMods))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
         .thenRun(() -> {
@@ -228,7 +221,7 @@ public class GameServiceImpl implements GameService {
     notificationService.addNotification(new ImmediateNotification(
         i18n.get("errorTitle"),
         i18n.get("replayCouldNotBeStarted", replayId),
-        Severity.ERROR, throwable,
+        ERROR, throwable,
         singletonList(new Action(i18n.get("report"))))
     );
   }
@@ -245,7 +238,7 @@ public class GameServiceImpl implements GameService {
     Map<String, Integer> modVersions = gameBean.getFeaturedModVersions();
     Set<String> simModUids = gameBean.getSimMods().keySet();
 
-    return getFeaturedMod(gameType)
+    return modService.getFeaturedMod(gameType)
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, modVersions, simModUids))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
         .thenRun(() -> noCatch(() -> {
@@ -258,16 +251,7 @@ public class GameServiceImpl implements GameService {
 
   @Override
   public ObservableList<GameInfoBean> getGameInfoBeans() {
-    return FXCollections.unmodifiableObservableList(gameInfoBeans);
-  }
-
-  @Override
-  public CompletableFuture<FeaturedModBean> getFeaturedMod(String featuredMod) {
-    return getFeaturedMods().thenCompose(featuredModBeans -> completedFuture(featuredModBeans.stream()
-        .filter(featuredModBean -> featuredMod.equals(featuredModBean.getTechnicalName()))
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Not a valid featured mod: " + featuredMod))
-    ));
+    return gameInfoBeans;
   }
 
   @Override
@@ -295,7 +279,7 @@ public class GameServiceImpl implements GameService {
 
     int port = preferencesService.getPreferences().getForgedAlliance().getPort();
 
-    return getFeaturedMod(LADDER_1V1.getString())
+    return modService.getFeaturedMod(LADDER_1V1.getString())
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
         .thenCompose(aVoid -> fafService.startSearchRanked1v1(faction, port))
         .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapname())
@@ -343,14 +327,7 @@ public class GameServiceImpl implements GameService {
   }
 
   private CompletionStage<Void> updateGameIfNecessary(FeaturedModBean featuredMod, @Nullable Integer version, @NotNull Map<String, Integer> featuredModVersions, @NotNull Set<String> simModUids) {
-    if (NAMES_OF_FEATURED_BASE_MODS.contains(featuredMod.getTechnicalName())) {
-      return gameUpdateService.updateBaseMod(featuredMod, version, featuredModVersions, simModUids);
-    }
-
-    return gameUpdateService.updateBaseMod(featuredMod, version, featuredModVersions, simModUids)
-        .thenCompose(aVoid -> getFeaturedMod(KnownFeaturedMod.FAF.getString()))
-        .thenAccept(featuredBaseMod -> gameUpdateService.updateBaseMod(featuredBaseMod, version, featuredModVersions, simModUids))
-        .thenRun(() -> gameUpdateService.updateBaseMod(featuredMod, version, featuredModVersions, simModUids));
+    return gameUpdater.update(featuredMod, version, featuredModVersions, simModUids);
   }
 
   @Override
@@ -391,7 +368,7 @@ public class GameServiceImpl implements GameService {
           logger.warn("Game could not be started", throwable);
           notificationService.addNotification(
               new ImmediateNotification(i18n.get("errorTitle"),
-                  i18n.get("game.start.couldNotStart"), Severity.ERROR, throwable, Arrays.asList(
+                  i18n.get("game.start.couldNotStart"), ERROR, throwable, Arrays.asList(
                   new ReportAction(i18n, reportingService, throwable), new DismissAction(i18n)))
           );
           setGameRunning(false);
@@ -441,7 +418,7 @@ public class GameServiceImpl implements GameService {
   private void rehost() {
     GameInfoBean gameInfoBean = currentGame.get();
 
-    getFeaturedMod(gameInfoBean.getFeaturedMod())
+    modService.getFeaturedMod(gameInfoBean.getFeaturedMod())
         .thenAccept(featuredModBean -> hostGame(new NewGameInfo(
             gameInfoBean.getTitle(),
             gameInfoBean.getPassword(),

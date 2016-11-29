@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 
+import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.file.Files.copy;
 import static java.nio.file.Files.createDirectories;
@@ -90,7 +91,7 @@ public class GameBinariesUpdateTask extends CompletableTask<Void> {
     Assert.checkNullIllegalState(version, "Field 'version' must not be null");
     logger.info("Updating binaries to {}", version);
 
-    Path exePath = preferencesService.getFafBinDirectory().resolve("ForgedAlliance.exe");
+    Path exePath = preferencesService.getFafBinDirectory().resolve(FORGED_ALLIANCE_EXE);
 
     copyGameFilesToFafBinDirectory();
     downloadFafExeIfNecessary(exePath);
@@ -103,6 +104,7 @@ public class GameBinariesUpdateTask extends CompletableTask<Void> {
   static void updateVersionInExe(Integer version, Path exePath) throws IOException {
     byte[] versionAsLittleEndianBytes = toLittleEndianByteArray(version);
     try (RandomAccessFile randomAccessFile = new RandomAccessFile(exePath.toFile(), "rw")) {
+      logger.debug("Updating version in {} to {}", exePath, version);
       for (int versionAddress : VERSION_ADDRESSES) {
         randomAccessFile.seek(versionAddress);
         randomAccessFile.write(versionAsLittleEndianBytes);

@@ -1,5 +1,6 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.patch.MountPoint;
 import com.faforever.client.task.CompletableTask;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
@@ -8,10 +9,12 @@ import javafx.scene.image.Image;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 public interface ModService {
@@ -20,7 +23,7 @@ public interface ModService {
 
   ObservableList<ModInfoBean> getInstalledMods();
 
-  void downloadAndInstallMod(String uid);
+  CompletionStage<Void> downloadAndInstallMod(String uid);
 
   CompletionStage<Void> downloadAndInstallMod(URL url);
 
@@ -66,4 +69,10 @@ public interface ModService {
   void evictModsCache();
 
   ComparableVersion readModVersion(Path modDirectory);
+
+  CompletableFuture<List<FeaturedModBean>> getFeaturedMods();
+
+  CompletableFuture<FeaturedModBean> getFeaturedMod(String gameTypeBeanName);
+
+  List<MountPoint> readMountPoints(InputStream inputStream, Path basePath);
 }

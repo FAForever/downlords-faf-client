@@ -1,5 +1,7 @@
 package com.faforever.client.game;
 
+import com.faforever.client.mod.FeaturedModBean;
+
 public class FeaturedModBeanBuilder {
 
   private final FeaturedModBean featuredModBean;

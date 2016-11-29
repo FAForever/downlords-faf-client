@@ -25,7 +25,6 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.os.OperatingSystem;
-import com.faforever.client.patch.GameUpdateService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.OnChooseGameDirectoryListener;
 import com.faforever.client.preferences.PreferencesService;
@@ -203,8 +202,6 @@ public class MainController implements OnChooseGameDirectoryListener {
   MapVaultController mapMapVaultController;
   @Resource
   CastsController castsController;
-  @Resource
-  GameUpdateService gameUpdateService;
   @Resource
   GameService gameService;
   @Resource

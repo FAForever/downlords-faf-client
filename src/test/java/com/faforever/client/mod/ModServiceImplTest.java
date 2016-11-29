@@ -3,6 +3,7 @@ package com.faforever.client.mod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ByteCopier;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.patch.MountPoint;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -18,6 +19,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.store.RAMDirectory;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
@@ -40,6 +42,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -90,6 +93,8 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private AssetService assetService;
+  @Mock
+  private ThreadPoolExecutor threadPoolExecutor;
 
   private ModServiceImpl instance;
   private Path gamePrefsPath;
@@ -104,6 +109,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     instance.fafService = fafService;
     instance.notificationService = notificationService;
     instance.assetService = assetService;
+    instance.threadPoolExecutor = threadPoolExecutor;
     instance.directory = new RAMDirectory();
     instance.analyzer = new SimpleAnalyzer();
 
@@ -313,7 +319,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     ModInfoBean modInfoBean = installedMods.get(0);
 
     assertThat(modInfoBean.getName(), is("BlackOps Global Icon Support Mod"));
-    assertThat(modInfoBean.getVersion(), is("5"));
+    assertThat(modInfoBean.getVersion(), is(new ComparableVersion("5")));
     assertThat(modInfoBean.getAuthor(), is("Exavier Macbeth, DeadMG"));
     assertThat(modInfoBean.getDescription(), is("Version 5.0. This mod provides global icon support for any mod that places their icons in the proper folder structure. See Readme"));
     assertThat(modInfoBean.getImagePath(), nullValue());
@@ -324,7 +330,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     modInfoBean = installedMods.get(1);
 
     assertThat(modInfoBean.getName(), is("BlackOps Unleashed"));
-    assertThat(modInfoBean.getVersion(), is("8"));
+    assertThat(modInfoBean.getVersion(), is(new ComparableVersion("8")));
     assertThat(modInfoBean.getAuthor(), is("Lt_hawkeye"));
     assertThat(modInfoBean.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
     assertThat(modInfoBean.getImagePath(), is(modsDirectory.getRoot().toPath().resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
@@ -335,7 +341,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     modInfoBean = installedMods.get(2);
 
     assertThat(modInfoBean.getName(), is("EcoManager"));
-    assertThat(modInfoBean.getVersion(), is("3"));
+    assertThat(modInfoBean.getVersion(), is(new ComparableVersion("3")));
     assertThat(modInfoBean.getAuthor(), is("Crotalus"));
     assertThat(modInfoBean.getDescription(), is("EcoManager v3, more efficient energy throttling"));
     assertThat(modInfoBean.getImagePath(), nullValue());
@@ -385,7 +391,6 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGetPathForModUnknownModReturnsNull() throws Exception {
     assertThat(instance.getInstalledMods(), hasSize(1));
-
     assertThat(instance.getPathForMod(ModInfoBeanBuilder.create().uid("1").get()), Matchers.nullValue());
   }
 
@@ -400,9 +405,7 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
     instance.uploadMod(modPath);
 
     verify(applicationContext).getBean(ModUploadTask.class);
-
     verify(modUploadTask).setModPath(modPath);
-
     verify(taskService).submitTask(modUploadTask);
   }
 
@@ -413,5 +416,66 @@ public class ModServiceImplTest extends AbstractPlainJavaFxTest {
         .get();
     instance.loadThumbnail(mod);
     verify(assetService).loadAndCacheImage(mod.getThumbnailUrl(), Paths.get("mods"), null);
+  }
+
+  @Test
+  public void testReadMountPoints() throws Exception {
+    try (InputStream inputStream = getClass().getResourceAsStream("/featured_mod/mod_info.lua")) {
+      List<MountPoint> mountPoints = instance.readMountPoints(inputStream, Paths.get("."));
+      assertThat(mountPoints, hasSize(10));
+      assertThat(mountPoints.get(3).getDirectory(), is(Paths.get(".").resolve("effects")));
+      assertThat(mountPoints.get(3).getMountPath(), is("/effects"));
+    }
+  }
+
+  @Test
+  public void testGetAvailableMods() throws Exception {
+    mockThreadPool();
+
+    when(fafService.getMods()).thenReturn(Arrays.asList(
+        ModInfoBeanBuilder.create().defaultValues().uid("1").get(),
+        ModInfoBeanBuilder.create().defaultValues().uid("2").get()
+    ));
+    List<ModInfoBean> modInfoBeen = instance.getAvailableMods().toCompletableFuture().get();
+    assertThat(modInfoBeen, hasSize(2));
+  }
+
+  @Test
+  public void testGetMostLikedUiMods() throws Exception {
+    mockThreadPool();
+
+    when(fafService.getMods()).thenReturn(Arrays.asList(
+        ModInfoBeanBuilder.create().defaultValues().uid("1").uiMod(true).get(),
+        ModInfoBeanBuilder.create().defaultValues().uid("2").uiMod(false).get(),
+        ModInfoBeanBuilder.create().defaultValues().uid("3").uiMod(true).get()
+    ));
+    List<ModInfoBean> mods = instance.getMostLikedUiMods(1).toCompletableFuture().get();
+    assertThat(mods, hasSize(1));
+    assertThat(mods.get(0).getId(), is("1"));
+  }
+
+  @Test
+  public void testLookupMod() throws Exception {
+    mockThreadPool();
+
+    when(fafService.getMods()).thenReturn(Arrays.asList(
+        ModInfoBeanBuilder.create().defaultValues().uid("1").name("Test mod 1").get(),
+        ModInfoBeanBuilder.create().defaultValues().uid("2").name("Mod test").get(),
+        ModInfoBeanBuilder.create().defaultValues().uid("3").name("Another mod").get()
+    ));
+
+    List<ModInfoBean> mods = instance.lookupMod("test", 3).toCompletableFuture().get();
+    assertThat(mods, hasSize(2));
+    assertThat(mods.get(0).getId(), is("1"));
+    assertThat(mods.get(0).getVersion(), is(new ComparableVersion("1")));
+    assertThat(mods.get(1).getId(), is("2"));
+    assertThat(mods.get(1).getVersion(), is(new ComparableVersion("1")));
+  }
+
+  private void mockThreadPool() {
+    doAnswer(invocation -> {
+      invocation.getArgumentAt(0, Runnable.class).run();
+      return null;
+    }).when(threadPoolExecutor).execute(any(Runnable.class));
   }
 }

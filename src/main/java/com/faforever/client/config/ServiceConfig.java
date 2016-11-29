@@ -14,6 +14,7 @@ import com.faforever.client.events.EventService;
 import com.faforever.client.events.EventServiceImpl;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.ForgedAllianceServiceImpl;
+import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameServiceImpl;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -31,10 +32,13 @@ import com.faforever.client.news.NewsService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.NotificationServiceImpl;
 import com.faforever.client.os.OperatingSystem;
-import com.faforever.client.patch.GameUpdateService;
-import com.faforever.client.patch.GitRepositoryGameUpdateService;
+import com.faforever.client.patch.FeaturedModUpdater;
+import com.faforever.client.patch.GameUpdater;
+import com.faforever.client.patch.GameUpdaterImpl;
+import com.faforever.client.patch.GitRepositoryFeaturedModUpdater;
 import com.faforever.client.patch.GitWrapper;
 import com.faforever.client.patch.JGitWrapper;
+import com.faforever.client.patch.SimpleHttpFeaturedModUpdater;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PlayerServiceImpl;
 import com.faforever.client.preferences.PreferencesService;
@@ -64,7 +68,7 @@ import com.faforever.client.theme.ThemeServiceImpl;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.ClientUpdateServiceImpl;
 import com.faforever.client.update.MockClientUpdateService;
-import com.faforever.client.update.MockGameUpdateService;
+import com.faforever.client.update.MockFeaturedModUpdater;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.uploader.imgur.ImgurImageUploadService;
 import com.faforever.client.user.UserService;
@@ -177,11 +181,23 @@ public class ServiceConfig {
   }
 
   @Bean
-  GameUpdateService patchService() {
+  GameUpdater gameUpdater() {
+    return new GameUpdaterImpl()
+        .addFeaturedModUpdater(gitFeaturedModUpdater())
+        .addFeaturedModUpdater(httpFeaturedModUpdater());
+  }
+
+  @Bean
+  FeaturedModUpdater gitFeaturedModUpdater() {
     if (environment.containsProperty("disable.update")) {
-      return new MockGameUpdateService();
+      return new MockFeaturedModUpdater();
     }
-    return new GitRepositoryGameUpdateService();
+    return new GitRepositoryFeaturedModUpdater();
+  }
+
+  @Bean
+  FeaturedModUpdater httpFeaturedModUpdater() {
+    return new SimpleHttpFeaturedModUpdater();
   }
 
   @Bean
@@ -281,5 +297,10 @@ public class ServiceConfig {
   @Bean
   AssetService assetAccessor() {
     return new AssetServiceImpl();
+  }
+
+  @Bean
+  FaInitGenerator faInitGenerator() {
+    return new FaInitGenerator();
   }
 }

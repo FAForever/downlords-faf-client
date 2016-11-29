@@ -7,7 +7,8 @@ import com.faforever.client.mod.InstallModTask;
 import com.faforever.client.mod.ModUploadTask;
 import com.faforever.client.mod.UninstallModTask;
 import com.faforever.client.patch.GameBinariesUpdateTask;
-import com.faforever.client.patch.GitFeaturedModsUpdateTask;
+import com.faforever.client.patch.GitFeaturedModUpdateTask;
+import com.faforever.client.patch.SimpleHttpFeaturedModUpdaterTask;
 import com.faforever.client.replay.LoadLocalReplaysTask;
 import com.faforever.client.replay.ReplayDownloadTask;
 import com.faforever.client.update.CheckForUpdateTask;
@@ -27,8 +28,8 @@ public class TaskConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  GitFeaturedModsUpdateTask gitFeaturedModUpdateTask() {
-    return new GitFeaturedModsUpdateTask();
+  GitFeaturedModUpdateTask gitFeaturedModUpdateTask() {
+    return new GitFeaturedModUpdateTask();
   }
 
   @Bean
@@ -107,5 +108,11 @@ public class TaskConfig {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   ChangePasswordTask changeMapTask() {
     return new ChangePasswordTask();
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  SimpleHttpFeaturedModUpdaterTask simpleHttpFeaturedModUpdaterTask() {
+    return new SimpleHttpFeaturedModUpdaterTask();
   }
 }

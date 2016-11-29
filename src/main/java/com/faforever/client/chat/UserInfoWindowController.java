@@ -230,7 +230,7 @@ public class UserInfoWindowController {
     countryImageView.setImage(countryFlagService.loadCountryFlag(playerInfoBean.getCountry()));
     avatarImageView.setImage(IdenticonUtil.createIdenticon(playerInfoBean.getId()));
     gamesPlayedLabel.setText(String.format(locale, "%d", playerInfoBean.getNumberOfGames()));
-    ratingLabelGlobal.setText(String.format(locale, "%d", RatingUtil.getRoundedGlobalRating(playerInfoBean)));
+    ratingLabelGlobal.setText(String.format(locale, "%d", RatingUtil.getGlobalRating(playerInfoBean)));
     ratingLabel1v1.setText(String.format(locale, "%d", RatingUtil.getLeaderboardRating(playerInfoBean)));
 
     CountryCode countryCode = CountryCode.getByCode(playerInfoBean.getCountry());

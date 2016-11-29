@@ -84,6 +84,12 @@ public class PlayerServiceImpl implements PlayerService {
           gameInfoBean.statusProperty().removeListener(statusChangeListeners.remove(gameInfoBean.getUid()));
         }
 
+        if (listChange.wasUpdated()) {
+          for (int i = listChange.getFrom(); i < listChange.getTo(); i++) {
+            updateGameStateForPlayers(listChange.getList().get(i));
+          }
+        }
+
         for (GameInfoBean gameInfoBean : listChange.getAddedSubList()) {
           updateGameStateForPlayers(gameInfoBean);
           InvalidationListener statusChangeListener = statusChange -> updateGameStateForPlayers(gameInfoBean);

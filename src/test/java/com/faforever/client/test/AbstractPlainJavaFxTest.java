@@ -4,7 +4,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import org.junit.Assert;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.support.MessageSourceResourceBundle;
@@ -37,7 +36,6 @@ public class AbstractPlainJavaFxTest extends ApplicationTest {
   public void start(Stage stage) throws Exception {
     this.stage = stage;
     MockitoAnnotations.initMocks(this);
-    Thread.setDefaultUncaughtExceptionHandler(AbstractPlainJavaFxTest::uncaughtException);
 
     scene = new Scene(getRoot(), 1, 1);
     stage.setScene(scene);
@@ -73,10 +71,5 @@ public class AbstractPlainJavaFxTest extends ApplicationTest {
 
   protected URL getThemeFileUrl(String file) {
     return noCatch(() -> new ClassPathResource(getThemeFile(file)).getURL());
-  }
-
-  private static void uncaughtException(Thread t, Throwable e) {
-    e.printStackTrace();
-    Assert.fail(e.getMessage());
   }
 }

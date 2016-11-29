@@ -3,6 +3,8 @@ package com.faforever.client.game;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapServiceImpl.PreviewSize;
+import com.faforever.client.mod.FeaturedModBean;
+import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameState;
@@ -101,6 +103,8 @@ public class GamesController {
   PreferencesService preferencesService;
   @Resource
   NotificationService notificationService;
+  @Resource
+  ModService modService;
 
   private FilteredList<GameInfoBean> filteredItems;
   private Stage mapDetailPopup;
@@ -229,7 +233,7 @@ public class GamesController {
     mapLabel.textProperty().bind(gameInfoBean.mapFolderNameProperty());
 
     gameTypeLabel.textProperty().bind(createStringBinding(() -> {
-      FeaturedModBean gameType = gameService.getFeaturedMod(gameInfoBean.getFeaturedMod()).get();
+      FeaturedModBean gameType = modService.getFeaturedMod(gameInfoBean.getFeaturedMod()).get();
       String fullName = gameType != null ? gameType.getDisplayName() : null;
       return StringUtils.defaultString(fullName);
     }, gameInfoBean.featuredModProperty()));
